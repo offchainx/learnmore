@@ -14,8 +14,9 @@
 
 ### Phase 1: Foundation (🚧 In Progress)
 
-- [x] Story-001: Infrastructure Initialization (🟡 In Progress)
-- [ ] Supabase 数据库连接
+- [x] Story-001: Infrastructure Initialization (✅ Done)
+- [x] Story-002: Database Schema & Migration (✅ Done)
+- [ ] Story-003: Auth (🚧 Next)
 - [ ] Prisma Schema 定义 & Migration
 - [ ] 基础 UI 框架搭建 (Shadcn/ui)
 - [ ] 身份认证流程 (Login/Register)
@@ -35,4 +36,4 @@
 
 - 2025-12-09: 完成 v2.2 版架构设计文档，确认 Next.js + Supabase + Prisma 方案。
 - 2025-12-09: 建立 Memory Bank 机制。
-- 2025-12-09: 启动 Story-001 Infrastructure Initialization，开始项目初始化。
+- 2025-12-09: 完成 Story-001 Infrastructure Initialization，基础设施搭建完毕。

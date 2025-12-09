@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============ 用户模块 ============
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  username  String?  @unique
+  role      UserRole @default(STUDENT)
+  avatar    String?
+  grade     Int?     // 年级 (7-9)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  progress    UserProgress[]
+  attempts    UserAttempt[]
+  errorBook   ErrorBook[]
+  posts       Post[]
+  comments    Comment[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+// ============ 课程模块 ============
+model Subject {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String    @unique // 数学, 物理, 化学...
+  icon     String?
+  order    Int       @default(0)
+  chapters Chapter[]
+
+  @@map("subjects")
+}
+
+model Chapter {
+  id        String   @id @default(uuid()) @db.Uuid
+  subjectId String   @map("subject_id") @db.Uuid
+  parentId  String?  @map("parent_id") @db.Uuid // 自关联实现树形结构
+  title     String
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  subject  Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  parent   Chapter?   @relation("ChapterTree", fields: [parentId], references: [id])
+  children Chapter[]  @relation("ChapterTree")
+  lessons  Lesson[]
+  questions Question[]
+
+  @@index([subjectId])
+  @@index([parentId])
+  @@map("chapters")
+}
+
+model Lesson {
+  id         String      @id @default(uuid()) @db.Uuid
+  chapterId  String      @map("chapter_id") @db.Uuid
+  title      String
+  type       LessonType  @default(VIDEO)
+  videoUrl   String?     @map("video_url")
+  content    String?     @db.Text // Markdown 内容
+  duration   Int?        // 视频时长(秒)
+  order      Int         @default(0)
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  chapter  Chapter        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progress UserProgress[]
+
+  @@index([chapterId])
+  @@map("lessons")
+}
+
+enum LessonType {
+  VIDEO
+  DOCUMENT
+  EXERCISE
+}
+
+// ============ 学习进度 ============
+model UserProgress {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  lessonId     String   @map("lesson_id") @db.Uuid
+  progress     Float    @default(0) // 0-100
+  isCompleted  Boolean  @default(false) @map("is_completed")
+  lastPosition Int?     @map("last_position") // 视频最后播放位置(秒)
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@map("user_progress")
+}
+
+// ============ 题库模块 ============
+model Question {
+  id         String       @id @default(uuid()) @db.Uuid
+  chapterId  String       @map("chapter_id") @db.Uuid
+  type       QuestionType
+  difficulty Int          @default(3) // 1-5星
+  content    String       @db.Text // 题干(Markdown+LaTeX)
+  options    Json?        // 选项 {"A": "...", "B": "..."}
+  answer     Json         // 答案 "A" 或 ["A", "C"]
+  explanation String?     @db.Text // 解析
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  chapter   Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  attempts  UserAttempt[]
+  errorBook ErrorBook[]
+
+  @@index([chapterId])
+  @@index([difficulty])
+  @@map("questions")
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  ESSAY
+}
+
+model UserAttempt {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  userAnswer Json     @map("user_answer")
+  isCorrect  Boolean  @map("is_correct")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([createdAt])
+  @@map("user_attempts")
+}
+
+model ErrorBook {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  questionId   String   @map("question_id") @db.Uuid
+  masteryLevel Int      @default(0) @map("mastery_level") // 0-3
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@index([userId])
+  @@map("error_book")
+}
+
+// ============ 社区模块 ============
+model Post {
+  id        String    @id @default(uuid()) @db.Uuid
+  authorId  String    @map("author_id") @db.Uuid
+  title     String
+  content   String    @db.Text
+  subjectId String?   @map("subject_id") @db.Uuid
+  likeCount Int       @default(0) @map("like_count")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments Comment[]
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("comments")
+}
