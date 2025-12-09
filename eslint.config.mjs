@@ -18,6 +18,13 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": "error",
     },
   },
+  // Allow console.log in test files
+  {
+    files: ["**/__tests__/**/*", "**/*.test.ts", "**/*.test.tsx"],
+    rules: {
+      "no-console": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **SYSTEM ROLE**: You are the Senior Full-Stack Developer for the "LearnMore" Middle School Online Education Platform.
 
 **CORE PHILOSOPHY**: **Story-Driven Development** following BMAD-METHOD.
+
 - The documentation in `docs/` is the single source of truth
 - All development follows the Stories defined in `docs/stories/`
 - Code must align with PRD.md and TECH_STACK.md
@@ -26,6 +27,7 @@ This is a **middle school online education platform** project ("中学生在线�
 **Target Users**: Middle school students (grades 7-9, ages 12-16)
 
 **Core Features**:
+
 - User system (registration, login, authentication)
 - Course learning (6 subjects: Math, Chinese, English, Physics, Chemistry, Biology)
 - Question bank and practice system
@@ -42,6 +44,7 @@ This is a **middle school online education platform** project ("中学生在线�
 The actual tech stack has been **optimized for MVP rapid development**:
 
 ### Frontend
+
 - **Framework**: **Next.js 14+** (App Router) ⭐ Full-stack framework
 - **Language**: TypeScript 5.x (Strict mode)
 - **UI Library**: **Shadcn/ui** (Radix UI + Tailwind)
@@ -54,6 +57,7 @@ The actual tech stack has been **optimized for MVP rapid development**:
 - **Math Rendering**: KaTeX
 
 ### Backend (BFF Pattern)
+
 - **Framework**: **Next.js Server Actions** + API Routes
 - **ORM**: **Prisma** (Mandatory for all DB operations)
 - **Database**: PostgreSQL (via Supabase)
@@ -63,14 +67,15 @@ The actual tech stack has been **optimized for MVP rapid development**:
 - **Message Queue**: None (MVP), RabbitMQ (V2.0+)
 
 ### 🔑 Key Principle: **Prisma Isolation**
+
 ```typescript
 // ❌ NEVER do this in Client Components
 'use client'
-import prisma from '@/lib/prisma'  // ERROR!
+import prisma from '@/lib/prisma' // ERROR!
 
 // ✅ ALWAYS use Server Actions or API Routes
-'use server'
-import prisma from '@/lib/prisma'  // Correct
+;('use server')
+import prisma from '@/lib/prisma' // Correct
 
 export async function getUsers() {
   return await prisma.user.findMany()
@@ -178,6 +183,7 @@ ls docs/stories/completed/
 ```
 
 **Example**:
+
 - ❌ Cannot start Story-006 (Course Tree) if Story-003 (Auth) is not completed
 - ✅ Can start Story-004 (Layout) in parallel with Story-003
 
@@ -190,6 +196,7 @@ ls docs/stories/completed/
 The database schema is defined in `docs/stories/backlog/story-002-schema.md`.
 
 **Core Tables**:
+
 - `User`: Authentication and profile data
 - `Subject`: 6 subjects (Math, Physics, Chemistry, English, Chinese, Biology)
 - `Chapter`: Tree structure (self-referential via parentId)
@@ -203,6 +210,7 @@ The database schema is defined in `docs/stories/backlog/story-002-schema.md`.
 - `LeaderboardEntry`: Rankings (PostgreSQL for MVP, Redis for V2.0)
 
 **Important**:
+
 - All tables use UUID as primary key
 - Foreign keys use `onDelete: Cascade` for data integrity
 - Indexes are added for high-frequency queries
@@ -233,6 +241,7 @@ Supabase (BaaS)
 ```
 
 **Key Design Principles**:
+
 1. **Backend for Frontend (BFF)**: Next.js handles both frontend and backend
 2. **Vendor Lock-in Avoidance**: Business logic in TypeScript, Supabase is replaceable
 3. **Type Safety First**: End-to-end TypeScript with Prisma
@@ -245,6 +254,7 @@ Supabase (BaaS)
 ## Development Phases
 
 ### Phase 1: Foundation (Stories 001-005) - Week 1-2
+
 - Story-001: Infrastructure Initialization (2h)
 - Story-002: Database Schema & Migration (4-6h) 🔴 High Risk
 - Story-003: Authentication System (6-8h) 🔴 High Risk
@@ -252,23 +262,27 @@ Supabase (BaaS)
 - Story-005: Seed Data (2-3h)
 
 ### Phase 2: Course Engine (Stories 006-009) - Week 2-3
+
 - Story-006: Course Tree Component (6-8h)
 - Story-007: Lesson Page Layout (4-6h)
 - Story-008: Video Player Integration (6-8h)
 - Story-009: Learning Progress Sync (6-8h)
 
 ### Phase 3: Question Bank (Stories 010-013) - Week 3-4
+
 - Story-010: Question Rendering Engine (6-8h)
 - Story-011: Quiz Mode Logic (6-8h)
 - Story-012: Grading & Submission (6-8h) 🔴 High Risk
 - Story-013: Error Book System (4-6h)
 
 ### Phase 4: Community (Stories 014-016) - Week 4-5
+
 - Story-014: Community Forum List (6-8h)
 - Story-015: Rich Text Post Editor (8-10h)
 - Story-016: Post Detail & Comments (6-8h)
 
 ### Phase 5: Growth & Stats (Stories 017-020) - Week 5-6
+
 - Story-017: User Dashboard (6-8h)
 - Story-018: Data Visualization (6-8h)
 - Story-019: Database-Based Leaderboard (6-8h) ⚠️ Changed from Redis
@@ -305,6 +319,7 @@ CREATE TRIGGER on_auth_user_created
 
 **Challenge**: Real-time video progress tracking
 **Solution**:
+
 - Frontend reports progress every 30 seconds (debounced)
 - Server Action writes to database
 - Optimistic UI updates immediately
@@ -313,6 +328,7 @@ CREATE TRIGGER on_auth_user_created
 
 **Challenge**: Real-time grading with complex logic
 **Solution**:
+
 - Single-choice: String comparison
 - Multiple-choice: Array comparison (partial credit)
 - Fill-blank: Flexible matching with `toLowerCase()` and `trim()`
@@ -322,6 +338,7 @@ CREATE TRIGGER on_auth_user_created
 
 **Decision**: Use PostgreSQL for MVP instead of Redis
 **Rationale**:
+
 - Lower cost (Supabase free tier)
 - Simpler development (already using Prisma)
 - Performance sufficient for <1000 users
@@ -333,6 +350,7 @@ CREATE TRIGGER on_auth_user_created
 
 **Challenge**: Display complex mathematical formulas
 **Solution**: KaTeX (faster than MathJax)
+
 ```typescript
 import 'katex/dist/katex.min.css'
 import { InlineMath, BlockMath } from 'react-katex'
@@ -346,6 +364,7 @@ import { InlineMath, BlockMath } from 'react-katex'
 ## Development Workflow
 
 ### Git Branch Strategy (Git Flow)
+
 - `main`: Production releases only
 - `develop`: Integration branch for development
 - `feature/story-XXX-name`: Feature development (one branch per Story)
@@ -364,6 +383,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ### Code Review Requirements
+
 - At least 1 reviewer approval
 - ESLint/Prettier checks pass
 - No TypeScript errors (`pnpm tsc --noEmit`)
@@ -375,12 +395,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Performance Targets
 
 ### API Response Times (from Stories)
+
 - Server Actions: P95 < 200ms
 - Database queries: < 50ms
 - Page load (FCP): < 1s
 - Page load (TTI): < 3s
 
 ### Optimization Strategies
+
 - Use Next.js Server Components for data fetching
 - Add database indexes on foreign keys
 - Use Vercel Edge Caching for static content
@@ -392,23 +414,27 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Security Guidelines (Critical)
 
 ### Authentication
+
 - ✅ Use Supabase Auth (handles password hashing)
 - ✅ Store sessions in HttpOnly cookies
 - ✅ Use Middleware for route protection
 - ❌ Never expose `SUPABASE_SERVICE_ROLE_KEY` to client
 
 ### Database Access
+
 - ✅ Always use Prisma (prevents SQL injection)
 - ✅ Use Zod for input validation
 - ❌ Never trust client input
 - ❌ Never expose internal IDs in URLs (use UUIDs)
 
 ### XSS Prevention
+
 - ✅ React automatically escapes JSX
 - ✅ Use `rehype-sanitize` for Markdown/HTML content
 - ❌ Never use `dangerouslySetInnerHTML` without sanitization
 
 ### File Uploads
+
 - ✅ Validate file types and sizes
 - ✅ Use Supabase Storage signed URLs
 - ✅ Set URL expiration (e.g., 1 hour)
@@ -419,19 +445,24 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Testing Strategy
 
 ### Unit Tests (Jest/Vitest)
+
 - Target: >80% coverage for utility functions
 - Focus: Business logic, grading algorithms, validation schemas
 
 ### Integration Tests (Playwright)
+
 - Focus: Server Actions, API Routes
 - Use test database (separate from dev/prod)
 
 ### E2E Tests (Playwright)
+
 - Critical paths: Auth, Quiz submission, Progress tracking
 - Run before each production deployment
 
 ### Manual Testing Checklist (from Stories)
+
 Each Story has a "3. Verification" section with specific tests:
+
 ```markdown
 - [ ] Feature works on Desktop (1920x1080)
 - [ ] Feature works on Mobile (375x667)
@@ -470,6 +501,7 @@ pnpm db:seed
 ```
 
 ### Backup Strategy (Supabase)
+
 - **Automatic**: Supabase Point-in-Time Recovery (enabled by default)
 - **Manual**: Export via Supabase Dashboard → Database → Backups
 - **Frequency**: Daily automatic backups retained for 7 days
@@ -479,6 +511,7 @@ pnpm db:seed
 ## Important Documentation Files
 
 ### Core Documents (Read These First)
+
 1. **docs/PRD.md** - Product Requirements Document
    - User stories and feature specifications
    - API response format standards
@@ -501,12 +534,15 @@ pnpm db:seed
    - Troubleshooting FAQ
 
 ### Story Documents (20 total)
+
 Located in `docs/stories/backlog/`:
+
 - Each Story is a complete work package
 - Includes: Objectives, Tech Plan, Verification, Rollback Plan
 - Average 200-400 lines per Story
 
 ### Legacy Documents (For Reference Only)
+
 - `中学生在线教育平台-完整开发路径文档.md` (Original Chinese spec)
 - `补充文档-开发效率与维护管理.md` (Supplementary guide)
 
@@ -517,6 +553,7 @@ Located in `docs/stories/backlog/`:
 ### 1. Always Start with Story Context
 
 Before writing any code:
+
 ```bash
 # 1. Check which Story is active
 ls docs/stories/active/
@@ -538,19 +575,23 @@ grep "前置依赖" docs/stories/active/story-XXX-*.md
 ### 3. Mandatory File Operations
 
 **After completing an Objective**:
+
 ```bash
 # Update Story file checkbox
 sed -i '' 's/- \[ \] Objective X/- [x] Objective X/' docs/stories/active/story-XXX-*.md
 ```
 
 **When encountering issues**:
+
 ```markdown
 ## 8. Notes & Learnings
 
 ### 遇到的坑
+
 - Issue description...
 
 ### 解决方案
+
 - Solution...
 ```
 
@@ -577,28 +618,58 @@ pnpm build          # Production build
 
 ```typescript
 // User system
-User: id (UUID), email, username, role (STUDENT|TEACHER|ADMIN), avatar, grade
+User: (id(UUID),
+  email,
+  username,
+  role(STUDENT | TEACHER | ADMIN),
+  avatar,
+  grade)
 
 // Course structure
-Subject: id, name ('数学'|'物理'|'化学'|'英语'|'语文'|'生物'), icon, order
-Chapter: id, subjectId, parentId (self-ref), title, order
-Lesson: id, chapterId, title, type (VIDEO|DOCUMENT|EXERCISE), videoUrl, content, duration
+Subject: (id,
+  name('数学' | '物理' | '化学' | '英语' | '语文' | '生物'),
+  icon,
+  order)
+Chapter: (id, subjectId, parentId(self - ref), title, order)
+Lesson: (id,
+  chapterId,
+  title,
+  type(VIDEO | DOCUMENT | EXERCISE),
+  videoUrl,
+  content,
+  duration)
 
 // Learning tracking
-UserProgress: id, userId, lessonId, progress (0-100), isCompleted, lastPosition
+UserProgress: (id,
+  userId,
+  lessonId,
+  progress(0 - 100),
+  isCompleted,
+  lastPosition)
 
 // Question bank
-Question: id, chapterId, type (SINGLE_CHOICE|MULTIPLE_CHOICE|FILL_BLANK|ESSAY),
-          difficulty (1-5), content (Markdown+LaTeX), options (JSON), answer (JSON), explanation
-UserAttempt: id, userId, questionId, userAnswer (JSON), isCorrect, createdAt
-ErrorBook: id, userId, questionId, masteryLevel (0-3), createdAt, updatedAt
+Question: (id,
+  chapterId,
+  type(SINGLE_CHOICE | MULTIPLE_CHOICE | FILL_BLANK | ESSAY),
+  difficulty(1 - 5),
+  content(Markdown + LaTeX),
+  options(JSON),
+  answer(JSON),
+  explanation)
+UserAttempt: (id, userId, questionId, userAnswer(JSON), isCorrect, createdAt)
+ErrorBook: (id, userId, questionId, masteryLevel(0 - 3), createdAt, updatedAt)
 
 // Community
-Post: id, authorId, title, content, subjectId, likeCount, createdAt
-Comment: id, postId, authorId, content, createdAt
+Post: (id, authorId, title, content, subjectId, likeCount, createdAt)
+Comment: (id, postId, authorId, content, createdAt)
 
 // Gamification
-LeaderboardEntry: id, userId, score, rank, period (WEEKLY|MONTHLY|ALL_TIME), weekStart
+LeaderboardEntry: (id,
+  userId,
+  score,
+  rank,
+  period(WEEKLY | MONTHLY | ALL_TIME),
+  weekStart)
 ```
 
 ---
@@ -618,6 +689,7 @@ See `docs/stories/README.md` for detailed breakdown and parallel development sug
 ## Common Commands Reference
 
 ### Development
+
 ```bash
 pnpm dev              # Start dev server
 pnpm build            # Build for production
@@ -628,6 +700,7 @@ pnpm format           # Run Prettier
 ```
 
 ### Database
+
 ```bash
 npx prisma generate           # Generate Prisma Client
 npx prisma db push            # Push schema (dev)
@@ -638,6 +711,7 @@ pnpm db:seed                  # Run seed script
 ```
 
 ### Testing
+
 ```bash
 pnpm test                     # Run all tests
 pnpm test:watch               # Watch mode
@@ -645,6 +719,7 @@ pnpm test:coverage            # Coverage report
 ```
 
 ### Deployment
+
 ```bash
 vercel                        # Deploy to preview
 vercel --prod                 # Deploy to production
@@ -655,7 +730,9 @@ vercel --prod                 # Deploy to production
 ## Emergency Procedures
 
 ### If Database Schema Breaks
+
 See Story-002 "Rollback Plan" section:
+
 ```bash
 # Reset database (DEV ONLY)
 npx prisma db push --force-reset
@@ -665,7 +742,9 @@ npx prisma db push --force-reset
 ```
 
 ### If Authentication Breaks
+
 See Story-003 "Rollback Plan" section:
+
 ```bash
 # Check Trigger status
 SELECT tgname, tgenabled FROM pg_trigger WHERE tgname = 'on_auth_user_created';
@@ -677,6 +756,7 @@ WHERE id NOT IN (SELECT id FROM public.users);
 ```
 
 ### If Deployment Fails
+
 ```bash
 # Rollback to previous version
 vercel rollback

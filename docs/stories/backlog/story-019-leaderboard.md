@@ -56,6 +56,7 @@ enum LeaderboardPeriod {
 ### 2.2 业务逻辑
 
 关键函数:
+
 - `updateLeaderboardScore()` - 使用 Prisma upsert
 - `getLeaderboard()` - 带分页的 ORDER BY score DESC
 - `getUserRank()` - 通过 COUNT 计算排名
@@ -83,16 +84,19 @@ class RedisAdapter implements LeaderboardAdapter { ... }
 ## 3. Verification (测试验收)
 
 ### 功能性测试
+
 - [ ] 用户完成题目后,排行榜自动更新分数
 - [ ] 访问 `/leaderboard`,显示Top 100
 - [ ] 切换周/月/总榜,数据正确
 
 ### 性能测试
+
 - [ ] 查询Top 100: P95 < 200ms
 - [ ] 更新分数: P95 < 100ms
 - [ ] 1000并发查询不崩溃
 
 ### 压力测试
+
 ```bash
 ab -n 1000 -c 100 http://localhost:3000/leaderboard
 # 预期: Requests/sec > 50, 99% < 500ms
@@ -113,14 +117,17 @@ ab -n 1000 -c 100 http://localhost:3000/leaderboard
 ## 5. Definition of Done (完成标准)
 
 ### 代码质量
+
 - [ ] 使用正确的数据库索引 (通过 EXPLAIN ANALYZE 验证)
 - [ ] Adapter Pattern 正确实现
 
 ### 性能标准
+
 - [ ] 查询Top 100: P95 < 200ms ✅
 - [ ] 更新分数: P95 < 100ms ✅
 
 ### 文档
+
 - [ ] README更新: 增加"排行榜系统"章节
 - [ ] 记录迁移到Redis的触发条件 (QPS > 1000)
 
@@ -129,10 +136,12 @@ ab -n 1000 -c 100 http://localhost:3000/leaderboard
 ## 6. Rollback Plan (回滚预案)
 
 **触发条件**:
+
 - 排行榜查询超时影响性能
 - 分数计算错误
 
 **回滚步骤**:
+
 ```sql
 -- 检查索引
 SELECT * FROM pg_indexes WHERE tablename = 'leaderboard_entries';
@@ -150,16 +159,20 @@ ON leaderboard_entries (period, week_start, score DESC);
 ## 7. Post-Completion Actions (完成后行动)
 
 ### 立即执行
+
 - [ ] 移至 `completed/`
 - [ ] 更新README
 - [ ] 通知团队
 
 ### 性能监控
+
 - [ ] 记录基线指标 (查询时间, QPS)
 - [ ] 设置告警: 查询 > 1s 时通知
 
 ### 迁移触发条件
+
 监控以下指标:
+
 - [ ] 排行榜页面日PV > 10,000
 - [ ] 数据库QPS > 1,000
 - [ ] P95查询时间 > 500ms
@@ -173,15 +186,17 @@ ON leaderboard_entries (period, week_start, score DESC);
 ### 技术决策
 
 **为什么MVP阶段用PostgreSQL?**
+
 - ✅ 无额外成本 (Supabase免费套餐)
 - ✅ 开发速度快 (已有Prisma)
 - ✅ 100-1000用户规模性能足够
 - ⚠️ 超过5000用户需考虑Redis
 
 ### 时间记录
+
 - **预估时间**: 6-8 hours
-- **实际时间**: ___ hours
-- **偏差分析**: ___
+- **实际时间**: \_\_\_ hours
+- **偏差分析**: \_\_\_
 
 ---
 

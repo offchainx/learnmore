@@ -25,6 +25,7 @@
 ### 2.1 Supabase Auth 集成
 
 创建 `src/lib/supabase/server.ts`:
+
 ```typescript
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
@@ -53,6 +54,7 @@ export function createClient() {
 ```
 
 创建 `src/lib/supabase/client.ts` (客户端):
+
 ```typescript
 import { createBrowserClient } from '@supabase/ssr'
 
@@ -67,6 +69,7 @@ export function createClient() {
 ### 2.2 Server Actions
 
 创建 `src/actions/auth.ts`:
+
 ```typescript
 'use server'
 
@@ -151,12 +154,14 @@ export async function logoutAction() {
 // 获取当前用户
 export async function getCurrentUser() {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) return null
 
   // 从 public.users 获取完整用户信息
-  const prisma = await import('@/lib/prisma').then(m => m.default)
+  const prisma = await import('@/lib/prisma').then((m) => m.default)
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
   })
@@ -168,6 +173,7 @@ export async function getCurrentUser() {
 ### 2.3 登录页面
 
 创建 `src/app/(auth)/login/page.tsx`:
+
 ```typescript
 import { loginAction } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
@@ -226,6 +232,7 @@ export default function LoginPage() {
 ### 2.4 注册页面
 
 创建 `src/app/(auth)/register/page.tsx`:
+
 ```typescript
 import { signupAction } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
@@ -293,6 +300,7 @@ export default function RegisterPage() {
 ### 2.5 路由保护 Middleware
 
 创建 `src/middleware.ts`:
+
 ```typescript
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -322,7 +330,9 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // 保护需要登录的路由
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
@@ -330,7 +340,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // 如果已登录,访问登录页则跳转到 dashboard
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+  if (
+    user &&
+    (request.nextUrl.pathname === '/login' ||
+      request.nextUrl.pathname === '/register')
+  ) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -347,6 +361,7 @@ export const config = {
 ### 2.6 用户导航组件
 
 创建 `src/components/business/UserNav.tsx`:
+
 ```typescript
 'use client'
 
@@ -414,6 +429,7 @@ export function UserNav({ user }: UserNavProps) {
 ## 3. Verification (测试验收)
 
 ### 功能性测试
+
 - [ ] 访问 `/register`,页面正常渲染
 - [ ] 注册新用户 (邮箱: test@example.com, 密码: test123),提交成功
 - [ ] 自动跳转到 `/dashboard`
@@ -421,6 +437,7 @@ export function UserNav({ user }: UserNavProps) {
 - [ ] 检查 `public.users` 表,用户记录已同步 (验证 Trigger)
 
 ### Auth Trigger 验证 (关键!)
+
 ```sql
 -- 在 Supabase SQL Editor 中执行
 SELECT
@@ -439,27 +456,32 @@ LIMIT 5;
 ```
 
 ### 登录测试
+
 - [ ] 点击"退出登录"
 - [ ] 访问 `/login`
 - [ ] 输入错误密码,显示错误提示
 - [ ] 输入正确密码,登录成功并跳转到 `/dashboard`
 
 ### 路由保护测试
+
 - [ ] 退出登录状态下,直接访问 `/dashboard`,应重定向到 `/login`
 - [ ] 登录状态下,访问 `/login`,应重定向到 `/dashboard`
 - [ ] 登录状态下,访问 `/dashboard`,正常显示页面
 
 ### 用户导航测试
+
 - [ ] 顶部右上角显示用户头像
 - [ ] 点击头像,下拉菜单显示用户名和邮箱
 - [ ] 点击"退出登录",成功退出并跳转到登录页
 
 ### 表单验证测试
+
 - [ ] 注册时邮箱格式错误,显示错误提示
 - [ ] 注册时密码少于6位,显示错误提示
 - [ ] 注册时邮箱已存在,显示"用户已存在"错误
 
 ### 性能测试
+
 - [ ] 登录请求响应时间 < 500ms (P95)
 - [ ] Middleware 认证检查时间 < 100ms
 - [ ] 首次加载登录页 FCP < 1s
@@ -479,24 +501,28 @@ LIMIT 5;
 ## 5. Definition of Done (完成标准)
 
 ### 代码质量
+
 - [ ] 所有 Server Actions 都有 Zod 验证
 - [ ] 密码在传输和存储中都加密 (Supabase 自动处理)
 - [ ] 没有硬编码的敏感信息 (密钥都在环境变量中)
 - [ ] 通过 ESLint 和 TypeScript 检查
 
 ### 安全性
+
 - [ ] 登录失败不暴露用户是否存在 (统一返回"邮箱或密码错误")
 - [ ] 使用 HttpOnly Cookies 存储 Session (Supabase 自动处理)
 - [ ] Middleware 正确处理所有认证场景
 - [ ] 没有 CSRF 漏洞 (Next.js Server Actions 自动防护)
 
 ### 用户体验
+
 - [ ] 表单验证错误提示清晰
 - [ ] 登录/注册有 Loading 状态 (可选)
 - [ ] 密码输入框支持显示/隐藏切换 (可选)
 - [ ] 移动端表单布局正常
 
 ### 文档完整性
+
 - [ ] README 更新: 增加"用户认证"章节
 - [ ] 环境变量文档更新 (`.env.example`)
 - [ ] 团队成员知道如何创建测试用户
@@ -506,6 +532,7 @@ LIMIT 5;
 ## 6. Rollback Plan (回滚预案)
 
 **触发条件**:
+
 - Auth Trigger 失败,用户注册后无法同步到 `public.users`
 - Middleware 导致所有用户无法访问应用
 - Session 管理出现问题,用户频繁掉线
@@ -513,6 +540,7 @@ LIMIT 5;
 **回滚步骤**:
 
 ### 场景A: Auth Trigger 失败
+
 ```bash
 # 1. 检查 Trigger 状态
 SELECT tgname, tgenabled FROM pg_trigger
@@ -529,6 +557,7 @@ WHERE id NOT IN (SELECT id FROM public.users);
 ```
 
 ### 场景B: Middleware 导致应用无法访问
+
 ```bash
 # 临时禁用 Middleware
 # 1. 重命名文件
@@ -542,12 +571,14 @@ mv src/middleware.ts.bak src/middleware.ts
 ```
 
 ### 场景C: Session 问题
+
 ```typescript
 // 在 Supabase Dashboard 中重置所有 Session
 // Settings → Auth → Sessions → Revoke all sessions
 ```
 
 **预防措施**:
+
 - 在 Staging 环境充分测试认证流程
 - 监控 Auth Trigger 的执行日志
 - 设置告警: 如果 `auth.users` 和 `public.users` 数量差异 > 5,发送通知
@@ -557,23 +588,27 @@ mv src/middleware.ts.bak src/middleware.ts
 ## 7. Post-Completion Actions (完成后行动)
 
 ### 立即执行
+
 - [ ] 将此文件从 `backlog/` 移至 `completed/`
 - [ ] 更新 `README.md` 进度: "Phase 1: 3/5 completed"
 - [ ] 通知团队: "✅ 认证系统就绪,可以开始需要登录的功能开发"
 - [ ] 在 Slack/群聊 分享测试账号: test@example.com / test123
 
 ### 数据准备
+
 - [ ] 创建3-5个测试用户 (学生角色)
 - [ ] 创建1个管理员账号 (手动在数据库中设置 role=ADMIN)
 
 ### 监控配置
+
 - [ ] 在 Sentry 中设置认证错误追踪
 - [ ] 在 Supabase Dashboard 中启用 Auth 日志
 - [ ] 记录基线指标:
-  - 登录成功率: ___
-  - 平均登录时间: ___
+  - 登录成功率: \_\_\_
+  - 平均登录时间: \_\_\_
 
 ### 文档补充
+
 - [ ] 创建 `docs/auth/README.md`:
   - 认证流程图
   - 常见问题 FAQ
@@ -584,17 +619,23 @@ mv src/middleware.ts.bak src/middleware.ts
 ## 8. Notes & Learnings (开发过程中填写)
 
 ### 遇到的坑
-*(开发时填写)*
+
+_(开发时填写)_
+
 - 示例: Middleware 中的 `createServerClient` cookie 配置容易出错
 - 示例: Auth Trigger 权限不足导致同步失败
 
 ### 解决方案
-*(开发时填写)*
+
+_(开发时填写)_
+
 - 示例: Middleware 必须使用 `NextResponse` 的 cookies API
 - 示例: Trigger 函数需要 `SECURITY DEFINER` 和 `SET search_path`
 
 ### 可复用的代码片段
-*(开发时填写)*
+
+_(开发时填写)_
+
 ```typescript
 // 在 Server Component 中获取当前用户
 import { getCurrentUser } from '@/actions/auth'
@@ -609,11 +650,13 @@ export default async function ProtectedPage() {
 ```
 
 ### 时间记录
+
 - **预估时间**: 6-8 hours
-- **实际时间**: ___ hours
-- **偏差分析**: ___
+- **实际时间**: \_\_\_ hours
+- **偏差分析**: \_\_\_
 
 ### 安全检查清单
+
 - [ ] 密码不在客户端明文传输 ✅ (HTTPS)
 - [ ] Session Token 存储在 HttpOnly Cookie ✅
 - [ ] 没有 SQL 注入风险 ✅ (Prisma + Supabase)

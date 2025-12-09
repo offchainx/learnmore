@@ -1,29 +1,30 @@
 // src/lib/__tests__/supabase-connection.test.ts
-import { createSupabaseBrowserClient } from '@/lib/supabase';
+import { createSupabaseBrowserClient } from '@/lib/supabase-client'
 
 async function testSupabaseConnection() {
-  console.log('--- Running Supabase Connection Test ---');
+  console.log('--- Running Supabase Connection Test ---')
   try {
-    const supabase = createSupabaseBrowserClient();
+    const supabase = createSupabaseBrowserClient()
     // Attempt to get session to verify connection
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession()
 
     if (error) {
-      console.error('Supabase connection test failed:', error.message);
-      return false;
+      console.error('Supabase connection test failed:', error.message)
+      return false
     }
     if (data && data.session) {
-      console.log('Supabase connection successful! Session found.');
-      console.log('User:', data.session.user?.email);
+      console.log('Supabase connection successful! Session found.')
+      console.log('User:', data.session.user?.email)
     } else {
-      console.log('Supabase connection successful! No active session found.');
+      console.log('Supabase connection successful! No active session found.')
     }
-    return true;
-  } catch (err: any) {
-    console.error('Supabase connection test failed unexpectedly:', err.message);
-    return false;
+    return true
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Supabase connection test failed unexpectedly:', errorMessage)
+    return false
   } finally {
-    console.log('--- Supabase Connection Test Finished ---');
+    console.log('--- Supabase Connection Test Finished ---')
   }
 }
 
@@ -35,5 +36,5 @@ async function testSupabaseConnection() {
 // Example of how to execute it if run directly:
 if (require.main === module) {
   // Only run if this file is executed directly (e.g., node supabase-connection.test.ts)
-  testSupabaseConnection();
+  testSupabaseConnection()
 }

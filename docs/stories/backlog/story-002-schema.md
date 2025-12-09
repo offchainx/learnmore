@@ -383,6 +383,7 @@ main()
 ```
 
 更新 `package.json`:
+
 ```json
 {
   "prisma": {
@@ -400,23 +401,27 @@ main()
 ## 3. Verification (测试验收)
 
 ### 功能性测试
+
 - [ ] 运行 `npx prisma generate`,客户端生成成功
 - [ ] 运行 `npx prisma db push`,表结构同步到数据库
 - [ ] 运行 `pnpm db:seed`,种子数据插入成功
 - [ ] 运行 `pnpm db:studio`,能看到所有表和数据
 
 ### Auth Trigger 测试
+
 - [ ] 在 Supabase Dashboard 手动创建一个测试用户
 - [ ] 检查 `public.users` 表,应该自动出现对应记录
 - [ ] 用户 ID 和 Email 应该与 `auth.users` 一致
 
 ### 数据完整性测试
+
 - [ ] 检查 Subject 表有6条记录 (数学到生物)
 - [ ] 检查 Chapter 表有至少3条记录 (包含父子关系)
 - [ ] 检查 Question 表有至少1条示例题目
 - [ ] 验证外键约束: 尝试删除有子章节的章节,应该失败
 
 ### 性能基线
+
 - [ ] 查询所有学科: `SELECT * FROM subjects` < 10ms
 - [ ] 递归查询章节树: `WITH RECURSIVE ...` < 50ms
 - [ ] Prisma Client 连接时间 < 100ms
@@ -436,21 +441,25 @@ main()
 ## 5. Definition of Done (完成标准)
 
 ### 代码质量
+
 - [ ] Schema 文件通过 `prisma validate` 检查
 - [ ] Seed 脚本能重复运行 (使用 upsert 保证幂等性)
 - [ ] 所有关系都有正确的 `@relation` 和 `onDelete` 策略
 
 ### 数据库安全
+
 - [ ] 敏感字段 (如密码) 不在 Schema 中 (由 Supabase Auth 管理)
 - [ ] 所有表都有正确的索引 (外键字段已加索引)
 - [ ] Auth Trigger 使用 `SECURITY DEFINER` 确保权限正确
 
 ### 文档完整性
+
 - [ ] Schema 关键字段有注释
 - [ ] Auth Trigger SQL 保存在版本控制中
 - [ ] README 更新: 增加"数据库设置"章节
 
 ### 部署就绪
+
 - [ ] Migration 文件已生成 (如果使用 `migrate dev`)
 - [ ] Seed 脚本在 CI/CD 中可自动执行
 - [ ] 数据库连接字符串已配置到环境变量
@@ -460,6 +469,7 @@ main()
 ## 6. Rollback Plan (回滚预案)
 
 **触发条件**:
+
 - Schema 设计错误,需要大改
 - Migration 执行失败,数据库状态不一致
 - Auth Trigger 导致用户注册失败
@@ -467,6 +477,7 @@ main()
 **回滚步骤**:
 
 ### 方案A: 重置数据库 (开发环境)
+
 ```bash
 # 1. 删除所有表
 npx prisma db push --force-reset
@@ -479,16 +490,19 @@ pnpm db:seed
 ```
 
 ### 方案B: 删除 Trigger (生产环境)
+
 ```sql
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 DROP FUNCTION IF EXISTS public.handle_new_user();
 ```
 
 ### 方案C: 数据库快照恢复
+
 - Supabase Dashboard → Database → Backups
 - 选择最近的自动备份恢复
 
 **预防措施**:
+
 - 在执行 Migration 前,先在 Dev 环境测试
 - 关键 Migration 前手动创建数据库备份
 - 使用 Prisma Shadow Database (自动测试 Migration)
@@ -498,20 +512,24 @@ DROP FUNCTION IF EXISTS public.handle_new_user();
 ## 7. Post-Completion Actions (完成后行动)
 
 ### 立即执行
+
 - [ ] 将此文件从 `backlog/` 移至 `completed/`
 - [ ] 更新 `README.md` 进度: "Phase 1: 2/5 completed"
 - [ ] 通知团队: "✅ 数据库就绪,可以开始 Story-003 (Auth) 和 Story-004 (Layout)"
 
 ### 可选执行
+
 - [ ] 用 Prisma Studio 截图,展示数据结构
 - [ ] 记录每张表的字段说明到 Wiki
 - [ ] 导出 Schema 的 ER 图 (使用 Prisma ERD Generator)
 
 ### 性能监控
+
 - [ ] 记录基线查询性能 (后续用于对比)
 - [ ] 配置 Supabase 的慢查询日志 (> 100ms)
 
 ### 文档补充
+
 - [ ] 创建 `docs/database/README.md` 包含:
   - 表关系说明
   - 常用查询示例
@@ -522,17 +540,23 @@ DROP FUNCTION IF EXISTS public.handle_new_user();
 ## 8. Notes & Learnings (开发过程中填写)
 
 ### 遇到的坑
-*(开发时填写)*
+
+_(开发时填写)_
+
 - 示例: Prisma 的 UUID 类型需要明确指定 `@db.Uuid`,否则默认为 String
 - 示例: Auth Trigger 初次创建失败,原因是权限不足
 
 ### 解决方案
-*(开发时填写)*
+
+_(开发时填写)_
+
 - 示例: Trigger 函数需要 `SECURITY DEFINER` 修饰符
 - 示例: 自关联表 (Chapter) 的 relation name 必须显式指定
 
 ### 可复用的代码片段
-*(开发时填写)*
+
+_(开发时填写)_
+
 ```typescript
 // Prisma 递归查询章节树的示例
 const chapterTree = await prisma.chapter.findMany({
@@ -548,11 +572,13 @@ const chapterTree = await prisma.chapter.findMany({
 ```
 
 ### 时间记录
+
 - **预估时间**: 4-6 hours
-- **实际时间**: ___ hours
-- **偏差分析**: ___
+- **实际时间**: \_\_\_ hours
+- **偏差分析**: \_\_\_
 
 ### 额外发现
+
 - Supabase 提供的 PostgREST API 可以直接查询,但我们遵循"强制使用 Prisma"的规范
 - 考虑未来引入 Prisma Pulse (实时数据订阅)
 
