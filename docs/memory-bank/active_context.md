@@ -1,11 +1,17 @@
-# Active Context: Story-006-course-tree
+# Active Context (当前上下文)
 
-**Current Task**: Implementing the `CourseTree` component.
-**Goal**: Develop a recursive course directory tree component with infinite-level support.
-**Key Features**:
-- Recursive rendering.
-- State memory for expand/collapse.
-- Highlight current selected chapter.
-- Display learning status icons (locked/completed/in-progress).
-**Tech Stack**: React, Shadcn Collapsible/Accordion, Tailwind CSS.
-**Verification**: Functional, Accessibility, Performance tests outlined in story-006-course-tree.md.
+**上次更新**: 2025-12-10
+**当前阶段**: Phase 2 - Core Modules
+
+## 🎯 当前焦点 (Current Focus)
+
+**无**
+
+## 📝 待办事项 (Immediate Todos)
+
+- [ ] 选择下一个故事
+
+## 💡 最近的架构决策 (Recent Decisions)
+
+1.  **ESLint**: 已从 `next lint` 迁移到直接的 `eslint .` CLI 命令，并解决了相关配置问题。
+2.  **Vitest**: 已解决测试文件识别问题，`prisma/seed.test.ts` 已排除。

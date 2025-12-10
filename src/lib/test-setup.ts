@@ -1,4 +1,5 @@
 import { cleanup } from '@testing-library/react'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { afterEach, vi } from 'vitest'
 import '@testing-library/jest-dom'
 
@@ -25,7 +26,9 @@ class MockPointerEvent extends Event {
     this.altKey = props.altKey || false
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 global.PointerEvent = MockPointerEvent as any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 window.PointerEvent = MockPointerEvent as any
 
 // Mock hasPointerCapture

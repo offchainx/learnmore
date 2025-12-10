@@ -124,10 +124,10 @@ export default function CourseTreeDemoPage() {
               <div className="text-sm text-muted-foreground">
                 <p>Try the following:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Expand "第一章：函数与极限"</li>
-                  <li>Click on "1.3.2 自变量趋于无穷大"</li>
+                  <li>Expand &quot;第一章：函数与极限&quot;</li>
+                  <li>Click on &quot;1.3.2 自变量趋于无穷大&quot;</li>
                   <li>Notice the highlight change</li>
-                  <li>Try to click "第二章" – "2.2 求导法则" (Locked)</li>
+                  <li>Try to click &quot;第二章&quot; – &quot;2.2 求导法则&quot; (Locked)</li>
                 </ul>
               </div>
             </div>
