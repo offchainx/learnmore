@@ -1,15 +1,15 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { vi, describe, it, expect } from 'vitest'; // Removed beforeEach
 import CourseTree, { CourseChapter } from '../CourseTree';
 
 // Mock Lucide icons
 vi.mock('lucide-react', () => ({
-  ChevronDown: ({ className, ...props }: any) => <svg data-testid="chevron-down" className={className} {...props} />,
-  CheckCircle: ({ className, ...props }: any) => <svg data-testid="check-circle" className={className} {...props} />,
-  Lock: ({ className, ...props }: any) => <svg data-testid="lock" className={className} {...props} />,
-  PlayCircle: ({ className, ...props }: any) => <svg data-testid="play-circle" className={className} {...props} />,
-  FileText: ({ className, ...props }: any) => <svg data-testid="file-text" className={className} {...props} />,
+  ChevronDown: ({ className, ...props }: { className?: string }): React.JSX.Element => <svg data-testid="chevron-down" className={className} {...props} />,
+  CheckCircle: ({ className, ...props }: { className?: string }): React.JSX.Element => <svg data-testid="check-circle" className={className} {...props} />,
+  Lock: ({ className, ...props }: { className?: string }): React.JSX.Element => <svg data-testid="lock" className={className} {...props} />,
+  PlayCircle: ({ className, ...props }: { className?: string }): React.JSX.Element => <svg data-testid="play-circle" className={className} {...props} />,
+  FileText: ({ className, ...props }: { className?: string }): React.JSX.Element => <svg data-testid="file-text" className={className} {...props} />,
 }));
 
 // ResizeObserver mock for Radix UI

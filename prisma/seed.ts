@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -37,7 +38,7 @@ export async function seedDatabase() {
 
       // Level 2 Chapters for chapter1_1
       const chapter2_1 = await createChapter(tx, subject.id, chapter1_1.id, `${subject.name} 第一章第一节`, 1);
-      const chapter2_2 = await createChapter(tx, subject.id, chapter1_1.id, `${subject.name} 第二章第二节`, 2);
+      await createChapter(tx, subject.id, chapter1_1.id, `${subject.name} 第二章第二节`, 2); // Renamed chapter2_2 to avoid unused variable
 
       // Level 3 Chapters for chapter2_1
       await createChapter(tx, subject.id, chapter2_1.id, `${subject.name} 第一章第一节1.1`, 1);
@@ -64,8 +65,8 @@ export async function seedDatabase() {
           'SINGLE_CHOICE',
           4,
           `本节课的重点是什么？ (来自 ${chapter.title})`,
-          { A: '选项A', B: '选项B', C: '选项C', D: '选项D' } as any,
-          'A' as any,
+          { A: '选项A', B: '选项B', C: '选项C', D: '选项D' } as Prisma.JsonObject, // Specific type
+          'A',
           '根据视频内容，A是正确答案。'
         );
         await createQuestion(
@@ -74,8 +75,8 @@ export async function seedDatabase() {
           'MULTIPLE_CHOICE',
           3,
           `以下哪些是正确的？ (来自 ${chapter.title})`,
-          { A: '选项A', B: '选项B', C: '选项C', D: '选项D' } as any,
-          ['A', 'C'] as any,
+          { A: '选项A', B: '选项B', C: '选项C', D: '选项D' } as Prisma.JsonObject, // Specific type
+          ['A', 'C'] as Prisma.JsonArray, // Specific type
           'A和C都是正确的。'
         );
       }
@@ -151,8 +152,8 @@ async function createQuestion(
   type: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'FILL_BLANK' | 'ESSAY',
   difficulty: number,
   content: string,
-  options: object | null,
-  answer: object | string,
+  options: Prisma.InputJsonValue,
+  answer: Prisma.InputJsonValue,
   explanation: string | null
 ) {
   let question = await tx.question.findFirst({
@@ -166,8 +167,8 @@ async function createQuestion(
         type,
         difficulty,
         content,
-        options: options as any,
-        answer: answer as any,
+        options: options ?? Prisma.DbNull,
+        answer: answer ?? Prisma.DbNull,
         explanation,
       },
     });
@@ -177,3 +178,4 @@ async function createQuestion(
   }
   return question;
 }
+
