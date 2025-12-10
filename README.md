@@ -4,12 +4,22 @@ A comprehensive online education platform for middle school students.
 
 ## Tech Stack
 
-- **Framework:** Next.js 14+ (App Router)
+- **Framework:** Next.js 16+ (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS + Shadcn/ui
 - **Database:** Supabase (PostgreSQL) + Prisma ORM
 - **State Management:** Zustand
 - **Validation:** Zod
+- **Testing:** Vitest + React Testing Library
+
+## Features
+
+- **Authentication System** (Supabase Auth Integration)
+- **App Shell & Navigation**
+  - Responsive Sidebar with Mobile support
+  - Dynamic Breadcrumb Navigation
+  - Dark/Light Theme Toggle
+  - User Navigation Dropdown
 
 ## Getting Started
 
