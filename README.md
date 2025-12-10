@@ -20,6 +20,11 @@ A comprehensive online education platform for middle school students.
   - Dynamic Breadcrumb Navigation
   - Dark/Light Theme Toggle
   - User Navigation Dropdown
+- **Course Learning Engine**
+  - **Course Tree Component**: Recursive directory tree with infinite nesting support.
+    - Expand/Collapse with state memory.
+    - Visual indicators for Locked, Completed, and In-Progress statuses.
+    - [View Demo](/demo/course-tree) (locally accessible via `/demo/course-tree`).
 
 ## Getting Started
 

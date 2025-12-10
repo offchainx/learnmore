@@ -162,3 +162,30 @@ _(开发时填写)_
 **最后更新**: 2025-12-09
 **状态**: Completed ✅
 **风险等级**: 🟡 中
+
+---
+
+## 9. Component API Reference
+
+### `<CourseTree />`
+
+**Path**: `src/components/business/CourseTree.tsx`
+
+| Prop | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `chapters` | `CourseChapter[]` | Yes | Array of chapter objects (can be nested). |
+| `selectedChapterId` | `string \| null` | Yes | The ID of the currently active chapter. |
+| `onChapterSelect` | `(id: string) => void` | Yes | Callback function when a chapter is clicked. |
+| `level` | `number` | No | Internal use for recursion indentation (default: 0). |
+
+### `CourseChapter` Interface
+
+```typescript
+interface CourseChapter {
+  id: string;
+  title: string;
+  isCompleted?: boolean; // Show checkmark icon
+  isLocked?: boolean;    // Show lock icon & disable click
+  children?: CourseChapter[]; // Nested chapters
+}
+```
