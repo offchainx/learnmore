@@ -1,10 +1,10 @@
 // src/lib/__tests__/supabase-connection.test.ts
-import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { createClient } from '@/lib/supabase/client'
 
 async function testSupabaseConnection() {
   console.log('--- Running Supabase Connection Test ---')
   try {
-    const supabase = createSupabaseBrowserClient()
+    const supabase = createClient()
     // Attempt to get session to verify connection
     const { data, error } = await supabase.auth.getSession()
 

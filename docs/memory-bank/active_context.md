@@ -6,11 +6,10 @@
 ## 🎯 当前焦点 (Current Focus)
 
 **Waiting for next story...**
-(Ready for Story-003-auth)
 
 ## 📝 待办事项 (Immediate Todos)
 
-- [ ] Select next story (Story-003-auth)
+- [ ] Select next story
 
 ## 💡 最近的架构决策 (Recent Decisions)
 
@@ -18,3 +17,4 @@
 2.  **Auth 同步**: 使用 PostgreSQL Trigger 将 `auth.users` 同步到 `public.users`。
 3.  **ORM**: 强制使用 Prisma，为未来可能的 NestJS 迁移留后路。
 4.  **技术栈**: 引入 Redis (排行榜), React Player (视频), Tiptap (富文本).
+5.  **Form Actions**: 使用 `useActionState` 处理服务端验证错误与 UI 反馈。

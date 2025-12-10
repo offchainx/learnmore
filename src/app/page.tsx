@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { createSupabaseBrowserClient } from '@/lib/supabase-client'
+import { createClient } from '@/lib/supabase/client'
 
 export default function Home() {
   const [supabaseStatus, setSupabaseStatus] = useState(
@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        const supabase = createSupabaseBrowserClient()
+        const supabase = createClient()
         const { data, error } = await supabase.auth.getSession()
 
         if (error) {
