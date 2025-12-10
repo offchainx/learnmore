@@ -46,6 +46,9 @@ export default function Home() {
         <div className="flex gap-4">
           <Button>Get Started</Button>
           <Button variant="outline">Learn More</Button>
+          <Button variant="secondary" onClick={() => window.location.href = '/demo/course-tree'}>
+            View Course Tree Demo (Story-006)
+          </Button>
         </div>
         <p className="mt-4 text-sm text-gray-500">{supabaseStatus}</p>
       </main>
