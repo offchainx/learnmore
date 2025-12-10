@@ -8,7 +8,7 @@
 - [x] **Story-001**: Next.js 初始化与工程化配置 (Infra)
 - [x] **Story-002**: 数据库 Schema 设计与 Prisma 迁移 (DB)
 - [x] **Story-003**: 身份认证系统 (Auth)
-- [ ] **Story-004**: 全局布局与导航框架 (App Shell)
+- [x] **Story-004**: 全局布局与导航框架 (App Shell)
   - _目标_: 实现响应式侧边栏、顶部导航、暗色模式切换、移动端适配。
 
 ## Phase 2: Course Engine (课程学习引擎)

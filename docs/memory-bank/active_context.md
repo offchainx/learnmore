@@ -5,11 +5,12 @@
 
 ## 🎯 当前焦点 (Current Focus)
 
-**Waiting for next story...**
+**Story-004: App Shell & Navigation - Completed.**
 
 ## 📝 待办事项 (Immediate Todos)
 
 - [ ] Select next story
+
 
 ## 💡 最近的架构决策 (Recent Decisions)
 
