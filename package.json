@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "prisma:generate": "dotenv -e .env.local pnpm prisma generate",
     "prisma:dbpush": "dotenv -e .env.local pnpm prisma db push",
