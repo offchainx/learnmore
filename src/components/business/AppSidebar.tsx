@@ -33,7 +33,7 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
 
   const handleLogout = () => {
     // Implement actual logout logic here (e.g. call server action or supabase client)
-    console.log('Logging out...');
+    // console.log('Logging out...');
     router.push('/');
     if (onClose) onClose();
   };

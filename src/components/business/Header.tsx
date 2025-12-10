@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Search, Zap, Bell, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { Button } from '@/components/ui/button'
+
 import { UserNav } from '@/components/business/UserNav'
 
 export function Header() {
@@ -66,7 +66,7 @@ export function Header() {
         </button>
 
         {/* Notification */}
-        <button className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors relative">
+        <button className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors relative" aria-label="Notifications">
           <Bell className="h-5 w-5" />
           <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-[#020617]"></span>
         </button>

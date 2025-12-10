@@ -3,8 +3,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+
 
 export default function AuthLayout({
   children,

@@ -1,48 +1,44 @@
-# Project Progress (项目进度)
+# Progress Status (项目进度)
 
-**状态**: 🟢 On Track
-**总体进度**: 15%
+**上次更新**: 2025-12-10
+**当前版本**: v0.2.0 (Prototype)
 
-## 🗓 开发路线图 (Roadmap)
+## 🚀 Milestones
 
-### Phase 0: Architecture & Design (✅ Done)
+### Phase 1: Foundation (Weeks 1-2) - 100%
+- [x] Story-001: Next.js Setup & Infrastructure
+- [x] Story-002: Database Schema (Prisma)
+- [x] Story-003: Authentication (Clerk/Supabase/NextAuth) -> *Used Supabase*
+- [x] Story-004: Dashboard Layout (Shell)
+- [x] Story-005: Seed Data Script
+- [x] Story-006: Course Tree Component
 
-- [x] 需求分析 (PRD)
-- [x] 技术选型 (Tech Stack)
-- [x] 架构设计 (Architecture Diagram)
-- [x] Memory Bank 建立
+### Phase 2: Core Modules (Weeks 3-5) - 25%
+- [x] Story-007: Lesson Page Layout (Sidebar + Content area, with Resizable and UI refinements. All ESLint/TypeScript errors fixed, all unit tests passed, build successful.)
+- [ ] Story-008: Video Player Integration
+- [ ] Story-009: Progress Tracking Sync
+- [ ] Story-010: Question UI Components
+- [ ] Story-011: Quiz Mode Implementation
+- [ ] Story-012: Grading Engine
 
-### Phase 1: Foundation (🚧 In Progress)
+### Phase 3: Gamification (Weeks 6-7) - 0%
+- [ ] Story-013: Error Book (Mistakes Collection)
+- [ ] Story-014: Post List (Community)
+- [ ] Story-015: Post Editor
+- [ ] Story-016: Post Detail View
+- [ ] Story-017: Dashboard Widgets
+- [ ] Story-018: Analysis Charts
+- [ ] Story-019: Leaderboard
+- [ ] Story-020: User Profile & Settings
 
-- [x] Story-001: Infrastructure Initialization (✅ Done)
-- [x] Story-002: Database Schema & Migration (✅ Done)
-- [x] Story-003: Auth (✅ Done)
-- [x] Story-004: App Shell & Navigation (✅ Done)
-- [x] Story-005: 种子数据与后台管理 (✅ Done)
-- [ ] Prisma Schema 定义 & Migration
-- [ ] 基础 UI 框架搭建 (Shadcn/ui)
-- [ ] 身份认证流程 (Login/Register)
+## 📉 Burndown (Stories)
 
-### Phase 2: Core Modules (⏳ Planned)
+| Status | Count |
+| :--- | :--- |
+| Completed | 8 |
+| In Progress | 0 |
+| Backlog | 12 |
+| **Total** | **20** |
 
-- [x] Story-006: 课程目录树组件 (Course Tree)
-- [ ] **Course Module**: 视频播放, 章节列表
-- [ ] **Question Module**: 答题引擎, 错题本
-- [ ] **Stats Module**: 学习仪表盘
-
-### Phase 3: Community & Growth (⏳ Planned)
-
-- [ ] **Community**: 发帖, 评论
-- [ ] **Growth**: 积分, 排行榜 (Redis)
-
-## ✅ 已完成任务 (Completed)
-
-- 2025-12-09: 完成 v2.2 版架构设计文档，确认 Next.js + Supabase + Prisma 方案。
-- 2025-12-09: 建立 Memory Bank 机制。
-- 2025-12-09: 完成 Story-001 Infrastructure Initialization，基础设施搭建完毕。
-- 2025-12-09: 完成 Story-003 Auth，身份认证流程已建立。
-- 2025-12-09: 完成 Story-004 App Shell & Navigation，基础布局和导航已就绪。
-- 2025-12-09: Story-004: App Shell & Navigation 经过全面测试和质量保证，已达到验收标准并完成归档。
-- 2025-12-10: 完成 Story-005: 种子数据与后台管理，数据库已预置基础数据。
-- 2025-12-10: 完成 Story-006: 课程目录树组件 (Course Tree)。
-- 2025-12-10: 完成 UI 2.0 升级：集成 Google AI Studio 设计，重构了 Landing Page, Login, Register 和 Dashboard 页面，统一了视觉风格。
+## 🛠 Known Issues
+- [ ] 无 (所有已知阻塞性问题和高优先级问题均已解决)

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import SubjectCard from '@/components/business/SubjectCard';
@@ -113,19 +113,12 @@ const translations = {
 
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [lang, setLang] = useState<Lang>('en'); // Default to English
+  const [lang] = useState<Lang>('en');
   const t = translations[lang];
 
   // Dummy data for now
   const welcomeMessage = t.welcome;
   const welcomeSubMessage = t.welcomeSub;
-
-  const handleLogout = () => {
-    // Implement actual logout logic here
-    alert("Logout not implemented yet!");
-    router.push('/');
-  };
 
   return (
     <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scroll-smooth dark:bg-[#020617]">
@@ -248,7 +241,7 @@ export default function DashboardPage() {
                 <span className="text-xs font-bold text-yellow-600 dark:text-yellow-500 bg-yellow-100 dark:bg-yellow-500/10 px-2 py-1 rounded border border-yellow-200 dark:border-yellow-500/20">{quest.reward}</span>
               </div>
             ))}
-            <Button fullWidth variant="outline" size="sm" className="mt-2 text-xs border-dashed border-slate-300 dark:border-white/20 hover:border-slate-400 dark:hover:border-white/40 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">View All Quests</Button>
+            <Button variant="outline" size="sm" className="mt-2 text-xs border-dashed border-slate-300 dark:border-white/20 hover:border-slate-400 dark:hover:border-white/40 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">View All Quests</Button>
           </Card>
 
           {/* Leaderboard Teaser */}

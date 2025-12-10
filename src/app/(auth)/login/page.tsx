@@ -70,12 +70,12 @@ export default function LoginPage() {
         </Button>
       </CardContent>
       <CardFooter className="flex justify-center pb-6 pt-2">
-        <p className="text-sm text-slate-500">
-          Don't have an account?{' '}
-          <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-            Sign up
-          </Link>
-        </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="text-primary hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
       </CardFooter>
     </Card>
   );

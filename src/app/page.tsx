@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   Brain, Zap, ArrowRight, Target, 
-  PenTool, Calculator, FlaskConical, Atom, Languages, CheckCircle2, Sparkles
+  PenTool, Calculator, FlaskConical, Atom, Languages, CheckCircle2
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -19,16 +19,22 @@ export default function LandingPage() {
     const testConnection = async () => {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase.auth.getSession();
+        const { error } = await supabase.auth.getSession();
         if (error) {
           console.error('Supabase connection error:', error.message);
           setSupabaseStatus(`Supabase connection failed: ${error.message}`);
         } else {
            // Connection successful, no need to clutter UI unless user wants to see it
-           console.log(`Supabase connected. User: ${data.session?.user?.email || 'None'}`);
+           // console.log(`Supabase connected. User: ${data.session?.user?.email || 'None'}`);
         }
-      } catch (err: any) {
-        setSupabaseStatus(`Supabase error: ${err.message}`);
+      } catch (err: unknown) {
+        let errorMessage = "An unknown error occurred";
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (typeof err === "object" && err !== null && "message" in err) {
+          errorMessage = (err as { message: string }).message;
+        }
+        setSupabaseStatus(`Supabase error: ${errorMessage}`);
       }
     };
     testConnection();

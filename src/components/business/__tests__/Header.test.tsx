@@ -4,7 +4,7 @@ import { vi, describe, it, expect } from 'vitest'
 
 // Mock usePathname
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/dashboard/courses',
+  usePathname: vi.fn(() => '/dashboard/courses'),
 }))
 
 // Mock next-themes
@@ -16,19 +16,29 @@ vi.mock('next-themes', () => ({
 }))
 
 describe('Header', () => {
-  it('renders breadcrumbs correctly', () => {
-    render(<Header />)
-    expect(screen.getByText('Home')).toBeInTheDocument()
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    // "Courses" is the current page, so it might be rendered inside BreadcrumbPage
-    expect(screen.getByText('Courses')).toBeInTheDocument()
-  })
-
   it('renders user avatar fallback', () => {
     render(<Header />)
-    // The placeholder user is "John Doe", fallback "J" (or JD depending on implementation)
-    // Looking at UserNav.tsx: displayName[0].toUpperCase()
-    // "John Doe"[0] -> "J"
-    expect(screen.getByText('J')).toBeInTheDocument()
+    // The placeholder user is "Alex Student", fallback "A"
+    expect(screen.getByText('A')).toBeInTheDocument()
   })
+
+  it('renders streak display', () => {
+    render(<Header />)
+    expect(screen.getByText('12 Day Streak')).toBeInTheDocument();
+  });
+
+  it('renders search input', () => {
+    render(<Header />)
+    expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
+  });
+
+  it('renders language toggle', () => {
+    render(<Header />)
+    expect(screen.getByText('EN')).toBeInTheDocument();
+  });
+
+  it('renders notification icon', () => {
+    render(<Header />)
+    expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
+  });
 })

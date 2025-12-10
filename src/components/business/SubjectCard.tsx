@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card'; // Using our Shadcn Card
-import { BookOpen } from 'lucide-react'; // Placeholder, actual icon passed as prop
+
 
 interface SubjectCardProps {
   name: string;

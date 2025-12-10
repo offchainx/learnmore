@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-// import { GoogleGenAI } from "@google/generative-ai"; // Install this package if needed
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Sparkles } from 'lucide-react'; // Assuming Sparkles is used
+import { Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import Image from 'next/image'; // Import Next.js Image component
 
-type Lang = 'en' | 'zh';
+
 
 const MOTIVATIONAL_QUOTES = {
   en: [
@@ -29,8 +29,12 @@ const MOTIVATIONAL_QUOTES = {
 };
 
 interface DailyInspirationProps {
-  lang: Lang;
-  t: any; // Translations object
+  lang: 'en' | 'zh';
+  t: {
+    generating: string;
+    regenerate: string;
+    dailyInspiration: string;
+  };
   welcomeTitle: string;
   welcomeSub: string;
 }
@@ -38,9 +42,44 @@ interface DailyInspirationProps {
 const DailyInspiration: React.FC<DailyInspirationProps> = ({ lang, t, welcomeTitle, welcomeSub }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [quote, setQuote] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize with today's image or generate new
+  const generateInspiration = useCallback(async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    setImageUrl(null);
+
+    // Pick a random quote
+    const quotesList = MOTIVATIONAL_QUOTES[lang];
+    const randomQuote = quotesList[Math.floor(Math.random() * quotesList.length)];
+    setQuote(randomQuote);
+
+    try {
+      if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+        throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is not configured.");
+      }
+      
+      // Temporarily disable actual AI generation for now to avoid blocking.
+      // In a real scenario, this would call your /api/generate-image endpoint
+      // or directly use the Gemini API.
+      // For now, we will simulate loading and set a placeholder message.
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      setImageUrl('/placeholder-inspiration.jpg'); // Placeholder image
+
+      const today = new Date().toDateString();
+      localStorage.setItem('daily_inspiration_date', today);
+      localStorage.setItem('daily_inspiration_image', '/placeholder-inspiration.jpg');
+      localStorage.setItem(`daily_inspiration_quote_${lang}`, randomQuote);
+
+    } catch (err: unknown) {
+      console.error("Failed to generate inspiration image:", err);
+      setImageUrl(null); // Clear image if generation fails
+      setQuote("Keep pushing forward! (AI image generation failed)");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [lang, isLoading]);
+
   useEffect(() => {
     const today = new Date().toDateString();
     const storedDate = localStorage.getItem('daily_inspiration_date');
@@ -51,83 +90,22 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ lang, t, welcomeTit
       setImageUrl(storedImage);
       setQuote(storedQuote || MOTIVATIONAL_QUOTES[lang][0]);
     } else {
-      generateInspiration(); // Call generate Inspiration at start up
+      generateInspiration();
     }
-  }, [lang]);
-
-  const generateInspiration = async () => {
-    if (loading) return;
-    setLoading(true);
-    
-    // Pick a random quote
-    const quotesList = MOTIVATIONAL_QUOTES[lang];
-    const randomQuote = quotesList[Math.floor(Math.random() * quotesList.length)];
-    setQuote(randomQuote);
-
-    // --- Gemini AI Integration ---
-    // This part requires GoogleGenAI setup and an API Key.
-    // If you want this feature enabled, please:
-    // 1. Install @google/generative-ai: pnpm add @google/generative-ai
-    // 2. Configure NEXT_PUBLIC_GEMINI_API_KEY in your .env.local file.
-    // 3. Uncomment the GoogleGenAI import and the AI generation logic below.
-    try {
-      if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-        throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is not configured.");
-      }
-      // const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
-      // const response = await ai.models.generateContent({
-      //   model: 'gemini-2.5-flash-image',
-      //   contents: [{ 
-      //     parts: [{ 
-      //       text: `Generate a stunning, artistic, abstract or scenic background image that represents the feeling of this quote: "${randomQuote}". Style: Digital Art, Soft Lighting, Uplifting, Educational, Modern Vector or Watercolor. No text in the image.` 
-      //     }],
-      //   }],
-      //   config: {
-      //     imageConfig: { aspectRatio: '16:9' }
-      //   }
-      // });
-
-      // let base64Image = null;
-      // for (const part of response.candidates?.[0]?.content?.parts || []) {
-      //    if (part.inlineData) {
-      //       base64Image = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-      //       break;
-      //    }
-      // }
-
-      // if (base64Image) {
-      //   setImageUrl(base64Image);
-      //   const today = new Date().toDateString();
-      //   localStorage.setItem('daily_inspiration_date', today);
-      //   localStorage.setItem('daily_inspiration_image', base64Image);
-      //   localStorage.setItem(`daily_inspiration_quote_${lang}`, randomQuote);
-      // } else {
-      //   throw new Error("No image data received from AI.");
-      // }
-      throw new Error("Gemini AI integration is disabled. Please uncomment code to enable.");
-    } catch (error: any) {
-      console.error("Failed to generate inspiration image:", error.message);
-      // Fallback if API fails or Key is missing
-      setImageUrl(null); // Clear image if generation fails
-      setQuote("Keep pushing forward! (AI image generation failed)");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [lang, generateInspiration]);
 
   return (
     <div className="relative w-full h-64 sm:h-72 rounded-3xl overflow-hidden shadow-2xl group animate-fade-in-up border border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-white/5">
       {/* Background Image */}
-      {imageUrl ? (
-        <img 
-          src={imageUrl} 
-          alt="Daily Inspiration" 
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+      {imageUrl && (
+        <Image
+          src={imageUrl}
+          alt="Daily Inspiration"
+          fill
+          className="object-cover transition-opacity duration-500 rounded-2xl"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 animate-pulse"></div>
-      )}
-      
+      )}      
       {/* Multiple Gradients for Text Readability */}
       <div className="absolute inset-0 bg-black/10 mix-blend-multiply"></div>
       {/* Top Gradient for Welcome Text */}
@@ -151,10 +129,10 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ lang, t, welcomeTit
                 <Sparkles className="w-3 h-3 text-yellow-300 fill-yellow-300" />
                 {t.dailyInspiration}
              </div>
-             {loading ? (
+             {isLoading ? (
                 <div className="h-6 w-48 bg-white/20 rounded animate-pulse"></div>
              ) : (
-                <p className="text-lg sm:text-xl font-medium text-white leading-relaxed italic drop-shadow-lg">"{quote}"</p>
+                <p className="text-lg sm:text-xl font-medium text-white leading-relaxed italic drop-shadow-lg">{quote}</p>
              )}
           </div>
           
@@ -162,15 +140,15 @@ const DailyInspiration: React.FC<DailyInspirationProps> = ({ lang, t, welcomeTit
             variant="ghost" 
             size="sm" 
             onClick={generateInspiration} 
-            disabled={loading}
+            disabled={isLoading}
             className="text-white/80 hover:text-white hover:bg-white/20 shrink-0 border border-white/20 backdrop-blur-sm"
           >
-             {loading ? (
-               <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+             {isLoading ? (
+               <Loader2 className="w-4 h-4 animate-spin mr-2" />
              ) : (
                <RefreshCw className="w-4 h-4 mr-2" />
              )}
-             {loading ? t.generating : t.regenerate}
+             {isLoading ? t.generating : t.regenerate}
           </Button>
         </div>
       </div>
