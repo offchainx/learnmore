@@ -37,7 +37,11 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile Sidebar */}
+      {/* 
+        Mobile Sidebar: Implemented using Shadcn Sheet component.
+        - Triggered by a Hamburger menu icon.
+        - Only visible on screens smaller than 'lg' breakpoint (lg:hidden).
+      */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild className="lg:hidden">
           <Button variant="ghost" size="icon">
@@ -68,7 +72,11 @@ export function AppSidebar() {
         </SheetContent>
       </Sheet>
 
-      {/* Desktop Sidebar */}
+      {/* 
+        Desktop Sidebar: Fixed sidebar layout.
+        - Hidden on mobile screens, visible on 'lg' and up (hidden lg:block).
+        - Uses standard div with sticky positioning context from layout.
+      */}
       <div className="hidden border-r bg-muted/40 lg:block w-64">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-16 items-center border-b px-4 lg:px-6">

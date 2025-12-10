@@ -15,6 +15,8 @@ import { UserNav } from '@/components/business/UserNav'
 
 export function Header() {
   const pathname = usePathname()
+  // Split pathname into segments and remove empty strings
+  // e.g., "/dashboard/courses" -> ["dashboard", "courses"]
   const pathSegments = pathname.split('/').filter(segment => segment !== '')
 
   // Placeholder user object for now.
@@ -27,6 +29,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      {/* Breadcrumb Navigation: Hidden on mobile, visible on medium screens and up */}
       <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -35,15 +38,18 @@ export function Header() {
             </BreadcrumbLink>
           </BreadcrumbItem>
           {pathSegments.map((segment, index) => {
+            // Reconstruct path for each segment: /segment1/segment2
             const href = '/' + pathSegments.slice(0, index + 1).join('/')
             const isLast = index === pathSegments.length - 1
-            const formattedSegment = segment.charAt(0).toUpperCase() + segment.slice(1); // Capitalize first letter
+            // Capitalize first letter for display: "dashboard" -> "Dashboard"
+            const formattedSegment = segment.charAt(0).toUpperCase() + segment.slice(1);
 
             return (
               <div key={segment} className="flex items-center">
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {isLast ? (
+                    // Last item is current page, not a link
                     <BreadcrumbPage>{formattedSegment}</BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
