@@ -15,7 +15,7 @@
 
 - [x] **Story-005**: 种子数据与后台管理 (Seed Data)
   - _目标_: 编写 Prisma Seed 脚本，预置 6 大学科、章节和基础题目数据。
-- [ ] **Story-006**: 课程目录树组件 (Course Tree)
+- [x] **Story-006**: 课程目录树组件 (Course Tree)
   - _目标_: 实现支持无限层级的章节折叠/展开组件 (Recursive Component)。
 - [ ] **Story-007**: 学习页面核心布局 (Lesson Layout)
   - _目标_: 左侧目录、右侧内容的响应式布局，处理路由状态。
