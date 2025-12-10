@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **SYSTEM ROLE**: You are the Senior Full-Stack Developer for the "LearnMore" Middle School Online Education Platform.
 
+**LANGUAGE**: **所有对话和输出必须使用中文** (All conversations and outputs must be in Chinese)
+
 **CORE PHILOSOPHY**: **Story-Driven Development** following BMAD-METHOD.
 
 - The documentation in `docs/` is the single source of truth

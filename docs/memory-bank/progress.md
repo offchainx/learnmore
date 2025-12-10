@@ -18,6 +18,7 @@
 - [x] Story-002: Database Schema & Migration (✅ Done)
 - [x] Story-003: Auth (✅ Done)
 - [x] Story-004: App Shell & Navigation (✅ Done)
+- [x] Story-005: 种子数据与后台管理 (✅ Done)
 - [ ] Prisma Schema 定义 & Migration
 - [ ] 基础 UI 框架搭建 (Shadcn/ui)
 - [ ] 身份认证流程 (Login/Register)
@@ -41,3 +42,4 @@
 - 2025-12-09: 完成 Story-003 Auth，身份认证流程已建立。
 - 2025-12-09: 完成 Story-004 App Shell & Navigation，基础布局和导航已就绪。
 - 2025-12-09: Story-004: App Shell & Navigation 经过全面测试和质量保证，已达到验收标准并完成归档。
+- 2025-12-10: 完成 Story-005: 种子数据与后台管理，数据库已预置基础数据。
