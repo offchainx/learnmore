@@ -25,6 +25,7 @@
 
 ### Phase 2: Core Modules (⏳ Planned)
 
+- [x] Story-006: 课程目录树组件 (Course Tree)
 - [ ] **Course Module**: 视频播放, 章节列表
 - [ ] **Question Module**: 答题引擎, 错题本
 - [ ] **Stats Module**: 学习仪表盘
