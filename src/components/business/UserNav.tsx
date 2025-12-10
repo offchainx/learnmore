@@ -14,21 +14,30 @@ import { logoutAction } from '@/actions/auth'
 import { User } from '@prisma/client'
 
 interface UserNavProps {
-  user: Pick<User, 'username' | 'email' | 'avatar'>
+  user: Pick<User, 'username' | 'email' | 'avatar'>;
+  showDetails?: boolean;
 }
 
-export function UserNav({ user }: UserNavProps) {
+export function UserNav({ user, showDetails = false }: UserNavProps) {
   const displayName = user.username || user.email.split('@')[0]
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar>
-            <AvatarImage src={user.avatar || undefined} alt={displayName} />
-            <AvatarFallback>{displayName[0].toUpperCase()}</AvatarFallback>
-          </Avatar>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" className="relative h-9 w-9 rounded-lg p-0">
+            <Avatar className="h-9 w-9 rounded-lg">
+              <AvatarImage src={user.avatar || undefined} alt={displayName} className="object-cover"/>
+              <AvatarFallback className="rounded-lg">{displayName[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </Button>
+          {showDetails && (
+            <div className="hidden md:block text-left">
+               <p className="text-sm font-bold text-slate-900 dark:text-white leading-none">{displayName}</p>
+               <p className="text-xs text-slate-500 mt-1">Grade 8</p>
+            </div>
+          )}
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>
@@ -41,17 +50,17 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <a href="/settings">个人设置</a>
+          <a href="/settings">Settings</a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href="/dashboard">学习中心</a>
+          <a href="/dashboard">Dashboard</a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => logoutAction()}
-          className="text-red-600"
+          className="text-red-600 cursor-pointer"
         >
-          退出登录
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

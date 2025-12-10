@@ -59,9 +59,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // 保护需要登录的路由
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  // if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  //   return NextResponse.redirect(new URL('/login', request.url))
+  // }
 
   // 如果已登录,访问登录页则跳转到 dashboard
   if (

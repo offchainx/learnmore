@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { AppSidebar } from '@/components/business/AppSidebar'
-import { Header } from '@/components/business/Header'
-import { ThemeProvider } from '@/providers/theme-provider' // Adjust path as needed
+import { ThemeProvider } from '@/providers/theme-provider'
 
 export const metadata: Metadata = {
   title: 'Learn More Platform',
@@ -23,15 +21,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
-            <AppSidebar />
-            <div className="flex flex-col">
-              <Header />
-              <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-                {children}
-              </main>
-            </div>
-          </div>
+          {children}
         </ThemeProvider>
       </body>
     </html>

@@ -44,3 +44,5 @@
 - 2025-12-09: 完成 Story-004 App Shell & Navigation，基础布局和导航已就绪。
 - 2025-12-09: Story-004: App Shell & Navigation 经过全面测试和质量保证，已达到验收标准并完成归档。
 - 2025-12-10: 完成 Story-005: 种子数据与后台管理，数据库已预置基础数据。
+- 2025-12-10: 完成 Story-006: 课程目录树组件 (Course Tree)。
+- 2025-12-10: 完成 UI 2.0 升级：集成 Google AI Studio 设计，重构了 Landing Page, Login, Register 和 Dashboard 页面，统一了视觉风格。
