@@ -40,3 +40,4 @@
 - 2025-12-09: 完成 Story-001 Infrastructure Initialization，基础设施搭建完毕。
 - 2025-12-09: 完成 Story-003 Auth，身份认证流程已建立。
 - 2025-12-09: 完成 Story-004 App Shell & Navigation，基础布局和导航已就绪。
+- 2025-12-09: Story-004: App Shell & Navigation 经过全面测试和质量保证，已达到验收标准并完成归档。
