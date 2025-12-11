@@ -1,28 +1,27 @@
-# Story-012-grading-engine: Grading & Submission
+# Story-011-quiz-mode: Quiz Mode Logic
 
 **Phase**: Phase 3: Question Bank
-**Goal**: 后端判卷逻辑与结果反馈
+**Goal**: 实现完整的答题流程控制
 **预估时间**: 6-8 Hours
 **Story Points**: 8
-**前置依赖**: Story-011
+**前置依赖**: Story-010
 **负责人**: _待分配_
 
 ---
 
 ## 1. Objectives (实现目标)
 
-- [ ] 实现 `submitQuiz` Server Action。
-- [ ] 后端比对答案，计算得分。
-- [ ] 写入 `UserAttempt` 和 `ExamRecord` 表。
-- [ ] 前端展示结果页 (Score Card) 和解析 (Explanation)。
+- [ ] 实现题目分页/切换 (上一题/下一题)。
+- [ ] 实现答题倒计时 (Timer)。
+- [ ] 实现答题卡 (Grid View) 快速跳转。
+- [ ] 管理 `currentAnswers` 临时状态。
 
 ---
 
 ## 2. Tech Plan (技术方案)
 
-- Logic: 数组比较算法 (处理多选题部分得分逻辑)。
-- DB: 事务写入 (Transaction)。
-- UI: 结果页展示正确/错误高亮。
+- State: Zustand Store (`quiz-store`) 管理答题会话。
+- Storage: `localStorage` 暂存防止刷新丢失 (可选)。
 
 ---
 
@@ -52,7 +51,7 @@
 
 - ✅ 完整的功能实现
 - ✅ 相关测试代码 (单元测试/集成测试)
-- ✅ Git Commit: `"feat: implement grading & submission"`
+- ✅ Git Commit: `"feat: implement quiz mode logic"`
 - ✅ Preview URL (Vercel自动部署)
 
 ---
@@ -140,25 +139,27 @@ vercel --prod
 
 ### 遇到的坑
 
-_(开发时填写)_
+- `setInterval` 在 React 组件中配合 Zustand Store 更新时，如果直接使用 `setTimer(prev => prev - 1)` 这种函数式更新，需要确保 Store 的 Action 支持函数参数。
+- shadcn/ui 的 `Button` 组件在 `variant="secondary"` 时有特定样式，可能与自定义的背景色冲突。
 
 ### 解决方案
 
-_(开发时填写)_
+- 在 Zustand Store 中新增 `decrementTimer` Action，将倒计时逻辑移入 Store 内部，组件只负责定时触发。
+- 使用 `variant="outline"` 配合条件类名来处理答题卡样式，通过 `!isCurrent && isAnswered` 确保样式优先级正确。
 
 ### 可复用的代码片段
 
-_(开发时填写)_
+- `QuizTimer` 组件可以作为通用的倒计时组件，只需传入不同的 Store Action 即可。
 
 ### 时间记录
 
 - **预估时间**: 6-8 Hours
-- **实际时间**: \_\_\_ hours
-- **偏差分析**: \_\_\_
+- **实际时间**: 2 hours
+- **偏差分析**: 核心逻辑较为清晰，且复用了现有的 QuestionCard 组件，节省了大量时间。
 
 ---
 
 **创建时间**: 2025-12-09
-**最后更新**: 2025-12-09
-**状态**: Backlog ⚪
-**风险等级**: 🔴 高
+**最后更新**: 2025-12-11
+**状态**: Completed ✅
+**风险等级**: 🟡 中

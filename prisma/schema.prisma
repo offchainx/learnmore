@@ -22,6 +22,7 @@ model User {
   // Relations
   progress    UserProgress[]
   attempts    UserAttempt[]
+  examRecords ExamRecord[]
   errorBook   ErrorBook[]
   posts       Post[]
   comments    Comment[]
@@ -140,21 +141,42 @@ enum QuestionType {
 }
 
 model UserAttempt {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @map("user_id") @db.Uuid
-  questionId String   @map("question_id") @db.Uuid
-  userAnswer Json     @map("user_answer")
-  isCorrect  Boolean  @map("is_correct")
-  createdAt  DateTime @default(now()) @map("created_at")
+  id           String      @id @default(uuid()) @db.Uuid
+  userId       String      @map("user_id") @db.Uuid
+  questionId   String      @map("question_id") @db.Uuid
+  examRecordId String?     @map("exam_record_id") @db.Uuid
+  userAnswer   Json        @map("user_answer")
+  isCorrect    Boolean     @map("is_correct")
+  createdAt    DateTime    @default(now()) @map("created_at")
 
   // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  examRecord ExamRecord? @relation(fields: [examRecordId], references: [id])
 
   @@index([userId])
   @@index([questionId])
+  @@index([examRecordId])
   @@index([createdAt])
   @@map("user_attempts")
+}
+
+model ExamRecord {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  chapterId      String?  @map("chapter_id") @db.Uuid
+  score          Float
+  totalQuestions Int      @map("total_questions")
+  correctCount   Int      @map("correct_count")
+  duration       Int?     // Time taken in seconds
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempts UserAttempt[]
+
+  @@index([userId])
+  @@map("exam_records")
 }
 
 model ErrorBook {

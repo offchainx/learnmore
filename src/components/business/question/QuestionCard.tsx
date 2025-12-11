@@ -5,7 +5,7 @@ import { QuestionContent } from './QuestionContent';
 import { SingleChoice } from './SingleChoice';
 import { MultiChoice } from './MultiChoice';
 import { FillBlank } from './FillBlank';
-import { Question, QuestionCardProps } from './types';
+import { QuestionCardProps } from './types';
 import { cn } from '@/lib/utils';
 import { HelpCircle, CheckCircle2, XCircle } from 'lucide-react';
 

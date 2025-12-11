@@ -41,7 +41,6 @@ export const MultiChoice: React.FC<MultiChoiceProps> = ({
         const correctAnswers = Array.isArray(question.answer) ? question.answer : [question.answer as string];
         const isCorrectAnswer = correctAnswers.includes(key);
         const isWrongSelection = isSelected && !isCorrectAnswer;
-        const isMissed = !isSelected && isCorrectAnswer;
 
         let itemClassName = "flex items-start space-x-3 p-3 rounded-lg border transition-colors cursor-pointer";
 

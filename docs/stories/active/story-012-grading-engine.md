@@ -1,28 +1,28 @@
-# Story-010-question-ui: Question Rendering Engine
+# Story-012-grading-engine: Grading & Submission
 
 **Phase**: Phase 3: Question Bank
-**Goal**: 实现支持富文本和公式的题目渲染组件
+**Goal**: 后端判卷逻辑与结果反馈
 **预估时间**: 6-8 Hours
 **Story Points**: 8
-**前置依赖**: Story-002
+**前置依赖**: Story-011
 **负责人**: _待分配_
 
 ---
 
 ## 1. Objectives (实现目标)
 
-- [ ] 引入 `KaTeX` 支持 LaTeX 公式渲染。
-- [ ] 实现 `QuestionCard` 组件。
-- [ ] 支持 单选/多选/填空 三种题型的 UI 差异化展示。
-- [ ] 实现选项的选中/取消选中交互。
+- [ ] 实现 `submitQuiz` Server Action。
+- [ ] 后端比对答案，计算得分。
+- [ ] 写入 `UserAttempt` 和 `ExamRecord` 表。
+- [ ] 前端展示结果页 (Score Card) 和解析 (Explanation)。
 
 ---
 
 ## 2. Tech Plan (技术方案)
 
-- Library: `react-katex`, `react-markdown`。
-- CSS: Tailwind Typography 插件优化排版。
-- Component: 封装 `SingleChoice`, `MultiChoice` 子组件。
+- Logic: 数组比较算法 (处理多选题部分得分逻辑)。
+- DB: 事务写入 (Transaction)。
+- UI: 结果页展示正确/错误高亮。
 
 ---
 
@@ -30,22 +30,21 @@
 
 ### 功能性测试
 
-- [ ] 组件在桌面端 (1920x1080) 正常渲染
-- [ ] 组件在移动端 (375x667) 响应式显示
-- [ ] 所有交互元素可点击且有视觉反馈
-- [ ] 无控制台错误或警告
+- [ ] 核心业务逻辑正确执行
+- [ ] 边缘情况处理正常 (空数据、错误输入等)
+- [ ] 错误提示清晰友好
 
-### 可访问性测试
+### 单元测试
 
-- [ ] 键盘导航可用 (Tab键可遍历所有交互元素)
-- [ ] 屏幕阅读器兼容 (使用语义化HTML标签)
-- [ ] 色彩对比度符合 WCAG AA 标准
+- [ ] 关键函数有单元测试覆盖 (覆盖率 > 80%)
+- [ ] 测试用例包含正常流程和异常流程
+- [ ] Mock 外部依赖 (数据库、API等)
 
 ### 性能测试
 
-- [ ] 组件首次渲染时间 < 100ms
-- [ ] 无不必要的重渲染 (使用React DevTools验证)
-- [ ] 图片懒加载正常工作 (如适用)
+- [ ] 核心函数执行时间 < 50ms
+- [ ] 批量操作性能可接受 (如批量判卷)
+- [ ] 无内存泄漏
 
 ---
 
@@ -53,7 +52,7 @@
 
 - ✅ 完整的功能实现
 - ✅ 相关测试代码 (单元测试/集成测试)
-- ✅ Git Commit: `"feat: implement question rendering engine"`
+- ✅ Git Commit: `"feat: implement grading & submission"`
 - ✅ Preview URL (Vercel自动部署)
 
 ---
@@ -91,26 +90,27 @@
 
 **触发条件**:
 
-- 组件渲染导致页面崩溃
-- 严重的样式问题影响用户体验
+- 业务逻辑错误导致数据不一致
+- 性能严重下降影响用户
 
 **回滚步骤**:
 
 ```bash
-# 1. 回滚到上一个稳定版本
+# 1. 立即回滚代码
 git revert <commit-hash>
-
-# 2. 重新部署
 vercel --prod
 
-# 3. 验证页面恢复正常
+# 2. 检查数据一致性
+# 运行数据修复脚本 (如适用)
+
+# 3. 通知受影响用户
 ```
 
 **预防措施**:
 
-- 在Staging环境充分测试
-- 使用Storybook隔离组件开发
-- 添加视觉回归测试
+- 关键逻辑有完整单元测试
+- Code Review重点关注边缘情况
+- 分阶段发布 (金丝雀部署)
 
 ---
 
@@ -160,5 +160,5 @@ _(开发时填写)_
 
 **创建时间**: 2025-12-09
 **最后更新**: 2025-12-09
-**状态**: Backlog ⚪
-**风险等级**: 🟡 中
+**状态**: In Review 🟡
+**风险等级**: 🔴 高

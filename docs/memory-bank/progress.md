@@ -17,9 +17,9 @@
 - [x] Story-007: Lesson Page Layout (Sidebar + Content area, with Resizable and UI refinements. All ESLint/TypeScript errors fixed, all unit tests passed, build successful.)
 - [ ] Story-008: Video Player Integration
 - [ ] Story-009: Progress Tracking Sync
-- [ ] Story-010: Question UI Components
-- [ ] Story-011: Quiz Mode Implementation
-- [ ] Story-012: Grading Engine
+- [x] Story-010: Question UI Components
+- [x] Story-011: Quiz Mode Implementation
+- [x] Story-012: Grading Engine
 
 ### Phase 3: Gamification (Weeks 6-7) - 0%
 - [ ] Story-013: Error Book (Mistakes Collection)
@@ -35,9 +35,9 @@
 
 | Status | Count |
 | :--- | :--- |
-| Completed | 8 |
+| Completed | 9 |
 | In Progress | 0 |
-| Backlog | 12 |
+| Backlog | 11 |
 | **Total** | **20** |
 
 ## 🛠 Known Issues
