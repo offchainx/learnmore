@@ -28,7 +28,7 @@
 - [x] Story-016: Post Detail View
 - [x] Story-017: Dashboard Widgets
 - [x] Story-018: Analysis Charts
-- [ ] Story-019: Leaderboard
+- [ ] Story-019: Leaderboard (In Progress)
 - [ ] Story-020: User Profile & Settings
 
 ## 📉 Burndown (Stories)
@@ -36,8 +36,8 @@
 | Status | Count |
 | :--- | :--- |
 | Completed | 14 |
-| In Progress | 0 |
-| Backlog | 6 |
+| In Progress | 1 |
+| Backlog | 5 |
 | **Total** | **20** |
 
 ## 🛠 Known Issues

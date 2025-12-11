@@ -1,21 +1,18 @@
 # Active Context
 
 ## Current Focus
-Story 018: Data Visualization (Charts)
+Story 019: Leaderboard System (MVP)
 
 ## Goals
-1.  **Integrate Recharts**: Add the `recharts` library to the project.
-2.  **Implement Radar Chart**: Visualize subject mastery (strength/weakness).
-3.  **Implement Line Chart**: Visualize learning trends (activity over last 7 days).
+- Create `LeaderboardEntry` model in Prisma schema.
+- Implement server actions for updating and fetching leaderboard scores.
+- Build the leaderboard UI with weekly/monthly/all-time views.
+- Ensure performance with proper indexing and an adapter pattern for future Redis migration.
 
 ## Recent Changes
-- Story 017 (Dashboard Widgets) completed.
-- Moved Story 018 from backlog to active.
+- Started Story 019.
+- Moved `story-019-leaderboard.md` to `active/`.
 
 ## Next Steps
-1.  **[COMPLETED]** Install `recharts`.
-2.  **[COMPLETED]** Analyze data requirements for the charts.
-3.  **[COMPLETED]** Implement `getDailyActivity` function in `src/actions/dashboard.ts` and update `DashboardData` interface.
-4.  **[COMPLETED]** Create mock data or fetch real data (if available) for visualization.
-5.  **[COMPLETED]** Implement the chart components.
-6.  **[COMPLETED]** Add charts to the Dashboard.
+1. Update `prisma/schema.prisma` with `LeaderboardEntry` model.
+2. Generate Prisma client and create migration.
