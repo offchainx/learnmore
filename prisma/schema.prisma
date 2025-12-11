@@ -43,6 +43,7 @@ model Subject {
   icon     String?
   order    Int       @default(0)
   chapters Chapter[]
+  posts    Post[]
 
   @@map("subjects")
 }
@@ -209,6 +210,7 @@ model Post {
 
   // Relations
   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  subject  Subject?  @relation(fields: [subjectId], references: [id])
   comments Comment[]
 
   @@index([authorId])

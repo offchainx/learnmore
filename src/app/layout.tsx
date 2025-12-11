@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/providers/theme-provider'
+import { Toaster } from '@/components/ui/toaster' // Import Toaster
 
 export const metadata: Metadata = {
   title: 'Learn More Platform',
@@ -23,6 +24,7 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        <Toaster /> {/* Add Toaster here */}
       </body>
     </html>
   )
