@@ -122,6 +122,28 @@ export async function submitQuiz(
           })),
         });
       }
+
+      // Update ErrorBook based on results
+      for (const submission of answers) {
+        const questionId = submission.questionId;
+        const isQuestionCorrect = results[questionId];
+
+        if (isQuestionCorrect) {
+          // If answered correctly, remove from ErrorBook or set masteryLevel to 0
+          await tx.errorBook.upsert({
+            where: { userId_questionId: { userId: user.id, questionId } },
+            update: { masteryLevel: 0, updatedAt: new Date() }, // Mark as mastered/resolved
+            create: { userId: user.id, questionId, masteryLevel: 0 },
+          });
+        } else {
+          // If answered incorrectly, add/update in ErrorBook, increment masteryLevel
+          await tx.errorBook.upsert({
+            where: { userId_questionId: { userId: user.id, questionId } },
+            update: { masteryLevel: { increment: 1 }, updatedAt: new Date() },
+            create: { userId: user.id, questionId, masteryLevel: 1 },
+          });
+        }
+      }
     });
 
     return {

@@ -22,7 +22,7 @@
 - [x] Story-012: Grading Engine
 
 ### Phase 3: Gamification (Weeks 6-7) - 0%
-- [ ] Story-013: Error Book (Mistakes Collection)
+- [x] Story-013: Error Book (Mistakes Collection)
 - [ ] Story-014: Post List (Community)
 - [ ] Story-015: Post Editor
 - [ ] Story-016: Post Detail View

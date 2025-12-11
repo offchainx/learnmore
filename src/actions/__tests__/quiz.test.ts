@@ -5,6 +5,7 @@ const { mockPrisma } = vi.hoisted(() => {
     question: { findMany: vi.fn() },
     examRecord: { create: vi.fn() },
     userAttempt: { createMany: vi.fn() },
+    errorBook: { upsert: vi.fn() },
     $transaction: vi.fn(),
   };
   mp.$transaction = vi.fn((cb: (tx: typeof mp) => Promise<unknown>) => cb(mp));

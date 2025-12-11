@@ -30,6 +30,9 @@ A comprehensive online education platform for middle school students.
   - Timed Quizzes & Exam Mode
   - **Grading Engine**: Server-side answer verification and score calculation.
   - Performance tracking (Exam Records, User Attempts)
+- **Error Book System**:
+  - Automatic collection of incorrect questions.
+  - Review and master mistakes.
 
 ## Getting Started
 
