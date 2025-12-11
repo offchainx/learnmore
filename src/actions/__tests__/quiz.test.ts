@@ -21,6 +21,10 @@ vi.mock('../auth', () => ({
   getCurrentUser: vi.fn(),
 }));
 
+vi.mock('../leaderboard', () => ({
+  updateLeaderboardScore: vi.fn().mockResolvedValue({ success: true }),
+}));
+
 import { submitQuiz } from '../quiz';
 import { QuestionType } from '@prisma/client';
 import { getCurrentUser } from '../auth';

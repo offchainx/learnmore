@@ -25,6 +25,11 @@ A comprehensive online education platform for middle school students.
     - Expand/Collapse with state memory.
     - Visual indicators for Locked, Completed, and In-Progress statuses.
     - [View Demo](/demo/course-tree) (locally accessible via `/demo/course-tree`).
+  - **Video Player Integration**: Professional video playback with react-player.
+    - Supports external URLs and Supabase Storage signed URLs.
+    - Basic DRM protection (disable download, right-click prevention).
+    - Automatic loading states and error handling.
+    - Progress tracking callbacks for learning analytics.
 - **Smart Quiz System**
   - Interactive Question UI (Single/Multi-choice, Fill-blank)
   - Timed Quizzes & Exam Mode

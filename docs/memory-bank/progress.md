@@ -15,7 +15,7 @@
 
 ### Phase 2: Core Modules (Weeks 3-5) - 60%
 - [x] Story-007: Lesson Page Layout
-- [ ] Story-008: Video Player Integration
+- [x] Story-008: Video Player Integration
 - [ ] Story-009: Progress Tracking Sync
 - [x] Story-010: Question UI Components
 - [x] Story-011: Quiz Mode Implementation
@@ -29,15 +29,15 @@
 - [x] Story-017: Dashboard Widgets
 - [x] Story-018: Analysis Charts
 - [x] Story-019: Leaderboard
-- [ ] Story-020: User Profile & Settings
+- [x] Story-020: User Profile & Settings (Completed)
 
 ## 📉 Burndown (Stories)
 
 | Status | Count |
 | :--- | :--- |
-| Completed | 15 |
-| In Progress | 0 |
-| Backlog | 5 |
+| Completed | 16 |
+| In Progress | 1 |
+| Backlog | 3 |
 | **Total** | **20** |
 
 ## 🛠 Known Issues

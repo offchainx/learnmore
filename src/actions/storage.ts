@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { v4 as uuidv4 } from 'uuid'
 import { getCurrentUser } from '@/actions/auth'
+import prisma from '@/lib/prisma'
 
 interface UploadImageResult {
   success: boolean
@@ -60,6 +61,58 @@ export async function uploadImage(formData: FormData): Promise<UploadImageResult
   } catch (error: unknown) {
     console.error('Unexpected upload error:', error)
     let message = 'An unknown error occurred during upload.'
+    if (error instanceof Error) {
+      message = error.message
+    }
+    return { success: false, error: message }
+  }
+}
+
+interface GetVideoUrlResult {
+  success: boolean
+  url?: string
+  error?: string
+}
+
+export async function getSignedVideoUrl(lessonId: string): Promise<GetVideoUrlResult> {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      console.warn('getSignedVideoUrl: User not authenticated')
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    const lesson = await prisma.lesson.findUnique({
+      where: { id: lessonId },
+      select: { videoUrl: true }
+    })
+
+    if (!lesson || !lesson.videoUrl) {
+      console.warn('getSignedVideoUrl: Video URL not found in DB', lesson)
+      return { success: false, error: 'Video not found' }
+    }
+
+    // If it's already a full URL (external), return it
+    if (lesson.videoUrl.startsWith('http')) {
+      return { success: true, url: lesson.videoUrl }
+    }
+
+    const supabase = await createClient()
+    const { data, error } = await supabase.storage
+      .from('videos')
+      .createSignedUrl(lesson.videoUrl, 3600) // 1 hour validity
+
+    if (error) {
+      console.error('Sign URL error:', error)
+      return { success: false, error: error.message }
+    }
+
+    console.warn('getSignedVideoUrl: Success', data.signedUrl)
+    return { success: true, url: data.signedUrl }
+
+  } catch (error: unknown) {
+    console.error('Unexpected error fetching video URL:', error)
+    let message = 'An unknown error occurred.'
     if (error instanceof Error) {
       message = error.message
     }
