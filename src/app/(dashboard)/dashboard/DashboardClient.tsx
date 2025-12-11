@@ -6,8 +6,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import SubjectCard from '@/components/business/SubjectCard';
-import CircularProgress from '@/components/business/CircularProgress';
-import StrengthBar from '@/components/business/StrengthBar';
 import DailyInspiration from '@/components/business/DailyInspiration';
 import { DashboardData } from '@/actions/dashboard';
 

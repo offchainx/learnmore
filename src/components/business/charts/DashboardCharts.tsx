@@ -23,15 +23,15 @@ import { DashboardData } from '@/actions/dashboard'
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 
-console.error = (...args: any[]) => {
-  if (typeof args[0] === 'string') {
+console.error = (...args: unknown[]) => {
+  if (args.length > 0 && typeof args[0] === 'string') {
     if (/defaultProps/.test(args[0])) return;
   }
   originalConsoleError(...args);
 };
 
-console.warn = (...args: any[]) => {
-  if (typeof args[0] === 'string') {
+console.warn = (...args: unknown[]) => {
+  if (args.length > 0 && typeof args[0] === 'string') {
     if (/width\(-1\) and height\(-1\)/.test(args[0])) return;
   }
   originalConsoleWarn(...args);
