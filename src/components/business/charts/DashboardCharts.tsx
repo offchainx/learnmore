@@ -21,12 +21,20 @@ import { DashboardData } from '@/actions/dashboard'
 
 // 临时抑制 Recharts 的 defaultProps 警告 (React 18/19 兼容性问题) 以及尺寸计算警告
 const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
 console.error = (...args: any[]) => {
   if (typeof args[0] === 'string') {
     if (/defaultProps/.test(args[0])) return;
-    if (/width\(-1\) and height\(-1\)/.test(args[0])) return;
   }
   originalConsoleError(...args);
+};
+
+console.warn = (...args: any[]) => {
+  if (typeof args[0] === 'string') {
+    if (/width\(-1\) and height\(-1\)/.test(args[0])) return;
+  }
+  originalConsoleWarn(...args);
 };
 
 interface DashboardChartsProps {
