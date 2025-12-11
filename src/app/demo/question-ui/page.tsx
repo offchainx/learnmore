@@ -1,6 +1,7 @@
 
 import prisma from '@/lib/prisma';
 import QuizDemoClient from './QuizDemoClient';
+import { Question } from '@/components/business/question';
 
 export const dynamic = 'force-dynamic';
 
