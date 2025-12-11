@@ -1,7 +1,7 @@
 # Progress Status (项目进度)
 
-**上次更新**: 2025-12-10
-**当前版本**: v0.2.0 (Prototype)
+**上次更新**: 2025-12-11
+**当前版本**: v0.2.1 (Prototype)
 
 ## 🚀 Milestones
 
@@ -13,21 +13,21 @@
 - [x] Story-005: Seed Data Script
 - [x] Story-006: Course Tree Component
 
-### Phase 2: Core Modules (Weeks 3-5) - 25%
-- [x] Story-007: Lesson Page Layout (Sidebar + Content area, with Resizable and UI refinements. All ESLint/TypeScript errors fixed, all unit tests passed, build successful.)
+### Phase 2: Core Modules (Weeks 3-5) - 60%
+- [x] Story-007: Lesson Page Layout
 - [ ] Story-008: Video Player Integration
 - [ ] Story-009: Progress Tracking Sync
 - [x] Story-010: Question UI Components
 - [x] Story-011: Quiz Mode Implementation
 - [x] Story-012: Grading Engine
 
-### Phase 3: Gamification (Weeks 6-7) - 0%
+### Phase 3: Gamification & Community (Weeks 6-8) - 62.5%
 - [x] Story-013: Error Book (Mistakes Collection)
-- [ ] Story-014: Post List (Community)
-- [ ] Story-015: Post Editor
-- [ ] Story-016: Post Detail View
-- [ ] Story-017: Dashboard Widgets
-- [ ] Story-018: Analysis Charts
+- [x] Story-014: Post List (Community)
+- [x] Story-015: Post Editor
+- [x] Story-016: Post Detail View
+- [x] Story-017: Dashboard Widgets
+- [x] Story-018: Analysis Charts
 - [ ] Story-019: Leaderboard
 - [ ] Story-020: User Profile & Settings
 
@@ -35,9 +35,9 @@
 
 | Status | Count |
 | :--- | :--- |
-| Completed | 9 |
+| Completed | 14 |
 | In Progress | 0 |
-| Backlog | 11 |
+| Backlog | 6 |
 | **Total** | **20** |
 
 ## 🛠 Known Issues
