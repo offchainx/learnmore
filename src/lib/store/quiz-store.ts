@@ -23,7 +23,7 @@ interface QuizActions {
   prevQuestion: () => void;
   resetQuiz: () => void;
   decrementTimer: () => void;
-  submitQuiz: (results: any) => void; // Update state after submission
+  submitQuiz: (results: { score?: number, results?: Record<string, boolean> }) => void; // Update state after submission
   startSubmitting: () => void;
 }
 

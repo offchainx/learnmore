@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { mockPrisma } = vi.hoisted(() => {
-  const mp: any = {
+  const mp = {
     question: { findMany: vi.fn() },
     examRecord: { create: vi.fn() },
     userAttempt: { createMany: vi.fn() },
+    $transaction: vi.fn(),
   };
-  mp.$transaction = vi.fn((cb: any) => cb(mp));
+  mp.$transaction = vi.fn((cb: (tx: typeof mp) => Promise<unknown>) => cb(mp));
   return { mockPrisma: mp };
 });
 
@@ -23,20 +24,23 @@ import { submitQuiz } from '../quiz';
 import { QuestionType } from '@prisma/client';
 import { getCurrentUser } from '../auth';
 
+// Define a type for the mocked user function
+const mockGetCurrentUser = getCurrentUser as unknown as ReturnType<typeof vi.fn>;
+
 describe('submitQuiz Server Action', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should reject unauthorized users', async () => {
-    (getCurrentUser as any).mockResolvedValue(null);
+    mockGetCurrentUser.mockResolvedValue(null);
     const result = await submitQuiz({ answers: [] });
     expect(result.success).toBe(false);
     expect(result.error).toBe('Unauthorized');
   });
 
   it('should correctly grade a perfect submission', async () => {
-    (getCurrentUser as any).mockResolvedValue({ id: 'user-1' });
+    mockGetCurrentUser.mockResolvedValue({ id: 'user-1' });
 
     const questions = [
       { id: 'q1', type: QuestionType.SINGLE_CHOICE, answer: 'A' },
@@ -66,7 +70,7 @@ describe('submitQuiz Server Action', () => {
   });
 
   it('should correctly grade mixed results', async () => {
-    (getCurrentUser as any).mockResolvedValue({ id: 'user-1' });
+    mockGetCurrentUser.mockResolvedValue({ id: 'user-1' });
 
     const questions = [
       { id: 'q1', type: QuestionType.SINGLE_CHOICE, answer: 'A' },

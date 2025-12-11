@@ -17,5 +17,5 @@ export default async function QuestionUIDemoPage() {
   // Prisma Question type matches exactly mostly, except Json fields need type assertion if strict.
   // But for passing to client, Next.js serializes JSON automatically.
   
-  return <QuizDemoClient questions={questions as any} />;
+  return <QuizDemoClient questions={questions as unknown as Question[]} />;
 }

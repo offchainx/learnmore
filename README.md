@@ -25,6 +25,11 @@ A comprehensive online education platform for middle school students.
     - Expand/Collapse with state memory.
     - Visual indicators for Locked, Completed, and In-Progress statuses.
     - [View Demo](/demo/course-tree) (locally accessible via `/demo/course-tree`).
+- **Smart Quiz System**
+  - Interactive Question UI (Single/Multi-choice, Fill-blank)
+  - Timed Quizzes & Exam Mode
+  - **Grading Engine**: Server-side answer verification and score calculation.
+  - Performance tracking (Exam Records, User Attempts)
 
 ## Getting Started
 

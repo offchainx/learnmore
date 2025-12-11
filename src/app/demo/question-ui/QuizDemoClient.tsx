@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { QuestionCard, Question } from '@/components/business/question';
 import { Button } from '@/components/ui/button';
 import { useQuizStore } from '@/lib/store/quiz-store';
-import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuizTimer } from '@/components/business/quiz/QuizTimer';
 import { QuizAnswerGrid } from '@/components/business/quiz/QuizAnswerGrid';
+import { ScoreCard } from '@/components/business/quiz/ScoreCard';
 import { submitQuiz } from '@/actions/quiz';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface QuizDemoClientProps {
   questions: Question[];
@@ -34,6 +34,7 @@ export default function QuizDemoClient({ questions }: QuizDemoClientProps) {
   } = useQuizStore();
 
   const [loading, setLoading] = useState(false);
+  const [takenDuration, setTakenDuration] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     resetQuiz();
@@ -63,6 +64,7 @@ export default function QuizDemoClient({ questions }: QuizDemoClientProps) {
         }));
 
         const duration = Math.max(0, QUIZ_DURATION_SECONDS - useQuizStore.getState().timer);
+        setTakenDuration(duration);
 
         const result = await submitQuiz({
             answers: answersArray,
@@ -98,26 +100,19 @@ export default function QuizDemoClient({ questions }: QuizDemoClientProps) {
 
   const currentQuestion = questions[currentQuestionIndex];
   const userAnswer = quizAnswers.get(currentQuestionIndex);
+  
+  // Calculate correct count from results if available
+  const correctCount = results ? Object.values(results).filter(Boolean).length : 0;
 
   return (
     <div className="container mx-auto py-10 max-w-3xl space-y-8">
       {isSubmitted && score !== null && (
-        <Card className="bg-primary/5 border-primary/20">
-            <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-6 w-6 text-primary" />
-                    Quiz Completed!
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="text-4xl font-bold text-primary mb-2">
-                    {Math.round(score)}%
-                </div>
-                <p className="text-muted-foreground">
-                    You have completed the quiz. Review your answers below.
-                </p>
-            </CardContent>
-        </Card>
+        <ScoreCard 
+            score={score} 
+            totalQuestions={totalQuestions} 
+            correctCount={correctCount}
+            duration={takenDuration}
+        />
       )}
 
       <div className="space-y-2 flex items-center justify-between">
