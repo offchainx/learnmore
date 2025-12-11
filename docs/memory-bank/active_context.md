@@ -1,18 +1,15 @@
 # Active Context
 
 ## Current Focus
-Story 019: Leaderboard System (MVP)
+None.
 
 ## Goals
-- Create `LeaderboardEntry` model in Prisma schema.
-- Implement server actions for updating and fetching leaderboard scores.
-- Build the leaderboard UI with weekly/monthly/all-time views.
-- Ensure performance with proper indexing and an adapter pattern for future Redis migration.
+None.
 
 ## Recent Changes
-- Started Story 019.
-- Moved `story-019-leaderboard.md` to `active/`.
+- Completed Story 019 (Leaderboard System).
+- Implemented Leaderboard DB schema, Server Actions, UI, and Cron API.
+- Verified functionality and performance.
 
 ## Next Steps
-1. Update `prisma/schema.prisma` with `LeaderboardEntry` model.
-2. Generate Prisma client and create migration.
+Ready to pick up the next story from the backlog (e.g., Story 020: User Profile or Story 008: Video Player).

@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from './auth';
 import { z } from 'zod';
 import { QuestionType, Prisma } from '@prisma/client';
+import { updateLeaderboardScore } from './leaderboard';
 
 const SubmitQuizSchema = z.object({
   chapterId: z.string().optional(),
@@ -145,6 +146,11 @@ export async function submitQuiz(
         }
       }
     });
+
+    // 4. Update Leaderboard
+    if (correctCount > 0) {
+      await updateLeaderboardScore(user.id, correctCount * 10);
+    }
 
     return {
       success: true,

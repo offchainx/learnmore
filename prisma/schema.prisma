@@ -26,6 +26,7 @@ model User {
   errorBook   ErrorBook[]
   posts       Post[]
   comments    Comment[]
+  leaderboardEntries LeaderboardEntry[]
 
   @@map("users")
 }
@@ -231,4 +232,28 @@ model Comment {
 
   @@index([postId])
   @@map("comments")
+}
+
+// ============ 排行榜模块 ============
+model LeaderboardEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  score     Int      @default(0)
+  rank      Int?     // 缓存排名
+  period    LeaderboardPeriod @default(WEEKLY)
+  weekStart DateTime @map("week_start")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period, weekStart])
+  @@index([period, weekStart, score(sort: Desc)])
+  @@index([userId])
+  @@map("leaderboard_entries")
+}
+
+enum LeaderboardPeriod {
+  WEEKLY
+  MONTHLY
+  ALL_TIME
 }

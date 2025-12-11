@@ -33,6 +33,10 @@ A comprehensive online education platform for middle school students.
 - **Error Book System**:
   - Automatic collection of incorrect questions.
   - Review and master mistakes.
+- **Leaderboard System**:
+  - Weekly, Monthly, and All-Time rankings.
+  - XP system integrated with quizzes.
+  - Optimized for performance with PostgreSQL (Migration path to Redis planned).
 
 ## Getting Started
 
