@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma'
 import { getSignedVideoUrl } from '@/actions/storage'
-import { VideoPlayer } from '@/components/business/VideoPlayer'
+import { LessonVideoPlayer } from '@/components/business/LessonVideoPlayer'
 import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
@@ -10,7 +10,7 @@ import 'katex/dist/katex.min.css'
 export default async function LessonPage({
   params,
 }: {
-  params: Promise<{ subjectId: string; lessonId: string }>;
+  params: { subjectId: string; lessonId: string };
 }) {
   const { lessonId } = await params
 
@@ -42,7 +42,7 @@ export default async function LessonPage({
       
       {videoUrl ? (
         <div className="border rounded-lg overflow-hidden bg-black shadow-sm">
-          <VideoPlayer url={videoUrl} />
+          <LessonVideoPlayer lessonId={lesson.id} videoUrl={videoUrl} />
         </div>
       ) : lesson.type === 'VIDEO' ? (
          <div className="border rounded-lg p-8 min-h-[200px] bg-muted flex flex-col items-center justify-center text-muted-foreground gap-2">

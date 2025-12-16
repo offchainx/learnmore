@@ -116,7 +116,13 @@ cat docs/stories/active/story-XXX-*.md
 # 3. UPDATE status in Story file
 sed -i '' 's/Backlog ⚪/In Progress 🟡/' docs/stories/active/story-XXX-*.md
 
-# 4. CONFIRM to user
+# 4. UPDATE active_context.md (记录当前工作内容)
+# 在 "## 当前开发焦点" 部分添加Story信息
+
+# 5. UPDATE roadmap.md (标记Story为进行中)
+# 在对应Story前添加 🟡 标记
+
+# 6. CONFIRM to user
 "Story-XXX loaded. Ready to implement:
 - Objective 1: ...
 - Objective 2: ...
@@ -125,6 +131,11 @@ Starting with Tech Plan Step 1..."
 ```
 
 **Then follow the Story's "2. Tech Plan" section step by step.**
+
+**⚠️ Phase 6特殊流程**: 对于Story-021~025,需要额外注意:
+- 使用单个Git分支 `feature/phase-6-ui-finalization` (不是每个Story一个分支)
+- 质量检查只运行: `pnpm lint && pnpm tsc --noEmit && pnpm build`
+- 不打通后端功能,所有数据使用Mock
 
 ---
 
@@ -139,33 +150,63 @@ Starting with Tech Plan Step 1..."
 
 #### **When User says: "Finish Story-XXX"** or all tasks complete
 
-Execute the following sequence:
+**⚠️ 重要**: 完成开发后,必须先按以下顺序检验,**确保无误后才通知用户**:
 
 ```bash
 # 1. VERIFY all Objectives are checked
 grep "- \[x\]" docs/stories/active/story-XXX-*.md
 
-# 2. VERIFY Definition of Done
-# Ensure all items in section "5. Definition of Done" are completed
+# 2. RUN Verification tests (按Story的"3. Verification"清单逐项测试)
+# 例如: 访问页面、测试功能、检查响应式布局
 
-# 3. UPDATE status
+# 3. CHECK Deliverables (确保所有交付物已创建)
+# 例如: 检查文件是否存在、代码是否完整
+
+# 4. RUN Definition of Done checks
+pnpm lint && pnpm tsc --noEmit && pnpm build
+# Phase 6跳过 pnpm test
+
+# 5. 确认所有检查通过后,才进行以下操作:
+
+# 6. UPDATE status
 sed -i '' 's/In Progress 🟡/Completed ✅/' docs/stories/active/story-XXX-*.md
 
-# 4. MOVE to completed
+# 7. MOVE to completed
 mv docs/stories/active/story-XXX-*.md docs/stories/completed/
 
-# 5. UPDATE progress
-# Update docs/stories/README.md progress percentage
+# 8. UPDATE roadmap.md (标记Story为已完成)
+# 将 🟡 改为 ✅
 
-# 6. CONFIRM to user
-"Story-XXX completed and archived!
+# 9. UPDATE active_context.md (清除当前工作内容,添加完成记录)
 
-Completed:
+# 10. GIT commit and push
+git add .
+git commit -m "feat: complete Story-XXX - <Title>
+
+Story-XXX: <Title>
 - [x] Objective 1
 - [x] Objective 2
 ...
 
-Next suggested Story: Story-YYY (depends on: Story-XXX)"
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+git push origin <branch-name>
+
+# 11. CONFIRM to user (只有在所有步骤完成后才通知)
+"✅ Story-XXX 已完成并归档!
+
+完成内容:
+- [x] Objective 1
+- [x] Objective 2
+...
+
+已执行:
+- ✅ 所有Verification测试通过
+- ✅ 所有Deliverables已交付
+- ✅ Definition of Done检查通过
+- ✅ 代码已commit并push到GitHub
+
+下一个推荐Story: Story-YYY (依赖: Story-XXX)"
 ```
 
 ---
@@ -290,7 +331,24 @@ Supabase (BaaS)
 - Story-019: Database-Based Leaderboard (6-8h) ⚠️ Changed from Redis
 - Story-020: Profile & Settings (4-6h)
 
-**Total Estimated Time**: 108-142 hours (~13-18 work days for single developer)
+### Phase 6: UI定稿与静态部署 (Stories 021-025) - Week 6-7 ⭐ NEW
+
+**阶段目标**: 将Gemini AI Studio生成的前端页面迁移到Next.js,完成UI定稿并部署到Vercel预览。**此阶段只关注UI展示,不打通后端功能**。
+
+- Story-021: UI组件迁移与适配 (6-8h)
+- Story-022: 静态数据Mock与页面填充 (4-6h)
+- Story-023: 暗黑模式与主题切换 (3-4h)
+- Story-024: Vercel部署与预览链接 (2-3h)
+- Story-025: UI反馈收集与迭代优化 (4-6h)
+
+**Phase 6特殊配置**:
+- 使用单个Feature分支: `feature/phase-6-ui-finalization`
+- 质量检查命令: `pnpm lint && pnpm tsc --noEmit && pnpm build` (跳过单元测试)
+- 使用简化的Story文件格式
+- 所有数据使用Mock,不调用Supabase/Prisma
+
+**Total Estimated Time (Phase 1-5)**: 108-142 hours (~13-18 work days for single developer)
+**Total Estimated Time (Phase 6)**: 19-27 hours (~2-3 work days)
 
 ---
 

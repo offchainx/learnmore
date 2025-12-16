@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { ChevronDown, CheckCircle, Lock, PlayCircle, FileText } from 'lucide-react';
+import { ChevronDown, CheckCircle, Lock, PlayCircle, FileText, BookText, Code } from 'lucide-react'; // Added BookText and Code for document and exercise
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
@@ -9,11 +9,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
+// Update CourseChapter interface to include type
 export interface CourseChapter {
   id: string;
   title: string;
   isCompleted?: boolean;
   isLocked?: boolean;
+  type?: 'CHAPTER' | 'VIDEO' | 'DOCUMENT' | 'EXERCISE'; // Added type field
   children?: CourseChapter[];
 }
 
@@ -59,16 +61,26 @@ const CourseTreeItem: React.FC<CourseTreeItemProps> = ({
   onChapterSelect,
 }) => {
   const hasChildren = chapter.children && chapter.children.length > 0;
-  // State for collapsible
-  // Initialize state based on whether selected chapter is a child of this chapter could be a nice enhancement
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Determine icon
+  // Determine icon based on type and completion status
   const getIcon = () => {
     if (chapter.isLocked) return <Lock className="h-4 w-4 text-muted-foreground" />;
     if (chapter.isCompleted) return <CheckCircle className="h-4 w-4 text-green-500" />;
-    if (selectedChapterId === chapter.id) return <PlayCircle className="h-4 w-4 text-primary" />;
-    return <FileText className="h-4 w-4 text-muted-foreground" />;
+
+    switch (chapter.type) {
+      case 'VIDEO':
+        return <PlayCircle className="h-4 w-4 text-primary" />;
+      case 'DOCUMENT':
+        return <BookText className="h-4 w-4 text-blue-500" />; // Example color
+      case 'EXERCISE':
+        return <Code className="h-4 w-4 text-purple-500" />; // Example color
+      case 'CHAPTER':
+      default:
+        // For chapters, if it's the selected one, show PlayCircle, otherwise FileText
+        if (selectedChapterId === chapter.id) return <PlayCircle className="h-4 w-4 text-primary" />;
+        return <FileText className="h-4 w-4 text-muted-foreground" />;
+    }
   };
 
   return (
@@ -91,7 +103,6 @@ const CourseTreeItem: React.FC<CourseTreeItemProps> = ({
                     <button 
                       className="p-1 hover:bg-muted rounded-sm mr-1 shrink-0"
                       onClick={(e) => {
-                        // Prevent triggering the parent onClick if nested (though trigger handles this)
                         e.stopPropagation();
                       }}
                     >
@@ -112,7 +123,9 @@ const CourseTreeItem: React.FC<CourseTreeItemProps> = ({
             <div
                 className={cn(
                   "flex-1 flex items-center gap-2 py-2 pr-2 cursor-pointer truncate",
-                   chapter.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                   chapter.isLocked ? "opacity-50 cursor-not-allowed" : "",
+                   // Add visual cue for completed lessons
+                   chapter.isCompleted && "text-green-500 font-semibold"
                 )}
                 onClick={() => !chapter.isLocked && onChapterSelect(chapter.id)}
             >

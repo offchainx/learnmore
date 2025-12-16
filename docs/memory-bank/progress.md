@@ -1,7 +1,7 @@
 # Progress Status (项目进度)
 
-**上次更新**: 2025-12-11
-**当前版本**: v0.2.2 (Leaderboard Added)
+**上次更新**: 2025-12-13
+**当前版本**: v0.3.0 (UI Migration Complete)
 
 ## 🚀 Milestones
 
@@ -13,10 +13,10 @@
 - [x] Story-005: Seed Data Script
 - [x] Story-006: Course Tree Component
 
-### Phase 2: Core Modules (Weeks 3-5) - 60%
+### Phase 2: Core Modules (Weeks 3-5) - 100%
 - [x] Story-007: Lesson Page Layout
 - [x] Story-008: Video Player Integration
-- [ ] Story-009: Progress Tracking Sync
+- [x] Story-009: Progress Tracking Sync
 - [x] Story-010: Question UI Components
 - [x] Story-011: Quiz Mode Implementation
 - [x] Story-012: Grading Engine
@@ -31,14 +31,24 @@
 - [x] Story-019: Leaderboard
 - [x] Story-020: User Profile & Settings (Completed)
 
+### Phase 6: UI Finalization (Week 9)
+- [x] Story-021: UI组件迁移与适配 (Completed)
+- [ ] Story-022: Mock数据完善 (Mock Data Refinement)
+- [ ] Story-023: 深色模式优化 (Dark Mode Optimization)
+
+### Phase 7: Deployment & Feedback (Week 10)
+- [ ] Story-024: Vercel部署 (Vercel Deployment)
+- [ ] Story-025: UI反馈循环 (UI Feedback Loop)
+
 ## 📉 Burndown (Stories)
 
 | Status | Count |
 | :--- | :--- |
-| Completed | 16 |
-| In Progress | 1 |
-| Backlog | 3 |
-| **Total** | **20** |
+| Completed | 18 |
+| In Progress | 0 |
+| Backlog | 4 |
+| **Total** | **22** |
 
 ## 🛠 Known Issues
-- [ ] 无 (所有已知阻塞性问题和高优先级问题均已解决)
+- [ ] TypeScript报错 `src/actions/__tests__/progress.test.ts` (等待Vitest类型修复)
+- [ ] Dashboard中的GenAI功能目前使用Mock数据
