@@ -1,16 +1,9 @@
-'use client';
-
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Share2, Sparkles, Zap, Brain, Target, Clock, BookOpen, MessageSquare, Moon, Timer, Heart, Crown, Award, TrendingUp, Hexagon, Lock } from 'lucide-react';
 
-interface AchievementsViewProps {
-  t: Record<string, unknown>;
-}
-
-export const AchievementsView: React.FC<AchievementsViewProps> = ({ }) => {
+export const AchievementsView = ({ t }: { t: any }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'rare' | 'epic'>('all');
 
   const stats = [
@@ -51,7 +44,7 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ }) => {
              <div className="relative group cursor-pointer">
                 <div className="w-32 h-32 rounded-full border-4 border-white/10 p-1 relative">
                    <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin-slow" style={{ animationDuration: '3s' }}></div>
-                   <Image src="https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2669&auto=format&fit=crop" className="w-full h-full rounded-full object-cover" alt="Profile" fill sizes="128px"/>
+                   <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2669&auto=format&fit=crop" className="w-full h-full rounded-full object-cover" alt="Profile" />
                    <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-slate-900 shadow-lg">
                       Level 12
                    </div>
@@ -152,7 +145,7 @@ export const AchievementsView: React.FC<AchievementsViewProps> = ({ }) => {
                    {['all', 'rare', 'epic'].map(tab => (
                       <button
                          key={tab}
-                         onClick={() => setActiveTab(tab as 'all' | 'rare' | 'epic')}
+                         onClick={() => setActiveTab(tab as any)}
                          className={`px-3 py-1 text-xs font-bold rounded-md capitalize transition-all ${
                             activeTab === tab 
                             ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' 

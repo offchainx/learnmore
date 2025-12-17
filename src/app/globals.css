@@ -66,3 +66,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* AI Studio Custom Styles */
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: #64748b; /* Slate-500 */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* Slate-600 */
+}
+
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7); /* Slate-800 with opacity */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

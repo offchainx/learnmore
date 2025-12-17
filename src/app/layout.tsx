@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/providers/theme-provider'
+import { AppProvider } from '@/providers/app-provider'
 import { Toaster } from '@/components/ui/toaster' // Import Toaster
 
 export const metadata: Metadata = {
@@ -22,7 +23,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AppProvider>
+            {children}
+          </AppProvider>
         </ThemeProvider>
         <Toaster /> {/* Add Toaster here */}
       </body>

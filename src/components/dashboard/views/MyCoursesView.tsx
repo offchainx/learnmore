@@ -1,54 +1,36 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   ChevronRight, ChevronDown, CheckCircle2, Lock, Clock, AlertTriangle, 
   BarChart, Flame, Target, Notebook, Bookmark, Highlighter, ArrowRight,
-  List, Brain, GraduationCap
+  List, Brain, GraduationCap, Search, PlayCircle, FileText, HelpCircle,
+  Coffee, Calendar, X, Zap, ArrowUpRight
 } from 'lucide-react';
 import { subjectsData, mockUserContent, Section, SubTabType } from '../shared';
 import { LessonPlayer } from './LessonPlayer';
 
-interface MyCoursesViewProps {
-  t: Record<string, unknown>;
-}
-
-export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
+export const MyCoursesView = ({ t }: { t: any }) => {
   const [activeLesson, setActiveLesson] = useState<Section & { chapterTitle: string } | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
   const [activeViewMode, setActiveViewMode] = useState<'curriculum' | 'review' | 'notebook'>('curriculum');
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
+  const [hasLiveClass, setHasLiveClass] = useState(true); 
+  const [isReviewSessionOpen, setIsReviewSessionOpen] = useState(false); // New: Review Overlay State
   
-  // Notebook Filter State
+  // Notebook State
   const [notebookFilter, setNotebookFilter] = useState<SubTabType>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Load subject data
   const currentSubject = subjectsData[selectedSubjectId] || subjectsData['math'];
 
-  // Handle subject change and reset expanded chapter in event handler to avoid set-state-in-effect
-  const handleSubjectChange = (id: string) => {
-    setSelectedSubjectId(id);
-    const subject = subjectsData[id] || subjectsData['math'];
-    if (subject.chapters.length > 0) {
-      setExpandedChapter(subject.chapters[0].id);
+  // Initialize expanded chapter
+  useEffect(() => {
+    if (currentSubject.chapters.length > 0) {
+      setExpandedChapter(currentSubject.chapters[0].id);
     }
-  };
-
-  // Initial load
-  React.useEffect(() => {
-    // Set initial expanded chapter only on mount
-    const subject = subjectsData[selectedSubjectId] || subjectsData['math'];
-    if (subject.chapters.length > 0) {
-      setExpandedChapter(subject.chapters[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, [selectedSubjectId]);
 
   if (activeLesson) {
     return (
@@ -64,89 +46,127 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
   // --- Render Helpers ---
 
   const renderSubjectSelector = () => (
-    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mb-6">
-      {Object.values(subjectsData).map((sub) => {
-        const isActive = selectedSubjectId === sub.id;
-        return (
-          <button
-            key={sub.id}
-            onClick={() => handleSubjectChange(sub.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all border whitespace-nowrap ${
-              isActive 
-                ? `${sub.color} text-white border-transparent shadow-lg shadow-blue-900/10` 
-                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700'
-            }`}
-          >
-            <sub.icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
-            <span className="text-sm font-bold">{sub.title}</span>
-          </button>
-        );
-      })}
+    <div className="relative group">
+      <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mb-6 pr-12">
+        {Object.values(subjectsData).map((sub) => {
+          const isActive = selectedSubjectId === sub.id;
+          return (
+            <button
+              key={sub.id}
+              onClick={() => setSelectedSubjectId(sub.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all border whitespace-nowrap shrink-0 ${
+                isActive 
+                  ? `${sub.color} text-white border-transparent shadow-lg shadow-blue-900/10 scale-105` 
+                  : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700'
+              }`}
+            >
+              <sub.icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
+              <span className="text-sm font-bold">{sub.title}</span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Visual Cue: Fade out effect on the right */}
+      <div className="absolute right-0 top-0 bottom-4 w-20 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent pointer-events-none" />
     </div>
   );
 
-  const renderCurriculum = () => (
-    <div className="space-y-4 animate-fade-in-up">
-      {currentSubject.chapters.map((chapter) => (
-        <Card key={chapter.id} className="overflow-hidden border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800">
-          <div 
-            className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
-            onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${expandedChapter === chapter.id ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
-                {expandedChapter === chapter.id ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-              </div>
-              <h4 className="font-bold text-slate-900 dark:text-white">{chapter.title}</h4>
-            </div>
-            <span className="text-xs text-slate-400 font-medium">{chapter.sections.filter(s => s.isCompleted).length}/{chapter.sections.length} Done</span>
-          </div>
-          
-          {expandedChapter === chapter.id && (
-            <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-              {chapter.sections.map((section) => (
-                <div key={section.id} className="p-3 pl-14 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-                  <div className="flex items-center gap-3">
-                    {section.isCompleted ? (
-                      <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                      </div>
-                    ) : section.isLocked ? (
-                      <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                        <Lock className="w-3.5 h-3.5 text-slate-400" />
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 shrink-0"></div>
-                    )}
-                    <div>
-                      <p className={`text-sm font-medium ${section.isLocked ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
-                        {section.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-slate-400 flex items-center gap-0.5"><Clock className="w-3 h-3" /> {section.duration}</span>
-                        {section.xp > 0 && <span className="text-[10px] text-yellow-500 font-bold">+{section.xp} XP</span>}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {!section.isLocked && (
-                    <Button 
-                      size="sm" 
-                      variant={section.isCompleted ? 'outline' : 'default'} 
-                      className={`h-8 text-xs ${section.isCompleted ? 'text-slate-500' : ''}`}
-                      onClick={() => setActiveLesson({ ...section, chapterTitle: chapter.title })}
-                    >
-                      {section.isCompleted ? 'Review' : 'Start'}
-                    </Button>
-                  )}
+  const getContentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'video': return <PlayCircle className="w-4 h-4 text-blue-400" />;
+      case 'reading': return <FileText className="w-4 h-4 text-emerald-400" />;
+      case 'quiz': return <HelpCircle className="w-4 h-4 text-orange-400" />;
+      default: return <PlayCircle className="w-4 h-4 text-slate-400" />;
+    }
+  };
+
+  const renderCurriculum = () => {
+    // Determine the next lesson to continue
+    let nextLessonId: string | null = null;
+    for (const chapter of currentSubject.chapters) {
+      const next = chapter.sections.find(s => !s.isCompleted && !s.isLocked);
+      if (next) {
+        nextLessonId = next.id;
+        break;
+      }
+    }
+
+    return (
+      <div className="space-y-4 animate-fade-in-up">
+        {currentSubject.chapters.map((chapter) => (
+          <Card key={chapter.id} className="overflow-hidden border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800">
+            <div 
+              className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+              onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${expandedChapter === chapter.id ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                  {expandedChapter === chapter.id ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                 </div>
-              ))}
+                <h4 className="font-bold text-slate-900 dark:text-white">{chapter.title}</h4>
+              </div>
+              <span className="text-xs text-slate-400 font-medium">{chapter.sections.filter(s => s.isCompleted).length}/{chapter.sections.length} Done</span>
             </div>
-          )}
-        </Card>
-      ))}
-    </div>
-  );
+            
+            {expandedChapter === chapter.id && (
+              <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                {chapter.sections.map((section) => {
+                  const isNext = section.id === nextLessonId;
+                  return (
+                    <div 
+                      key={section.id} 
+                      className={`p-3 pl-4 sm:pl-14 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group ${
+                        isNext ? 'bg-blue-50/50 dark:bg-blue-900/10 border-l-4 border-l-blue-500 shadow-[inset_0_0_20px_rgba(59,130,246,0.1)]' : 'border-l-4 border-l-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        {section.isCompleted ? (
+                          <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                          </div>
+                        ) : section.isLocked ? (
+                          <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                            <Lock className="w-3.5 h-3.5 text-slate-400" />
+                          </div>
+                        ) : (
+                          <div className={`w-6 h-6 rounded-full border-2 shrink-0 flex items-center justify-center ${isNext ? 'border-blue-500 bg-white dark:bg-slate-900 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-slate-300 dark:border-slate-600'}`}>
+                             {isNext && <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>}
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                             {getContentTypeIcon(section.contentType)}
+                             <p className={`text-sm font-medium ${section.isLocked ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400'} ${isNext ? 'font-bold text-blue-600 dark:text-blue-400' : ''}`}>
+                               {section.title}
+                             </p>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 ml-6">
+                            <span className="text-[10px] text-slate-400 flex items-center gap-0.5"><Clock className="w-3 h-3" /> {section.duration}</span>
+                            {section.xp > 0 && <span className="text-[10px] text-yellow-500 font-bold">+{section.xp} XP</span>}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {!section.isLocked && (
+                        <Button 
+                          size="sm" 
+                          variant={isNext ? 'glow' : section.isCompleted ? 'outline' : 'primary'} 
+                          className={`h-8 text-xs ${section.isCompleted ? 'text-slate-500' : ''}`}
+                          onClick={() => setActiveLesson({ ...section, chapterTitle: chapter.title })}
+                        >
+                          {isNext ? 'Continue' : section.isCompleted ? 'Review' : 'Start'}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
+    );
+  };
 
   const renderSmartReview = () => {
     // Collect stats from current subject
@@ -185,17 +205,35 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
                <Flame className="w-5 h-5 text-orange-500" /> Priority Queue
             </h3>
+            
+            {/* Review CTA Button - Interactive Trigger */}
+            { [...lowConf, ...medConf].length > 0 && (
+               <Button 
+                 fullWidth 
+                 variant="glow" 
+                 size="lg" 
+                 onClick={() => setIsReviewSessionOpen(true)}
+                 className="mb-6 shadow-orange-500/20 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 border-none transform transition-all hover:scale-[1.02]"
+               >
+                  Start Today's Review Session <ArrowRight className="w-4 h-4 ml-2" />
+               </Button>
+            )}
+
             <div className="space-y-3">
                {[...lowConf, ...medConf].length > 0 ? (
                  [...lowConf, ...medConf].map(section => (
-                   <div key={section.id} className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 hover:shadow-md transition-all cursor-pointer" onClick={() => setActiveLesson({...section, chapterTitle: "Review Mode"})}>
+                   <div key={section.id} className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 hover:shadow-md transition-all cursor-pointer group" onClick={() => setActiveLesson({...section, chapterTitle: "Review Mode"})}>
                       <div>
-                         <h4 className="font-bold text-slate-900 dark:text-white">{section.title}</h4>
-                         <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded mt-1 inline-block ${section.userConfidence === 'low' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                            {section.userConfidence === 'low' ? 'Urgent' : 'Reinforce'}
-                         </span>
+                         <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            {section.title}
+                            {/* Tags: Urgent, Reinforce */}
+                            <span className={`text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full tracking-wide ${section.userConfidence === 'low' ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300' : 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40 dark:text-yellow-300'}`}>
+                               {section.userConfidence === 'low' ? 'Urgent' : 'Reinforce'}
+                            </span>
+                         </h4>
+                         <p className="text-xs text-slate-500 mt-1">Last reviewed 3 days ago</p>
                       </div>
-                      <Button size="sm" variant="ghost">Review</Button>
+                      <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity">Review</Button>
                    </div>
                  ))
                ) : (
@@ -214,28 +252,42 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
     // Filter items based on selectedSubjectId and notebookFilter
     const items = mockUserContent.filter(item => 
       item.subjectId === selectedSubjectId && 
-      (notebookFilter === 'all' || item.type === notebookFilter + (notebookFilter === 'bookmarks' ? '' : 's') || item.type === notebookFilter) // simple loose match for demo types
+      (notebookFilter === 'all' || item.type === notebookFilter + (notebookFilter === 'bookmarks' ? '' : 's') || item.type === notebookFilter) &&
+      (item.content.toLowerCase().includes(searchQuery.toLowerCase()) || item.chapter.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     return (
       <div className="space-y-6 animate-fade-in-up">
-        {/* Notebook Tabs */}
-        <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-1">
-           {['all', 'notes', 'bookmarks', 'highlights'].map(f => (
-             <button 
-               key={f}
-               onClick={() => setNotebookFilter(f as SubTabType)}
-               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${notebookFilter === f ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
-             >
-               {f.charAt(0).toUpperCase() + f.slice(1)}
-             </button>
-           ))}
+        {/* Notebook Controls */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+           <div className="flex gap-2 overflow-x-auto w-full sm:w-auto scrollbar-hide">
+             {['all', 'notes', 'bookmarks', 'highlights'].map(f => (
+               <button 
+                 key={f}
+                 onClick={() => setNotebookFilter(f as SubTabType)}
+                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${notebookFilter === f ? 'bg-slate-900 text-white dark:bg-white dark:text-black' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+               >
+                 {f.charAt(0).toUpperCase() + f.slice(1)}
+               </button>
+             ))}
+           </div>
+           
+           <div className="relative w-full sm:w-48 shrink-0">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Search notes..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-full bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-blue-500 focus:outline-none transition-all text-slate-900 dark:text-white placeholder-slate-500"
+              />
+           </div>
         </div>
 
         <div className="grid gap-4">
            {items.length > 0 ? (
              items.map(item => (
-               <Card key={item.id} className="p-4 hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors cursor-pointer">
+               <Card key={item.id} className="p-4 hover:border-blue-300 dark:hover:border-blue-500/50 transition-colors cursor-pointer group">
                   <div className="flex justify-between items-start mb-2">
                      <div className="flex items-center gap-2">
                         {item.type === 'note' && <Notebook className="w-4 h-4 text-blue-500" />}
@@ -246,10 +298,10 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
                      <span className="text-xs text-slate-400">{item.date}</span>
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{item.chapter}</h4>
-                  <p className={`text-sm text-slate-600 dark:text-slate-300 ${item.type === 'highlight' ? 'bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded italic' : ''}`}>
+                  <p className={`text-sm text-slate-600 dark:text-slate-300 ${item.type === 'highlight' ? 'bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded italic border-l-2 border-yellow-400' : ''}`}>
                     {item.content}
                   </p>
-                  <div className="mt-3 flex justify-end">
+                  <div className="mt-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                      <Button size="sm" variant="ghost" className="h-6 text-xs text-blue-500 hover:text-blue-600">
                         Go to Context <ArrowRight className="w-3 h-3 ml-1" />
                      </Button>
@@ -259,7 +311,7 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
            ) : (
              <div className="text-center p-12 text-slate-500">
                 <Notebook className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                <p>No items found in your notebook for this subject.</p>
+                <p>No items found matching your filter.</p>
              </div>
            )}
         </div>
@@ -268,7 +320,43 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
   };
 
   return (
-    <div className="animate-fade-in-up pb-12">
+    <div className="animate-fade-in-up pb-12 relative">
+      
+      {/* Immersive Review Session Overlay */}
+      {isReviewSessionOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col animate-fade-in-up">
+           <div className="flex justify-between items-center p-6 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center">
+                    <Flame className="w-6 h-6 text-white" />
+                 </div>
+                 <div>
+                    <h2 className="text-xl font-bold text-white">Focus Review Mode</h2>
+                    <p className="text-xs text-slate-400">Topic: Algebra & Functions</p>
+                 </div>
+              </div>
+              <button 
+                onClick={() => setIsReviewSessionOpen(false)} 
+                className="w-10 h-10 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors border border-slate-800"
+              >
+                 <X className="w-5 h-5" />
+              </button>
+           </div>
+           
+           <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-2xl mx-auto w-full text-center">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-b from-orange-500/20 to-transparent flex items-center justify-center mb-8 border border-orange-500/30 shadow-[0_0_60px_rgba(249,115,22,0.2)]">
+                 <Zap className="w-16 h-16 text-orange-500" />
+              </div>
+              <h1 className="text-4xl font-bold text-white mb-4">You have 12 items to review.</h1>
+              <p className="text-slate-400 mb-10 text-lg">Estimated time: 15 minutes. Ready to boost your retention?</p>
+              
+              <Button size="xl" variant="glow" className="px-12 py-6 text-lg rounded-full shadow-orange-500/30 bg-orange-600 hover:bg-orange-500 border-none" onClick={() => setActiveLesson({ id: 'review-1', title: 'Review Session', duration: '15m', difficulty: 'medium', contentType: 'quiz', isCompleted: false, isLocked: false, xp: 100, chapterTitle: 'Smart Review' })}>
+                 Start Session
+              </Button>
+           </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t.courses}</h2>
         <p className="text-slate-500">Resume where you left off or start a new topic.</p>
@@ -336,12 +424,20 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
 
         {/* Right Sidebar (Global Context) */}
         <div className="space-y-6">
-           <Card className="p-5">
-              <h3 className="font-bold mb-4 flex items-center gap-2"><GraduationCap className="w-5 h-5 text-blue-500" /> Study Goal</h3>
-              <div className="text-center py-4">
-                 <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">A*</div>
-                 <p className="text-xs text-slate-500">Target Grade for {currentSubject.title}</p>
-                 <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+           {/* Interactive Study Goal Card */}
+           <Card className="p-5 group cursor-pointer hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+              <div className="flex justify-between items-start mb-4">
+                 <h3 className="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                    <GraduationCap className="w-5 h-5 text-blue-500" /> Study Goal
+                 </h3>
+                 <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+              </div>
+              <div className="text-center py-4 relative">
+                 <div className="absolute inset-0 bg-blue-500/5 blur-2xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
+                 <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1 relative z-10">A*</div>
+                 <p className="text-xs text-slate-500 relative z-10">Target Grade for {currentSubject.title}</p>
+                 
+                 <div className="mt-4 grid grid-cols-2 gap-2 text-center relative z-10">
                     <div className="bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
                        <div className="font-bold text-blue-500">14</div>
                        <div className="text-[10px] text-slate-400">Hours Studied</div>
@@ -351,22 +447,45 @@ export const MyCoursesView: React.FC<MyCoursesViewProps> = ({ t }) => {
                        <div className="text-[10px] text-slate-400">Questions Done</div>
                     </div>
                  </div>
+                 
+                 <div className="mt-4 text-xs font-bold text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
+                    View Roadmap &gt;
+                 </div>
               </div>
            </Card>
 
-           <Card className="p-5 bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30">
-              <h3 className="font-bold text-blue-800 dark:text-blue-300 mb-2 text-sm">Next Live Class</h3>
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 rounded-lg bg-blue-200 dark:bg-blue-800 flex items-center justify-center text-blue-700 dark:text-white font-bold text-xs">
-                    18<br/>OCT
-                 </div>
-                 <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-sm">Exam Prep Strategy</div>
-                    <div className="text-xs text-slate-500">19:00 - 20:30 • Mr. Anderson</div>
-                 </div>
-              </div>
-              <Button size="sm" variant="default" className="w-full bg-blue-600 hover:bg-blue-700 text-white border-none">Set Reminder</Button>
-           </Card>
+           {/* Live Class Widget with Empty State */}
+           {hasLiveClass ? (
+             <Card className="p-5 bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30">
+                <div className="flex justify-between items-start mb-2">
+                   <h3 className="font-bold text-blue-800 dark:text-blue-300 text-sm">Next Live Class</h3>
+                   <button onClick={() => setHasLiveClass(false)} className="text-[10px] text-blue-400 hover:underline">Dismiss</button>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                   <div className="w-10 h-10 rounded-lg bg-blue-200 dark:bg-blue-800 flex items-center justify-center text-blue-700 dark:text-white font-bold text-xs">
+                      18<br/>OCT
+                   </div>
+                   <div>
+                      <div className="font-bold text-slate-900 dark:text-white text-sm">Exam Prep Strategy</div>
+                      <div className="text-xs text-slate-500">19:00 - 20:30 • Mr. Anderson</div>
+                   </div>
+                </div>
+                <Button size="sm" fullWidth className="bg-blue-600 hover:bg-blue-700 text-white border-none shadow-blue-500/20">
+                   Set Reminder
+                </Button>
+             </Card>
+           ) : (
+             <Card className="p-6 bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                <div className="w-12 h-12 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mb-3">
+                   <Coffee className="w-6 h-6 text-slate-400" />
+                </div>
+                <h3 className="font-bold text-slate-700 dark:text-slate-300 mb-1">No classes this week</h3>
+                <p className="text-xs text-slate-500 mb-4">Review your Error Book?</p>
+                <Button variant="outline" size="sm" onClick={() => setHasLiveClass(true)} className="text-xs h-8">
+                   Open Error Book
+                </Button>
+             </Card>
+           )}
         </div>
       </div>
     </div>

@@ -1,162 +1,279 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-'use client';
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { DailyInspiration } from './DailyInspiration';
-import { SubjectCard } from './SubjectCard';
-import { CircularProgress } from './CircularProgress';
-import { StrengthBar } from './StrengthBar';
-import { 
-  Clock, PenTool, Target, Zap, ChevronDown, Calculator, 
-  Atom, FlaskConical, ScrollText, Languages, BookOpen, 
-  PlayCircle, ChevronRight 
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { DailyInspiration } from './Widgets';
+import { 
+  Target, Clock, PenTool, AlertTriangle, Star, Trophy, ArrowRight,
+  Flame, Activity, ChevronRight, Play, Brain, ArrowUpRight, Zap
+} from 'lucide-react';
+import { useApp } from '@/providers/app-provider';
 
-interface DashboardHomeProps {
-  t: Record<string, unknown>;
-  lang: 'en' | 'zh';
-}
+export const DashboardHome = ({ navigate }: { navigate: any }) => {
+  const { t, lang } = useApp();
 
-export const DashboardHome: React.FC<DashboardHomeProps> = ({ t, lang }) => (
-  <div className="w-full">
-    {/* Page 1: Top Section */}
-    <section className="snap-start min-h-[calc(100vh-5rem)] flex flex-col justify-start gap-6 pb-20 pt-4">
-      <DailyInspiration lang={lang} t={t} welcomeTitle={t.welcome as string} welcomeSub={t.welcomeSub as string} />
+  // Mock data for missions (Layer 1)
+  const missions = [
+    { title: "Fix 3 Errors in Algebra", xp: 50, type: t.dashboard.fix, color: "text-orange-400 bg-orange-400/10 border-orange-400/20" },
+    { title: "Learn: Force Vectors", xp: 100, type: "New", color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
+    { title: "Quiz: Chemical Bonding", xp: 75, type: "Quiz", color: "text-purple-400 bg-purple-400/10 border-purple-400/20" }
+  ];
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-        {[
-          { label: t.studyTime, val: '4.5h', icon: Clock, color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-          { label: t.questions, val: '128', icon: PenTool, color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-          { label: t.accuracy, val: '92%', icon: Target, color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-          { label: t.mistakes, val: '12', icon: Zap, color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-        ].map((stat, i) => (
-          <Card key={i} className="border-none bg-white dark:bg-slate-800 p-4 flex flex-col justify-between h-28 relative overflow-hidden group shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-transparent">
-              <div className={`absolute -right-4 -bottom-4 w-16 h-16 rounded-full ${stat.bg} blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-500`}></div>
-              <div className="flex justify-between items-start z-10">
-                <div className={`p-2 rounded-lg ${stat.bg} dark:bg-opacity-50`}>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </div>
-                {i === 2 && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-100 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">+2%</span>}
+  // Mock data for subjects (Layer 3) - Names would usually come from DB
+  const subjects = [
+     { name: "Math", progress: 75, gap: "+12%", gapColor: "text-emerald-500", bg: "bg-blue-500" },
+     { name: "Physics", progress: 45, gap: "-5%", gapColor: "text-red-500", bg: "bg-purple-500" },
+     { name: "Chemistry", progress: 60, gap: "+2%", gapColor: "text-emerald-500", bg: "bg-emerald-500" },
+     { name: "English", progress: 85, gap: "+15%", gapColor: "text-emerald-500", bg: "bg-pink-500" }
+  ];
+
+  // Mock data for weakness sniper (Layer 4)
+  const weaknesses = [
+    { topic: "Quadratic Factorization", subject: "Math", score: "42%" },
+    { topic: "Stoichiometry", subject: "Chemistry", score: "35%" },
+    { topic: "Circular Motion", subject: "Physics", score: "55%" }
+  ];
+
+  return (
+    <div className="space-y-8 animate-fade-in-up pb-10">
+      
+      {/* --- Row 1: Core Drive (Status & Inspiration) --- */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Card: Today's Mission (~70% Width on LG) */}
+        <Card className="lg:col-span-2 p-0 overflow-hidden relative border-none bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl h-full flex flex-col">
+           {/* Abstract Background Effect */}
+           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+           <div className="p-6 md:p-8 relative z-10 h-full flex flex-col">
+              <div className="flex justify-between items-start mb-6">
+                 <div>
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                       <Target className="w-6 h-6 text-blue-400" /> {t.dashboard.todaysMission}
+                    </h2>
+                    <p className="text-slate-400 text-sm mt-1">{t.dashboard.missionSub}</p>
+                 </div>
+                 <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-blue-200">AI Active</span>
+                 </div>
               </div>
-              <div className="z-10">
-                <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{stat.val}</div>
-                <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">{stat.label}</div>
-              </div>
-          </Card>
-        ))}
-      </div>
 
-      {/* Learning Performance Stats */}
-      <section className="flex-1 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t.statsTitle}</h2>
-        <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 p-8 h-full flex flex-col justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <CircularProgress value={65} color="text-blue-500" label={t.percentile} subLabel={t.statsSub} />
-              <CircularProgress value={82} color="text-emerald-500" label={t.practiceAvg} subLabel={t.accuracy} />
-              <CircularProgress value={64} color="text-purple-500" label={t.mockAvg} subLabel={t.accuracy} />
-            </div>
+              <div className="space-y-3 flex-1">
+                 {missions.map((m, i) => (
+                    <div key={i} className="group flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all cursor-pointer hover:shadow-lg shadow-black/20">
+                       <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center group-hover:border-blue-400 group-hover:bg-blue-500/20 transition-all`}>
+                             <div className={`w-2 h-2 rounded-full ${m.color.split(' ')[0]} bg-current`}></div>
+                          </div>
+                          <div>
+                             <div className="font-bold text-white text-base group-hover:text-blue-200 transition-colors">{m.title}</div>
+                             <div className={`text-[10px] inline-block px-1.5 py-0.5 rounded mt-1 font-bold ${m.color}`}>
+                                {m.type}
+                             </div>
+                          </div>
+                       </div>
+                       <div className="text-right flex items-center gap-4">
+                          <div className="text-sm font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded border border-yellow-400/20">+{m.xp} XP</div>
+                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all">
+                             <ArrowRight className="w-4 h-4" />
+                          </div>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+           </div>
         </Card>
+
+        {/* Side Card: Daily Inspiration (~30% Width on LG) */}
+        <div className="lg:col-span-1 h-full">
+           <DailyInspiration 
+             lang={lang} 
+             t={t} 
+             welcomeTitle={t.dashboard.dailyVibe} 
+             welcomeSub="Stay motivated." 
+             className="h-full min-h-[340px]" 
+           />
+        </div>
       </section>
-      
-      {/* Scroll Hint */}
-      <div className="flex justify-center animate-bounce text-slate-400 opacity-50">
-        <ChevronDown className="w-6 h-6" />
-      </div>
-    </section>
 
-    {/* Page 2: Bottom Section */}
-    <section className="snap-start min-h-[calc(100vh-5rem)] flex flex-col gap-8 pt-6 pb-12">
-      
-      {/* Core Subjects Grid */}
-      <div className="animate-fade-in-up">
-        <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.mySubjects}</h2>
-            <Button variant="ghost" size="sm" className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.viewAll}</Button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <SubjectCard name={t.math} icon={Calculator} color="text-blue-500 dark:text-blue-400" bgGradient="from-blue-400 to-blue-300" />
-          <SubjectCard name={t.physics} icon={Atom} color="text-purple-500 dark:text-purple-400" bgGradient="from-purple-400 to-purple-300" />
-          <SubjectCard name={t.chemistry} icon={FlaskConical} color="text-emerald-500 dark:text-emerald-400" bgGradient="from-emerald-400 to-emerald-300" />
-          <SubjectCard name={t.biology} icon={ScrollText} color="text-green-500 dark:text-green-400" bgGradient="from-green-400 to-green-300" />
-          <SubjectCard name={t.english} icon={Languages} color="text-pink-500 dark:text-pink-400" bgGradient="from-pink-400 to-pink-300" />
-          <SubjectCard name={t.chinese} icon={BookOpen} color="text-red-500 dark:text-red-400" bgGradient="from-red-400 to-red-300" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-        {/* Left Col: Continue Learning */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.continueLearning}</h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              { title: "Quadratic Equations", subject: t.math, time: `15 ${t.minLeft}`, progress: 75, color: "bg-blue-500" },
-              { title: "Newton's Second Law", subject: t.physics, time: t.startLesson, progress: 0, color: "bg-purple-500" },
-              { title: "Periodic Table Groups", subject: t.chemistry, time: `5 ${t.minLeft}`, progress: 90, color: "bg-emerald-500" },
-            ].map((item, idx) => (
-              <div key={idx} className="group flex items-center p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 hover:border-blue-300 dark:hover:border-slate-600 hover:shadow-md transition-all cursor-pointer">
-                <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center mr-4 group-hover:scale-105 transition-transform relative overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700">
-                   <PlayCircle className="h-5 w-5 text-slate-400 dark:text-slate-300 group-hover:text-blue-500 dark:group-hover:text-white transition-colors" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between mb-1">
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm">{item.title}</h3>
-                    <span className="text-xs text-slate-500">{item.time}</span>
+      {/* --- Row 2: Data Dashboard (The Stats) --- */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         {/* Group A: Effort (Warm Colors) */}
+         <Card className="p-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
+            <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
+               {[
+                  { label: t.dashboard.studyTime, val: "12.5h", icon: Clock, color: "text-orange-500", sub: "Total" },
+                  { label: t.dashboard.streak, val: "12 Days", icon: Flame, color: "text-red-500", sub: "On Fire!" },
+                  { label: t.dashboard.level, val: "12", icon: Star, color: "text-yellow-500", sub: "450 XP to 13" },
+               ].map((s, i) => (
+                  <div key={i} className="p-4 flex flex-col items-center text-center group cursor-default">
+                     <s.icon className={`w-5 h-5 mb-2 ${s.color} group-hover:scale-110 transition-transform`} />
+                     <div className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{s.val}</div>
+                     <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{s.label}</div>
                   </div>
-                  <p className="text-xs text-slate-500 mb-2">{item.subject}</p>
-                  <div className="w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-1.5 rounded-full ${item.color} shadow-sm`} style={{ width: `${item.progress}%` }}></div>
+               ))}
+            </div>
+         </Card>
+         
+         {/* Group B: Performance (Cool Colors) */}
+         <Card className="p-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
+            <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
+               {[
+                  { label: t.dashboard.questions, val: "342", icon: PenTool, color: "text-blue-500", sub: "+24 today" },
+                  { label: t.dashboard.accuracy, val: "88%", icon: Target, color: "text-emerald-500", sub: "Top 10%" },
+                  { label: t.dashboard.mistakes, val: "24", icon: AlertTriangle, color: "text-purple-500", sub: "Pending fix" },
+               ].map((s, i) => (
+                  <div key={i} className="p-4 flex flex-col items-center text-center group cursor-default">
+                     <s.icon className={`w-5 h-5 mb-2 ${s.color} group-hover:scale-110 transition-transform`} />
+                     <div className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{s.val}</div>
+                     <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{s.label}</div>
                   </div>
-                </div>
-                <div className="ml-4">
-                  <Button size="sm" variant="ghost" className="rounded-xl h-8 w-8 p-0 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700">
-                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Col: Daily Quests */}
-        <div className="lg:col-span-1 space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t.dailyQuests}</h2>
-          <Card className="bg-white dark:bg-slate-800 border-none p-4 space-y-3 shadow-sm border border-slate-200 dark:border-slate-700/50 h-full">
-            {[
-              { title: "Solve 5 Math Problems", reward: "50 XP", done: true },
-              { title: "Review 3 Mistakes", reward: "30 XP", done: false },
-              { title: "Read Chapter 4 (Eng)", reward: "20 XP", done: false },
-            ].map((quest, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${quest.done ? 'bg-green-500 border-green-500' : 'border-slate-400 dark:border-slate-600 group-hover:border-slate-600 dark:group-hover:border-slate-400'}`}>
-                    {quest.done && <Zap className="w-3 h-3 text-white fill-white" />}
-                  </div>
-                  <span className={`text-sm ${quest.done ? 'text-slate-400 line-through' : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white'}`}>{quest.title}</span>
-                </div>
-                <span className="text-xs font-bold text-yellow-600 dark:text-yellow-500 bg-yellow-100 dark:bg-yellow-500/10 px-2 py-1 rounded border border-yellow-200 dark:border-yellow-500/20">{quest.reward}</span>
-              </div>
-            ))}
-          </Card>
-        </div>
-      </div>
-      
-      {/* Subject Strength Analysis */}
-      <section className="animate-fade-in-up flex-1 flex flex-col justify-end" style={{ animationDelay: '0.2s' }}>
-         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t.subjectAnalysis}</h2>
-         <Card className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 p-6 flex-1">
-            <StrengthBar label="Rational Numbers" value={85} level={t.advanced} levelColor="bg-emerald-600" />
-            <StrengthBar label="Integer Addition/Subtraction" value={78} level={t.proficient} levelColor="bg-blue-600" />
-            <StrengthBar label="Linear Equations" value={92} level={t.proficient} levelColor="bg-emerald-600" />
-            <StrengthBar label="Geometry Basics" value={65} level={t.intermediate} levelColor="bg-yellow-600" />
-            <StrengthBar label="Real Numbers" value={55} level={t.intermediate} levelColor="bg-orange-500" suggestion={t.suggestion} />
+               ))}
+            </div>
          </Card>
       </section>
-    </section>
-  </div>
-);
+
+      {/* --- Row 3: Positioning & Context (Process vs. Outcome) --- */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+         
+         {/* Left Column: Subject Progress (~65% Width) */}
+         <Card className="lg:col-span-2 p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
+            <div className="flex justify-between items-end mb-6">
+               <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                     <Activity className="w-5 h-5 text-indigo-500" /> {t.dashboard.subjectProgress}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">Real-time tracking against grade average</p>
+               </div>
+               <Button variant="ghost" size="sm" onClick={() => navigate && navigate('/subjects')}>{t.common.viewAll}</Button>
+            </div>
+            
+            <div className="space-y-6">
+               {subjects.map((sub, i) => (
+                  <div key={i} className="flex items-center gap-4 group">
+                     <div className="w-24 font-bold text-sm text-slate-700 dark:text-slate-300">{sub.name}</div>
+                     <div className="flex-1">
+                        <div className="flex justify-between text-xs mb-1.5">
+                           <span className="text-slate-400">Progress</span>
+                           <span className={`font-bold ${sub.gapColor}`}>{sub.gap} vs Avg</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-700/50 h-2.5 rounded-full overflow-hidden">
+                           <div className={`h-full rounded-full ${sub.bg}`} style={{ width: `${sub.progress}%` }}></div>
+                        </div>
+                     </div>
+                     <div className="text-sm font-bold w-10 text-right text-slate-900 dark:text-white">{sub.progress}%</div>
+                     
+                     {/* Boost Button - High Visibility Circle Icon */}
+                     <button 
+                        className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 dark:hover:text-white transition-all shadow-sm hover:shadow-md hover:scale-105" 
+                        title="Boost Score"
+                     >
+                        <Zap className="w-4 h-4 fill-current" />
+                     </button>
+                  </div>
+               ))}
+            </div>
+         </Card>
+
+         {/* Right Column: Rank & Positioning (~35% Width) */}
+         <Card className="lg:col-span-1 p-6 bg-gradient-to-br from-indigo-900 to-purple-900 text-white border-none flex flex-col justify-between relative overflow-hidden shadow-lg">
+            {/* Ambient Glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px] pointer-events-none"></div>
+            
+            <div>
+               <h3 className="text-lg font-bold flex items-center gap-2 mb-1">
+                  <Trophy className="w-5 h-5 text-yellow-400" /> {t.dashboard.rank}
+               </h3>
+               <p className="text-indigo-200 text-xs">Diamond League • Season 4</p>
+            </div>
+
+            <div className="my-8 text-center relative z-10">
+               <div className="inline-block relative">
+                  <div className="text-5xl font-bold text-white drop-shadow-lg">Top 15%</div>
+                  <div className="text-sm text-indigo-300 mt-1 font-medium">Percentile Rank</div>
+               </div>
+               <div className="mt-6 flex justify-center gap-2 text-xs">
+                  <span className="bg-white/10 px-2 py-1 rounded">Avg: 68%</span>
+                  <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded border border-green-500/30">You: 85%</span>
+               </div>
+            </div>
+
+            <Button fullWidth variant="glow" className="bg-white/10 hover:bg-white/20 border-white/20 shadow-none">
+               View Leaderboard <ArrowUpRight className="w-4 h-4 ml-2" />
+            </Button>
+         </Card>
+      </section>
+
+      {/* --- Row 4: Deep Dive & Actions --- */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         {/* Left: My Learning Path */}
+         <Card className="p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+               <Brain className="w-5 h-5 text-blue-500" /> {t.dashboard.learningPath}
+            </h3>
+            
+            {/* Continue Learning Item */}
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-blue-500/30 transition-colors group mb-4">
+               <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                  <Play className="w-6 h-6 fill-current" />
+               </div>
+               <div className="flex-1">
+                  <div className="text-xs text-slate-500 uppercase font-bold mb-1">Resume: Physics • Chapter 4</div>
+                  <div className="font-bold text-slate-900 dark:text-white">Newton's Second Law</div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2">
+                     <div className="bg-blue-500 h-1.5 rounded-full w-[65%]"></div>
+                  </div>
+               </div>
+               <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+            </div>
+            
+            {/* Up Next List */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{t.dashboard.upNext}</div>
+               <div className="space-y-1">
+                  {['Kinematics Review', 'Momentum Quiz'].map((item, i) => (
+                     <div key={i} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-400 group">
+                        <span>{item}</span>
+                        <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
+                     </div>
+                  ))}
+               </div>
+            </div>
+         </Card>
+
+         {/* Right: Weakness Sniper (The Inventory) */}
+         <Card className="p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
+            <div className="flex justify-between items-center mb-4">
+               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500" /> {t.dashboard.weaknessSniper}
+               </h3>
+               <span className="text-xs bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-bold">12 Active</span>
+            </div>
+            
+            <div className="space-y-3">
+               {weaknesses.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-red-100 dark:border-red-900/20 bg-red-50/50 dark:bg-red-900/5 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors cursor-pointer group">
+                     <div>
+                        <div className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{item.topic}</div>
+                        <div className="text-xs text-slate-500">{item.subject}</div>
+                     </div>
+                     <div className="flex items-center gap-3">
+                        <span className="text-red-500 font-bold text-sm">{item.score}</span>
+                        {/* Refinement 4: Solid Filled Fix Button */}
+                        <Button size="sm" className="h-7 px-4 text-xs bg-red-500 text-white border-transparent hover:bg-red-600 shadow-md shadow-red-500/20 transition-all transform hover:scale-105">
+                           {t.dashboard.fix}
+                        </Button>
+                     </div>
+                  </div>
+               ))}
+            </div>
+            <Button variant="ghost" fullWidth className="mt-4 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.common.viewAll}</Button>
+         </Card>
+      </section>
+
+    </div>
+  );
+};

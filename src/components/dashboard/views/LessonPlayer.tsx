@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,17 +5,9 @@ import {
   Trophy, ChevronRight, Notebook, X, Info, ArrowLeft, Edit3, Highlighter, 
   Trash2, Bookmark, MessageSquare, ThumbsUp, Reply, Zap
 } from 'lucide-react';
-import Image from 'next/image';
 import { Section, ConfidenceLevel, Confetti } from '../shared';
 
-interface LessonPlayerProps {
-  lesson: Section & { chapterTitle: string };
-  onBack: () => void;
-  onComplete: () => void;
-  t: Record<string, unknown>;
-}
-
-export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onComplete }) => {
+export const LessonPlayer = ({ lesson, onBack, onComplete, t }: { lesson: Section & { chapterTitle: string }, onBack: () => void, onComplete: () => void, t: any }) => {
   const [confidence, setConfidence] = useState<ConfidenceLevel | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   
@@ -40,7 +30,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onCo
   };
 
   const saveNote = () => {
-    // TODO: Implement note saving logic
+    console.log("Note saved:", currentNote);
     setIsNoteModalOpen(false);
     setCurrentNote('');
   };
@@ -75,14 +65,14 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onCo
               <Trophy className="w-10 h-10 text-white" />
            </div>
            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Lesson Complete!</h2>
-           <p className="text-slate-500 mb-6">You&apos;ve earned <span className="font-bold text-yellow-500">+{lesson.xp} XP</span></p>
+           <p className="text-slate-500 mb-6">You've earned <span className="font-bold text-yellow-500">+{lesson.xp} XP</span></p>
            
            <div className="w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-3 mb-2">
               <div className="bg-blue-500 h-3 rounded-full w-[85%] shadow-sm transition-all duration-1000"></div>
            </div>
            <p className="text-xs text-slate-400 text-right mb-6">1250 / 1500 XP to Level Up</p>
 
-           <Button className="w-full" variant="glow" onClick={onComplete}>
+           <Button fullWidth variant="glow" onClick={onComplete}>
               Continue Journey <ChevronRight className="w-4 h-4 ml-1" />
            </Button>
         </div>
@@ -139,7 +129,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onCo
         </div>
         <div className="flex items-center gap-2">
            <Button 
-             variant={isNoteModalOpen ? 'default' : 'ghost'} 
+             variant={isNoteModalOpen ? 'primary' : 'ghost'} 
              size="sm" 
              onClick={() => setIsNoteModalOpen(true)}
              className={`transition-colors ${isNoteModalOpen ? '' : 'text-slate-500 hover:text-blue-500'}`}
@@ -262,7 +252,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onCo
                 />
                 <div className="flex justify-between items-center px-2 pb-2 mt-2 border-t border-slate-100 dark:border-slate-800 pt-2">
                    <span className="text-xs text-slate-400 font-medium">Markdown supported</span>
-                   <Button size="sm" variant={discussionInput.trim() ? 'default' : 'ghost'} disabled={!discussionInput.trim()} onClick={postComment}>
+                   <Button size="sm" variant={discussionInput.trim() ? 'primary' : 'ghost'} disabled={!discussionInput.trim()} onClick={postComment}>
                       Post Message
                    </Button>
                 </div>
@@ -284,8 +274,8 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onCo
                 ) : (
                    comments.map((comment) => (
                       <div key={comment.id} className="flex gap-4 animate-fade-in-up">
-                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 overflow-hidden relative">
-                            <Image src={`https://i.pravatar.cc/150?u=${comment.user}`} alt={comment.user} fill className="object-cover"/>
+                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 overflow-hidden">
+                            <img src={`https://i.pravatar.cc/150?u=${comment.user}`} alt={comment.user} />
                          </div>
                          <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -337,7 +327,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ lesson, onBack, onCo
                   </div>
                 </div>
 
-                <Button className="w-full group relative overflow-hidden" size="lg" variant="glow" onClick={handleFinish}>
+                <Button fullWidth size="lg" variant="glow" onClick={handleFinish} className="group relative overflow-hidden">
                    <span className="relative z-10 flex items-center gap-2">
                      Complete & Continue <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                    </span>

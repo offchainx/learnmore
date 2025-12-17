@@ -39,6 +39,6 @@
   ],
   "exclude": [
     "node_modules",
-    "learnmore_aistudio"
+    "ai_studio_iterations"
   ]
 }
