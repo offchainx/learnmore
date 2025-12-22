@@ -7,31 +7,67 @@ import { redirect } from 'next/navigation';
 export async function createCheckoutSession(priceId: string, planName: string) {
   const user = await getCurrentUser();
 
+  console.log('[Stripe Debug] Starting checkout for user:', user?.id);
+  console.log('[Stripe Debug] Price ID:', priceId);
+  console.log('[Stripe Debug] API Key present:', !!process.env.STRIPE_SECRET_KEY);
+
   if (!user || !user.email) {
+    console.error('[Stripe Debug] User missing or no email');
     throw new Error('Unauthorized or missing email');
   }
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1,
-      },
-    ],
-    mode: 'subscription',
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing?payment=cancelled`,
-    customer_email: user.email,
-    metadata: {
-      userId: user.id,
-      planName: planName, // 'pro', 'scholar', 'ultimate'
-    },
+  // 1. Find or Create Stripe Customer
+  let customerId: string;
+  
+  const existingCustomers = await stripe.customers.list({
+    email: user.email,
+    limit: 1,
   });
 
-  if (!session.url) {
-    throw new Error('Failed to create checkout session');
+  if (existingCustomers.data.length > 0) {
+    customerId = existingCustomers.data[0].id;
+    console.log('[Stripe Debug] Found existing customer:', customerId);
+  } else {
+    const newCustomer = await stripe.customers.create({
+      email: user.email,
+      name: user.username || 'LearnMore User',
+      metadata: {
+        userId: user.id,
+      }
+    });
+    customerId = newCustomer.id;
+    console.log('[Stripe Debug] Created new customer:', customerId);
   }
 
-  redirect(session.url);
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      customer: customerId, // Use explicit Customer ID
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?payment=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing?payment=cancelled`,
+      // Remove customer_email since we are providing customer ID
+      metadata: {
+        userId: user.id,
+        planName: planName,
+      },
+    });
+
+    if (!session.url) {
+      console.error('[Stripe Debug] Session created but no URL');
+      throw new Error('Failed to create checkout session');
+    }
+
+    console.log('[Stripe Debug] Redirecting to:', session.url);
+    redirect(session.url);
+  } catch (error) {
+    console.error('[Stripe Debug] Stripe API Error:', error);
+    throw error; // Re-throw to be caught by client
+  }
 }

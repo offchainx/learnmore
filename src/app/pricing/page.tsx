@@ -205,24 +205,24 @@ const PricingPage: React.FC = () => {
     {
       monthlyPrice: 0,
       annualPrice: 0,
-      monthlyPriceId: "",
-      annualPriceId: "",
+      monthlyPriceId: "prod_TeMN7HTeRvreOX",
+      annualPriceId: "prod_TeMNTQGeDCo27L",
       color: "border-cyan-400",
       btnVariant: "outline" as const,
     },
     {
       monthlyPrice: 60,
       annualPrice: 54, // 10% off
-      monthlyPriceId: "price_self_learner_monthly", 
-      annualPriceId: "price_self_learner_annual",
+      monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SELF_LEARNER_MONTHLY || "", 
+      annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SELF_LEARNER_ANNUAL || "",
       color: "border-blue-500",
       btnVariant: "outline" as const,
     },
     {
       monthlyPrice: 150,
       annualPrice: 135,
-      monthlyPriceId: "price_scholar_monthly",
-      annualPriceId: "price_scholar_annual",
+      monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCHOLAR_MONTHLY || "",
+      annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCHOLAR_ANNUAL || "",
       color: "border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.15)]",
       btnVariant: "glow" as const,
       highlight: true,
@@ -230,8 +230,8 @@ const PricingPage: React.FC = () => {
     {
       monthlyPrice: 260,
       annualPrice: 234,
-      monthlyPriceId: "price_ultimate_monthly",
-      annualPriceId: "price_ultimate_annual",
+      monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ULTIMATE_MONTHLY || "",
+      annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ULTIMATE_ANNUAL || "",
       color: "border-amber-500",
       btnVariant: "solid-gold" as const,
     }

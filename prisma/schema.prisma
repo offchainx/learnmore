@@ -19,6 +19,7 @@ model User {
   streak         Int       @default(0)
   totalStudyTime Int       @default(0) @map("total_study_time") // seconds
   xp             Int       @default(0)
+  aiTokenBalance Int       @default(5) @map("ai_token_balance") // Free daily quota or permanent balance
   lastStudyDate  DateTime? @map("last_study_date")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")

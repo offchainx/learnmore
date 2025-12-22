@@ -1,22 +1,21 @@
 # Active Context
 
-**Current Focus**: Story-031 Completed
+**Current Focus**: Story-032 Completed
 
 ## Context
-Successfully implemented Payment & Subscription foundation.
-- **Stripe**: Integration complete with Checkout Sessions and Webhooks.
-- **Pricing UI**: Connected to backend actions.
-- **Access Control**: Role-based question limiting implemented.
+Successfully implemented the AI Text Tutor.
+- **Gemini API**: Connected via `@google/genai` (Streaming).
+- **Token System**: Users have `aiTokenBalance`. Deducted per use.
+- **UI**: "Ask AI Tutor" button available in Error Book.
 
 ## Recent Changes
-- Completed Story-031.
-- Added `stripe` package.
-- Updated `UserRole` enum.
-- Created `permissions.ts`.
+- Completed Story-032.
+- Updated `User` schema.
+- Created `/api/ai-tutor` route.
+- Added `AiTutorButton` component.
 
 ## Next Steps
-- [ ] Start next priority story (Story-032: AI Tutor Text).
-- [ ] Configure real Stripe keys and Price IDs in `.env` and `page.tsx` before production.
+- [ ] Start Story-033: AI Diagnostics (or next priority).
 
 ## Active User Questions
 - None.

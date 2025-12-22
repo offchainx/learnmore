@@ -12,6 +12,7 @@ import { getAllSubjects } from '@/actions/subject';
 import { useToast } from '@/components/ui/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { AiTutorButton } from '@/components/ai/AiTutorButton';
 
 interface ErrorBookQuestion extends Question {
   errorBookEntryId: string;
@@ -252,6 +253,15 @@ export default function ErrorBookPageClient() {
             </Button>
             
             <div className="flex gap-2">
+                {/* AI Tutor Button */}
+                {(!isPracticeMode || (isSubmitted && submittedQuestions[currentQuestion.id] === false)) && (
+                   <AiTutorButton 
+                      questionId={currentQuestion.id}
+                      userAnswer={userAnswers[currentQuestion.id]}
+                      // onTokenUsed={() => { /* maybe refresh user balance in UI */ }}
+                   />
+                )}
+
                 {!isPracticeMode ? (
                      <Button
                         onClick={() => handleRemoveError(currentQuestion.errorBookEntryId)}

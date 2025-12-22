@@ -43,6 +43,7 @@
 - **Story-029**: Practice & Error Book ✅
 - **Story-030**: Dashboard Gamification ✅
 - **Story-031**: Payment & Subscription ✅
+- **Story-032**: AI Tutor Text ✅
 
 ## Active Story
 - None.
