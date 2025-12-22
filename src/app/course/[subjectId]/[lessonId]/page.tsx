@@ -2,6 +2,7 @@ import { getLessonData } from '@/actions/subject'
 import { getSignedVideoUrl } from '@/actions/storage'
 import { LessonVideoPlayer } from '@/components/business/LessonVideoPlayer'
 import { CourseNavigation } from '@/components/business/CourseNavigation'
+import { QuizView } from '@/components/business/QuizView'
 import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
@@ -21,7 +22,31 @@ export default async function LessonPage({
     notFound()
   }
 
-  const { lesson, userProgress, nextLessonId } = result.data
+  const { lesson, userProgress, nextLessonId, questions } = result.data
+
+  // If it's a quiz, render the quiz view
+  if (lesson.type === 'QUIZ' && questions && questions.length > 0) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto pb-20">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">{lesson.title}</h1>
+          <p className="text-muted-foreground">Complete the quiz to test your knowledge.</p>
+        </div>
+        
+        <QuizView 
+          chapterId={lesson.chapterId}
+          questions={questions}
+        />
+
+        {/* Navigation is handled inside QuizView after submission, or we can show it if completed */}
+         <CourseNavigation 
+          subjectId={subjectId}
+          nextLessonId={nextLessonId}
+          isCompleted={userProgress?.isCompleted || false}
+        />
+      </div>
+    );
+  }
 
   let videoUrl = null
   let videoError = null

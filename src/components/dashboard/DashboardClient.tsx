@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { useApp } from '@/providers/app-provider';
+import { DashboardData } from '@/actions/dashboard';
 
 // Import Views
 import { DashboardHome } from './DashboardHome';
@@ -31,9 +32,10 @@ type UserProfile = {
 
 type DashboardClientProps = {
   user: UserProfile;
+  initialData: DashboardData | null;
 };
 
-export const DashboardClient: React.FC<DashboardClientProps> = ({ user }) => {
+export const DashboardClient: React.FC<DashboardClientProps> = ({ user, initialData }) => {
   const router = useRouter();
   const { t: appT } = useApp(); // Use global context
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -48,14 +50,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({ user }) => {
 
   const renderContent = () => {
     switch(currentView) {
-      case 'dashboard': return <DashboardHome navigate={router.push} />;
+      case 'dashboard': return <DashboardHome navigate={router.push} initialData={initialData} />;
       case 'courses': return <MyCoursesView t={appT} />;
       case 'questionBank': return <QuestionBankView t={appT} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
       case 'community': return <CommunityView />;
       case 'settings': return <SettingsView user={user} />;
       case 'achievements': return <AchievementsView />;
-      default: return <DashboardHome navigate={router.push} />;
+      default: return <DashboardHome navigate={router.push} initialData={initialData} />;
     }
   };
 

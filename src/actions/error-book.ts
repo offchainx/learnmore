@@ -68,3 +68,52 @@ export async function removeErrorBookEntry(errorBookEntryId: string) {
         return { success: false, error: 'Failed to remove error book entry' };
     }
 }
+
+export async function updateErrorBookMastery(questionId: string, isCorrect: boolean) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    const entry = await prisma.errorBook.findUnique({
+      where: { userId_questionId: { userId: user.id, questionId } },
+    });
+
+    if (!entry) {
+        return { success: false, error: 'Entry not found' };
+    }
+
+    if (isCorrect) {
+        // Increment mastery level
+        const newLevel = entry.masteryLevel + 1;
+        
+        if (newLevel >= 3) {
+            // Mastered! Remove from error book (or logically delete)
+            await prisma.errorBook.delete({
+                where: { id: entry.id }
+            });
+            return { success: true, mastered: true, message: 'Problem Mastered!' };
+        } else {
+            await prisma.errorBook.update({
+                where: { id: entry.id },
+                data: { masteryLevel: newLevel, updatedAt: new Date() }
+            });
+            return { success: true, mastered: false, level: newLevel };
+        }
+    } else {
+        // Answered wrong again, reset mastery or decrement
+        // For strict mode, reset to 0. For encouraging, maybe decrement 1.
+        // Let's reset to 0 to ensure mastery.
+        await prisma.errorBook.update({
+            where: { id: entry.id },
+            data: { masteryLevel: 0, updatedAt: new Date() }
+        });
+        return { success: true, mastered: false, level: 0 };
+    }
+
+  } catch (error) {
+    console.error('Error updating error book mastery:', error);
+    return { success: false, error: 'Failed to update mastery' };
+  }
+}

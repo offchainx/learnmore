@@ -39,6 +39,7 @@
 - **Story-025**: Auth Integration & Settings Page ✅
 - **Story-026**: Email Service & Marketing Content ✅
 - **Story-027**: Landing Page Activation ✅
+- **Story-028**: Course Player Engine ✅
 
 ## Active Story
 - None.

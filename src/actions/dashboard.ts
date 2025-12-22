@@ -27,6 +27,12 @@ export interface DashboardData {
     date: string // YYYY-MM-DD
     activityCount: number
   }[]
+  weaknesses: {
+    id: string // errorBookEntryId
+    topic: string // question content excerpt or chapter title
+    subject: string
+    masteryLevel: number
+  }[]
 }
 
 export async function getDashboardStats(): Promise<DashboardData | null> {
@@ -125,6 +131,31 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
           subject: name,
           accuracy: Math.round((stats.correct / stats.total) * 100)
       }))
+
+      // 4. Weakness Sniper (Error Book)
+      const errors = await prisma.errorBook.findMany({
+        where: { userId: user.id },
+        take: 5,
+        orderBy: { masteryLevel: 'asc' }, // Prioritize lowest mastery (hardest/newest errors)
+        include: {
+            question: {
+                include: {
+                    chapter: {
+                        include: {
+                            subject: true
+                        }
+                    }
+                }
+            }
+        }
+      });
+
+      const weaknesses = errors.map(e => ({
+          id: e.id,
+          topic: e.question.chapter.title, // Use Chapter title as topic context
+          subject: e.question.chapter.subject.name,
+          masteryLevel: e.masteryLevel
+      }));
   
       return {
           stats: {
@@ -142,6 +173,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
               lastUpdated: p.updatedAt
           })),
           subjectStrengths,
-          dailyActivity // Include daily activity data
+          dailyActivity,
+          weaknesses
       }
   }

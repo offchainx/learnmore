@@ -140,6 +140,16 @@ export async function getLessonData(lessonId: string) {
       return { success: false, error: 'Lesson not found' };
     }
 
+    let questions = null;
+    if (lesson.type === 'QUIZ') {
+      // Fetch questions belonging to this chapter
+      // In a more complex schema, there might be a direct Lesson-Question relation
+      questions = await prisma.question.findMany({
+        where: { chapterId: lesson.chapterId },
+        orderBy: { createdAt: 'asc' } // Or by some order field
+      });
+    }
+
     // Find the next lesson in the same chapter or next chapter
     const chapters = await prisma.chapter.findMany({
       where: { subjectId: lesson.chapter.subjectId },
@@ -173,7 +183,8 @@ export async function getLessonData(lessonId: string) {
       data: {
         lesson,
         userProgress: lesson.progress?.[0] || null,
-        nextLessonId
+        nextLessonId,
+        questions
       }
     };
   } catch (error) {
