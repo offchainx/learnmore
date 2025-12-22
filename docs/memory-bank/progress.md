@@ -44,9 +44,11 @@
 - **Story-030**: Dashboard Gamification ✅
 - **Story-031**: Payment & Subscription ✅
 - **Story-032**: AI Tutor Text ✅
+- **Story-033**: AI Diagnostics (Cancelled/Reverted) ❌
+- **Story-034**: Community Hub (Basic) ✅
+- **Story-035**: Parent Dashboard ✅
 
 ## Active Story
-- None.
+- **Story-036**: Knowledge Graph (Lite) (In Progress)
 
 ## Known Issues
-- None blocking.
