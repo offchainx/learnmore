@@ -1,20 +1,47 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
-import { Check, X, Gift, Send } from 'lucide-react';
+import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
+import { createCheckoutSession } from '@/actions/stripe-actions';
+import { toast } from '@/components/ui/use-toast';
 
 const PricingPage: React.FC = () => {
   const router = useRouter();
   const [isAnnual, setIsAnnual] = useState(false);
   const { lang, setLang } = useApp();
+  const [, startTransition] = useTransition();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const toggleLang = () => {
     const nextLang = lang === 'en' ? 'zh' : 'en';
     setLang(nextLang);
+  };
+
+  const handleSubscribe = async (planName: string, priceId: string) => {
+      if (!priceId) {
+          // Free plan or contact sales
+          router.push('/register');
+          return;
+      }
+
+      setLoadingPlan(planName);
+      startTransition(async () => {
+          try {
+              await createCheckoutSession(priceId, planName);
+          } catch (error) {
+              console.error(error);
+              toast({
+                  title: "Error",
+                  description: "Failed to start checkout. Please try again.",
+                  variant: "destructive"
+              });
+              setLoadingPlan(null);
+          }
+      });
   };
 
   const t = {
@@ -173,22 +200,29 @@ const PricingPage: React.FC = () => {
   const currentT = t[lang as keyof typeof t] || t['en'];
 
   // Pricing Data Structure
+  // TODO: Replace with real Stripe Price IDs
   const plansData = [
     {
       monthlyPrice: 0,
       annualPrice: 0,
+      monthlyPriceId: "",
+      annualPriceId: "",
       color: "border-cyan-400",
       btnVariant: "outline" as const,
     },
     {
       monthlyPrice: 60,
       annualPrice: 54, // 10% off
+      monthlyPriceId: "price_self_learner_monthly", 
+      annualPriceId: "price_self_learner_annual",
       color: "border-blue-500",
       btnVariant: "outline" as const,
     },
     {
       monthlyPrice: 150,
       annualPrice: 135,
+      monthlyPriceId: "price_scholar_monthly",
+      annualPriceId: "price_scholar_annual",
       color: "border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.15)]",
       btnVariant: "glow" as const,
       highlight: true,
@@ -196,6 +230,8 @@ const PricingPage: React.FC = () => {
     {
       monthlyPrice: 260,
       annualPrice: 234,
+      monthlyPriceId: "price_ultimate_monthly",
+      annualPriceId: "price_ultimate_annual",
       color: "border-amber-500",
       btnVariant: "solid-gold" as const,
     }
@@ -205,7 +241,8 @@ const PricingPage: React.FC = () => {
   const plans = plansData.map((p, i) => ({
     ...p,
     ...currentT.plans[i],
-    price: p.monthlyPrice === 0 ? 0 : (isAnnual ? p.annualPrice : p.monthlyPrice)
+    price: p.monthlyPrice === 0 ? 0 : (isAnnual ? p.annualPrice : p.monthlyPrice),
+    priceId: isAnnual ? p.annualPriceId : p.monthlyPriceId
   }));
 
   const comparisonData = [
@@ -309,9 +346,12 @@ const PricingPage: React.FC = () => {
                           ${plan.btnVariant === 'glow' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 border-none' : ''}
                           ${plan.btnVariant === 'solid-gold' ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg shadow-amber-500/25 border-none' : ''}
                        `}
-                       onClick={() => router.push('/register')}
+                       onClick={() => handleSubscribe(plan.name, plan.priceId)}
+                       disabled={loadingPlan !== null}
                     >
-                       {plan.btnText}
+                       {loadingPlan === plan.name ? (
+                           <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+                       ) : plan.btnText}
                     </Button>
                  </div>
               ))}

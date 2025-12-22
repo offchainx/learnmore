@@ -2,7 +2,8 @@
 
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/actions/auth';
-import { LessonType } from '@prisma/client';
+import { LessonType, UserRole } from '@prisma/client';
+import { hasPermission } from '@/lib/permissions';
 
 export interface CourseTreeData {
   id: string;
@@ -143,11 +144,18 @@ export async function getLessonData(lessonId: string) {
     let questions = null;
     if (lesson.type === 'QUIZ') {
       // Fetch questions belonging to this chapter
-      // In a more complex schema, there might be a direct Lesson-Question relation
       questions = await prisma.question.findMany({
         where: { chapterId: lesson.chapterId },
-        orderBy: { createdAt: 'asc' } // Or by some order field
+        orderBy: { createdAt: 'asc' }
       });
+
+      // Access Control: Limit questions for non-premium users
+      const userRole = user?.role || UserRole.STUDENT;
+      const canAccessFullBank = hasPermission(userRole, 'access:full_question_bank');
+
+      if (!canAccessFullBank && questions.length > 5) {
+        questions = questions.slice(0, 5);
+      }
     }
 
     // Find the next lesson in the same chapter or next chapter

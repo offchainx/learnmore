@@ -42,6 +42,7 @@
 - **Story-028**: Course Player Engine ✅
 - **Story-029**: Practice & Error Book ✅
 - **Story-030**: Dashboard Gamification ✅
+- **Story-031**: Payment & Subscription ✅
 
 ## Active Story
 - None.
