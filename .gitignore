@@ -33,3 +33,9 @@ ts-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI Tools
+.gemini-clipboard/
+
+# TypeScript
+tsconfig.tsbuildinfo

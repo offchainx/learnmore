@@ -731,8 +731,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
           <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
              <div>{t.footer.rights}</div>
              <div className="flex gap-6">
-                <a href="#" className="hover:text-slate-400">{t.footer.legal}</a>
-                <a href="#" className="hover:text-slate-400">Privacy Policy</a>
+                <button onClick={() => router.push('/terms')} className="hover:text-slate-400">{t.footer.legal}</button>
+                <button onClick={() => router.push('/privacy')} className="hover:text-slate-400">Privacy Policy</button>
              </div>
           </div>
         </div>
