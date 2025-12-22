@@ -14,6 +14,7 @@ interface VideoPlayerProps {
   width?: string | number
   height?: string | number
   className?: string
+  initialPosition?: number
   onProgress?: (state: { played: number; playedSeconds: number; loaded: number; loadedSeconds: number }) => void
   onEnded?: () => void
 }
@@ -26,19 +27,29 @@ export function VideoPlayer({
   width = '100%',
   height = '100%',
   className,
+  initialPosition = 0,
   onProgress,
   onEnded
 }: VideoPlayerProps) {
   const [hasMounted, setHasMounted] = useState(false)
   const [hasError, setHasError] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const playerRef = React.useRef<any>(null)
+  const [hasSeeked, setHasSeeked] = useState(false)
 
   useEffect(() => {
-    // Use setTimeout to avoid cascading renders
     const timer = setTimeout(() => {
       setHasMounted(true)
     }, 0)
     return () => clearTimeout(timer)
   }, [])
+
+  const handleReady = () => {
+    if (initialPosition > 0 && !hasSeeked && playerRef.current) {
+      playerRef.current.seekTo(initialPosition, 'seconds');
+      setHasSeeked(true);
+    }
+  };
 
   if (!url) {
     return (
@@ -67,6 +78,7 @@ export function VideoPlayer({
   return (
     <div className={`relative bg-black rounded-lg overflow-hidden aspect-video ${className || ''}`}>
       <ReactPlayer
+        ref={playerRef}
         className="absolute top-0 left-0"
         url={url}
         width={width}
@@ -74,6 +86,7 @@ export function VideoPlayer({
         controls={controls}
         light={light}
         playing={playing}
+        onReady={handleReady}
         onError={(e: unknown) => {
             console.error('Video player error:', e);
             setHasError(true);

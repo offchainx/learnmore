@@ -41,7 +41,7 @@
 - **Story-027**: Landing Page Activation ✅
 
 ## Active Story
-- None. (Next: Story-028: Course Content Engine)
+- None.
 
 ## Known Issues
 - None blocking.

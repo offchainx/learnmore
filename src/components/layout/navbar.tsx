@@ -125,15 +125,15 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
             )}
             <div className="h-4 w-px bg-white/10 mx-1"></div>
             {isLoggedIn ? (
-              <Button size="sm" variant="glow" onClick={() => router.push('/dashboard')} className="shadow-lg shadow-blue-500/20">
+              <Button size="sm" variant="glow" type="button" onClick={() => { console.log('Navbar: Dashboard Clicked'); router.push('/dashboard'); }} className="shadow-lg shadow-blue-500/20">
                 {text.dashboard}
               </Button>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={() => router.push('/login')} className="text-slate-300 hover:text-white">
+                <Button variant="ghost" size="sm" type="button" onClick={() => { console.log('Navbar: Login Clicked'); router.push('/login'); }} className="text-slate-300 hover:text-white">
                   {text.login}
                 </Button>
-                <Button size="sm" variant="glow" onClick={() => router.push('/register')} className="shadow-lg shadow-blue-500/20">
+                <Button size="sm" variant="glow" type="button" onClick={() => { console.log('Navbar: Start Clicked'); router.push('/register'); }} className="shadow-lg shadow-blue-500/20">
                   {text.start}
                 </Button>
               </>

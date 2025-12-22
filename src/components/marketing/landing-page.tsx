@@ -323,6 +323,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
   ];
 
   const handleCTAClick = () => {
+    console.log('CTA Clicked. LoggedIn:', isLoggedIn);
     if (isLoggedIn) {
       router.push('/dashboard');
     } else {
@@ -350,7 +351,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Text Content */}
-            <div className="text-center lg:text-left">
+            <div className="text-center lg:text-left relative z-20">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium mb-6 animate-fade-in-up">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -369,10 +370,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                <Button size="xl" variant="glow" onClick={handleCTAClick} className="h-14 px-8 text-base shadow-blue-500/25">
+                <Button size="xl" variant="glow" onClick={handleCTAClick} type="button" className="h-14 px-8 text-base shadow-blue-500/25 cursor-pointer relative z-30">
                   {t.hero.ctaPrimary}
                 </Button>
-                <Button size="xl" variant="outline" className="h-14 px-8 text-base border-slate-700 hover:bg-slate-800 text-slate-300">
+                <Button size="xl" variant="outline" type="button" className="h-14 px-8 text-base border-slate-700 hover:bg-slate-800 text-slate-300 cursor-pointer relative z-30">
                   <Play className="w-4 h-4 mr-2 fill-current" /> {t.hero.ctaSecondary}
                 </Button>
               </div>
@@ -670,7 +671,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
       <section className="py-20 text-center">
          <div className="max-w-3xl mx-auto px-4">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">{t.cta.title}</h2>
-            <Button size="xl" variant="glow" onClick={handleCTAClick} className="px-12 py-6 text-lg rounded-full">
+            <Button size="xl" variant="glow" onClick={handleCTAClick} type="button" className="px-12 py-6 text-lg rounded-full cursor-pointer">
                {t.cta.btn}
             </Button>
          </div>

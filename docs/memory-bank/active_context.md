@@ -1,24 +1,22 @@
 # Active Context
 
-**Current Focus**: Story-027 Implementation Complete
+**Current Focus**: Story-028: Course Player Engine
 
 ## Context
-Activated all interactive elements on the Landing Page.
-- Replaced static stats with dynamic data from the database using `getPlatformStats` action.
-- Refactored `src/app/page.tsx` into a Server Component for SEO and data fetching.
-- Moved client logic to `src/components/marketing/landing-page.tsx`.
-- Updated `Navbar` to handle auth state and show "Dashboard" if logged in.
-- Implemented `sitemap.ts` for SEO.
+Implementing the core "Learning Loop" by activating course and lesson pages with real data and progress tracking.
+- Fetch real subject and chapter data from Prisma.
+- Implement video progress synchronization (saving `last_position`).
+- Implement lesson completion logic.
 
 ## Recent Changes
-- Created `getPlatformStats` server action.
-- Extracted `LandingPage` client component.
-- Updated `Navbar` with `isLoggedIn` logic.
-- Created `src/app/sitemap.ts`.
+- Started Story-028.
+- Finished Story-027.
 
 ## Next Steps
-- [ ] Start Story-028: Course Content Engine.
-- [ ] Implement course tree navigation and content rendering.
+- [ ] Implement `getSubjectDetails` server action.
+- [ ] Implement `getLessonData` server action.
+- [ ] Create `updateVideoProgress` and `completeLesson` actions in `src/actions/progress.ts`.
+- [ ] Update Course and Lesson pages to use real data.
 
 ## Active User Questions
 - None.
