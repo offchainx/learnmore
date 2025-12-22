@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'; // Import createClient
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
+import { DailyTaskType } from '@prisma/client';
 
 export async function updateUserLessonProgress(lessonId: string, progressInSeconds: number) {
   const supabase = await createClient(); // Create Supabase client
@@ -28,6 +30,13 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
   const clampedProgressPercentage = Math.min(Math.max(progressPercentage, 0), 100);
 
   try {
+    const isCompleted = clampedProgressPercentage >= 90;
+    
+    if (isCompleted) {
+       await checkAndRefreshStreak(userId);
+       await trackDailyProgress(userId, DailyTaskType.COMPLETE_LESSON);
+    }
+
     const userProgress = await prisma.userProgress.upsert({
       where: {
         userId_lessonId: {
@@ -40,14 +49,14 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
         lastPosition: progressInSeconds, // Store last played position
         updatedAt: new Date(),
         // Mark as completed if progress is >= 90%
-        isCompleted: clampedProgressPercentage >= 90,
+        isCompleted: isCompleted,
       },
       create: {
         userId,
         lessonId,
         progress: clampedProgressPercentage,
         lastPosition: progressInSeconds,
-        isCompleted: clampedProgressPercentage >= 90,
+        isCompleted: isCompleted,
       },
       select: {
         progress: true,

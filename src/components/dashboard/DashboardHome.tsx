@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DailyInspiration } from './Widgets';
-import { 
-  Target, Clock, PenTool, AlertTriangle, Star, Trophy, ArrowRight,
+import { DailyMissions } from './DailyMissions';
+import {
+  Target, Clock, PenTool, AlertTriangle, Star, Trophy,
   Flame, Activity, ChevronRight, Play, Brain, ArrowUpRight, Zap
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
@@ -13,20 +13,16 @@ import { DashboardData } from '@/actions/dashboard';
 export const DashboardHome = ({ navigate, initialData }: { navigate: (path: string) => void, initialData: DashboardData | null }) => {
   const { t, lang } = useApp();
 
-  // Mock data for missions (Layer 1)
-  const missions = [
-    { title: "Fix 3 Errors in Algebra", xp: 50, type: t.dashboard.fix, color: "text-orange-400 bg-orange-400/10 border-orange-400/20" },
-    { title: "Learn: Force Vectors", xp: 100, type: "New", color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
-    { title: "Quiz: Chemical Bonding", xp: 75, type: "Quiz", color: "text-purple-400 bg-purple-400/10 border-purple-400/20" }
-  ];
-
   // Use real data or fallback to defaults
   const stats = initialData?.stats || {
-    studyTime: "0h",
+    studyTime: "0.0",
     questions: 0,
     accuracy: 0,
     mistakes: 0,
-    streak: 0
+    streak: 0,
+    level: 1,
+    xp: 0,
+    nextLevelXp: 1000
   };
 
   const weaknesses = initialData?.weaknesses || [];
@@ -39,59 +35,14 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
       {/* --- Row 1: Core Drive (Status & Inspiration) --- */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Card: Today's Mission (~70% Width on LG) */}
-        <Card className="lg:col-span-2 p-0 overflow-hidden relative border-none bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-xl h-full flex flex-col">
-           {/* Abstract Background Effect */}
-           <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[80px] pointer-events-none"></div>
-
-           <div className="p-6 md:p-8 relative z-10 h-full flex flex-col">
-              <div className="flex justify-between items-start mb-6">
-                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                       <Target className="w-6 h-6 text-blue-400" /> {t.dashboard.todaysMission}
-                    </h2>
-                    <p className="text-slate-400 text-sm mt-1">{t.dashboard.missionSub}</p>
-                 </div>
-                 <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
-                    </span>
-                    <span className="text-xs font-bold text-blue-200">AI Active</span>
-                 </div>
-              </div>
-
-              <div className="space-y-3 flex-1">
-                 {missions.map((m, i) => (
-                    <div key={i} className="group flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all cursor-pointer hover:shadow-lg shadow-black/20">
-                       <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center group-hover:border-blue-400 group-hover:bg-blue-500/20 transition-all`}>
-                             <div className={`w-2 h-2 rounded-full ${m.color.split(' ')[0]} bg-current`}></div>
-                          </div>
-                          <div>
-                             <div className="font-bold text-white text-base group-hover:text-blue-200 transition-colors">{m.title}</div>
-                             <div className={`text-[10px] inline-block px-1.5 py-0.5 rounded mt-1 font-bold ${m.color}`}>
-                                {m.type}
-                             </div>
-                          </div>
-                       </div>
-                       <div className="text-right flex items-center gap-4">
-                          <div className="text-sm font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded border border-yellow-400/20">+{m.xp} XP</div>
-                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-all">
-                             <ArrowRight className="w-4 h-4" />
-                          </div>
-                       </div>
-                    </div>
-                 ))}
-              </div>
-           </div>
-        </Card>
+        <DailyMissions tasks={initialData?.dailyTasks || []} />
 
         {/* Side Card: Daily Inspiration (~30% Width on LG) */}
         <div className="lg:col-span-1 h-full">
            <DailyInspiration 
              lang={lang} 
              t={t} 
-             welcomeTitle={t.dashboard.dailyVibe} 
+             welcomeTitle={t.dashboard?.dailyVibe || "Daily Vibe"} 
              welcomeSub="Stay motivated." 
              className="h-full min-h-[340px]" 
            />
@@ -104,14 +55,15 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
          <Card className="p-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
             <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
                {[
-                  { label: t.dashboard.studyTime, val: `${stats.studyTime}h`, icon: Clock, color: "text-orange-500", sub: "Total" },
-                  { label: t.dashboard.streak, val: `${stats.streak} Days`, icon: Flame, color: "text-red-500", sub: "Keep it up!" },
-                  { label: t.dashboard.level, val: "12", icon: Star, color: "text-yellow-500", sub: "Level" },
+                  { label: t.dashboard?.studyTime || "Study Time", val: `${stats.studyTime}h`, icon: Clock, color: "text-orange-500", sub: "Total" },
+                  { label: t.dashboard?.streak || "Streak", val: `${stats.streak} Days`, icon: Flame, color: "text-red-500", sub: "Keep it up!" },
+                  { label: t.dashboard?.level || "Level", val: `${stats.level}`, icon: Star, color: "text-yellow-500", sub: `${stats.xp} XP` },
                ].map((s, i) => (
                   <div key={i} className="p-4 flex flex-col items-center text-center group cursor-default">
                      <s.icon className={`w-5 h-5 mb-2 ${s.color} group-hover:scale-110 transition-transform`} />
                      <div className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{s.val}</div>
                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{s.label}</div>
+                     <div className="text-[10px] text-slate-400 mt-1">{s.sub}</div>
                   </div>
                ))}
             </div>
@@ -121,14 +73,15 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
          <Card className="p-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
             <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
                {[
-                  { label: t.dashboard.questions, val: `${stats.questions}`, icon: PenTool, color: "text-blue-500", sub: "Total" },
-                  { label: t.dashboard.accuracy, val: `${stats.accuracy}%`, icon: Target, color: "text-emerald-500", sub: "Average" },
-                  { label: t.dashboard.mistakes, val: `${stats.mistakes}`, icon: AlertTriangle, color: "text-purple-500", sub: "Pending fix" },
+                  { label: t.dashboard?.questions || "Questions", val: `${stats.questions}`, icon: PenTool, color: "text-blue-500", sub: "Total" },
+                  { label: t.dashboard?.accuracy || "Accuracy", val: `${stats.accuracy}%`, icon: Target, color: "text-emerald-500", sub: "Average" },
+                  { label: t.dashboard?.mistakes || "Mistakes", val: `${stats.mistakes}`, icon: AlertTriangle, color: "text-purple-500", sub: "Pending fix" },
                ].map((s, i) => (
                   <div key={i} className="p-4 flex flex-col items-center text-center group cursor-default">
                      <s.icon className={`w-5 h-5 mb-2 ${s.color} group-hover:scale-110 transition-transform`} />
                      <div className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{s.val}</div>
                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{s.label}</div>
+                     <div className="text-[10px] text-slate-400 mt-1">{s.sub}</div>
                   </div>
                ))}
             </div>
@@ -143,11 +96,11 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
             <div className="flex justify-between items-end mb-6">
                <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                     <Activity className="w-5 h-5 text-indigo-500" /> {t.dashboard.subjectProgress}
+                     <Activity className="w-5 h-5 text-indigo-500" /> {t.dashboard?.subjectProgress || "Subject Progress"}
                   </h3>
                   <p className="text-sm text-slate-500 mt-1">Real-time tracking of your accuracy</p>
                </div>
-               <Button variant="ghost" size="sm" onClick={() => navigate && navigate('/subjects')}>{t.common.viewAll}</Button>
+               <Button variant="ghost" size="sm" onClick={() => navigate && navigate('/subjects')}>{t.common?.viewAll || "View All"}</Button>
             </div>
             
             <div className="space-y-6">
@@ -185,7 +138,7 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
             
             <div>
                <h3 className="text-lg font-bold flex items-center gap-2 mb-1">
-                  <Trophy className="w-5 h-5 text-yellow-400" /> {t.dashboard.rank}
+                  <Trophy className="w-5 h-5 text-yellow-400" /> {t.dashboard?.rank || "Rank"}
                </h3>
                <p className="text-indigo-200 text-xs">Diamond League • Season 4</p>
             </div>
@@ -212,13 +165,13 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
          {/* Left: My Learning Path */}
          <Card className="p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-               <Brain className="w-5 h-5 text-blue-500" /> {t.dashboard.learningPath}
+               <Brain className="w-5 h-5 text-blue-500" /> {t.dashboard?.learningPath || "Learning Path"}
             </h3>
             
             {/* Continue Learning Item */}
             {recentActivity.length > 0 ? (
                 recentActivity.map((item, i) => (
-                    <div key={i} onClick={() => navigate(`/course/${item.id}` /* Assuming id is lesson id, ideally we need subjectId too but this is ok for now if route handles it or redirect */)} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-blue-500/30 transition-colors group mb-4">
+                    <div key={i} onClick={() => navigate(`/course/${item.id}`)} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-blue-500/30 transition-colors group mb-4">
                         <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
                             <Play className="w-6 h-6 fill-current" />
                         </div>
@@ -238,7 +191,7 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
             
             {/* Up Next List */}
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{t.dashboard.upNext}</div>
+               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{t.dashboard?.upNext || "Up Next"}</div>
                <Button variant="ghost" size="sm" onClick={() => navigate('/subjects')} className="text-xs">Find new courses</Button>
             </div>
          </Card>
@@ -247,7 +200,7 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
          <Card className="p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
             <div className="flex justify-between items-center mb-4">
                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" /> {t.dashboard.weaknessSniper}
+                  <AlertTriangle className="w-5 h-5 text-red-500" /> {t.dashboard?.weaknessSniper || "Weakness Sniper"}
                </h3>
                <span className="text-xs bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-bold">{weaknesses.length} Active</span>
             </div>
@@ -267,7 +220,7 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
                             onClick={() => navigate('/error-book')}
                             className="h-7 px-4 text-xs bg-red-500 text-white border-transparent hover:bg-red-600 shadow-md shadow-red-500/20 transition-all transform hover:scale-105"
                         >
-                           {t.dashboard.fix}
+                           {t.dashboard?.fix || "Fix"}
                         </Button>
                      </div>
                   </div>
@@ -275,7 +228,7 @@ export const DashboardHome = ({ navigate, initialData }: { navigate: (path: stri
                    <p className="text-sm text-muted-foreground text-center py-4">Great job! No weaknesses detected.</p>
                )}
             </div>
-            <Button variant="ghost" fullWidth onClick={() => navigate('/error-book')} className="mt-4 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.common.viewAll}</Button>
+            <Button variant="ghost" fullWidth onClick={() => navigate('/error-book')} className="mt-4 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.common?.viewAll || "View All"}</Button>
          </Card>
       </section>
 

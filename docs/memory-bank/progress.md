@@ -40,6 +40,8 @@
 - **Story-026**: Email Service & Marketing Content ✅
 - **Story-027**: Landing Page Activation ✅
 - **Story-028**: Course Player Engine ✅
+- **Story-029**: Practice & Error Book ✅
+- **Story-030**: Dashboard Gamification ✅
 
 ## Active Story
 - None.

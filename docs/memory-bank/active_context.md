@@ -1,22 +1,22 @@
 # Active Context
 
-**Current Focus**: Story-029: Practice & Error Book
+**Current Focus**: Story-030 Completed
 
 ## Context
-Implementing the core practice and feedback loop.
-- Quiz engine for lessons.
-- Automated error collection into the Error Book.
-- Mastery level management for mistakes.
+Successfully implemented Dashboard Gamification.
+- **Daily Missions**: Auto-generated on dashboard visit, actionable with XP rewards.
+- **Streak System**: Tracks consecutive days of activity (Login, Lesson, Quiz, Fix Error).
+- **Dashboard Stats**: Now displays real data from DB (Study time, Accuracy, etc.).
+- **Integration**: `DailyMissions` component integrated into Dashboard home.
 
 ## Recent Changes
-- Started Story-029.
-- Finished Story-028.
+- Completed Story-030.
+- Added `src/lib/gamification-utils.ts` and `src/actions/gamification.ts`.
+- Updated `dashboard.ts`, `progress.ts`, `quiz.ts`, `error-book.ts` to hook into gamification events.
 
 ## Next Steps
-- [ ] Implement `submitQuiz` server action in `src/actions/quiz.ts`.
-- [ ] Support `QUIZ` type lessons in course pages.
-- [ ] Implement Error Book fetching and mastery update actions.
-- [ ] Connect Dashboard "Weakness Sniper" to real error data.
+- [ ] Start Story-031: Payment Integration (or next priority).
+- [ ] Verify Payment Gateway setup requirements.
 
 ## Active User Questions
 - None.

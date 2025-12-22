@@ -3,8 +3,9 @@
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from './auth';
 import { z } from 'zod';
-import { QuestionType, Prisma } from '@prisma/client';
+import { QuestionType, Prisma, DailyTaskType } from '@prisma/client';
 import { updateLeaderboardScore } from './leaderboard';
+import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
 
 const SubmitQuizSchema = z.object({
   chapterId: z.string().optional(),
@@ -151,6 +152,10 @@ export async function submitQuiz(
     if (correctCount > 0) {
       await updateLeaderboardScore(user.id, correctCount * 10);
     }
+
+    // 5. Gamification
+    await checkAndRefreshStreak(user.id);
+    await trackDailyProgress(user.id, DailyTaskType.QUIZ_SCORE);
 
     return {
       success: true,

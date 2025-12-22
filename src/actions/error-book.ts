@@ -2,7 +2,8 @@
 
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from './auth';
-import { Prisma } from '@prisma/client';
+import { Prisma, DailyTaskType } from '@prisma/client';
+import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
 
 export async function getErrorBookQuestions(subjectId?: string) {
   try {
@@ -85,6 +86,10 @@ export async function updateErrorBookMastery(questionId: string, isCorrect: bool
     }
 
     if (isCorrect) {
+        // Gamification: Track fix error task & streak
+        await trackDailyProgress(user.id, DailyTaskType.FIX_ERROR);
+        await checkAndRefreshStreak(user.id);
+
         // Increment mastery level
         const newLevel = entry.masteryLevel + 1;
         
