@@ -48,6 +48,9 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'access:olympiad_questions',
     'access:parent_app',
     'limit:ai_chats_unlimited',
+  ],
+  [UserRole.PARENT]: [
+    'access:parent_app',
   ]
 };
 

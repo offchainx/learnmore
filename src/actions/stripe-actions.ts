@@ -7,9 +7,9 @@ import { redirect } from 'next/navigation';
 export async function createCheckoutSession(priceId: string, planName: string) {
   const user = await getCurrentUser();
 
-  console.log('[Stripe Debug] Starting checkout for user:', user?.id);
-  console.log('[Stripe Debug] Price ID:', priceId);
-  console.log('[Stripe Debug] API Key present:', !!process.env.STRIPE_SECRET_KEY);
+  console.warn('[Stripe Debug] Starting checkout for user:', user?.id);
+  console.warn('[Stripe Debug] Price ID:', priceId);
+  console.warn('[Stripe Debug] API Key present:', !!process.env.STRIPE_SECRET_KEY);
 
   if (!user || !user.email) {
     console.error('[Stripe Debug] User missing or no email');
@@ -26,7 +26,7 @@ export async function createCheckoutSession(priceId: string, planName: string) {
 
   if (existingCustomers.data.length > 0) {
     customerId = existingCustomers.data[0].id;
-    console.log('[Stripe Debug] Found existing customer:', customerId);
+    console.warn('[Stripe Debug] Found existing customer:', customerId);
   } else {
     const newCustomer = await stripe.customers.create({
       email: user.email,
@@ -36,7 +36,7 @@ export async function createCheckoutSession(priceId: string, planName: string) {
       }
     });
     customerId = newCustomer.id;
-    console.log('[Stripe Debug] Created new customer:', customerId);
+    console.warn('[Stripe Debug] Created new customer:', customerId);
   }
 
   try {
@@ -64,7 +64,7 @@ export async function createCheckoutSession(priceId: string, planName: string) {
       throw new Error('Failed to create checkout session');
     }
 
-    console.log('[Stripe Debug] Redirecting to:', session.url);
+    console.warn('[Stripe Debug] Redirecting to:', session.url);
     redirect(session.url);
   } catch (error) {
     console.error('[Stripe Debug] Stripe API Error:', error);

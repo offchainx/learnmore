@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  BookOpen, LayoutDashboard, PenTool, MessageCircle, 
-  Settings, LogOut, Trophy, ChevronRight 
+import {
+  BookOpen, LayoutDashboard, PenTool, MessageCircle,
+  Settings, LogOut, Trophy, ChevronRight
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 
@@ -38,16 +38,21 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
   currentView: string;
   onNavigate: (view: string) => void;
+  userRole?: string;
 }
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, currentView, onNavigate }) => {
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, currentView, onNavigate, userRole }) => {
   const { t } = useApp();
   const router = useRouter();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => router.push('/');
 
-  const menuItems = [
+  const isParent = userRole === 'PARENT';
+
+  const menuItems = isParent ? [
+    { id: 'parent', icon: LayoutDashboard, label: t.sidebar.dashboard },
+  ] : [
     { id: 'dashboard', icon: LayoutDashboard, label: t.sidebar.dashboard },
     { id: 'courses', icon: BookOpen, label: t.sidebar.courses },
     { id: 'questionBank', icon: PenTool, label: t.sidebar.practice },
@@ -69,7 +74,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center h-20 px-6 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('dashboard')}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate(isParent ? 'parent' : 'dashboard')}>
              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
                 <BookOpen className="h-4 w-4 text-white" />
              </div>
@@ -89,22 +94,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
             />
           ))}
           
-          {/* Achievement Card - Placed inside scrollable area but visibly separated */}
-           <div onClick={() => { onNavigate('achievements'); setSidebarOpen(false); }} className="mt-8 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all shadow-lg shrink-0">
-             <div className="relative z-10">
-               <div className="flex justify-between items-center mb-1">
-                  <h4 className="font-bold text-sm text-white">{t.dashboard.level} 12</h4>
-                  <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-white transition-colors" />
-               </div>
-               <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                 <span>1,250 XP</span>
-                 <span>/ 2,000</span>
-               </div>
-               <div className="w-full bg-slate-700/50 rounded-full h-1.5 overflow-hidden">
-                 <div className="bg-blue-500 h-1.5 rounded-full w-[65%] shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-               </div>
-             </div>
-           </div>
+          {/* Achievement Card - Only for students */}
+          {!isParent && (
+            <div onClick={() => { onNavigate('achievements'); setSidebarOpen(false); }} className="mt-8 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all shadow-lg shrink-0">
+              <div className="relative z-10">
+                <div className="flex justify-between items-center mb-1">
+                    <h4 className="font-bold text-sm text-white">{t.dashboard.level} 12</h4>
+                    <ChevronRight className="w-3 h-3 text-slate-400 group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                  <span>1,250 XP</span>
+                  <span>/ 2,000</span>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-blue-500 h-1.5 rounded-full w-[65%] shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom Section - ABSOLUTELY POSITIONED */}

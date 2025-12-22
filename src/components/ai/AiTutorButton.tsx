@@ -7,17 +7,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { useApp } from '@/providers/app-provider'; // Assume we might put token balance in global context later, but for now local is fine
 import { toast } from '@/components/ui/use-toast';
 
 interface AiTutorButtonProps {
   questionId: string;
-  userAnswer: any;
+  userAnswer: string | string[] | Record<string, unknown>;
   tokenBalance?: number; // Optional initial balance
   onTokenUsed?: () => void;
 }
 
-export const AiTutorButton: React.FC<AiTutorButtonProps> = ({ questionId, userAnswer, tokenBalance: initialBalance, onTokenUsed }) => {
+export const AiTutorButton: React.FC<AiTutorButtonProps> = ({ questionId, userAnswer, onTokenUsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState('');

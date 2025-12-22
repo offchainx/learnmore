@@ -10,7 +10,14 @@ import {
 import { useApp } from '@/providers/app-provider';
 import { DashboardData } from '@/actions/dashboard';
 
-export const DashboardHome = ({ navigate, initialData }: { navigate: (path: string) => void, initialData: DashboardData | null }) => {
+export const DashboardHome = ({
+  navigate,
+  initialData
+}: {
+  navigate: (path: string) => void,
+  onViewChange?: (view: string) => void,
+  initialData: DashboardData | null
+}) => {
   const { t, lang } = useApp();
 
   // Use real data or fallback to defaults

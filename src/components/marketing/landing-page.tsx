@@ -323,7 +323,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
   ];
 
   const handleCTAClick = () => {
-    console.log('CTA Clicked. LoggedIn:', isLoggedIn);
     if (isLoggedIn) {
       router.push('/dashboard');
     } else {

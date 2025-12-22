@@ -95,17 +95,8 @@ Please explain to the student why their answer might be wrong and guide them to 
         async start(controller) {
             try {
                 for await (const chunk of result) {
-                    // Check if text is a function or property. SDKs vary.
-                    // Error suggested it's a getter.
-                    let text: string | undefined;
-                    // @ts-ignore
-                    if (typeof chunk.text === 'function') {
-                        // @ts-ignore
-                        text = chunk.text();
-                    } else {
-                        // @ts-ignore
-                        text = chunk.text;
-                    }
+                    // Gemini SDK: text is a getter property, not a function
+                    const text: string | undefined = chunk.text;
                     
                     if (text) {
                         controller.enqueue(new TextEncoder().encode(text));
