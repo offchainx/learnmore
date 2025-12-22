@@ -13,7 +13,7 @@ export default function TermsPage() {
         <div className="space-y-6 text-slate-300 leading-relaxed">
           <p>Last updated: December 13, 2025</p>
           <p>
-            Please read these Terms of Service ("Terms") carefully before using the LearnMore Edu platform operated by us.
+            Please read these Terms of Service (&quot;Terms&quot;) carefully before using the LearnMore Edu platform operated by us.
           </p>
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Acceptance of Terms</h2>

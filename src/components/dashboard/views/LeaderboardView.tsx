@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
-  Trophy, Flame, Clock, Shield, Zap, Target, MessageCircle, 
+  Flame, Clock, Zap, Target, MessageCircle, 
   ChevronUp, ChevronDown, Minus, Crown, Sword, ArrowUpRight, 
-  AlertTriangle, CheckCircle2, TrendingUp, Search, Filter,
+  AlertTriangle, CheckCircle2, TrendingUp, Filter,
   ChevronsUp
 } from 'lucide-react';
 
-export const LeaderboardView = ({ t }: { t: any }) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const LeaderboardView = ({ t: _t }: { t?: unknown }) => {
   const [activeTab, setActiveTab] = useState<'global' | 'friends'>('global');
 
   // --- Mock Data: Context & Season ---
@@ -180,8 +181,18 @@ export const LeaderboardView = ({ t }: { t: any }) => {
              {/* Controls */}
              <div className="flex justify-between items-center mb-2">
                  <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800">
-                    <button className="px-4 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold shadow-sm">Global</button>
-                    <button className="px-4 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition-colors">Friends</button>
+                    <button 
+                      onClick={() => setActiveTab('global')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${activeTab === 'global' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+                    >
+                      Global
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('friends')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${activeTab === 'friends' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
+                    >
+                      Friends
+                    </button>
                  </div>
                  <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white"><Filter className="w-4 h-4 mr-2" /> Filters</Button>
              </div>

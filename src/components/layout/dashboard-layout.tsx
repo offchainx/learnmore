@@ -9,7 +9,7 @@ import {
 import { useApp } from '@/providers/app-provider';
 
 interface SidebarItemProps {
-  icon: any;
+  icon: React.ElementType;
   label: string;
   active?: boolean;
   onClick?: () => void;
@@ -65,7 +65,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-out lg:relative lg:translate-x-0 lg:block flex flex-col shadow-xl lg:shadow-none
+        fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transform transition-transform duration-300 ease-out lg:relative lg:translate-x-0 lg:block shadow-xl lg:shadow-none
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center h-20 px-6 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
@@ -77,8 +77,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
           </div>
         </div>
         
-        {/* Nav Items */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+        {/* Nav Items - Scrollable Area */}
+        <div className="h-[calc(100vh-5rem)] overflow-y-auto px-4 pt-4 pb-40 space-y-1">
           {menuItems.map(item => (
             <SidebarItem 
               key={item.id}
@@ -88,11 +88,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
               onClick={() => { onNavigate(item.id); setSidebarOpen(false); }} 
             />
           ))}
-        </div>
-
-        {/* Bottom Section */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex-shrink-0">
-           <div onClick={() => { onNavigate('achievements'); setSidebarOpen(false); }} className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all shadow-lg">
+          
+          {/* Achievement Card - Placed inside scrollable area but visibly separated */}
+           <div onClick={() => { onNavigate('achievements'); setSidebarOpen(false); }} className="mt-8 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all shadow-lg shrink-0">
              <div className="relative z-10">
                <div className="flex justify-between items-center mb-1">
                   <h4 className="font-bold text-sm text-white">{t.dashboard.level} 12</h4>
@@ -107,13 +105,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
                </div>
              </div>
            </div>
+        </div>
 
-           <div className="h-px bg-slate-200 dark:bg-slate-800 mb-4 mx-2"></div>
-
-           <div className="space-y-1">
-              <SidebarItem icon={Settings} label={t.sidebar.settings} active={currentView === 'settings'} onClick={() => { onNavigate('settings'); setSidebarOpen(false); }} />
-              <SidebarItem icon={LogOut} label={t.sidebar.logout} onClick={handleLogout} />
-           </div>
+        {/* Bottom Section - ABSOLUTELY POSITIONED */}
+        <div className="absolute bottom-0 left-0 w-full p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 z-20 space-y-1">
+           <SidebarItem icon={Settings} label={t.sidebar.settings} active={currentView === 'settings'} onClick={() => { onNavigate('settings'); setSidebarOpen(false); }} />
+           <SidebarItem icon={LogOut} label={t.sidebar.logout} onClick={handleLogout} />
         </div>
       </aside>
 

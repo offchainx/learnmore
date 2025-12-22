@@ -17,14 +17,30 @@ import { AchievementsView } from './views/AchievementsView';
 // --- Local Types ---
 type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements';
 
-export const DashboardClient: React.FC = () => {
+type UserProfile = {
+  id: string;
+  email: string;
+  username: string | null;
+  avatar: string | null;
+  grade: number | null;
+  settings: {
+    aiPersonality?: string | null;
+    difficultyCalibration?: number | null;
+  } | null;
+};
+
+type DashboardClientProps = {
+  user: UserProfile;
+};
+
+export const DashboardClient: React.FC<DashboardClientProps> = ({ user }) => {
   const router = useRouter();
-  const { lang, t: appT } = useApp(); // Use global context
+  const { t: appT } = useApp(); // Use global context
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
   // We rely on appT from useApp now, which is fully populated from src/lib/translations
   // But some views expect `t` as a prop.
-  // MyCoursesView, QuestionBankView, LeaderboardView, AchievementsView take `t`.
+  // MyCoursesView, QuestionBankView, LeaderboardView take `t`.
   // DashboardHome takes `navigate`.
   
   // Note: appT is the object for the CURRENT language (e.g. translations['en']).
@@ -37,8 +53,8 @@ export const DashboardClient: React.FC = () => {
       case 'questionBank': return <QuestionBankView t={appT} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
       case 'community': return <CommunityView />;
-      case 'settings': return <SettingsView />;
-      case 'achievements': return <AchievementsView t={appT} />;
+      case 'settings': return <SettingsView user={user} />;
+      case 'achievements': return <AchievementsView />;
       default: return <DashboardHome navigate={router.push} />;
     }
   };

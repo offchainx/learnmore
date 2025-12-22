@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 
-export const DashboardHome = ({ navigate }: { navigate: any }) => {
+export const DashboardHome = ({ navigate }: { navigate: (path: string) => void }) => {
   const { t, lang } = useApp();
 
   // Mock data for missions (Layer 1)
@@ -222,7 +222,7 @@ export const DashboardHome = ({ navigate }: { navigate: any }) => {
                </div>
                <div className="flex-1">
                   <div className="text-xs text-slate-500 uppercase font-bold mb-1">Resume: Physics • Chapter 4</div>
-                  <div className="font-bold text-slate-900 dark:text-white">Newton's Second Law</div>
+                  <div className="font-bold text-slate-900 dark:text-white">Newton&apos;s Second Law</div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2">
                      <div className="bg-blue-500 h-1.5 rounded-full w-[65%]"></div>
                   </div>

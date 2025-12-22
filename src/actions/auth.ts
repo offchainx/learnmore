@@ -16,7 +16,11 @@ const loginSchema = z.object({
   password: z.string().min(1, '请输入密码'),
 })
 
-export async function signupAction(prevState: unknown, formData: FormData) {
+export type AuthFormState = {
+  error?: string
+}
+
+export async function signupAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
@@ -32,7 +36,7 @@ export async function signupAction(prevState: unknown, formData: FormData) {
   const supabase = await createClient()
 
   // 注册用户 (会自动触发 Auth Trigger 同步到 public.users)
-  const { error } = await supabase.auth.signUp({
+  const { data: authData, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
@@ -47,10 +51,45 @@ export async function signupAction(prevState: unknown, formData: FormData) {
     return { error: error.message }
   }
 
+  if (authData.user) {
+    // 这里的逻辑主要是为了兜底，防止 Trigger 失败或者延迟
+    // 同时也为了初始化 UserSettings
+    try {
+      // 1. 尝试更新 username (如果 trigger 没有处理 meta_data)
+      if (parsed.data.username) {
+         // 等待一小段时间确保 Trigger 执行完成 (可选，但在 Server Action 中可能不需要，直接 upsert 更安全)
+         // 使用 upsert 确保 public.users 存在
+         await prisma.user.upsert({
+            where: { id: authData.user.id },
+            create: {
+                id: authData.user.id,
+                email: parsed.data.email,
+                username: parsed.data.username,
+            },
+            update: {
+                username: parsed.data.username
+            }
+         })
+      }
+
+      // 2. 初始化 UserSettings
+      await prisma.userSettings.create({
+        data: {
+          userId: authData.user.id,
+          language: 'zh', // Default to Chinese as per context
+          theme: 'light',
+        }
+      })
+    } catch (e) {
+      console.error('[Auth] Post-Signup Init Error:', e)
+      // 不阻断流程，让用户可以登录
+    }
+  }
+
   redirect('/dashboard')
 }
 
-export async function loginAction(prevState: unknown, formData: FormData) {
+export async function loginAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
@@ -77,7 +116,16 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
 export async function logoutAction() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+
+  // Sign out from Supabase (clears auth cookies)
+  const { error } = await supabase.auth.signOut()
+
+  if (error) {
+    console.error('[Auth] Logout Error:', error)
+    // Continue anyway to ensure redirect happens
+  }
+
+  // Redirect to login page to ensure clean state
   redirect('/login')
 }
 

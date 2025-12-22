@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { 
   Target, Map, Play, TrendingUp, History, 
-  ChevronRight, Brain, CheckCircle2, 
+  Brain, CheckCircle2, 
   Bell
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

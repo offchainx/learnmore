@@ -6,9 +6,10 @@
 ## High-Level Roadmap
 - [x] Phase 1: Core Foundation (Auth, Schema, Basic API)
 - [x] Phase 2: UI/UX Overhaul & Integration
-- [ ] Phase 3: Features & Mock Data (Next)
-- [ ] Phase 4: AI Integration
-- [ ] Phase 5: Polish & Launch
+- [ ] Phase 3: Infrastructure & Data (Current)
+- [ ] Phase 4: Core Product Loop
+- [ ] Phase 5: Business & AI
+- [ ] Phase 6: Polish & Launch
 
 ## Completed Stories
 - **Story-001**: Infrastructure Setup
@@ -33,29 +34,14 @@
 - **Story-020**: User Profile
 - **Story-021**: UI Migration (Previous)
 - **Story-022**: UI Design Iteration (AI Studio Prototype)
-- **Story-023**: UI Integration & Next.js Adaptation ✅ (In Review)
+- **Story-023**: UI Integration & Next.js Adaptation ✅
+- **Story-024**: Database Schema Update & Mock Data Injection ✅
+- **Story-025**: Auth Integration & Settings Page ✅
+- **Story-026**: Email Service & Marketing Content ✅
+- **Story-027**: Landing Page Activation ✅
 
 ## Active Story
-- **Story-023**: UI Integration & Next.js Adaptation 🔵
-
-## Backlog (Prioritized)
-- **Story-024**: Mock Data Injection
-- **Story-025**: Dark Mode Perfecting
-- **Story-026**: Vercel Deployment
-- **Story-027**: Landing Page Foundation
-- **Story-028**: UI Feedback Loop
-- **Story-029**: AI Showcase Features
-- **Story-030**: Parent & Student Section Split
-- **Story-031**: Pricing & Subject Details
-- **Story-032**: SEO & Analytics
-- **Story-033**: AI Diagnostics Engine
-- **Story-034**: Parent Dashboard
-- **Story-035**: AI Video Tutor
-- **Story-036**: Knowledge Graph Visualizer
-- **Story-037**: Rank System
-- **Story-038**: Daily Tasks System
-- **Story-039**: Team PK
-- **Story-040**: Achievements Pro
+- None. (Next: Story-028: Course Content Engine)
 
 ## Known Issues
 - None blocking.

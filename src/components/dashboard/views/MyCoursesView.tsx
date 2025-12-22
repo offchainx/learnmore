@@ -5,11 +5,12 @@ import {
   ChevronRight, ChevronDown, CheckCircle2, Lock, Clock, AlertTriangle, 
   BarChart, Flame, Target, Notebook, Bookmark, Highlighter, ArrowRight,
   List, Brain, GraduationCap, Search, PlayCircle, FileText, HelpCircle,
-  Coffee, Calendar, X, Zap, ArrowUpRight
+  Coffee, X, Zap, ArrowUpRight
 } from 'lucide-react';
 import { subjectsData, mockUserContent, Section, SubTabType } from '../shared';
 import { LessonPlayer } from './LessonPlayer';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const MyCoursesView = ({ t }: { t: any }) => {
   const [activeLesson, setActiveLesson] = useState<Section & { chapterTitle: string } | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
@@ -28,9 +29,10 @@ export const MyCoursesView = ({ t }: { t: any }) => {
   // Initialize expanded chapter
   useEffect(() => {
     if (currentSubject.chapters.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedChapter(currentSubject.chapters[0].id);
     }
-  }, [selectedSubjectId]);
+  }, [selectedSubjectId, currentSubject.chapters]);
 
   if (activeLesson) {
     return (
@@ -215,7 +217,7 @@ export const MyCoursesView = ({ t }: { t: any }) => {
                  onClick={() => setIsReviewSessionOpen(true)}
                  className="mb-6 shadow-orange-500/20 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 border-none transform transition-all hover:scale-[1.02]"
                >
-                  Start Today's Review Session <ArrowRight className="w-4 h-4 ml-2" />
+                  Start Today&apos;s Review Session <ArrowRight className="w-4 h-4 ml-2" />
                </Button>
             )}
 

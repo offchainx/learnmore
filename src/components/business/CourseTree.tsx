@@ -15,7 +15,7 @@ export interface CourseChapter {
   title: string;
   isCompleted?: boolean;
   isLocked?: boolean;
-  type?: 'CHAPTER' | 'VIDEO' | 'DOCUMENT' | 'EXERCISE'; // Added type field
+  type?: 'CHAPTER' | 'VIDEO' | 'DOCUMENT' | 'EXERCISE' | 'QUIZ'; // Added QUIZ type
   children?: CourseChapter[];
 }
 

@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
-  Trophy, ArrowLeft, Timer, CheckCircle2, ChevronDown, ChevronRight, 
-  Lock, Check, Play, Activity, AlertOctagon, TrendingUp, 
-  Eraser, Shield, BookOpen, Flame, Star, Hexagon, Zap, MousePointer2,
-  FileText, BarChart2, ArrowUpRight
+  Trophy, ArrowLeft, Timer, CheckCircle2, ChevronRight, 
+  Play, AlertOctagon, TrendingUp, 
+  Eraser, BookOpen, Flame, Star, Hexagon, Zap,
+  FileText
 } from 'lucide-react';
-import { subjectsData, Section } from '../shared';
+import { subjectsData } from '../shared';
 
 // Mock data for quiz interface
 const quizQuestions = [
@@ -43,6 +43,7 @@ const hiveData = [
   { id: 18, status: 'locked', color: 'text-slate-200 dark:text-slate-700 fill-slate-100 dark:fill-slate-800' },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const QuestionBankView = ({ t }: { t: any }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
   const [activeQuiz, setActiveQuiz] = useState<{ sectionId: string, title: string } | null>(null);

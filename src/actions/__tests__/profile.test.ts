@@ -9,6 +9,10 @@ const mockUser = {
   role: UserRole.STUDENT,
   avatar: null,
   grade: 8,
+  streak: 0,
+  totalStudyTime: 0,
+  xp: 0,
+  lastStudyDate: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01')
 };

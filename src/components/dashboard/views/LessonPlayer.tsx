@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { Section, ConfidenceLevel, Confetti } from '../shared';
 
-export const LessonPlayer = ({ lesson, onBack, onComplete, t }: { lesson: Section & { chapterTitle: string }, onBack: () => void, onComplete: () => void, t: any }) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Section & { chapterTitle: string }, onBack: () => void, onComplete: () => void, t?: unknown }) => {
   const [confidence, setConfidence] = useState<ConfidenceLevel | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   
@@ -30,7 +31,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t }: { lesson: Sectio
   };
 
   const saveNote = () => {
-    console.log("Note saved:", currentNote);
+    // TODO: Integrate with backend to persist notes
     setIsNoteModalOpen(false);
     setCurrentNote('');
   };
@@ -65,7 +66,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t }: { lesson: Sectio
               <Trophy className="w-10 h-10 text-white" />
            </div>
            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Lesson Complete!</h2>
-           <p className="text-slate-500 mb-6">You've earned <span className="font-bold text-yellow-500">+{lesson.xp} XP</span></p>
+           <p className="text-slate-500 mb-6">You&apos;ve earned <span className="font-bold text-yellow-500">+{lesson.xp} XP</span></p>
            
            <div className="w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-3 mb-2">
               <div className="bg-blue-500 h-3 rounded-full w-[85%] shadow-sm transition-all duration-1000"></div>

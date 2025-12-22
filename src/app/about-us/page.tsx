@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,7 +8,6 @@ import { Globe, Users, Brain, ArrowRight, Linkedin, Twitter } from 'lucide-react
 import { useApp } from '@/providers/app-provider';
 
 const AboutUsPage: React.FC = () => {
-  const router = useRouter();
   const { lang, setLang } = useApp();
 
   const toggleLang = () => {
@@ -27,7 +25,7 @@ const AboutUsPage: React.FC = () => {
       story: {
         title: "Our Story",
         p1: "LearnMore began in 2023 with a unique collaboration: experienced UEC teachers frustrated by the 'one-size-fits-all' classroom model, and former Google AI engineers looking to apply Large Language Models to meaningful problems.",
-        p2: "We asked a simple question: \"What if every student could have a tutor who knew their learning history perfectly, never got tired, and cost less than a cup of coffee?\" Today, we are building that engine—combining local curriculum expertise with world-class AI.",
+        p2: "We asked a simple question: &quot;What if every student could have a tutor who knew their learning history perfectly, never got tired, and cost less than a cup of coffee?&quot; Today, we are building that engine—combining local curriculum expertise with world-class AI.",
         stats: [
           { value: "2024", label: "Founded" },
           { value: "500+", label: "Pilot Users" },
@@ -249,7 +247,7 @@ const AboutUsPage: React.FC = () => {
            </div>
            
            <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-medium leading-tight mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 relative z-10">
-              "{currentT.hero.statement}"
+              &ldquo;{currentT.hero.statement}&rdquo;
            </h1>
            <p className="text-xl text-slate-400 max-w-2xl mx-auto relative z-10 font-light">
               {currentT.hero.subStatement}

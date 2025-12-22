@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { LabeledInput as Input } from '@/components/ui/labeled-input';
 import { 
   Heart, HandHeart, Globe, GraduationCap, 
-  ArrowRight, Users, School, Share2, 
+  Users, School, Share2, 
   Phone, Mail, MapPin, BookOpen
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
@@ -137,7 +137,7 @@ const StudentCarePage: React.FC = () => {
               <HandHeart className="w-16 h-16 text-rose-500 mx-auto mb-8 opacity-80" />
               <h2 className="text-sm font-bold uppercase tracking-widest text-rose-400 mb-6">{currentT.manifesto.title}</h2>
               <p className="text-2xl md:text-4xl font-serif leading-relaxed text-white">
-                 "{currentT.manifesto.text}"
+                 &quot;{currentT.manifesto.text}&quot;
               </p>
            </div>
         </section>

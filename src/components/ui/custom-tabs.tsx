@@ -3,7 +3,7 @@ import React from 'react';
 interface TabItem {
   id: string;
   label: string;
-  icon?: any;
+  icon?: React.ElementType;
 }
 
 interface TabsProps {

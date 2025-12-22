@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Plus, ImageIcon, Hash, Heart, MessageSquare, Share2, MoreHorizontal, 
-  Mic, Flame, Crown, CheckCircle2, Sparkles, Bot, Users, Search
+  Mic, Flame, Crown, CheckCircle2, Sparkles, Bot, Search
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 

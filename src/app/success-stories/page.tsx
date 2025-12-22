@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Quote, Play, Star, TrendingUp, Users, Heart, Sparkles, Clock, ArrowRight } from 'lucide-react';
+import { Quote, Play, Star, TrendingUp, Heart, Sparkles, ArrowRight } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 
 const SuccessStoriesPage: React.FC = () => {
@@ -184,7 +183,7 @@ const SuccessStoriesPage: React.FC = () => {
                     <div className="relative pl-8 border-l-2 border-blue-500/30">
                         <Quote className="absolute -left-3 -top-3 w-6 h-6 text-blue-500 bg-[#020617] p-1" />
                         <p className="text-xl md:text-2xl text-slate-300 italic font-light leading-relaxed mb-6">
-                            "{currentT.stories.s1.quote}"
+                            &quot;{currentT.stories.s1.quote}&quot;
                         </p>
                     </div>
                 </div>
@@ -202,7 +201,7 @@ const SuccessStoriesPage: React.FC = () => {
                     <div className="relative pl-8 border-l-2 border-rose-500/30">
                         <Quote className="absolute -left-3 -top-3 w-6 h-6 text-rose-500 bg-[#020617] p-1" />
                         <p className="text-xl md:text-2xl text-slate-300 italic font-light leading-relaxed mb-6">
-                            "{currentT.stories.s2.quote}"
+                            &quot;{currentT.stories.s2.quote}&quot;
                         </p>
                     </div>
                 </div>
@@ -246,7 +245,7 @@ const SuccessStoriesPage: React.FC = () => {
                     <div className="relative pl-8 border-l-2 border-yellow-500/30">
                         <Quote className="absolute -left-3 -top-3 w-6 h-6 text-yellow-500 bg-[#020617] p-1" />
                         <p className="text-xl md:text-2xl text-slate-300 italic font-light leading-relaxed mb-6">
-                            "{currentT.stories.s3.quote}"
+                            &quot;{currentT.stories.s3.quote}&quot;
                         </p>
                     </div>
                 </div>

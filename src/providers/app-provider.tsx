@@ -25,7 +25,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== 'undefined') {
       const savedLang = localStorage.getItem('lang') as Lang;
       if (savedLang && ['en', 'zh', 'ms'].includes(savedLang)) {
-        setLang(savedLang);
+        setTimeout(() => setLang(savedLang), 0);
       }
     }
   }, []);

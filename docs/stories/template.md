@@ -32,9 +32,10 @@
 - [ ] 数据库迁移文件 (如有)
 
 ## 5. 完成标准 (Definition of Done)
-- [ ] 代码通过 ESLint 检查 (`npm run lint`)
-- [ ] 项目成功构建 (`npm run build`)
-- [ ] 所有新老测试用例通过 (`npm run test`)
+- [ ] **Lint 检查通过**: `pnpm lint` (0 errors)
+- [ ] **类型检查通过**: `pnpm tsc` (0 errors)
+- [ ] **构建测试通过**: `pnpm build` (0 errors)
+- [ ] 所有新老测试用例通过 (`pnpm test`)
 - [ ] UI 在移动端和桌面端表现符合预期
 - [ ] 无明显的 TypeScript `any` 类型使用
 

@@ -7,7 +7,7 @@ import { Sparkles, RefreshCw } from 'lucide-react';
 
 // --- Shared Helper Components ---
 
-export const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) => (
+export const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: React.ElementType, label: string, active?: boolean, onClick?: () => void }) => (
   <button 
     onClick={onClick}
     className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
@@ -26,7 +26,7 @@ export const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { ic
   </button>
 );
 
-export const SubjectCard = ({ name, icon: Icon, color, bgGradient }: { name: string, icon: any, color: string, bgGradient: string }) => (
+export const SubjectCard = ({ name, icon: Icon, color, bgGradient }: { name: string, icon: React.ElementType, color: string, bgGradient: string }) => (
   <Card className="border-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden h-32 flex flex-col justify-between p-5 shadow-sm hover:shadow-lg dark:shadow-black/20 border border-slate-200 dark:border-transparent">
     <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${bgGradient} opacity-10 rounded-bl-full group-hover:opacity-20 transition-opacity`} />
     <div className={`relative z-10 w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center ${color} ring-1 ring-slate-200 dark:ring-white/5 group-hover:ring-slate-300 dark:group-hover:ring-white/10 transition-all`}>
@@ -100,31 +100,17 @@ const MOTIVATIONAL_QUOTES = {
   ]
 };
 
-export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className }: { lang: string, t: any, welcomeTitle: string, welcomeSub: string, className?: string }) => {
+export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className }: { lang: string, t: { dashboard?: { dailyVibe?: string }, common?: { loading?: string, search?: string } }, welcomeTitle: string, welcomeSub: string, className?: string }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [quote, setQuote] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const today = new Date().toDateString();
-    const storedDate = localStorage.getItem('daily_inspiration_date');
-    const storedImage = localStorage.getItem('daily_inspiration_image');
-    const storedQuote = localStorage.getItem(`daily_inspiration_quote_${lang}`);
-
-    if (storedDate === today && storedImage) {
-      setImageUrl(storedImage);
-      setQuote(storedQuote || getQuote());
-    } else {
-      generateInspiration();
-    }
-  }, [lang]);
-
-  const getQuote = () => {
+  const getQuote = React.useCallback(() => {
     const quotesList = MOTIVATIONAL_QUOTES[lang as keyof typeof MOTIVATIONAL_QUOTES] || MOTIVATIONAL_QUOTES.en;
     return quotesList[Math.floor(Math.random() * quotesList.length)];
-  };
+  }, [lang]);
 
-  const generateInspiration = async () => {
+  const generateInspiration = React.useCallback(async () => {
     if (loading) return;
     setLoading(true);
     const randomQuote = getQuote();
@@ -157,7 +143,21 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang, loading, getQuote]);
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const storedDate = localStorage.getItem('daily_inspiration_date');
+    const storedImage = localStorage.getItem('daily_inspiration_image');
+    const storedQuote = localStorage.getItem(`daily_inspiration_quote_${lang}`);
+
+    if (storedDate === today && storedImage) {
+      setImageUrl(storedImage);
+      setQuote(storedQuote || getQuote());
+    } else {
+      generateInspiration();
+    }
+  }, [lang, generateInspiration, getQuote]);
 
   return (
     <div className={`relative w-full rounded-3xl overflow-hidden shadow-2xl group animate-fade-in-up border border-slate-200 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-800 ${className || 'h-56 sm:h-64'}`}>
@@ -180,7 +180,7 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
                 <Sparkles className="w-3 h-3 text-yellow-300 fill-yellow-300" />
                 {t.dashboard?.dailyVibe || 'Daily Vibe'}
              </div>
-             <p className="text-base sm:text-lg font-medium text-white leading-relaxed italic drop-shadow-lg line-clamp-2">"{quote}"</p>
+             <p className="text-base sm:text-lg font-medium text-white leading-relaxed italic drop-shadow-lg line-clamp-2">&quot;{quote}&quot;</p>
           </div>
           <Button variant="ghost" size="sm" onClick={generateInspiration} disabled={loading} className="text-white/80 hover:text-white hover:bg-white/20 shrink-0 border border-white/20 backdrop-blur-sm">
              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />

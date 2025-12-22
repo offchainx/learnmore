@@ -9,9 +9,10 @@ import { BookOpen, Menu, X, Sparkles, Globe } from 'lucide-react';
 interface NavbarProps {
   lang?: 'en' | 'zh' | 'ms';
   onToggleLang?: () => void;
+  isLoggedIn?: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang }) => {
+export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLoggedIn = false }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -123,12 +124,20 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang }) => 
               </button>
             )}
             <div className="h-4 w-px bg-white/10 mx-1"></div>
-            <Button variant="ghost" size="sm" onClick={() => router.push('/login')} className="text-slate-300 hover:text-white">
-              {text.login}
-            </Button>
-            <Button size="sm" variant="glow" onClick={() => router.push('/register')} className="shadow-lg shadow-blue-500/20">
-              {text.start}
-            </Button>
+            {isLoggedIn ? (
+              <Button size="sm" variant="glow" onClick={() => router.push('/dashboard')} className="shadow-lg shadow-blue-500/20">
+                {text.dashboard}
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => router.push('/login')} className="text-slate-300 hover:text-white">
+                  {text.login}
+                </Button>
+                <Button size="sm" variant="glow" onClick={() => router.push('/register')} className="shadow-lg shadow-blue-500/20">
+                  {text.start}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -169,8 +178,14 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang }) => 
             ))}
             <div className="h-px bg-white/10 my-4" />
             <div className="flex flex-col gap-3">
-               <Button variant="outline" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}>{text.login}</Button>
-               <Button variant="glow" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/register'); }}>{text.join}</Button>
+               {isLoggedIn ? (
+                 <Button variant="glow" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/dashboard'); }}>{text.dashboard}</Button>
+               ) : (
+                 <>
+                   <Button variant="outline" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}>{text.login}</Button>
+                   <Button variant="glow" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/register'); }}>{text.join}</Button>
+                 </>
+               )}
             </div>
           </div>
         </div>

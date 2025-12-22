@@ -3,33 +3,61 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 // ============ 用户模块 ============
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  email     String   @unique
-  username  String?  @unique
-  role      UserRole @default(STUDENT)
-  avatar    String?
-  grade     Int?     // 年级 (7-9)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             String    @id @default(uuid()) @db.Uuid
+  email          String    @unique
+  username       String?   @unique
+  role           UserRole  @default(STUDENT)
+  avatar         String?
+  grade          Int? // 年级 (7-9)
+  streak         Int       @default(0)
+  totalStudyTime Int       @default(0) @map("total_study_time") // seconds
+  xp             Int       @default(0)
+  lastStudyDate  DateTime? @map("last_study_date")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  progress    UserProgress[]
-  attempts    UserAttempt[]
-  examRecords ExamRecord[]
-  errorBook   ErrorBook[]
-  posts       Post[]
-  comments    Comment[]
+  settings           UserSettings?
+  progress           UserProgress[]
+  attempts           UserAttempt[]
+  examRecords        ExamRecord[]
+  errorBook          ErrorBook[]
+  posts              Post[]
+  comments           Comment[]
   leaderboardEntries LeaderboardEntry[]
-  badges      UserBadge[]
+  badges             UserBadge[]
+  dailyTasks         DailyTask[]
 
   @@map("users")
+}
+
+model UserSettings {
+  id                   String        @id @default(uuid()) @db.Uuid
+  userId               String        @unique @map("user_id") @db.Uuid
+  theme                String        @default("dark")
+  language             String        @default("en") // 'en', 'zh', 'ms'
+  aiPersonality        AiPersonality @default(ENCOURAGING) @map("ai_personality")
+  difficultyCalibration Int           @default(50) @map("difficulty_calibration") // 0-100
+  curriculumSystem     String?       @map("curriculum_system") // e.g. "UEC", "IGCSE"
+  notificationDaily    Boolean       @default(true) @map("notification_daily")
+  notificationWeekly   Boolean       @default(true) @map("notification_weekly")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+enum AiPersonality {
+  ENCOURAGING
+  SOCRATIC
+  STRICT
 }
 
 enum UserRole {
@@ -38,17 +66,25 @@ enum UserRole {
   ADMIN
 }
 
+model Subscriber {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  subscribedAt DateTime @default(now()) @map("subscribed_at")
+
+  @@map("subscribers")
+}
+
 // ============ 成就系统 ============
 model Badge {
   id          String   @id @default(uuid()) @db.Uuid
   code        String   @unique // e.g. "early_bird", "math_master"
   name        String
   description String
-  icon        String   // URL or icon name
-  condition   String?  // Description of how to unlock
+  icon        String // URL or icon name
+  condition   String? // Description of how to unlock
   createdAt   DateTime @default(now()) @map("created_at")
-  
-  users       UserBadge[]
+
+  users UserBadge[]
 
   @@map("badges")
 }
@@ -59,8 +95,8 @@ model UserBadge {
   badgeId   String   @map("badge_id") @db.Uuid
   awardedAt DateTime @default(now()) @map("awarded_at")
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
   @@index([userId])
@@ -69,10 +105,11 @@ model UserBadge {
 
 // ============ 课程模块 ============
 model Subject {
-  id       String    @id @default(uuid()) @db.Uuid
-  name     String    @unique // 数学, 物理, 化学...
-  icon     String?
-  order    Int       @default(0)
+  id    String  @id @default(uuid()) @db.Uuid
+  name  String  @unique // 数学, 物理, 化学...
+  icon  String?
+  order Int     @default(0)
+
   chapters Chapter[]
   posts    Post[]
 
@@ -88,10 +125,10 @@ model Chapter {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  subject  Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  parent   Chapter?   @relation("ChapterTree", fields: [parentId], references: [id])
-  children Chapter[]  @relation("ChapterTree")
-  lessons  Lesson[]
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  parent    Chapter?   @relation("ChapterTree", fields: [parentId], references: [id])
+  children  Chapter[]  @relation("ChapterTree")
+  lessons   Lesson[]
   questions Question[]
 
   @@index([subjectId])
@@ -100,15 +137,16 @@ model Chapter {
 }
 
 model Lesson {
-  id         String      @id @default(uuid()) @db.Uuid
-  chapterId  String      @map("chapter_id") @db.Uuid
-  title      String
-  type       LessonType  @default(VIDEO)
-  videoUrl   String?     @map("video_url")
-  content    String?     @db.Text // Markdown 内容
-  duration   Int?        // 视频时长(秒)
-  order      Int         @default(0)
-  createdAt  DateTime    @default(now()) @map("created_at")
+  id        String     @id @default(uuid()) @db.Uuid
+  chapterId String     @map("chapter_id") @db.Uuid
+  title     String
+  type      LessonType @default(VIDEO)
+  videoUrl  String?    @map("video_url")
+  content   String?    @db.Text // Markdown 内容
+  duration  Int? // 视频时长(秒)
+  xpReward  Int        @default(10) @map("xp_reward")
+  order     Int        @default(0)
+  createdAt DateTime   @default(now()) @map("created_at")
 
   // Relations
   chapter  Chapter        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -122,6 +160,25 @@ enum LessonType {
   VIDEO
   DOCUMENT
   EXERCISE
+  QUIZ
+}
+
+model BlogPost {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        String   @unique
+  title       String
+  excerpt     String?
+  content     String   @db.Text
+  coverImage  String?  @map("cover_image")
+  author      String
+  category    String
+  tags        String[] @default([])
+  publishedAt DateTime @default(now()) @map("published_at")
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("blog_posts")
 }
 
 // ============ 学习进度 ============
@@ -145,15 +202,15 @@ model UserProgress {
 
 // ============ 题库模块 ============
 model Question {
-  id         String       @id @default(uuid()) @db.Uuid
-  chapterId  String       @map("chapter_id") @db.Uuid
-  type       QuestionType
-  difficulty Int          @default(3) // 1-5星
-  content    String       @db.Text // 题干(Markdown+LaTeX)
-  options    Json?        // 选项 {"A": "...", "B": "..."}
-  answer     Json         // 答案 "A" 或 ["A", "C"]
-  explanation String?     @db.Text // 解析
-  createdAt  DateTime     @default(now()) @map("created_at")
+  id          String       @id @default(uuid()) @db.Uuid
+  chapterId   String       @map("chapter_id") @db.Uuid
+  type        QuestionType
+  difficulty  Int          @default(3) // 1-5星
+  content     String       @db.Text // 题干(Markdown+LaTeX)
+  options     Json? // 选项 {"A": "...", "B": "..."}
+  answer      Json // 答案 "A" 或 ["A", "C"]
+  explanation String?      @db.Text // 解析
+  createdAt   DateTime     @default(now()) @map("created_at")
 
   // Relations
   chapter   Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -170,6 +227,7 @@ enum QuestionType {
   MULTIPLE_CHOICE
   FILL_BLANK
   ESSAY
+  MCQ // Legacy support if needed, otherwise rely on SINGLE/MULTIPLE_CHOICE
 }
 
 model UserAttempt {
@@ -179,6 +237,7 @@ model UserAttempt {
   examRecordId String?     @map("exam_record_id") @db.Uuid
   userAnswer   Json        @map("user_answer")
   isCorrect    Boolean     @map("is_correct")
+  duration     Int? // Time taken in seconds
   createdAt    DateTime    @default(now()) @map("created_at")
 
   // Relations
@@ -197,10 +256,11 @@ model ExamRecord {
   id             String   @id @default(uuid()) @db.Uuid
   userId         String   @map("user_id") @db.Uuid
   chapterId      String?  @map("chapter_id") @db.Uuid
+  title          String?
   score          Float
   totalQuestions Int      @map("total_questions")
   correctCount   Int      @map("correct_count")
-  duration       Int?     // Time taken in seconds
+  duration       Int? // Time taken in seconds
   createdAt      DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -228,16 +288,45 @@ model ErrorBook {
   @@map("error_book")
 }
 
+// ============ 游戏化模块 ============
+
+model DailyTask {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  type         DailyTaskType
+  title        String
+  targetCount  Int           @map("target_count")
+  currentCount Int           @default(0) @map("current_count")
+  xpReward     Int           @default(0) @map("xp_reward")
+  isClaimed    Boolean       @default(false) @map("is_claimed")
+  date         DateTime      @default(now()) @db.Date // Store only date
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("daily_tasks")
+}
+
+enum DailyTaskType {
+  LOGIN
+  COMPLETE_LESSON
+  FIX_ERROR
+  QUIZ_SCORE
+}
+
 // ============ 社区模块 ============
 model Post {
-  id        String    @id @default(uuid()) @db.Uuid
-  authorId  String    @map("author_id") @db.Uuid
+  id        String   @id @default(uuid()) @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
   title     String
-  content   String    @db.Text
-  subjectId String?   @map("subject_id") @db.Uuid
-  likeCount Int       @default(0) @map("like_count")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  content   String   @db.Text
+  category  String? // Question, Note, Achievement
+  tags      String[] @default([])
+  subjectId String?  @map("subject_id") @db.Uuid
+  likeCount Int      @default(0) @map("like_count")
+  isSolved  Boolean  @default(false) @map("is_solved")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -250,11 +339,12 @@ model Post {
 }
 
 model Comment {
-  id        String   @id @default(uuid()) @db.Uuid
-  postId    String   @map("post_id") @db.Uuid
-  authorId  String   @map("author_id") @db.Uuid
-  content   String   @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid()) @db.Uuid
+  postId     String   @map("post_id") @db.Uuid
+  authorId   String   @map("author_id") @db.Uuid
+  content    String   @db.Text
+  isSolution Boolean  @default(false) @map("is_solution")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   // Relations
   post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -264,15 +354,33 @@ model Comment {
   @@map("comments")
 }
 
+model ContactSubmission {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String
+  email     String
+  subject   String
+  message   String        @db.Text
+  status    ContactStatus @default(NEW)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@map("contact_submissions")
+}
+
+enum ContactStatus {
+  NEW
+  READ
+  REPLIED
+}
+
 // ============ 排行榜模块 ============
 model LeaderboardEntry {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  score     Int      @default(0)
-  rank      Int?     // 缓存排名
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  score     Int               @default(0)
+  rank      Int? // 缓存排名
   period    LeaderboardPeriod @default(WEEKLY)
-  weekStart DateTime @map("week_start")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  weekStart DateTime          @map("week_start")
+  updatedAt DateTime          @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

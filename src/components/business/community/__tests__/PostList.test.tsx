@@ -10,8 +10,11 @@ const mockPosts: PostWithAuthor[] = [
     authorId: 'user-1',
     title: 'First Post',
     content: 'This is the first post content',
+    category: 'Question',
+    tags: ['math', 'help'],
     subjectId: 'subject-1',
     likeCount: 5,
+    isSolved: false,
     createdAt: new Date('2023-01-01'),
     updatedAt: new Date('2023-01-01'),
     author: {
@@ -34,8 +37,11 @@ const mockPosts: PostWithAuthor[] = [
     authorId: 'user-2',
     title: 'Second Post',
     content: 'This is the second post content',
+    category: 'Note',
+    tags: [],
     subjectId: null,
     likeCount: 0,
+    isSolved: true,
     createdAt: new Date('2023-01-02'),
     updatedAt: new Date('2023-01-02'),
     author: {

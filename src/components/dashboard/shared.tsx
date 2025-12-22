@@ -30,7 +30,7 @@ export interface Subject {
   id: string;
   title: string;
   subTitle: string;
-  icon: any;
+  icon: React.ElementType;
   color: string;
   gradient: string;
   progress: number;
@@ -117,18 +117,28 @@ export const mockUserContent = [
 
 // --- Shared Components ---
 export const Confetti = () => {
-  const particles = Array.from({ length: 50 });
+  const [particles, setParticles] = React.useState<{ left: string; bg: string; duration: string; delay: string }[]>([]);
+
+  React.useEffect(() => {
+    setParticles(Array.from({ length: 50 }).map(() => ({
+      left: `${Math.random() * 100}%`,
+      bg: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)],
+      duration: `${Math.random() * 2 + 1}s`,
+      delay: `${Math.random() * 0.5}s`
+    })));
+  }, []);
+
   return (
     <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden flex justify-center">
-      {particles.map((_, i) => (
+      {particles.map((p, i) => (
         <div
           key={i}
           className="absolute top-0 w-2 h-2 rounded-full animate-confetti"
           style={{
-            left: `${Math.random() * 100}%`,
-            backgroundColor: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)],
-            animationDuration: `${Math.random() * 2 + 1}s`,
-            animationDelay: `${Math.random() * 0.5}s`
+            left: p.left,
+            backgroundColor: p.bg,
+            animationDuration: p.duration,
+            animationDelay: p.delay
           }}
         />
       ))}

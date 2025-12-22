@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Share2, Sparkles, Zap, Brain, Target, Clock, BookOpen, MessageSquare, Moon, Timer, Heart, Crown, Award, TrendingUp, Hexagon, Lock } from 'lucide-react';
 
-export const AchievementsView = ({ t }: { t: any }) => {
+export const AchievementsView = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'rare' | 'epic'>('all');
 
   const stats = [
@@ -145,7 +145,7 @@ export const AchievementsView = ({ t }: { t: any }) => {
                    {['all', 'rare', 'epic'].map(tab => (
                       <button
                          key={tab}
-                         onClick={() => setActiveTab(tab as any)}
+                         onClick={() => setActiveTab(tab as 'all' | 'rare' | 'epic')}
                          className={`px-3 py-1 text-xs font-bold rounded-md capitalize transition-all ${
                             activeTab === tab 
                             ? 'bg-white dark:bg-slate-700 shadow text-slate-900 dark:text-white' 

@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { logoutAction } from '@/actions/auth'
 import { 
   Menu, BookOpen, LayoutDashboard, PenTool, BookMarked, 
   Trophy, MessageCircle, Settings, LogOut 
@@ -29,12 +30,9 @@ const mainNavItems: NavItem[] = [
 
 const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
   const pathname = usePathname();
-  const router = useRouter();
 
-  const handleLogout = () => {
-    // Implement actual logout logic here (e.g. call server action or supabase client)
-    // console.log('Logging out...');
-    router.push('/');
+  const handleLogout = async () => {
+    await logoutAction();
     if (onClose) onClose();
   };
 
