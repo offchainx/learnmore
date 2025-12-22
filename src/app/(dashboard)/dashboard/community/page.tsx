@@ -20,14 +20,22 @@ interface PageProps {
 export default async function CommunityPage({ searchParams }: PageProps) {
   // Await searchParams
   const params = await searchParams
-  
-  const categoryId = typeof params.category === 'string' ? params.category : undefined
+
+  const subjectId = typeof params.subject === 'string' ? params.subject : undefined
+  const type = typeof params.type === 'string' ? params.type : undefined
+  const unanswered = params.unanswered === 'true'
   const page = typeof params.page === 'string' ? parseInt(params.page) : 1
-  
+
   // Parallel fetching
   const [categories, postsData] = await Promise.all([
     getCategories(),
-    getPosts({ subjectId: categoryId, page, limit: 10 })
+    getPosts({
+      subjectId,
+      category: type,
+      unanswered,
+      page,
+      limit: 10
+    })
   ])
 
   return (
@@ -54,11 +62,13 @@ export default async function CommunityPage({ searchParams }: PageProps) {
           </div>
           
           <Suspense fallback={<div>Loading posts...</div>}>
-             <PostList 
-               posts={postsData.posts} 
-               metadata={postsData.metadata} 
+             <PostList
+               posts={postsData.posts}
+               metadata={postsData.metadata}
                baseUrl="/dashboard/community"
-               currentCategory={categoryId}
+               currentSubject={subjectId}
+               currentType={type}
+               unanswered={unanswered}
              />
           </Suspense>
         </main>

@@ -7,16 +7,27 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 interface PostListProps {
   posts: PostWithAuthor[]
   metadata: {
+    total: number
     page: number
+    limit: number
     totalPages: number
     hasNextPage: boolean
     hasPrevPage: boolean
   }
   baseUrl: string
-  currentCategory?: string
+  currentSubject?: string
+  currentType?: string
+  unanswered?: boolean
 }
 
-export function PostList({ posts, metadata, baseUrl, currentCategory }: PostListProps) {
+export function PostList({
+  posts,
+  metadata,
+  baseUrl,
+  currentSubject,
+  currentType,
+  unanswered
+}: PostListProps) {
   if (posts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-card/50 border-dashed">
@@ -31,7 +42,9 @@ export function PostList({ posts, metadata, baseUrl, currentCategory }: PostList
 
   const createPageUrl = (page: number) => {
     const params = new URLSearchParams()
-    if (currentCategory) params.set('category', currentCategory)
+    if (currentSubject) params.set('subject', currentSubject)
+    if (currentType) params.set('type', currentType)
+    if (unanswered) params.set('unanswered', 'true')
     params.set('page', page.toString())
     return `${baseUrl}?${params.toString()}`
   }

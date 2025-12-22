@@ -46,5 +46,9 @@ export default async function DashboardPage() {
 
   const dashboardData = await getDashboardStats();
 
+  if (!dashboardData) {
+    redirect('/login');
+  }
+
   return <DashboardClient user={profile} initialData={dashboardData} />;
 }

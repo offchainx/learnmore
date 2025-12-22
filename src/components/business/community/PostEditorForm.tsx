@@ -12,8 +12,9 @@ import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage
 } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/components/ui/use-toast' // Assuming toast is available
-import { createPost } from '@/actions/community' // We will create this action next
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { toast } from '@/components/ui/use-toast'
+import { createPost } from '@/actions/community'
 
 interface Category {
   id: string
@@ -29,6 +30,9 @@ const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters.').max(100, 'Title must not exceed 100 characters.'),
   content: z.string().min(50, 'Content must be at least 50 characters.'),
   subjectId: z.string().uuid('Please select a valid subject.').optional(),
+  category: z.enum(['Question', 'Note', 'Achievement'], {
+    message: "Please select a category.",
+  }),
 })
 
 type PostFormValues = z.infer<typeof formSchema>
@@ -43,6 +47,7 @@ export function PostEditorForm({ categories }: PostEditorFormProps) {
       title: '',
       content: '',
       subjectId: undefined,
+      category: 'Question',
     },
   })
 
@@ -52,6 +57,7 @@ export function PostEditorForm({ categories }: PostEditorFormProps) {
       const result = await createPost({
         title: values.title,
         content: values.content,
+        category: values.category,
         subjectId: values.subjectId,
       })
 
@@ -99,14 +105,57 @@ export function PostEditorForm({ categories }: PostEditorFormProps) {
 
         <FormField
           control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Post Type</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Question" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Question
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Note" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Note
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="Achievement" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Achievement
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="subjectId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>Subject (Optional)</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Select a subject" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

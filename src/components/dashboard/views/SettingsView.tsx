@@ -9,9 +9,10 @@ import { useApp } from '@/providers/app-provider'; // Import Context
 import { updateProfile } from '@/actions/profile';
 import { updateAIConfig } from '@/actions/settings';
 import { logoutAction } from '@/actions/auth';
+import { generateInviteCode } from '@/actions/parent';
 import {
   User, Shield, Brain, CreditCard, Camera,
-  Bot, Glasses, ClipboardList, Link, Copy,
+  Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
   Moon, Sun, LogOut, CheckCircle2, Globe
 } from 'lucide-react';
 
@@ -34,6 +35,7 @@ type UserProfile = {
   username: string | null;
   avatar: string | null;
   grade: number | null;
+  role: string;
   settings: {
     aiPersonality?: string | null;
     difficultyCalibration?: number | null;
@@ -47,6 +49,7 @@ type SettingsViewProps = {
 export const SettingsView = ({ user }: SettingsViewProps) => {
   const { t, lang, setLang, theme, toggleTheme } = useApp(); // Use global state
   const [activeTab, setActiveTab] = useState<TabId>('profile');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Initialize AI settings from user data
   const initialAiPersonality = (user?.settings?.aiPersonality?.toLowerCase() as 'encouraging' | 'socratic' | 'strict') || 'encouraging';
@@ -67,8 +70,15 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     { id: 'subscription', label: t.settings.tabs.subscription, icon: CreditCard },
   ];
 
-  const generateCode = () => {
-    setInviteCode('X9-K2P');
+  const handleGenerateCode = async () => {
+    setIsGenerating(true);
+    const result = await generateInviteCode();
+    if (result.success && result.code) {
+      setInviteCode(result.code);
+    } else {
+      alert(result.error || 'Failed to generate code.');
+    }
+    setIsGenerating(false);
   };
 
   const copyCode = () => {
@@ -374,42 +384,44 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         <p className="text-slate-500 text-base">{t.settings.managePrefs}</p>
       </div>
 
-      {/* Parent Connection Widget */}
-      <Card className="p-8 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border-indigo-500/30 overflow-hidden relative">
-         <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between">
-            <div className="flex-1">
-               <div className="flex items-center gap-3 mb-3">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.settings.account.parentConnect}</h3>
-                  {!inviteCode ? (
-                     <span className="flex items-center gap-1.5 text-xs bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20 font-bold">
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span> Not Connected
-                     </span>
-                  ) : (
-                     <span className="flex items-center gap-1.5 text-xs bg-yellow-500/10 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/20 font-bold">
-                        <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> Waiting for Parent
-                     </span>
-                  )}
-               </div>
-               <p className="text-base text-slate-500 max-w-lg leading-relaxed">
-                  Link a parent account to sync progress reports and unlock premium parental controls. Parents can view activity in real-time.
-               </p>
-            </div>
+      {/* Parent Connection Widget - Only for Students */}
+      {user?.role === 'STUDENT' && (
+        <Card className="p-8 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border-indigo-500/30 overflow-hidden relative">
+           <div className="relative z-10 flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between">
+              <div className="flex-1">
+                 <div className="flex items-center gap-3 mb-3">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{t.settings.account.parentConnect}</h3>
+                    {!inviteCode ? (
+                       <span className="flex items-center gap-1.5 text-xs bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20 font-bold">
+                          <span className="w-2 h-2 rounded-full bg-red-500"></span> Not Connected
+                       </span>
+                    ) : (
+                       <span className="flex items-center gap-1.5 text-xs bg-yellow-500/10 text-yellow-500 px-3 py-1 rounded-full border border-yellow-500/20 font-bold">
+                          <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> Waiting for Parent
+                       </span>
+                    )}
+                 </div>
+                 <p className="text-base text-slate-500 max-w-lg leading-relaxed">
+                    Link a parent account to sync progress reports and unlock premium parental controls. Parents can view activity in real-time.
+                 </p>
+              </div>
 
-            {inviteCode ? (
-               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-center min-w-[280px] animate-fade-in-up shadow-xl">
-                  <div className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-bold">{t.settings.account.inviteCode}</div>
-                  <div className="text-4xl font-mono font-bold text-indigo-500 mb-4 tracking-widest">{inviteCode}</div>
-                  <Button size="md" variant="ghost" className="w-full" onClick={copyCode}>
-                     <Copy className="w-4 h-4 mr-2" /> Copy Code
-                  </Button>
-               </div>
-            ) : (
-               <Button onClick={generateCode} size="lg" variant="glow" className="shrink-0 bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20 border-none px-8">
-                  <Link className="w-5 h-5 mr-2" /> Generate Invite Code
-               </Button>
-            )}
-         </div>
-      </Card>
+              {inviteCode ? (
+                 <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-center min-w-[280px] animate-fade-in-up shadow-xl">
+                    <div className="text-xs text-slate-500 mb-2 uppercase tracking-wider font-bold">{t.settings.account.inviteCode}</div>
+                    <div className="text-4xl font-mono font-bold text-indigo-500 mb-4 tracking-widest">{inviteCode}</div>
+                    <Button size="md" variant="ghost" className="w-full" onClick={copyCode}>
+                       <Copy className="w-4 h-4 mr-2" /> Copy Code
+                    </Button>
+                 </div>
+              ) : (
+                 <Button onClick={handleGenerateCode} disabled={isGenerating} size="lg" variant="glow" className="shrink-0 bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20 border-none px-8">
+                    <LinkIcon className="w-5 h-5 mr-2" /> {isGenerating ? 'Generating...' : 'Generate Invite Code'}
+                 </Button>
+              )}
+           </div>
+        </Card>
+      )}
     </div>
   );
 

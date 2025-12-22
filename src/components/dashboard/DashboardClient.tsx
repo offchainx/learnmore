@@ -14,9 +14,11 @@ import { QuestionBankView } from './views/QuestionBankView';
 import { LeaderboardView } from './views/LeaderboardView';
 import { SettingsView } from './views/SettingsView';
 import { AchievementsView } from './views/AchievementsView';
+import { ParentDashboardView } from './views/ParentDashboardView';
+import { KnowledgeGraphView } from './views/KnowledgeGraphView';
 
 // --- Local Types ---
-type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements';
+type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements' | 'parent' | 'knowledgeGraph';
 
 type UserProfile = {
   id: string;
@@ -24,45 +26,56 @@ type UserProfile = {
   username: string | null;
   avatar: string | null;
   grade: number | null;
+  role: string;
   settings: {
     aiPersonality?: string | null;
     difficultyCalibration?: number | null;
   } | null;
 };
 
-type DashboardClientProps = {
+interface DashboardClientProps {
   user: UserProfile;
-  initialData: DashboardData | null;
-};
+  initialData: DashboardData;
+}
 
-export const DashboardClient: React.FC<DashboardClientProps> = ({ user, initialData }) => {
+export function DashboardClient({ user, initialData }: DashboardClientProps) {
   const router = useRouter();
-  const { t: appT } = useApp(); // Use global context
-  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const { t: appT } = useApp();
+  // Automatically switch to parent view if user is a parent
+  const [currentView, setCurrentView] = useState<View>(user.role === 'PARENT' ? 'parent' : 'dashboard');
 
-  // We rely on appT from useApp now, which is fully populated from src/lib/translations
-  // But some views expect `t` as a prop.
-  // MyCoursesView, QuestionBankView, LeaderboardView take `t`.
-  // DashboardHome takes `navigate`.
-  
-  // Note: appT is the object for the CURRENT language (e.g. translations['en']).
-  // So we pass appT directly.
+  const handleViewChange = (view: string) => {
+    setCurrentView(view as View);
+  };
 
   const renderContent = () => {
+    // Parent should only see ParentDashboard or Settings
+    if (user.role === 'PARENT') {
+      switch(currentView) {
+        case 'settings': return <SettingsView user={user} />;
+        default: return <ParentDashboardView />;
+      }
+    }
+
     switch(currentView) {
-      case 'dashboard': return <DashboardHome navigate={router.push} initialData={initialData} />;
+      case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} />;
       case 'courses': return <MyCoursesView t={appT} />;
       case 'questionBank': return <QuestionBankView t={appT} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
       case 'community': return <CommunityView />;
       case 'settings': return <SettingsView user={user} />;
       case 'achievements': return <AchievementsView />;
-      default: return <DashboardHome navigate={router.push} initialData={initialData} />;
+      case 'knowledgeGraph': return <KnowledgeGraphView />;
+      default: return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} />;
     }
   };
 
   return (
-    <DashboardLayout currentView={currentView} onNavigate={(view) => setCurrentView(view as View)}>
+    <DashboardLayout 
+      currentView={currentView} 
+      onNavigate={(view) => setCurrentView(view as View)}
+      userRole={user.role}
+    >
        {renderContent()}
     </DashboardLayout>
   );

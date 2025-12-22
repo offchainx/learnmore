@@ -79,6 +79,8 @@ export type PostWithAuthorAndComments = Prisma.PostGetPayload<{
 
 interface GetPostsParams {
   subjectId?: string
+  category?: string
+  unanswered?: boolean
   page?: number
   limit?: number
   search?: string
@@ -86,6 +88,8 @@ interface GetPostsParams {
 
 export async function getPosts({
   subjectId,
+  category,
+  unanswered,
   page = 1,
   limit = 10,
   search,
@@ -94,6 +98,8 @@ export async function getPosts({
 
   const where: Prisma.PostWhereInput = {
     ...(subjectId ? { subjectId } : {}),
+    ...(category ? { category } : {}),
+    ...(unanswered ? { isSolved: false, category: 'Question' } : {}),
     ...(search
       ? {
           OR: [
@@ -119,6 +125,7 @@ export async function getPosts({
         _count: {
           select: {
             comments: true,
+            likes: true,
           },
         },
         subject: {
@@ -174,8 +181,16 @@ export async function getCategories() {
 export async function createPost({
   title,
   content,
+  category,
   subjectId,
-}: { title: string; content: string; subjectId?: string }) {
+  tags = [],
+}: { 
+  title: string; 
+  content: string; 
+  category: string;
+  subjectId?: string;
+  tags?: string[];
+}) {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -187,8 +202,10 @@ export async function createPost({
       data: {
         title,
         content,
+        category,
         authorId: user.id,
         subjectId,
+        tags,
       },
     })
     return { success: true, post: newPost }
@@ -203,6 +220,8 @@ export async function createPost({
 }
 
 export async function getPostById(postId: string) {
+  const user = await getCurrentUser()
+  
   try {
     const post = await prisma.post.findUnique({
       where: { id: postId },
@@ -237,9 +256,26 @@ export async function getPostById(postId: string) {
             createdAt: 'asc',
           },
         },
+        likes: user ? {
+          where: { userId: user.id }
+        } : false,
+        _count: {
+          select: {
+            likes: true,
+            comments: true
+          }
+        }
       },
     })
-    return post
+    
+    if (!post) return null
+
+    // Flatten userLiked for easier client use
+    return {
+      ...post,
+      userLiked: post.likes ? post.likes.length > 0 : false,
+      likeCount: post._count.likes
+    }
   } catch (error: unknown) {
     console.error('Error fetching post by ID:', error)
     return null
@@ -293,44 +329,47 @@ export async function toggleLike(postId: string) {
   }
 
   try {
-    // For simplicity, we're just incrementing/decrementing likeCount directly.
-    // In a real app, you'd have a PostLike table to track who liked what,
-    // and ensure a user can only like/unlike once.
-
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-      select: { likeCount: true },
-    });
-
-    if (!post) {
-      return { success: false, error: 'Post not found.' };
-    }
-
-    // This is a toggle logic. We assume the client side knows if it's liked or not.
-    // To make it truly robust, we'd need a PostLike table to check user's like status.
-    // For now, let's just make it increment. The optimistic UI on client will handle visual toggle.
-    // We will simulate a simple increment/decrement for now.
-    // The actual "toggle" logic (add or remove user's like) should be done with a separate table.
-    // Since the Story only asks for "Like Interaction (Optimistic UI)", a simple increment is fine for now.
-
-    // A more complex implementation would involve:
-    // 1. Check if user already liked this post from a `PostLike` table.
-    // 2. If liked, decrement `likeCount` and delete `PostLike` entry.
-    // 3. If not liked, increment `likeCount` and create `PostLike` entry.
-
-    // For this story, let's keep it simple and just increment `likeCount`.
-    // The optimistic UI will visually "toggle" the like on the client side.
-    const updatedPost = await prisma.post.update({
-      where: { id: postId },
-      data: {
-        likeCount: {
-          increment: 1, // Always increment for simplicity as per current simple model
+    const existingLike = await prisma.postLike.findUnique({
+      where: {
+        userId_postId: {
+          userId: user.id,
+          postId: postId,
         },
       },
-      select: { likeCount: true },
-    });
+    })
 
-    return { success: true, newLikeCount: updatedPost.likeCount };
+    if (existingLike) {
+      // Unlike
+      await prisma.$transaction([
+        prisma.postLike.delete({
+          where: { id: existingLike.id },
+        }),
+        prisma.post.update({
+          where: { id: postId },
+          data: {
+            likeCount: { decrement: 1 },
+          },
+        }),
+      ])
+      return { success: true, liked: false }
+    } else {
+      // Like
+      await prisma.$transaction([
+        prisma.postLike.create({
+          data: {
+            userId: user.id,
+            postId: postId,
+          },
+        }),
+        prisma.post.update({
+          where: { id: postId },
+          data: {
+            likeCount: { increment: 1 },
+          },
+        }),
+      ])
+      return { success: true, liked: true }
+    }
   } catch (error: unknown) {
     console.error('Error toggling like:', error);
     let errorMessage = 'Failed to toggle like.';

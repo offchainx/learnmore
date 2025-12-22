@@ -35,8 +35,40 @@ model User {
   leaderboardEntries LeaderboardEntry[]
   badges             UserBadge[]
   dailyTasks         DailyTask[]
+  postLikes          PostLike[]
+  
+  // Parent-Student Relations
+  parents            ParentStudent[] @relation("StudentToParent")
+  students           ParentStudent[] @relation("ParentToStudent")
+  inviteCodes        InviteCode[]
 
   @@map("users")
+}
+
+model ParentStudent {
+  id        String   @id @default(uuid()) @db.Uuid
+  parentId  String   @map("parent_id") @db.Uuid
+  studentId String   @map("student_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  parent  User @relation("ParentToStudent", fields: [parentId], references: [id], onDelete: Cascade)
+  student User @relation("StudentToParent", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@map("parent_students")
+}
+
+model InviteCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  studentId String   @map("student_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("invite_codes")
 }
 
 model UserSettings {
@@ -63,6 +95,7 @@ enum AiPersonality {
 
 enum UserRole {
   STUDENT
+  PARENT
   PRO
   ULTIMATE
   TEACHER
@@ -125,6 +158,8 @@ model Chapter {
   parentId  String?  @map("parent_id") @db.Uuid // 自关联实现树形结构
   title     String
   order     Int      @default(0)
+  x         Float? // For Knowledge Graph layout
+  y         Float? // For Knowledge Graph layout
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -134,9 +169,25 @@ model Chapter {
   lessons   Lesson[]
   questions Question[]
 
+  // Knowledge Graph Relations (Self-relation for Graph)
+  prerequisites ChapterPrerequisite[] @relation("DependentChapter")
+  dependents    ChapterPrerequisite[] @relation("PrerequisiteChapter")
+
   @@index([subjectId])
   @@index([parentId])
   @@map("chapters")
+}
+
+model ChapterPrerequisite {
+  id             String @id @default(uuid()) @db.Uuid
+  prerequisiteId String @map("prerequisite_id") @db.Uuid
+  dependentId    String @map("dependent_id") @db.Uuid
+
+  prerequisite Chapter @relation("PrerequisiteChapter", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+  dependent    Chapter @relation("DependentChapter", fields: [dependentId], references: [id], onDelete: Cascade)
+
+  @@unique([prerequisiteId, dependentId])
+  @@map("chapter_prerequisites")
 }
 
 model Lesson {
@@ -335,6 +386,7 @@ model Post {
   author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   subject  Subject?  @relation(fields: [subjectId], references: [id])
   comments Comment[]
+  likes    PostLike[]
 
   @@index([authorId])
   @@index([createdAt])
@@ -355,6 +407,19 @@ model Comment {
 
   @@index([postId])
   @@map("comments")
+}
+
+model PostLike {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("post_likes")
 }
 
 model ContactSubmission {

@@ -58,7 +58,9 @@ const mockPosts: PostWithAuthor[] = [
 ]
 
 const mockMetadata = {
+  total: 20,
   page: 1,
+  limit: 10,
   totalPages: 2,
   hasNextPage: true,
   hasPrevPage: false,
@@ -69,7 +71,7 @@ describe('PostList', () => {
     render(
       <PostList
         posts={[]}
-        metadata={{ ...mockMetadata, totalPages: 0, hasNextPage: false }}
+        metadata={{ ...mockMetadata, total: 0, totalPages: 0, hasNextPage: false }}
         baseUrl="/test"
       />
     )
