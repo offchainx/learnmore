@@ -29,6 +29,12 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Safe Area Insets for iOS notch/island support */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
   }
   .dark {
     --background: 240 10% 3.9%;
@@ -95,4 +101,131 @@
   background: linear-gradient(to right, #fff, #94a3b8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ===== Mobile Optimization Styles ===== */
+
+/* Touch Target Size Standards (Apple HIG & Material Design) */
+@media (max-width: 768px) {
+  /* 所有可点击元素最小44x44px (iOS标准) */
+  button,
+  a,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 表单输入框优化 */
+  input,
+  textarea,
+  select {
+    min-height: 44px;
+    font-size: 16px; /* 防止iOS自动缩放 */
+  }
+
+  /* 禁用iOS Safari 300ms点击延迟 */
+  html {
+    touch-action: manipulation;
+  }
+
+  /* 优化移动端滚动性能 */
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 为移动端内容添加底部间距(避免被底部Tab Bar遮挡) */
+  main {
+    padding-bottom: calc(4rem + var(--safe-area-inset-bottom));
+  }
+
+  /* 移动端Hero区域字体优化 */
+  h1 {
+    font-size: clamp(2rem, 8vw, 3.75rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  /* 移动端段落优化 */
+  section p {
+    font-size: clamp(0.875rem, 4vw, 1.125rem);
+  }
+
+  /* 移动端按钮优化 */
+  button {
+    font-size: clamp(0.875rem, 3.5vw, 1rem);
+  }
+}
+
+/* ===== 浏览器兼容性修复 ===== */
+
+/* iOS Safari 修复 */
+@supports (-webkit-touch-callout: none) {
+  /* 修复iOS 100vh问题 */
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+
+  /* 修复iOS橡皮筋滚动 */
+  body {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  #__next {
+    overflow-y: auto;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 禁用iOS长按选择菜单 (在某些交互元素上) */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 确保backdrop-filter在Firefox上回退 */
+@supports not (backdrop-filter: blur(20px)) {
+  .glass-panel {
+    background: rgba(30, 41, 59, 0.95);
+  }
+}
+
+/* Firefox滚动条样式 */
+@-moz-document url-prefix() {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #64748b transparent;
+  }
+}
+
+/* Edge特定修复 */
+@supports (-ms-ime-align: auto) {
+  /* Edge特定样式 */
+  input[type="search"]::-ms-clear {
+    display: none;
+  }
+}
+
+/* 确保flexbox在旧版Safari中工作 */
+.flex {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+/* Grid降级支持 */
+@supports not (display: grid) {
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
 }

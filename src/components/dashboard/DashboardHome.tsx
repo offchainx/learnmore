@@ -9,14 +9,17 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 import { DashboardData } from '@/actions/dashboard';
+import { User, UserSettings } from '@prisma/client';
 
 export const DashboardHome = ({
   navigate,
-  initialData
+  initialData,
+  user
 }: {
   navigate: (path: string) => void,
   onViewChange?: (view: string) => void,
-  initialData: DashboardData | null
+  initialData: DashboardData | null,
+  user: User & { settings: UserSettings | null }
 }) => {
   const { t, lang } = useApp();
 
@@ -42,7 +45,7 @@ export const DashboardHome = ({
       {/* --- Row 1: Core Drive (Status & Inspiration) --- */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Card: Today's Mission (~70% Width on LG) */}
-        <DailyMissions tasks={initialData?.dailyTasks || []} />
+        <DailyMissions tasks={initialData?.dailyTasks || []} user={user} />
 
         {/* Side Card: Daily Inspiration (~30% Width on LG) */}
         <div className="lg:col-span-1 h-full">

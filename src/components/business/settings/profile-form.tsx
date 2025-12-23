@@ -15,11 +15,12 @@ import type { User, UserSettings } from '@prisma/client'
 
 interface ProfileFormProps {
   user: User & { settings: UserSettings | null }
+  onSuccess?: () => void
 }
 
 const initialState: ProfileFormState = {}
 
-export function ProfileForm({ user }: ProfileFormProps) {
+export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
   const [state, formAction, isPending] = useActionState(updateProfile, initialState)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(user.avatar)
   const { toast } = useToast()
@@ -30,6 +31,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       })
+      if (onSuccess) {
+        onSuccess()
+      }
     } else if (state.error) {
       toast({
         title: "Error",

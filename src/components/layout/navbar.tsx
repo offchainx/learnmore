@@ -72,8 +72,9 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out
+                  tablet:block hidden ${
         scrolled ? 'py-3' : 'py-5'
       }`}
     >

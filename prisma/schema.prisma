@@ -21,6 +21,15 @@ model User {
   xp             Int       @default(0)
   aiTokenBalance Int       @default(5) @map("ai_token_balance") // Free daily quota or permanent balance
   lastStudyDate  DateTime? @map("last_study_date")
+  
+  // Tracking & Growth
+  lastSignInAt   DateTime? @map("last_sign_in_at")
+  signInCount    Int       @default(0) @map("sign_in_count")
+  utmSource      String?   @map("utm_source")
+  utmMedium      String?   @map("utm_medium")
+  utmCampaign    String?   @map("utm_campaign")
+  referralCode   String?   @map("referral_code")
+
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -79,8 +88,13 @@ model UserSettings {
   aiPersonality        AiPersonality @default(ENCOURAGING) @map("ai_personality")
   difficultyCalibration Int           @default(50) @map("difficulty_calibration") // 0-100
   curriculumSystem     String?       @map("curriculum_system") // e.g. "UEC", "IGCSE"
-  notificationDaily    Boolean       @default(true) @map("notification_daily")
-  notificationWeekly   Boolean       @default(true) @map("notification_weekly")
+  
+  // Notifications & Reminders
+  studyReminderTime    String?       @map("study_reminder_time") // e.g. "20:00"
+  notificationDaily    Boolean       @default(true) @map("notification_daily") // Push/In-app
+  notificationWeekly   Boolean       @default(true) @map("notification_weekly") // Push/In-app
+  emailMarketing       Boolean       @default(true) @map("email_marketing")
+  emailActivity        Boolean       @default(true) @map("email_activity")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -366,6 +380,9 @@ enum DailyTaskType {
   COMPLETE_LESSON
   FIX_ERROR
   QUIZ_SCORE
+  ONBOARDING_PROFILE
+  ONBOARDING_GOALS
+  ONBOARDING_ASSESSMENT
 }
 
 // ============ 社区模块 ============

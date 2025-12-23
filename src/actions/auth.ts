@@ -114,6 +114,10 @@ export async function loginAction(prevState: AuthFormState, formData: FormData):
   redirect('/dashboard')
 }
 
+import { revalidatePath } from 'next/cache'
+
+// ... (imports)
+
 export async function logoutAction() {
   const supabase = await createClient()
 
@@ -124,6 +128,9 @@ export async function logoutAction() {
     console.error('[Auth] Logout Error:', error)
     // Continue anyway to ensure redirect happens
   }
+
+  revalidatePath('/', 'layout')
+  revalidatePath('/dashboard', 'layout')
 
   // Redirect to login page to ensure clean state
   redirect('/login')

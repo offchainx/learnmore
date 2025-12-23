@@ -27,7 +27,9 @@ export async function createClient() {
       remove(name: string, options: CookieOptions) {
         try {
           cookieStore.set({ name, value: '', ...options })
-        } catch {
+          cookieStore.delete(name)
+        } catch (error) {
+          console.error(`[Supabase] Error removing cookie ${name}:`, error)
           // The `cookies()` may not be available in all environments
         }
       },

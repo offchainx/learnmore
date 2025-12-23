@@ -1,24 +1,34 @@
 'use client';
 
-import React, { useTransition } from 'react';
-import { DailyTask } from '@prisma/client';
+import React, { useTransition, useState } from 'react';
+import { DailyTask, User, UserSettings, DailyTaskType } from '@prisma/client';
 import { Target, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { claimTaskReward } from '@/actions/gamification';
+import { claimTaskReward, completeOnboardingTask } from '@/actions/gamification';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useApp } from '@/providers/app-provider';
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from 'next/navigation';
 
+import { ProfileDialog } from './dialogs/ProfileDialog';
+import { GoalsDialog } from './dialogs/GoalsDialog';
+import { AssessmentDialog } from './dialogs/AssessmentDialog';
+
 interface DailyMissionsProps {
   tasks: DailyTask[];
+  user?: User & { settings: UserSettings | null }; // Make optional to prevent breakage if not passed immediately
 }
 
-export const DailyMissions = ({ tasks }: DailyMissionsProps) => {
+export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
   const { t } = useApp();
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+
+  // Dialog States
+  const [showProfile, setShowProfile] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
+  const [showAssessment, setShowAssessment] = useState(false);
 
   const handleClaim = (taskId: string, reward: number) => {
     startTransition(async () => {
@@ -37,6 +47,44 @@ export const DailyMissions = ({ tasks }: DailyMissionsProps) => {
         });
       }
     });
+  };
+
+  const handleTaskAction = (task: DailyTask) => {
+    // If completed or claimed, do nothing (or allow review if we want)
+    if (task.isClaimed || task.currentCount >= task.targetCount) return;
+
+    // Check task type and open corresponding dialog
+    switch (task.type) {
+      case 'ONBOARDING_PROFILE':
+        setShowProfile(true);
+        break;
+      case 'ONBOARDING_GOALS':
+        setShowGoals(true);
+        break;
+      case 'ONBOARDING_ASSESSMENT':
+        setShowAssessment(true);
+        break;
+      default:
+        // For standard tasks like "COMPLETE_LESSON", maybe redirect to courses?
+        if (task.type === 'COMPLETE_LESSON') {
+           router.push('/subjects');
+        } else if (task.type === 'FIX_ERROR') {
+           router.push('/error-book');
+        }
+        break;
+    }
+  };
+
+  const handleDialogSuccess = async (type: DailyTaskType) => {
+    // Mark task as completed on server
+    const result = await completeOnboardingTask(type);
+    if (result.success) {
+      toast({
+         title: "Task Completed!",
+         description: "Don't forget to claim your XP.",
+      });
+      router.refresh();
+    }
   };
 
   // Sort tasks: Unclaimed & Completed first, then In Progress, then Claimed
@@ -79,6 +127,7 @@ export const DailyMissions = ({ tasks }: DailyMissionsProps) => {
              {sortedTasks.map((task) => {
                const isCompleted = task.currentCount >= task.targetCount;
                const progress = Math.min((task.currentCount / task.targetCount) * 100, 100);
+               const isInteractive = !isCompleted && !task.isClaimed && (task.type === 'ONBOARDING_PROFILE' || task.type === 'ONBOARDING_GOALS' || task.type === 'ONBOARDING_ASSESSMENT');
                
                let statusColor = "text-blue-400 bg-blue-400/10 border-blue-400/20";
                if (task.isClaimed) {
@@ -88,7 +137,15 @@ export const DailyMissions = ({ tasks }: DailyMissionsProps) => {
                }
 
                return (
-                <div key={task.id} className={`group flex items-center justify-between p-4 rounded-xl border transition-all hover:shadow-lg shadow-black/20 ${task.isClaimed ? 'bg-white/5 border-white/5 opacity-60' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-500/30'}`}>
+                <div 
+                  key={task.id} 
+                  onClick={() => handleTaskAction(task)}
+                  className={`group flex items-center justify-between p-4 rounded-xl border transition-all hover:shadow-lg shadow-black/20 
+                    ${task.isClaimed ? 'bg-white/5 border-white/5 opacity-60 cursor-default' : 
+                      isInteractive ? 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-500/50 cursor-pointer' : 
+                      'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-500/30 cursor-default'
+                    }`}
+                >
                    <div className="flex items-center gap-4 flex-1">
                       <div className={`w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center transition-all ${task.isClaimed ? 'border-slate-600' : 'border-slate-600 group-hover:border-blue-400 group-hover:bg-blue-500/20'}`}>
                          <div className={`w-2 h-2 rounded-full bg-current ${task.isClaimed ? 'text-slate-500' : 'text-blue-400'}`}></div>
@@ -120,7 +177,10 @@ export const DailyMissions = ({ tasks }: DailyMissionsProps) => {
                            <Button 
                              size="sm" 
                              className="bg-emerald-500 hover:bg-emerald-600 text-white border-0"
-                             onClick={() => handleClaim(task.id, task.xpReward)}
+                             onClick={(e) => {
+                               e.stopPropagation(); // Prevent dialog opening when claiming
+                               handleClaim(task.id, task.xpReward);
+                             }}
                              disabled={isPending}
                            >
                              {isPending ? '...' : 'Claim'}
@@ -135,6 +195,29 @@ export const DailyMissions = ({ tasks }: DailyMissionsProps) => {
                );
              })}
           </div>
+
+          {/* Dialogs */}
+          {user && (
+            <>
+              <ProfileDialog 
+                open={showProfile} 
+                onOpenChange={setShowProfile} 
+                user={user} 
+                onSuccess={() => handleDialogSuccess('ONBOARDING_PROFILE')} 
+              />
+              <GoalsDialog 
+                open={showGoals} 
+                onOpenChange={setShowGoals} 
+                initialTime={user.settings?.studyReminderTime}
+                onSuccess={() => handleDialogSuccess('ONBOARDING_GOALS')} 
+              />
+              <AssessmentDialog 
+                open={showAssessment} 
+                onOpenChange={setShowAssessment} 
+                onSuccess={() => handleDialogSuccess('ONBOARDING_ASSESSMENT')} 
+              />
+            </>
+          )}
        </div>
     </Card>
   );

@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="512" height="512" fill="#1e293b" rx="110"/>
+
+  <!-- 渐变定义 -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Logo: 书本图标 + "LM" -->
+  <g transform="translate(256, 256)">
+    <!-- 书本外形 -->
+    <rect x="-80" y="-100" width="160" height="200" rx="10" fill="url(#grad)"/>
+    <rect x="-75" y="-95" width="150" height="190" rx="8" fill="#f8fafc" opacity="0.95"/>
+
+    <!-- 页面折痕 -->
+    <line x1="0" y1="-95" x2="0" y2="95" stroke="#94a3b8" stroke-width="2"/>
+
+    <!-- 文字 "LM" -->
+    <text x="0" y="25"
+          font-family="system-ui, -apple-system, sans-serif"
+          font-size="90"
+          font-weight="bold"
+          text-anchor="middle"
+          fill="url(#grad)">LM</text>
+  </g>
+</svg>

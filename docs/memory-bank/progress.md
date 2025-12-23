@@ -47,8 +47,12 @@
 - **Story-033**: AI Diagnostics (Cancelled/Reverted) ❌
 - **Story-034**: Community Hub (Basic) ✅
 - **Story-035**: Parent Dashboard ✅
+- **Story-041**: Dashboard-First Onboarding & Auth Flow ✅
 
 ## Active Story
-- **Story-036**: Knowledge Graph (Lite) (In Progress)
+- **Story-040**: Mobile Adaptation Polish (Resumed)
+
+## Backlog / Suspended
+- **Story-036**: Knowledge Graph (Lite)
 
 ## Known Issues

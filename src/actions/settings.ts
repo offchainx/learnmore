@@ -17,9 +17,63 @@ const preferencesSchema = z.object({
   notificationWeekly: z.boolean().optional(),
 })
 
+const goalsSchema = z.object({
+  studyReminderTime: z.string(),
+  targetSubject: z.string().optional(),
+})
+
 export type SettingsFormState = {
   error?: string
   success?: boolean
+}
+
+export async function updateGoals(prevState: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
+  const user = await getCurrentUser()
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  const rawData = {
+    studyReminderTime: formData.get('studyReminderTime'),
+    targetSubject: formData.get('targetSubject'),
+  }
+
+  const result = goalsSchema.safeParse(rawData)
+
+  if (!result.success) {
+    return { error: result.error.issues[0].message }
+  }
+
+  try {
+    // 1. Update DB Settings
+    await prisma.userSettings.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        studyReminderTime: result.data.studyReminderTime,
+      },
+      update: {
+        studyReminderTime: result.data.studyReminderTime,
+      },
+    })
+
+    // 2. Update Auth Metadata for Target Subject (if provided)
+    if (result.data.targetSubject) {
+      // Note: We need supabase admin or client to update metadata.
+      // Since we are in server action, we can use createClient from server
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = await createClient()
+      await supabase.auth.updateUser({
+        data: { target_subject: result.data.targetSubject }
+      })
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to update goals:', error)
+    return { error: 'Failed to update goals' }
+  }
 }
 
 export async function updateAIConfig(prevState: SettingsFormState, formData: FormData): Promise<SettingsFormState> {

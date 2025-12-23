@@ -58,12 +58,12 @@ export async function middleware(request: NextRequest) {
     data: { user }, 
   } = await supabase.auth.getUser()
 
-  // 保护需要登录的路由
+  // 1. Auth Guard: Protect dashboard routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // 如果已登录,访问登录页则跳转到 dashboard
+  // 2. Guest Guard: Redirect logged-in users away from auth pages
   if (
     user &&
     (request.nextUrl.pathname === '/login' ||

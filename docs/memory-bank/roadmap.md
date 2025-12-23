@@ -192,3 +192,55 @@
   - **核心功能**: 限时成就、成就稀缺度展示、成就墙、社交分享
   - **验收标准**: 成就触发准确、限时倒计时提醒、徽章在资料展示
 
+---
+
+## Phase 10: Mobile Experience (移动端体验优化) 📱
+
+### 🎯 阶段目标
+全面优化移动端用户体验,将LearnMore改造为Progressive Web App (PWA),实现接近原生App的体验。
+
+### 📋 Story列表
+
+- [🟡] **Story-040**: Mobile Adaptation Polish (移动端适配优化)
+  - **核心目标**: 响应式布局、触摸手势、PWA能力、性能优化
+  - **工时**: 34-44h (4-5工作日) | **优先级**: 🔴 P1 | **状态**: In Progress 🟡
+  - **Phase 1 (6-8h)**: 响应式布局重构
+    - Tailwind移动端断点配置 (320px~428px)
+    - 底部Tab Bar导航栏 (5个Tab)
+    - Safe Area Insets适配 (刘海屏/药丸屏)
+    - Touch Target Size标准化 (≥44x44px)
+  - **Phase 2 (8-10h)**: 触摸手势系统
+    - 课程章节左右滑动切换 (react-use-gesture)
+    - 下拉刷新 (Pull-to-Refresh)
+    - 长按操作菜单 (500ms触发)
+    - 图片/公式捏合缩放 (1x~4x)
+  - **Phase 3 (10-12h)**: PWA能力构建
+    - Service Worker配置 (next-pwa)
+    - Web App Manifest (8种图标尺寸)
+    - 离线页面组件
+    - PWA安装提示组件
+    - 推送通知 (可选)
+  - **Phase 4 (6-8h)**: 移动端性能优化
+    - 图片优化 (WebP + 懒加载 + blur占位符)
+    - 代码分割 (动态导入重组件)
+    - 字体优化 (next/font)
+    - Resource Hints (preload/prefetch)
+    - 网络优化 (超时重试机制)
+  - **Phase 5 (4-6h)**: 兼容性测试与修复
+    - iOS Safari 15+ 真机测试
+    - Android Chrome 90+ 真机测试
+    - WeChat WebView 兼容性修复
+    - 横竖屏旋转测试
+    - 弱网环境测试
+  - **验收标准**:
+    - Lighthouse Mobile Score ≥ 90 (Performance/Accessibility/Best Practices/SEO)
+    - FCP < 1.5s, LCP < 2.5s, CLS < 0.1
+    - Touch Response Time < 100ms
+    - PWA可安装并正常工作
+    - 3台iOS + 2台Android设备测试通过
+  - **成功指标**:
+    - 移动端DAU占比: 30% → 60%
+    - PWA安装转化率: 0% → 15%
+    - 移动端跳出率: 45% → <25%
+    - 7日留存率: 40% → >65%
+

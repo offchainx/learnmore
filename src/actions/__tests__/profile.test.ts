@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getProfile, updateProfile } from '../profile';
 import { UserRole } from '@prisma/client';
 
-const mockUser = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockUser: any = {
   id: 'user-1',
   email: 'test@example.com',
   username: 'testuser',
@@ -12,10 +13,16 @@ const mockUser = {
   streak: 0,
   totalStudyTime: 0,
   xp: 0,
-  aiTokenBalance: 5,
+  aiTokenBalance: 0,
   lastStudyDate: null,
   createdAt: new Date('2024-01-01'),
-  updatedAt: new Date('2024-01-01')
+  updatedAt: new Date('2024-01-01'),
+  dailyGoalMinutes: 30,
+  studyReminderTime: null,
+  targetSubject: null,
+  curriculum: null,
+  difficultyCalibration: null,
+  parentEmail: null,
 };
 const mockProfile = {
   id: 'user-1',

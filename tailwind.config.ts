@@ -18,6 +18,24 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'var(--font-noto-sans-sc)', 'sans-serif'],
+      },
+      screens: {
+        'xs': '320px',      // iPhone SE (最小支持设备)
+        'sm': '375px',      // iPhone 12/13 Mini
+        'md': '390px',      // iPhone 14 Pro (标准尺寸)
+        'lg': '414px',      // iPhone 14 Pro Max
+        'xl': '428px',      // iPhone 14 Plus (最大移动端)
+        'tablet': '768px',  // iPad Mini
+        'desktop': '1024px', // Desktop
+      },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

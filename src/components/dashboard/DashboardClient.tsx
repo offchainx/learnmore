@@ -16,22 +16,12 @@ import { SettingsView } from './views/SettingsView';
 import { AchievementsView } from './views/AchievementsView';
 import { ParentDashboardView } from './views/ParentDashboardView';
 import { KnowledgeGraphView } from './views/KnowledgeGraphView';
+import { User, UserSettings } from '@prisma/client';
 
 // --- Local Types ---
 type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements' | 'parent' | 'knowledgeGraph';
 
-type UserProfile = {
-  id: string;
-  email: string;
-  username: string | null;
-  avatar: string | null;
-  grade: number | null;
-  role: string;
-  settings: {
-    aiPersonality?: string | null;
-    difficultyCalibration?: number | null;
-  } | null;
-};
+type UserProfile = User & { settings: UserSettings | null };
 
 interface DashboardClientProps {
   user: UserProfile;
@@ -58,7 +48,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     }
 
     switch(currentView) {
-      case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} />;
+      case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
       case 'courses': return <MyCoursesView t={appT} />;
       case 'questionBank': return <QuestionBankView t={appT} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
@@ -66,7 +56,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       case 'settings': return <SettingsView user={user} />;
       case 'achievements': return <AchievementsView />;
       case 'knowledgeGraph': return <KnowledgeGraphView />;
-      default: return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} />;
+      default: return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
     }
   };
 
