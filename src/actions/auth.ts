@@ -129,11 +129,13 @@ export async function logoutAction() {
     // Continue anyway to ensure redirect happens
   }
 
+  // 清除所有相关路径的缓存
   revalidatePath('/', 'layout')
   revalidatePath('/dashboard', 'layout')
+  revalidatePath('/login', 'layout')
 
-  // Redirect to login page to ensure clean state
-  redirect('/login')
+  // 重定向到 Landing Page,这样用户可以看到 "Login" 按钮
+  redirect('/')
 }
 
 // 获取当前用户

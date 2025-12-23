@@ -4,6 +4,8 @@ import { LandingPage } from '@/components/marketing/landing-page';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'LearnMore AI | Your Personal AI Tutor for Middle School',
   description: 'Master your subjects with Knowledge Graph-based adaptive learning. Personalized study paths, instant feedback, and comprehensive diagnostic reports.',
