@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { logoutAction } from '@/actions/auth'
 import { User } from '@prisma/client'
+import { useTransition } from 'react'
 
 interface UserNavProps {
   user: Pick<User, 'username' | 'email' | 'avatar'>;
@@ -20,6 +21,13 @@ interface UserNavProps {
 
 export function UserNav({ user, showDetails = false }: UserNavProps) {
   const displayName = user.username || user.email.split('@')[0]
+  const [isPending, startTransition] = useTransition()
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction()
+    })
+  }
 
   return (
     <DropdownMenu>
@@ -57,10 +65,11 @@ export function UserNav({ user, showDetails = false }: UserNavProps) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => logoutAction()}
+          onClick={handleLogout}
+          disabled={isPending}
           className="text-red-600 cursor-pointer"
         >
-          Log out
+          {isPending ? 'Logging out...' : 'Log out'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

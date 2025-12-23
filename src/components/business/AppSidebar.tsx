@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logoutAction } from '@/actions/auth'
-import { 
-  Menu, BookOpen, LayoutDashboard, PenTool, BookMarked, 
-  Trophy, MessageCircle, Settings, LogOut 
+import {
+  Menu, BookOpen, LayoutDashboard, PenTool, BookMarked,
+  Trophy, MessageCircle, Settings, LogOut
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -30,10 +30,13 @@ const mainNavItems: NavItem[] = [
 
 const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
-  const handleLogout = async () => {
-    await logoutAction();
-    if (onClose) onClose();
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction();
+      if (onClose) onClose();
+    });
   };
 
   return (
@@ -93,12 +96,13 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10"
+          disabled={isPending}
+          className="flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
         >
            <div className="flex items-center justify-center w-5 h-5 mr-3 relative z-10">
              <LogOut className="w-full h-full text-slate-500 dark:text-slate-500 group-hover:text-red-600 dark:group-hover:text-red-400" />
            </div>
-           <span className="relative z-10 leading-none pt-[1px]">Log Out</span>
+           <span className="relative z-10 leading-none pt-[1px]">{isPending ? 'Logging out...' : 'Log Out'}</span>
         </button>
 
         {/* Level Progress Card */}

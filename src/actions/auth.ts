@@ -119,6 +119,7 @@ import { revalidatePath } from 'next/cache'
 // ... (imports)
 
 export async function logoutAction() {
+  console.log('[Auth] Logout initiated')
   const supabase = await createClient()
 
   // Sign out from Supabase (clears auth cookies)
@@ -127,14 +128,18 @@ export async function logoutAction() {
   if (error) {
     console.error('[Auth] Logout Error:', error)
     // Continue anyway to ensure redirect happens
+  } else {
+    console.log('[Auth] Logout successful - cookies cleared')
   }
 
   // 清除所有相关路径的缓存
   revalidatePath('/', 'layout')
   revalidatePath('/dashboard', 'layout')
   revalidatePath('/login', 'layout')
+  console.log('[Auth] Cache revalidated for /, /dashboard, /login')
 
   // 重定向到 Landing Page,这样用户可以看到 "Login" 按钮
+  console.log('[Auth] Redirecting to /')
   redirect('/')
 }
 
