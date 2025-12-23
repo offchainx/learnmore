@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen, LayoutDashboard, PenTool, MessageCircle,
   Settings, LogOut, Trophy, ChevronRight
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
+import { logoutAction } from '@/actions/auth';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -45,8 +46,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
   const { t } = useApp();
   const router = useRouter();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const handleLogout = () => router.push('/');
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction();
+    });
+  };
 
   const isParent = userRole === 'PARENT';
 

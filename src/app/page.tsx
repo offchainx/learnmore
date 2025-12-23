@@ -25,13 +25,6 @@ export default async function Home() {
   const { data: { user } } = await supabase.auth.getUser();
   const isLoggedIn = !!user;
 
-  // Debug logging (will appear in terminal, not browser console)
-  console.log('[Landing Page] Auth Check:', {
-    hasUser: !!user,
-    userId: user?.id,
-    isLoggedIn,
-  });
-
   return (
     <LandingPage
       stats={stats}
