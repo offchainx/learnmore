@@ -62,7 +62,6 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
   const text = t[lang] || t['en'];
 
   const navLinks = [
-    { name: text.dashboard, path: '/dashboard' },
     { name: text.howItWorks, path: '/how-it-works' },
     { name: text.subjects, path: '/subjects' },
     { name: text.pricing, path: '/pricing' },
@@ -92,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
               </div>
             </div>
             <span className="text-lg font-bold text-white tracking-tight group-hover:text-blue-200 transition-colors">
-              LearnMore <span className="text-blue-500 font-light">Pro</span>
+              LearnMore <span className="text-blue-500 font-light text-sm">Pro</span>
             </span>
           </div>
           
@@ -116,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
           {/* Auth Buttons & Lang Toggle */}
           <div className="hidden md:flex items-center space-x-3">
             {onToggleLang && (
-              <button 
+              <button
                 onClick={onToggleLang}
                 className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1 text-xs font-medium border border-transparent hover:border-white/10"
               >
@@ -125,16 +124,38 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
               </button>
             )}
             <div className="h-4 w-px bg-white/10 mx-1"></div>
+
+            {/* ⭐ 根据登录状态显示不同按钮 */}
             {isLoggedIn ? (
-              <Button size="sm" variant="glow" type="button" onClick={() => { router.push('/dashboard'); }} className="shadow-lg shadow-blue-500/20">
+              // 已登录：显示Dashboard按钮
+              <Button
+                size="sm"
+                variant="glow"
+                type="button"
+                onClick={() => { router.push('/dashboard'); }}
+                className="shadow-lg shadow-blue-500/20"
+              >
                 {text.dashboard}
               </Button>
             ) : (
+              // 未登录：显示Login + Start Learning按钮
               <>
-                <Button variant="ghost" size="sm" type="button" onClick={() => { router.push('/login'); }} className="text-slate-300 hover:text-white">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  type="button"
+                  onClick={() => { router.push('/login'); }}
+                  className="text-slate-300 hover:text-white"
+                >
                   {text.login}
                 </Button>
-                <Button size="sm" variant="glow" type="button" onClick={() => { router.push('/register'); }} className="shadow-lg shadow-blue-500/20">
+                <Button
+                  size="sm"
+                  variant="glow"
+                  type="button"
+                  onClick={() => { router.push('/register'); }}
+                  className="shadow-lg shadow-blue-500/20"
+                >
                   {text.start}
                 </Button>
               </>
@@ -178,15 +199,37 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
               </Link>
             ))}
             <div className="h-px bg-white/10 my-4" />
+
+            {/* ⭐ 移动端：根据登录状态显示不同按钮 */}
             <div className="flex flex-col gap-3">
-               {isLoggedIn ? (
-                 <Button variant="glow" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/dashboard'); }}>{text.dashboard}</Button>
-               ) : (
-                 <>
-                   <Button variant="outline" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}>{text.login}</Button>
-                   <Button variant="glow" fullWidth onClick={() => { setIsMobileMenuOpen(false); router.push('/register'); }}>{text.join}</Button>
-                 </>
-               )}
+              {isLoggedIn ? (
+                // 已登录：显示Dashboard按钮
+                <Button
+                  variant="glow"
+                  fullWidth
+                  onClick={() => { setIsMobileMenuOpen(false); router.push('/dashboard'); }}
+                >
+                  {text.dashboard}
+                </Button>
+              ) : (
+                // 未登录：显示Login + Join按钮
+                <>
+                  <Button
+                    variant="outline"
+                    fullWidth
+                    onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}
+                  >
+                    {text.login}
+                  </Button>
+                  <Button
+                    variant="glow"
+                    fullWidth
+                    onClick={() => { setIsMobileMenuOpen(false); router.push('/register'); }}
+                  >
+                    {text.join}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
