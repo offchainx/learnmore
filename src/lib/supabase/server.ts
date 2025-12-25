@@ -19,14 +19,30 @@ export async function createClient() {
       },
       set(name: string, value: string, options: CookieOptions) {
         try {
-          cookieStore.set({ name, value, ...options })
+          // ⭐ 关键：实现1小时滑动窗口机制
+          // 完全不使用 Supabase 的 maxAge (400天)，强制设置为1小时
+          cookieStore.set({
+            name,
+            value,
+            httpOnly: true, // 防止XSS攻击
+            secure: process.env.NODE_ENV === 'production', // 生产环境强制HTTPS
+            sameSite: 'lax', // CSRF防护
+            path: '/', // 全站有效
+            maxAge: 3600, // ⭐ 强制设置：1小时 = 3600秒（滑动窗口核心）
+            // 注意：完全不使用 ...options，避免被 Supabase 的默认值覆盖
+          })
         } catch {
           // The `cookies()` may not be available in all environments
         }
       },
       remove(name: string, options: CookieOptions) {
         try {
-          cookieStore.set({ name, value: '', ...options })
+          cookieStore.set({
+            name,
+            value: '',
+            path: '/',
+            maxAge: 0, // 立即过期
+          })
           cookieStore.delete(name)
         } catch (error) {
           console.error(`[Supabase] Error removing cookie ${name}:`, error)

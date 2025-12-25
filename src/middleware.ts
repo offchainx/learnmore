@@ -27,10 +27,18 @@ export async function middleware(request: NextRequest) {
               headers: request.headers,
             },
           })
+
+          // ⭐ 关键：实现1小时滑动窗口机制
+          // 完全不使用 Supabase 的 maxAge/expires，直接设置我们自己的配置
           response.cookies.set({
             name,
             value,
-            ...options,
+            httpOnly: true, // 防止XSS攻击
+            secure: process.env.NODE_ENV === 'production', // 生产环境强制HTTPS
+            sameSite: 'lax', // CSRF防护
+            path: '/', // 全站有效
+            maxAge: 3600, // ⭐ 强制设置：1小时 = 3600秒（滑动窗口核心）
+            // 注意：完全不使用 ...options，避免被 Supabase 的默认值覆盖
           })
         },
         remove(name: string, options: CookieOptions) {
@@ -48,19 +56,23 @@ export async function middleware(request: NextRequest) {
             name,
             value: '',
             ...options,
+            maxAge: 0, // 立即过期
           })
         },
       },
     }
   )
 
-  const { 
-    data: { user }, 
+  const {
+    data: { user },
   } = await supabase.auth.getUser()
 
   // 1. Auth Guard: Protect dashboard routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    // 记录用户原始访问路径，登录后可回跳
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   // 2. Guest Guard: Redirect logged-in users away from auth pages
@@ -77,6 +89,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    /*
+     * 匹配所有路径，除了：
+     * - _next/static (静态文件)
+     * - _next/image (图片优化文件)
+     * - favicon.ico (网站图标)
+     * - 公开的静态资源 (*.svg, *.png, *.jpg, *.jpeg, *.gif, *.webp)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
