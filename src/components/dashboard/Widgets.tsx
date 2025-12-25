@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { GoogleGenAI } from "@google/genai";
+// ⚠️ 暂时禁用 Gemini API (Issue-002)
+// import { GoogleGenAI } from "@google/genai";
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sparkles, RefreshCw } from 'lucide-react';
@@ -117,6 +118,11 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
     setQuote(randomQuote);
 
     try {
+      // ⚠️ 暂时禁用 Gemini AI 图片生成 (Issue-002)
+      // 原因: 客户端无法安全调用 Gemini API，需要迁移到 Server Action
+      // TODO: 在 Phase 6 UI 定稿后，创建 Server Action 来处理 AI 图片生成
+
+      /* 原 Gemini API 代码:
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
@@ -130,13 +136,23 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
             break;
          }
       }
-      if (base64Image) {
-        setImageUrl(base64Image);
-        const today = new Date().toDateString();
-        localStorage.setItem('daily_inspiration_date', today);
-        localStorage.setItem('daily_inspiration_image', base64Image);
-        localStorage.setItem(`daily_inspiration_quote_${lang}`, randomQuote);
-      }
+      */
+
+      // 临时方案: 使用 Unsplash 占位符图片（教育主题）
+      const placeholderImages = [
+        'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&h=675&fit=crop', // 学习场景
+        'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=675&fit=crop', // 笔记本
+        'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200&h=675&fit=crop', // 书籍
+        'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&h=675&fit=crop', // 图书馆
+        'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&h=675&fit=crop', // 书桌
+      ];
+      const randomImage = placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
+
+      setImageUrl(randomImage);
+      const today = new Date().toDateString();
+      localStorage.setItem('daily_inspiration_date', today);
+      localStorage.setItem('daily_inspiration_image', randomImage);
+      localStorage.setItem(`daily_inspiration_quote_${lang}`, randomQuote);
     } catch (error) {
       console.error("Failed to generate inspiration image", error);
       setQuote("Keep pushing forward!");

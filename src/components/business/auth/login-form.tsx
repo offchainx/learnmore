@@ -34,7 +34,7 @@ export function LoginForm() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">邮箱</Label>
-            <Input id="email" name="email" type="email" placeholder="name@example.com" required />
+            <Input id="email" name="email" type="email" placeholder="name@example.com" autoComplete="email" required />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ export function LoginForm() {
                 忘记密码?
               </Link>
             </div>
-            <Input id="password" name="password" type="password" required />
+            <Input id="password" name="password" type="password" autoComplete="current-password" required />
           </div>
           {state.error && (
             <div className="text-sm text-red-500 text-center">

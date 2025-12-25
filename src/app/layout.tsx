@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import '@/lib/suppress-warnings' // 抑制已知的框架警告
 import { ThemeProvider } from '@/providers/theme-provider'
 import { AppProvider } from '@/providers/app-provider'
 import { Toaster } from '@/components/ui/toaster'
