@@ -64,10 +64,17 @@ Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 
 **执行**:
 ```bash
+# 1. 重命名文件
 mv src/middleware.ts src/proxy.ts
+
+# 2. 更新导出函数名（重要！）
+# 将 export async function middleware(request: NextRequest)
+# 改为 export async function proxy(request: NextRequest)
 ```
 
-**效果**: 消除启动警告，符合 Next.js 16 最佳实践
+**关键点**: Next.js 16 不仅要求文件名为 `proxy.ts`，还要求导出的函数名必须是 `proxy`
+
+**效果**: 消除启动警告和构建错误，符合 Next.js 16 最佳实践
 
 ---
 
