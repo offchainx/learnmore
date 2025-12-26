@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
 
   // 实验性功能
   experimental: {
-    // 优化包导入
+    // 优化包导入 - 自动 tree-shaking，减少 bundle 体积
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
