@@ -108,15 +108,6 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           {item.label}
         </button>
       ))}
-      
-      <div className="mt-auto pt-8 border-t border-slate-200 dark:border-slate-800">
-        <form action={logoutAction}>
-          <button type="submit" className="flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 w-full transition-colors">
-            <LogOut className="w-5 h-5" />
-            {t.sidebar.logout}
-          </button>
-        </form>
-      </div>
     </div>
   );
 
