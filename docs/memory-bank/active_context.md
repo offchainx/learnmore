@@ -1,32 +1,21 @@
 # Active Context
 
-**Current Focus**: Story-040 - Mobile Adaptation Polish 📱 (Resumed)
+**Current Focus**: Practice Center Revamp (Story-010).
 
 ## Context
-Resuming mobile optimization after completing the critical Auth & Onboarding flow updates.
+User requested to consolidate the new "Practice Center" requirements into the existing Story-010.
+We have updated Story-010 to act as the master plan for the revamped Practice Center features.
 
-### Story-040 Overview
-- **Priority**: P1 (High)
-- **Goal**: Optimize mobile experience with responsive design, touch gestures, PWA capabilities, and performance improvements
-
-### Key Objectives
-1. ✅ **响应式布局重构** - 支持 320px~428px 所有移动设备
-2. ✅ **触摸手势系统** - 滑动切换、下拉刷新、长按菜单
-3. ✅ **PWA能力构建** - 离线访问、主屏幕安装、Service Worker
-4. ✅ **性能优化** - Lighthouse Mobile Score ≥ 90
-5. ✅ **兼容性测试** - iOS/Android 真机测试
-
-## Recent Changes
-- **Completed**: Story-041 (Dashboard-First Onboarding).
-    - Implemented Contextual Onboarding via Daily Missions.
-    - Updated Auth Trigger to seed onboarding tasks.
-    - Added Dialogs for Profile, Goals, and Assessment.
-    - Added Acquisition Tracking (UTM).
-    - Fixed missing `Dialog` component issue.
+### Recent Changes
+- **Refactored**: `docs/stories/active/story-010-practice-center-revamp.md` (formerly question-ui) to include:
+    - PDF Parsing with detailed explanation breakdown.
+    - Smart Drill, Error Wiper, Mock Arena modes.
+    - Knowledge Hive and Exam Forecast.
+    - Full support for Single/Multi/Fill-in-Blank questions.
 
 ## Next Steps
-- [ ] Resume Story-040 tasks (Performance Optimization & Testing).
-- [ ] Verify Story-041 implementation in production-like environment.
+- [ ] **Phase 1**: Check Database Schema (`prisma/schema.prisma`) for necessary updates (especially for split explanations).
+- [ ] **Phase 2**: Implement the UI/Logic for the three drill modes.
 
 ## Active User Questions
 - None.
