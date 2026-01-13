@@ -1,21 +1,18 @@
 # Active Context
 
-**Current Focus**: Practice Center Revamp (Story-010).
+## Current Focus
+- **Story**: [Story-010] 练习中心重构与AI升级 (Practice Center Revamp)
+- **Immediate Task**: Implement "Smart Document Parser" (PDF/Image Upload -> AI Parsing -> Question Extraction).
+- **Goal**: Allow users to upload exam papers (PDF/Image), automatically extract questions via Gemini Vision, and review them before saving to the Question Bank.
 
-## Context
-User requested to consolidate the new "Practice Center" requirements into the existing Story-010.
-We have updated Story-010 to act as the master plan for the revamped Practice Center features.
-
-### Recent Changes
-- **Refactored**: `docs/stories/active/story-010-practice-center-revamp.md` (formerly question-ui) to include:
-    - PDF Parsing with detailed explanation breakdown.
-    - Smart Drill, Error Wiper, Mock Arena modes.
-    - Knowledge Hive and Exam Forecast.
-    - Full support for Single/Multi/Fill-in-Blank questions.
+## Recent Changes
+- Updated `story-010` to include Image upload support and refined parsing logic using Gemini Vision.
+- Updated `story-010` implementation steps to reflect the new technical plan.
 
 ## Next Steps
-- [ ] **Phase 1**: Check Database Schema (`prisma/schema.prisma`) for necessary updates (especially for split explanations).
-- [ ] **Phase 2**: Implement the UI/Logic for the three drill modes.
+1.  **Plan**: Create detailed implementation plan for the Smart Parser (Backend API + Frontend Upload/Preview).
+2.  **Backend**: Implement `DocumentExtractionService` and `/api/practice/parse-document`.
+3.  **Frontend**: Create Upload Component and Parsed Result Editor.
 
-## Active User Questions
-- None.
+## Active Story Status
+- **Story-010**: In Progress (Phase 3 prioritized).

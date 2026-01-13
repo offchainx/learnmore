@@ -11,9 +11,10 @@
 
 ## 1. Objectives (核心目标)
 
-- [ ] **PDF 智能解析 (PDF Question Parsing)**:
-    - 用户上传 PDF -> 自动拆解为问题、答案、解析。
-    - **智能解析**: 能够区分正确选项的原因（Why correct）和错误干扰项的原因（Why wrong）。
+- [ ] **智能解析 (Smart Document Parsing)**:
+    - **支持格式**: PDF 文档 (`.pdf`) 与 图片 (`.jpg`, `.png`, `.webp`)。
+    - **解析能力**: 自动拆解为问题、答案、选项及解析。
+    - **深度分析**: 能够区分正确选项的原因（Why correct）和错误干扰项的原因（Why wrong）。
 - [ ] **核心题型适配 (Core Question Support)**:
     - 完善 **单选题 (Single Choice)** UI与逻辑。
     - 完善 **多选题 (Multiple Choice)** UI与逻辑。
@@ -31,12 +32,17 @@
 
 ## 2. Tech Plan (技术方案)
 
-### 2.1. PDF -> 题目转换流
-- **技术栈**: `pdf-parse` (Node.js) + Google Gemini Flash (Vision/Text).
+### 2.1. 文档/图片 -> 题目转换流
+- **技术栈**: 
+    - PDF: `pdf-parse` (Node.js) 用于提取文本，或 `pdf-lib`/`canvas` 转图片。
+    - Image: 直接通过 Gemini Vision API 处理。
+    - AI: Google Gemini 1.5 Flash (Vision/Text)。
 - **流程**:
-    1.  用户上传 PDF。
-    2.  服务端提取文本或将页面转换为图像。
-    3.  LLM Prompt: "提取题目。返回 JSON 格式 `{ content, type, options, answer, explanation_correct, explanation_wrong_distractors }`。"
+    1.  用户上传文件 (PDF 或 图片)。
+    2.  服务端处理:
+        - 若为 PDF: 尝试提取文本；若文本稀疏（扫描件），则将其转换为图像序列。
+        - 若为 图片: 直接压缩/格式化。
+    3.  LLM Prompt: "分析上传的试卷/题目图像。提取题目内容。返回 JSON 格式 `{ content, type, options, answer, explanation_correct, explanation_wrong_distractors }`。"
     4.  预览界面: 用户在入库前可编辑/确认提取结果。
 
 ### 2.2. 刷题引擎逻辑
@@ -70,15 +76,63 @@
 - [ ] **Error Wiper**: 实现 `ErrorWiperPage` 及“消除”动画交互。
 - [ ] **Mock Arena**: 实现 `MockExamPage`，包含 `CountdownTimer` 和 `SubmissionSummary`。
 
-### Phase 3: PDF 智能解析
-- [ ] 后端: 实现 `/api/practice/parse-pdf` 接口。
-- [ ] 服务: 实现 `PdfExtractionService` (对接 Gemini)。
-- [ ] 前端: 上传 -> 解析预览 -> 保存入库 流程。
+### Phase 3: 智能解析引擎 (Smart Parser) ✅ 已完成
+- [x] 后端: 实现 `parseQuestionImage` Server Action (集成 Gemini 2.0 Flash + JSON 模式)。
+- [x] 服务: 实现题目识别逻辑，支持单图多题解析。
+- [x] 前端: 实现上传组件 (支持 JPG/PNG/HEIC 格式)。
+- [x] 前端: 实现 `QuestionEditor` 预览与编辑页。
+- [x] 数据库: 实现 `createQuestion` 保存逻辑 (自动创建 General/Imported Questions 分类)。
+- [x] 错误处理: 完整的错误提示（图片加载、解析失败、保存验证）。
+- [x] **已修复**: 图片预览失效 (Base64 过大、HEIC 格式不兼容)。
+- [x] **已优化**: Prompt 改进，提取完整选项文本而非仅标签。
+- [x] **已优化**: Answer/Explanation 为空时的友好提示和 placeholder。
 
-### Phase 4: 分析与优化
+### Phase 4: 分析与优化 (待启动)
 - [ ] 实现 `KnowledgeHive` 可视化组件。
 - [ ] 实现 `ExamForecast` 预测组件。
 - [ ] 移动端适配 (Mobile Adaptation)。
+
+---
+
+## 6. 开发笔记 (Development Notes)
+
+### 6.1. AI 解析架构
+- **模型**: `gemini-2.0-flash`
+- **输出控制**: 使用 `responseMimeType: "application/json"` 确保返回标准数组格式。
+- **数据流**: `File` -> `FileReader (Base64)` -> `Server Action` -> `Gemini API` -> `Structured JSON` -> `Frontend State`.
+
+### 6.2. 调试记录 (2026-01-13)
+
+#### ✅ 已解决的问题
+
+1. **图片预览失效 (Base64 过大)**
+   - **根因**: 原始 Base64 数据 >4MB 导致浏览器渲染性能下降。
+   - **解决方案**: Canvas 压缩 (最大宽度 1200px, JPEG 质量 0.85)。
+   - **效果**: 4MB+ → ~800KB，渲染速度显著提升。
+
+2. **HEIC 格式支持**
+   - **问题**: 苹果设备默认照片格式 (HEIC/HEIF) 无法在浏览器 Canvas 中预览。
+   - **解决方案**:
+     - 检测 HEIC 格式，跳过 Canvas 压缩。
+     - 显示友好提示："预览不可用，但 AI 已成功识别"。
+     - 后端 Gemini API 完全支持 HEIC 识别。
+   - **测试结果**: 2.6MB HEIC 图片成功识别 6 道题目 ✅。
+
+3. **React 控制台警告 (value prop)**
+   - **问题**: `<input value={null}>` 导致警告。
+   - **解决方案**: 添加默认值 `value={formData.answer || ''}`。
+
+#### 🧪 调试工具
+
+- 创建了 `/dashboard/practice/debug` 临时调试页面。
+- 添加详细日志（前缀: `[Parser]`, `[前端]`, `[Debug]`）。
+- 日志包含: 文件信息、Base64 长度、API 响应时间、错误堆栈。
+
+#### 📋 环境配置
+
+- **API Key**: `GEMINI_API_KEY` 已配置并验证。
+- **Body Limit**: 已提升至 `10mb`。
+- **模型**: `gemini-2.0-flash` with JSON mode。
 
 ---
 

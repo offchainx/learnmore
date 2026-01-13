@@ -27,7 +27,6 @@ const nextConfig: NextConfig = {
     // 禁用静态导入优化 (使用动态优化)
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // 编译器优化
@@ -43,6 +42,9 @@ const nextConfig: NextConfig = {
 
   // 实验性功能
   experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
     // 优化包导入 - 自动 tree-shaking，减少 bundle 体积
     optimizePackageImports: [
       'lucide-react',

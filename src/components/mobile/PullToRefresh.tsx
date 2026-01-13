@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react'
 import { animated } from '@react-spring/web'
-import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { usePullToRefresh } from '@/lib/hooks/usePullToRefresh'
 import { Loader2 } from 'lucide-react'
 
 // 在组件外部创建animated组件

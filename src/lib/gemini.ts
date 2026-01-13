@@ -1,33 +1,25 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Ensure the API key is available
 if (!process.env.GEMINI_API_KEY) {
   console.warn("GEMINI_API_KEY is not set in environment variables.");
 }
 
-export const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
+export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function generateAIResponse(
   systemInstruction: string,
   userPrompt: string,
-  modelName: string = "gemini-1.5-flash"
+  modelName: string = "gemini-2.0-flash"
 ) {
-  const result = await genAI.models.generateContent({
+  const model = genAI.getGenerativeModel({ 
     model: modelName,
-    config: {
-      systemInstruction: {
-        parts: [{ text: systemInstruction }]
-      }
-    },
-    contents: [{
-      role: 'user',
-      parts: [{ text: userPrompt }]
-    }]
+    systemInstruction: systemInstruction 
   });
 
-  return result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  const result = await model.generateContent(userPrompt);
+  const response = await result.response;
+  return response.text();
 }
 
 export const TUTOR_SYSTEM_INSTRUCTION = `
