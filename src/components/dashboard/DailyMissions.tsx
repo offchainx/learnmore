@@ -68,9 +68,11 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
         // For standard tasks like "COMPLETE_LESSON", maybe redirect to courses?
         if (task.type === 'COMPLETE_LESSON') {
            router.push('/subjects');
-        } else if (task.type === 'FIX_ERROR') {
-           router.push('/error-book');
         }
+        // Removed: Error Book feature
+        // else if (task.type === 'FIX_ERROR') {
+        //    router.push('/error-book');
+        // }
         break;
     }
   };

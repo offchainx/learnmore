@@ -122,7 +122,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
 
         {/* Bottom Section - ABSOLUTELY POSITIONED */}
         <div className="absolute bottom-0 left-0 w-full p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 z-20 space-y-1">
-           <SidebarItem icon={Settings} label={t.sidebar.settings} active={currentView === 'settings'} onClick={() => { onNavigate('settings'); setSidebarOpen(false); }} />
+           <SidebarItem icon={Settings} label={t.sidebar.settings} active={currentView === 'settings'} onClick={() => { router.push('/dashboard/settings'); setSidebarOpen(false); }} />
            <SidebarItem icon={LogOut} label={t.sidebar.logout} onClick={handleLogout} />
         </div>
       </aside>

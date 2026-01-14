@@ -1,19 +1,19 @@
 import { Metadata } from 'next'
 import { getProfile } from '@/actions/profile'
 import { redirect } from 'next/navigation'
-import { CommunityClientWrapper } from './client-wrapper'
+import { PracticeClientWrapper } from './client-wrapper'
 
 export const metadata: Metadata = {
-  title: 'Community - LearnMore',
-  description: 'Join the discussion with other students.',
+  title: 'Practice - LearnMore',
+  description: 'Practice questions and exercises.',
 }
 
-export default async function CommunityPage() {
+export default async function PracticePage() {
   const profile = await getProfile()
 
   if (!profile) {
     redirect('/login')
   }
 
-  return <CommunityClientWrapper />
+  return <PracticeClientWrapper />
 }

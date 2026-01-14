@@ -225,20 +225,22 @@ export const DashboardHome = ({
                      <div className="flex items-center gap-3">
                         <span className="text-red-500 font-bold text-sm">Lvl {item.masteryLevel}</span>
                         {/* Refinement 4: Solid Filled Fix Button */}
-                        <Button 
-                            size="sm" 
+                        {/* Removed: Error Book feature */}
+                        {/* <Button
+                            size="sm"
                             onClick={() => navigate('/error-book')}
                             className="h-7 px-4 text-xs bg-red-500 text-white border-transparent hover:bg-red-600 shadow-md shadow-red-500/20 transition-all transform hover:scale-105"
                         >
                            {t.dashboard?.fix || "Fix"}
-                        </Button>
+                        </Button> */}
                      </div>
                   </div>
                )) : (
                    <p className="text-sm text-muted-foreground text-center py-4">Great job! No weaknesses detected.</p>
                )}
             </div>
-            <Button variant="ghost" fullWidth onClick={() => navigate('/error-book')} className="mt-4 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.common?.viewAll || "View All"}</Button>
+            {/* Removed: Error Book feature */}
+            {/* <Button variant="ghost" fullWidth onClick={() => navigate('/error-book')} className="mt-4 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.common?.viewAll || "View All"}</Button> */}
          </Card>
       </section>
 

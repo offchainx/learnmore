@@ -35,6 +35,36 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
   const [currentView, setCurrentView] = useState<View>(user.role === 'PARENT' ? 'parent' : 'dashboard');
 
   const handleViewChange = (view: string) => {
+    // For Settings, Community, Leaderboard, Courses, Practice, Achievements, and KnowledgeGraph, use real routes
+    if (view === 'settings') {
+      router.push('/dashboard/settings');
+      return;
+    }
+    if (view === 'community') {
+      router.push('/dashboard/community');
+      return;
+    }
+    if (view === 'leaderboard') {
+      router.push('/dashboard/leaderboard');
+      return;
+    }
+    if (view === 'courses') {
+      router.push('/dashboard/courses');
+      return;
+    }
+    if (view === 'questionBank') {
+      router.push('/dashboard/practice');
+      return;
+    }
+    if (view === 'achievements') {
+      router.push('/dashboard/achievements');
+      return;
+    }
+    if (view === 'knowledgeGraph') {
+      router.push('/dashboard/knowledge-graph');
+      return;
+    }
+    // For other views, still use useState (for now)
     setCurrentView(view as View);
   };
 
@@ -61,9 +91,9 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
   };
 
   return (
-    <DashboardLayout 
-      currentView={currentView} 
-      onNavigate={(view) => setCurrentView(view as View)}
+    <DashboardLayout
+      currentView={currentView}
+      onNavigate={handleViewChange}
       userRole={user.role}
     >
        {renderContent()}
