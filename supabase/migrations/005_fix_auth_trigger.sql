@@ -1,12 +1,11 @@
--- Fix: Ensure the auth trigger is enabled and working
--- Description: This migration drops the existing trigger on auth.users and recreates it.
--- NOTE: If this fails with "must be owner of table users", you MUST run this SQL script 
--- directly in the Supabase Dashboard > SQL Editor, as the migration user might lack permissions.
+-- Fix: Ensure the auth trigger is enabled and working (Final Version)
+-- Description: Drops existing trigger/function and recreates them with correct column names and type casting.
+-- NOTE: If applying via migration fails due to permissions, run this content in Supabase Dashboard > SQL Editor.
 
 -- 1. Drop the trigger if it exists to reset state
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
--- 2. Ensure the function is up-to-date (Same as 004 but ensuring idempotency)
+-- 2. Ensure the function is up-to-date
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 SECURITY DEFINER
@@ -18,10 +17,10 @@ DECLARE
   utm_medium_val text;
   utm_campaign_val text;
 BEGIN
-  -- Extract UTM params from metadata
-  utm_source_val := NEW.raw_user_metadata->>'utm_source';
-  utm_medium_val := NEW.raw_user_metadata->>'utm_medium';
-  utm_campaign_val := NEW.raw_user_metadata->>'utm_campaign';
+  -- Extract UTM params from metadata (Fixed field name: raw_user_meta_data)
+  utm_source_val := NEW.raw_user_meta_data->>'utm_source';
+  utm_medium_val := NEW.raw_user_meta_data->>'utm_medium';
+  utm_campaign_val := NEW.raw_user_meta_data->>'utm_campaign';
 
   -- 1. Insert User
   INSERT INTO public.users (
@@ -41,7 +40,7 @@ BEGIN
     NEW.email, 
     NEW.created_at, 
     NEW.updated_at, 
-    'STUDENT', 
+    'STUDENT'::public."UserRole", -- Explicit cast to Enum
     0, 
     0, 
     utm_source_val, 
@@ -71,7 +70,7 @@ BEGIN
     true, 
     true, 
     true, 
-    'ENCOURAGING', 
+    'ENCOURAGING'::public."AiPersonality", -- Explicit cast to Enum
     50
   );
 
@@ -81,7 +80,7 @@ BEGIN
     id, user_id, type, title, target_count, current_count, xp_reward, is_claimed, date
   )
   VALUES (
-    gen_random_uuid(), NEW.id, 'ONBOARDING_PROFILE', 'Complete your profile', 1, 0, 100, false, CURRENT_DATE
+    gen_random_uuid(), NEW.id, 'ONBOARDING_PROFILE'::public."DailyTaskType", 'Complete your profile', 1, 0, 100, false, CURRENT_DATE
   );
 
   -- Task 2: Set Goals
@@ -89,7 +88,7 @@ BEGIN
     id, user_id, type, title, target_count, current_count, xp_reward, is_claimed, date
   )
   VALUES (
-    gen_random_uuid(), NEW.id, 'ONBOARDING_GOALS', 'Set your study goals', 1, 0, 50, false, CURRENT_DATE
+    gen_random_uuid(), NEW.id, 'ONBOARDING_GOALS'::public."DailyTaskType", 'Set your study goals', 1, 0, 50, false, CURRENT_DATE
   );
 
   -- Task 3: Assessment
@@ -97,17 +96,21 @@ BEGIN
     id, user_id, type, title, target_count, current_count, xp_reward, is_claimed, date
   )
   VALUES (
-    gen_random_uuid(), NEW.id, 'ONBOARDING_ASSESSMENT', 'Take skill assessment', 1, 0, 200, false, CURRENT_DATE
+    gen_random_uuid(), NEW.id, 'ONBOARDING_ASSESSMENT'::public."DailyTaskType", 'Take skill assessment', 1, 0, 200, false, CURRENT_DATE
   );
 
   RETURN NEW;
 EXCEPTION
   WHEN unique_violation THEN
-    -- 如果用户已存在,忽略错误
+    -- Ignore if user already exists
     RETURN NEW;
   WHEN OTHERS THEN
-    -- 记录错误但不阻断
-    RAISE WARNING 'Error in handle_new_user: %', SQLERRM;
+    -- Log error to debug table if it exists, otherwise ignore safely
+    BEGIN
+        INSERT INTO public._debug_logs (message, details) 
+        VALUES ('Trigger Error', 'Error: ' || SQLERRM);
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
     RETURN NEW;
 END;
 $$;
