@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ============ 用户模块 ============
@@ -21,17 +20,26 @@ model User {
   xp             Int       @default(0)
   aiTokenBalance Int       @default(5) @map("ai_token_balance") // Free daily quota or permanent balance
   lastStudyDate  DateTime? @map("last_study_date")
-  
-  // Tracking & Growth
-  lastSignInAt   DateTime? @map("last_sign_in_at")
-  signInCount    Int       @default(0) @map("sign_in_count")
-  utmSource      String?   @map("utm_source")
-  utmMedium      String?   @map("utm_medium")
-  utmCampaign    String?   @map("utm_campaign")
-  referralCode   String?   @map("referral_code")
 
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  // Tracking & Growth
+  lastSignInAt DateTime? @map("last_sign_in_at")
+  signInCount  Int       @default(0) @map("sign_in_count")
+  utmSource    String?   @map("utm_source")
+  utmMedium    String?   @map("utm_medium")
+  utmCampaign  String?   @map("utm_campaign")
+
+  // 推荐系统
+  referralCode  String? @unique @map("referral_code") // 用户的推荐码（唯一）
+  referralCount Int     @default(0) @map("referral_count") // 成功推荐数量
+  referralLimit Int     @default(10) @map("referral_limit") // 推荐上限
+
+  // 订阅相关
+  subscriptionTier  UserRole? @map("subscription_tier") // PRO/ULTIMATE
+  subscriptionStart DateTime? @map("subscription_start")
+  subscriptionEnd   DateTime? @map("subscription_end")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   settings           UserSettings?
@@ -45,11 +53,15 @@ model User {
   badges             UserBadge[]
   dailyTasks         DailyTask[]
   postLikes          PostLike[]
-  
+
   // Parent-Student Relations
-  parents            ParentStudent[] @relation("StudentToParent")
-  students           ParentStudent[] @relation("ParentToStudent")
-  inviteCodes        InviteCode[]
+  parents     ParentStudent[] @relation("StudentToParent")
+  students    ParentStudent[] @relation("ParentToStudent")
+  inviteCodes InviteCode[]
+
+  // Referral Relations
+  referralsGiven    Referral[] @relation("Referrer") // 我推荐的人
+  referralsReceived Referral[] @relation("Referee") // 推荐我的人
 
   @@map("users")
 }
@@ -81,20 +93,20 @@ model InviteCode {
 }
 
 model UserSettings {
-  id                   String        @id @default(uuid()) @db.Uuid
-  userId               String        @unique @map("user_id") @db.Uuid
-  theme                String        @default("dark")
-  language             String        @default("en") // 'en', 'zh', 'ms'
-  aiPersonality        AiPersonality @default(ENCOURAGING) @map("ai_personality")
+  id                    String        @id @default(uuid()) @db.Uuid
+  userId                String        @unique @map("user_id") @db.Uuid
+  theme                 String        @default("dark")
+  language              String        @default("en") // 'en', 'zh', 'ms'
+  aiPersonality         AiPersonality @default(ENCOURAGING) @map("ai_personality")
   difficultyCalibration Int           @default(50) @map("difficulty_calibration") // 0-100
-  curriculumSystem     String?       @map("curriculum_system") // e.g. "UEC", "IGCSE"
-  
+  curriculumSystem      String?       @map("curriculum_system") // e.g. "UEC", "IGCSE"
+
   // Notifications & Reminders
-  studyReminderTime    String?       @map("study_reminder_time") // e.g. "20:00"
-  notificationDaily    Boolean       @default(true) @map("notification_daily") // Push/In-app
-  notificationWeekly   Boolean       @default(true) @map("notification_weekly") // Push/In-app
-  emailMarketing       Boolean       @default(true) @map("email_marketing")
-  emailActivity        Boolean       @default(true) @map("email_activity")
+  studyReminderTime  String? @map("study_reminder_time") // e.g. "20:00"
+  notificationDaily  Boolean @default(true) @map("notification_daily") // Push/In-app
+  notificationWeekly Boolean @default(true) @map("notification_weekly") // Push/In-app
+  emailMarketing     Boolean @default(true) @map("email_marketing")
+  emailActivity      Boolean @default(true) @map("email_activity")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -299,14 +311,14 @@ enum QuestionType {
 }
 
 model UserAttempt {
-  id           String      @id @default(uuid()) @db.Uuid
-  userId       String      @map("user_id") @db.Uuid
-  questionId   String      @map("question_id") @db.Uuid
-  examRecordId String?     @map("exam_record_id") @db.Uuid
-  userAnswer   Json        @map("user_answer")
-  isCorrect    Boolean     @map("is_correct")
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  questionId   String   @map("question_id") @db.Uuid
+  examRecordId String?  @map("exam_record_id") @db.Uuid
+  userAnswer   Json     @map("user_answer")
+  isCorrect    Boolean  @map("is_correct")
   duration     Int? // Time taken in seconds
-  createdAt    DateTime    @default(now()) @map("created_at")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -400,8 +412,8 @@ model Post {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  subject  Subject?  @relation(fields: [subjectId], references: [id])
+  author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  subject  Subject?   @relation(fields: [subjectId], references: [id])
   comments Comment[]
   likes    PostLike[]
 
@@ -479,4 +491,39 @@ enum LeaderboardPeriod {
   WEEKLY
   MONTHLY
   ALL_TIME
+}
+
+// ============ 推荐系统模块 ============
+enum ReferralStatus {
+  PENDING // 被推荐人已注册，但未付费
+  COMPLETED // 被推荐人已付费，奖励已发放
+  EXPIRED // 推荐码过期（可选）
+  CANCELLED // 被推荐人退款（可选）
+}
+
+model Referral {
+  id           String @id @default(uuid()) @db.Uuid
+  referrerId   String @map("referrer_id") @db.Uuid // 推荐人 ID
+  refereeId    String @map("referee_id") @db.Uuid // 被推荐人 ID
+  referralCode String @map("referral_code") // 使用的推荐码
+
+  // 奖励状态
+  status        ReferralStatus @default(PENDING)
+  rewardGranted Boolean        @default(false) @map("reward_granted") // 奖励是否已发放
+  rewardDate    DateTime?      @map("reward_date") // 奖励发放时间
+
+  // 追踪信息
+  refereeEmail  String    @map("referee_email") // 被推荐人邮箱（冗余，方便查询）
+  refereePaidAt DateTime? @map("referee_paid_at") // 被推荐人首次付费时间
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee  User @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+
+  @@unique([refereeId]) // 每个用户只能使用一次推荐码
+  @@index([referrerId])
+  @@index([status])
+  @@map("referrals")
 }
