@@ -1,6 +1,7 @@
 'use client'
 
 import { useFormState, useFormStatus } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
 import { signupAction, type AuthFormState } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,8 @@ const initialState: AuthFormState = {}
 
 export function RegisterForm() {
   const [state, formAction] = useFormState(signupAction, initialState)
+  const searchParams = useSearchParams()
+  const defaultReferralCode = searchParams.get('ref') || ''
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -45,16 +48,17 @@ export function RegisterForm() {
             <Input id="password" name="password" type="password" minLength={6} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="referralCode">推荐码 (选填)</Label>
+            <Label htmlFor="referralCode">推荐码（可选）</Label>
             <Input
               id="referralCode"
               name="referralCode"
-              placeholder="8位推荐码，如 AB12CD34"
+              placeholder="输入好友的推荐码，双方都可获得奖励"
+              defaultValue={defaultReferralCode}
               maxLength={8}
               className="uppercase"
             />
             <p className="text-xs text-muted-foreground">
-              有朋友推荐？填写推荐码可获得额外福利
+              使用推荐码注册并付费后，您可获得 <strong>1 周免费试用</strong>
             </p>
           </div>
           {state.error && (
