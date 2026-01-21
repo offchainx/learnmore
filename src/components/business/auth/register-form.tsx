@@ -44,6 +44,19 @@ export function RegisterForm() {
             <Label htmlFor="password">密码</Label>
             <Input id="password" name="password" type="password" minLength={6} required />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="referralCode">推荐码 (选填)</Label>
+            <Input
+              id="referralCode"
+              name="referralCode"
+              placeholder="8位推荐码，如 AB12CD34"
+              maxLength={8}
+              className="uppercase"
+            />
+            <p className="text-xs text-muted-foreground">
+              有朋友推荐？填写推荐码可获得额外福利
+            </p>
+          </div>
           {state.error && (
             <div className="text-sm text-red-500 text-center">
               {state.error}

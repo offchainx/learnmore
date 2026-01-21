@@ -95,13 +95,12 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   }
 
   if (authData.user) {
-    // 这里的逻辑主要是为了兜底，防止 Trigger 失败或者延迟
-    // 同时也为了初始化 UserSettings 和推荐系统
-    try {
-      // 生成用户自己的推荐码
-      const myReferralCode = generateReferralCode()
+    // 生成用户自己的推荐码
+    const myReferralCode = generateReferralCode()
 
-      // 1. Upsert 用户（包含推荐码）
+    // 1. 更新用户推荐码和用户名
+    // 注意：Trigger 会先创建用户，这里用 upsert 兜底
+    try {
       await prisma.user.upsert({
         where: { id: authData.user.id },
         create: {
@@ -115,9 +114,14 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
           referralCode: myReferralCode,
         },
       })
+      console.log('[Auth] User referralCode updated:', myReferralCode)
+    } catch (e) {
+      console.error('[Auth] User upsert error:', e)
+    }
 
-      // 2. 如果使用了推荐码，创建推荐关系记录
-      if (referrerId && usedReferralCode) {
+    // 2. 如果使用了推荐码，创建推荐关系记录
+    if (referrerId && usedReferralCode) {
+      try {
         await prisma.referral.create({
           data: {
             referrerId: referrerId,
@@ -127,19 +131,27 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
             status: 'PENDING', // 等待付费
           },
         })
+        console.log('[Auth] Referral record created')
+      } catch (e) {
+        console.error('[Auth] Referral create error:', e)
       }
+    }
 
-      // 3. 初始化 UserSettings
-      await prisma.userSettings.create({
-        data: {
+    // 3. 初始化 UserSettings（Trigger 可能已创建，用 upsert 兜底）
+    try {
+      await prisma.userSettings.upsert({
+        where: { userId: authData.user.id },
+        create: {
           userId: authData.user.id,
-          language: 'zh', // Default to Chinese as per context
+          language: 'zh',
           theme: 'light',
+        },
+        update: {
+          // 不覆盖已有设置
         },
       })
     } catch (e) {
-      console.error('[Auth] Post-Signup Init Error:', e)
-      // 不阻断流程，让用户可以登录
+      console.error('[Auth] UserSettings upsert error:', e)
     }
   }
 
