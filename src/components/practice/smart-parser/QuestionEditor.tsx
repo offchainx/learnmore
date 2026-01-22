@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { QuestionType, ParsedQuestion } from './types';
-import { 
-  Trash2, Save, RefreshCw, Plus, X, Eye, Edit3, 
-  AlertTriangle, FileText, ChevronRight, ChevronLeft, Copy 
+import { ParsedQuestion } from './types';
+import {
+  X, Eye, Edit3,
+  AlertTriangle, FileText
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -25,12 +25,13 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
 }) => {
   const [formData, setFormData] = useState<ParsedQuestion>(initialData);
   const [viewMode, setViewMode] = useState<'EDIT' | 'PREVIEW'>('EDIT');
-  const [showRaw, setShowRaw] = useState(false);
+  // Raw view toggle reserved for future use
+  void useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
 
-  const updateField = (field: keyof ParsedQuestion, value: any) => {
+  const updateField = (field: keyof ParsedQuestion, value: ParsedQuestion[keyof ParsedQuestion]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

@@ -8,12 +8,11 @@ import { Input } from '@/components/ui/labeled-input';
 import { useApp } from '@/providers/app-provider'; // Import Context
 import { updateProfile } from '@/actions/profile';
 import { updateAIConfig } from '@/actions/settings';
-import { logoutAction } from '@/actions/auth';
 import { generateInviteCode } from '@/actions/parent';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
-  Moon, Sun, LogOut, CheckCircle2, Globe
+  Moon, Sun, CheckCircle2, Globe
 } from 'lucide-react';
 
 function SubmitButton({ children }: { children: React.ReactNode }) {

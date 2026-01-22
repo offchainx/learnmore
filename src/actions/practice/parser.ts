@@ -107,7 +107,7 @@ export async function parseQuestionImage(formData: FormData): Promise<ParseResul
       const json = JSON.parse(responseText)
       const parsedData = Array.isArray(json) ? json : [json]
       return { success: true, data: parsedData }
-    } catch (parseError) {
+    } catch {
       console.error('JSON Parse Error:', responseText)
       return { 
         success: false, 
