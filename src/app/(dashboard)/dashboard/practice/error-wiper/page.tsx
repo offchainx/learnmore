@@ -1,0 +1,53 @@
+import { getErrorWiperSession, updateErrorWiperProgress } from '@/actions/practice/error-book';
+import { ErrorWiperMode } from '@/components/practice/modes/ErrorWiperMode';
+import { redirect } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Brain, ArrowLeft } from 'lucide-react';
+
+export const metadata = {
+  title: 'Error Wiper | LearnMore',
+  description: 'Gamified error review mode',
+};
+
+export default async function ErrorWiperPage() {
+  const session = await getErrorWiperSession();
+
+  if (!session.success || !session.data || session.data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-24 h-24 bg-gradient-to-br from-emerald-400/20 to-blue-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(52,211,153,0.3)]">
+           <Brain className="w-10 h-10 text-emerald-400" />
+        </div>
+        <h2 className="text-3xl font-black text-white mb-2 tracking-tight">All Clear!</h2>
+        <p className="text-slate-400 mb-8 max-w-md text-lg">
+          Your error book is empty. You've mastered all your past mistakes! 
+          Time to tackle some new challenges.
+        </p>
+        <Link href="/dashboard/practice">
+          <Button size="xl" variant="glow" className="rounded-2xl font-black tracking-widest">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            BACK TO PRACTICE
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  async function handleSessionComplete() {
+    'use server';
+    redirect('/dashboard/practice');
+  }
+
+  // We cast to any here because Prisma's Json type doesn't perfectly align with the strict Question interface
+  // but we know the runtime structure matches.
+  return (
+    <div className="container mx-auto max-w-4xl min-h-screen lg:py-8">
+      <ErrorWiperMode 
+        initialSession={session.data as any} 
+        onUpdateProgress={updateErrorWiperProgress}
+        onSessionComplete={handleSessionComplete}
+      />
+    </div>
+  );
+}
