@@ -170,18 +170,19 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
       setParsedQuestions(mappedData);
       setCurrentIndex(0);
       setState('REVIEW');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [前端] 解析失败:', err);
 
       // 提供更有帮助的错误信息
-      let userMessage = err.message || "Failed to recognize the image.";
+      const errMessage = err instanceof Error ? err.message : '';
+      let userMessage = errMessage || "Failed to recognize the image.";
 
       // 如果是网络错误
-      if (err.message?.includes('fetch')) {
+      if (errMessage.includes('fetch')) {
         userMessage = "Network error. Please check your connection and try again.";
       }
       // 如果是超时错误
-      else if (err.message?.includes('timeout')) {
+      else if (errMessage.includes('timeout')) {
         userMessage = "Request timeout. The image might be too large. Please try a smaller image.";
       }
 
@@ -215,11 +216,11 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
           setCurrentIndex(remaining.length - 1);
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [前端] 保存失败:', err);
 
       // Show user-friendly error message
-      const errorMessage = err.message || "Failed to save question to database.";
+      const errorMessage = err instanceof Error ? err.message : "Failed to save question to database.";
 
       // Check if it's a validation error
       if (errorMessage.includes('Answer is required')) {

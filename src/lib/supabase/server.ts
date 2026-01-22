@@ -17,7 +17,8 @@ export async function createClient() {
       get(name: string) {
         return cookieStore.get(name)?.value
       },
-      set(name: string, value: string, options: CookieOptions) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      set(name: string, value: string, _options: CookieOptions) {
         try {
           // ⭐ 关键：实现1小时滑动窗口机制
           // 完全不使用 Supabase 的 maxAge (400天)，强制设置为1小时
@@ -35,7 +36,8 @@ export async function createClient() {
           // The `cookies()` may not be available in all environments
         }
       },
-      remove(name: string, options: CookieOptions) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      remove(name: string, _options: CookieOptions) {
         try {
           cookieStore.set({
             name,

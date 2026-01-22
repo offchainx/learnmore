@@ -21,7 +21,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function testConnection() {
   try {
-    const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true })
+    const { error } = await supabase.from('users').select('count', { count: 'exact', head: true })
     if (error) {
         // If "users" table doesn't allow anon access, this might fail, which is expected.
         // Let's try auth.

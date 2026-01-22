@@ -46,7 +46,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
   const { t } = useApp();
   const router = useRouter();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleLogout = () => {
     startTransition(async () => {

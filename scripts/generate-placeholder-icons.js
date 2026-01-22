@@ -5,6 +5,7 @@
  * 使用 canvas 创建简单的文字图标
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports, no-console */
 const fs = require('fs');
 const path = require('path');
 

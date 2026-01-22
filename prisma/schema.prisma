@@ -172,8 +172,9 @@ model Subject {
   icon  String?
   order Int     @default(0)
 
-  chapters Chapter[]
-  posts    Post[]
+  chapters    Chapter[]
+  posts       Post[]
+  examRecords ExamRecord[] // 🆕 练习记录关联 (Story-043)
 
   @@map("subjects")
 }
@@ -187,6 +188,12 @@ model Chapter {
   x         Float? // For Knowledge Graph layout
   y         Float? // For Knowledge Graph layout
   createdAt DateTime @default(now()) @map("created_at")
+
+  // 🆕 练习中心扩展字段 (Story-043)
+  totalQuestions  Int       @default(0) @map("total_questions") // 该章节题目总数
+  avgDifficulty   Float?    @map("avg_difficulty") // 平均难度
+  cachedMastery   Json?     @map("cached_mastery") // { [userId]: masteryLevel }
+  lastCacheUpdate DateTime? @map("last_cache_update") // 缓存最后更新时间
 
   // Relations
   subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
@@ -343,11 +350,18 @@ model ExamRecord {
   duration       Int? // Time taken in seconds
   createdAt      DateTime @default(now()) @map("created_at")
 
+  // 🆕 练习中心扩展字段 (Story-043)
+  mode      PracticeMode @default(MOCK_EXAM) // 练习模式
+  subjectId String?      @map("subject_id") @db.Uuid // 关联科目
+
   // Relations
   user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject  Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   attempts UserAttempt[]
 
   @@index([userId])
+  @@index([subjectId])
+  @@index([mode])
   @@map("exam_records")
 }
 
@@ -491,6 +505,15 @@ enum LeaderboardPeriod {
   WEEKLY
   MONTHLY
   ALL_TIME
+}
+
+// ============ 练习模式枚举 ============
+enum PracticeMode {
+  SMART_DRILL   // 智能刷题
+  ERROR_WIPER   // 错题复习
+  MOCK_EXAM     // 模拟考试
+  CHAPTER_DRILL // 章节练习
+  PAST_PAPER    // 历年真题
 }
 
 // ============ 推荐系统模块 ============

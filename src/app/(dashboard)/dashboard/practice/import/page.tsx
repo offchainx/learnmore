@@ -25,10 +25,11 @@ export default function ImportQuestionPage() {
 
       console.log('✅ [前端] 保存成功:', result);
       // Success feedback will be handled by parent component
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ [前端] 保存失败:', error);
       // Re-throw to let parent component handle the error
-      throw new Error(error.message || 'Failed to save question');
+      const message = error instanceof Error ? error.message : 'Failed to save question';
+      throw new Error(message);
     }
   }
 
