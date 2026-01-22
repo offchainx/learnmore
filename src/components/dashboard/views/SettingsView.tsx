@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/labeled-input';
+import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/app-provider'; // Import Context
 import { updateProfile } from '@/actions/profile';
 import { updateAIConfig } from '@/actions/settings';
@@ -12,7 +13,7 @@ import { generateInviteCode } from '@/actions/parent';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
-  Moon, Sun, CheckCircle2, Globe
+  Moon, Sun, LogOut, CheckCircle2, Globe, Gift, Users
 } from 'lucide-react';
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,172 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
     <Button type="submit" variant="primary" disabled={pending}>
       {pending ? '保存中...' : children}
     </Button>
+  );
+}
+
+// 推荐好友板块组件
+type ReferralUser = {
+  role: string;
+  referralCode: string | null;
+  referralCount: number;
+  referralLimit: number;
+};
+
+export function ReferralSection({ user }: { user: ReferralUser }) {
+  const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const referralUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/register?ref=${user.referralCode}`
+    : `/register?ref=${user.referralCode}`;
+
+  const handleCopyCode = () => {
+    if (user.referralCode) {
+      navigator.clipboard.writeText(user.referralCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(referralUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  // 只有付费用户才显示完整推荐功能
+  if (!['PRO', 'ULTIMATE'].includes(user.role)) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-b border-amber-500/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-500/20 rounded-xl">
+              <Gift className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">推荐好友</CardTitle>
+              <CardDescription>
+                升级到 PRO 或 ULTIMATE 会员后，您可以邀请好友并获得奖励
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="text-center py-4">
+            <p className="text-slate-500 dark:text-slate-400 mb-4">
+              解锁推荐功能，与好友一起学习，共享奖励
+            </p>
+            <Button variant="primary">
+              升级会员
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-green-500/20">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-500/20 rounded-xl">
+            <Gift className="w-5 h-5 text-green-500" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">推荐好友</CardTitle>
+            <CardDescription>
+              邀请好友注册并付费，双方都可获得奖励
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6 space-y-6">
+        {/* 推荐码 */}
+        <div>
+          <Label className="text-slate-700 dark:text-slate-300 font-semibold">您的专属推荐码</Label>
+          <div className="flex gap-2 mt-2">
+            <div className="flex-1 relative">
+              <input
+                value={user.referralCode || '未生成'}
+                readOnly
+                className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-lg text-center tracking-widest text-slate-900 dark:text-white"
+              />
+            </div>
+            <Button onClick={handleCopyCode} variant="outline" className="shrink-0">
+              {copied ? (
+                <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> 已复制</>
+              ) : (
+                <><Copy className="w-4 h-4 mr-2" /> 复制</>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* 推荐链接 */}
+        <div>
+          <Label className="text-slate-700 dark:text-slate-300 font-semibold">推荐链接</Label>
+          <div className="flex gap-2 mt-2">
+            <div className="flex-1 relative">
+              <input
+                value={referralUrl}
+                readOnly
+                className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-600 dark:text-slate-400 truncate"
+              />
+            </div>
+            <Button onClick={handleCopyLink} variant="outline" className="shrink-0">
+              {copiedLink ? (
+                <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> 已复制</>
+              ) : (
+                <><LinkIcon className="w-4 h-4 mr-2" /> 复制链接</>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* 奖励规则 */}
+        <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-500" />
+            <p className="font-semibold text-slate-900 dark:text-white">奖励规则</p>
+          </div>
+          <ul className="text-sm space-y-2 text-slate-600 dark:text-slate-400">
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0"></span>
+              <span>好友使用您的推荐码注册并完成首次付费后</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0"></span>
+              <span>您可获得 <strong className="text-green-600 dark:text-green-400">2 周</strong> 额外会员时长</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
+              <span>好友可获得 <strong className="text-blue-600 dark:text-blue-400">1 周</strong> 免费试用</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0"></span>
+              <span>
+                您已成功推荐 <strong className="text-purple-600 dark:text-purple-400">{user.referralCount}</strong> 位好友
+                （上限 <strong>{user.referralLimit}</strong> 位）
+              </span>
+            </li>
+          </ul>
+
+          {/* 推荐进度条 */}
+          <div className="pt-2">
+            <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <span>推荐进度</span>
+              <span>{user.referralCount} / {user.referralLimit}</span>
+            </div>
+            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-300"
+                style={{ width: `${Math.min((user.referralCount / user.referralLimit) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -39,6 +206,10 @@ type UserProfile = {
     aiPersonality?: string | null;
     difficultyCalibration?: number | null;
   } | null;
+  // 推荐系统字段
+  referralCode: string | null;
+  referralCount: number;
+  referralLimit: number;
 };
 
 type SettingsViewProps = {
@@ -411,6 +582,18 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               )}
            </div>
         </Card>
+      )}
+
+      {/* 推荐好友板块 */}
+      {user && (
+        <ReferralSection
+          user={{
+            role: user.role,
+            referralCode: user.referralCode,
+            referralCount: user.referralCount ?? 0,
+            referralLimit: user.referralLimit ?? 10,
+          }}
+        />
       )}
     </div>
   );
