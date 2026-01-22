@@ -1,7 +1,7 @@
 # Cursor Git 可视化操作完全指南 🎨
 
 > 专注于 Cursor/VS Code 中的 Git 可视化界面操作
-1
+1f
 ---
 
 ## 目录
