@@ -1,21 +1,23 @@
 # Active Context
 
 ## Current Focus
-- **Story**: [Story-010] 练习中心重构与AI升级 (Practice Center Revamp)
-- **Immediate Task**: Implement "Smart Document Parser" (PDF/Image Upload -> AI Parsing -> Question Extraction).
-- **Goal**: Allow users to upload exam papers (PDF/Image), automatically extract questions via Gemini Vision, and review them before saving to the Question Bank.
+- **Story**: [Story-043] 练习中心生产级完善 (Practice Center Production)
+- **Immediate Task**: B1 Smart Drill (智能刷题) - **Completed**.
+- **Next Task**: B2 Error Wiper (错题消消乐).
 
 ## Recent Changes
-- **Fix (Critical)**: Resolved Supabase Auth Trigger (`on_auth_user_created`) failure.
-    - Cause: Incorrect column name (`raw_user_metadata` vs `raw_user_meta_data`) and missing Enum type casting.
-    - Solution: Recreated trigger/function via `005_fix_auth_trigger.sql` (and manual SQL Editor execution) with robust error handling and type safety.
-- Updated `story-010` to include Image upload support and refined parsing logic using Gemini Vision.
-- Updated `story-010` implementation steps to reflect the new technical plan.
+- **Feature (Smart Drill)**: Implemented the adaptive practice mode.
+    - **Backend**: Created `src/actions/practice/recommendation.ts` with the 50/30/20 recommendation algorithm (Error/Weak/New).
+    - **Frontend**: Created `src/app/(dashboard)/dashboard/practice/smart-drill/page.tsx` and `SmartDrillMode.tsx`.
+    - **Components**: Developed `QuizSession.tsx` for interactive quizzing (handling answers, feedback, progress) and a zero-dependency `Progress` component.
+    - **Infrastructure**: Resolved Git worktree synchronization issues between Agent and User environments.
 
 ## Next Steps
-1.  **Plan**: Create detailed implementation plan for the Smart Parser (Backend API + Frontend Upload/Preview).
-2.  **Backend**: Implement `DocumentExtractionService` and `/api/practice/parse-document`.
-3.  **Frontend**: Create Upload Component and Parsed Result Editor.
+1.  **Merge**: Merge `vk/d23a-story043-b1` into `main`.
+2.  **Plan B2**: Start implementation of "Error Wiper" (Gamified error review mode).
+    - Backend: Extend `error-book.ts`.
+    - Frontend: `ErrorWiperMode.tsx` with Tinder-like card stack.
+    - Animation: Integrate Framer Motion.
 
 ## Active Story Status
-- **Story-010**: In Progress (Phase 3 prioritized).
+- **Story-043**: In Progress (Phase B1 Completed).
