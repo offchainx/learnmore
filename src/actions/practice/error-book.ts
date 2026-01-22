@@ -1,9 +1,11 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { getCurrentUser } from './auth';
+import { getCurrentUser } from '../auth';
 import { Prisma, DailyTaskType } from '@prisma/client';
 import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
+
+// --- Legacy Functions (Ported) ---
 
 export async function getErrorBookQuestions(subjectId?: string) {
   try {
@@ -38,7 +40,7 @@ export async function getErrorBookQuestions(subjectId?: string) {
       },
     });
 
-    // Filter out entries where question might be null if a question was deleted but errorBook entry remained
+    // Filter out entries where question might be null
     const questionsWithErrors = errorBookEntries.filter(entry => entry.question);
 
     return { success: true, data: questionsWithErrors };
@@ -58,7 +60,7 @@ export async function removeErrorBookEntry(errorBookEntryId: string) {
         await prisma.errorBook.delete({
             where: {
                 id: errorBookEntryId,
-                userId: user.id // Ensure only owner can delete
+                userId: user.id
             }
         });
 
@@ -86,15 +88,12 @@ export async function updateErrorBookMastery(questionId: string, isCorrect: bool
     }
 
     if (isCorrect) {
-        // Gamification: Track fix error task & streak
         await trackDailyProgress(user.id, DailyTaskType.FIX_ERROR);
         await checkAndRefreshStreak(user.id);
 
-        // Increment mastery level
         const newLevel = entry.masteryLevel + 1;
         
         if (newLevel >= 3) {
-            // Mastered! Remove from error book (or logically delete)
             await prisma.errorBook.delete({
                 where: { id: entry.id }
             });
@@ -107,9 +106,6 @@ export async function updateErrorBookMastery(questionId: string, isCorrect: bool
             return { success: true, mastered: false, level: newLevel };
         }
     } else {
-        // Answered wrong again, reset mastery or decrement
-        // For strict mode, reset to 0. For encouraging, maybe decrement 1.
-        // Let's reset to 0 to ensure mastery.
         await prisma.errorBook.update({
             where: { id: entry.id },
             data: { masteryLevel: 0, updatedAt: new Date() }
@@ -120,5 +116,92 @@ export async function updateErrorBookMastery(questionId: string, isCorrect: bool
   } catch (error) {
     console.error('Error updating error book mastery:', error);
     return { success: false, error: 'Failed to update mastery' };
+  }
+}
+
+// --- New Functions for Error Wiper Mode ---
+
+export async function getErrorWiperSession() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    // Fetch all errors with masteryLevel < 3 (including 0)
+    const errorBookEntries = await prisma.errorBook.findMany({
+      where: { 
+        userId: user.id, 
+        masteryLevel: { lt: 3 } 
+      },
+      include: {
+        question: {
+          include: {
+            chapter: {
+              include: { subject: true },
+            },
+          },
+        },
+      },
+    });
+
+    const validEntries = errorBookEntries.filter(entry => entry.question);
+
+    // Simple shuffle
+    const shuffled = validEntries.sort(() => Math.random() - 0.5);
+
+    return { success: true, data: shuffled };
+  } catch (error) {
+    console.error('Error fetching wiper session:', error);
+    return { success: false, error: 'Failed to fetch wiper session' };
+  }
+}
+
+export async function updateErrorWiperProgress(questionId: string, isCorrect: boolean) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
+    const entry = await prisma.errorBook.findUnique({
+      where: { userId_questionId: { userId: user.id, questionId } },
+    });
+
+    if (!entry) {
+        return { success: false, error: 'Entry not found' };
+    }
+
+    if (isCorrect) {
+        // Gamification hooks
+        await trackDailyProgress(user.id, DailyTaskType.FIX_ERROR);
+        await checkAndRefreshStreak(user.id);
+
+        const newLevel = entry.masteryLevel + 1;
+        
+        if (newLevel >= 3) {
+             await prisma.errorBook.delete({
+                 where: { id: entry.id }
+             });
+             return { success: true, wiped: true, level: newLevel };
+        } else {
+            await prisma.errorBook.update({
+                where: { id: entry.id },
+                data: { masteryLevel: newLevel, updatedAt: new Date() }
+            });
+            return { success: true, wiped: false, level: newLevel };
+        }
+    } else {
+        // Reset to 0
+        await prisma.errorBook.update({
+            where: { id: entry.id },
+            data: { masteryLevel: 0, updatedAt: new Date() }
+        });
+        return { success: true, wiped: false, level: 0 };
+    }
+
+  } catch (error) {
+    console.error('Error updating wiper progress:', error);
+    return { success: false, error: 'Failed to update progress' };
   }
 }
