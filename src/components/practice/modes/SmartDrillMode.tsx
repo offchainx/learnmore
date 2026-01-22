@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Question } from '@prisma/client'
 import { getSmartDrillQuestions } from '@/actions/practice/recommendation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import QuizSession from '@/components/practice/session/QuizSession'
 
 interface SmartDrillModeProps {
   userId: string
@@ -15,6 +17,7 @@ interface SmartDrillModeProps {
 }
 
 export default function SmartDrillMode({ userId, subjectId, userGrade }: SmartDrillModeProps) {
+  const router = useRouter()
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -80,49 +83,12 @@ export default function SmartDrillMode({ userId, subjectId, userGrade }: SmartDr
   }
 
   return (
-    <div className="space-y-6">
-       {/* Placeholder for QuizSession */}
-       <Card className="max-w-4xl mx-auto shadow-md">
-         <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-                <span className="bg-primary/10 text-primary p-2 rounded-lg">⚡️</span>
-                Smart Drill Session
-            </CardTitle>
-         </CardHeader>
-         <CardContent>
-            <div className="mb-6 space-y-2">
-                <h3 className="font-semibold text-lg">Ready to Practice!</h3>
-                <p className="text-muted-foreground">
-                    We've curated {questions.length} questions based on your learning history.
-                </p>
-            </div>
-
-            {/* Placeholder Visual Indicator */}
-            <div className="p-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 flex flex-col items-center justify-center text-center">
-                <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 text-2xl font-bold">
-                    ?
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">QuizSession Component Pending</h4>
-                <p className="text-sm text-gray-500 max-w-md">
-                    The interactive quiz interface (Task B1.4) will be integrated here. 
-                    It will handle question navigation, answer checking, and result submission.
-                </p>
-            </div>
-
-            {/* Temporary Debug Info - Hidden in production */}
-            <div className="mt-8 pt-4 border-t text-xs text-muted-foreground">
-                <p className="font-mono mb-2 uppercase tracking-wider text-gray-400">Debug: Loaded Questions</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {questions.map((q, idx) => (
-                        <div key={q.id} className="p-2 bg-slate-50 rounded border flex justify-between">
-                            <span>Q{idx + 1}: {q.difficulty}★</span>
-                            <span className="font-mono text-[10px] truncate w-24">{q.id}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-         </CardContent>
-       </Card>
+    <div className="container mx-auto">
+       <QuizSession 
+         questions={questions} 
+         userId={userId} 
+         onExit={() => router.push('/dashboard/practice')} 
+       />
     </div>
   )
 }
