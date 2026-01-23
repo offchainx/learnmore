@@ -163,7 +163,7 @@ export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
               opacity: 1,
               x: isShaking ? [-10, 10, -10, 10, 0] : 0
             }}
-            exit={isCorrect ? { x: 600, y: -150, rotate: 25, opacity: 0 } : { opacity: 0, scale: 0.95 }}
+            exit={isCorrect ? { x: 1000, y: -150, rotate: 25, opacity: 0, transition: { duration: 0.5 } } : { opacity: 0, scale: 0.95 }}
             transition={{ 
               type: 'spring', 
               stiffness: 260, 

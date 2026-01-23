@@ -1,9 +1,10 @@
 import { getErrorWiperSession, updateErrorWiperProgress } from '@/actions/practice/error-book';
-import { ErrorWiperMode } from '@/components/practice/modes/ErrorWiperMode';
+import { ErrorWiperMode, ErrorBookEntry } from '@/components/practice/modes/ErrorWiperMode';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Brain, ArrowLeft } from 'lucide-react';
+import { QuestionType } from '@/components/business/question/types';
 
 export const metadata = {
   title: 'Error Wiper | LearnMore',
@@ -39,12 +40,24 @@ export default async function ErrorWiperPage() {
     redirect('/dashboard/practice');
   }
 
-  // We cast to any here because Prisma's Json type doesn't perfectly align with the strict Question interface
-  // but we know the runtime structure matches.
+  const formattedSession: ErrorBookEntry[] = session.data.map((entry) => ({
+    id: entry.id,
+    questionId: entry.questionId,
+    masteryLevel: entry.masteryLevel,
+    question: {
+      id: entry.question.id,
+      type: entry.question.type as QuestionType,
+      content: entry.question.content,
+      options: entry.question.options as Record<string, string> | null,
+      answer: entry.question.answer as string | string[] | null,
+      explanation: entry.question.explanation,
+    }
+  }));
+
   return (
     <div className="container mx-auto max-w-4xl min-h-screen lg:py-8">
       <ErrorWiperMode 
-        initialSession={session.data as any} 
+        initialSession={formattedSession} 
         onUpdateProgress={updateErrorWiperProgress}
         onSessionComplete={handleSessionComplete}
       />

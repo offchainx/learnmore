@@ -147,10 +147,13 @@ export async function getErrorWiperSession() {
 
     const validEntries = errorBookEntries.filter(entry => entry.question);
 
-    // Simple shuffle
+    // Shuffle to randomize the session
     const shuffled = validEntries.sort(() => Math.random() - 0.5);
 
-    return { success: true, data: shuffled };
+    // Limit session size to 20 to keep it manageable
+    const sessionData = shuffled.slice(0, 20);
+
+    return { success: true, data: sessionData };
   } catch (error) {
     console.error('Error fetching wiper session:', error);
     return { success: false, error: 'Failed to fetch wiper session' };
