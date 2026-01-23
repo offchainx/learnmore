@@ -96,6 +96,303 @@ Message: "Merge: Story042.2.5"
 
 **创建分支 = 创建一个新指针，不复制任何文件！**
 
+### 1.5 工作区、分支、Worktree 深度解析
+
+#### 1.5.1 三个概念的关系
+
+```
+Git 仓库
+  ├── 分支 (Branch) - 指向 commit 的"标签/指针"
+  ├── 工作区 (Working Directory) - 你看到的文件
+  └── Worktree - 同一个仓库的"多个工作区"
+```
+
+#### 1.5.2 分支 (Branch)
+
+**本质：一个指向 commit 的指针/标签**
+
+```
+                    ┌─────────────┐
+                    │   Branch    │
+                    │   (main)    │
+                    └──────┬──────┘
+                           │ (只是一个指针)
+                           ↓
+                    ┌─────────────┐
+                    │  Commit C   │
+                    │  abc1234    │
+                    └──────┬──────┘
+                           │
+                    ┌──────┴──────┐
+                    │  Commit B   │
+                    │  def5678    │
+                    └──────┬──────┘
+                           │
+                    ┌──────┴──────┐
+                    │  Commit A   │
+                    │  ghi9012    │
+                    └─────────────┘
+```
+
+**关键特点：**
+
+✅ **轻量级** - 创建分支只是创建一个 41 字节的文件（存储 commit hash）
+✅ **不占空间** - 不会复制文件
+✅ **快速切换** - `git checkout` 只是移动 HEAD 指针
+
+**在硬盘上的实际存储：**
+
+```
+.git/
+├── refs/
+│   └── heads/
+│       ├── main           ← 存储指向的 commit hash
+│       └── feature/login  ← 存储指向的 commit hash
+└── HEAD                   ← 存储当前分支名
+```
+
+```bash
+# 查看分支指向的 commit
+cat .git/refs/heads/main
+# 输出: abc123456789...
+
+# 查看当前分支
+cat .git/HEAD
+# 输出: ref: refs/heads/main
+```
+
+#### 1.5.3 工作区 (Working Directory)
+
+**本质：你看到的文件系统，一次只能在一个分支上**
+
+```
+┌─────────────────────────────────────────────────┐
+│        你的项目文件夹 (工作区)                    │
+├─────────────────────────────────────────────────┤
+│  当前分支: main                                  │
+│                                                 │
+│  src/                                           │
+│    ├── App.tsx         ← 这些是 main 分支的文件  │
+│    └── utils.ts                                 │
+│  package.json                                   │
+│  README.md                                      │
+└─────────────────────────────────────────────────┘
+
+切换到 feature/login 后：
+
+┌─────────────────────────────────────────────────┐
+│        你的项目文件夹 (工作区)                    │
+├─────────────────────────────────────────────────┤
+│  当前分支: feature/login                         │
+│                                                 │
+│  src/                                           │
+│    ├── App.tsx         ← 现在是 feature/login   │
+│    ├── utils.ts           分支的文件             │
+│    └── Login.tsx       ← 这个文件可能是新增的    │
+│  package.json                                   │
+│  README.md                                      │
+└─────────────────────────────────────────────────┘
+```
+
+**限制：**
+
+❌ **一次只能在一个分支上工作**
+❌ **切换分支会改变文件内容**
+❌ **如果有未提交的改动，切换可能失败**
+
+#### 1.5.4 Worktree (工作树)
+
+**本质：让你同时拥有多个工作区，每个在不同的分支上**
+
+```
+┌─────────────────────────────────────────────────┐
+│              同一个 Git 仓库                      │
+└─────────────────┬───────────────────────────────┘
+                  │
+        ┌─────────┴─────────┐
+        │                   │
+        ↓                   ↓
+┌───────────────┐   ┌───────────────┐
+│  工作区 #1    │   │  工作区 #2    │
+│  (main)       │   │  (feature)    │
+├───────────────┤   ├───────────────┤
+│ src/          │   │ src/          │
+│   App.tsx     │   │   App.tsx     │
+│   utils.ts    │   │   utils.ts    │
+│ package.json  │   │   Login.tsx ← 新文件
+└───────────────┘   └───────────────┘
+
+两个目录，同一个 Git 历史！
+```
+
+**文件系统的样子：**
+
+```
+Desktop/Projects/
+├── learn_more_v1.0/              ← 主工作区 (main)
+│   ├── .git/                     ← 真正的 Git 仓库
+│   ├── src/
+│   │   ├── App.tsx
+│   │   └── utils.ts
+│   └── package.json
+│
+└── learn_more_feature_login/     ← Worktree (feature/login)
+    ├── .git                      ← 这只是一个链接文件
+    ├── src/
+    │   ├── App.tsx
+    │   ├── utils.ts
+    │   └── Login.tsx             ← 这个分支特有的文件
+    └── package.json
+```
+
+**Worktree 的底层实现：**
+
+```bash
+# 主仓库
+learn_more_v1.0/.git/
+├── worktrees/
+│   └── learn_more_feature/     ← worktree 的配置
+│       ├── HEAD                ← 存储 worktree 的当前分支
+│       └── gitdir              ← 链接回主 .git
+└── ...
+
+# Worktree 的 .git 文件内容
+cat ../learn_more_feature/.git
+# 输出: gitdir: /Users/.../learn_more_v1.0/.git/worktrees/learn_more_feature
+```
+
+#### 1.5.5 三者对比表
+
+| 特性 | 分支 (Branch) | 工作区 (Working Directory) | Worktree |
+|------|--------------|---------------------------|----------|
+| **本质** | 指向 commit 的指针 | 你看到的文件系统 | 多个独立的工作区 |
+| **数量** | 可以有无数个 | 传统上只有 1 个 | 可以创建多个 |
+| **占用空间** | 几乎为 0 (41 字节) | 完整的项目文件 | 每个都是完整的项目文件 |
+| **创建速度** | 瞬间 | N/A | 几秒（需要复制文件） |
+| **切换速度** | 快 (更新文件) | N/A | 无需切换（直接进不同目录） |
+| **同时使用** | 可以 | 不行（一次只能在一个分支） | 可以（每个 worktree 一个分支） |
+| **适用场景** | 功能开发、版本管理 | 日常工作 | 多任务并行、代码对比 |
+
+#### 1.5.6 实际应用场景
+
+**场景1: 日常开发（只用分支）**
+
+```bash
+# 开发新功能
+git checkout -b feature/user-profile
+# 修改文件...
+git add .
+git commit -m "feat: add user profile"
+
+# 切换回 main
+git checkout main
+# 文件自动变回 main 的状态
+
+# 删除分支
+git branch -d feature/user-profile
+```
+
+**适用：**
+- ✅ 单任务开发
+- ✅ 不需要同时看多个分支
+- ✅ 95% 的日常工作
+
+**场景2: 多任务并行（使用 Worktree）**
+
+```bash
+# 主目录：开发 feature A
+cd ~/Projects/learn_more_v1.0
+git checkout feature/user-profile
+
+# 创建 worktree：同时开发 feature B
+git worktree add ../learn_more_feature_b feature/payment
+
+# 打开两个 IDE 窗口：
+# 窗口1: ~/Projects/learn_more_v1.0 (feature/user-profile)
+# 窗口2: ~/Projects/learn_more_feature_b (feature/payment)
+
+# 同时运行：
+# 终端1: cd ~/Projects/learn_more_v1.0 && pnpm dev --port 3000
+# 终端2: cd ~/Projects/learn_more_feature_b && pnpm dev --port 3001
+
+# 在浏览器对比两个版本
+```
+
+**适用：**
+- ✅ 需要同时开发多个功能
+- ✅ 需要对比两个分支的代码
+- ✅ 需要同时运行多个版本
+- ✅ 需要频繁切换且不想 stash
+
+**场景3: Code Review（使用 Worktree）**
+
+```bash
+# 主目录：你的开发分支
+cd ~/Projects/learn_more_v1.0
+git checkout feature/my-work
+
+# 创建 worktree 查看同事的 PR
+git fetch origin
+git worktree add ../learn_more_review origin/feature/teammate-work
+
+# 在 worktree 中查看同事的代码
+cd ../learn_more_review
+pnpm install
+pnpm dev
+
+# 不影响你的开发分支！
+```
+
+#### 1.5.7 常见疑问解答
+
+**Q1: 为什么大多数时候只用分支，不用 worktree？**
+
+**A: 因为分支已经够用了！**
+
+分支的优势：
+- ✅ 简单、直观
+- ✅ 不占额外空间
+- ✅ 符合大部分工作流
+- ✅ 切换快速
+
+Worktree 只在特殊场景有用：
+- 多任务并行
+- 需要对比代码
+- CI/CD 构建
+
+**Q2: Worktree 和直接 clone 多个仓库有什么区别？**
+
+| 特性 | 多次 Clone | Worktree |
+|------|-----------|----------|
+| **Git 历史** | 独立（需要各自 fetch） | 共享（fetch 一次全部更新） |
+| **磁盘占用** | 2倍（包含完整 .git） | 1.3倍（共享 .git） |
+| **commit 同步** | 需要 push 才能在另一个看到 | 立即可见（共享仓库） |
+| **清理** | 删除目录即可 | 需要 `git worktree remove` |
+
+**Q3: 什么时候应该用 worktree？**
+
+**推荐使用：**
+- ✅ 需要同时查看多个分支的代码
+- ✅ 需要对比两个版本
+- ✅ 紧急修复 bug，但不想 stash 当前工作
+- ✅ CI/CD 构建（避免 checkout 影响其他构建）
+- ✅ 需要同时运行多个版本
+
+**不推荐使用：**
+- ❌ 日常单任务开发（用分支就好）
+- ❌ 不熟悉 Git（会增加复杂度）
+- ❌ 磁盘空间紧张
+- ❌ 团队不了解 worktree（容易混淆）
+
+#### 1.5.8 记住这个类比
+
+```
+Git 仓库 = 图书馆
+├── 分支 = 书签（指向不同的章节）
+├── 工作区 = 阅读桌（你在这里读书）
+└── Worktree = 多个阅读桌（可以同时读不同章节）
+```
+
 ---
 
 ## 2. 分支管理
