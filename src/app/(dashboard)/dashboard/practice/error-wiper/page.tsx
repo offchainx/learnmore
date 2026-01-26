@@ -40,6 +40,8 @@ export default async function ErrorWiperPage() {
     redirect('/dashboard/practice');
   }
 
+  console.log('ErrorWiper Session Data:', JSON.stringify(session.data, null, 2));
+
   const formattedSession: ErrorBookEntry[] = session.data.map((entry) => ({
     id: entry.id,
     questionId: entry.questionId,

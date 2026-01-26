@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Eraser, CheckCircle2, XCircle, ArrowRight, 
+  Eraser, CheckCircle, XCircle, ArrowRight, 
   Flame, Target, Sparkles, ChevronRight, Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -231,7 +231,7 @@ export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
                             {value}
                           </span>
                         </span>
-                        {showCorrect && <CheckCircle2 className="w-5 h-5 text-emerald-500 drop-shadow-lg" />}
+                        {showCorrect && <CheckCircle className="w-5 h-5 text-emerald-500 drop-shadow-lg" />}
                         {showWrong && <XCircle className="w-5 h-5 text-red-500 drop-shadow-lg" />}
                       </button>
                     );
@@ -254,7 +254,7 @@ export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
                     <div className="space-y-3">
                        <div className={`p-4 rounded-2xl flex items-center gap-3 border shadow-lg ${isCorrect ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
                           <div className={`p-1.5 rounded-lg ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-                             {isCorrect ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                             {isCorrect ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                           </div>
                           <span className={`text-sm font-black tracking-wide ${isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
                             {isCorrect ? 'EXCELLENT! MASTERY +1' : 'RESETTING PROGRESS...'}
