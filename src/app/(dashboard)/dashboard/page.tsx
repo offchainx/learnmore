@@ -1,8 +1,10 @@
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { getProfile } from '@/actions/profile';
 import { getDashboardStats } from '@/actions/dashboard';
+import { syncCurrentUserToDatabase } from '@/actions/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 export default async function DashboardPage() {
   const profile = await getProfile();
@@ -24,7 +26,21 @@ export default async function DashboardPage() {
               <p>Email: {user.email}</p>
             </div>
             <p className="text-sm text-slate-500">This usually happens if the account creation process was interrupted.</p>
-            <div className="mt-6">
+            <div className="mt-6 flex gap-3 justify-center">
+              {/* 修复账户按钮 */}
+              <form action={async () => {
+                'use server';
+                const result = await syncCurrentUserToDatabase();
+                if (result.success) {
+                  revalidatePath('/dashboard');
+                  redirect('/dashboard');
+                }
+              }}>
+                <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors">
+                  Fix My Account
+                </button>
+              </form>
+              {/* 退出登录按钮 */}
               <form action={async () => {
                 'use server';
                 const supabase = await createClient();
@@ -32,7 +48,7 @@ export default async function DashboardPage() {
                 redirect('/login');
               }}>
                 <button type="submit" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 rounded text-sm font-medium transition-colors">
-                  Sign Out & Try Again
+                  Sign Out
                 </button>
               </form>
             </div>

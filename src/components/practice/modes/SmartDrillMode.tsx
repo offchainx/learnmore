@@ -29,20 +29,22 @@ export default function SmartDrillMode({ userId, subjectId, userGrade }: SmartDr
       try {
         setLoading(true)
         setError(null)
+        console.log('[SmartDrill] Fetching questions for:', { userId, subjectId })
         // Request 10 questions by default
         const data = await getSmartDrillQuestions(userId, subjectId, 10)
-        
+        console.log('[SmartDrill] Received questions:', data?.length || 0)
+
         if (!isMounted) return
 
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
             setError("No questions found for this subject. Try picking a different subject or difficulty.")
         } else {
             setQuestions(data)
         }
       } catch (err) {
         if (!isMounted) return
-        setError("Failed to load smart drill questions.")
-        console.error(err)
+        console.error('[SmartDrill] Error:', err)
+        setError(`Failed to load questions: ${err instanceof Error ? err.message : 'Unknown error'}`)
       } finally {
         if (isMounted) setLoading(false)
       }

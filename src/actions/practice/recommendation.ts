@@ -4,6 +4,51 @@ import prisma from "@/lib/prisma"
 import { Question } from "@prisma/client"
 
 /**
+ * Mock 数据 ID 到数据库 Subject name 的映射
+ * 前端使用 'math'，数据库使用 'Mathematics'
+ */
+const SUBJECT_NAME_MAP: Record<string, string> = {
+  math: 'Mathematics',
+  physics: 'Physics',
+  chemistry: 'Chemistry',
+  biology: 'Biology',
+  english: 'English',
+  history: 'History',
+  geography: 'Geography',
+  cs: 'Computer Science',
+}
+
+/**
+ * 根据科目标识符（name 或 id）获取真实的数据库 Subject ID
+ * 支持传入 'math' (前端 Mock ID) 或 'Mathematics' (数据库 name) 或 UUID (id)
+ */
+async function resolveSubjectId(subjectIdentifier: string): Promise<string | null> {
+  // 1. 先检查是否是前端 Mock ID，映射到数据库名称
+  const mappedName = SUBJECT_NAME_MAP[subjectIdentifier.toLowerCase()]
+  const nameToSearch = mappedName || subjectIdentifier
+
+  // 2. 尝试按 name 查找
+  const subjectByName = await prisma.subject.findUnique({
+    where: { name: nameToSearch },
+    select: { id: true }
+  })
+  if (subjectByName) {
+    return subjectByName.id
+  }
+
+  // 3. 再尝试按 id 查找（UUID 格式）
+  const subjectById = await prisma.subject.findUnique({
+    where: { id: subjectIdentifier },
+    select: { id: true }
+  })
+  if (subjectById) {
+    return subjectById.id
+  }
+
+  return null
+}
+
+/**
  * 获取智能刷题题目列表
  * 算法逻辑：
  * 1. 排除最近7天做过的题目
@@ -14,11 +59,20 @@ import { Question } from "@prisma/client"
  */
 export async function getSmartDrillQuestions(
   userId: string,
-  subjectId: string,
+  subjectIdentifier: string,
   limit: number = 10
 ): Promise<Question[]> {
+  console.log('[Recommendation] getSmartDrillQuestions called:', { userId, subjectIdentifier, limit })
   try {
-    // 0. 准备基础数据
+    // 0. 解析科目ID（支持 name 或 UUID）
+    const subjectId = await resolveSubjectId(subjectIdentifier)
+    console.log('[Recommendation] Resolved subjectId:', subjectId)
+    if (!subjectId) {
+      console.error(`[Recommendation] Subject not found: ${subjectIdentifier}`)
+      return []
+    }
+
+    // 1. 准备基础数据
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
@@ -37,8 +91,8 @@ export async function getSmartDrillQuestions(
     // 计算各部分目标数量
     const errorBookCount = Math.floor(limit * 0.5)
     const weakChapterCount = Math.floor(limit * 0.3)
-    // 剩余的都给新题，保证总数凑齐
-    let newQuestionCount = limit - errorBookCount - weakChapterCount
+    // 剩余的都给新题，保证总数凑齐 (实际由 remainingForNew 动态计算)
+    // const newQuestionCount = limit - errorBookCount - weakChapterCount
 
     const resultQuestions: Question[] = []
     const addedIds = new Set<string>(excludeIds)
@@ -64,7 +118,7 @@ export async function getSmartDrillQuestions(
     }
 
     // 更新剩余需要的数量 (如果错题不够，配额顺延给薄弱章节)
-    let remainingForWeak = weakChapterCount + (errorBookCount - resultQuestions.length)
+    const remainingForWeak = weakChapterCount + (errorBookCount - resultQuestions.length)
 
     // 2. 获取薄弱章节题目 (Target: 30% + carry over)
     if (remainingForWeak > 0) {
@@ -105,7 +159,7 @@ export async function getSmartDrillQuestions(
     }
 
     // 更新剩余需要的数量 (如果薄弱章节题目不够，全给新题)
-    let remainingForNew = limit - resultQuestions.length
+    const remainingForNew = limit - resultQuestions.length
 
     // 3. 获取新题目 (Target: 20% + carry over)
     // 难度匹配：简单起见，取难度 3 (或根据用户等级，这里暂定固定难度或随机)
@@ -148,11 +202,24 @@ export async function getSmartDrillQuestions(
         }
     }
 
-    // 4. 打乱顺序
+    // 5. 最终兜底：如果还是没有题目，直接查询该科目所有题目
+    if (resultQuestions.length === 0) {
+      console.log('[Recommendation] No questions found, using final fallback')
+      const anyQuestions = await prisma.question.findMany({
+        where: {
+          chapter: { subjectId }
+        },
+        take: limit
+      })
+      resultQuestions.push(...anyQuestions)
+    }
+
+    // 6. 打乱顺序
+    console.log('[Recommendation] Returning questions:', resultQuestions.length)
     return resultQuestions.sort(() => Math.random() - 0.5)
 
   } catch (error) {
-    console.error("Error fetching smart drill questions:", error)
+    console.error("[Recommendation] Error fetching smart drill questions:", error)
     return [] // 出错时返回空数组，避免崩溃
   }
 }
