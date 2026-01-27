@@ -204,8 +204,8 @@ export const QuestionBankView = ({ t }: { t: any }) => {
   const renderTrainingModes = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
        {/* 1. Smart Drill */}
-       <div 
-          onClick={() => handleStartQuiz('Adaptive Smart Drill')}
+       <div
+          onClick={() => router.push(`/dashboard/practice/smart-drill?subjectId=${selectedSubjectId}`)}
           className="group relative p-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl text-white overflow-hidden cursor-pointer shadow-lg hover:shadow-blue-500/25 transition-all hover:-translate-y-1"
        >
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px] pointer-events-none group-hover:bg-white/20 transition-colors"></div>
