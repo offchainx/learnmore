@@ -7,7 +7,7 @@ import { MultiChoice } from './MultiChoice';
 import { FillBlank } from './FillBlank';
 import { QuestionCardProps } from './types';
 import { cn } from '@/lib/utils';
-import { HelpCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { HelpCircle, CircleCheck, CircleX } from 'lucide-react';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
@@ -91,12 +91,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <div className="flex items-center gap-2 font-medium">
                 {isCorrect ? (
                     <span className="flex items-center gap-2 text-green-600 dark:text-green-500">
-                        <CheckCircle2 className="h-5 w-5" />
+                        <CircleCheck className="h-5 w-5" />
                         Correct
                     </span>
                 ) : (
                     <span className="flex items-center gap-2 text-destructive">
-                        <XCircle className="h-5 w-5" />
+                        <CircleX className="h-5 w-5" />
                         Incorrect
                     </span>
                 )}

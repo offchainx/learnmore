@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Flame, Clock, Zap, Target, MessageCircle, 
   ChevronUp, ChevronDown, Minus, Crown, Sword, ArrowUpRight, 
-  AlertTriangle, CheckCircle2, TrendingUp, Filter,
+  AlertTriangle, CircleCheck, TrendingUp, Filter,
   ChevronsUp
 } from 'lucide-react';
 
@@ -87,7 +87,7 @@ export const LeaderboardView = ({ t: _t }: { t?: unknown }) => {
                                   ? 'bg-slate-800 border-blue-600 text-blue-500' 
                                   : 'bg-slate-900 border-slate-700 text-slate-600'}
                          `}>
-                            {isPast ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                            {isPast ? <CircleCheck className="w-4 h-4" /> : i + 1}
                          </div>
                          
                          <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-white' : 'text-slate-500'}`}>

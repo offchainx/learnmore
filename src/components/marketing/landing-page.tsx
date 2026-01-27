@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   BookOpen, Users, Zap, Brain, Target,
-  CheckCircle2, XCircle, Play, Map,
+  CircleCheck, CircleX, Play, Map,
   BarChart2, HelpCircle, Phone, Mail, MapPin,
   TrendingUp, Activity, Sparkles, Share2, Quote, ChevronRight
 } from 'lucide-react';
@@ -420,7 +420,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                {/* Floating Badge */}
                <div className="absolute top-[10%] right-[10%] bg-slate-800/80 backdrop-blur border border-slate-700 p-3 rounded-lg flex gap-3 shadow-xl z-30 animate-bounce" style={{ animationDuration: '3s' }}>
                   <div className="h-10 w-10 bg-green-500/20 rounded-full flex items-center justify-center">
-                     <CheckCircle2 className="w-5 h-5 text-green-400" />
+                     <CircleCheck className="w-5 h-5 text-green-400" />
                   </div>
                   <div>
                      <div className="text-xs text-slate-400">Concept Mastered</div>
@@ -477,7 +477,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
               <ul className="space-y-4">
                 {t.features.f1List.map(item => (
                   <li key={item} className="flex items-center text-slate-300">
-                    <CheckCircle2 className="w-5 h-5 text-blue-500 mr-3" /> {item}
+                    <CircleCheck className="w-5 h-5 text-blue-500 mr-3" /> {item}
                   </li>
                 ))}
               </ul>
@@ -604,9 +604,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
             </div>
             
             {[ 
-              { label: t.comparison.row1, bad: t.comparison.row1bad, good: t.comparison.row1good, icon: XCircle },
+              { label: t.comparison.row1, bad: t.comparison.row1bad, good: t.comparison.row1good, icon: CircleX },
               { label: t.comparison.row2, bad: t.comparison.row2bad, good: t.comparison.row2good, icon: HelpCircle },
-              { label: t.comparison.row3, bad: t.comparison.row3bad, good: t.comparison.row3good, icon: XCircle },
+              { label: t.comparison.row3, bad: t.comparison.row3bad, good: t.comparison.row3good, icon: CircleX },
               { label: t.comparison.row4, bad: t.comparison.row4bad, good: t.comparison.row4good, icon: null }
             ].map((row, i) => (
               <div key={i} className={`grid grid-cols-3 p-6 items-center border-b border-slate-800/50 last:border-none hover:bg-white/5 transition-colors ${i % 2 === 1 ? 'bg-slate-900/20' : ''}`}>
@@ -616,7 +616,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                     <span className={`text-xs md:text-sm ${!row.icon ? 'line-through font-mono' : ''}`}>{row.bad}</span>
                  </div>
                  <div className="text-center text-white flex flex-col items-center gap-1">
-                    {row.icon ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <span className="text-xl font-bold text-emerald-400">$</span>}
+                    {row.icon ? <CircleCheck className="w-5 h-5 text-emerald-500" /> : <span className="text-xl font-bold text-emerald-400">$</span>}
                     <span className="text-xs md:text-sm font-bold text-emerald-100">{row.good}</span>
                  </div>
               </div>

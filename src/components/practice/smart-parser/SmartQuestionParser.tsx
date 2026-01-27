@@ -5,7 +5,7 @@ import { ImageUploader } from './ImageUploader';
 import { ProcessingOverlay } from './ProcessingOverlay';
 import { QuestionEditor } from './QuestionEditor';
 import { parseQuestionImage } from '@/actions/practice/parser';
-import { CheckCircle2, AlertTriangle, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
+import { CircleCheck, AlertTriangle, ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 
 interface SmartQuestionParserProps {
   onSave: (data: ParsedQuestion) => Promise<void>;
@@ -335,7 +335,7 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
             className="flex flex-col items-center justify-center py-20"
           >
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-6">
-              <CheckCircle2 size={48} />
+              <CircleCheck size={48} />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">All Done!</h2>
             <p className="text-slate-500 mt-2">All parsed questions have been saved to your database.</p>

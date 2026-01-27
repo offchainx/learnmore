@@ -13,7 +13,7 @@ import { generateInviteCode } from '@/actions/parent';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
-  Moon, Sun, LogOut, CheckCircle2, Globe, Gift, Users
+  Moon, Sun, LogOut, CircleCheck, Globe, Gift, Users
 } from 'lucide-react';
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
@@ -115,7 +115,7 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
             </div>
             <Button onClick={handleCopyCode} variant="outline" className="shrink-0">
               {copied ? (
-                <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> 已复制</>
+                <><CircleCheck className="w-4 h-4 mr-2 text-green-500" /> 已复制</>
               ) : (
                 <><Copy className="w-4 h-4 mr-2" /> 复制</>
               )}
@@ -136,7 +136,7 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
             </div>
             <Button onClick={handleCopyLink} variant="outline" className="shrink-0">
               {copiedLink ? (
-                <><CheckCircle2 className="w-4 h-4 mr-2 text-green-500" /> 已复制</>
+                <><CircleCheck className="w-4 h-4 mr-2 text-green-500" /> 已复制</>
               ) : (
                 <><LinkIcon className="w-4 h-4 mr-2" /> 复制链接</>
               )}
@@ -422,7 +422,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                     <span className="text-xl">{l.icon}</span>
                     <span className={`font-medium text-sm ${lang === l.id ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{l.label}</span>
                   </span>
-                  {lang === l.id && <CheckCircle2 className="w-4 h-4 text-blue-500" />}
+                  {lang === l.id && <CircleCheck className="w-4 h-4 text-blue-500" />}
                 </button>
               ))}
             </div>
@@ -481,7 +481,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
             >
               {selectedTutor === tutor.id && (
                 <div className={`absolute top-4 right-4 w-6 h-6 rounded-full ${tutor.bg} flex items-center justify-center`}>
-                  <CheckCircle2 className={`w-4 h-4 ${tutor.color}`} />
+                  <CircleCheck className={`w-4 h-4 ${tutor.color}`} />
                 </div>
               )}
               <div className={`w-14 h-14 rounded-2xl ${tutor.bg} flex items-center justify-center mb-6`}>

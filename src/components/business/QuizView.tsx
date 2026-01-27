@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Question, QuestionType } from '@prisma/client';
 import { submitQuiz, QuizSubmissionResult } from '@/actions/quiz';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CircleCheck, CircleX } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -108,7 +108,7 @@ export function QuizView({ chapterId, questions, onComplete }: QuizViewProps) {
                         {q.content}
                       </ReactMarkdown>
                     </div>
-                    {isCorrect ? <CheckCircle2 className="text-emerald-500 w-5 h-5 shrink-0" /> : <XCircle className="text-red-500 w-5 h-5 shrink-0" />}
+                    {isCorrect ? <CircleCheck className="text-emerald-500 w-5 h-5 shrink-0" /> : <CircleX className="text-red-500 w-5 h-5 shrink-0" />}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

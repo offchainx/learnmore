@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
-  Trophy, ArrowLeft, Timer, CheckCircle2, ChevronRight, 
+  Trophy, ArrowLeft, Timer, CircleCheck, ChevronRight, 
   Play, AlertOctagon, TrendingUp, 
   Eraser, BookOpen, Flame, Star, Hexagon, Zap,
   FileText
@@ -174,7 +174,7 @@ export const QuestionBankView = ({ t }: { t: any }) => {
                           </span>
                           {opt}
                        </span>
-                       {userAnswers[currentQIndex] === idx && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
+                       {userAnswers[currentQIndex] === idx && <CircleCheck className="w-5 h-5 text-blue-500" />}
                     </button>
                  ))}
               </div>
