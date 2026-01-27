@@ -62,11 +62,13 @@ export async function getSmartDrillQuestions(
   subjectIdentifier: string,
   limit: number = 10
 ): Promise<Question[]> {
+  console.log('[Recommendation] getSmartDrillQuestions called:', { userId, subjectIdentifier, limit })
   try {
     // 0. 解析科目ID（支持 name 或 UUID）
     const subjectId = await resolveSubjectId(subjectIdentifier)
+    console.log('[Recommendation] Resolved subjectId:', subjectId)
     if (!subjectId) {
-      console.error(`Subject not found: ${subjectIdentifier}`)
+      console.error(`[Recommendation] Subject not found: ${subjectIdentifier}`)
       return []
     }
 
@@ -200,11 +202,24 @@ export async function getSmartDrillQuestions(
         }
     }
 
-    // 4. 打乱顺序
+    // 5. 最终兜底：如果还是没有题目，直接查询该科目所有题目
+    if (resultQuestions.length === 0) {
+      console.log('[Recommendation] No questions found, using final fallback')
+      const anyQuestions = await prisma.question.findMany({
+        where: {
+          chapter: { subjectId }
+        },
+        take: limit
+      })
+      resultQuestions.push(...anyQuestions)
+    }
+
+    // 6. 打乱顺序
+    console.log('[Recommendation] Returning questions:', resultQuestions.length)
     return resultQuestions.sort(() => Math.random() - 0.5)
 
   } catch (error) {
-    console.error("Error fetching smart drill questions:", error)
+    console.error("[Recommendation] Error fetching smart drill questions:", error)
     return [] // 出错时返回空数组，避免崩溃
   }
 }
