@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import {
   Users, UserPlus, Clock, BookOpen, Target,
   TrendingUp, Award, Calendar, ChevronRight,
-  AlertCircle, CheckCircle2, Sparkles
+  AlertCircle, CircleCheck, Sparkles
 } from 'lucide-react'
 import { getLinkedStudents, bindStudent, getStudentStats } from '@/actions/parent'
 import { toast } from '@/components/ui/use-toast'
@@ -206,7 +206,7 @@ export const ParentDashboardView = () => {
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
                             act.result === 'correct' ? 'border-green-500/50 bg-green-500/10 text-green-500' : 'border-orange-500/50 bg-orange-500/10 text-orange-500'
                           }`}>
-                             {act.result === 'correct' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                             {act.result === 'correct' ? <CircleCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                           </div>
                           <div className="flex-1 w-0.5 bg-slate-200 dark:bg-slate-700 my-1 group-last:hidden"></div>
                        </div>

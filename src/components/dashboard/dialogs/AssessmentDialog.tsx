@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { CircleCheck, CircleX } from 'lucide-react'
 
 // Mock Questions for Assessment
 const QUESTIONS = [
@@ -111,7 +111,7 @@ export function AssessmentDialog({ open, onOpenChange, onSuccess }: AssessmentDi
                       >
                         {opt}
                         {showResult && isSelected && (
-                            isCorrect ? <CheckCircle2 className="ml-auto w-5 h-5 text-green-600" /> : <XCircle className="ml-auto w-5 h-5 text-red-600" />
+                            isCorrect ? <CircleCheck className="ml-auto w-5 h-5 text-green-600" /> : <CircleX className="ml-auto w-5 h-5 text-red-600" />
                         )}
                       </Button>
                     )

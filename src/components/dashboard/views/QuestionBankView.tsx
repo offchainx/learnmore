@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
-  Trophy, ArrowLeft, Timer, CheckCircle2, ChevronRight, 
+  Trophy, ArrowLeft, Timer, CircleCheck, ChevronRight, 
   Play, AlertOctagon, TrendingUp, 
   Eraser, BookOpen, Flame, Star, Hexagon, Zap,
   FileText
@@ -45,6 +46,7 @@ const hiveData = [
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const QuestionBankView = ({ t }: { t: any }) => {
+  const router = useRouter();
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
   const [activeQuiz, setActiveQuiz] = useState<{ sectionId: string, title: string } | null>(null);
   
@@ -172,7 +174,7 @@ export const QuestionBankView = ({ t }: { t: any }) => {
                           </span>
                           {opt}
                        </span>
-                       {userAnswers[currentQIndex] === idx && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
+                       {userAnswers[currentQIndex] === idx && <CircleCheck className="w-5 h-5 text-blue-500" />}
                     </button>
                  ))}
               </div>
@@ -221,7 +223,7 @@ export const QuestionBankView = ({ t }: { t: any }) => {
 
        {/* 2. Error Wiper */}
        <div 
-          onClick={() => handleStartQuiz('Error Wiper')}
+          onClick={() => router.push('/dashboard/practice/error-wiper')}
           className="group relative p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden cursor-pointer hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 transition-all hover:-translate-y-1"
        >
           <div className="relative z-10">

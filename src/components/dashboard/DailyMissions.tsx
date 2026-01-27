@@ -2,7 +2,7 @@
 
 import React, { useTransition, useState } from 'react';
 import { DailyTask, User, UserSettings, DailyTaskType } from '@prisma/client';
-import { Target, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Target, ArrowRight, CircleCheck } from 'lucide-react';
 import { claimTaskReward, completeOnboardingTask } from '@/actions/gamification';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -173,7 +173,7 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
                       
                       {task.isClaimed ? (
                            <div className="w-8 h-8 flex items-center justify-center text-emerald-500">
-                               <CheckCircle2 className="w-6 h-6" />
+                               <CircleCheck className="w-6 h-6" />
                            </div>
                       ) : isCompleted ? (
                            <Button 

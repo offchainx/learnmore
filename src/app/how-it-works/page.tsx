@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { 
   Target, Map, Play, TrendingUp, History, 
-  Brain, CheckCircle2, 
+  Brain, CircleCheck, 
   Bell
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -295,8 +295,8 @@ const ProductTourPage: React.FC = () => {
                      {t.s1.desc}
                   </p>
                   <div className="flex gap-4 text-xs text-slate-500 font-mono border-t border-slate-800 pt-4">
-                     <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {t.s1.check1}</div>
-                     <div className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {t.s1.check2}</div>
+                     <div className="flex items-center gap-2"><CircleCheck className="w-3.5 h-3.5 text-green-500" /> {t.s1.check1}</div>
+                     <div className="flex items-center gap-2"><CircleCheck className="w-3.5 h-3.5 text-green-500" /> {t.s1.check2}</div>
                   </div>
                </div>
                

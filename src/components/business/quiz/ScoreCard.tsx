@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, Clock, Target, CheckCircle2 } from 'lucide-react';
+import { Trophy, Clock, Target, CircleCheck } from 'lucide-react';
 
 interface ScoreCardProps {
   score: number;
@@ -55,7 +55,7 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({
              </div>
 
              <div className="flex items-center gap-2 p-3 bg-background rounded-lg border shadow-sm">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CircleCheck className="h-4 w-4 text-green-500" />
                 <div className="flex flex-col">
                     <span className="text-xs text-muted-foreground">Correct</span>
                     <span className="font-semibold text-green-600">{correctCount}</span>

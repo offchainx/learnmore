@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Plus, ImageIcon, Hash, Heart, MessageSquare, Share2, MoreHorizontal, 
-  Mic, Flame, Crown, CheckCircle2, Sparkles, Bot, Search
+  Mic, Flame, Crown, CircleCheck, Sparkles, Bot, Search
 } from 'lucide-react';
 
 interface Post {
@@ -223,7 +223,7 @@ export const CommunityView = ({ t }: { t: any }) => {
                      <div className="flex items-center gap-2">
                         {post.type === 'question' && (
                             <span className={`text-xs font-bold px-2 py-1 rounded-full border flex items-center gap-1 ${post.solved ? 'bg-green-100 text-green-600 border-green-200' : 'bg-orange-100 text-orange-600 border-orange-200'}`}>
-                                {post.solved ? <CheckCircle2 className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                                {post.solved ? <CircleCheck className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
                                 {post.solved ? 'Solved' : 'Question'}
                             </span>
                         )}

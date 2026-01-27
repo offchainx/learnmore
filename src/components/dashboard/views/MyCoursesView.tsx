@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
-  ChevronRight, ChevronDown, CheckCircle2, Lock, Clock, AlertTriangle, 
+  ChevronRight, ChevronDown, CircleCheck, Lock, Clock, AlertTriangle, 
   BarChart, Flame, Target, Notebook, Bookmark, Highlighter, ArrowRight,
   List, Brain, GraduationCap, Search, PlayCircle, FileText, HelpCircle,
   Coffee, X, Zap, ArrowUpRight
@@ -124,7 +124,7 @@ export const MyCoursesView = ({ t }: { t: any }) => {
                       <div className="flex items-center gap-4">
                         {section.isCompleted ? (
                           <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                            <CircleCheck className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
                           </div>
                         ) : section.isLocked ? (
                           <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
@@ -196,7 +196,7 @@ export const MyCoursesView = ({ t }: { t: any }) => {
              </Card>
              <Card className="p-4 border-l-4 border-l-green-500 bg-green-50/50 dark:bg-green-900/10">
                 <div className="flex items-center gap-2 mb-2 text-green-600 dark:text-green-400">
-                   <CheckCircle2 className="w-5 h-5" />
+                   <CircleCheck className="w-5 h-5" />
                    <h3 className="font-bold">{t.confidenceHigh}</h3>
                 </div>
                 <div className="text-2xl font-bold mb-1 text-slate-900 dark:text-white">{highConf.length} <span className="text-sm font-normal text-slate-500">Topics</span></div>

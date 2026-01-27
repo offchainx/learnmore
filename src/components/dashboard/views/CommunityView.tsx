@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
   Plus, ImageIcon, Hash, Heart, MessageSquare, Share2, MoreHorizontal, 
-  Mic, Flame, Crown, CheckCircle2, Sparkles, Bot, Search, Send
+  Mic, Flame, Crown, CircleCheck, Sparkles, Bot, Search, Send
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 import { getPosts, createPost, toggleLike, PostWithAuthor } from '@/actions/community';
@@ -215,7 +215,7 @@ export const CommunityView = () => {
                      <div className="flex items-center gap-2">
                         {post.category === 'Question' && (
                             <span className={`text-xs font-bold px-2 py-1 rounded-full border flex items-center gap-1 ${post.isSolved ? 'bg-green-100 text-green-600 border-green-200' : 'bg-orange-100 text-orange-600 border-orange-200'}`}>
-                                {post.isSolved ? <CheckCircle2 className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                                {post.isSolved ? <CircleCheck className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
                                 {post.isSolved ? 'Solved' : 'Question'}
                             </span>
                         )}
