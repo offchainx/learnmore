@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { 
-  Trophy, ArrowLeft, Timer, CircleCheck, ChevronRight, 
-  Play, AlertOctagon, TrendingUp, 
+import {
+  Trophy, ArrowLeft, Timer, CircleCheck, ChevronRight,
+  Play, AlertOctagon,
   Eraser, BookOpen, Flame, Star, Hexagon, Zap,
   FileText
 } from 'lucide-react';
 import { subjectsData } from '../shared';
+import ExamForecast from '@/components/practice/analytics/ExamForecast';
 
 // Mock data for quiz interface
 const quizQuestions = [
@@ -45,7 +46,7 @@ const hiveData = [
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const QuestionBankView = ({ t }: { t: any }) => {
+export const QuestionBankView = ({ t, userId }: { t: any; userId?: string }) => {
   const router = useRouter();
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
   const [activeQuiz, setActiveQuiz] = useState<{ sectionId: string, title: string } | null>(null);
@@ -400,33 +401,20 @@ export const QuestionBankView = ({ t }: { t: any }) => {
      </Card>
   );
 
-  const renderExamForecast = () => (
-     <Card className="p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white mb-6 overflow-hidden relative">
-        <div className="p-5 relative z-10">
-           <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-500" /> Exam Forecast
-           </div>
-           <div className="flex items-end gap-3 mb-4">
-              <div className="text-4xl font-bold text-white">A-</div>
-              <div className="text-green-400 text-sm font-bold mb-1 flex items-center">
-                 +1 Grade <TrendingUp className="w-3 h-3 ml-1" />
-              </div>
-           </div>
-           
-           {/* Simple Sparkline */}
-           <div className="h-10 flex items-end gap-1 opacity-80">
-              {[30, 40, 35, 50, 45, 60, 65, 55, 70, 75].map((h, i) => (
-                 <div key={i} className="flex-1 bg-blue-500/30 rounded-t-sm hover:bg-blue-500 transition-colors" style={{ height: `${h}%` }}></div>
-              ))}
-           </div>
-        </div>
-        <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
-           <span className="text-xs text-slate-400">Predicted for <strong>Finals (Nov)</strong></span>
-        </div>
-        {/* Glow */}
-        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-900/20 to-transparent pointer-events-none"></div>
-     </Card>
-  );
+  const renderExamForecast = () => {
+    // 如果没有 userId，显示占位内容
+    if (!userId) {
+      return (
+        <Card className="p-5 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white mb-6">
+          <div className="text-center text-slate-400 py-4">
+            请登录查看考分预测
+          </div>
+        </Card>
+      )
+    }
+
+    return <ExamForecast userId={userId} className="mb-6" />
+  }
 
   const renderWeaknessFix = () => (
      <Card className="p-5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">

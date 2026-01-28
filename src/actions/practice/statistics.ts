@@ -4,12 +4,13 @@
  * Practice Center Statistics
  * 练习中心统计分析
  *
- * 提供知识蜂巢、薄弱点分析等统计查询
+ * 提供知识蜂巢、薄弱点分析、考分预测等统计查询
  */
 
 import prisma from '@/lib/prisma'
-import type { HiveNode } from '@/lib/practice/types'
+import type { HiveNode, ExamForecast } from '@/lib/practice/types'
 import { getHiveStatus, HIVE_STATUS_COLORS } from '@/lib/practice/types'
+import { calculateExamForecast } from '@/lib/practice/algorithms'
 
 // ============ C1: Knowledge Hive (知识蜂巢) ============
 
@@ -133,4 +134,115 @@ export async function getKnowledgeHiveData(
   })
 
   return hiveNodes
+}
+
+// ============ C2: Exam Forecast (考分预测) ============
+
+/**
+ * 获取考分预测数据
+ * 基于用户近30天的答题记录、课程完成度和连续学习天数计算预测分数
+ *
+ * @param userId - 用户ID
+ * @param subjectId - 可选，科目ID（筛选特定科目）
+ * @returns 考分预测结果
+ */
+export async function getExamForecastData(
+  userId: string,
+  subjectId?: string
+): Promise<ExamForecast | null> {
+  // 计算30天前的日期
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  // 并行查询所需数据
+  const [recentAttempts, user, lessonStats] = await Promise.all([
+    // 1. 查询近30天的答题记录
+    prisma.userAttempt.findMany({
+      where: {
+        userId,
+        createdAt: { gte: thirtyDaysAgo },
+        ...(subjectId && {
+          question: {
+            chapter: {
+              subjectId
+            }
+          }
+        })
+      },
+      select: {
+        isCorrect: true,
+        createdAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    }),
+
+    // 2. 查询用户的 streak
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { streak: true }
+    }),
+
+    // 3. 查询课程完成情况
+    subjectId
+      ? prisma.$transaction([
+          // 该科目总课程数
+          prisma.lesson.count({
+            where: {
+              chapter: { subjectId }
+            }
+          }),
+          // 用户已完成的课程数
+          prisma.userProgress.count({
+            where: {
+              userId,
+              isCompleted: true,
+              lesson: {
+                chapter: { subjectId }
+              }
+            }
+          })
+        ])
+      : prisma.$transaction([
+          // 所有科目总课程数
+          prisma.lesson.count(),
+          // 用户已完成的课程数
+          prisma.userProgress.count({
+            where: {
+              userId,
+              isCompleted: true
+            }
+          })
+        ])
+  ])
+
+  // 如果用户不存在，返回 null
+  if (!user) {
+    return null
+  }
+
+  const [totalLessons, completedLessons] = lessonStats
+
+  // 如果没有任何答题记录，返回默认预测
+  if (recentAttempts.length === 0) {
+    return {
+      grade: 'N/A',
+      score: 0,
+      trend: 'STABLE',
+      confidence: 0,
+      sparklineData: [50, 50, 50, 50, 50, 50, 50]
+    }
+  }
+
+  // 调用算法计算预测
+  const forecast = calculateExamForecast({
+    recentAttempts: recentAttempts.map(a => ({
+      isCorrect: a.isCorrect,
+      createdAt: a.createdAt
+    })),
+    totalLessons,
+    completedLessons,
+    userStreak: user.streak
+  })
+
+  return forecast
 }
