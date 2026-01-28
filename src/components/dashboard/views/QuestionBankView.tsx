@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { 
-  Trophy, ArrowLeft, Timer, CircleCheck, ChevronRight, 
-  Play, AlertOctagon, TrendingUp, 
+import {
+  Trophy, ChevronRight,
+  Play, AlertOctagon,
   Eraser, BookOpen, Flame, Star, Zap,
   FileText, Calculator, Atom, FlaskConical, Languages, Dna, Landmark, Globe, Laptop
 } from 'lucide-react';
-import { subjectsData } from '../shared';
 import { getAllSubjects } from '@/actions/subject';
 import { getSubjectChapters } from '@/actions/practice/data-service';
 import type { ChapterWithStats } from '@/lib/practice/types';
 import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive';
+import ExamForecast from '@/components/practice/analytics/ExamForecast';
 
 // Mock data for quiz interface (to be replaced by full Quiz engine integration later)
 const quizQuestions = [
@@ -39,17 +39,18 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
+export const QuestionBankView = ({ t, userId }: { t: any; userId: string }) => {
   const router = useRouter();
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [activeQuiz, setActiveQuiz] = useState<{ sectionId: string, title: string } | null>(null);
   const [dbSubjects, setDbSubjects] = useState<DbSubject[]>([]);
   const [dbChapters, setDbChapters] = useState<ChapterWithStats[]>([]);
   const [isLoadingChapters, setIsLoadingChapters] = useState(false);
-  
-  // Quiz State
+
+  // Quiz State (to be used when full Quiz engine is integrated)
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isQuizFinished, setIsQuizFinished] = useState(false);
 
   // Load subject data
@@ -59,8 +60,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
       if (result.success && result.data) {
         setDbSubjects(result.data);
         // Find mathematics or select the first one
-        const mathSubject = result.data.find(s => 
-          s.name.toLowerCase().includes('math') || 
+        const mathSubject = result.data.find(s =>
+          s.name.toLowerCase().includes('math') ||
           s.name.toLowerCase().includes('数学')
         );
         if (mathSubject) {
@@ -77,7 +78,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
   useEffect(() => {
     async function fetchChapters() {
       if (!selectedSubjectId) return;
-      
+
       setIsLoadingChapters(true);
       try {
         const data = await getSubjectChapters(selectedSubjectId, userId);
@@ -95,7 +96,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
     }
 
     fetchChapters();
-    setActiveQuiz(null); 
+    setActiveQuiz(null);
     setIsQuizFinished(false);
   }, [selectedSubjectId, userId]);
 
@@ -103,6 +104,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
   const currentDbSubject = dbSubjects.find(s => s.id === selectedSubjectId);
   const currentSubjectTitle = currentDbSubject ? currentDbSubject.name : 'Loading...';
 
+  // Quiz functions (to be used when full Quiz engine is integrated)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleStartQuiz = (title: string, id: string = 'general') => {
     setActiveQuiz({ sectionId: id, title: title });
     setCurrentQIndex(0);
@@ -110,12 +113,14 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
     setIsQuizFinished(false);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAnswer = (optionIndex: number) => {
     const newAnswers = [...userAnswers];
     newAnswers[currentQIndex] = optionIndex;
     setUserAnswers(newAnswers);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const calculateScore = () => {
     let score = 0;
     userAnswers.forEach((ans, idx) => {
@@ -137,8 +142,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
             key={sub.id}
             onClick={() => setSelectedSubjectId(sub.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all border whitespace-nowrap ${
-              isActive 
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-transparent shadow-md transform scale-105' 
+              isActive
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-transparent shadow-md transform scale-105'
                 : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
@@ -153,7 +158,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
   const renderTrainingModes = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
        {/* Smart Drill */}
-       <div 
+       <div
           onClick={() => router.push(`/dashboard/practice/smart-drill?subjectId=${selectedSubjectId}`)}
           className="group relative p-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl text-white overflow-hidden cursor-pointer shadow-lg hover:shadow-blue-500/25 transition-all hover:-translate-y-1"
        >
@@ -171,7 +176,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
        </div>
 
        {/* Error Wiper */}
-       <div 
+       <div
           onClick={() => router.push(`/dashboard/practice/error-wiper?subjectId=${selectedSubjectId}`)}
           className="group relative p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden cursor-pointer hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 transition-all hover:-translate-y-1"
        >
@@ -188,7 +193,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
        </div>
 
        {/* Mock Arena */}
-       <div 
+       <div
           onClick={() => router.push(`/dashboard/practice/mock-arena?subjectId=${selectedSubjectId}`)}
           className="group relative p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden cursor-pointer hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all hover:-translate-y-1"
        >
@@ -211,13 +216,9 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
     // Only intercept if we have enough chapters to scroll
     if (dbChapters.length <= CHAPTERS_PER_PAGE) return;
 
-    // Prevent default page scroll only if we are actually scrolling the carousel
-    // Note: We can't strictly preventDefault in passive listeners, but React handles this mostly.
-    // Ideally we just consume the event.
-    
     const direction = e.deltaY > 0 ? 1 : -1;
     const maxPage = Math.ceil(dbChapters.length / CHAPTERS_PER_PAGE) - 1;
-    
+
     setChapterPage(prev => {
       const next = prev + direction;
       // Clamp between 0 and maxPage
@@ -228,7 +229,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
   const renderChapterMap = () => {
     const totalPages = Math.ceil(dbChapters.length / CHAPTERS_PER_PAGE);
     const visibleChapters = dbChapters.slice(
-      chapterPage * CHAPTERS_PER_PAGE, 
+      chapterPage * CHAPTERS_PER_PAGE,
       (chapterPage + 1) * CHAPTERS_PER_PAGE
     );
 
@@ -239,8 +240,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
           <div className="flex items-center gap-2">
              <div className="flex gap-1">
                 {Array.from({ length: totalPages }).map((_, i) => (
-                   <div 
-                      key={i} 
+                   <div
+                      key={i}
                       className={`w-1.5 h-1.5 rounded-full transition-all ${i === chapterPage ? 'bg-slate-900 dark:bg-white w-3' : 'bg-slate-300 dark:bg-slate-700'}`}
                    />
                 ))}
@@ -262,8 +263,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
            <p className="text-slate-500">No chapters found for this subject.</p>
          </div>
        ) : (
-         <div 
-            className="space-y-3 min-h-[320px]" 
+         <div
+            className="space-y-3 min-h-[320px]"
             onWheel={handleChapterWheel}
          >
             {visibleChapters.map((chapter, index) => {
@@ -275,8 +276,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
                 const isWeakness = chapter.stats.totalAttempts > 5 && (chapter.stats.correctCount / chapter.stats.totalAttempts) < 0.6;
 
                 return (
-                   <div 
-                      key={chapter.id} 
+                   <div
+                      key={chapter.id}
                       className="animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
                       style={{ animationDelay: `${index * 50}ms` }}
                    >
@@ -286,7 +287,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
                               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">CH</div>
                               <div className="text-xl font-black text-slate-900 dark:text-white">{String(absoluteIndex + 1).padStart(2, '0')}</div>
                            </div>
-                           
+
                            <div>
                               <div className="flex items-center gap-2 mb-1">
                                  <h4 className="font-bold text-slate-900 dark:text-white text-base line-clamp-1">{chapter.title}</h4>
@@ -301,12 +302,12 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
                                     </span>
                                  )}
                               </div>
-                              
+
                               <div className="flex gap-1">
                                  {[1, 2, 3].map(star => (
-                                    <Star 
-                                       key={star} 
-                                       className={`w-4 h-4 ${star <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200 dark:text-slate-700'}`} 
+                                    <Star
+                                       key={star}
+                                       className={`w-4 h-4 ${star <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200 dark:text-slate-700'}`}
                                     />
                                  ))}
                                  <span className="text-[10px] font-bold text-slate-400 ml-2 uppercase tracking-tight">{stars}/3 Mastery</span>
@@ -314,28 +315,19 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
                            </div>
                         </div>
 
-                                          <Button 
-
-                                             onClick={() => router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)}
-
-                                             size="sm" 
-
-                                             variant={stars === 3 ? 'outline' : 'primary'}
-
-                                             className={stars === 3 ? 'rounded-xl text-green-500 border-green-500/30 hover:bg-green-500/10' : 'rounded-xl'}
-
-                                          >
-
-                                             {stars === 3 ? 'Review' : 'Start'}
-
-                                          </Button>
-
-                        
+                        <Button
+                           onClick={() => router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)}
+                           size="sm"
+                           variant={stars === 3 ? 'outline' : 'primary'}
+                           className={stars === 3 ? 'rounded-xl text-green-500 border-green-500/30 hover:bg-green-500/10' : 'rounded-xl'}
+                        >
+                           {stars === 3 ? 'Review' : 'Start'}
+                        </Button>
                      </Card>
                    </div>
                 );
             })}
-            
+
             {/* Empty state filler to maintain height if last page has < 3 items */}
             {visibleChapters.length < CHAPTERS_PER_PAGE && Array.from({ length: CHAPTERS_PER_PAGE - visibleChapters.length }).map((_, i) => (
                 <div key={`empty-${i}`} className="h-[72px] rounded-2xl border border-dashed border-slate-200 dark:border-slate-800/50 flex items-center justify-center">
@@ -372,32 +364,12 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
      </div>
   );
 
-  const renderExamForecast = () => (
-     <Card className="p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white mb-6 overflow-hidden relative rounded-3xl">
-        <div className="p-6 relative z-10">
-           <div className="flex items-center gap-2 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">
-              <TrendingUp className="w-4 h-4 text-blue-500" /> Exam Forecast
-           </div>
-           <div className="flex items-end gap-3 mb-4">
-              <div className="text-5xl font-black text-white">A-</div>
-              <div className="text-green-400 text-sm font-bold mb-1 flex items-center">
-                 +1 Grade <TrendingUp className="w-3 h-3 ml-1" />
-              </div>
-           </div>
-           
-           {/* Simple Sparkline */}
-           <div className="h-10 flex items-end gap-1 opacity-80">
-              {[30, 40, 35, 50, 45, 60, 65, 55, 70, 75].map((h, i) => (
-                 <div key={i} className="flex-1 bg-blue-500/30 rounded-t-sm hover:bg-blue-500 transition-colors" style={{ height: `${h}%` }}></div>
-              ))}
-           </div>
-        </div>
-        <div className="bg-white/5 p-3 text-center border-t border-white/5 relative z-10">
-           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Predicted for <strong>Finals (Nov)</strong></span>
-        </div>
-        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-900/20 to-transparent pointer-events-none"></div>
-     </Card>
-  );
+  // --- SIDEBAR WIDGETS ---
+
+  const renderExamForecast = () => {
+    // 使用真实的 ExamForecast 组件
+    return <ExamForecast userId={userId} subjectId={selectedSubjectId} className="mb-6" />
+  }
 
   const renderWeaknessFix = () => (
      <Card className="p-5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50 rounded-3xl">
@@ -415,8 +387,8 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
                     <div className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-red-500 transition-colors">{w.topic}</div>
                     <div className="text-[10px] text-red-500 font-bold uppercase">{w.score}% Proficiency</div>
                  </div>
-                 <Button 
-                    size="sm" 
+                 <Button
+                    size="sm"
                     className="h-7 px-3 text-[10px] font-black uppercase bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-transparent hover:bg-red-600 hover:text-white rounded-lg transition-all"
                  >
                     Fix <Play className="w-2.5 h-2.5 ml-1 fill-current" />
@@ -431,7 +403,7 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
 
   if (activeQuiz) {
     // Quiz logic... (existing handleStartQuiz logic)
-    // For now we keep the existing Quiz UI structure if needed, 
+    // For now we keep the existing Quiz UI structure if needed,
     // but the main goal was the dashboard optimization.
   }
 
@@ -455,10 +427,10 @@ export const QuestionBankView = ({ t, userId }: { t: any, userId: string }) => {
 
           <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
              {selectedSubjectId && (
-                <KnowledgeHive 
-                   userId={userId} 
-                   subjectId={selectedSubjectId} 
-                   subjectName={currentSubjectTitle} 
+                <KnowledgeHive
+                   userId={userId}
+                   subjectId={selectedSubjectId}
+                   subjectName={currentSubjectTitle}
                 />
              )}
              {renderExamForecast()}

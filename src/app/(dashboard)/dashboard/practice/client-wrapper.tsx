@@ -5,7 +5,11 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { QuestionBankView } from '@/components/dashboard/views/QuestionBankView'
 import { useApp } from '@/providers/app-provider'
 
-export function PracticeClientWrapper({ userId }: { userId: string }) {
+interface PracticeClientWrapperProps {
+  userId: string
+}
+
+export function PracticeClientWrapper({ userId }: PracticeClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
