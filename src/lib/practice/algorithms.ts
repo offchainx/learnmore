@@ -170,7 +170,7 @@ export function calculateExamForecast(rawData: ExamForecastRawData): ExamForecas
   const predictedScore =
     avgCorrectRate * 0.6 +
     courseCompletion * 0.3 +
-    streakBonus * 0.1
+    streakBonus
 
   // 确保分数在 0-100 范围内
   const normalizedScore = Math.max(0, Math.min(100, predictedScore))

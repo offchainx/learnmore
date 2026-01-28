@@ -14,6 +14,7 @@ import type {
   QuestionFilter,
   QuotaStatus,
   SubjectChaptersResult,
+  WeaknessItem,
 } from '@/lib/practice/types'
 import { QUOTA_CONFIGS } from '@/lib/practice/types'
 
@@ -90,6 +91,7 @@ export async function getChapterWithStats(
 /**
  * 获取科目下所有章节及用户掌握度
  * 使用批量查询优化，避免N+1问题
+ * 同时计算最近7天和30天的统计数据（用于 HOT/WEAK 标签）
  *
  * @param subjectId - 科目ID
  * @param userId - 用户ID
@@ -129,21 +131,7 @@ export async function getSubjectChapters(
 
   const chapterIds = chapters.map(c => c.id)
 
-  // 3. 批量查询用户在这些章节的答题统计（一次查询）
-  const attemptStats = await prisma.userAttempt.groupBy({
-    by: ['questionId'],
-    where: {
-      userId,
-      question: {
-        chapterId: { in: chapterIds }
-      }
-    },
-    _count: {
-      id: true
-    }
-  })
-
-  // 4. 获取每个答题记录的正确性和章节关系
+  // 3. 批量查询用户在这些章节的所有答题统计（包含时间信息）
   const attemptsWithChapter = await prisma.userAttempt.findMany({
     where: {
       userId,
@@ -153,6 +141,7 @@ export async function getSubjectChapters(
     },
     select: {
       isCorrect: true,
+      createdAt: true,
       question: {
         select: {
           chapterId: true
@@ -161,24 +150,73 @@ export async function getSubjectChapters(
     }
   })
 
-  // 5. 按章节聚合统计
-  const chapterStatsMap = new Map<string, { total: number; correct: number }>()
+  // 4. 按章节聚合统计
+  // 使用 Map 存储每个章节的累积统计数据
+  interface AggregatedStats {
+    total: number
+    correct: number
+    recentTotal: number // 7天
+    recentCorrect: number
+    monthlyTotal: number // 30天
+    monthlyCorrect: number
+  }
+
+  const chapterStatsMap = new Map<string, AggregatedStats>()
+  
+  const now = new Date()
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
   for (const attempt of attemptsWithChapter) {
     const cId = attempt.question.chapterId
-    const existing = chapterStatsMap.get(cId) || { total: 0, correct: 0 }
-    existing.total += 1
-    if (attempt.isCorrect) {
-      existing.correct += 1
+    const existing = chapterStatsMap.get(cId) || { 
+      total: 0, correct: 0, 
+      recentTotal: 0, recentCorrect: 0,
+      monthlyTotal: 0, monthlyCorrect: 0 
     }
+    
+    // 全量统计
+    existing.total += 1
+    if (attempt.isCorrect) existing.correct += 1
+
+    const attemptDate = new Date(attempt.createdAt)
+
+    // 7天统计
+    if (attemptDate >= sevenDaysAgo) {
+      existing.recentTotal += 1
+      if (attempt.isCorrect) existing.recentCorrect += 1
+    }
+
+    // 30天统计
+    if (attemptDate >= thirtyDaysAgo) {
+      existing.monthlyTotal += 1
+      if (attempt.isCorrect) existing.monthlyCorrect += 1
+    }
+
     chapterStatsMap.set(cId, existing)
   }
 
-  // 6. 组装结果
+  // 5. 组装结果
   const chaptersWithStats: ChapterWithStats[] = chapters.map(chapter => {
-    const stats = chapterStatsMap.get(chapter.id) || { total: 0, correct: 0 }
+    const stats = chapterStatsMap.get(chapter.id) || { 
+      total: 0, correct: 0, 
+      recentTotal: 0, recentCorrect: 0,
+      monthlyTotal: 0, monthlyCorrect: 0 
+    }
+    
+    // 计算掌握度 (全量数据)
     const masteryLevel = stats.total > 0
       ? Math.round((stats.correct / stats.total) * 100)
+      : 0
+    
+    // 计算近期正确率
+    const recentCorrectRate = stats.recentTotal > 0
+      ? Math.round((stats.recentCorrect / stats.recentTotal) * 100)
+      : 0
+
+    // 计算月度正确率
+    const monthlyCorrectRate = stats.monthlyTotal > 0
+      ? Math.round((stats.monthlyCorrect / stats.monthlyTotal) * 100)
       : 0
 
     return {
@@ -191,7 +229,10 @@ export async function getSubjectChapters(
         totalAttempts: stats.total,
         correctCount: stats.correct,
         masteryLevel,
-        questionCount: chapter._count.questions
+        questionCount: chapter._count.questions,
+        recentAttempts: stats.recentTotal,
+        recentCorrectRate,
+        monthlyCorrectRate
       }
     }
   })
@@ -202,6 +243,58 @@ export async function getSubjectChapters(
     chapters: chaptersWithStats
   }
 }
+
+// ============ 薄弱点分析 ============
+
+/**
+ * 获取薄弱知识点分析
+ * 找出掌握度最低的 N 个章节
+ * 
+ * @param userId - 用户ID
+ * @param subjectId - 科目ID
+ * @param limit - 返回数量
+ */
+export async function getWeaknessAnalysis(
+  userId: string,
+  subjectId: string,
+  limit: number = 3
+): Promise<WeaknessItem[]> {
+  // 复用 getSubjectChapters 的逻辑获取所有章节统计
+  const result = await getSubjectChapters(subjectId, userId)
+  
+  if (!result || !result.chapters) {
+    return []
+  }
+
+  // 筛选出已答题的章节，并按正确率/掌握度排序
+  // 规则: 
+  // 1. 至少答过 5 次题 (避免刚做错1题就判为薄弱)
+  // 2. 正确率 < 70% 视为潜在薄弱点
+  // 3. 按正确率升序排序 (越低越弱)
+  
+  const weaknesses = result.chapters
+    .filter(c => c.stats.totalAttempts >= 5 && c.stats.masteryLevel < 70)
+    .sort((a, b) => a.stats.masteryLevel - b.stats.masteryLevel)
+    .slice(0, limit)
+    .map(c => {
+      // 将 0-100 的掌握度映射为 0-3 等级
+      let level = 0
+      if (c.stats.masteryLevel >= 80) level = 3
+      else if (c.stats.masteryLevel >= 60) level = 2
+      else if (c.stats.masteryLevel > 0) level = 1
+      
+      return {
+        chapterId: c.id,
+        chapterTitle: c.title,
+        correctRate: c.stats.masteryLevel, // 这里 masteryLevel 就是正确率百分比
+        masteryLevel: level
+      }
+    })
+
+  return weaknesses
+}
+
+// ============ A2.3: 智能随机抽题 ============
 
 // ============ A2.3: 智能随机抽题 ============
 

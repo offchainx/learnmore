@@ -13,6 +13,7 @@ import { getSubjectChapters } from '@/actions/practice/data-service';
 import type { ChapterWithStats } from '@/lib/practice/types';
 import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive';
 import ExamForecast from '@/components/practice/analytics/ExamForecast';
+import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard';
 
 // Mock data for quiz interface (to be replaced by full Quiz engine integration later)
 const quizQuestions = [
@@ -272,8 +273,12 @@ export const QuestionBankView = ({ t, userId }: { t: any; userId: string }) => {
                 const absoluteIndex = (chapterPage * CHAPTERS_PER_PAGE) + index;
                 const mastery = chapter.stats.masteryLevel;
                 const stars = mastery >= 80 ? 3 : mastery >= 50 ? 2 : mastery > 0 ? 1 : 0;
-                const isHotspot = chapter.stats.totalAttempts > 10 && (chapter.stats.correctCount / chapter.stats.totalAttempts) < 0.7;
-                const isWeakness = chapter.stats.totalAttempts > 5 && (chapter.stats.correctCount / chapter.stats.totalAttempts) < 0.6;
+                
+                // HOT: 7天内 > 10次答题且正确率 < 70%
+                const isHotspot = (chapter.stats.recentAttempts || 0) > 10 && (chapter.stats.recentCorrectRate || 0) < 70;
+                
+                // WEAK: 30天正确率 < 60%
+                const isWeakness = (chapter.stats.monthlyCorrectRate || 0) < 60 && (chapter.stats.totalAttempts > 0);
 
                 return (
                    <div
@@ -372,31 +377,7 @@ export const QuestionBankView = ({ t, userId }: { t: any; userId: string }) => {
   }
 
   const renderWeaknessFix = () => (
-     <Card className="p-5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50 rounded-3xl">
-        <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-           <AlertOctagon className="w-4 h-4 text-red-500" /> Weakness Quick Fix
-        </h3>
-        <div className="space-y-3">
-           {[
-             { topic: "Matrices (Inverse)", score: 45 },
-             { topic: "Vector Geometry", score: 52 },
-             { topic: "Functions (Composite)", score: 58 }
-           ].map((w, i) => (
-              <div key={i} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer">
-                 <div>
-                    <div className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-red-500 transition-colors">{w.topic}</div>
-                    <div className="text-[10px] text-red-500 font-bold uppercase">{w.score}% Proficiency</div>
-                 </div>
-                 <Button
-                    size="sm"
-                    className="h-7 px-3 text-[10px] font-black uppercase bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-transparent hover:bg-red-600 hover:text-white rounded-lg transition-all"
-                 >
-                    Fix <Play className="w-2.5 h-2.5 ml-1 fill-current" />
-                 </Button>
-              </div>
-           ))}
-        </div>
-     </Card>
+     <WeaknessCard chapters={dbChapters} />
   );
 
   // --- Main Render ---

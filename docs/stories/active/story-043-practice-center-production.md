@@ -1013,7 +1013,7 @@ Task T6: 添加 Visual Regression Testing（截图对比）
 ### 功能完整性
 - [ ] 所有3种练习模式（Smart Drill / Error Wiper / Mock Arena）功能正常
 - [ ] 所有Mock数据已替换为真实数据库查询
-- [ ] Chapter Map / Knowledge Hive / Exam Forecast 显示真实数据
+- [x] Chapter Map / Knowledge Hive / Exam Forecast 显示真实数据
 - [ ] 配额系统正常工作（每日答题 / 每周考试限制）
 
 ### 代码质量
