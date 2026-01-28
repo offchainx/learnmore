@@ -2,13 +2,13 @@ import React from 'react';
 import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive';
 import ExamForecast from '@/components/practice/analytics/ExamForecast';
 import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard';
-import type { DbChapter } from './types';
+import type { ChapterWithStats } from '@/lib/practice/types';
 
 interface AnalyticsSidebarProps {
   userId: string;
   selectedSubjectId: string;
   currentSubjectTitle: string;
-  chapters: DbChapter[];
+  chapters: ChapterWithStats[];
 }
 
 export const AnalyticsSidebar: React.FC<AnalyticsSidebarProps> = ({ 

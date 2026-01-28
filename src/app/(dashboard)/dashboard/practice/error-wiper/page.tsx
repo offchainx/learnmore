@@ -49,6 +49,12 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
     redirect('/dashboard/practice');
   }
 
+  // Wrapper to match expected Promise<void> return type
+  async function handleUpdateProgress(questionId: string, isCorrect: boolean): Promise<void> {
+    'use server';
+    await updateErrorWiperProgress(questionId, isCorrect);
+  }
+
   console.log('ErrorWiper Session Data:', JSON.stringify(session.data, null, 2));
 
   const formattedSession: ErrorBookEntry[] = session.data.map((entry) => ({
@@ -67,9 +73,9 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto max-w-4xl min-h-screen lg:py-8">
-      <ErrorWiperMode 
-        initialSession={formattedSession} 
-        onUpdateProgress={updateErrorWiperProgress}
+      <ErrorWiperMode
+        initialSession={formattedSession}
+        onUpdateProgress={handleUpdateProgress}
         onSessionComplete={handleSessionComplete}
       />
     </div>

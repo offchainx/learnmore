@@ -134,7 +134,9 @@ export async function getSmartDrillQuestions(
         const chapterCounts: Record<string, number> = {}
         allErrors.forEach(e => {
             const cid = e.question.chapterId
-            chapterCounts[cid] = (chapterCounts[cid] || 0) + 1
+            if (cid) {
+                chapterCounts[cid] = (chapterCounts[cid] || 0) + 1
+            }
         })
         
         const sortedChapterIds = Object.entries(chapterCounts)

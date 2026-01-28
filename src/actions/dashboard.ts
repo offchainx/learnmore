@@ -157,7 +157,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
 
   const subjectStats: Record<string, { total: number; correct: number }> = {}
   attempts.forEach(a => {
-      const subjectName = a.question.chapter.subject.name
+      const subjectName = a.question.chapter?.subject?.name ?? '未分类'
       if (!subjectStats[subjectName]) {
           subjectStats[subjectName] = { total: 0, correct: 0 }
       }
@@ -188,10 +188,12 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     }
   });
 
-  const weaknesses = errors.map(e => ({
+  const weaknesses = errors
+    .filter(e => e.question.chapter !== null)
+    .map(e => ({
       id: e.id,
-      topic: e.question.chapter.title,
-      subject: e.question.chapter.subject.name,
+      topic: e.question.chapter!.title,
+      subject: e.question.chapter!.subject.name,
       masteryLevel: e.masteryLevel
   }));
 

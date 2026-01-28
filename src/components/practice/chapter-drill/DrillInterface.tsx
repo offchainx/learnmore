@@ -50,8 +50,8 @@ export default function DrillInterface({
   }, [currentProblem]);
 
   const handleCheckAnswer = async () => {
-    if (selectedIdx === null || isCorrect !== null) return;
-    
+    if (selectedIdx === null || isCorrect !== null || !currentProblem) return;
+
     // Determine correctness based on answer key ("a", "b"...) or index
     // Assuming currentProblem.correctIndex is set correctly by the server component
     let correct = false;
@@ -97,7 +97,7 @@ export default function DrillInterface({
   };
 
   const handleShowHint = async () => {
-    if (isLoading.hint || hint) return;
+    if (isLoading.hint || hint || !currentProblem) return;
     setIsLoading(prev => ({ ...prev, hint: true }));
     const generatedHint = await getProblemHint(currentProblem.equation, currentProblem.question);
     setHint(generatedHint || null);

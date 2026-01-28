@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
 
     // 3. Construct Prompt
     const prompt = `
-Subject: ${question.chapter.subject.name}
-Topic: ${question.chapter.title}
+Subject: ${question.chapter?.subject?.name ?? 'Unknown'}
+Topic: ${question.chapter?.title ?? 'Unknown'}
 Question Difficulty: ${question.difficulty}/5
 
 Question Content:

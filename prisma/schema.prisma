@@ -63,6 +63,11 @@ model User {
   referralsGiven    Referral[] @relation("Referrer") // 我推荐的人
   referralsReceived Referral[] @relation("Referee") // 推荐我的人
 
+  // 🆕 Content Pipeline 关联 (Story-044)
+  uploadedSourceFiles SourceFile[]       @relation("UserUploadedFiles")
+  reviewLogs          ContentReviewLog[] @relation("UserReviewLogs")
+  questionReports     QuestionReport[]   @relation("UserQuestionReports")
+
   @@map("users")
 }
 
@@ -172,9 +177,11 @@ model Subject {
   icon  String?
   order Int     @default(0)
 
-  chapters    Chapter[]
-  posts       Post[]
-  examRecords ExamRecord[] // 🆕 练习记录关联 (Story-043)
+  chapters        Chapter[]
+  posts           Post[]
+  examRecords     ExamRecord[] // 🆕 练习记录关联 (Story-043)
+  questionGroups  QuestionGroup[] // 🆕 Content Pipeline 关联 (Story-044)
+  knowledgePoints KnowledgePoint[] // 🆕 知识点关联 (Story-044)
 
   @@map("subjects")
 }
@@ -290,7 +297,7 @@ model UserProgress {
 // ============ 题库模块 ============
 model Question {
   id          String       @id @default(uuid()) @db.Uuid
-  chapterId   String       @map("chapter_id") @db.Uuid
+  chapterId   String?      @map("chapter_id") @db.Uuid // 改为可选，支持未分类题目
   type        QuestionType
   difficulty  Int          @default(3) // 1-5星
   content     String       @db.Text // 题干(Markdown+LaTeX)
@@ -298,14 +305,49 @@ model Question {
   answer      Json // 答案 "A" 或 ["A", "C"]
   explanation String?      @db.Text // 解析
   createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  // 🆕 Content Pipeline 扩展字段 (Story-044)
+  groupId     String?  @map("group_id") @db.Uuid // 组合题关联
+  group       QuestionGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  // 状态与版本控制
+  status      ContentStatus @default(DRAFT)
+  version     Int           @default(1)
+  originalQuestionId String? @map("original_question_id") @db.Uuid // 版本追溯
+
+  // OCR数据（用于回溯）
+  ocrRawText    String?  @map("ocr_raw_text") @db.Text
+  ocrConfidence Float?   @map("ocr_confidence") // 0-1
+  contentHash   String?  @unique @map("content_hash") // MD5哈希（用于去重）
+
+  // 质量评分
+  qualityScore Float? @map("quality_score") // 0-100
+  reportCount  Int    @default(0) @map("report_count") // 被报错次数
+
+  // 审计字段
+  createdBy   String? @map("created_by") @db.Uuid
+  reviewedBy  String? @map("reviewed_by") @db.Uuid
+  publishedBy String? @map("published_by") @db.Uuid
+  reviewedAt  DateTime? @map("reviewed_at")
+  publishedAt DateTime? @map("published_at")
 
   // Relations
-  chapter   Chapter       @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapter   Chapter?      @relation(fields: [chapterId], references: [id], onDelete: SetNull)
   attempts  UserAttempt[]
   errorBook ErrorBook[]
 
+  // 🆕 Content Pipeline 关联 (Story-044)
+  tags            QuestionTagRelation[]
+  knowledgePoints KnowledgePointRelation[]
+  sourceFiles     SourceFile[] @relation("SourceToQuestion")
+  reports         QuestionReport[]
+
   @@index([chapterId])
   @@index([difficulty])
+  @@index([status])
+  @@index([contentHash])
+  @@index([groupId])
   @@map("questions")
 }
 
@@ -314,7 +356,8 @@ enum QuestionType {
   MULTIPLE_CHOICE
   FILL_BLANK
   ESSAY
-  MCQ // Legacy support if needed, otherwise rely on SINGLE/MULTIPLE_CHOICE
+  TRUE_FALSE // 判断题
+  MCQ        // Legacy support if needed, otherwise rely on SINGLE/MULTIPLE_CHOICE
 }
 
 model UserAttempt {
@@ -551,4 +594,255 @@ model Referral {
   @@index([referrerId])
   @@index([status])
   @@map("referrals")
+}
+
+// ============ Content Pipeline 模块 (Story-044) ============
+
+// 处理状态枚举
+enum ProcessingStatus {
+  PENDING    // 等待处理
+  PROCESSING // 处理中
+  COMPLETED  // 处理完成
+  FAILED     // 处理失败
+  SKIPPED    // 跳过处理
+}
+
+// 内容状态枚举
+enum ContentStatus {
+  DRAFT           // 草稿
+  OCR_PROCESSING  // OCR处理中
+  OCR_COMPLETED   // OCR完成
+  STRUCTURING     // 结构化中
+  REVIEW_PENDING  // 待审核
+  REVIEW_REJECTED // 审核拒绝
+  VERIFIED        // 已验证
+  PUBLISHED       // 已发布
+  ARCHIVED        // 已归档
+}
+
+// 标签分类枚举
+enum TagCategory {
+  SUBJECT          // 科目
+  TOPIC            // 知识点
+  DIFFICULTY       // 难度
+  COGNITIVE_LEVEL  // 认知层级（布鲁姆分类）
+  QUESTION_TYPE    // 题型
+  SOURCE           // 来源（真题/模拟题）
+}
+
+// 审核操作枚举
+enum ReviewAction {
+  SUBMIT_REVIEW   // 提交审核
+  APPROVE         // 通过
+  REJECT          // 拒绝
+  REQUEST_CHANGE  // 请求修改
+  PUBLISH         // 发布
+  ARCHIVE         // 归档
+}
+
+// 报告问题类型枚举
+enum ReportIssueType {
+  ANSWER_WRONG  // 答案错误
+  TYPO          // 错别字
+  UNCLEAR       // 表述不清
+  IMAGE_BROKEN  // 图片损坏
+  LATEX_ERROR   // 公式错误
+  OTHER         // 其他
+}
+
+// 报告状态枚举
+enum ReportStatus {
+  PENDING   // 待处理
+  REVIEWING // 审核中
+  RESOLVED  // 已解决
+  REJECTED  // 无效报告
+}
+
+// ==================== 源文件管理 ====================
+model SourceFile {
+  id        String @id @default(uuid()) @db.Uuid
+  filename  String
+  fileUrl   String @map("file_url") // Supabase Storage URL
+  fileType  String @map("file_type") // "pdf" | "image" | "docx"
+  fileSize  Int    @map("file_size") // bytes
+
+  // 处理状态
+  status     ProcessingStatus @default(PENDING)
+  ocrStatus  ProcessingStatus @default(PENDING) @map("ocr_status")
+  ocrRawText String?          @map("ocr_raw_text") @db.Text // OCR原始输出
+
+  // 关联
+  questionGroups QuestionGroup[] @relation("SourceToGroup")
+  questions      Question[]      @relation("SourceToQuestion")
+
+  // 审计
+  uploadedBy  String   @map("uploaded_by") @db.Uuid
+  uploader    User     @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@index([uploadedBy])
+  @@index([status])
+  @@map("source_files")
+}
+
+// ==================== 组合题/题组 ====================
+model QuestionGroup {
+  id          String  @id @default(uuid()) @db.Uuid
+  content     String  @db.Text // 公共题干（支持Markdown + LaTeX）
+  materialUrl String? @map("material_url") // 辅助资源URL（图片/音频）
+
+  // 元数据
+  subjectId   String  @map("subject_id") @db.Uuid
+  subject     Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  source      String? // 来源标识 (e.g. "2023年中考数学真题")
+  sourceYear  Int?    @map("source_year") // 年份
+  sourcePaper String? @map("source_paper") // 试卷名
+
+  // 状态与版本
+  status  ContentStatus @default(DRAFT)
+  version Int           @default(1)
+
+  // 关联
+  questions   Question[]
+  sourceFiles SourceFile[] @relation("SourceToGroup")
+
+  // 审计字段
+  createdBy   String?   @map("created_by") @db.Uuid
+  reviewedBy  String?   @map("reviewed_by") @db.Uuid
+  publishedBy String?   @map("published_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  reviewedAt  DateTime? @map("reviewed_at")
+  publishedAt DateTime? @map("published_at")
+
+  @@index([subjectId])
+  @@index([status])
+  @@map("question_groups")
+}
+
+// ==================== 标签体系 ====================
+model QuestionTag {
+  id       String      @id @default(uuid()) @db.Uuid
+  name     String      @unique // "函数"、"导数"
+  category TagCategory
+  color    String? // 标签颜色
+
+  // 层级结构
+  parentId String?       @map("parent_id") @db.Uuid
+  parent   QuestionTag?  @relation("TagHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children QuestionTag[] @relation("TagHierarchy")
+
+  // 关联
+  questions QuestionTagRelation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([category])
+  @@index([parentId])
+  @@map("question_tags")
+}
+
+// 多对多关联表：题目-标签
+model QuestionTagRelation {
+  questionId String @map("question_id") @db.Uuid
+  tagId      String @map("tag_id") @db.Uuid
+
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  tag      QuestionTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([questionId, tagId])
+  @@index([tagId])
+  @@map("question_tag_relations")
+}
+
+// ==================== 知识点体系 ====================
+model KnowledgePoint {
+  id          String  @id @default(uuid()) @db.Uuid
+  code        String  @unique // "MATH-001-001"
+  name        String // "一元一次方程"
+  description String? @db.Text
+
+  subjectId String  @map("subject_id") @db.Uuid
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  // 层级结构
+  parentId String?          @map("parent_id") @db.Uuid
+  parent   KnowledgePoint?  @relation("KPHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children KnowledgePoint[] @relation("KPHierarchy")
+
+  // 关联
+  questions KnowledgePointRelation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([subjectId])
+  @@index([parentId])
+  @@map("knowledge_points")
+}
+
+// 多对多关联表：题目-知识点
+model KnowledgePointRelation {
+  questionId String @map("question_id") @db.Uuid
+  kpId       String @map("kp_id") @db.Uuid
+
+  question Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  kp       KnowledgePoint @relation(fields: [kpId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([questionId, kpId])
+  @@index([kpId])
+  @@map("question_kp_relations")
+}
+
+// ==================== 审核日志 ====================
+model ContentReviewLog {
+  id          String @id @default(uuid()) @db.Uuid
+  contentType String @map("content_type") // "question" | "question_group"
+  contentId   String @map("content_id") @db.Uuid
+
+  action     ReviewAction
+  fromStatus ContentStatus @map("from_status")
+  toStatus   ContentStatus @map("to_status")
+
+  reviewerId String @map("reviewer_id") @db.Uuid
+  reviewer   User   @relation("UserReviewLogs", fields: [reviewerId], references: [id])
+
+  comment String? @db.Text // 审核意见
+  changes Json? // 修改内容（JSON diff）
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([contentType, contentId])
+  @@index([reviewerId])
+  @@map("content_review_logs")
+}
+
+// ==================== 用户纠错 ====================
+model QuestionReport {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  reportedBy String @map("reported_by") @db.Uuid
+  reporter   User   @relation("UserQuestionReports", fields: [reportedBy], references: [id])
+
+  issueType   ReportIssueType @map("issue_type")
+  description String          @db.Text
+  status      ReportStatus    @default(PENDING)
+
+  // 审核处理
+  reviewedBy String?   @map("reviewed_by") @db.Uuid
+  reviewedAt DateTime? @map("reviewed_at")
+  resolution String?   @db.Text // 处理结果
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([questionId])
+  @@index([status])
+  @@index([reportedBy])
+  @@map("question_reports")
 }

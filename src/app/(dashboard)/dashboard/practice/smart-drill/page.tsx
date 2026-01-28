@@ -39,10 +39,9 @@ export default async function SmartDrillPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <SmartDrillMode 
-        userId={user.id} 
-        subjectId={subjectId} 
-        userGrade={user.grade || 7} // Default to grade 7 if not set
+      <SmartDrillMode
+        userId={user.id}
+        subjectId={subjectId}
       />
     </div>
   )

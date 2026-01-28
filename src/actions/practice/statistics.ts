@@ -69,6 +69,8 @@ export async function getKnowledgeHiveData(
 
     for (const attempt of attemptsWithChapter) {
       const cId = attempt.question.chapterId
+      if (!cId) continue // 跳过没有章节的题目
+
       const existing = chapterStatsMap.get(cId) || { total: 0, correct: 0 }
       existing.total += 1
       if (attempt.isCorrect) {
@@ -99,6 +101,8 @@ export async function getKnowledgeHiveData(
     const chapterMasteryMap = new Map<string, { sum: number; count: number }>()
     for (const entry of errorBookEntries) {
       const cId = entry.question.chapterId
+      if (!cId) continue // 跳过没有章节的题目
+
       const existing = chapterMasteryMap.get(cId) || { sum: 0, count: 0 }
       existing.sum += entry.masteryLevel
       existing.count += 1

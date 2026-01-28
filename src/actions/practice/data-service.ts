@@ -169,12 +169,14 @@ export async function getSubjectChapters(
 
   for (const attempt of attemptsWithChapter) {
     const cId = attempt.question.chapterId
-    const existing = chapterStatsMap.get(cId) || { 
-      total: 0, correct: 0, 
+    if (!cId) continue // 跳过没有章节的题目
+
+    const existing = chapterStatsMap.get(cId) || {
+      total: 0, correct: 0,
       recentTotal: 0, recentCorrect: 0,
-      monthlyTotal: 0, monthlyCorrect: 0 
+      monthlyTotal: 0, monthlyCorrect: 0
     }
-    
+
     // 全量统计
     existing.total += 1
     if (attempt.isCorrect) existing.correct += 1
