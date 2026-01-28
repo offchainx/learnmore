@@ -1,23 +1,25 @@
 # Active Context
 
 ## Current Focus
-- **Story**: [Story-043] 练习中心生产级完善 (Practice Center Production)
-- **Immediate Task**: B1 Smart Drill (智能刷题) - **Completed**.
-- **Next Task**: B2 Error Wiper (错题消消乐).
+- **Story**: [Story-044] 题目全生命周期管理 (Content Pipeline)
+- **Goal**: 建立从源文件到数据库的标准题目录入、处理、打标与审核流程。
+- **Current Task**: Planning & Schema Design.
 
 ## Recent Changes
-- **Feature (Smart Drill)**: Implemented the adaptive practice mode.
-    - **Backend**: Created `src/actions/practice/recommendation.ts` with the 50/30/20 recommendation algorithm (Error/Weak/New).
-    - **Frontend**: Created `src/app/(dashboard)/dashboard/practice/smart-drill/page.tsx` and `SmartDrillMode.tsx`.
-    - **Components**: Developed `QuizSession.tsx` for interactive quizzing (handling answers, feedback, progress) and a zero-dependency `Progress` component.
-    - **Infrastructure**: Resolved Git worktree synchronization issues between Agent and User environments.
+- **Story-043 Completed**:
+    - Refactored `QuestionBankView` into modular components.
+    - Implemented `SmartDrill`, `ErrorWiper`, `MockArena` modes.
+    - Integrated real data visualization (`KnowledgeHive`, `Forecast`).
+    - Cleaned up lint errors and fixed build issues.
+- **Documentation**:
+    - Archived `story-043` to `completed/`.
+    - Created `story-044` (Active) and `story-045` (Backlog).
 
 ## Next Steps
-1.  **Merge**: Merge `vk/d23a-story043-b1` into `main`.
-2.  **Plan B2**: Start implementation of "Error Wiper" (Gamified error review mode).
-    - Backend: Extend `error-book.ts`.
-    - Frontend: `ErrorWiperMode.tsx` with Tinder-like card stack.
-    - Animation: Integrate Framer Motion.
+1.  **Analyze Schema**: Review `schema.prisma` for `QuestionGroup` support (Composite Questions).
+2.  **Design Ingestion Flow**: Define the OCR -> Structure -> Verify workflow.
+3.  **Implement**: Start with database migration for Story-044.
 
 ## Active Story Status
-- **Story-043**: In Progress (Phase B1 Completed).
+- **Story-044**: Planning 📅
+- **Story-043**: Completed ✅

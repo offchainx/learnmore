@@ -1,8 +1,0 @@
-{
-  "name": "LearnMore - Chapter Drill",
-  "description": "An interactive educational platform for mastering complex mathematical concepts through guided drills and AI-assisted problem solving.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
-}

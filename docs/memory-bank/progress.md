@@ -1,12 +1,12 @@
 # Progress Status
 
 **Overall Status**: 🚀 In Development
-**Current Version**: v0.3.0 (UI Integration Complete)
+**Current Version**: v0.4.0 (Practice Center Production Ready)
 
 ## High-Level Roadmap
 - [x] Phase 1: Core Foundation (Auth, Schema, Basic API)
 - [x] Phase 2: UI/UX Overhaul & Integration
-- [ ] Phase 3: Infrastructure & Data (Current)
+- [x] Phase 3: Infrastructure & Data (Current)
 - [ ] Phase 4: Core Product Loop
 - [ ] Phase 5: Business & AI
 - [ ] Phase 6: Polish & Launch
@@ -49,11 +49,13 @@
 - **Story-035**: Parent Dashboard ✅
 - **Story-040**: Mobile Adaptation Polish ✅
 - **Story-041**: Dashboard-First Onboarding & Auth Flow ✅
+- **Story-043**: Practice Center Production (Refactored & Integrated) ✅
 
 ## Active Story
-- None (Ready for next story)
+- **Story-044**: Content Pipeline (Question Ingestion)
 
 ## Backlog / Suspended
 - **Story-036**: Knowledge Graph (Lite)
+- **Story-045**: Permission System
 
 ## Known Issues

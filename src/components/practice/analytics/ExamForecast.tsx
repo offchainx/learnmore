@@ -4,6 +4,12 @@ import { memo, useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { getExamForecastData } from '@/actions/practice/statistics'
 import type { ExamForecast as ExamForecastType, TrendDirection } from '@/lib/practice/types'
 import { cn } from '@/lib/utils'
@@ -34,17 +40,23 @@ const Sparkline = memo(function Sparkline({
         const isLast = i === data.length - 1
 
         return (
-          <div
-            key={i}
-            className={cn(
-              'flex-1 rounded-t-sm transition-colors',
-              isLast
-                ? 'bg-blue-500'
-                : 'bg-blue-500/30 hover:bg-blue-500/50'
-            )}
-            style={{ height: `${Math.max(height, 5)}%` }}
-            title={`Day ${i + 1}: ${Math.round(value)}%`}
-          />
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <div
+                className={cn(
+                  'flex-1 rounded-t-sm transition-colors cursor-help',
+                  isLast
+                    ? 'bg-blue-500'
+                    : 'bg-blue-500/30 hover:bg-blue-500/50'
+                )}
+                style={{ height: `${Math.max(height, 5)}%` }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="font-bold">Day {7 - i}</p>
+              <p className="text-xs text-muted-foreground">Accuracy: {Math.round(value)}%</p>
+            </TooltipContent>
+          </Tooltip>
         )
       })}
     </div>
@@ -82,10 +94,17 @@ const TrendIndicator = memo(function TrendIndicator({
   const { icon: Icon, text, color } = config[trend]
 
   return (
-    <div className={cn('flex items-center text-sm font-bold', color, className)}>
-      {text}
-      <Icon className="w-3 h-3 ml-1" />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className={cn('flex items-center text-sm font-bold cursor-help', color, className)}>
+          {text}
+          <Icon className="w-3 h-3 ml-1" />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="right">
+        <p>Current vs. Previous 7 Days</p>
+      </TooltipContent>
+    </Tooltip>
   )
 })
 
@@ -104,21 +123,28 @@ const ConfidenceBar = memo(function ConfidenceBar({
   }
 
   return (
-    <div className="flex items-center gap-2 text-xs text-slate-500">
-      <span>Confidence:</span>
-      <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
-        <div
-          className={cn(
-            'h-full rounded-full transition-all',
-            confidence >= 80 ? 'bg-green-500' :
-            confidence >= 50 ? 'bg-yellow-500' :
-            'bg-red-500'
-          )}
-          style={{ width: `${confidence}%` }}
-        />
-      </div>
-      <span>{getConfidenceLabel(confidence)}</span>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="flex items-center gap-2 text-xs text-slate-500 cursor-help">
+          <span>Confidence:</span>
+          <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                'h-full rounded-full transition-all',
+                confidence >= 80 ? 'bg-green-500' :
+                confidence >= 50 ? 'bg-yellow-500' :
+                'bg-red-500'
+              )}
+              style={{ width: `${confidence}%` }}
+            />
+          </div>
+          <span>{getConfidenceLabel(confidence)}</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <p>Reliability based on question volume & recency</p>
+      </TooltipContent>
+    </Tooltip>
   )
 })
 
@@ -238,36 +264,53 @@ function ExamForecastInner({ userId, subjectId, className }: ExamForecastProps) 
   }
 
   return (
-    <Card className={cn("p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white overflow-hidden relative", className)}>
-      <div className="p-5 relative z-10">
-        {/* Header */}
-        <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
-          <TrendingUp className="w-4 h-4 text-blue-500" /> Exam Forecast
+    <TooltipProvider delayDuration={200}>
+      <Card className={cn("p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white overflow-hidden relative", className)}>
+        <div className="p-5 relative z-10">
+          {/* Header */}
+          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+            <TrendingUp className="w-4 h-4 text-blue-500" /> Exam Forecast
+          </div>
+
+          {/* Grade Display */}
+          <div className="flex items-end gap-3 mb-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-4xl font-bold text-white cursor-help">{forecast.grade}</div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <div className="text-xs">
+                  <p className="font-bold mb-1">Score Calculation:</p>
+                  <ul className="list-disc pl-3 space-y-0.5">
+                    <li>Accuracy: 60%</li>
+                    <li>Completion: 30%</li>
+                    <li>Streak: 10%</li>
+                  </ul>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            
+            <TrendIndicator trend={forecast.trend} className="mb-1" />
+          </div>
+
+          {/* Sparkline Chart */}
+          <Sparkline data={forecast.sparklineData} className="opacity-80 mb-3" />
+
+          {/* Confidence Bar */}
+          <ConfidenceBar confidence={forecast.confidence} />
         </div>
 
-        {/* Grade Display */}
-        <div className="flex items-end gap-3 mb-4">
-          <div className="text-4xl font-bold text-white">{forecast.grade}</div>
-          <TrendIndicator trend={forecast.trend} className="mb-1" />
+        {/* Footer */}
+        <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
+          <span className="text-xs text-slate-400">
+            Predicted for <strong>Finals (Nov)</strong>
+          </span>
         </div>
 
-        {/* Sparkline Chart */}
-        <Sparkline data={forecast.sparklineData} className="opacity-80 mb-3" />
-
-        {/* Confidence Bar */}
-        <ConfidenceBar confidence={forecast.confidence} />
-      </div>
-
-      {/* Footer */}
-      <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
-        <span className="text-xs text-slate-400">
-          Predicted for <strong>Finals (Nov)</strong>
-        </span>
-      </div>
-
-      {/* Background Glow Effect */}
-      <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-900/20 to-transparent pointer-events-none" />
-    </Card>
+        {/* Background Glow Effect */}
+        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-900/20 to-transparent pointer-events-none" />
+      </Card>
+    </TooltipProvider>
   )
 }
 

@@ -6,15 +6,9 @@ import { QuestionCard } from '@/components/business/question/QuestionCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ArrowRight, CheckCircle, RotateCcw, Flag } from 'lucide-react'
+import { ArrowRight, RotateCcw, Flag } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-// Helper to cast Prisma JSON to specific types
-function parseAnswer(answer: any): string | string[] {
-  if (!answer) return ''
-  // If it's already an object/array from Prisma client
-  return answer as string | string[]
-}
+import { QuestionType } from '@prisma/client'
 
 interface QuizSessionProps {
   questions: Question[]
@@ -22,7 +16,7 @@ interface QuizSessionProps {
   onExit: () => void
 }
 
-export default function QuizSession({ questions, userId, onExit }: QuizSessionProps) {
+export default function QuizSession({ questions, onExit }: QuizSessionProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({})
   // Stores whether a question has been checked and if it was correct
@@ -37,7 +31,7 @@ export default function QuizSession({ questions, userId, onExit }: QuizSessionPr
   // 注意：这里我们做了一个临时转换，因为 QuestionCard 的 types 定义与 Prisma 类型略有不同
   const formattedQuestion = {
     ...currentQuestion,
-    type: currentQuestion.type as any, // Cast specific enum to string union if needed
+    type: currentQuestion.type as QuestionType, // Cast specific enum to string union if needed
     options: currentQuestion.options as Record<string, string>,
     answer: currentQuestion.answer as string | string[],
     explanation: currentQuestion.explanation || null

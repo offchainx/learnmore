@@ -21,7 +21,7 @@ export interface ErrorBookEntry {
 interface ErrorWiperModeProps {
   initialSession: ErrorBookEntry[];
   onSessionComplete: (results: { wiped: number; remaining: number }) => void;
-  onUpdateProgress: (questionId: string, isCorrect: boolean) => Promise<any>;
+  onUpdateProgress: (questionId: string, isCorrect: boolean) => Promise<void>;
 }
 
 const MasteryDots = ({ level }: { level: number }) => (

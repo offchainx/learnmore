@@ -25,6 +25,7 @@ To support the current 23-page application structure, we require approximately *
 ### B. Course & Content Module (4 Tables)
 *   **`Subject`** (Existing): High-level categorization (Math, Science).
 *   **`Chapter`** (Existing): Hierarchical structure (can nest).
+    *   *Updates*: Added `total_questions`, `avg_difficulty`, `cached_mastery`.
 *   **`Lesson`** (Existing): The atomic learning unit (Video, Article).
     *   *Supports*: `/course/[subjectId]/[lessonId]`.
 *   **`BlogPost`** (New): Content for the Marketing Blog (`/blog`).
@@ -33,7 +34,9 @@ To support the current 23-page application structure, we require approximately *
 ### C. Learning & Assessment Module (5 Tables)
 *   **`Question`** (Existing): The question bank core.
 *   **`UserAttempt`** (Existing): Logs every answer submission.
+    *   *Indexes*: `[userId, createdAt]`, `[userId, questionId]` for analytics.
 *   **`ExamRecord`** (Existing): Aggregates attempts into a "Test" or "Mock Exam" result.
+    *   *Updates*: Added `mode` (SMART_DRILL, ERROR_WIPER, etc.) and `subjectId`.
 *   **`ErrorBook`** (Existing): Tracks mistakes for "Weakness Sniper" feature.
     *   *Supports*: `/error-book` page.
 *   **`UserProgress`** (Existing): Tracks lesson completion status.
@@ -58,7 +61,7 @@ To support the current 23-page application structure, we require approximately *
 | **/dashboard** | `User`, `DailyTask`, `UserProgress`, `LeaderboardEntry` | Fetch stats, tasks, recent progress. |
 | **/course/[id]** | `Subject`, `Chapter`, `Lesson`, `UserProgress` | Render course tree and status. |
 | **/course/.../lesson** | `Lesson`, `Question`, `UserAttempt` | Serve video/content, handle quiz submission. |
-| **/error-book** | `ErrorBook`, `Question` | List weak points, generate review sets. |
+| **/dashboard/practice** | `Question`, `UserAttempt`, `ErrorBook`, `ExamRecord` | Smart Drill, Error Wiper, Mock Arena. |
 | **/dashboard/community** | `Post`, `Comment`, `User` | Feed rendering, creating posts. |
 | **/dashboard/settings** | `User`, `UserSettings` | Update profile and AI prefs. |
 | **/blog** | `BlogPost` | CMS content rendering. |

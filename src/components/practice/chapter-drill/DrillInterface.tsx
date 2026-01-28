@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/practice/chapter-drill/Sidebar';
 import { ProgressBar } from '@/components/practice/chapter-drill/ProgressBar';
 import { getProblemHint, explainSolution } from '@/actions/ai-tutor';
 import { Problem, UserStats } from '@/components/practice/chapter-drill/types';
-import { Check, Lightbulb, Loader2, Sparkles, X } from 'lucide-react';
+import { Check, Lightbulb, Loader2, Sparkles } from 'lucide-react';
 
 interface DrillInterfaceProps {
   initialProblems: Problem[];
@@ -266,7 +266,7 @@ export default function DrillInterface({
                   <Sparkles className="w-5 h-5" />
                   <span className="text-xs font-black uppercase tracking-widest">Tutor Tip</span>
                 </div>
-                <p className="text-sm text-slate-300 italic leading-relaxed">"{hint}"</p>
+                <p className="text-sm text-slate-300 italic leading-relaxed">&quot;{hint}&quot;</p>
               </div>
             )}
           </div>

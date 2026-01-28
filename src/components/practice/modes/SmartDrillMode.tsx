@@ -13,10 +13,9 @@ import QuizSession from '@/components/practice/session/QuizSession'
 interface SmartDrillModeProps {
   userId: string
   subjectId: string
-  userGrade: number
 }
 
-export default function SmartDrillMode({ userId, subjectId, userGrade }: SmartDrillModeProps) {
+export default function SmartDrillMode({ userId, subjectId }: SmartDrillModeProps) {
   const router = useRouter()
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,10 +28,8 @@ export default function SmartDrillMode({ userId, subjectId, userGrade }: SmartDr
       try {
         setLoading(true)
         setError(null)
-        console.log('[SmartDrill] Fetching questions for:', { userId, subjectId })
         // Request 10 questions by default
         const data = await getSmartDrillQuestions(userId, subjectId, 10)
-        console.log('[SmartDrill] Received questions:', data?.length || 0)
 
         if (!isMounted) return
 
@@ -43,7 +40,6 @@ export default function SmartDrillMode({ userId, subjectId, userGrade }: SmartDr
         }
       } catch (err) {
         if (!isMounted) return
-        console.error('[SmartDrill] Error:', err)
         setError(`Failed to load questions: ${err instanceof Error ? err.message : 'Unknown error'}`)
       } finally {
         if (isMounted) setLoading(false)

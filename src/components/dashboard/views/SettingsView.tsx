@@ -13,7 +13,7 @@ import { generateInviteCode } from '@/actions/parent';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
-  Moon, Sun, LogOut, CircleCheck, Globe, Gift, Users
+  Moon, Sun, CircleCheck, Globe, Gift, Users
 } from 'lucide-react';
 
 function SubmitButton({ children }: { children: React.ReactNode }) {

@@ -336,6 +336,8 @@ model UserAttempt {
   @@index([questionId])
   @@index([examRecordId])
   @@index([createdAt])
+  @@index([userId, createdAt]) // For daily quota checks
+  @@index([userId, questionId]) // For mastery calculation
   @@map("user_attempts")
 }
 

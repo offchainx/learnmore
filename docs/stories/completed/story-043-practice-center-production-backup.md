@@ -212,7 +212,7 @@ Task A2.4: 实现 getUserQuotaStatus (查询用户配额)
 1. getChapterWithStats: 查询章节并计算用户掌握度（基于UserAttempt表的正确率）
 2. getSubjectChapters: 批量查询科目下所有章节及掌握度
 3. getRandomQuestions: 根据筛选条件随机抽题，排除30天内做过的题
-4. getUserQuotaStatus: 查询用户今日答题数/本周考试次数
+4. getUserQuotaStatus: 查询用户配额: 查询用户今日答题数/本周考试次数
 
 使用 Prisma Client，返回类型安全的数据。
 ```
