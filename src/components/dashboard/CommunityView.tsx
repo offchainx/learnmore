@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
@@ -96,13 +96,16 @@ export const CommunityView = ({ t }: { t: any }) => {
   const handleAskAI = async (postId: number, content: string) => {
     setAiLoading(postId);
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `You are a helpful student tutor. Answer this student's question concisely and encouragingly: "${content}"`,
+        const ai = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
+        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const response = await model.generateContent({
+            contents: [{
+                role: "user",
+                parts: [{ text: "Explain this community post: " + content }]
+            }]
         });
         
-        const aiComment = response.text;
+        const aiComment = response.response.text();
         
         // In a real app, this would add a comment or show a modal. 
         // For this demo, we'll mark it as answered and alert the user.

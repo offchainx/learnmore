@@ -150,6 +150,8 @@ function KnowledgeHiveInner({ userId, subjectId, subjectName }: KnowledgeHivePro
     let isMounted = true
 
     async function fetchData() {
+      if (!userId || !subjectId) return
+
       try {
         setLoading(true)
         setError(null)
@@ -175,10 +177,8 @@ function KnowledgeHiveInner({ userId, subjectId, subjectName }: KnowledgeHivePro
 
   const handleNodeClick = (node: HiveNode) => {
     if (node.status === 'locked') return
-    // 跳转到智能刷题页面，带上 subjectId 和 chapterId
-    router.push(
-      `/dashboard/practice/smart-drill?subjectId=${subjectId}&chapterId=${node.chapterId}`
-    )
+    // 跳转到章节练习页面
+    router.push(`/dashboard/practice/chapter-drill/${node.chapterId}`)
   }
 
   // 将节点分成蜂巢布局行 (5-4-5-4 交错模式)

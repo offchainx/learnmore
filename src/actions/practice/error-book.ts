@@ -121,19 +121,30 @@ export async function updateErrorBookMastery(questionId: string, isCorrect: bool
 
 // --- New Functions for Error Wiper Mode ---
 
-export async function getErrorWiperSession() {
+export async function getErrorWiperSession(subjectId?: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return { success: false, error: 'Unauthorized' };
     }
 
+    // Build the where clause
+    const whereClause: Prisma.ErrorBookWhereInput = {
+      userId: user.id,
+      masteryLevel: { lt: 3 }
+    };
+
+    if (subjectId) {
+      whereClause.question = {
+        chapter: {
+          subjectId: subjectId
+        }
+      };
+    }
+
     // Fetch all errors with masteryLevel < 3 (including 0)
     const errorBookEntries = await prisma.errorBook.findMany({
-      where: { 
-        userId: user.id, 
-        masteryLevel: { lt: 3 } 
-      },
+      where: whereClause,
       include: {
         question: {
           include: {

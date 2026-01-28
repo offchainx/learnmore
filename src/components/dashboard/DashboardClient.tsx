@@ -80,7 +80,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     switch(currentView) {
       case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
       case 'courses': return <MyCoursesView t={appT} />;
-      case 'questionBank': return <QuestionBankView t={appT} />;
+      case 'questionBank': return <QuestionBankView t={appT} userId={user.id} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
       case 'community': return <CommunityView />;
       case 'settings': return <SettingsView user={user} />;

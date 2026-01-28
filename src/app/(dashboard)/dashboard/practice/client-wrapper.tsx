@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { QuestionBankView } from '@/components/dashboard/views/QuestionBankView'
 import { useApp } from '@/providers/app-provider'
 
-export function PracticeClientWrapper() {
+export function PracticeClientWrapper({ userId }: { userId: string }) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -32,7 +32,7 @@ export function PracticeClientWrapper() {
       onNavigate={handleNavigate}
       userRole="STUDENT"
     >
-      <QuestionBankView t={t} />
+      <QuestionBankView t={t} userId={userId} />
     </DashboardLayout>
   )
 }

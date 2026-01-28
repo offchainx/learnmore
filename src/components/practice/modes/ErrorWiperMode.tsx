@@ -24,6 +24,21 @@ interface ErrorWiperModeProps {
   onUpdateProgress: (questionId: string, isCorrect: boolean) => Promise<any>;
 }
 
+const MasteryDots = ({ level }: { level: number }) => (
+  <div className="flex gap-1.5">
+    {[1, 2, 3].map((i) => (
+      <div
+        key={i}
+        className={`w-2.5 h-2.5 rounded-full transition-all duration-500 shadow-sm ${
+          i <= level 
+            ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' 
+            : 'bg-slate-800 border border-slate-700'
+        }`}
+      />
+    ))}
+  </div>
+);
+
 export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
   initialSession,
   onSessionComplete,
@@ -90,21 +105,6 @@ export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
     setIsCorrect(false); // Reset correctness for next question
     setShowExplanation(false);
   };
-
-  const MasteryDots = ({ level }: { level: number }) => (
-    <div className="flex gap-1.5">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className={`w-2.5 h-2.5 rounded-full transition-all duration-500 shadow-sm ${
-            i <= level 
-              ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' 
-              : 'bg-slate-800 border border-slate-700'
-          }`}
-        />
-      ))}
-    </div>
-  );
 
   if (queue.length === 0) return null;
 

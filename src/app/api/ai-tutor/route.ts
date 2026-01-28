@@ -75,28 +75,19 @@ Please explain to the student why their answer might be wrong and guide them to 
 
     // 4. Call Gemini Stream
     // Using gemini-1.5-flash for speed/cost efficiency
-    // @google/genai usage: client.models.generateContentStream({ model: '...', contents: ... })
-    
-    const result = await genAI.models.generateContentStream({
+    const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        contents: [{
-            role: "user",
-            parts: [{ text: TUTOR_SYSTEM_INSTRUCTION + "\n\n" + prompt }]
-        }],
-        // System instruction is supported differently in some versions, but appending to prompt is safe
-        // Or check if config supports it.
-        config: {
-            temperature: 0.7,
-        }
+        systemInstruction: TUTOR_SYSTEM_INSTRUCTION
     });
+    
+    const result = await model.generateContentStream(prompt);
     
     // Create a readable stream from the Gemini response
     const stream = new ReadableStream({
         async start(controller) {
             try {
-                for await (const chunk of result) {
-                    // Gemini SDK: text is a getter property, not a function
-                    const text: string | undefined = chunk.text;
+                for await (const chunk of result.stream) {
+                    const text = chunk.text();
                     
                     if (text) {
                         controller.enqueue(new TextEncoder().encode(text));

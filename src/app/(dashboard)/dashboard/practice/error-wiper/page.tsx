@@ -11,8 +11,17 @@ export const metadata = {
   description: 'Gamified error review mode',
 };
 
-export default async function ErrorWiperPage() {
-  const session = await getErrorWiperSession();
+interface PageProps {
+  searchParams: Promise<{
+    subjectId?: string
+  }>
+}
+
+export default async function ErrorWiperPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams
+  const subjectId = resolvedSearchParams.subjectId
+  
+  const session = await getErrorWiperSession(subjectId);
 
   if (!session.success || !session.data || session.data.length === 0) {
     return (
@@ -22,7 +31,7 @@ export default async function ErrorWiperPage() {
         </div>
         <h2 className="text-3xl font-black text-white mb-2 tracking-tight">All Clear!</h2>
         <p className="text-slate-400 mb-8 max-w-md text-lg">
-          Your error book is empty. You've mastered all your past mistakes! 
+          Your error book is empty. You&apos;ve mastered all your past mistakes! 
           Time to tackle some new challenges.
         </p>
         <Link href="/dashboard/practice">

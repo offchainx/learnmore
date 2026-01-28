@@ -154,6 +154,8 @@ async function getQuestionsByDifficulty(
   return questions
 }
 
+import { checkWeeklyExamQuota } from './quota'
+
 // ============ B: 开始考试 ============
 
 /**
@@ -168,6 +170,15 @@ export async function startExam(
   config: ExamConfig
 ): Promise<StartExamResult> {
   try {
+    // 0. 检查配额
+    const quota = await checkWeeklyExamQuota(userId)
+    if (!quota.canProceed) {
+      return {
+        success: false,
+        error: 'Weekly exam quota exceeded. Please upgrade to PRO for more attempts.'
+      }
+    }
+
     // 1. 生成试卷
     const questions = await generateMockExam(
       config.subjectId,

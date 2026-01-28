@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Clock, Brain, Target, Zap, Trophy } from 'lucide-react'
+import { Loader2, Clock, Brain, Target, Zap, Trophy, Lock } from 'lucide-react'
 import { startExam, type ExamDifficulty } from '@/actions/practice/exam'
 import { cn } from '@/lib/utils'
+import type { QuotaStatus } from '@/actions/practice/quota'
 
 interface Subject {
   id: string
@@ -20,6 +21,7 @@ interface Subject {
 interface MockArenaSelectorProps {
   userId: string
   subjects: Subject[]
+  quotaStatus: QuotaStatus
 }
 
 const DIFFICULTY_OPTIONS: { value: ExamDifficulty; label: string; description: string; color: string }[] = [
@@ -45,11 +47,12 @@ const DIFFICULTY_OPTIONS: { value: ExamDifficulty; label: string; description: s
 
 const QUESTION_COUNT_OPTIONS = [10, 15, 20, 25, 30]
 
-export default function MockArenaSelector({ userId, subjects }: MockArenaSelectorProps) {
+export default function MockArenaSelector({ userId, subjects, quotaStatus }: MockArenaSelectorProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 
-  const [subjectId, setSubjectId] = useState<string>('')
+  const [subjectId, setSubjectId] = useState<string>(searchParams.get('subjectId') || '')
   const [difficulty, setDifficulty] = useState<ExamDifficulty>('MEDIUM')
   const [questionCount, setQuestionCount] = useState(20)
   const [error, setError] = useState<string | null>(null)
@@ -58,6 +61,11 @@ export default function MockArenaSelector({ userId, subjects }: MockArenaSelecto
   const estimatedMinutes = Math.ceil(questionCount * 1.5)
 
   const handleStartExam = () => {
+    if (!quotaStatus.canProceed) {
+      setError('You have reached your weekly exam limit. Upgrade to PRO for more.')
+      return
+    }
+
     if (!subjectId) {
       setError('Please select a subject')
       return
@@ -90,8 +98,37 @@ export default function MockArenaSelector({ userId, subjects }: MockArenaSelecto
 
   return (
     <div className="space-y-6">
+      {/* Quota Status Alert */}
+      {!quotaStatus.canProceed && (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-900/20">
+          <CardContent className="pt-6 flex items-center gap-4">
+             <div className="p-2 bg-red-100 rounded-full dark:bg-red-800">
+               <Lock className="h-6 w-6 text-red-600 dark:text-red-200" />
+             </div>
+             <div>
+               <h3 className="font-semibold text-red-800 dark:text-red-200">Weekly Limit Reached</h3>
+               <p className="text-sm text-red-600 dark:text-red-300">
+                 You have used {quotaStatus.used}/{quotaStatus.limit} exam attempts this week. 
+                 <Button variant="link" className="px-1 h-auto text-red-700 font-bold underline" onClick={() => router.push('/pricing')}>
+                   Upgrade to PRO
+                 </Button> 
+                 for more.
+               </p>
+             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {quotaStatus.canProceed && quotaStatus.limit !== Infinity && (
+         <div className="flex justify-end">
+            <Badge variant="outline" className="text-xs">
+              Weekly Quota: {quotaStatus.used} / {quotaStatus.limit} used
+            </Badge>
+         </div>
+      )}
+
       {/* Exam Configuration Card */}
-      <Card>
+      <Card className={cn(!quotaStatus.canProceed && "opacity-60 pointer-events-none")}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />

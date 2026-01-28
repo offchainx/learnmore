@@ -633,7 +633,7 @@ Task C3.1: 修改 QuestionBankView.tsx 的 renderChapterMap
 Task C3.2: 调用 getSubjectChapters 获取真实章节数据
 Task C3.3: 根据掌握度显示星级（0-3星）
 Task C3.4: 添加 HOT/WEAK 标签逻辑
-Task C3.5: 点击"Start"按钮跳转到 smart-drill?chapterId=xxx
+Task C3.5: 点击"Start"按钮跳转到 /dashboard/practice/chapter-drill/[chapterId]
 ```
 
 **高效Prompt**:

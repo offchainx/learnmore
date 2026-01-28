@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/actions/auth'
 import { getAllSubjects } from '@/actions/subject'
+import { checkWeeklyExamQuota } from '@/actions/practice/quota'
 import MockArenaSelector from './MockArenaSelector'
 
 export const metadata: Metadata = {
@@ -16,7 +17,11 @@ export default async function MockArenaPage() {
     redirect('/login')
   }
 
-  const subjectsResult = await getAllSubjects()
+  const [subjectsResult, quotaStatus] = await Promise.all([
+    getAllSubjects(),
+    checkWeeklyExamQuota(user.id)
+  ])
+
   const subjects = subjectsResult.success ? subjectsResult.data || [] : []
 
   return (
@@ -28,7 +33,11 @@ export default async function MockArenaPage() {
         </p>
       </div>
 
-      <MockArenaSelector userId={user.id} subjects={subjects} />
+      <MockArenaSelector 
+        userId={user.id} 
+        subjects={subjects} 
+        quotaStatus={quotaStatus}
+      />
     </div>
   )
 }
