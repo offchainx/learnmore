@@ -79,7 +79,7 @@ export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
 
   const handleContinue = () => {
     const entry = { ...currentEntry };
-    let newQueue = [...queue];
+    const newQueue = [...queue];
     newQueue.shift();
 
     if (isCorrect) {

@@ -217,9 +217,81 @@ export async function getCurrentUser() {
   if (!user) return null
 
   // 从 public.users 获取完整用户信息
-  const dbUser = await prisma.user.findUnique({
+  let dbUser = await prisma.user.findUnique({
     where: { id: user.id },
   })
 
+  // 如果数据库中没有用户记录，自动同步创建
+  if (!dbUser && user.email) {
+    console.warn(`[Auth] User ${user.id} not found in database, auto-syncing...`)
+    try {
+      dbUser = await prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.email,
+          username: user.user_metadata?.username || user.email.split('@')[0],
+          referralCode: generateReferralCode(),
+        },
+      })
+      // 同时创建 UserSettings
+      await prisma.userSettings.create({
+        data: {
+          userId: user.id,
+          language: 'zh',
+          theme: 'light',
+        },
+      })
+      console.warn(`[Auth] User ${user.id} synced successfully`)
+    } catch (e) {
+      console.error('[Auth] Failed to sync user:', e)
+    }
+  }
+
   return dbUser
+}
+
+/**
+ * 手动同步 Supabase Auth 用户到 public.users 表
+ * 用于修复 Account Sync Issue
+ */
+export async function syncCurrentUserToDatabase() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user || !user.email) {
+    return { success: false, error: 'No authenticated user found' }
+  }
+
+  try {
+    const dbUser = await prisma.user.upsert({
+      where: { id: user.id },
+      create: {
+        id: user.id,
+        email: user.email,
+        username: user.user_metadata?.username || user.email.split('@')[0],
+        referralCode: generateReferralCode(),
+      },
+      update: {
+        email: user.email,
+      },
+    })
+
+    // 确保 UserSettings 存在
+    await prisma.userSettings.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        language: 'zh',
+        theme: 'light',
+      },
+      update: {},
+    })
+
+    return { success: true, user: dbUser }
+  } catch (e) {
+    console.error('[Auth] Sync failed:', e)
+    return { success: false, error: String(e) }
+  }
 }
