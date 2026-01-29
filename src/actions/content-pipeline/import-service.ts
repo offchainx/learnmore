@@ -13,6 +13,7 @@ import { revalidatePath } from 'next/cache'
 import { ProcessingStatus, ContentStatus } from '@prisma/client'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
+import { calculateQuickQualityScore } from '@/lib/content-pipeline/quality-checker'
 import { bulkCreateQuestions } from './question-service'
 import type {
   ImportFromPDFInput,
@@ -148,41 +149,11 @@ function convertToCreateInput(
 }
 
 /**
- * 简单的质量评分计算
- * TODO: 后续可以替换为更复杂的质量检查器 (Task B4)
+ * 计算题目质量分数
+ * 使用 QuestionQualityChecker (Task B4) 进行快速评估
  */
 function calculateQualityScore(question: AIStructuredQuestion): number {
-  let score = 100
-
-  // 检查内容长度
-  if (!question.content || question.content.length < 10) {
-    score -= 30
-  }
-
-  // 检查答案
-  if (question.answer === undefined || question.answer === null) {
-    score -= 40
-  }
-
-  // 检查选择题选项
-  if (
-    (question.type === 'SINGLE_CHOICE' || question.type === 'MULTIPLE_CHOICE') &&
-    (!question.options || Object.keys(question.options).length < 2)
-  ) {
-    score -= 20
-  }
-
-  // 有解析加分
-  if (question.explanation && question.explanation.length > 10) {
-    score = Math.min(100, score + 5)
-  }
-
-  // 有标签加分
-  if (question.suggestedTags && question.suggestedTags.length > 0) {
-    score = Math.min(100, score + 5)
-  }
-
-  return Math.max(0, score)
+  return calculateQuickQualityScore(question)
 }
 
 // ==================== 主要导入函数 ====================
