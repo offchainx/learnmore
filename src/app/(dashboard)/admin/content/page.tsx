@@ -21,12 +21,12 @@ import { redirect } from "next/navigation"
 export const dynamic = 'force-dynamic'
 
 interface AdminContentPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     subjectId?: string
     status?: string
     tab?: string
-  }
+  }>
 }
 
 export default async function AdminContentPage({ searchParams }: AdminContentPageProps) {
@@ -36,10 +36,11 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
   }
 
   // Parse search params
-  const page = Number(searchParams.page) || 1
-  const subjectId = searchParams.subjectId
-  const statusParam = searchParams.status
-  const currentTab = searchParams.tab || 'all'
+  const resolvedSearchParams = await searchParams
+  const page = Number(resolvedSearchParams.page) || 1
+  const subjectId = resolvedSearchParams.subjectId
+  const statusParam = resolvedSearchParams.status
+  const currentTab = resolvedSearchParams.tab || 'all'
 
   // Determine status filter based on tab or param
   let statusFilter: ContentStatus[] | undefined = undefined
