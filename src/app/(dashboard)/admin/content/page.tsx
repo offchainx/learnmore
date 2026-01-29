@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
-import { getQuestions } from "@/actions/content-pipeline/question-service"
+import { getQuestions, getPendingReviewQuestions } from "@/actions/content-pipeline/question-service"
 import { getAllSubjects } from "@/actions/subject"
 import { QuestionReviewTable } from "@/components/admin/QuestionReviewTable"
 import { SubjectFilter } from "@/components/admin/SubjectFilter"
@@ -62,7 +62,9 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
 
   // Fetch data in parallel
   const [questionsResult, subjectsResult] = await Promise.all([
-    getQuestions({ page, pageSize: 20 }, filter),
+    currentTab === 'pending'
+      ? getPendingReviewQuestions({ page, pageSize: 20 }, filter)
+      : getQuestions({ page, pageSize: 20 }, filter),
     getAllSubjects()
   ])
 

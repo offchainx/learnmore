@@ -40,6 +40,7 @@ import { getAllSubjects } from "@/actions/subject"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { AdminClientWrapper } from "@/components/admin/AdminClientWrapper"
+import { MAX_PDF_SIZE } from "@/lib/content-pipeline/import-utils"
 
 // ==================== 表单 Schema ====================
 
@@ -86,11 +87,11 @@ export function ImportClient({ userRole, initialSubjects, initialHistory }: Impo
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-      if (selectedFile.size > 50 * 1024 * 1024) {
+      if (selectedFile.size > MAX_PDF_SIZE) {
         toast({
           variant: "destructive",
           title: "文件过大",
-          description: "文件大小不能超过 50MB",
+          description: `文件大小不能超过 ${MAX_PDF_SIZE / 1024 / 1024}MB`,
         })
         return
       }
@@ -323,7 +324,7 @@ export function ImportClient({ userRole, initialSubjects, initialHistory }: Impo
                                   <Upload className="h-10 w-10 text-slate-400 group-hover:text-blue-500 transition-colors" />
                                 </div>
                                 <span className="text-lg font-bold text-slate-700 dark:text-slate-300">点击或拖拽文件上传</span>
-                                <span className="text-sm text-slate-500 mt-2">支持 PDF, JPG, PNG (最大 50MB)</span>
+                                <span className="text-sm text-slate-500 mt-2">支持 PDF, JPG, PNG (最大 {MAX_PDF_SIZE / 1024 / 1024}MB)</span>
                               </>
                             )}
                           </label>

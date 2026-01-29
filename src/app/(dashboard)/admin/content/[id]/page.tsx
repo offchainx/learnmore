@@ -13,7 +13,7 @@ import type { QuestionWithRelations } from '@/lib/content-pipeline/types'
 export default async function QuestionReviewDetailPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   // 获取当前用户
   const user = await getCurrentUser()
@@ -21,13 +21,16 @@ export default async function QuestionReviewDetailPage({
     redirect('/login')
   }
 
+  // Await params to access id
+  const { id } = await params
+
   // 检查权限 (简化版，实际应检查 role)
   // if (!['ADMIN', 'TEACHER'].includes(user.role)) {
   //   redirect('/dashboard')
   // }
 
   const question = await prisma.question.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       chapter: { include: { subject: true } },
       group: true,

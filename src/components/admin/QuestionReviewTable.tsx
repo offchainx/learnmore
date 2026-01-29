@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { 
   Table, 
   TableBody, 
@@ -22,7 +23,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, CheckCircle, XCircle, ArrowUpCircle } from "lucide-react"
+import { MoreHorizontal, CheckCircle, XCircle, ArrowUpCircle, FileText, Edit } from "lucide-react"
 import { DifficultyBadge } from "./DifficultyBadge"
 import { QualityScoreBadge } from "./QualityScoreBadge"
 import { QuestionWithRelations } from "@/lib/content-pipeline/types"
@@ -271,8 +272,18 @@ export function QuestionReviewTable({
                           复制ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>查看详情</DropdownMenuItem>
-                        <DropdownMenuItem>编辑题目</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/content/${question.id}`} className="flex items-center cursor-pointer">
+                            <FileText className="mr-2 h-4 w-4" />
+                            查看详情
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/admin/content/${question.id}/edit`} className="flex items-center cursor-pointer">
+                            <Edit className="mr-2 h-4 w-4" />
+                            编辑题目
+                          </Link>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
