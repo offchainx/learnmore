@@ -168,7 +168,7 @@ export interface ImageProcessOptions {
 /**
  * PDF 处理选项
  */
-export interface PDFProcessOptions extends ImageProcessOptions {
+export interface PDFProcessOptions extends BatchProcessOptions {
   /** 起始页码 (从1开始) */
   startPage?: number
   /** 结束页码 */
@@ -177,6 +177,8 @@ export interface PDFProcessOptions extends ImageProcessOptions {
   dpi?: number
   /** 是否合并所有页面文本 */
   mergePages?: boolean
+  /** 最大处理页数 */
+  maxPages?: number
 }
 
 /**
@@ -277,6 +279,8 @@ export type OCRErrorCode =
   | 'NETWORK_ERROR'
   | 'API_ERROR'
   | 'ALL_PROVIDERS_FAILED'
+  | 'DOWNLOAD_FAILED'
+  | 'INVALID_SOURCE'
   | 'UNKNOWN_ERROR'
 
 /**

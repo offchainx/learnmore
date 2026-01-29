@@ -19,8 +19,10 @@ import type {
   BatchProcessOptions,
   QuotaStatus,
   OCRUsageStats,
+  PDFProcessOptions,
 } from './ocr-types'
 import { OCRError } from './ocr-types'
+import { convertPDFToImages } from './pdf-utils'
 
 /**
  * 默认配置
@@ -156,6 +158,72 @@ export class OCRService {
       `所有 OCR 提供商都失败:\n${errors.join('\n')}`,
       undefined
     )
+  }
+
+  /**
+   * 处理 PDF 文档
+   * 先将 PDF 转换为图片，再逐页 OCR
+   */
+  async processPDF(
+    pdfSource: string | ArrayBuffer,
+    options?: PDFProcessOptions
+  ): Promise<OCRResult[]> {
+    const startTime = Date.now()
+    
+    // 1. 获取 PDF 数据
+    let pdfBuffer: ArrayBuffer
+    if (typeof pdfSource === 'string') {
+      if (pdfSource.startsWith('http')) {
+        const response = await fetch(pdfSource)
+        if (!response.ok) {
+          throw new OCRError('DOWNLOAD_FAILED', `无法下载 PDF: ${response.statusText}`, undefined)
+        }
+        pdfBuffer = await response.arrayBuffer()
+      } else {
+        // 假设是本地路径或 base64，这里暂且只支持 URL 或 buffer
+         throw new OCRError('INVALID_SOURCE', '目前仅支持 URL 或 ArrayBuffer 形式的 PDF', undefined)
+      }
+    } else {
+      pdfBuffer = pdfSource
+    }
+
+    // 2. 转换为图片
+    if (this.config.debug) {
+      console.log('[OCR] 开始转换 PDF 为图片...')
+    }
+    
+    // 如果没有 pdfjs-dist，这里会报错，但已经在 pdf-utils 中导入了
+    const images = await convertPDFToImages(pdfBuffer, { 
+      scale: options?.dpi ? options.dpi / 72 : 2.0 
+    })
+
+    if (this.config.debug) {
+      console.log(`[OCR] PDF 转换完成，共 ${images.length} 页`)
+    }
+
+    // 3. 限制处理页数
+    const maxPages = options?.maxPages ?? this.config.maxPagesPerRequest
+    const imagesToProcess = images.slice(0, maxPages)
+
+    if (images.length > maxPages && this.config.debug) {
+      console.warn(`[OCR] PDF 页数 (${images.length}) 超过限制 (${maxPages})，仅处理前 ${maxPages} 页`)
+    }
+
+    // 4. 批量 OCR
+    // 使用 batchProcess 来处理这些图片
+    const imageUrls = imagesToProcess.map(img => img.dataUrl)
+    
+    return this.batchProcess(imageUrls, {
+      ...options,
+      onProgress: (current, total, result) => {
+        if (this.config.debug) {
+          console.log(`[OCR] 处理进度: ${current}/${total}`)
+        }
+        if (options?.onProgress) {
+          options.onProgress(current, total, result)
+        }
+      }
+    })
   }
 
   /**
