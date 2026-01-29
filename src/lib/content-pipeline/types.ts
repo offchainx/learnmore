@@ -18,7 +18,6 @@ import type {
   ReviewAction,
   ReportIssueType,
   ReportStatus,
-  Chapter,
   Subject,
 } from '@prisma/client'
 
