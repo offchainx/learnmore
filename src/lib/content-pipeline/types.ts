@@ -46,15 +46,34 @@ export type {
  * 带完整关联的题目类型
  */
 export interface QuestionWithRelations extends Question {
-  chapter?: Chapter | null
+  chapter?: {
+    id: string
+    title: string
+    subject: {
+      id: string
+      name: string
+    }
+  } | null
   group?: QuestionGroup | null
   tags?: Array<{
-    tag: QuestionTag
+    tag: {
+      id: string
+      name: string
+      category: TagCategory
+    }
   }>
   knowledgePoints?: Array<{
-    kp: KnowledgePoint
+    kp: {
+      id: string
+      code: string
+      name: string
+    }
   }>
   sourceFiles?: SourceFile[]
+  _count?: {
+    userAttempts: number
+    errorBooks: number
+  }
 }
 
 /**
@@ -277,12 +296,27 @@ export interface QualityCheckResult {
  * 质量问题
  */
 export interface QualityIssue {
-  type: 'latex_error' | 'missing_answer' | 'image_broken' | 'duplicate' | 'incomplete' | 'other'
-  severity: 'error' | 'warning' | 'info'
+  type: 'ERROR' | 'WARNING' | 'INFO'
+  category: string
   message: string
   field?: string
-  suggestion?: string
+  metadata?: Record<string, unknown>
 }
+
+/**
+ * 质量问题类型常量
+ */
+export const QualityIssueType = {
+  MISSING_CONTENT: 'MISSING_CONTENT',
+  INVALID_LATEX: 'INVALID_LATEX',
+  BROKEN_IMAGE: 'BROKEN_IMAGE',
+  INSUFFICIENT_OPTIONS: 'INSUFFICIENT_OPTIONS',
+  MISSING_ANSWER: 'MISSING_ANSWER',
+  NO_KNOWLEDGE_POINTS: 'NO_KNOWLEDGE_POINTS',
+  DUPLICATE_CONTENT: 'DUPLICATE_CONTENT',
+} as const
+
+export type QualityIssueTypeKey = keyof typeof QualityIssueType
 
 /**
  * 质量检查配置
@@ -297,6 +331,34 @@ export interface QualityCheckConfig {
 }
 
 // ==================== 审核相关类型 ====================
+
+/**
+ * 审核统计摘要
+ */
+export interface ReviewSummary {
+  totalPending: number
+  totalReviewed: number
+  approvalRate: number
+  avgReviewTime: number // 分钟
+  topReviewers: Array<{
+    userId: string
+    username: string
+    reviewCount: number
+  }>
+}
+
+/**
+ * 内容统计
+ */
+export interface ContentStatistics {
+  totalQuestions: number
+  publishedQuestions: number
+  draftQuestions: number
+  rejectedQuestions: number
+  bySubject: Record<string, number>
+  byDifficulty: Record<number, number>
+  byStatus: Record<string, number>
+}
 
 /**
  * 状态更新输入
