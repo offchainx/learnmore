@@ -3,9 +3,12 @@
 ## Current Focus
 - **Story**: [Story-044] 题目全生命周期管理 (Content Pipeline)
 - **Goal**: 建立从源文件到数据库的标准题目录入、处理、打标与审核流程。
-- **Current Task**: Planning & Schema Design.
+- **Current Task**: Implementing Content Pipeline (Task B: OCR & Processing).
 
 ## Recent Changes
+- **Story-044 Progress**:
+    - Task A (Data Foundation): Schema updated, seed data verification complete.
+    - Task B (Processing): PDF processing support added to OCR service.
 - **Story-043 Completed**:
     - Refactored `QuestionBankView` into modular components.
     - Implemented `SmartDrill`, `ErrorWiper`, `MockArena` modes.
