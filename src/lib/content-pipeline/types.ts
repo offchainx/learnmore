@@ -70,8 +70,8 @@ export interface QuestionWithRelations extends Question {
   }>
   sourceFiles?: SourceFile[]
   _count?: {
-    userAttempts: number
-    errorBooks: number
+    attempts: number
+    errorBook: number
   }
 }
 
