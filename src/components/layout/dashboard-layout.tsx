@@ -157,7 +157,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
               icon={ShieldCheck}
               label={t.sidebar.admin}
               isExpanded={isAdminExpanded}
-              onToggle={() => setIsAdminExpanded(!isAdminExpanded)}
+              onToggle={() => {
+                const newExpandedState = !isAdminExpanded;
+                setIsAdminExpanded(newExpandedState);
+                if (newExpandedState) {
+                  router.push('/admin/content');
+                }
+              }}
               isActive={isAdminRouteActive}
             >
               {adminSubItems.map(subItem => (
