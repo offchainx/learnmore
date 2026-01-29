@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/components/ui/use-toast"
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, ArrowLeft } from "lucide-react"
+import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Zap, Layers, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { uploadSourceFile } from "@/actions/storage"
 import { importFromPDF, getImportTasks } from "@/actions/content-pipeline/import-service"
@@ -126,10 +126,9 @@ export default function ContentImportPage() {
 
     setIsUploading(true)
     setImportProgress(10)
-    setImportStatus("正在上传文件到存储服务器...")
+    setImportStatus("正在上传文件...")
 
     try {
-      // 1. 上传文件
       const formData = new FormData()
       formData.append("file", file)
       
@@ -139,9 +138,8 @@ export default function ContentImportPage() {
       }
 
       setImportProgress(30)
-      setImportStatus("文件上传成功，正在启动 AI 处理流水线...")
+      setImportStatus("解析中...")
 
-      // 2. 模拟进度 (因为 Server Action 无法流式传输)
       const progressInterval = setInterval(() => {
         setImportProgress(prev => {
           if (prev >= 90) {
@@ -152,7 +150,6 @@ export default function ContentImportPage() {
         })
       }, 1000)
 
-      // 3. 执行导入任务
       const importRes = await importFromPDF({
         pdfUrl: uploadRes.url,
         subjectId: values.subjectId,
@@ -165,23 +162,22 @@ export default function ContentImportPage() {
 
       if (importRes.success && importRes.data) {
         setImportProgress(100)
-        setImportStatus("导入成功！")
+        setImportStatus("成功！")
         
         toast({
           title: "导入完成",
-          description: `成功创建 ${importRes.data.questionsCreated} 道题目，跳过 ${importRes.data.questionsDuplicated} 道重复题目。`,
+          description: `成功创建 ${importRes.data.questionsCreated} 道题目。`,
         })
 
-        // 延迟跳转
         setTimeout(() => {
           router.push("/admin/content")
-        }, 2000)
+        }, 1500)
       } else {
         throw new Error(importRes.error || "导入失败")
       }
 
     } catch (error: any) {
-      setImportStatus(`导入失败: ${error.message}`)
+      setImportStatus(`失败: ${error.message}`)
       toast({
         variant: "destructive",
         title: "导入失败",
@@ -193,217 +189,312 @@ export default function ContentImportPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6 max-w-5xl">
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/content">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">批量导入题目</h1>
-          <p className="text-muted-foreground">
-            上传 PDF 或图片试卷，AI 将自动识别并拆分为结构化题目。
-          </p>
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 py-10 px-4">
+      <div className="container mx-auto space-y-8 max-w-6xl">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <Link 
+              href="/admin/content" 
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            >
+              <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            </Link>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                批量导入 <span className="text-blue-600 dark:text-blue-400">AI</span>
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">
+                上传试卷，开启 AI 自动化题目识别
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 fill-blue-600/20" />
+            <span className="text-sm font-bold text-blue-700 dark:text-blue-300">AI Pipeline v1.0</span>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* 左侧：上传表单 */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>上传配置</CardTitle>
-              <CardDescription>
-                请选择科目并上传源文件
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="subjectId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>科目</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="选择科目" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {subjects.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="sourceYear"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>年份 (可选)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="2024" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Main Form Area */}
+          <div className="lg:col-span-8 space-y-8">
+            <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-600/5 to-indigo-600/5 border-b border-slate-100 dark:border-slate-800 p-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none">
+                    <Layers className="h-5 w-5 text-white" />
                   </div>
-
-                  <FormField
-                    control={form.control}
-                    name="source"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>来源标识</FormLabel>
-                        <FormControl>
-                          <Input placeholder="例如：2023年中考数学真题" {...field} />
-                        </FormControl>
-                        <FormDescription>用于追踪题目来源</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* 文件上传区 */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">源文件 (PDF 或图片)</Label>
-                    <div 
-                      className={`border-2 border-dashed rounded-xl p-8 transition-colors text-center ${
-                        file ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                      }`}
-                    >
-                      <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        accept="application/pdf,image/*"
-                        onChange={onFileChange}
-                        disabled={isUploading}
-                      />
-                      <label 
-                        htmlFor="file-upload" 
-                        className={`flex flex-col items-center cursor-pointer ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
-                      >
-                        {file ? (
-                          <>
-                            <FileText className="h-12 w-12 text-blue-500 mb-4" />
-                            <span className="font-medium text-blue-600">{file.name}</span>
-                            <span className="text-xs text-slate-500 mt-1">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-12 w-12 text-slate-400 mb-4" />
-                            <span className="text-sm font-medium">点击或拖拽文件到此处上传</span>
-                            <span className="text-xs text-slate-500 mt-2">支持 PDF, JPG, PNG (最大 50MB)</span>
-                          </>
+                  <div>
+                    <CardTitle className="text-xl">上传题目源文件</CardTitle>
+                    <CardDescription>配置相关元数据以提高 AI 识别准确率</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    
+                    {/* Meta Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="subjectId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">所属科目</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="rounded-2xl h-12 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+                                  <SelectValue placeholder="选择科目" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-800">
+                                {subjects.map(s => (
+                                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </label>
+                      />
+                      <FormField
+                        control={form.control}
+                        name="sourceYear"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">年份</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="2024" 
+                                {...field} 
+                                className="rounded-2xl h-12 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 focus-visible:ring-blue-500" 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                  </div>
 
-                  {/* 进度显示 */}
-                  {isUploading && (
-                    <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-medium flex items-center">
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-500" />
-                          {importStatus}
-                        </span>
-                        <span className="text-slate-500">{importProgress}%</span>
+                    <FormField
+                      control={form.control}
+                      name="source"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">来源标识 (必填)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="例如：2023年中考数学真题" 
+                              {...field} 
+                              className="rounded-2xl h-12 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 focus-visible:ring-blue-500"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">用于在题库中快速搜索来源</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Upload Area */}
+                    <div className="space-y-3">
+                      <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">题目源文件 (PDF / 图片)</FormLabel>
+                      <div 
+                        className={`group relative border-2 border-dashed rounded-3xl p-12 transition-all text-center ${
+                          file 
+                            ? 'border-blue-500 bg-blue-50/30 dark:bg-blue-950/20' 
+                            : 'border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-900 bg-slate-50/30 dark:bg-slate-950/30'
+                        }`}
+                      >
+                        <input
+                          type="file"
+                          id="file-upload"
+                          className="hidden"
+                          accept="application/pdf,image/*"
+                          onChange={onFileChange}
+                          disabled={isUploading}
+                        />
+                        <label 
+                          htmlFor="file-upload" 
+                          className={`flex flex-col items-center cursor-pointer ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}
+                        >
+                          {file ? (
+                            <div className="relative">
+                              <div className="w-20 h-20 rounded-2xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-4 border border-blue-200 dark:border-blue-800 shadow-inner">
+                                <FileText className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <span className="font-bold text-slate-900 dark:text-white block max-w-xs truncate">{file.name}</span>
+                              <Badge variant="secondary" className="mt-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 border-none">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </Badge>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="w-20 h-20 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center mb-4 border border-slate-100 dark:border-slate-800 shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                                <Upload className="h-10 w-10 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                              </div>
+                              <span className="text-lg font-bold text-slate-700 dark:text-slate-300">点击或拖拽文件上传</span>
+                              <span className="text-sm text-slate-500 mt-2">支持 PDF, JPG, PNG (最大 50MB)</span>
+                            </>
+                          )}
+                        </label>
                       </div>
-                      <Progress value={importProgress} className="h-2" />
-                      <p className="text-xs text-slate-400 italic">
-                        提示: AI 处理可能需要几分钟时间，请勿关闭页面。
-                      </p>
                     </div>
-                  )}
 
-                  <div className="flex justify-end space-x-4">
-                    <Button variant="outline" type="button" asChild disabled={isUploading}>
-                      <Link href="/admin/content">取消</Link>
-                    </Button>
-                    <Button type="submit" disabled={isUploading || !file}>
-                      {isUploading ? "正在导入..." : "开始导入"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 右侧：帮助与历史 */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">导入说明</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-4">
-              <div className="flex space-x-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                <p>AI 将自动识别题目干、选项、答案和解析。</p>
-              </div>
-              <div className="flex space-x-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                <p>支持 LaTeX 数学公式自动转换。</p>
-              </div>
-              <div className="flex space-x-3">
-                <AlertCircle className="h-5 w-5 text-orange-500 shrink-0" />
-                <p>导入后请在“待审核”列表中检查识别结果。</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">最近导入历史</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoadingHistory ? (
-                <div className="space-y-3">
-                  <div className="h-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
-                  <div className="h-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
-                </div>
-              ) : history.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">暂无历史记录</p>
-              ) : (
-                <div className="space-y-3">
-                  {history.map(task => (
-                    <div key={task.id} className="text-sm p-3 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                      <div className="font-medium truncate" title={task.filename}>{task.filename}</div>
-                      <div className="flex justify-between items-center mt-2">
-                        <Badge variant={task.status === 'COMPLETED' ? 'success' : task.status === 'FAILED' ? 'destructive' : 'secondary'}>
-                          {task.status === 'COMPLETED' ? '成功' : task.status === 'FAILED' ? '失败' : '处理中'}
-                        </Badge>
-                        <span className="text-[10px] text-slate-400">
-                          {format(new Date(task.createdAt), 'MM-dd HH:mm')}
-                        </span>
+                    {/* Progress Indicator */}
+                    {isUploading && (
+                      <div className="space-y-4 p-6 bg-blue-50/50 dark:bg-blue-950/20 rounded-3xl border border-blue-100/50 dark:border-blue-900/30 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {importStatus}
+                          </span>
+                          <span className="text-blue-600 dark:text-blue-400 font-extrabold">{importProgress}%</span>
+                        </div>
+                        <div className="h-3 bg-blue-100 dark:bg-blue-900/50 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500 rounded-full"
+                            style={{ width: `${importProgress}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 text-blue-600/70 dark:text-blue-400/70 text-xs">
+                          <Sparkles className="h-3 w-3" />
+                          <span>AI 正在分析文档内容，请稍候...</span>
+                        </div>
                       </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-4 pt-4">
+                      <Button 
+                        variant="ghost" 
+                        type="button" 
+                        asChild 
+                        disabled={isUploading}
+                        className="rounded-2xl h-12 px-8 font-bold text-slate-500"
+                      >
+                        <Link href="/admin/content">取消</Link>
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={isUploading || !file}
+                        className="rounded-2xl h-12 px-10 bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all"
+                      >
+                        {isUploading ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            正在导入...
+                          </span>
+                        ) : "开始 AI 导入"}
+                      </Button>
                     </div>
-                  ))}
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar / History Area */}
+          <div className="lg:col-span-4 space-y-8">
+            
+            {/* Guide Card */}
+            <Card className="border-none shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                  导入指南
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-4">
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                    <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    <span className="text-white font-bold">高精度识别</span>：AI 将自动拆分题干、选项、正确答案及详细解析。
+                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                    <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    <span className="text-white font-bold">公式支持</span>：完美支持 LaTeX 数学公式，自动转换为渲染格式。
+                  </p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                    <AlertCircle className="h-4 w-4 text-orange-400" />
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    <span className="text-white font-bold">审核入库</span>：导入后题目进入 <span className="text-blue-400 font-bold underline underline-offset-4">待审核</span> 状态，需人工确认后发布。
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* History Card */}
+            <Card className="border-none shadow-xl bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="pb-3 border-b border-slate-50 dark:border-slate-800">
+                <CardTitle className="text-lg">最近任务</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {isLoadingHistory ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="h-16 bg-slate-50 dark:bg-slate-800 animate-pulse rounded-2xl" />
+                    ))}
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="text-center py-10">
+                    <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
+                      <FileText className="h-6 w-6 text-slate-300" />
+                    </div>
+                    <p className="text-sm text-slate-400">暂无历史记录</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {history.map(task => (
+                      <div key={task.id} className="group relative p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-transparent hover:border-blue-500/20 hover:bg-white dark:hover:bg-slate-800 transition-all">
+                        <div className="font-bold text-slate-900 dark:text-white truncate text-sm mb-2" title={task.filename}>
+                          {task.filename}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <Badge 
+                            variant="secondary" 
+                            className={`rounded-lg px-2 py-0.5 text-[10px] font-bold border-none ${
+                              task.status === 'COMPLETED' 
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                                : task.status === 'FAILED' 
+                                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+                                  : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                            }`}
+                          >
+                            {task.status === 'COMPLETED' ? '成功' : task.status === 'FAILED' ? '失败' : '处理中'}
+                          </Badge>
+                          <span className="text-[10px] font-medium text-slate-400 italic">
+                            {format(new Date(task.createdAt), 'MM-dd HH:mm')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Button variant="ghost" className="w-full mt-4 rounded-xl text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  查看全部记录
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-// 辅助组件：Label (避免从 @/components/ui/label 导入失败)
+// 辅助组件：Label
 function Label({ children, className }: { children: React.ReactNode, className?: string }) {
-  return <label className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`}>{children}</label>
+  return <label className={`text-sm font-bold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`}>{children}</label>
 }
