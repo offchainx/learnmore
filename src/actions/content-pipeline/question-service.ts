@@ -9,7 +9,7 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { ContentStatus, QuestionType, ReviewAction, Prisma } from '@prisma/client'
+import { ContentStatus, QuestionType, ReviewAction, ReportStatus, Prisma } from '@prisma/client'
 import type {
   CreateQuestionInput,
   UpdateQuestionInput,
@@ -24,6 +24,7 @@ import type {
   ServiceResult,
   BulkOperationResult,
   CreateReportInput,
+  ResolveReportInput,
   ReportFilter,
   StatusTransitionResult,
   JsonValue,
@@ -549,6 +550,106 @@ export async function getQuestionById(
 }
 
 /**
+ * 删除题目（软删除 - 归档）
+ * @param id 题目 ID
+ * @param operatorId 操作者 ID（可选，后续集成认证时传入）
+ * @param options 删除选项
+ * @returns 删除结果
+ */
+export async function deleteQuestion(
+  id: string,
+  operatorId?: string,
+  options?: { hardDelete?: boolean; comment?: string }
+): Promise<ServiceResult<{ archived: boolean }>> {
+  try {
+    const question = await prisma.question.findUnique({
+      where: { id },
+    })
+
+    if (!question) {
+      return {
+        success: false,
+        error: '题目不存在',
+        code: 'NOT_FOUND',
+      }
+    }
+
+    // 检查是否可以归档（已发布的题目不能直接删除，需要先下架）
+    if (question.status === ContentStatus.PUBLISHED && !options?.hardDelete) {
+      return {
+        success: false,
+        error: '已发布的题目不能直接删除，请先下架（设为 VERIFIED 状态）',
+        code: 'CANNOT_DELETE_PUBLISHED',
+      }
+    }
+
+    // 硬删除（仅限管理员，谨慎使用）
+    if (options?.hardDelete) {
+      await prisma.question.delete({
+        where: { id },
+      })
+
+      revalidatePath('/admin/content')
+
+      return {
+        success: true,
+        data: { archived: false },
+      }
+    }
+
+    // 软删除：将状态改为 ARCHIVED
+    const transitionResult = validateStatusTransition(question.status, ContentStatus.ARCHIVED)
+
+    if (!transitionResult.valid) {
+      // 如果当前状态不允许直接归档，先尝试转为 DRAFT
+      if (question.status !== ContentStatus.DRAFT) {
+        await prisma.question.update({
+          where: { id },
+          data: { status: ContentStatus.DRAFT },
+        })
+      }
+    }
+
+    // 使用事务归档并记录日志
+    await prisma.$transaction([
+      prisma.question.update({
+        where: { id },
+        data: { status: ContentStatus.ARCHIVED },
+      }),
+      ...(operatorId
+        ? [
+            prisma.contentReviewLog.create({
+              data: {
+                contentType: 'question',
+                contentId: id,
+                action: ReviewAction.ARCHIVE,
+                fromStatus: question.status,
+                toStatus: ContentStatus.ARCHIVED,
+                reviewerId: operatorId,
+                comment: options?.comment ?? '题目已归档',
+              },
+            }),
+          ]
+        : []),
+    ])
+
+    revalidatePath('/admin/content')
+
+    return {
+      success: true,
+      data: { archived: true },
+    }
+  } catch (error) {
+    console.error('删除题目失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '删除失败',
+      code: 'DELETE_FAILED',
+    }
+  }
+}
+
+/**
  * 更新题目内容
  * @param id 题目 ID
  * @param data 更新数据
@@ -637,16 +738,224 @@ export async function updateQuestion(
   }
 }
 
+// ==================== 通用查询接口 ====================
+
+/**
+ * 最大返回条数限制（防止过大查询）
+ */
+const MAX_PAGE_SIZE = 100
+
+/**
+ * 通用题目查询（支持多种过滤条件）
+ * @param params 分页参数
+ * @param filter 过滤条件
+ * @param sort 排序选项
+ * @returns 分页结果
+ */
+export async function getQuestions(
+  params: PaginationParams = {},
+  filter: QuestionFilter = {},
+  sort: QuestionSortOptions = { field: 'createdAt', order: 'desc' }
+): Promise<PaginatedResult<QuestionWithRelations>> {
+  const page = params.page ?? 1
+  const pageSize = Math.min(params.pageSize ?? 20, MAX_PAGE_SIZE) // 强制限制最大条数
+  const skip = (page - 1) * pageSize
+
+  // 构建 where 条件
+  const where: Record<string, unknown> = {}
+
+  // 状态过滤
+  if (filter.status) {
+    where.status = Array.isArray(filter.status) ? { in: filter.status } : filter.status
+  }
+
+  // 题型过滤
+  if (filter.type) {
+    where.type = Array.isArray(filter.type) ? { in: filter.type } : filter.type
+  }
+
+  // 难度过滤
+  if (filter.difficulty) {
+    if (typeof filter.difficulty === 'number') {
+      where.difficulty = filter.difficulty
+    } else {
+      where.difficulty = {
+        ...(filter.difficulty.min !== undefined && { gte: filter.difficulty.min }),
+        ...(filter.difficulty.max !== undefined && { lte: filter.difficulty.max }),
+      }
+    }
+  }
+
+  // 章节过滤
+  if (filter.chapterId) {
+    where.chapterId = filter.chapterId
+  }
+
+  // 科目过滤（通过章节关联）
+  if (filter.subjectId) {
+    where.chapter = { subjectId: filter.subjectId }
+  }
+
+  // 题组过滤
+  if (filter.groupId) {
+    where.groupId = filter.groupId
+  }
+
+  // 是否有题组
+  if (filter.hasGroup !== undefined) {
+    where.groupId = filter.hasGroup ? { not: null } : null
+  }
+
+  // 文本搜索
+  if (filter.searchText) {
+    where.content = { contains: filter.searchText, mode: 'insensitive' }
+  }
+
+  // 创建者过滤
+  if (filter.createdBy) {
+    where.createdBy = filter.createdBy
+  }
+
+  // 审核者过滤
+  if (filter.reviewedBy) {
+    where.reviewedBy = filter.reviewedBy
+  }
+
+  // 时间范围过滤
+  if (filter.createdAfter || filter.createdBefore) {
+    where.createdAt = {
+      ...(filter.createdAfter && { gte: filter.createdAfter }),
+      ...(filter.createdBefore && { lte: filter.createdBefore }),
+    }
+  }
+
+  // 并行查询总数和数据
+  const [total, data] = await prisma.$transaction([
+    prisma.question.count({ where }),
+    prisma.question.findMany({
+      where,
+      include: {
+        chapter: {
+          include: { subject: true },
+        },
+        group: true,
+        tags: { include: { tag: true } },
+        knowledgePoints: { include: { kp: true } },
+        sourceFiles: true,
+      },
+      orderBy: { [sort.field]: sort.order },
+      skip,
+      take: pageSize,
+    }),
+  ])
+
+  const totalPages = Math.ceil(total / pageSize)
+
+  return {
+    data: data as QuestionWithRelations[],
+    total,
+    page,
+    pageSize,
+    totalPages,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  }
+}
+
+/**
+ * 按章节查询题目
+ * @param chapterId 章节 ID
+ * @param params 分页参数
+ * @param options 查询选项
+ * @returns 分页结果
+ */
+export async function getQuestionsByChapter(
+  chapterId: string,
+  params: PaginationParams = {},
+  options?: {
+    status?: ContentStatus | ContentStatus[]
+    includeSubChapters?: boolean
+    sort?: QuestionSortOptions
+  }
+): Promise<PaginatedResult<QuestionWithRelations>> {
+  const page = params.page ?? 1
+  const pageSize = Math.min(params.pageSize ?? 20, MAX_PAGE_SIZE)
+  const skip = (page - 1) * pageSize
+  const sort = options?.sort ?? { field: 'createdAt', order: 'desc' }
+
+  // 构建章节条件
+  let chapterCondition: Record<string, unknown> = { chapterId }
+
+  // 如果需要包含子章节
+  if (options?.includeSubChapters) {
+    // 先查询所有子章节 ID
+    const subChapters = await prisma.chapter.findMany({
+      where: { parentId: chapterId },
+      select: { id: true },
+    })
+    const allChapterIds = [chapterId, ...subChapters.map((c) => c.id)]
+    chapterCondition = { chapterId: { in: allChapterIds } }
+  }
+
+  // 构建完整 where 条件
+  const where: Record<string, unknown> = {
+    ...chapterCondition,
+  }
+
+  // 状态过滤
+  if (options?.status) {
+    where.status = Array.isArray(options.status) ? { in: options.status } : options.status
+  }
+
+  // 并行查询
+  const [total, data] = await prisma.$transaction([
+    prisma.question.count({ where }),
+    prisma.question.findMany({
+      where,
+      include: {
+        chapter: {
+          include: { subject: true },
+        },
+        group: true,
+        tags: { include: { tag: true } },
+        knowledgePoints: { include: { kp: true } },
+      },
+      orderBy: { [sort.field]: sort.order },
+      skip,
+      take: pageSize,
+    }),
+  ])
+
+  const totalPages = Math.ceil(total / pageSize)
+
+  return {
+    data: data as QuestionWithRelations[],
+    total,
+    page,
+    pageSize,
+    totalPages,
+    hasNext: page < totalPages,
+    hasPrev: page > 1,
+  }
+}
+
 // ==================== 用户报错功能 ====================
+
+/**
+ * 自动触发复审的报错阈值
+ */
+const AUTO_REVIEW_THRESHOLD = 3
 
 /**
  * 用户报告题目问题
  * @param input 报告输入
+ * @param options 选项
  * @returns 创建结果
  */
 export async function reportQuestion(
-  input: CreateReportInput
-): Promise<ServiceResult<{ id: string }>> {
+  input: CreateReportInput,
+  options?: { skipAutoReview?: boolean }
+): Promise<ServiceResult<{ id: string; triggeredReview?: boolean }>> {
   try {
     // 检查题目是否存在
     const question = await prisma.question.findUnique({
@@ -680,7 +989,7 @@ export async function reportQuestion(
     }
 
     // 使用事务创建报告并更新题目报错计数
-    const [report] = await prisma.$transaction([
+    const [report, updatedQuestion] = await prisma.$transaction([
       prisma.questionReport.create({
         data: {
           questionId: input.questionId,
@@ -695,9 +1004,38 @@ export async function reportQuestion(
       }),
     ])
 
+    // 检查是否需要触发自动复审
+    // 条件：报错数达到阈值 + 题目已发布 + 未跳过自动复审
+    let triggeredReview = false
+    if (
+      !options?.skipAutoReview &&
+      updatedQuestion.reportCount >= AUTO_REVIEW_THRESHOLD &&
+      updatedQuestion.status === ContentStatus.PUBLISHED
+    ) {
+      // 将题目状态改为待复审（直接使用 Prisma 更新，避免循环调用）
+      await prisma.$transaction([
+        prisma.question.update({
+          where: { id: input.questionId },
+          data: { status: ContentStatus.REVIEW_PENDING },
+        }),
+        prisma.contentReviewLog.create({
+          data: {
+            contentType: 'question',
+            contentId: input.questionId,
+            action: ReviewAction.REQUEST_CHANGE,
+            fromStatus: ContentStatus.PUBLISHED,
+            toStatus: ContentStatus.REVIEW_PENDING,
+            reviewerId: input.reportedBy, // 系统自动触发，记录最后一个报告者
+            comment: `收到 ${updatedQuestion.reportCount} 条用户报错，自动触发复审`,
+          },
+        }),
+      ])
+      triggeredReview = true
+    }
+
     return {
       success: true,
-      data: { id: report.id },
+      data: { id: report.id, triggeredReview },
     }
   } catch (error) {
     console.error('创建报告失败:', error)
@@ -800,6 +1138,131 @@ export async function getQuestionReports(
     totalPages,
     hasNext: page < totalPages,
     hasPrev: page > 1,
+  }
+}
+
+/**
+ * 处理用户报告（Admin 操作）
+ * @param input 处理报告输入
+ * @returns 处理结果
+ */
+export async function resolveReport(
+  input: ResolveReportInput
+): Promise<ServiceResult<{ resolved: boolean }>> {
+  try {
+    // 查找报告
+    const report = await prisma.questionReport.findUnique({
+      where: { id: input.reportId },
+      include: { question: true },
+    })
+
+    if (!report) {
+      return {
+        success: false,
+        error: '报告不存在',
+        code: 'NOT_FOUND',
+      }
+    }
+
+    // 检查报告是否已处理
+    if (report.status === ReportStatus.RESOLVED || report.status === ReportStatus.REJECTED) {
+      return {
+        success: false,
+        error: '该报告已被处理',
+        code: 'ALREADY_RESOLVED',
+      }
+    }
+
+    // 使用事务更新报告状态
+    // 如果报告被确认有效（RESOLVED），可能需要更新题目状态
+    if (input.status === ReportStatus.REJECTED && report.question.reportCount > 0) {
+      // 如果报告被拒绝（无效报告），减少题目的报错计数
+      await prisma.$transaction([
+        prisma.questionReport.update({
+          where: { id: input.reportId },
+          data: {
+            status: input.status,
+            reviewedBy: input.reviewedBy,
+            reviewedAt: new Date(),
+            resolution: input.resolution,
+          },
+        }),
+        prisma.question.update({
+          where: { id: report.questionId },
+          data: { reportCount: { decrement: 1 } },
+        }),
+      ])
+    } else {
+      // 其他情况只更新报告状态
+      await prisma.questionReport.update({
+        where: { id: input.reportId },
+        data: {
+          status: input.status,
+          reviewedBy: input.reviewedBy,
+          reviewedAt: new Date(),
+          resolution: input.resolution,
+        },
+      })
+    }
+
+    revalidatePath('/admin/content')
+    revalidatePath('/admin/reports')
+
+    return {
+      success: true,
+      data: { resolved: true },
+    }
+  } catch (error) {
+    console.error('处理报告失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '处理报告失败',
+      code: 'RESOLVE_FAILED',
+    }
+  }
+}
+
+/**
+ * 批量处理用户报告
+ * @param reportIds 报告 ID 数组
+ * @param status 目标状态
+ * @param reviewedBy 审核者 ID
+ * @param resolution 处理说明（可选）
+ * @returns 批量操作结果
+ */
+export async function bulkResolveReports(
+  reportIds: string[],
+  status: ReportStatus,
+  reviewedBy: string,
+  resolution?: string
+): Promise<BulkOperationResult<{ resolved: boolean }>> {
+  const results: BulkOperationResult<{ resolved: boolean }>['results'] = []
+  let succeeded = 0
+  let failed = 0
+
+  for (let i = 0; i < reportIds.length; i++) {
+    const result = await resolveReport({
+      reportId: reportIds[i],
+      status,
+      reviewedBy,
+      resolution,
+    })
+
+    if (result.success) {
+      results.push({ index: i, success: true, data: result.data })
+      succeeded++
+    } else {
+      results.push({ index: i, success: false, error: result.error })
+      failed++
+    }
+  }
+
+  return {
+    success: failed === 0,
+    total: reportIds.length,
+    succeeded,
+    failed,
+    results,
   }
 }
 
