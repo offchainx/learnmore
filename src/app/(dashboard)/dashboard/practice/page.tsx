@@ -15,5 +15,5 @@ export default async function PracticePage() {
     redirect('/login')
   }
 
-  return <PracticeClientWrapper userId={profile.id} />
+  return <PracticeClientWrapper userId={profile.id} userRole={profile.role} />
 }

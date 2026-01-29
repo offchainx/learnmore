@@ -5,7 +5,11 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { MyCoursesView } from '@/components/dashboard/views/MyCoursesView'
 import { useApp } from '@/providers/app-provider'
 
-export function CoursesClientWrapper() {
+interface CoursesClientWrapperProps {
+  userRole: string
+}
+
+export function CoursesClientWrapper({ userRole }: CoursesClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -14,11 +18,13 @@ export function CoursesClientWrapper() {
     const routes: Record<string, string> = {
       'dashboard': '/dashboard',
       'courses': '/dashboard/courses',
-      'questionBank': '/dashboard',
+      'questionBank': '/dashboard/practice',
       'leaderboard': '/dashboard/leaderboard',
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
-      'achievements': '/dashboard',
+      'achievements': '/dashboard/achievements',
+      'knowledgeGraph': '/dashboard/knowledge-graph',
+      'admin': '/admin/content',
       'parent': '/dashboard'
     }
 
@@ -30,7 +36,7 @@ export function CoursesClientWrapper() {
     <DashboardLayout
       currentView="courses"
       onNavigate={handleNavigate}
-      userRole="STUDENT"
+      userRole={userRole}
     >
       <MyCoursesView t={t} />
     </DashboardLayout>

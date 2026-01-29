@@ -7,9 +7,10 @@ import { useApp } from '@/providers/app-provider'
 
 interface PracticeClientWrapperProps {
   userId: string
+  userRole: string
 }
 
-export function PracticeClientWrapper({ userId }: PracticeClientWrapperProps) {
+export function PracticeClientWrapper({ userId, userRole }: PracticeClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -22,7 +23,9 @@ export function PracticeClientWrapper({ userId }: PracticeClientWrapperProps) {
       'leaderboard': '/dashboard/leaderboard',
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
-      'achievements': '/dashboard',
+      'achievements': '/dashboard/achievements',
+      'knowledgeGraph': '/dashboard/knowledge-graph',
+      'admin': '/admin/content',
       'parent': '/dashboard'
     }
 
@@ -34,7 +37,7 @@ export function PracticeClientWrapper({ userId }: PracticeClientWrapperProps) {
     <DashboardLayout
       currentView="questionBank"
       onNavigate={handleNavigate}
-      userRole="STUDENT"
+      userRole={userRole}
     >
       <QuestionBankView t={t} userId={userId} />
     </DashboardLayout>

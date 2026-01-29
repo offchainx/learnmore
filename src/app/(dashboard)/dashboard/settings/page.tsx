@@ -9,5 +9,5 @@ export default async function SettingsPage() {
     redirect('/login')
   }
 
-  return <SettingsClientWrapper user={profile} />
+  return <SettingsClientWrapper user={profile} userRole={profile.role} />
 }

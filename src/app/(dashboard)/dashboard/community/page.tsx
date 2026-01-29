@@ -15,5 +15,9 @@ export default async function CommunityPage() {
     redirect('/login')
   }
 
-  return <CommunityClientWrapper />
+  return (
+    <CommunityClientWrapper userRole={profile.role}>
+      <CommunityView />
+    </CommunityClientWrapper>
+  )
 }

@@ -15,5 +15,5 @@ export default async function LeaderboardPage() {
     redirect('/login')
   }
 
-  return <LeaderboardClientWrapper />
+  return <LeaderboardClientWrapper userRole={profile.role} />
 }

@@ -5,7 +5,11 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { LeaderboardView } from '@/components/dashboard/views/LeaderboardView'
 import { useApp } from '@/providers/app-provider'
 
-export function LeaderboardClientWrapper() {
+interface LeaderboardClientWrapperProps {
+  userRole: string
+}
+
+export function LeaderboardClientWrapper({ userRole }: LeaderboardClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -13,12 +17,14 @@ export function LeaderboardClientWrapper() {
     // Map view names to routes
     const routes: Record<string, string> = {
       'dashboard': '/dashboard',
-      'courses': '/dashboard',
-      'questionBank': '/dashboard',
+      'courses': '/dashboard/courses',
+      'questionBank': '/dashboard/practice',
       'leaderboard': '/dashboard/leaderboard',
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
-      'achievements': '/dashboard',
+      'achievements': '/dashboard/achievements',
+      'knowledgeGraph': '/dashboard/knowledge-graph',
+      'admin': '/admin/content',
       'parent': '/dashboard'
     }
 
@@ -30,7 +36,7 @@ export function LeaderboardClientWrapper() {
     <DashboardLayout
       currentView="leaderboard"
       onNavigate={handleNavigate}
-      userRole="STUDENT"
+      userRole={userRole}
     >
       <LeaderboardView t={t} />
     </DashboardLayout>
