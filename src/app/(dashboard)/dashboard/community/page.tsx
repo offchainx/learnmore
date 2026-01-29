@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { getProfile } from '@/actions/profile'
 import { redirect } from 'next/navigation'
 import { CommunityClientWrapper } from './client-wrapper'
+import { CommunityView } from '@/components/dashboard/views/CommunityView'
 
 export const metadata: Metadata = {
   title: 'Community - LearnMore',
