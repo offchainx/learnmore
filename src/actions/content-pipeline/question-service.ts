@@ -40,11 +40,11 @@ import { createHash } from 'crypto'
  * @param answer 答案
  * @returns MD5 哈希字符串
  */
-export function generateContentHash(
+export async function generateContentHash(
   content: string,
   type: QuestionType,
   answer: Prisma.InputJsonValue | JsonValue
-): string {
+): Promise<string> {
   const normalized = [
     content.trim().toLowerCase(),
     type,
@@ -78,10 +78,10 @@ const STATUS_TRANSITIONS: Record<ContentStatus, ContentStatus[]> = {
  * @param toStatus 目标状态
  * @returns 验证结果
  */
-export function validateStatusTransition(
+export async function validateStatusTransition(
   fromStatus: ContentStatus,
   toStatus: ContentStatus
-): StatusTransitionResult {
+): Promise<StatusTransitionResult> {
   const allowedNextStatuses = STATUS_TRANSITIONS[fromStatus] || []
 
   if (allowedNextStatuses.includes(toStatus)) {
@@ -110,7 +110,7 @@ export async function createQuestion(
 ): Promise<ServiceResult<QuestionWithRelations>> {
   try {
     // 生成内容哈希
-    const contentHash = generateContentHash(data.content, data.type, data.answer)
+    const contentHash = await generateContentHash(data.content, data.type, data.answer)
 
     // 检查是否重复
     const existing = await prisma.question.findUnique({
@@ -182,7 +182,7 @@ export async function bulkCreateQuestions(
     const questionData = input.questions[i]
 
     try {
-      const contentHash = generateContentHash(
+      const contentHash = await generateContentHash(
         questionData.content,
         questionData.type,
         questionData.answer
@@ -282,7 +282,7 @@ export async function updateQuestionStatus(
     }
 
     // 验证状态转换
-    const transitionResult = validateStatusTransition(
+    const transitionResult = await validateStatusTransition(
       currentQuestion.status,
       input.newStatus
     )
@@ -598,7 +598,7 @@ export async function deleteQuestion(
     }
 
     // 软删除：将状态改为 ARCHIVED
-    const transitionResult = validateStatusTransition(question.status, ContentStatus.ARCHIVED)
+    const transitionResult = await validateStatusTransition(question.status, ContentStatus.ARCHIVED)
 
     if (!transitionResult.valid) {
       // 如果当前状态不允许直接归档，先尝试转为 DRAFT
@@ -676,7 +676,7 @@ export async function updateQuestion(
     // 如果内容或答案改变，重新计算哈希
     let contentHash = currentQuestion.contentHash
     if (data.content || data.type || data.answer) {
-      contentHash = generateContentHash(
+      contentHash = await generateContentHash(
         data.content ?? currentQuestion.content,
         data.type ?? currentQuestion.type,
         (data.answer ?? currentQuestion.answer) as JsonValue
