@@ -68,6 +68,67 @@ export async function uploadImage(formData: FormData): Promise<UploadImageResult
   }
 }
 
+/**
+ * 上传源文件 (PDF/图片) 到内容流水线 bucket
+ */
+export async function uploadSourceFile(formData: FormData): Promise<UploadImageResult> {
+  const user = await getCurrentUser()
+
+  if (!user || !['ADMIN', 'TEACHER'].includes(user.role)) {
+    return { success: false, error: 'Unauthorized.' }
+  }
+
+  const file = formData.get('file') as File | null
+
+  if (!file) {
+    return { success: false, error: 'No file provided.' }
+  }
+
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    return { success: false, error: 'Only PDF and image files are allowed.' }
+  }
+
+  if (file.size > 50 * 1024 * 1024) { // 50MB limit
+    return { success: false, error: 'File size exceeds 50MB limit.' }
+  }
+
+  const supabase = await createClient()
+  const fileExtension = file.name.split('.').pop()
+  const fileName = `${uuidv4()}.${fileExtension}`
+  const filePath = `imports/${new Date().getFullYear()}/${fileName}`
+
+  try {
+    const { error: uploadError } = await supabase.storage
+      .from('source-files')
+      .upload(filePath, file, { cacheControl: '3600', upsert: false })
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError)
+      return { success: false, error: uploadError.message }
+    }
+
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('source-files')
+      .getPublicUrl(filePath)
+      
+    if (publicUrlData.publicUrl) {
+      return { success: true, url: publicUrlData.publicUrl }
+    } else {
+      return { success: false, error: 'Failed to get public URL.' }
+    }
+
+  } catch (error: unknown) {
+    console.error('Unexpected upload error:', error)
+    let message = 'An unknown error occurred during upload.'
+    if (error instanceof Error) {
+      message = error.message
+    }
+    return { success: false, error: message }
+  }
+}
+
 interface GetVideoUrlResult {
   success: boolean
   url?: string
