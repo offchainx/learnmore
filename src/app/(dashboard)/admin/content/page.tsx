@@ -57,8 +57,14 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
     getAllSubjects()
   ])
 
-  const questions = questionsResult.data
-  const subjects = subjectsResult.success ? subjectsResult.data : []
+  const questions = questionsResult.data || []
+  const subjects = (subjectsResult.success && subjectsResult.data) ? subjectsResult.data.map(s => ({
+    id: s.id,
+    name: s.name,
+    slug: (s as any).slug || s.name.toLowerCase(), // Ensure slug is present
+    order: s.order,
+    icon: s.icon
+  })) : []
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -108,7 +114,6 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
                 questions={questions}
                 total={questionsResult.total}
                 page={questionsResult.page}
-                pageSize={questionsResult.pageSize}
                 totalPages={questionsResult.totalPages}
               />
             </Suspense>

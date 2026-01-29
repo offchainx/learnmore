@@ -28,7 +28,8 @@ describe('AIStructurer', () => {
         {
           type: 'text',
           text: `
-\
+\`\`\`json
+[
   {
     "content": "Test Question",
     "type": "SINGLE_CHOICE",
@@ -36,7 +37,7 @@ describe('AIStructurer', () => {
     "estimatedDifficulty": 3
   }
 ]
-\
+\`\`\`
           `
         }
       ],

@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   BookOpen, LayoutDashboard, PenTool, MessageCircle,
-  Settings, LogOut, Trophy, ChevronRight
+  Settings, LogOut, Trophy, ChevronRight, ShieldCheck,
+  Upload, CheckSquare, BarChart, AlertCircle, ChevronDown
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 import { logoutAction } from '@/actions/auth';
@@ -14,14 +15,15 @@ interface SidebarItemProps {
   label: string;
   active?: boolean;
   onClick?: () => void;
+  indent?: boolean;
 }
 
-const SidebarItem = ({ icon: Icon, label, active = false, onClick }: SidebarItemProps) => (
-  <button 
+const SidebarItem = ({ icon: Icon, label, active = false, onClick, indent = false }: SidebarItemProps) => (
+  <button
     onClick={onClick}
-    className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
-      active 
-        ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-slate-800' 
+    className={`flex items-center w-full ${indent ? 'pl-8 pr-4' : 'px-4'} py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
+      active
+        ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-slate-800'
         : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
     }`}
   >
@@ -35,6 +37,42 @@ const SidebarItem = ({ icon: Icon, label, active = false, onClick }: SidebarItem
   </button>
 );
 
+interface SidebarSectionProps {
+  icon: React.ElementType;
+  label: string;
+  children: React.ReactNode;
+  isExpanded: boolean;
+  onToggle: () => void;
+  isActive: boolean;
+}
+
+const SidebarSection = ({ icon: Icon, label, children, isExpanded, onToggle, isActive }: SidebarSectionProps) => (
+  <div className="space-y-1">
+    <button
+      onClick={onToggle}
+      className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
+        isActive
+          ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-slate-800'
+          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
+      }`}
+    >
+      {isActive && (
+        <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/50 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+      )}
+      <div className="flex items-center justify-center w-5 h-5 mr-3 relative z-10 shrink-0">
+        <Icon className={`w-full h-full ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`} />
+      </div>
+      <span className="relative z-10 flex-1 text-left">{label}</span>
+      <ChevronDown className={`w-4 h-4 relative z-10 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+    </button>
+    {isExpanded && (
+      <div className="space-y-1 mt-1">
+        {children}
+      </div>
+    )}
+  </div>
+);
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
   currentView: string;
@@ -45,7 +83,9 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, currentView, onNavigate, userRole }) => {
   const { t } = useApp();
   const router = useRouter();
+  const pathname = usePathname();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isAdminExpanded, setIsAdminExpanded] = useState(pathname?.startsWith('/admin') || false);
   const [, startTransition] = useTransition();
 
   const handleLogout = () => {
@@ -55,6 +95,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
   };
 
   const isParent = userRole === 'PARENT';
+  const isAdmin = userRole === 'ADMIN' || userRole === 'TEACHER';
+
+  // Check if any admin route is active
+  const isAdminRouteActive = pathname?.startsWith('/admin') || currentView === 'admin';
 
   const menuItems = isParent ? [
     { id: 'parent', icon: LayoutDashboard, label: t.sidebar.dashboard },
@@ -64,6 +108,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
     { id: 'questionBank', icon: PenTool, label: t.sidebar.practice },
     { id: 'leaderboard', icon: Trophy, label: t.sidebar.leaderboard },
     { id: 'community', icon: MessageCircle, label: t.sidebar.community },
+  ];
+
+  const adminSubItems = [
+    { id: 'admin-import', icon: Upload, label: t.sidebar.adminImport, href: '/admin/content/import' },
+    { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content' },
+    { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/statistics' },
+    { id: 'admin-reports', icon: AlertCircle, label: t.sidebar.adminReports, href: '/admin/reports' },
   ];
 
   return (
@@ -91,15 +142,40 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
         {/* Nav Items - Scrollable Area */}
         <div className="h-[calc(100vh-5rem)] overflow-y-auto px-4 pt-4 pb-40 space-y-1">
           {menuItems.map(item => (
-            <SidebarItem 
+            <SidebarItem
               key={item.id}
-              icon={item.icon} 
-              label={item.label} 
-              active={currentView === item.id} 
-              onClick={() => { onNavigate(item.id); setSidebarOpen(false); }} 
+              icon={item.icon}
+              label={item.label}
+              active={currentView === item.id}
+              onClick={() => { onNavigate(item.id); setSidebarOpen(false); }}
             />
           ))}
-          
+
+          {/* Admin Section - Only for ADMIN and TEACHER */}
+          {isAdmin && (
+            <SidebarSection
+              icon={ShieldCheck}
+              label={t.sidebar.admin}
+              isExpanded={isAdminExpanded}
+              onToggle={() => setIsAdminExpanded(!isAdminExpanded)}
+              isActive={isAdminRouteActive}
+            >
+              {adminSubItems.map(subItem => (
+                <SidebarItem
+                  key={subItem.id}
+                  icon={subItem.icon}
+                  label={subItem.label}
+                  active={pathname === subItem.href}
+                  onClick={() => {
+                    router.push(subItem.href);
+                    setSidebarOpen(false);
+                  }}
+                  indent
+                />
+              ))}
+            </SidebarSection>
+          )}
+
           {/* Achievement Card - Only for students */}
           {!isParent && (
             <div onClick={() => { onNavigate('achievements'); setSidebarOpen(false); }} className="mt-8 p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 relative overflow-hidden group cursor-pointer hover:border-blue-500/50 transition-all shadow-lg shrink-0">

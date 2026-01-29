@@ -19,7 +19,7 @@ import { KnowledgeGraphView } from './views/KnowledgeGraphView';
 import { User, UserSettings } from '@prisma/client';
 
 // --- Local Types ---
-type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements' | 'parent' | 'knowledgeGraph';
+type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements' | 'parent' | 'knowledgeGraph' | 'admin';
 
 type UserProfile = User & { settings: UserSettings | null };
 
@@ -35,7 +35,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
   const [currentView, setCurrentView] = useState<View>(user.role === 'PARENT' ? 'parent' : 'dashboard');
 
   const handleViewChange = (view: string) => {
-    // For Settings, Community, Leaderboard, Courses, Practice, Achievements, and KnowledgeGraph, use real routes
+    // For Settings, Community, Leaderboard, Courses, Practice, Achievements, KnowledgeGraph, and Admin, use real routes
     if (view === 'settings') {
       router.push('/dashboard/settings');
       return;
@@ -62,6 +62,10 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     }
     if (view === 'knowledgeGraph') {
       router.push('/dashboard/knowledge-graph');
+      return;
+    }
+    if (view === 'admin') {
+      router.push('/admin/content');
       return;
     }
     // For other views, still use useState (for now)
