@@ -70,6 +70,10 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        "background-light": "#F3F4F6",
+        "background-dark": "#0B0E14",
+        "surface-dark": "#151921",
+        "sidebar-dark": "#11141A",
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -102,6 +106,11 @@ const config = {
            '50%': { transform: 'rotate(180deg) scale(1.1)' },
            '100%': { transform: 'rotate(360deg) scale(1)' },
         },
+      },
+      boxShadow: {
+        "glow-red": "0 0 20px -5px rgba(239, 68, 68, 0.4)",
+        "glow-green": "0 0 20px -5px rgba(34, 197, 94, 0.4)",
+        "glow-blue": "0 0 20px -5px rgba(59, 130, 246, 0.4)",
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',

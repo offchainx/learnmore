@@ -22,7 +22,7 @@ export function AdminClientWrapper({ children, userRole }: AdminClientWrapperPro
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
       'knowledgeGraph': '/dashboard/knowledge-graph',
-      'admin': '/admin/content'
+      'admin': '/admin/content/review'
     }
 
     const route = routes[view] || '/dashboard'

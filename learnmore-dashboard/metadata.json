@@ -1,0 +1,5 @@
+{
+  "name": "LearnMore Dashboard",
+  "description": "A comprehensive content statistics dashboard featuring dark mode, glassmorphism UI, data visualization with Recharts, and reviewer management.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,297 @@
+/**
+ * Mock数据 - 内容流水线管理
+ * 用于UI开发和演示
+ */
+
+import { StatsData, BatchData, AuditLogEntry, QuestionReviewData } from '@/types/content-pipeline'
+
+// 统计数据Mock
+export const MOCK_STATS: StatsData = {
+  activeBatches: 24,
+  activeTrend: 12,
+  flaggedErrors: 142,
+  storageUsed: 225,
+  storageLimit: 500,
+}
+
+// 批量任务Mock数据
+export const MOCK_BATCHES: BatchData[] = [
+  {
+    id: '#BATCH-8821',
+    name: '2023年数学期末考试 - 批次A',
+    fileCount: 12,
+    subject: '数学',
+    year: 2023,
+    progress: 45,
+    status: 'Processing',
+    statusMessage: '正在提取题目...',
+    createdAt: new Date('2024-01-20T10:30:00'),
+    questionsCount: 25,
+  },
+  {
+    id: '#BATCH-8819',
+    name: '物理测验2 - 力学部分',
+    fileCount: 5,
+    subject: '物理',
+    year: 2023,
+    progress: 100,
+    status: 'Completed',
+    createdAt: new Date('2024-01-19T14:20:00'),
+    questionsCount: 15,
+  },
+  {
+    id: '#BATCH-8805',
+    name: '化学期中考试（扫描件）',
+    fileCount: 32,
+    subject: '化学',
+    year: 2022,
+    progress: 82,
+    status: 'Error',
+    statusMessage: 'OCR识别失败',
+    createdAt: new Date('2024-01-18T09:15:00'),
+    questionsCount: 0,
+  },
+  {
+    id: '#BATCH-8801',
+    name: '英语文学 - 莎士比亚单元',
+    fileCount: 1,
+    subject: '英语',
+    year: 2024,
+    progress: 0,
+    status: 'Queued',
+    statusMessage: '等待资源...',
+    createdAt: new Date('2024-01-17T16:45:00'),
+    questionsCount: 0,
+  },
+  {
+    id: '#BATCH-8790',
+    name: '2024年语文模拟试卷',
+    fileCount: 8,
+    subject: '语文',
+    year: 2024,
+    progress: 100,
+    status: 'Completed',
+    createdAt: new Date('2024-01-16T11:00:00'),
+    questionsCount: 30,
+  },
+  {
+    id: '#BATCH-8785',
+    name: '生物细胞结构专题',
+    fileCount: 3,
+    subject: '生物',
+    year: 2023,
+    progress: 100,
+    status: 'Completed',
+    createdAt: new Date('2024-01-15T13:30:00'),
+    questionsCount: 20,
+  },
+]
+
+// 操作日志Mock数据
+export const MOCK_AUDIT_LOGS: AuditLogEntry[] = [
+  {
+    id: '1',
+    user: '管理员',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
+    action: '发起导出操作',
+    target: '#BATCH-8819',
+    timestamp: '刚刚',
+    type: 'info',
+  },
+  {
+    id: '2',
+    user: '系统',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=System',
+    action: '标记错误',
+    target: '#BATCH-8805',
+    timestamp: '2分钟前',
+    type: 'error',
+  },
+  {
+    id: '3',
+    user: '张老师',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+    action: '上传新批次',
+    target: '生物101期末考试',
+    timestamp: '1小时前',
+    type: 'success',
+  },
+  {
+    id: '4',
+    user: '系统',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=System',
+    action: '完成处理',
+    target: '#BATCH-8810',
+    timestamp: '3小时前',
+    type: 'success',
+  },
+  {
+    id: '5',
+    user: '李老师',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
+    action: '删除题目',
+    target: '#BATCH-8750',
+    timestamp: '昨天',
+    type: 'warning',
+  },
+  {
+    id: '6',
+    user: '王老师',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wang',
+    action: '审核通过',
+    target: '#BATCH-8790',
+    timestamp: '2天前',
+    type: 'success',
+  },
+  {
+    id: '7',
+    user: '系统',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=System',
+    action: '自动质量检查',
+    target: '#BATCH-8785',
+    timestamp: '3天前',
+    type: 'info',
+  },
+]
+
+// 题目审核Mock数据
+export const MOCK_REVIEW_QUESTIONS: Record<string, QuestionReviewData> = {
+  'question-001': {
+    id: 'question-001',
+    variant: '3',
+    title: '二次函数最值问题',
+    stem: '已知二次函数 $f(x) = x^2 - 4x + 3$，在区间 $[0, 3]$ 上的',
+    stemEquation: 'f(x) = x^2 - 4x + 3',
+    stemFooter: '求该函数在区间 $[0, 3]$ 上的最小值。',
+    options: [
+      { id: 'A', value: '-1', isCorrect: true },
+      { id: 'B', value: '0' },
+      { id: 'C', value: '1' },
+      { id: 'D', value: '3' },
+    ],
+    explanation: {
+      text: '首先，我们需要找到二次函数的对称轴和顶点。',
+      steps: [
+        '对称轴：x = -b/(2a) = 4/2 = 2',
+        '顶点坐标：f(2) = 4 - 8 + 3 = -1',
+      ],
+      finalStep: '因为对称轴 x = 2 在区间 [0, 3] 内，所以最小值为：',
+      finalEquation: 'f(2) = -1',
+      note: '注意：系统检测到选项 A 的答案可能存在疑问，请审核员仔细核对。',
+    },
+    metadata: {
+      subject: '数学',
+      topic: '二次函数',
+      type: '单选题',
+      difficulty: 'L3',
+      difficultyLabel: '中等',
+      points: 5,
+      tags: ['二次函数', '最值问题', '2023年中考'],
+    },
+    history: [
+      {
+        status: '提交待审核',
+        date: '今天, 10:23 AM',
+        user: '张老师',
+        color: 'bg-blue-500',
+      },
+      {
+        status: 'OCR自动识别',
+        date: '昨天, 4:00 PM',
+        user: '系统',
+        color: 'bg-slate-400 dark:bg-slate-600',
+      },
+    ],
+  },
+  'question-002': {
+    id: 'question-002',
+    title: '牛顿第二定律应用',
+    stem: '质量为 $m = 2$ kg 的物体在水平面上受到一个恒力 $F = 10$ N 的作用，摩擦系数 $\\mu = 0.2$，重力加速度 $g = 10$ m/s²。',
+    stemFooter: '求物体的加速度大小。',
+    options: [
+      { id: 'A', value: '3\\text{ m/s}^2', isCorrect: true },
+      { id: 'B', value: '5\\text{ m/s}^2' },
+      { id: 'C', value: '7\\text{ m/s}^2' },
+      { id: 'D', value: '10\\text{ m/s}^2' },
+    ],
+    explanation: {
+      text: '根据牛顿第二定律 $F_{\\text{合}} = ma$，我们需要先计算合力。',
+      steps: [
+        '摩擦力：f = μmg = 0.2 × 2 × 10 = 4 N',
+        '合力：F_合 = F - f = 10 - 4 = 6 N',
+        '加速度：a = F_合 / m = 6 / 2 = 3 m/s²',
+      ],
+      finalStep: '因此，物体的加速度为：',
+      finalEquation: 'a = 3\\text{ m/s}^2',
+    },
+    metadata: {
+      subject: '物理',
+      topic: '牛顿运动定律',
+      type: '单选题',
+      difficulty: 'L2',
+      difficultyLabel: '简单',
+      points: 4,
+      tags: ['牛顿定律', '力学', '2024模拟题'],
+    },
+    history: [
+      {
+        status: 'AI结构化完成',
+        date: '今天, 2:15 PM',
+        user: '系统',
+        color: 'bg-green-500',
+      },
+      {
+        status: 'OCR识别中',
+        date: '今天, 2:00 PM',
+        user: '系统',
+        color: 'bg-yellow-500',
+      },
+    ],
+  },
+  'question-003': {
+    id: 'question-003',
+    title: '化学平衡常数计算',
+    stem: '在一定温度下，反应 $\\text{N}_2(g) + 3\\text{H}_2(g) \\rightleftharpoons 2\\text{NH}_3(g)$ 的平衡常数 $K = 0.5$。',
+    stemFooter: '若平衡时 $[\\text{N}_2] = 1$ mol/L，$[\\text{H}_2] = 2$ mol/L，求 $[\\text{NH}_3]$ 的浓度。',
+    options: [
+      { id: 'A', value: '2\\text{ mol/L}', isCorrect: true },
+      { id: 'B', value: '1\\text{ mol/L}' },
+      { id: 'C', value: '0.5\\text{ mol/L}' },
+      { id: 'D', value: '4\\text{ mol/L}' },
+    ],
+    explanation: {
+      text: '根据化学平衡常数公式：',
+      steps: [
+        'K = [NH₃]² / ([N₂] × [H₂]³)',
+        '0.5 = [NH₃]² / (1 × 2³)',
+        '[NH₃]² = 0.5 × 8 = 4',
+        '[NH₃] = 2 mol/L',
+      ],
+      finalStep: '因此，氨气的平衡浓度为：',
+      finalEquation: '[\\text{NH}_3] = 2\\text{ mol/L}',
+    },
+    metadata: {
+      subject: '化学',
+      topic: '化学平衡',
+      type: '单选题',
+      difficulty: 'L4',
+      difficultyLabel: '困难',
+      points: 6,
+      tags: ['化学平衡', '计算题', '高中化学'],
+    },
+    history: [
+      {
+        status: '质量检查通过',
+        date: '昨天, 5:30 PM',
+        user: '系统',
+        color: 'bg-green-500',
+      },
+      {
+        status: '提交待审核',
+        date: '昨天, 3:00 PM',
+        user: '李老师',
+        color: 'bg-blue-500',
+      },
+    ],
+  },
+}

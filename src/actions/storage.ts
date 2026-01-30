@@ -84,9 +84,9 @@ export async function uploadSourceFile(formData: FormData): Promise<UploadImageR
     return { success: false, error: 'No file provided.' }
   }
 
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
   if (!allowedTypes.includes(file.type)) {
-    return { success: false, error: 'Only PDF and image files are allowed.' }
+    return { success: false, error: '仅支持图片格式（JPG, PNG, WEBP）。PDF 暂不支持，请先转换为图片。' }
   }
 
   if (file.size > 50 * 1024 * 1024) { // 50MB limit

@@ -14,6 +14,7 @@ import { ProcessingStatus, ContentStatus } from '@prisma/client'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
 import { bulkCreateQuestions } from './question-service'
+import { getCurrentUser } from '@/actions/auth'
 import type {
   ImportFromPDFInput,
   ImportResult,
@@ -80,6 +81,16 @@ export async function importFromPDF(
     // ==================== 阶段 1: 初始化 ====================
     reportProgress(createProgress('INIT', '正在初始化导入任务...'))
 
+    // 获取当前用户
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: '用户未登录',
+        code: 'UNAUTHORIZED',
+      }
+    }
+
     // 验证科目是否存在
     const subject = await prisma.subject.findUnique({
       where: { id: input.subjectId },
@@ -114,17 +125,14 @@ export async function importFromPDF(
       }
     }
 
-    // 创建源文件记录 (使用系统用户 ID，实际项目中应从 session 获取)
-    // TODO: 集成认证后，从 session 获取当前用户 ID
-    const systemUserId = '00000000-0000-0000-0000-000000000000'
-
+    // 创建源文件记录（使用当前登录用户 ID）
     const sourceFile = await prisma.sourceFile.create({
       data: {
         filename,
         fileUrl: input.pdfUrl,
         fileType: 'pdf',
         fileSize: 0, // TODO: 获取实际文件大小
-        uploadedBy: systemUserId,
+        uploadedBy: currentUser.id,
         status: ProcessingStatus.PROCESSING,
         ocrStatus: ProcessingStatus.PENDING,
       },
@@ -149,22 +157,27 @@ export async function importFromPDF(
         maxPagesPerRequest: options?.maxPages ?? MAX_PAGES,
       })
 
-      // 处理 PDF
+      // 处理文件（图片或 PDF）
       let ocrResults: OCRResult[]
       try {
-        ocrResults = await ocrService.processPDF(input.pdfUrl, {
-          maxPages: options?.maxPages ?? MAX_PAGES,
-          onProgress: (current, total) => {
-            const stageProgress = Math.round((current / total) * 100)
-            reportProgress(
-              createProgress('OCR_PROCESSING', `OCR 处理中: ${current}/${total} 页`, {
-                current,
-                total,
-                stageProgress,
-              })
-            )
-          },
-        })
+        const fileExtension = input.pdfUrl.split('.').pop()?.toLowerCase()
+
+        if (fileExtension === 'pdf') {
+          // 暂不支持 PDF
+          throw new Error(
+            'PDF 文件暂不支持直接导入。请先将 PDF 转换为图片（JPG/PNG）后再上传。\n' +
+            '提示：您可以使用截图工具或 PDF 转图片工具进行转换。'
+          )
+        } else {
+          // 处理图片
+          reportProgress(createProgress('OCR_PROCESSING', 'OCR 处理中...', { stageProgress: 50 }))
+
+          const result = await ocrService.processImage(input.pdfUrl, {
+            maxCost: options?.maxOcrCost ?? DEFAULT_MAX_OCR_COST,
+          })
+
+          ocrResults = [result]
+        }
       } catch (ocrError) {
         // OCR 失败，更新状态
         await prisma.sourceFile.update({
@@ -268,7 +281,7 @@ export async function importFromPDF(
       const bulkResult = await bulkCreateQuestions({
         questions: questionsToCreate,
         sourceFileId: sourceFile.id,
-        createdBy: systemUserId,
+        createdBy: currentUser.id,
       })
 
       // 统计结果
@@ -504,15 +517,23 @@ async function resumeFromStructuring(
       return convertToCreateInput(q, { qualityScore })
     })
 
-    // 保存入库
-    const systemUserId = '00000000-0000-0000-0000-000000000000'
+    // 保存入库（使用当前登录用户 ID）
+    // 注意：currentUser 已在函数开头获取
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: '用户未登录',
+        code: 'UNAUTHORIZED',
+      }
+    }
 
     reportProgress(createProgress('SAVING', `正在保存 ${questionsToCreate.length} 道题目...`))
 
     const bulkResult = await bulkCreateQuestions({
       questions: questionsToCreate,
       sourceFileId,
-      createdBy: systemUserId,
+      createdBy: currentUser.id,
     })
 
     // 统计结果

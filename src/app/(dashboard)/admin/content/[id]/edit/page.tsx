@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser } from '@/actions/auth'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { QuestionEditorForm } from '@/components/admin/QuestionEditorForm'
 import type { QuestionWithRelations } from '@/lib/content-pipeline/types'
 
@@ -31,8 +31,8 @@ export default async function QuestionEditPage({
       sourceFiles: true,
       _count: {
         select: {
-          userAttempts: true,
-          errorBooks: true
+          attempts: true,
+          errorBook: true
         }
       }
     },

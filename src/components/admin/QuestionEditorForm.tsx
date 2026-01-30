@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { QuestionType } from '@prisma/client'
 import { Loader2, Save, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -37,7 +38,7 @@ const formSchema = z.object({
   type: z.nativeEnum(QuestionType),
   difficulty: z.number().min(1).max(5),
   explanation: z.string().optional(),
-  qualityScore: z.coerce.number().min(0).max(100).optional(),
+  qualityScore: z.number().min(0).max(100).optional(),
   // For options and answers, we'll handle them manually in the form state for flexibility
   // as they depend heavily on the type
 })

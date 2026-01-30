@@ -3257,13 +3257,13 @@ export default async function StatisticsPage() {
     <SidebarLink href="/admin/content/import" icon={<Upload />}>
       批量导入
     </SidebarLink>
-    <SidebarLink href="/admin/content" icon={<CheckSquare />}>
+    <SidebarLink href="/admin/content/review" icon={<CheckSquare />}>
       题目审核
     </SidebarLink>
-    <SidebarLink href="/admin/statistics" icon={<BarChart />}>
+    <SidebarLink href="/admin/content/statistics" icon={<BarChart />}>
       内容统计
     </SidebarLink>
-    <SidebarLink href="/admin/reports" icon={<AlertCircle />}>
+    <SidebarLink href="/admin/content/reports" icon={<AlertCircle />}>
       用户报错
     </SidebarLink>
   </SidebarSection>

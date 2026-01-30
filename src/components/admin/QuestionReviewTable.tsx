@@ -23,7 +23,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, CheckCircle, XCircle, ArrowUpCircle, FileText, Edit } from "lucide-react"
+import { MoreHorizontal, CheckCircle, XCircle, ArrowUpCircle, FileText, Edit, ClipboardCheck } from "lucide-react"
 import { DifficultyBadge } from "./DifficultyBadge"
 import { QualityScoreBadge } from "./QualityScoreBadge"
 import { QuestionWithRelations } from "@/lib/content-pipeline/types"
@@ -273,15 +273,9 @@ export function QuestionReviewTable({
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/admin/content/${question.id}`} className="flex items-center cursor-pointer">
-                            <FileText className="mr-2 h-4 w-4" />
-                            查看详情
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/admin/content/${question.id}/edit`} className="flex items-center cursor-pointer">
-                            <Edit className="mr-2 h-4 w-4" />
-                            编辑题目
+                          <Link href={`/admin/content/review/${question.id}`} className="flex items-center cursor-pointer">
+                            <ClipboardCheck className="mr-2 h-4 w-4" />
+                            查看题目/审核
                           </Link>
                         </DropdownMenuItem>
                       </DropdownMenuContent>

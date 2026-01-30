@@ -9,6 +9,7 @@ import {
   GoogleVisionProvider,
   MathpixProvider,
   TesseractProvider,
+  MockOCRProvider,
   BaseOCRProvider,
 } from './providers'
 import type {
@@ -26,9 +27,15 @@ import { convertPDFToImages } from './pdf-utils'
 
 /**
  * 默认配置
+ *
+ * ⚠️ 开发环境使用 Mock OCR（无需 API key）
+ * 生产环境需要配置真实的 OCR 提供商
  */
 const DEFAULT_CONFIG: OCRServiceConfig = {
-  providerPriority: ['mathpix', 'google_vision', 'tesseract'],
+  // 开发环境优先使用 Mock，生产环境使用真实提供商
+  providerPriority: process.env.NODE_ENV === 'development'
+    ? ['mock']
+    : ['mathpix', 'google_vision', 'tesseract', 'mock'],
   minConfidence: 0.85,
   maxPagesPerRequest: 50,
   concurrency: 3,

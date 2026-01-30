@@ -4,6 +4,7 @@ import '@/lib/suppress-warnings' // 抑制已知的框架警告
 import { ThemeProvider } from '@/providers/theme-provider'
 import { AppProvider } from '@/providers/app-provider'
 import { Toaster } from '@/components/ui/toaster'
+import { Toaster as Sonner } from 'sonner'
 import { BottomTabBar } from '@/components/mobile/BottomTabBar'
 import { MobileHeader } from '@/components/mobile/MobileHeader'
 import { ServiceWorkerRegistration } from '@/components/pwa/ServiceWorkerRegistration'
@@ -85,6 +86,7 @@ export default function RootLayout({
           </AppProvider>
         </ThemeProvider>
         <Toaster />
+        <Sonner position="top-center" />
       </body>
     </html>
   )

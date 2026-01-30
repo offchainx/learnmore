@@ -3,7 +3,10 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 // Load env vars
-dotenv.config({ path: '.env.local' });
+const result = dotenv.config({ path: '.env.local' });
+if (result.error) {
+    dotenv.config({ path: '.env' });
+}
 
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!key) {

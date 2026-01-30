@@ -1,6 +1,8 @@
-import { prisma } from '@/lib/prisma'
+import { ImportClient } from './ImportClient'
 import { getImportTasks } from '@/actions/content-pipeline/import-service'
-import { ImportForm } from '@/components/admin/ImportForm'
+import { getAllSubjects } from '@/actions/subject'
+import { getProfile } from '@/actions/profile'
+import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -8,20 +10,24 @@ export const metadata: Metadata = {
 }
 
 export default async function ImportPage() {
+  const profile = await getProfile()
+  if (!profile) {
+    redirect('/login')
+  }
+
   // Fetch subjects
-  const subjects = await prisma.subject.findMany({
-    orderBy: { order: 'asc' },
-    select: { id: true, name: true }
-  })
+  const subjectsResult = await getAllSubjects()
+  const subjects = subjectsResult.success ? subjectsResult.data || [] : []
 
   // Fetch import history
   const tasksResult = await getImportTasks({ limit: 10 })
   const tasks = tasksResult.success ? tasksResult.data?.tasks || [] : []
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">批量导入题目</h1>
-      <ImportForm subjects={subjects} initialTasks={tasks} />
-    </div>
+    <ImportClient 
+      userRole={profile.role}
+      initialSubjects={subjects}
+      initialHistory={tasks}
+    />
   )
 }

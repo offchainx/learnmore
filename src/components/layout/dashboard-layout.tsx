@@ -112,9 +112,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
 
   const adminSubItems = [
     { id: 'admin-import', icon: Upload, label: t.sidebar.adminImport, href: '/admin/content/import' },
-    { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content' },
-    { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/statistics' },
-    { id: 'admin-reports', icon: AlertCircle, label: t.sidebar.adminReports, href: '/admin/reports' },
+    { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content/review' },
+    { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/content/statistics' },
+    { id: 'admin-reports', icon: AlertCircle, label: t.sidebar.adminReports, href: '/admin/content/reports' },
   ];
 
   return (
