@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   BookOpen, LayoutDashboard, PenTool, MessageCircle,
   Settings, LogOut, Trophy, ChevronRight, ShieldCheck,
-  Upload, CheckSquare, BarChart, AlertCircle, ChevronDown
+  Upload, CheckSquare, BarChart, AlertCircle, ChevronDown, Users
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 import { logoutAction } from '@/actions/auth';
@@ -115,6 +115,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
     { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content/review' },
     { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/content/statistics' },
     { id: 'admin-reports', icon: AlertCircle, label: t.sidebar.adminReports, href: '/admin/content/reports' },
+    { id: 'admin-users', icon: Users, label: t.sidebar.adminUsers, href: '/admin/users' },
   ];
 
   return (
