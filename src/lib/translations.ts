@@ -27,6 +27,7 @@ export const translations = {
       adminReview: "Review Queue",
       adminStats: "Statistics",
       adminReports: "User Reports",
+      adminUsers: "User Management",
       settings: "Settings",
       logout: "Log Out",
       achievements: "Achievements"
@@ -145,6 +146,7 @@ export const translations = {
       adminReview: "题目审核",
       adminStats: "内容统计",
       adminReports: "用户报错",
+      adminUsers: "用户管理",
       settings: "设置",
       logout: "退出登录",
       achievements: "成就系统"
@@ -263,6 +265,7 @@ export const translations = {
       adminReview: "Semakan Soalan",
       adminStats: "Statistik",
       adminReports: "Laporan Pengguna",
+      adminUsers: "Pengurusan Pengguna",
       settings: "Tetapan",
       logout: "Log Keluar",
       achievements: "Pencapaian"

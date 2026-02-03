@@ -36,4 +36,5 @@ export interface DifficultyData {
   color: string;
   percentage: number;
   total: number;
+  [key: string]: string | number; // 索引签名，兼容 recharts ChartDataInput 类型
 }
