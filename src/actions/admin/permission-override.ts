@@ -81,7 +81,81 @@ export async function applyAdminOverride(data: {
     },
   })
 
-  // 5. Revalidate
+// 5. Revalidate
   revalidatePath(`/admin/users/${data.userId}`)
+  revalidatePath('/admin/permissions')
   return { success: true }
+}
+
+/**
+ * 搜索用户以便进行权限覆写
+ */
+export async function searchUsersForOverride(query: string) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    throw new Error('Unauthorized')
+  }
+
+  if (!query || query.length < 2) {
+    return []
+  }
+
+  // 检查是否为合法的 UUID 格式，如果是则进行精确匹配
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(query)
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { email: { contains: query, mode: 'insensitive' } },
+        { username: { contains: query, mode: 'insensitive' } },
+        ...(isUuid ? [{ id: query }] : []),
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      subscriptionTier: true,
+      subscriptionEnd: true,
+      role: true,
+    },
+    take: 10,
+  })
+
+  return users
+}
+
+/**
+ * 获取用户的权限覆写历史
+ */
+export async function getOverrideHistory(userId: string) {
+  const currentUser = await getCurrentUser()
+
+  if (!currentUser || currentUser.role !== 'ADMIN') {
+    throw new Error('Unauthorized')
+  }
+
+  const history = await prisma.userPermissionOverride.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  // 由于 Schema 中未定义 admin 关系，手动获取管理员信息
+  const adminIds = Array.from(new Set(history.map((h) => h.overriddenBy)))
+  const admins = await prisma.user.findMany({
+    where: { id: { in: adminIds } },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+    },
+  })
+
+  const adminMap = new Map(admins.map((a) => [a.id, a]))
+
+  return history.map((h) => ({
+    ...h,
+    admin: adminMap.get(h.overriddenBy),
+  }))
 }
