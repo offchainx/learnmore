@@ -75,6 +75,11 @@ model User {
   impersonationSessions ImpersonationSession[]
   permissionOverrides   UserPermissionOverride[]
 
+  // 🆕 通知与反馈关联 (Story-047)
+  notifications           Notification[]
+  notificationPreference  NotificationPreference?
+  feedbacks               UserFeedback[]
+
   @@map("users")
 }
 
@@ -950,4 +955,98 @@ model UserPermissionOverride {
 
   @@index([userId])
   @@map("user_permission_overrides")
+}
+
+// ============ 通知与反馈模块 (Story-047) ============
+
+enum NotificationType {
+  SYSTEM          // 系统公告
+  STUDY_REMINDER  // 学习提醒
+  ACHIEVEMENT     // 成就达成
+  ACCOUNT_UPDATE  // 账户变动 (如订阅、密码)
+  FEEDBACK_REPLY  // 反馈回复
+  WEEKLY_REPORT   // 学习周报
+  PROMOTION       // 优惠活动
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String
+  content   String           @db.Text
+  link      String?          // 点击跳转链接
+  isRead    Boolean          @default(false) @map("is_read")
+  isArchived Boolean         @default(false) @map("is_archived")
+  metadata  Json?            // 附加数据 (如题目ID、奖励金额等)
+  
+  createdAt DateTime         @default(now()) @map("created_at")
+  readAt    DateTime?        @map("read_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  
+  // 站内通知开关
+  inAppSystem      Boolean @default(true) @map("in_app_system")
+  inAppStudy       Boolean @default(true) @map("in_app_study")
+  inAppAchievement Boolean @default(true) @map("in_app_achievement")
+  
+  // 邮件通知开关
+  emailSystem      Boolean @default(true) @map("email_system")
+  emailStudy       Boolean @default(true) @map("email_study")
+  emailWeekly      Boolean @default(true) @map("email_weekly")
+  emailMarketing   Boolean @default(true) @map("email_marketing")
+  
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+enum FeedbackCategory {
+  BUG             // 漏洞反馈
+  SUGGESTION      // 功能建议
+  CONTENT_ISSUE   // 内容错误 (如题目错误)
+  OTHER           // 其他
+}
+
+enum FeedbackStatus {
+  PENDING         // 待处理
+  IN_PROGRESS     // 处理中
+  RESOLVED        // 已解决
+  REJECTED        // 已拒绝
+  CLOSED          // 已关闭
+}
+
+model UserFeedback {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String           @map("user_id") @db.Uuid
+  category    FeedbackCategory
+  title       String
+  content     String           @db.Text
+  attachments String[]         // 附件图片 URL 列表
+  status      FeedbackStatus   @default(PENDING)
+  priority    Int              @default(0) // 优先级 0-3
+  
+  adminReply  String?          @map("admin_reply") @db.Text
+  repliedAt   DateTime?        @map("replied_at")
+  repliedBy   String?          @map("replied_by") @db.Uuid // Admin ID
+
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("user_feedbacks")
 }
