@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/actions/auth'
+import { getEffectiveTier } from '@/lib/permissions/engine'
 import MockArenaExam from './MockArenaExam'
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default async function MockArenaExamPage({ params }: PageProps) {
 
   const resolvedParams = await params
   const examId = resolvedParams.examId
+  const effectiveTier = getEffectiveTier(user)
 
-  return <MockArenaExam examId={examId} userId={user.id} />
+  return <MockArenaExam examId={examId} userId={user.id} userTier={effectiveTier} />
 }

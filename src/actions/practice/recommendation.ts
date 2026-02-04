@@ -1,52 +1,11 @@
 'use server'
 
 import prisma from "@/lib/prisma"
-import { Question } from "@prisma/client"
+import { Question, Prisma } from "@prisma/client"
+import { getEffectiveTier } from "@/lib/permissions/engine"
+import { getRetentionDate } from "@/lib/permissions/prisma-scope"
 
-/**
- * Mock 数据 ID 到数据库 Subject name 的映射
- * 前端使用 'math'，数据库使用 'Mathematics'
- */
-const SUBJECT_NAME_MAP: Record<string, string> = {
-  math: 'Mathematics',
-  physics: 'Physics',
-  chemistry: 'Chemistry',
-  biology: 'Biology',
-  english: 'English',
-  history: 'History',
-  geography: 'Geography',
-  cs: 'Computer Science',
-}
-
-/**
- * 根据科目标识符（name 或 id）获取真实的数据库 Subject ID
- * 支持传入 'math' (前端 Mock ID) 或 'Mathematics' (数据库 name) 或 UUID (id)
- */
-async function resolveSubjectId(subjectIdentifier: string): Promise<string | null> {
-  // 1. 先检查是否是前端 Mock ID，映射到数据库名称
-  const mappedName = SUBJECT_NAME_MAP[subjectIdentifier.toLowerCase()]
-  const nameToSearch = mappedName || subjectIdentifier
-
-  // 2. 尝试按 name 查找
-  const subjectByName = await prisma.subject.findUnique({
-    where: { name: nameToSearch },
-    select: { id: true }
-  })
-  if (subjectByName) {
-    return subjectByName.id
-  }
-
-  // 3. 再尝试按 id 查找（UUID 格式）
-  const subjectById = await prisma.subject.findUnique({
-    where: { id: subjectIdentifier },
-    select: { id: true }
-  })
-  if (subjectById) {
-    return subjectById.id
-  }
-
-  return null
-}
+// ... (SUBJECT_NAME_MAP and resolveSubjectId helper)
 
 /**
  * 获取智能刷题题目列表
@@ -72,6 +31,30 @@ export async function getSmartDrillQuestions(
       return []
     }
 
+    // 获取用户等级 (C1)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        permissionOverrides: {
+          where: {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          }
+        }
+      }
+    })
+    if (!user) return []
+
+    const tier = getEffectiveTier(user)
+    const minDate = getRetentionDate(tier)
+
+    // C1 Filter
+    const difficultyFilter: Prisma.IntFilter = {}
+    if (tier === 'STARTER') difficultyFilter.lte = 2
+    else if (tier === 'STANDARD') difficultyFilter.lte = 4
+
     // 1. 准备基础数据
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
@@ -91,19 +74,19 @@ export async function getSmartDrillQuestions(
     // 计算各部分目标数量
     const errorBookCount = Math.floor(limit * 0.5)
     const weakChapterCount = Math.floor(limit * 0.3)
-    // 剩余的都给新题，保证总数凑齐 (实际由 remainingForNew 动态计算)
-    // const newQuestionCount = limit - errorBookCount - weakChapterCount
-
+    
     const resultQuestions: Question[] = []
     const addedIds = new Set<string>(excludeIds)
 
     // 1. 获取错题本题目 (Target: 50%)
-    // 优先选择 masteryLevel 低的，且不在最近7天排除列表中
+    // C3: Apply Retention Filter on ErrorBook
     const errorBookQuestions = await prisma.errorBook.findMany({
       where: {
         userId,
+        updatedAt: { gte: minDate }, // C3: Retention Filter
         question: { 
-          chapter: { subjectId }
+          chapter: { subjectId },
+          difficulty: difficultyFilter // C1: Difficulty Filter
         },
         questionId: { notIn: Array.from(addedIds) }
       },
@@ -148,6 +131,7 @@ export async function getSmartDrillQuestions(
             const weakQuestions = await prisma.question.findMany({
                 where: {
                     chapterId: { in: sortedChapterIds },
+                    difficulty: difficultyFilter, // C1: Difficulty Filter
                     id: { notIn: Array.from(addedIds) }
                 },
                 take: remainingForWeak
@@ -180,6 +164,7 @@ export async function getSmartDrillQuestions(
         const newQuestions = await prisma.question.findMany({
             where: {
                 chapter: { subjectId },
+                difficulty: difficultyFilter, // C1: Difficulty Filter
                 id: { notIn: Array.from(allAttemptedIds) } // 真正的"新"题
             },
             take: remainingForNew

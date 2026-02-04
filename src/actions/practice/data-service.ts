@@ -18,6 +18,7 @@ import type {
 } from '@/lib/practice/types'
 import { QUOTA_CONFIGS } from '@/lib/practice/types'
 import { getEffectiveTier } from '@/lib/permissions/engine'
+import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
 // ============ A2.1: 查询章节 + 掌握度 ============
 
@@ -32,7 +33,27 @@ export async function getChapterWithStats(
   chapterId: string,
   userId: string
 ): Promise<ChapterWithStats | null> {
-  // 1. 查询章节基本信息
+  // 1. 获取用户等级和数据保留期 (C3)
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      permissionOverrides: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      }
+    }
+  })
+
+  if (!user) return null
+
+  const tier = getEffectiveTier(user)
+  const minDate = getRetentionDate(tier)
+
+  // 2. 查询章节基本信息
   const chapter = await prisma.chapter.findUnique({
     where: { id: chapterId },
     include: {
@@ -46,10 +67,11 @@ export async function getChapterWithStats(
     return null
   }
 
-  // 2. 查询用户在该章节的答题统计
+  // 3. 查询用户在该章节的答题统计 (应用 C3 过滤)
   const totalAttempts = await prisma.userAttempt.count({
     where: {
       userId,
+      createdAt: { gte: minDate }, // C3: Retention filter
       question: {
         chapterId
       }
@@ -61,13 +83,14 @@ export async function getChapterWithStats(
     where: {
       userId,
       isCorrect: true,
+      createdAt: { gte: minDate }, // C3: Retention filter
       question: {
         chapterId
       }
     }
   })
 
-  // 3. 计算掌握度 (正确率 * 100)
+  // 4. 计算掌握度 (正确率 * 100)
   const masteryLevel = totalAttempts > 0
     ? Math.round((correctCount / totalAttempts) * 100)
     : 0
@@ -102,7 +125,27 @@ export async function getSubjectChapters(
   subjectId: string,
   userId: string
 ): Promise<SubjectChaptersResult | null> {
-  // 1. 查询科目信息
+  // 1. 获取用户等级和数据保留期 (C3)
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      permissionOverrides: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      }
+    }
+  })
+
+  if (!user) return null
+
+  const tier = getEffectiveTier(user)
+  const minDate = getRetentionDate(tier)
+
+  // 2. 查询科目信息
   const subject = await prisma.subject.findUnique({
     where: { id: subjectId }
   })
@@ -111,7 +154,7 @@ export async function getSubjectChapters(
     return null
   }
 
-  // 2. 查询该科目下所有章节及题目数
+  // 3. 查询该科目下所有章节及题目数
   const chapters = await prisma.chapter.findMany({
     where: { subjectId },
     include: {
@@ -132,10 +175,11 @@ export async function getSubjectChapters(
 
   const chapterIds = chapters.map(c => c.id)
 
-  // 3. 批量查询用户在这些章节的所有答题统计（包含时间信息）
+  // 4. 批量查询用户在这些章节的所有答题统计 (应用 C3 过滤)
   const attemptsWithChapter = await prisma.userAttempt.findMany({
     where: {
       userId,
+      createdAt: { gte: minDate }, // C3: Retention filter
       question: {
         chapterId: { in: chapterIds }
       }
@@ -319,8 +363,52 @@ export async function getRandomQuestions(
     userId
   } = filters
 
-  // 1. 构建基础查询条件
+  // 1. 获取用户等级 (C1)
+  let tier: any = 'STARTER'
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        permissionOverrides: {
+          where: {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          }
+        }
+      }
+    })
+    if (user) {
+      tier = getEffectiveTier(user)
+    }
+  }
+
+  // 2. 构建基础查询条件
   const whereCondition: Prisma.QuestionWhereInput = {}
+
+  // C1: Apply Tier-based filtering (Business Integration)
+  // Starter: 只能做 1-2 星 (Basic)
+  // Standard: 只能做 1-4 星 (Standard)
+  // Smart Plus/Premier: 1-5 星 (All)
+  if (tier === 'STARTER') {
+    whereCondition.difficulty = { lte: 2 }
+  } else if (tier === 'STANDARD') {
+    whereCondition.difficulty = { lte: 4 }
+  }
+
+  // 如果用户手动指定了难度，则与 Tier 权限取交集
+  if (difficulty && difficulty.length > 0) {
+    const maxAllowed = tier === 'STARTER' ? 2 : (tier === 'STANDARD' ? 4 : 5)
+    const filteredDifficulty = difficulty.filter(d => d <= maxAllowed)
+    
+    if (filteredDifficulty.length === 0) {
+      // 如果手动选择的难度都不在权限内，则使用权限内的最高难度
+      whereCondition.difficulty = { in: [maxAllowed] }
+    } else {
+      whereCondition.difficulty = { in: filteredDifficulty }
+    }
+  }
 
   // 章节筛选
   if (chapterIds && chapterIds.length > 0) {

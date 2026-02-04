@@ -31,4 +31,11 @@ export const TIER_CONFIG: PermissionMatrix = {
   ],
 };
 
+export const RETENTION_CONFIG: Record<TierKey, number> = {
+  STARTER: 7,
+  STANDARD: 30,
+  SMART_PLUS: -1, // Infinite
+  PREMIER: -1,   // Infinite
+};
+
 export const DEFAULT_TIER: TierKey = 'STARTER';

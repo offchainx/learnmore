@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog"
 
 import ResultSummary from '@/components/practice/session/ResultSummary'
+import { TierKey } from '@/lib/permissions/types'
 
 interface ExamData {
   questions: PrismaQuestion[]
@@ -40,9 +41,10 @@ interface ExamData {
 interface MockArenaExamProps {
   examId: string
   userId: string
+  userTier?: TierKey
 }
 
-export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
+export default function MockArenaExam({ examId, userId, userTier }: MockArenaExamProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -193,6 +195,7 @@ export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
         questions={questions}
         onRetry={() => router.push('/dashboard/practice/mock-arena')}
         backLink="/dashboard/practice"
+        userTier={userTier}
       />
     )
   }

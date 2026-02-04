@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from '../auth';
 import { Prisma, DailyTaskType } from '@prisma/client';
 import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
+import { getEffectiveTier } from '@/lib/permissions/engine';
+import { getRetentionDate } from '@/lib/permissions/prisma-scope';
 
 // --- Legacy Functions (Ported) ---
 
@@ -14,7 +16,15 @@ export async function getErrorBookQuestions(subjectId?: string) {
       return { success: false, error: 'Unauthorized' };
     }
 
-    const whereClause: Prisma.ErrorBookWhereInput = { userId: user.id, masteryLevel: { gt: 0 } };
+    // C3: Get Retention Policy cutoff
+    const tier = getEffectiveTier(user);
+    const minDate = getRetentionDate(tier);
+
+    const whereClause: Prisma.ErrorBookWhereInput = { 
+      userId: user.id, 
+      masteryLevel: { gt: 0 },
+      updatedAt: { gte: minDate } // C3: Retention Filter
+    };
 
     if (subjectId) {
         whereClause.question = {
@@ -128,10 +138,15 @@ export async function getErrorWiperSession(subjectId?: string) {
       return { success: false, error: 'Unauthorized' };
     }
 
+    // C3: Get Retention Policy cutoff
+    const tier = getEffectiveTier(user);
+    const minDate = getRetentionDate(tier);
+
     // Build the where clause
     const whereClause: Prisma.ErrorBookWhereInput = {
       userId: user.id,
-      masteryLevel: { lt: 3 }
+      masteryLevel: { lt: 3 },
+      updatedAt: { gte: minDate } // C3: Retention Filter
     };
 
     if (subjectId) {

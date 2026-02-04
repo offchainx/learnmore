@@ -9,6 +9,8 @@ import type { ExamResult } from '@/actions/practice/exam'
 import { useRouter } from 'next/navigation'
 
 import type { Question as PrismaQuestion } from '@prisma/client'
+import { TierKey } from '@/lib/permissions/types'
+import { PreviewHook } from '@/components/permissions/PreviewHook'
 
 interface ResultSummaryProps {
   result: ExamResult
@@ -16,6 +18,7 @@ interface ResultSummaryProps {
   onRetry?: () => void
   backLink?: string
   backLabel?: string
+  userTier?: TierKey
 }
 
 export default function ResultSummary({ 
@@ -23,9 +26,12 @@ export default function ResultSummary({
   questions,
   onRetry, 
   backLink = '/dashboard/practice',
-  backLabel = 'Back to Practice'
+  backLabel = 'Back to Practice',
+  userTier = 'STARTER'
 }: ResultSummaryProps) {
   const router = useRouter()
+
+  const isPremium = userTier === 'SMART_PLUS' || userTier === 'PREMIER'
 
   return (
     <div className="container mx-auto py-6 max-w-4xl space-y-6">
@@ -150,6 +156,12 @@ export default function ResultSummary({
                       <HelpCircle className="h-4 w-4" /> Explanation
                     </div>
                     <p className="text-sm">{q.explanation}</p>
+                  </div>
+                )}
+
+                {!isPremium && !q.isCorrect && (
+                  <div className="pt-2 border-t mt-2">
+                    <PreviewHook />
                   </div>
                 )}
               </CardContent>

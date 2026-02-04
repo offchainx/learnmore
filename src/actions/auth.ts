@@ -226,6 +226,16 @@ export async function getCurrentUser() {
   // 从 public.users 获取完整用户信息
   let dbUser = await prisma.user.findUnique({
     where: { id: user.id },
+    include: {
+      permissionOverrides: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      }
+    }
   })
 
   // 如果数据库中没有用户记录，自动同步创建
