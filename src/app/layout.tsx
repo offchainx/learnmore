@@ -11,6 +11,7 @@ import { ServiceWorkerRegistration } from '@/components/pwa/ServiceWorkerRegistr
 import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { UnsupportedBrowserWarning } from '@/components/compatibility/UnsupportedBrowserWarning'
 import { PolyfillsLoader } from '@/components/polyfills/PolyfillsLoader'
+import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBannerWrapper'
 import { fonts } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -74,6 +75,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AppProvider>
+            <ImpersonateBannerWrapper />
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />
             <ServiceWorkerRegistration />
