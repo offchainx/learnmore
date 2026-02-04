@@ -5,30 +5,34 @@ import { FeedbackCategory } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 interface CreateFeedbackParams {
-  userId: string;
+  userId?: string;           // 可选: 支持匿名反馈
   category: FeedbackCategory;
   title: string;
   content: string;
+  email?: string;             // 联系邮箱 (匿名时如果想收到确认需要填写)
   attachments?: string[];
 }
 
 /**
  * 提交用户反馈
+ * ⭐ 支持匿名提交：userId 和 email 均可选
  */
 export async function submitFeedback({
   userId,
   category,
   title,
   content,
+  email,
   attachments = [],
 }: CreateFeedbackParams) {
   try {
     const feedback = await prisma.userFeedback.create({
       data: {
-        userId,
+        userId: userId ?? null,
         category,
         title,
         content,
+        email: email ?? null,
         attachments,
       },
     });

@@ -32,9 +32,11 @@ export async function createInAppNotification({
     });
 
     // 2. 检查偏好开关 (如果偏好设置不存在，默认开启)
+    // ⭐ BILLING 类通知不允许用户关闭，始终创建
     let shouldCreate = true;
-    if (preferences) {
+    if (type !== 'BILLING' && preferences) {
       if (type === 'SYSTEM' && !preferences.inAppSystem) shouldCreate = false;
+      if (type === 'SOCIAL' && !preferences.inAppSocial) shouldCreate = false;
       if (type === 'STUDY_REMINDER' && !preferences.inAppStudy) shouldCreate = false;
       if (type === 'ACHIEVEMENT' && !preferences.inAppAchievement) shouldCreate = false;
     }
@@ -64,32 +66,52 @@ export async function createInAppNotification({
 /**
  * 获取用户的通知列表
  */
-export async function getNotifications(userId: string, limit = 20) {
+export async function getNotifications(params: {
+  userId: string;
+  limit?: number;
+  offset?: number;
+  onlyUnread?: boolean;
+}) {
   try {
-    const notifications = await prisma.notification.findMany({
-      where: {
-        userId,
-        isArchived: false,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: limit,
-    });
+    const where: any = {
+      userId: params.userId,
+      isArchived: false,
+    };
+    if (params.onlyUnread) where.isRead = false;
+
+    const [notifications, total] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: params.limit ?? 20,
+        skip: params.offset ?? 0,
+      }),
+      prisma.notification.count({ where: { userId: params.userId, isArchived: false } }),
+    ]);
 
     const unreadCount = await prisma.notification.count({
       where: {
-        userId,
+        userId: params.userId,
         isRead: false,
         isArchived: false,
       },
     });
 
-    return { success: true, data: notifications, unreadCount };
+    return { success: true, data: notifications, total, unreadCount };
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return { success: false, error };
   }
+}
+
+/**
+ * 获取未读通知数量 (用于铃铛红点 Polling)
+ */
+export async function getUnreadNotificationCount(userId: string): Promise<number> {
+  const count = await prisma.notification.count({
+    where: { userId, isRead: false, isArchived: false },
+  });
+  return count;
 }
 
 /**

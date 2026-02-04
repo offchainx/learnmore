@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Row,
   Section,
@@ -21,7 +22,11 @@ interface WeeklyReportEmailProps {
   studyTimeHours?: number;
   xpEarned?: number;
   topSubject?: string;
+  weekCorrectRate?: number;  // 本周正确率 (百分比)
+  streakDays?: number;       // 连续学习天数
 }
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
 export const WeeklyReportEmail = ({
   username = '同学',
@@ -31,6 +36,8 @@ export const WeeklyReportEmail = ({
   studyTimeHours = 12.5,
   xpEarned = 2500,
   topSubject = '数学',
+  weekCorrectRate = 78,
+  streakDays = 5,
 }: WeeklyReportEmailProps) => (
   <Html>
     <Head />
@@ -46,7 +53,7 @@ export const WeeklyReportEmail = ({
           <Text style={paragraph}>
             又是充满进步的一周！以下是你本周的学习成果摘要：
           </Text>
-          
+
           <Section style={statsGrid}>
             <Row>
               <Column style={statCard}>
@@ -54,8 +61,18 @@ export const WeeklyReportEmail = ({
                 <Text style={statValue}>{questionsSolved}</Text>
               </Column>
               <Column style={statCard}>
+                <Text style={statLabel}>本周正确率</Text>
+                <Text style={statValue}>{weekCorrectRate}%</Text>
+              </Column>
+            </Row>
+            <Row>
+              <Column style={statCard}>
                 <Text style={statLabel}>学习时长</Text>
                 <Text style={statValue}>{studyTimeHours}h</Text>
+              </Column>
+              <Column style={statCard}>
+                <Text style={statLabel}>连续学习</Text>
+                <Text style={statValue}>{streakDays}天</Text>
               </Column>
             </Row>
             <Row>
@@ -73,6 +90,11 @@ export const WeeklyReportEmail = ({
           <Text style={paragraph}>
             继续保持！每一份努力都在为你通向优秀的未来铺路。
           </Text>
+          <Section style={buttonContainer}>
+            <Link style={button} href={`${baseUrl}/dashboard`}>
+              继续学习
+            </Link>
+          </Section>
           <Hr style={hr} />
           <Text style={footer}>
             想要查看更详细的报告？请登录 LearnMore 仪表盘。<br />
@@ -152,6 +174,24 @@ const statValue = {
   fontWeight: 'bold',
   color: '#1f2937',
   margin: '0',
+};
+
+const buttonContainer = {
+  textAlign: 'center' as const,
+  margin: '24px 0',
+};
+
+const button = {
+  backgroundColor: '#3b82f6',
+  borderRadius: '5px',
+  color: '#fff',
+  fontSize: '16px',
+  fontWeight: 'bold',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  display: 'inline-block',
+  width: '180px',
+  padding: '12px',
 };
 
 const hr = {

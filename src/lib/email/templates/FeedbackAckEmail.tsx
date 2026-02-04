@@ -15,12 +15,14 @@ interface FeedbackAckEmailProps {
   username?: string;
   feedbackId?: string;
   category?: string;
+  estimatedResponseTime?: string;
 }
 
 export const FeedbackAckEmail = ({
   username = '同学',
   feedbackId = 'FB-12345',
   category = '功能建议',
+  estimatedResponseTime = '24小时内',
 }: FeedbackAckEmailProps) => (
   <Html>
     <Head />
@@ -38,6 +40,7 @@ export const FeedbackAckEmail = ({
           <Section style={infoBox}>
             <Text style={infoText}><strong>反馈单号：</strong> {feedbackId}</Text>
             <Text style={infoText}><strong>反馈类别：</strong> {category}</Text>
+            <Text style={infoText}><strong>预估响应时间：</strong> {estimatedResponseTime}</Text>
           </Section>
           <Text style={paragraph}>
             我们的团队会尽快审阅你的反馈。如果有任何进展，我们会通过站内通知或邮件告知你。

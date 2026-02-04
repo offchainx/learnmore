@@ -14,7 +14,8 @@ import * as React from 'react';
 
 interface TrialExpiryEmailProps {
   username?: string;
-  expiryDate?: string;
+  daysLeft?: number;
+  urgency?: 'warning' | 'urgent';
   upgradeUrl?: string;
 }
 
@@ -22,21 +23,27 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
 export const TrialExpiryEmail = ({
   username = '同学',
-  expiryDate = '3天后',
+  daysLeft = 3,
+  urgency = 'warning',
   upgradeUrl = `${baseUrl}/pricing`,
 }: TrialExpiryEmailProps) => (
   <Html>
     <Head />
-    <Preview>温馨提醒：你的试用期即将结束</Preview>
+    <Preview>{urgency === 'urgent' ? '⚡ 紧急：你的试用期明天结束！' : '温馨提醒：你的试用期即将结束'}</Preview>
     <Body style={main}>
       <Container style={container}>
+        {urgency === 'urgent' && (
+          <Section style={urgentBanner}>
+            <Text style={urgentBannerText}>⚡ 紧急警告：您的试用期明天结束，请立即采取行动。</Text>
+          </Section>
+        )}
         <Section style={header}>
           <Heading style={heading}>试用期提醒</Heading>
         </Section>
         <Section style={content}>
           <Text style={paragraph}>你好，{username}！</Text>
           <Text style={paragraph}>
-            你的免费试用期将于 <strong>{expiryDate}</strong> 结束。为了确保你的学习进度不被中断，建议你及时升级订阅。
+            你的免费试用期将于 <strong>{daysLeft <= 1 ? '明天' : `${daysLeft} 天后`}</strong> 结束。为了确保你的学习进度不被中断，建议你及时升级订阅。
           </Text>
           <Text style={paragraph}>
             升级后，你将继续享有：
@@ -47,7 +54,7 @@ export const TrialExpiryEmail = ({
             </ul>
           </Text>
           <Section style={buttonContainer}>
-            <Link style={button} href={upgradeUrl}>
+            <Link style={urgency === 'urgent' ? buttonUrgent : button} href={upgradeUrl}>
               立即升级
             </Link>
           </Section>
@@ -73,6 +80,19 @@ const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
   padding: '20px 0 48px',
+};
+
+const urgentBanner = {
+  backgroundColor: '#dc2626',
+  padding: '12px 24px',
+  textAlign: 'center' as const,
+};
+
+const urgentBannerText = {
+  color: '#ffffff',
+  fontSize: '14px',
+  fontWeight: 'bold',
+  margin: '0',
 };
 
 const header = {
@@ -120,6 +140,11 @@ const button = {
   display: 'inline-block',
   width: '200px',
   padding: '12px',
+};
+
+const buttonUrgent = {
+  ...button,
+  backgroundColor: '#dc2626',
 };
 
 const hr = {

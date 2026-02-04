@@ -961,6 +961,8 @@ model UserPermissionOverride {
 
 enum NotificationType {
   SYSTEM          // 系统公告
+  SOCIAL          // 社交通知 (帖子回复、评论)
+  BILLING         // 支付通知 (收据、试用到期) — 不允许用户关闭
   STUDY_REMINDER  // 学习提醒
   ACHIEVEMENT     // 成就达成
   ACCOUNT_UPDATE  // 账户变动 (如订阅、密码)
@@ -991,15 +993,16 @@ model Notification {
 }
 
 model NotificationPreference {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @unique @map("user_id") @db.Uuid
-  
+  userId          String   @id @map("user_id") @db.Uuid
+
   // 站内通知开关
   inAppSystem      Boolean @default(true) @map("in_app_system")
+  inAppSocial      Boolean @default(true) @map("in_app_social")       // 社交回复
   inAppStudy       Boolean @default(true) @map("in_app_study")
   inAppAchievement Boolean @default(true) @map("in_app_achievement")
-  
+
   // 邮件通知开关
+  emailBilling     Boolean @default(true) @map("email_billing")       // 支付确认 — 始终开启，不可修改
   emailSystem      Boolean @default(true) @map("email_system")
   emailStudy       Boolean @default(true) @map("email_study")
   emailWeekly      Boolean @default(true) @map("email_weekly")
@@ -1014,8 +1017,8 @@ model NotificationPreference {
 
 enum FeedbackCategory {
   BUG             // 漏洞反馈
-  SUGGESTION      // 功能建议
-  CONTENT_ISSUE   // 内容错误 (如题目错误)
+  FEATURE         // 功能建议
+  BILLING         // 支付问题
   OTHER           // 其他
 }
 
@@ -1029,10 +1032,11 @@ enum FeedbackStatus {
 
 model UserFeedback {
   id          String           @id @default(uuid()) @db.Uuid
-  userId      String           @map("user_id") @db.Uuid
+  userId     String?          @map("user_id") @db.Uuid  // 可选: 支持匿名反馈
   category    FeedbackCategory
   title       String
   content     String           @db.Text
+  email       String?                                     // 联系邮箱 (匿名时如果想收到确认需要填写)
   attachments String[]         // 附件图片 URL 列表
   status      FeedbackStatus   @default(PENDING)
   priority    Int              @default(0) // 优先级 0-3
@@ -1044,7 +1048,7 @@ model UserFeedback {
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([status])
