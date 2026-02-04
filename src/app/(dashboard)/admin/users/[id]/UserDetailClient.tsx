@@ -10,6 +10,10 @@
 import React, { useState } from 'react'
 import { UserProfileHeader } from '@/components/admin/users/UserProfileHeader'
 import { OverviewTab } from '@/components/admin/users/tabs/OverviewTab'
+import { SubscriptionTab } from '@/components/admin/users/tabs/SubscriptionTab'
+import { ActivityTab } from '@/components/admin/users/tabs/ActivityTab'
+import { GrowthTab } from '@/components/admin/users/tabs/GrowthTab'
+import { AuditTab } from '@/components/admin/users/tabs/AuditTab'
 import type { UserDetail } from '@/types/admin-user'
 import {
   LayoutDashboard,
@@ -34,10 +38,10 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'overview', label: '概览', icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'subscription', label: '订阅', icon: <CreditCard className="w-4 h-4" />, disabled: true },
-  { id: 'activity', label: '学习行为', icon: <Activity className="w-4 h-4" />, disabled: true },
-  { id: 'growth', label: '增长', icon: <TrendingUp className="w-4 h-4" />, disabled: true },
-  { id: 'audit', label: '审计', icon: <FileText className="w-4 h-4" />, disabled: true },
+  { id: 'subscription', label: '订阅', icon: <CreditCard className="w-4 h-4" /> },
+  { id: 'activity', label: '学习行为', icon: <Activity className="w-4 h-4" /> },
+  { id: 'growth', label: '增长', icon: <TrendingUp className="w-4 h-4" /> },
+  { id: 'audit', label: '审计', icon: <FileText className="w-4 h-4" /> },
 ]
 
 export const UserDetailClient: React.FC<UserDetailClientProps> = ({ user }) => {
@@ -79,37 +83,12 @@ export const UserDetailClient: React.FC<UserDetailClientProps> = ({ user }) => {
         {/* Tab Content */}
         <div className="p-6">
           {activeTab === 'overview' && <OverviewTab user={user} />}
-          {activeTab === 'subscription' && (
-            <PlaceholderTab title="订阅管理" description="订阅状态、Stripe 支付历史、权限覆写功能将在 Task C 中实现" />
-          )}
-          {activeTab === 'activity' && (
-            <PlaceholderTab title="学习行为" description="答题统计、学习时间线将在 Task D 中实现" />
-          )}
-          {activeTab === 'growth' && (
-            <PlaceholderTab title="增长数据" description="邀请统计、推荐树将在 Task D 中实现" />
-          )}
-          {activeTab === 'audit' && (
-            <PlaceholderTab title="审计日志" description="完整审计时间线将在 Task D 中实现" />
-          )}
+          {activeTab === 'subscription' && <SubscriptionTab user={user} />}
+          {activeTab === 'activity' && <ActivityTab user={user} />}
+          {activeTab === 'growth' && <GrowthTab user={user} />}
+          {activeTab === 'audit' && <AuditTab user={user} />}
         </div>
       </div>
     </div>
   )
 }
-
-// --- Placeholder Component ---
-
-interface PlaceholderTabProps {
-  title: string
-  description: string
-}
-
-const PlaceholderTab: React.FC<PlaceholderTabProps> = ({ title, description }) => (
-  <div className="flex flex-col items-center justify-center py-16 text-center">
-    <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
-      <FileText className="w-8 h-8 text-slate-600" />
-    </div>
-    <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-    <p className="text-sm text-slate-500 max-w-md">{description}</p>
-  </div>
-)
