@@ -1,4 +1,4 @@
-# Story-049: 新手引导与冷启动 (Onboarding & Cold Start)
+# Story-048: 新手引导与冷启动 (Onboarding & Cold Start)
 
 **阶段**: Phase 8: Core Experience & Retention
 **目标**: 解决"注册后不知道干什么"的问题，通过向导、摸底和预置数据，让用户在注册后的前 5 分钟内体验到产品的 "Aha Moment"。
