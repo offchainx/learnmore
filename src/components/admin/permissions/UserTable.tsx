@@ -25,8 +25,12 @@ export function UserTable({ users, onUpdate }: UserTableProps) {
     switch (tier) {
       case 'PREMIER':
         return 'bg-purple-500 hover:bg-purple-600'
-      case 'PRO':
-        return 'bg-blue-500 hover:bg-blue-600'
+      case 'SMART_PLUS':
+        return 'bg-blue-600 hover:bg-blue-700'
+      case 'STANDARD':
+        return 'bg-blue-400 hover:bg-blue-500'
+      case 'STARTER':
+        return 'bg-slate-500 hover:bg-slate-600'
       default:
         return 'bg-slate-500 hover:bg-slate-600'
     }

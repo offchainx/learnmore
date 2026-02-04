@@ -56,11 +56,12 @@ export async function applyAdminOverride(data: {
     select: { subscriptionTier: true },
   })
 
-  // 3. Update User's subscriptionTier
+  // 3. Update User's subscriptionTier and subscriptionEnd
   await prisma.user.update({
     where: { id: data.userId },
     data: {
       subscriptionTier: data.tier,
+      subscriptionEnd: expiresAt,
     },
   })
 

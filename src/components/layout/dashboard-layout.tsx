@@ -95,7 +95,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isAdminExpanded, setIsAdminExpanded] = useState(pathname?.startsWith('/admin/content') || false);
+  const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions') || false);
+  const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(pathname?.startsWith('/admin/content') || false);
   const [, startTransition] = useTransition();
 
   const handleLogout = () => {
@@ -108,7 +109,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isAdmin = userRole === 'ADMIN' || userRole === 'TEACHER';
 
   // Check if any admin route is active
-  const isAdminRouteActive = pathname?.startsWith('/admin') || currentView === 'admin';
+  const isUserAdminActive = pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions');
+  const isContentAdminActive = pathname?.startsWith('/admin/content');
 
   const menuItems = isParent ? [
     { id: 'parent', icon: LayoutDashboard, label: t.sidebar.dashboard },
@@ -120,7 +122,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     { id: 'community', icon: MessageCircle, label: t.sidebar.community },
   ];
 
-  const adminSubItems = [
+  const adminUserSubItems = [
+    { id: 'admin-users', icon: Users, label: t.sidebar.adminUsers, href: '/admin/users' },
+    { id: 'admin-permissions', icon: ShieldCheck, label: t.sidebar.adminPermissions, href: '/admin/permissions' },
+  ];
+
+  const adminContentSubItems = [
     { id: 'admin-import', icon: Upload, label: t.sidebar.adminImport, href: '/admin/content/import' },
     { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content/review' },
     { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/content/statistics' },
@@ -164,23 +171,38 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {/* Admin Section - Only for ADMIN and TEACHER */}
           {isAdmin && (
             <>
-              <SidebarItem
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-6 mb-3 px-4">Administration</div>
+              
+              <SidebarSection
                 icon={Users}
-                label={t.sidebar.adminUsers}
-                active={pathname?.startsWith('/admin/users')}
-                onClick={() => {
-                  router.push('/admin/users');
-                  setSidebarOpen(false);
-                }}
-              />
+                label={t.sidebar.adminUser}
+                isExpanded={isUserAdminExpanded}
+                onToggle={() => setIsUserAdminExpanded(!isUserAdminExpanded)}
+                isActive={isUserAdminActive}
+              >
+                {adminUserSubItems.map(subItem => (
+                  <SidebarItem
+                    key={subItem.id}
+                    icon={subItem.icon}
+                    label={subItem.label}
+                    active={pathname === subItem.href}
+                    onClick={() => {
+                      router.push(subItem.href);
+                      setSidebarOpen(false);
+                    }}
+                    indent
+                  />
+                ))}
+              </SidebarSection>
+
               <SidebarSection
                 icon={ShieldCheck}
-                label={t.sidebar.admin}
-                isExpanded={isAdminExpanded}
-                onToggle={() => setIsAdminExpanded(!isAdminExpanded)}
-                isActive={isAdminRouteActive && !pathname?.startsWith('/admin/users')}
+                label={t.sidebar.adminContent}
+                isExpanded={isContentAdminExpanded}
+                onToggle={() => setIsContentAdminExpanded(!isContentAdminExpanded)}
+                isActive={isContentAdminActive}
               >
-                {adminSubItems.map(subItem => (
+                {adminContentSubItems.map(subItem => (
                   <SidebarItem
                     key={subItem.id}
                     icon={subItem.icon}

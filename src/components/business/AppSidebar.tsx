@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation'
 import { logoutAction } from '@/actions/auth'
 import {
   Menu, BookOpen, LayoutDashboard, PenTool, BookMarked,
-  Trophy, MessageCircle, Settings, LogOut
+  Trophy, MessageCircle, Settings, LogOut, ShieldCheck
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useApp } from '@/providers/app-provider'
 
 interface NavItem {
   title: string
@@ -29,7 +30,7 @@ const mainNavItems: NavItem[] = [
   { title: 'UI Kit Debug', href: '/dashboard/debug/ui-kit', icon: Settings },
 ]
 
-const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
+const SidebarContent = ({ onClose, userRole }: { onClose?: () => void; userRole?: string }) => {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
@@ -39,6 +40,8 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
       if (onClose) onClose();
     });
   };
+
+  const isAdmin = userRole === 'ADMIN' || userRole === 'TEACHER';
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-[#050505] text-slate-900 dark:text-white">
@@ -79,6 +82,29 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
               </Link>
             )
           })}
+
+          {isAdmin && (
+            <>
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-6 mb-3 px-4">Admin</div>
+              <Link
+                href="/admin/permissions"
+                onClick={onClose}
+                className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
+                  pathname === '/admin/permissions'
+                    ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-white/10'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                }`}
+              >
+                {pathname === '/admin/permissions' && (
+                  <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/50 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+                )}
+                <div className="flex items-center justify-center w-5 h-5 mr-3 relative z-10">
+                  <ShieldCheck className={`w-full h-full ${pathname === '/admin/permissions' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`} />
+                </div>
+                <span className="relative z-10 leading-none pt-[1px]">Permissions Control</span>
+              </Link>
+            </>
+          )}
         </div>
       </ScrollArea>
 
@@ -126,6 +152,7 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
 
 export function AppSidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { user } = useApp()
 
   return (
     <>
@@ -137,13 +164,13 @@ export function AppSidebar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 border-r-0">
-          <SidebarContent onClose={() => setIsOpen(false)} />
+          <SidebarContent onClose={() => setIsOpen(false)} userRole={user?.role} />
         </SheetContent>
       </Sheet>
 
       {/* Desktop Sidebar */}
       <div className="hidden border-r bg-white dark:bg-[#050505] lg:block w-72 h-screen sticky top-0 border-slate-200 dark:border-white/5">
-        <SidebarContent />
+        <SidebarContent userRole={user?.role} />
       </div>
     </>
   )

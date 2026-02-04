@@ -117,7 +117,8 @@ export function OverrideModal({ user, children, onSuccess }: OverrideModalProps)
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="STARTER">STARTER (免费版)</SelectItem>
-                  <SelectItem value="PRO">PRO (专业版)</SelectItem>
+                  <SelectItem value="STANDARD">STANDARD (标准版)</SelectItem>
+                  <SelectItem value="SMART_PLUS">SMART_PLUS (智学版)</SelectItem>
                   <SelectItem value="PREMIER">PREMIER (旗舰版)</SelectItem>
                 </SelectContent>
               </Select>
