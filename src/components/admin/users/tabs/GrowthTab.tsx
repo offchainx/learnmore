@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useMemo } from 'react'
-import { Copy, GitCommit } from 'lucide-react'
+import React, { useMemo, useEffect, useState } from 'react'
+import { Copy, GitCommit, Loader2 } from 'lucide-react'
 import { UserDetail, ReferralNode } from '@/types/admin-user'
 import { UserTierBadge } from '../UserBadges'
-import { generateReferralTree } from '../mock/userMockData'
+import { getUserReferralData } from '@/actions/admin/user-details'
 
 interface GrowthTabProps {
   user: UserDetail
@@ -14,7 +14,7 @@ const ReferralNodeView: React.FC<{ node: ReferralNode; depth?: number }> = ({ no
   <div className={`${depth > 0 ? 'ml-6 border-l border-slate-800 pl-4' : ''} mt-3`}>
     <div className="flex items-center gap-3 p-2 rounded bg-slate-800/30 border border-slate-800">
       <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
-        {node.name[0]}
+        {node.name[0]?.toUpperCase()}
       </div>
       <span className="text-sm text-slate-200 font-medium">{node.name}</span>
       <UserTierBadge tier={node.tier} />
@@ -26,7 +26,39 @@ const ReferralNodeView: React.FC<{ node: ReferralNode; depth?: number }> = ({ no
 );
 
 export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
-  const referralTree = useMemo(() => generateReferralTree(), []);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<{
+    stats: {
+      referralCode: string | null;
+      totalInvites: number;
+      rewardSummary: string;
+    };
+    tree: ReferralNode | null;
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const res = await getUserReferralData(user.id);
+      if (res.success && res.data) {
+        setData(res.data);
+      }
+      setLoading(false);
+    }
+    loadData();
+  }, [user.id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!data || !data.tree) {
+    return <div className="text-slate-500 p-8 text-center">无法加载推荐数据</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -36,7 +68,7 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
           <div className="text-xs text-slate-500 uppercase tracking-wide mb-2">My Referral Code</div>
           <div className="flex items-center gap-3">
              <code className="bg-slate-950 border border-slate-800 px-3 py-2 rounded text-lg font-mono text-emerald-400 tracking-widest">
-               REF-MK-2024
+               {data.stats.referralCode || 'NOT_SET'}
              </code>
              <button className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
                <Copy size={18} />
@@ -45,12 +77,12 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
         </div>
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Total Invites</div>
-          <div className="text-4xl font-bold text-white">42</div>
+          <div className="text-4xl font-bold text-white">{data.stats.totalInvites}</div>
         </div>
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Rewards Earned</div>
           <div className="text-xl font-medium text-slate-200">
-            <span className="text-white font-bold">3</span> months / <span className="text-white font-bold">$45</span> credit
+            {data.stats.rewardSummary}
           </div>
         </div>
       </div>
@@ -65,13 +97,16 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
             <div className="w-6 h-6 rounded-full bg-blue-900 flex items-center justify-center text-xs font-bold text-blue-200">
               You
             </div>
-            <span className="text-sm text-white font-medium">{referralTree.name}</span>
-            <UserTierBadge tier={referralTree.tier} />
+            <span className="text-sm text-white font-medium">{data.tree.name}</span>
+            <UserTierBadge tier={data.tree.tier} />
           </div>
           {/* Render children */}
-          {referralTree.children?.map(child => (
+          {data.tree.children?.map(child => (
             <ReferralNodeView key={child.id} node={child} depth={1} />
           ))}
+          {(!data.tree.children || data.tree.children.length === 0) && (
+            <div className="text-slate-500 text-sm italic pl-8 pt-2">暂无推荐记录</div>
+          )}
         </div>
       </div>
     </div>

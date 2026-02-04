@@ -1,16 +1,15 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useState } from 'react'
 import { UserDetail } from '@/types/admin-user'
-import { generateHeatmapData } from '../mock/userMockData'
+import { getUserActivityData } from '@/actions/admin/user-details'
+import { Loader2 } from 'lucide-react'
 
 interface ActivityTabProps {
   user: UserDetail
 }
 
-const Heatmap: React.FC = () => {
-  const data = useMemo(() => generateHeatmapData(), []);
-  // data is week[][day]
+const Heatmap: React.FC<{ data: number[][] }> = ({ data }) => {
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
       <h3 className="text-sm font-semibold text-slate-200 mb-4">Learning Activity Heatmap</h3>
@@ -59,6 +58,44 @@ const Heatmap: React.FC = () => {
 };
 
 export const ActivityTab: React.FC<ActivityTabProps> = ({ user }) => {
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<{
+    stats: {
+      totalQuestions: number;
+      accuracy: number;
+      mistakes: number;
+      daysActive: number;
+    };
+    timeline: {
+      type: string;
+      color: string;
+      time: string;
+    }[];
+    heatmap: number[][];
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const res = await getUserActivityData(user.id);
+      if (res.success && res.data) {
+        setData(res.data);
+      }
+      setLoading(false);
+    }
+    loadData();
+  }, [user.id]);
+
+  if (loading) {
+     return (
+       <div className="flex items-center justify-center h-[400px]">
+         <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+       </div>
+     );
+  }
+
+  if (!data) return <div className="p-8 text-center text-slate-500">无法加载数据</div>;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left Col (55% rough) */}
@@ -66,10 +103,10 @@ export const ActivityTab: React.FC<ActivityTabProps> = ({ user }) => {
         {/* 2x2 Stats */}
         <div className="grid grid-cols-2 gap-4">
           {[
-            { label: 'Total Questions', val: user.learningStats.totalQuestions },
-            { label: 'Accuracy', val: `${user.learningStats.accuracy}%` },
-            { label: 'Mistakes Log', val: user.learningStats.mistakes },
-            { label: 'Days Active', val: user.learningStats.daysActive }
+            { label: 'Total Questions', val: data.stats.totalQuestions },
+            { label: 'Accuracy', val: `${data.stats.accuracy}%` },
+            { label: 'Mistakes Log', val: data.stats.mistakes },
+            { label: 'Days Active', val: data.stats.daysActive }
           ].map((stat, i) => (
             <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col items-center justify-center text-center">
               <div className="text-2xl font-bold text-white mb-1">{stat.val}</div>
@@ -82,27 +119,27 @@ export const ActivityTab: React.FC<ActivityTabProps> = ({ user }) => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-slate-200 mb-6">Recent Activity Timeline</h3>
           <div className="space-y-6 pl-2">
-            {[
-              { type: 'Login', color: 'bg-blue-500', time: '10 min ago' },
-              { type: 'Quiz Completed', color: 'bg-emerald-500', time: '45 min ago' },
-              { type: 'Mistake Review', color: 'bg-amber-500', time: '2 hours ago' },
-            ].map((evt, i) => (
-              <div key={i} className="relative flex gap-4">
-                 {i !== 2 && <div className="absolute left-[5px] top-4 bottom-[-34px] w-px bg-slate-800" />}
-                 <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${evt.color} shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
-                 <div className="flex-1 flex justify-between">
-                    <span className="text-sm text-slate-200">{evt.type}</span>
-                    <span className="text-xs text-slate-500">{evt.time}</span>
-                 </div>
-              </div>
-            ))}
+            {data.timeline.length === 0 ? (
+              <div className="text-slate-500 text-sm">暂无近期活动</div>
+            ) : (
+              data.timeline.map((evt, i) => (
+                <div key={i} className="relative flex gap-4">
+                   {i !== data.timeline.length - 1 && <div className="absolute left-[5px] top-4 bottom-[-34px] w-px bg-slate-800" />}
+                   <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${evt.color} shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
+                   <div className="flex-1 flex justify-between">
+                      <span className="text-sm text-slate-200">{evt.type}</span>
+                      <span className="text-xs text-slate-500">{evt.time}</span>
+                   </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
       {/* Right Col: Heatmap */}
       <div>
-        <Heatmap />
+        <Heatmap data={data.heatmap} />
       </div>
     </div>
   )
