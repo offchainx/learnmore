@@ -104,8 +104,9 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   if (authData.user) {
     // 生成用户自己的推荐码
     const myReferralCode = generateReferralCode()
+    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    // 1. 更新用户推荐码和用户名
+    // 1. 更新用户推荐码和用户名，并设置试用期
     // 注意：Trigger 会先创建用户，这里用 upsert 兜底
     try {
       await prisma.user.upsert({
@@ -115,13 +116,19 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
           email: parsed.data.email,
           username: parsed.data.username || null,
           referralCode: myReferralCode,
+          subscriptionTier: 'STANDARD',
+          subscriptionStart: new Date(),
+          subscriptionEnd: trialEndDate,
         },
         update: {
           username: parsed.data.username || undefined,
           referralCode: myReferralCode,
+          subscriptionTier: 'STANDARD',
+          subscriptionStart: new Date(),
+          subscriptionEnd: trialEndDate,
         },
       })
-      console.log('[Auth] User referralCode updated:', myReferralCode)
+      console.log('[Auth] User trial subscription (STANDARD) granted until:', trialEndDate)
     } catch (e) {
       console.error('[Auth] User upsert error:', e)
     }
@@ -241,6 +248,7 @@ export async function getCurrentUser() {
   // 如果数据库中没有用户记录，自动同步创建
   if (!dbUser && user.email) {
     console.warn(`[Auth] User ${user.id} not found in database, auto-syncing...`)
+    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     try {
       dbUser = await prisma.user.create({
         data: {
@@ -248,9 +256,19 @@ export async function getCurrentUser() {
           email: user.email,
           username: user.user_metadata?.username || user.email.split('@')[0],
           referralCode: generateReferralCode(),
+          subscriptionTier: 'STANDARD',
+          subscriptionStart: new Date(),
+          subscriptionEnd: trialEndDate,
         },
         include: {
-          permissionOverrides: true
+          permissionOverrides: {
+            where: {
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } }
+              ]
+            }
+          }
         }
       })
       // 同时创建 UserSettings
@@ -261,7 +279,7 @@ export async function getCurrentUser() {
           theme: 'light',
         },
       })
-      console.warn(`[Auth] User ${user.id} synced successfully`)
+      console.warn(`[Auth] User ${user.id} synced successfully with trial STANDARD`)
     } catch (e) {
       console.error('[Auth] Failed to sync user:', e)
     }
@@ -291,6 +309,7 @@ export async function syncCurrentUserToDatabase() {
   }
 
   try {
+    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },
       create: {
@@ -298,6 +317,9 @@ export async function syncCurrentUserToDatabase() {
         email: user.email,
         username: user.user_metadata?.username || user.email.split('@')[0],
         referralCode: generateReferralCode(),
+        subscriptionTier: 'STANDARD',
+        subscriptionStart: new Date(),
+        subscriptionEnd: trialEndDate,
       },
       update: {
         email: user.email,

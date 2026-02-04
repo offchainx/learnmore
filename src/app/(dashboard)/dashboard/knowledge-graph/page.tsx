@@ -15,5 +15,5 @@ export default async function KnowledgeGraphPage() {
     redirect('/login')
   }
 
-  return <KnowledgeGraphClientWrapper />
+  return <KnowledgeGraphClientWrapper user={profile} />
 }

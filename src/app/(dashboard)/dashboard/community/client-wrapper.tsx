@@ -2,14 +2,14 @@
 
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { CommunityView } from '@/components/dashboard/views/CommunityView'
+import { User } from '@prisma/client'
 
 interface CommunityClientWrapperProps {
-  userRole: string
   children: React.ReactNode
+  user: User
 }
 
-export function CommunityClientWrapper({ userRole, children }: CommunityClientWrapperProps) {
+export function CommunityClientWrapper({ children, user }: CommunityClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -35,7 +35,9 @@ export function CommunityClientWrapper({ userRole, children }: CommunityClientWr
     <DashboardLayout
       currentView="community"
       onNavigate={handleNavigate}
-      userRole={userRole}
+      userRole={user.role}
+      subscriptionTier={user.subscriptionTier}
+      subscriptionEnd={user.subscriptionEnd}
     >
       {children}
     </DashboardLayout>

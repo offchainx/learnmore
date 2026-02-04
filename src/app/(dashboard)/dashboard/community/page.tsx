@@ -17,7 +17,7 @@ export default async function CommunityPage() {
   }
 
   return (
-    <CommunityClientWrapper userRole={profile.role}>
+    <CommunityClientWrapper user={profile}>
       <CommunityView />
     </CommunityClientWrapper>
   )

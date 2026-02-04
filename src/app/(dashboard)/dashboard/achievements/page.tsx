@@ -15,5 +15,5 @@ export default async function AchievementsPage() {
     redirect('/login')
   }
 
-  return <AchievementsClientWrapper />
+  return <AchievementsClientWrapper user={profile} />
 }

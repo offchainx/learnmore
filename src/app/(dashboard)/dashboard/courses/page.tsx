@@ -15,5 +15,5 @@ export default async function CoursesPage() {
     redirect('/login')
   }
 
-  return <CoursesClientWrapper userRole={profile.role} />
+  return <CoursesClientWrapper user={profile} />
 }

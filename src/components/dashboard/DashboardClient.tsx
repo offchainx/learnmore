@@ -99,6 +99,8 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       currentView={currentView}
       onNavigate={handleViewChange}
       userRole={user.role}
+      subscriptionTier={user.subscriptionTier}
+      subscriptionEnd={user.subscriptionEnd}
     >
        {renderContent()}
     </DashboardLayout>

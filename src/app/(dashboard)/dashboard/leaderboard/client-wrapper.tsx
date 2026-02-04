@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { LeaderboardView } from '@/components/dashboard/views/LeaderboardView'
 import { useApp } from '@/providers/app-provider'
+import { User } from '@prisma/client'
 
 interface LeaderboardClientWrapperProps {
-  userRole: string
+  user: User
 }
 
-export function LeaderboardClientWrapper({ userRole }: LeaderboardClientWrapperProps) {
+export function LeaderboardClientWrapper({ user }: LeaderboardClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -36,7 +37,9 @@ export function LeaderboardClientWrapper({ userRole }: LeaderboardClientWrapperP
     <DashboardLayout
       currentView="leaderboard"
       onNavigate={handleNavigate}
-      userRole={userRole}
+      userRole={user.role}
+      subscriptionTier={user.subscriptionTier}
+      subscriptionEnd={user.subscriptionEnd}
     >
       <LeaderboardView t={t} />
     </DashboardLayout>

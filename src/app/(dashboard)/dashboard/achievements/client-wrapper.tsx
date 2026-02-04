@@ -3,8 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { AchievementsView } from '@/components/dashboard/views/AchievementsView'
+import { User } from '@prisma/client'
 
-export function AchievementsClientWrapper() {
+interface AchievementsClientWrapperProps {
+  user: User
+}
+
+export function AchievementsClientWrapper({ user }: AchievementsClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -17,6 +22,8 @@ export function AchievementsClientWrapper() {
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
+      'knowledgeGraph': '/dashboard/knowledge-graph',
+      'admin': '/admin/content',
       'parent': '/dashboard'
     }
 
@@ -28,7 +35,9 @@ export function AchievementsClientWrapper() {
     <DashboardLayout
       currentView="achievements"
       onNavigate={handleNavigate}
-      userRole="STUDENT"
+      userRole={user.role}
+      subscriptionTier={user.subscriptionTier}
+      subscriptionEnd={user.subscriptionEnd}
     >
       <AchievementsView />
     </DashboardLayout>

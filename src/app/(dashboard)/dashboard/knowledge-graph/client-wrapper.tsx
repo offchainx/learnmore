@@ -3,8 +3,13 @@
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { KnowledgeGraphView } from '@/components/dashboard/views/KnowledgeGraphView'
+import { User } from '@prisma/client'
 
-export function KnowledgeGraphClientWrapper() {
+interface KnowledgeGraphClientWrapperProps {
+  user: User
+}
+
+export function KnowledgeGraphClientWrapper({ user }: KnowledgeGraphClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -18,6 +23,7 @@ export function KnowledgeGraphClientWrapper() {
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
       'knowledgeGraph': '/dashboard/knowledge-graph',
+      'admin': '/admin/content',
       'parent': '/dashboard'
     }
 
@@ -29,7 +35,9 @@ export function KnowledgeGraphClientWrapper() {
     <DashboardLayout
       currentView="knowledgeGraph"
       onNavigate={handleNavigate}
-      userRole="STUDENT"
+      userRole={user.role}
+      subscriptionTier={user.subscriptionTier}
+      subscriptionEnd={user.subscriptionEnd}
     >
       <KnowledgeGraphView />
     </DashboardLayout>

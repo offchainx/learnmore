@@ -8,7 +8,7 @@ import { User, UserSettings } from '@prisma/client'
 type UserProfile = User & { settings: UserSettings | null }
 
 interface SettingsClientWrapperProps {
-  user: any
+  user: UserProfile
   userRole: string
 }
 
@@ -39,6 +39,8 @@ export function SettingsClientWrapper({ user, userRole }: SettingsClientWrapperP
       currentView="settings"
       onNavigate={handleNavigate}
       userRole={userRole}
+      subscriptionTier={user?.subscriptionTier}
+      subscriptionEnd={user?.subscriptionEnd}
     >
       <SettingsView user={user} />
     </DashboardLayout>

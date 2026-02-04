@@ -78,7 +78,7 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
   })) : []
 
   return (
-    <AdminClientWrapper userRole={profile.role}>
+    <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>

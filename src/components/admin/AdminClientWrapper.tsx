@@ -2,13 +2,15 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { User } from '@prisma/client'
 
 interface AdminClientWrapperProps {
   children: React.ReactNode
+  user?: User
   userRole: string
 }
 
-export function AdminClientWrapper({ children, userRole }: AdminClientWrapperProps) {
+export function AdminClientWrapper({ children, user, userRole }: AdminClientWrapperProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -34,6 +36,8 @@ export function AdminClientWrapper({ children, userRole }: AdminClientWrapperPro
       currentView="admin"
       onNavigate={handleNavigate}
       userRole={userRole}
+      subscriptionTier={user?.subscriptionTier}
+      subscriptionEnd={user?.subscriptionEnd}
     >
       {children}
     </DashboardLayout>

@@ -4,13 +4,13 @@ import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { QuestionBankView } from '@/components/dashboard/views/QuestionBankView'
 import { useApp } from '@/providers/app-provider'
+import { User } from '@prisma/client'
 
 interface PracticeClientWrapperProps {
-  userId: string
-  userRole: string
+  user: User
 }
 
-export function PracticeClientWrapper({ userId, userRole }: PracticeClientWrapperProps) {
+export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -37,9 +37,11 @@ export function PracticeClientWrapper({ userId, userRole }: PracticeClientWrappe
     <DashboardLayout
       currentView="questionBank"
       onNavigate={handleNavigate}
-      userRole={userRole}
+      userRole={user.role}
+      subscriptionTier={user.subscriptionTier}
+      subscriptionEnd={user.subscriptionEnd}
     >
-      <QuestionBankView t={t} userId={userId} />
+      <QuestionBankView t={t} userId={user.id} />
     </DashboardLayout>
   )
 }

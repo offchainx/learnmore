@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 import { logoutAction } from '@/actions/auth';
+import { TrialBanner } from './TrialBanner';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -78,9 +79,18 @@ interface DashboardLayoutProps {
   currentView: string;
   onNavigate: (view: string) => void;
   userRole?: string;
+  subscriptionTier?: string | null;
+  subscriptionEnd?: Date | string | null;
 }
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, currentView, onNavigate, userRole }) => {
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ 
+  children, 
+  currentView, 
+  onNavigate, 
+  userRole,
+  subscriptionTier,
+  subscriptionEnd
+}) => {
   const { t } = useApp();
   const router = useRouter();
   const pathname = usePathname();
@@ -216,6 +226,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
 
       {/* Main Content Area */}
       <main className={`flex-1 overflow-y-auto p-4 sm:p-8 scroll-smooth ${currentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}>
+         <TrialBanner subscriptionTier={subscriptionTier || null} subscriptionEnd={subscriptionEnd || null} />
+         
          {/* Mobile Menu Trigger */}
          <div className="lg:hidden mb-4">
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500">
