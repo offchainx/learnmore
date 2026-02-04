@@ -16,6 +16,7 @@ export async function getUserPermissionStatus(): Promise<{ tier: TierKey; isAuth
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: {
+      role: true,
       subscriptionTier: true,
       subscriptionEnd: true,
       permissionOverrides: {
@@ -62,6 +63,7 @@ export async function checkPermissionAction(feature: FeatureKey): Promise<Permis
     const dbUser = await prisma.user.findUnique({
         where: { id: user.id },
         select: {
+            role: true,
             subscriptionTier: true,
             subscriptionEnd: true,
             permissionOverrides: {

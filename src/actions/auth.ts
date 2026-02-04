@@ -53,11 +53,15 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   if (usedReferralCode) {
     const referrer = await prisma.user.findUnique({
       where: { referralCode: usedReferralCode },
-      select: {
-        id: true,
-        role: true,
-        referralCount: true,
-        referralLimit: true,
+      include: {
+        permissionOverrides: {
+          where: {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          }
+        }
       },
     })
 
@@ -65,8 +69,11 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
       return { error: '无效的推荐码' }
     }
 
-    if (!['PRO', 'ULTIMATE'].includes(referrer.role)) {
-      return { error: '该推荐码已失效（推荐人非付费用户）' }
+    const { getEffectiveTier } = await import('@/lib/permissions/engine')
+    const effectiveTier = getEffectiveTier(referrer)
+
+    if (effectiveTier !== 'PREMIER') {
+      return { error: '该推荐码已失效（推荐人非领航版用户）' }
     }
 
     if (referrer.referralCount >= referrer.referralLimit) {

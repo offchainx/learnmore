@@ -175,7 +175,7 @@ export async function startExam(
     if (!quota.canProceed) {
       return {
         success: false,
-        error: 'Weekly exam quota exceeded. Please upgrade to PRO for more attempts.'
+        error: 'Weekly exam quota exceeded. Please upgrade to Standard or Smart Plus for more attempts.'
       }
     }
 

@@ -1,14 +1,20 @@
-import { SubscriptionTier, UserPermissionOverride } from '@prisma/client';
+import { SubscriptionTier, UserPermissionOverride, UserRole } from '@prisma/client';
 import { FeatureKey, PermissionCheckResult, TierKey } from './types';
 import { TIER_CONFIG, DEFAULT_TIER } from './config';
 
 export type UserWithOverrides = {
+  role?: UserRole;
   subscriptionTier: SubscriptionTier | null;
   subscriptionEnd: Date | null;
   permissionOverrides?: Pick<UserPermissionOverride, 'targetField' | 'newValue' | 'expiresAt'>[];
 };
 
 export function getEffectiveTier(user: UserWithOverrides, now: Date = new Date()): TierKey {
+  // 0. Admin/Teacher Bypass (Always PREMIER)
+  if (user.role && ['ADMIN', 'TEACHER'].includes(user.role)) {
+    return 'PREMIER';
+  }
+
   // 1. Process Overrides
   const activeOverrides = user.permissionOverrides?.filter(o => 
     !o.expiresAt || o.expiresAt > now

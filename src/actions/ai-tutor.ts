@@ -11,13 +11,13 @@ export async function checkAndDeductAiToken() {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { aiTokenBalance: true, role: true }
+    select: { aiTokenBalance: true, role: true, subscriptionTier: true }
   });
 
   if (!dbUser) return { success: false, error: 'User not found' };
 
-  // Unlimited for ULTIMATE
-  if (dbUser.role === UserRole.ULTIMATE || dbUser.role === UserRole.ADMIN) {
+  // Unlimited for PREMIER/ADMIN/TEACHER
+  if (dbUser.role === UserRole.ADMIN || dbUser.role === UserRole.TEACHER || dbUser.subscriptionTier === 'PREMIER') {
     return { success: true, remaining: 9999 };
   }
 

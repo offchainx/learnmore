@@ -17,6 +17,7 @@ import type {
   WeaknessItem,
 } from '@/lib/practice/types'
 import { QUOTA_CONFIGS } from '@/lib/practice/types'
+import { getEffectiveTier } from '@/lib/permissions/engine'
 
 // ============ A2.1: 查询章节 + 掌握度 ============
 
@@ -298,8 +299,6 @@ export async function getWeaknessAnalysis(
 
 // ============ A2.3: 智能随机抽题 ============
 
-// ============ A2.3: 智能随机抽题 ============
-
 /**
  * 根据筛选条件随机抽取题目
  * 支持排除最近N天做过的题
@@ -413,9 +412,15 @@ export async function getUserQuotaStatus(
   // 1. 查询用户信息
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      role: true,
-      aiTokenBalance: true
+    include: {
+      permissionOverrides: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      }
     }
   })
 
@@ -423,8 +428,9 @@ export async function getUserQuotaStatus(
     return null
   }
 
+  const effectiveTier = getEffectiveTier(user)
   // 2. 获取该角色的配额配置
-  const config = QUOTA_CONFIGS[user.role]
+  const config = QUOTA_CONFIGS[effectiveTier]
 
   // 3. 计算今日开始时间（UTC 00:00）
   const todayStart = new Date()
@@ -461,8 +467,8 @@ export async function getUserQuotaStatus(
     ? -1  // 无限制
     : Math.max(0, weeklyLimit - weeklyExamsUsed)
 
-  // 8. 判断是否付费用户
-  const isPremium = ['PRO', 'ULTIMATE', 'TEACHER', 'ADMIN'].includes(user.role)
+  // 8. 判断是否付费用户 (Standard 及以上)
+  const isPremium = effectiveTier !== 'STARTER'
 
   return {
     dailyQuestionsUsed,

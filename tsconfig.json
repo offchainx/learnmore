@@ -40,7 +40,6 @@
   "exclude": [
     "node_modules",
     "ai_studio_iterations",
-    "admin-user-management",
     "用户报错"
   ]
 }

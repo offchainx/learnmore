@@ -14,6 +14,11 @@ describe('Permissions Engine', () => {
   };
 
   describe('getEffectiveTier', () => {
+    it('returns PREMIER for ADMIN role regardless of subscription', () => {
+      const user: UserWithOverrides = { ...baseUser, role: 'ADMIN' };
+      expect(getEffectiveTier(user, now)).toBe('PREMIER');
+    });
+
     it('returns STARTER for basic user', () => {
       expect(getEffectiveTier(baseUser, now)).toBe('STARTER');
     });
