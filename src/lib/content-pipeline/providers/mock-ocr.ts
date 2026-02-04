@@ -81,10 +81,6 @@ export class MockOCRProvider extends BaseOCRProvider {
       confidence: 0.95,
       processingTime,
       estimatedCost: 0,
-      metadata: {
-        note: '这是 Mock OCR 的测试结果，非真实识别',
-        imageSource: imageSource.substring(0, 100),
-      },
     }
   }
 

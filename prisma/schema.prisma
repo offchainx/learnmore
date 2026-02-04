@@ -68,6 +68,11 @@ model User {
   reviewLogs          ContentReviewLog[] @relation("UserReviewLogs")
   questionReports     QuestionReport[]   @relation("UserQuestionReports")
 
+  // 🆕 用户管理后台关联 (Story-046)
+  adminNotes            AdminNote[]
+  securityLogs          SecurityLog[]
+  impersonationSessions ImpersonationSession[]
+
   @@map("users")
 }
 
@@ -845,4 +850,73 @@ model QuestionReport {
   @@index([status])
   @@index([reportedBy])
   @@map("question_reports")
+}
+
+// ============ 用户管理后台模块 (Story-046) ============
+
+// 安全操作类型枚举
+enum SecurityAction {
+  LOGIN
+  LOGOUT
+  PASSWORD_RESET
+  IMPERSONATE_START // 伪装登录：进入
+  IMPERSONATE_END // 伪装登录：退出
+  USER_BANNED
+  USER_UNBANNED
+  PERMISSION_OVERRIDE // 权限覆写
+  ADMIN_NOTE_ADDED
+  ADMIN_NOTE_DELETED // 软删除操作
+  ADMIN_NOTE_RESTORED // 恢复操作
+}
+
+// 客服/运营内部备注（用户不可见，支持软删除）
+model AdminNote {
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @map("user_id") @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authorId String @map("author_id") @db.Uuid // 操作者 Admin ID
+  content  String @db.Text // Markdown 格式
+  isPinned Boolean @default(false) @map("is_pinned")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at") // 软删除时间
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@map("admin_notes")
+}
+
+// 安全审计日志
+model SecurityLog {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    SecurityAction
+  ipAddress String?        @map("ip_address")
+  userAgent String?        @map("user_agent")
+  metadata  Json? // 附加上下文
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("security_logs")
+}
+
+// 伪装登录会话
+model ImpersonationSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  adminId      String   @map("admin_id") @db.Uuid // 发起伪装的 Admin
+  targetUserId String   @map("target_user_id") @db.Uuid // 被伪装的用户
+  targetUser   User     @relation(fields: [targetUserId], references: [id], onDelete: Cascade)
+  token        String // 签发的 JWT
+  startedAt    DateTime @default(now()) @map("started_at")
+  expiresAt    DateTime @map("expires_at") // Token 过期时间
+  endedAt      DateTime? @map("ended_at") // 实际退出时间
+  endReason    String?  @map("end_reason") // MANUAL_LOGOUT | TOKEN_EXPIRED | ADMIN_REVOKED
+
+  @@index([targetUserId])
+  @@index([adminId, startedAt])
+  @@map("impersonation_sessions")
 }
