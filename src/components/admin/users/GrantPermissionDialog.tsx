@@ -1,126 +1,171 @@
 'use client'
 
-import { useState } from 'react'
-import { SubscriptionTier } from '@prisma/client'
+import React, { useState } from 'react'
+import { X, Check, Loader2 } from 'lucide-react'
+import { SubscriptionTier } from '@/types/admin-user'
 import { applyAdminOverride } from '@/actions/admin/permission-override'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/components/ui/use-toast'
-import { Loader2, ShieldAlert } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface GrantPermissionDialogProps {
+  isOpen: boolean
+  onClose: () => void
   userId: string
-  currentTier: SubscriptionTier | null
+  currentTier: SubscriptionTier
 }
 
-export function GrantPermissionDialog({ userId, currentTier }: GrantPermissionDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [tier, setTier] = useState<SubscriptionTier>(currentTier || 'STARTER')
+const TIERS = [
+  { value: 'STARTER', label: 'Starter' },
+  { value: 'STANDARD', label: 'Standard' },
+  { value: 'SMART_PLUS', label: 'Smart+' },
+  { value: 'PREMIER', label: 'Premier' },
+]
+
+const DURATIONS = [
+  { value: '7_days', label: '7 Days (Trial)' },
+  { value: '30_days', label: '30 Days' },
+  { value: '90_days', label: '3 Months' },
+  { value: 'permanent', label: 'Permanent' },
+]
+
+export const GrantPermissionDialog: React.FC<GrantPermissionDialogProps> = ({
+  isOpen,
+  onClose,
+  userId,
+  currentTier,
+}) => {
+  const [tier, setTier] = useState<SubscriptionTier>(currentTier === 'PREMIER' ? 'PREMIER' : 'SMART_PLUS')
+  const [duration, setDuration] = useState('7_days')
   const [reason, setReason] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
 
-  const isValid = reason.trim().length >= 10
-
-  const handleOverride = async () => {
-    if (!isValid) return
+  const handleConfirm = async () => {
+    if (reason.trim().length < 5) {
+      toast.error('Please provide a reason (min 5 characters)')
+      return
+    }
 
     setIsLoading(true)
     try {
-      await applyAdminOverride({ userId, tier, reason })
-      toast({
-        title: '权限覆写成功',
-        description: `用户等级已更新为 ${tier}`,
+      // 这里的 Server Action 需要对应修改以支持 duration 参数
+      // 目前 applyAdminOverride 只接受 tier 和 reason，duration 需要后续扩展
+      // 暂时我们在 reason 中备注 duration
+      const fullReason = `[Duration: ${duration}] ${reason}`
+      
+      await applyAdminOverride({
+        userId,
+        tier: tier as any, // Cast to match Prisma enum if needed
+        reason: fullReason,
       })
-      setOpen(false)
+
+      toast.success('Permission granted successfully')
+      onClose()
       setReason('')
     } catch (error) {
-      toast({
-        title: '操作失败',
-        description: error instanceof Error ? error.message : '未知错误',
-        variant: 'destructive',
-      })
+      console.error(error)
+      toast.error('Failed to grant permission')
     } finally {
       setIsLoading(false)
     }
   }
 
+  if (!isOpen) return null
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <ShieldAlert className="h-4 w-4" />
-          赠送/修改会员
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>管理用户权限</DialogTitle>
-          <DialogDescription>
-            直接修改用户的订阅等级。此操作将被记录在安全审计日志中。
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="tier">目标等级</Label>
-            <Select
-              value={tier}
-              onValueChange={(value) => setTier(value as SubscriptionTier)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="选择等级" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="STARTER">Starter (体验版)</SelectItem>
-                <SelectItem value="STANDARD">Standard (自学版)</SelectItem>
-                <SelectItem value="SMART_PLUS">Smart Plus (智学版)</SelectItem>
-                <SelectItem value="PREMIER">Premier (领航版)</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div 
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={!isLoading ? onClose : undefined}
+      />
+      
+      <div className="relative bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/50">
+          <h3 className="text-lg font-bold text-white">Grant Permission</h3>
+          <button 
+            onClick={onClose}
+            disabled={isLoading}
+            className="text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-5">
+          {/* Tier Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Target Tier
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {TIERS.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => setTier(t.value as SubscriptionTier)}
+                  disabled={isLoading}
+                  className={`text-sm px-3 py-2 rounded-lg border transition-all ${
+                    tier === t.value
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/20'
+                      : 'bg-slate-800/50 border-slate-700 text-slate-300 hover:border-slate-600 hover:bg-slate-800'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="reason">
-              修改原因 <span className="text-red-500">*</span>
-            </Label>
-            <Textarea
-              id="reason"
-              placeholder="请输入详细的操作原因（至少10个字符），例如：处理用户投诉退款降级、市场活动赠送等。"
+
+          {/* Duration Selection */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Duration
+            </label>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              disabled={isLoading}
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none"
+            >
+              {DURATIONS.map(d => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Reason */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">
+              Reason <span className="text-red-400">*</span>
+            </label>
+            <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="h-24"
+              disabled={isLoading}
+              placeholder="e.g., Customer support compensation..."
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-slate-200 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none h-24 resize-none placeholder:text-slate-600"
             />
-            <p className="text-xs text-muted-foreground text-right">
-              {reason.length}/10
-            </p>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
-            取消
-          </Button>
-          <Button onClick={handleOverride} disabled={!isValid || isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            确认修改
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+        {/* Footer */}
+        <div className="flex items-center gap-3 p-6 pt-0">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="flex-1 py-2.5 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 transition-colors font-medium text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={isLoading || !reason.trim()}
+            className="flex-1 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-all font-medium text-sm shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Confirm Grant
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

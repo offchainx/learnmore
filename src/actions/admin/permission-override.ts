@@ -16,6 +16,15 @@ export async function applyAdminOverride(data: {
     throw new Error('Unauthorized: Only admins can perform this action')
   }
 
+  // Handle Mock Users (Story-046 Dev Mode)
+  if (data.userId.startsWith('usr_')) {
+    console.log(`[Mock Override] Granting ${data.tier} to ${data.userId} because: ${data.reason}`)
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 500))
+    // Return successfully
+    return { success: true }
+  }
+
   // 1. Log the override in UserPermissionOverride
   await prisma.userPermissionOverride.create({
     data: {
@@ -58,4 +67,5 @@ export async function applyAdminOverride(data: {
 
   // 5. Revalidate
   revalidatePath(`/admin/users/${data.userId}`)
+  return { success: true }
 }
