@@ -13,6 +13,7 @@ import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
 import type { ActionResult, AdminNote, SecurityLogEntry, UserDetail } from '@/types/admin-user'
 import { SecurityAction as SecurityActionEnum, UserStatus, SubscriptionTier } from '@/types/admin-user'
+import { getUserById } from '@/components/admin/users/mock/userMockData'
 
 // ============ 权限检查 ============
 
@@ -33,93 +34,117 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
   try {
     await requireAdmin()
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        adminNotes: {
-          orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
-          take: 50,
-        },
-        securityLogs: {
-          orderBy: { createdAt: 'desc' },
-          take: 20,
-        },
-        impersonationSessions: {
-          where: { endedAt: null },
-          orderBy: { startedAt: 'desc' },
-          take: 1,
-        },
-        settings: true,
-      },
-    })
+    let userDetail: UserDetail | null = null
 
-    if (!user) {
-      return { success: false, error: '用户不存在' }
+    // 如果 ID 是 Mock 格式（以 usr_ 开头），直接使用 Mock 数据，不查询数据库
+    // 否则 Prisma 会抛出 UUID 格式错误
+    if (userId.startsWith('usr_')) {
+      const mockUser = getUserById(userId)
+      if (mockUser) {
+        userDetail = {
+          ...mockUser,
+          notes: [],
+          recentSecurityLogs: [],
+          activeImpersonationSession: null,
+        }
+      }
+    } else {
+      // 尝试从数据库查询
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: userId },
+          include: {
+            adminNotes: {
+              orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+              take: 50,
+            },
+            securityLogs: {
+              orderBy: { createdAt: 'desc' },
+              take: 20,
+            },
+            impersonationSessions: {
+              where: { endedAt: null },
+              orderBy: { startedAt: 'desc' },
+              take: 1,
+            },
+            settings: true,
+          },
+        })
+
+        if (dbUser) {
+          // 转换为前端类型
+          const notes: AdminNote[] = dbUser.adminNotes.map((n) => ({
+            id: n.id,
+            userId: n.userId,
+            authorId: n.authorId,
+            content: n.content,
+            isPinned: n.isPinned,
+            createdAt: n.createdAt.toISOString(),
+            updatedAt: n.updatedAt.toISOString(),
+            deletedAt: n.deletedAt?.toISOString() || null,
+          }))
+
+          const recentSecurityLogs: SecurityLogEntry[] = dbUser.securityLogs.map((l) => ({
+            id: l.id,
+            userId: l.userId,
+            action: l.action as SecurityActionEnum,
+            ipAddress: l.ipAddress,
+            userAgent: l.userAgent,
+            metadata: l.metadata as Record<string, unknown> | null,
+            createdAt: l.createdAt.toISOString(),
+          }))
+
+          const activeSession = dbUser.impersonationSessions[0]
+
+          userDetail = {
+            id: dbUser.id,
+            name: dbUser.username || dbUser.email.split('@')[0],
+            email: dbUser.email,
+            avatarColor: 'bg-blue-500',
+            status: UserStatus.ACTIVE,
+            tier: SubscriptionTier.STARTER,
+            lastActive: dbUser.lastSignInAt?.toISOString() || dbUser.createdAt.toISOString(),
+            lastActiveLabel: formatRelativeTime(dbUser.lastSignInAt || dbUser.createdAt),
+            grade: dbUser.grade ? `${dbUser.grade}年级` : '未设置',
+            school: '未设置',
+            role: dbUser.role,
+            location: '未设置',
+            phone: '未设置',
+            joinDate: dbUser.createdAt.toISOString(),
+            joinSource: dbUser.utmSource || '直接访问',
+            totalSpend: 0,
+            projectsCount: 0,
+            apiCalls: 0,
+            activeDeviceCount: 1,
+            learningStats: {
+              totalQuestions: 0,
+              accuracy: 0,
+              mistakes: 0,
+              daysActive: dbUser.streak || 0,
+            },
+            notes,
+            recentSecurityLogs,
+            activeImpersonationSession: activeSession
+              ? {
+                  id: activeSession.id,
+                  adminId: activeSession.adminId,
+                  targetUserId: activeSession.targetUserId,
+                  startedAt: activeSession.startedAt.toISOString(),
+                  expiresAt: activeSession.expiresAt.toISOString(),
+                  endedAt: activeSession.endedAt?.toISOString() || null,
+                  endReason: activeSession.endReason as 'MANUAL_LOGOUT' | 'TOKEN_EXPIRED' | 'ADMIN_REVOKED' | null,
+                }
+              : null,
+          }
+        }
+      } catch (dbError) {
+        // 如果数据库查询出错（例如非法 UUID），记录错误但不中断，尝试 Mock（虽然上面已经处理了 Mock ID）
+        console.error('[getUserDetail] DB Query skipped or failed:', dbError)
+      }
     }
 
-    // 转换为前端类型
-    const notes: AdminNote[] = user.adminNotes.map((n) => ({
-      id: n.id,
-      userId: n.userId,
-      authorId: n.authorId,
-      content: n.content,
-      isPinned: n.isPinned,
-      createdAt: n.createdAt.toISOString(),
-      updatedAt: n.updatedAt.toISOString(),
-      deletedAt: n.deletedAt?.toISOString() || null,
-    }))
-
-    const recentSecurityLogs: SecurityLogEntry[] = user.securityLogs.map((l) => ({
-      id: l.id,
-      userId: l.userId,
-      action: l.action as SecurityActionEnum,
-      ipAddress: l.ipAddress,
-      userAgent: l.userAgent,
-      metadata: l.metadata as Record<string, unknown> | null,
-      createdAt: l.createdAt.toISOString(),
-    }))
-
-    const activeSession = user.impersonationSessions[0]
-
-    const userDetail: UserDetail = {
-      id: user.id,
-      name: user.username || user.email.split('@')[0],
-      email: user.email,
-      avatarColor: 'bg-blue-500',
-      status: UserStatus.ACTIVE,
-      tier: SubscriptionTier.STARTER,
-      lastActive: user.lastSignInAt?.toISOString() || user.createdAt.toISOString(),
-      lastActiveLabel: formatRelativeTime(user.lastSignInAt || user.createdAt),
-      grade: user.grade ? `${user.grade}年级` : '未设置',
-      school: '未设置',
-      role: user.role,
-      location: '未设置',
-      phone: '未设置',
-      joinDate: user.createdAt.toISOString(),
-      joinSource: user.utmSource || '直接访问',
-      totalSpend: 0,
-      projectsCount: 0,
-      apiCalls: 0,
-      activeDeviceCount: 1,
-      learningStats: {
-        totalQuestions: 0,
-        accuracy: 0,
-        mistakes: 0,
-        daysActive: user.streak || 0,
-      },
-      notes,
-      recentSecurityLogs,
-      activeImpersonationSession: activeSession
-        ? {
-            id: activeSession.id,
-            adminId: activeSession.adminId,
-            targetUserId: activeSession.targetUserId,
-            startedAt: activeSession.startedAt.toISOString(),
-            expiresAt: activeSession.expiresAt.toISOString(),
-            endedAt: activeSession.endedAt?.toISOString() || null,
-            endReason: activeSession.endReason as 'MANUAL_LOGOUT' | 'TOKEN_EXPIRED' | 'ADMIN_REVOKED' | null,
-          }
-        : null,
+    if (!userDetail) {
+      return { success: false, error: '用户不存在' }
     }
 
     return { success: true, data: userDetail }

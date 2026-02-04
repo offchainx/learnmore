@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyImpersonationToken, getImpersonationTokenFromCookie } from '@/lib/jwt'
+import { verifyImpersonationToken, getImpersonationTokenFromCookie, decodeTokenPayload } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
@@ -21,7 +21,44 @@ export async function POST(request: NextRequest) {
   // 验证 Token
   const payload = await verifyImpersonationToken(token)
   if (!payload) {
-    // Token 无效，直接清除 Cookie
+    const reason = request.nextUrl.searchParams.get('reason')
+
+    // Token 过期（由 middleware 检测并重定向至此）→ 解码 payload 做审计清理
+    if (reason === 'TOKEN_EXPIRED' && token) {
+      const decoded = decodeTokenPayload(token)
+      if (decoded) {
+        try {
+          await prisma.$transaction([
+            prisma.impersonationSession.update({
+              where: { id: decoded.sessionId },
+              data: {
+                endedAt: new Date(),
+                endReason: 'TOKEN_EXPIRED',
+              },
+            }),
+            prisma.securityLog.create({
+              data: {
+                userId: decoded.targetUserId,
+                action: 'IMPERSONATE_END',
+                metadata: {
+                  sessionId: decoded.sessionId,
+                  adminId: decoded.adminId,
+                  endReason: 'TOKEN_EXPIRED',
+                },
+              },
+            }),
+          ])
+        } catch (error) {
+          console.error('[impersonate/end] TOKEN_EXPIRED 审计清理失败:', error)
+        }
+      }
+      // 清除 Cookie → 重定向登录页
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      response.cookies.set('impersonation_token', '', { maxAge: 0, path: '/' })
+      return response
+    }
+
+    // 其他无效 Token（签名篡改等）→ 直接清除 Cookie
     const response = NextResponse.redirect(new URL('/admin/users', request.url))
     response.cookies.set('impersonation_token', '', { maxAge: 0, path: '/' })
     return response

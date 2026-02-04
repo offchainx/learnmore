@@ -30,9 +30,11 @@ import {
   SortConfig,
   UserFilterState,
   PaginatedResponse,
+  HighRiskAction
 } from '@/types/admin-user'
 import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { fetchMockUsers } from './mock/userMockData'
+import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
 
 // --- Helper Components ---
 
@@ -93,6 +95,12 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
   // UI State
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Dialog State
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogAction, setDialogAction] = useState<HighRiskAction>('ban')
+  const [selectedUser, setSelectedUser] = useState<UserSummary | null>(null)
+  const [isActionLoading, setIsActionLoading] = useState(false)
 
   // Data
   const [data, setData] = useState<PaginatedResponse<UserSummary>>({
@@ -167,6 +175,41 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     } else {
       router.push(`/admin/users/${user.id}`)
     }
+  }
+  
+  const handleQuickAction = (user: UserSummary, action: HighRiskAction) => {
+    setSelectedUser(user)
+    setDialogAction(action)
+    setDialogOpen(true)
+    setActiveDropdownId(null)
+  }
+  
+  const handleConfirmAction = async (reason: string, duration?: string) => {
+    setIsActionLoading(true)
+    // 模拟 API 请求
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log(`执行操作: ${dialogAction}, 用户: ${selectedUser?.email}, 原因: ${reason}${duration ? `, 时长: ${duration}` : ''}`)
+    
+    // TODO: 在这里调用真实的 Server Action
+    
+    setIsActionLoading(false)
+    setDialogOpen(false)
+    setSelectedUser(null)
+    
+    // 刷新数据 (模拟)
+    const result = fetchMockUsers(filters, {
+      page: currentPage,
+      pageSize: itemsPerPage,
+      sortField: sortConfig.key,
+      sortDirection: sortConfig.direction,
+    })
+    setData(result)
+  }
+  
+  const handleSendInvitation = (user: UserSummary) => {
+    // 模拟发送邀请
+    alert(`已向 ${user.email} 发送邀请邮件 (Mock)`)
+    setActiveDropdownId(null)
   }
 
   const isFiltered = filters.search !== '' || filters.status !== 'All' || filters.tier !== 'All'
@@ -409,12 +452,19 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
                               <Eye size={14} />
                               查看详情
                             </button>
-                            <button className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2">
+                            <button
+                              onClick={() => handleSendInvitation(user)}
+                              className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2"
+                            >
                               <Mail size={14} />
                               发送邀请
                             </button>
                             <div className="h-px bg-slate-800 my-1 mx-2" />
                             <button
+                              onClick={() => handleQuickAction(
+                                user, 
+                                user.status === UserStatus.BANNED ? 'unban' : 'ban'
+                              )}
                               className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center gap-2"
                             >
                               <Ban size={14} />
@@ -494,6 +544,19 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
           </div>
         </div>
       </div>
+      
+      {/* --- Confirm Dialog --- */}
+      {selectedUser && (
+        <HighRiskConfirmDialog
+          isOpen={dialogOpen}
+          onClose={() => setDialogOpen(false)}
+          onConfirm={handleConfirmAction}
+          action={dialogAction}
+          userEmail={selectedUser.email}
+          userName={selectedUser.name}
+          isLoading={isActionLoading}
+        />
+      )}
     </div>
   )
 }

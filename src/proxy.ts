@@ -1,7 +1,36 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
+
+const JWT_SECRET =
+  process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
+const jwtSecret = new TextEncoder().encode(JWT_SECRET)
 
 export async function proxy(request: NextRequest) {
+  // ── 伪装登录 Token 过期检测 (Story-046 B5) ──────────────────
+  // 跳过伪装相关 API 本身（避免无穷重定向）
+  const isImpersonateEndpoint = request.nextUrl.pathname.startsWith('/api/auth/impersonate')
+  const impersonationToken = request.cookies.get('impersonation_token')?.value
+
+  if (impersonationToken && !isImpersonateEndpoint) {
+    // 基本格式校验（JWT 为 header.payload.signature 三段）
+    if (impersonationToken.split('.').length !== 3) {
+      const res = NextResponse.next()
+      res.cookies.set('impersonation_token', '', { maxAge: 0, path: '/' })
+      return res
+    }
+
+    try {
+      await jwtVerify(impersonationToken, jwtSecret, { issuer: 'learnmore-admin' })
+      // Token 有效 → 继续后续逻辑
+    } catch {
+      // Token 过期或签名无效 → 交由退出端点执行审计清理
+      const url = new URL('/api/auth/impersonate/end', request.url)
+      url.searchParams.set('reason', 'TOKEN_EXPIRED')
+      return NextResponse.redirect(url)
+    }
+  }
+  // ── End 伪装检测 ────────────────────────────────────────────
   let response = NextResponse.next({
     request: {
       headers: request.headers,

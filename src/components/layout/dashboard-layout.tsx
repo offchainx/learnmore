@@ -85,7 +85,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isAdminExpanded, setIsAdminExpanded] = useState(pathname?.startsWith('/admin') || false);
+  const [isAdminExpanded, setIsAdminExpanded] = useState(pathname?.startsWith('/admin/content') || false);
   const [, startTransition] = useTransition();
 
   const handleLogout = () => {

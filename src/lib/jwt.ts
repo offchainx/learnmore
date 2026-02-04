@@ -70,6 +70,26 @@ export async function verifyImpersonationToken(
 }
 
 /**
+ * 不做签名验证，仅解码 JWT Payload
+ * 用于 Token 过期后仍需获取 sessionId 进行审计清理的场景
+ * ⚠️ 不能用于安全决策，仅用于追溯审计
+ */
+export function decodeTokenPayload(token: string): ImpersonationTokenPayload | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    // base64url → base64
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const jsonStr = atob(base64)
+    const payload = JSON.parse(jsonStr) as Record<string, unknown>
+    if (payload.type !== 'impersonation' || !payload.sessionId) return null
+    return payload as ImpersonationTokenPayload
+  } catch {
+    return null
+  }
+}
+
+/**
  * 从 Cookie 中解析伪装 Token
  */
 export function getImpersonationTokenFromCookie(cookieHeader: string | null): string | null {

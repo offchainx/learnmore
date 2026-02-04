@@ -52,7 +52,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
     setDialogState({ isOpen: false, action: 'ban' })
   }
 
-  const handleConfirmAction = async (reason: string) => {
+  const handleConfirmAction = async (reason: string, duration?: string) => {
     setIsLoading(true)
     try {
       switch (dialogState.action) {
@@ -229,6 +229,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
         onConfirm={handleConfirmAction}
         action={dialogState.action}
         userEmail={user.email}
+        userName={user.name}
         isLoading={isLoading}
       />
     </>
