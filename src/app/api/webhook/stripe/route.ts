@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
-import { UserRole, ReferralStatus, SubscriptionTier } from '@prisma/client';
+import { ReferralStatus, SubscriptionTier } from '@prisma/client';
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -26,32 +26,28 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
-    const planName = session.metadata?.planName; // 'pro', 'scholar', 'ultimate'
+    const planName = session.metadata?.planName; // 'starter', 'standard', 'smart_plus', 'premier'
 
     if (!userId || !planName) {
       return new NextResponse('Webhook Error: Missing metadata', { status: 400 });
     }
 
-    // Map plan name to UserRole
-    let role: UserRole | undefined;
-    if (planName.toLowerCase() === 'self-learner') role = UserRole.PRO;
-    else if (planName.toLowerCase() === 'scholar') role = UserRole.PRO;
-    else if (planName.toLowerCase() === 'ultimate') role = UserRole.ULTIMATE;
+    // Map plan name to SubscriptionTier
+    let tier: SubscriptionTier | undefined;
+    const normalizedPlan = planName.toLowerCase();
+    
+    if (normalizedPlan === 'standard' || normalizedPlan === 'self-learner') tier = SubscriptionTier.STANDARD;
+    else if (normalizedPlan === 'smart_plus' || normalizedPlan === 'scholar') tier = SubscriptionTier.SMART_PLUS;
+    else if (normalizedPlan === 'premier' || normalizedPlan === 'ultimate') tier = SubscriptionTier.PREMIER;
 
-    if (role) {
+    if (tier) {
       const now = new Date();
       const subscriptionDuration = 30 * 24 * 60 * 60 * 1000; // 30天
-
-      // Map UserRole to SubscriptionTier
-      let tier: SubscriptionTier = SubscriptionTier.STARTER;
-      if (role === UserRole.PRO) tier = SubscriptionTier.STANDARD;
-      else if (role === UserRole.ULTIMATE) tier = SubscriptionTier.PREMIER;
 
       // 1. 更新用户订阅状态
       await prisma.user.update({
         where: { id: userId },
         data: {
-          role: role,
           subscriptionTier: tier,
           subscriptionStart: now,
           subscriptionEnd: new Date(now.getTime() + subscriptionDuration),

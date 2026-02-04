@@ -5,7 +5,44 @@ import { Question, Prisma } from "@prisma/client"
 import { getEffectiveTier } from "@/lib/permissions/engine"
 import { getRetentionDate } from "@/lib/permissions/prisma-scope"
 
-// ... (SUBJECT_NAME_MAP and resolveSubjectId helper)
+// 科目名称到ID的映射（针对Seed数据中的固定ID或名称）
+const SUBJECT_NAME_MAP: Record<string, string> = {
+  'math': 'mathematics',
+  'chinese': 'chinese',
+  'english': 'english',
+  'physics': 'physics',
+  'chemistry': 'chemistry',
+}
+
+/**
+ * 辅助函数：根据标识符获取真实的科目ID
+ */
+async function resolveSubjectId(identifier: string): Promise<string | null> {
+  // 1. 如果是标准的 UUID，直接检查是否存在
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier)) {
+    const subject = await prisma.subject.findUnique({
+      where: { id: identifier },
+      select: { id: true }
+    })
+    return subject?.id || null
+  }
+
+  // 2. 尝试从映射表中寻找
+  const mappedName = SUBJECT_NAME_MAP[identifier.toLowerCase()] || identifier
+
+  // 3. 模糊匹配数据库中的名称
+  const subject = await prisma.subject.findFirst({
+    where: {
+      OR: [
+        { id: identifier },
+        { name: { contains: mappedName, mode: 'insensitive' } }
+      ]
+    },
+    select: { id: true }
+  })
+
+  return subject?.id || null
+}
 
 /**
  * 获取智能刷题题目列表

@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import type { Question as PrismaQuestion } from '@prisma/client'
 import { TierKey } from '@/lib/permissions/types'
 import { PreviewHook } from '@/components/permissions/PreviewHook'
+import { FeatureLock } from '@/components/permissions/FeatureLock'
 
 interface ResultSummaryProps {
   result: ExamResult
@@ -32,6 +33,7 @@ export default function ResultSummary({
   const router = useRouter()
 
   const isPremium = userTier === 'SMART_PLUS' || userTier === 'PREMIER'
+  const isStarter = userTier === 'STARTER'
 
   return (
     <div className="container mx-auto py-6 max-w-4xl space-y-6">
@@ -155,7 +157,15 @@ export default function ResultSummary({
                     <div className="flex items-center gap-1 text-sm text-muted-foreground mb-1">
                       <HelpCircle className="h-4 w-4" /> Explanation
                     </div>
-                    <p className="text-sm">{q.explanation}</p>
+                    <FeatureLock 
+                      isLocked={isStarter}
+                      title="解锁详细解析"
+                      description="升级到智学版，获取 AI 深度归因分析与提分建议。"
+                      actionLabel="立即升级"
+                      onUpgrade={() => router.push('/pricing')}
+                    >
+                      <p className="text-sm">{q.explanation}</p>
+                    </FeatureLock>
                   </div>
                 )}
 

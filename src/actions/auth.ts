@@ -249,6 +249,9 @@ export async function getCurrentUser() {
           username: user.user_metadata?.username || user.email.split('@')[0],
           referralCode: generateReferralCode(),
         },
+        include: {
+          permissionOverrides: true
+        }
       })
       // 同时创建 UserSettings
       await prisma.userSettings.create({

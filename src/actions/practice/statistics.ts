@@ -11,6 +11,8 @@ import prisma from '@/lib/prisma'
 import type { HiveNode, ExamForecast } from '@/lib/practice/types'
 import { getHiveStatus, HIVE_STATUS_COLORS } from '@/lib/practice/types'
 import { calculateExamForecast } from '@/lib/practice/algorithms'
+import { getEffectiveTier } from '@/lib/permissions/engine'
+import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
 // ============ C1: Knowledge Hive (知识蜂巢) ============
 
@@ -29,6 +31,26 @@ export async function getKnowledgeHiveData(
   if (!subjectId || subjectId.length < 10) return [] // Basic validation
 
   try {
+    // 0. 获取用户等级和数据保留期 (C3)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        permissionOverrides: {
+          where: {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          }
+        }
+      }
+    })
+
+    if (!user) return []
+
+    const tier = getEffectiveTier(user)
+    const minDate = getRetentionDate(tier)
+
     // console.log(`[Hive] Fetching data for ${subjectId}`);
     // 1. 查询该科目下所有章节
     const chapters = await prisma.chapter.findMany({
@@ -50,6 +72,7 @@ export async function getKnowledgeHiveData(
     const attemptsWithChapter = await prisma.userAttempt.findMany({
       where: {
         userId,
+        createdAt: { gte: minDate }, // C3: Retention filter
         question: {
           chapterId: { in: chapterIds }
         }
@@ -83,6 +106,7 @@ export async function getKnowledgeHiveData(
     const errorBookEntries = await prisma.errorBook.findMany({
       where: {
         userId,
+        updatedAt: { gte: minDate }, // C3: Retention filter
         question: {
           chapterId: { in: chapterIds }
         }
@@ -162,17 +186,40 @@ export async function getExamForecastData(
   userId: string,
   subjectId?: string
 ): Promise<ExamForecast | null> {
-  // 计算30天前的日期
+  // 0. 获取用户等级和数据保留期 (C3)
+  const userRecord = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      permissionOverrides: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      }
+    }
+  })
+
+  if (!userRecord) return null
+
+  const tier = getEffectiveTier(userRecord)
+  const retentionDate = getRetentionDate(tier)
+
+  // 计算算法建议的30天前的日期
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
+  // C3: 最终截止日期取两者中较晚的一个（即取交集，且不超出权限范围）
+  const finalCutoff = retentionDate > thirtyDaysAgo ? retentionDate : thirtyDaysAgo
+
   // 并行查询所需数据
   const [recentAttempts, user, lessonStats] = await Promise.all([
-    // 1. 查询近30天的答题记录
+    // 1. 查询符合保留期且在30天内的答题记录
     prisma.userAttempt.findMany({
       where: {
         userId,
-        createdAt: { gte: thirtyDaysAgo },
+        createdAt: { gte: finalCutoff },
         ...(subjectId && {
           question: {
             chapter: {

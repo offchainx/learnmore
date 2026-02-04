@@ -10,8 +10,12 @@ import {
   calculateNextLevelXp 
 } from '@/lib/gamification-utils'
 import { DailyTask } from '@prisma/client'
+import { getEffectiveTier } from '@/lib/permissions/engine'
+import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
 export interface DashboardData {
+// ... (rest of the interface)
+
   stats: {
     studyTime: string
     questions: number
@@ -60,11 +64,26 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     select: { 
       streak: true, 
       xp: true, 
-      totalStudyTime: true 
+      totalStudyTime: true,
+      role: true,
+      subscriptionTier: true,
+      subscriptionEnd: true,
+      permissionOverrides: {
+        where: {
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } }
+          ]
+        }
+      }
     }
   })
 
   if (!userData) return null
+
+  // 2.1 Get Retention Policy (C3)
+  const tier = getEffectiveTier(userData as any)
+  const minDate = getRetentionDate(tier)
 
   // 3. Fetch Daily Tasks
   const today = dayjs().startOf('day')
@@ -89,15 +108,22 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
       const startOfDay = date.toDate()
       const endOfDay = date.endOf('day').toDate()
 
-      const activityCount = await prisma.userAttempt.count({
+      // 仅统计在保留期内的活跃度
+      const isDateInRetention = dayjs(startOfDay).isAfter(dayjs(minDate)) || dayjs(startOfDay).isSame(dayjs(minDate), 'day')
+
+      const activityCount = isDateInRetention 
+        ? await prisma.userAttempt.count({
           where: {
               userId: user.id,
               createdAt: {
                   gte: startOfDay,
-                  lte: endOfDay
+                  lte: endOfDay,
+                  // 不需要额外加 minDate，因为 startOfDay 已经限定了日期
               }
           }
-      })
+        })
+        : 0
+
       dailyActivity.push({
           date: date.format('YYYY-MM-DD'),
           activityCount
@@ -105,17 +131,27 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   }
 
   const totalAttempts = await prisma.userAttempt.count({
-      where: { userId: user.id }
+      where: { 
+        userId: user.id,
+        createdAt: { gte: minDate } // C3: Retention filter
+      }
   })
 
   const correctAttempts = await prisma.userAttempt.count({
-      where: { userId: user.id, isCorrect: true }
+      where: { 
+        userId: user.id, 
+        isCorrect: true,
+        createdAt: { gte: minDate } // C3: Retention filter
+      }
   })
 
   const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
 
   const mistakeCount = await prisma.errorBook.count({
-      where: { userId: user.id }
+      where: { 
+        userId: user.id,
+        updatedAt: { gte: minDate } // C3: Retention filter
+      }
   })
 
   // Convert seconds to hours
@@ -141,7 +177,10 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
 
   // 6. Subject Strength
   const attempts = await prisma.userAttempt.findMany({
-      where: { userId: user.id },
+      where: { 
+        userId: user.id,
+        createdAt: { gte: minDate } // C3: Retention filter
+      },
       include: {
           question: {
               include: {
@@ -172,7 +211,10 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
 
   // 7. Weakness Sniper
   const errors = await prisma.errorBook.findMany({
-    where: { userId: user.id },
+    where: { 
+      userId: user.id,
+      updatedAt: { gte: minDate } // C3: Retention filter
+    },
     take: 5,
     orderBy: { masteryLevel: 'asc' },
     include: {

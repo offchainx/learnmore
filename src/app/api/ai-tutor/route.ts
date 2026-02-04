@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/actions/auth'; // Ensure this works in API routes (it should if using auth() helper)
 import prisma from '@/lib/prisma';
 import { genAI, TUTOR_SYSTEM_INSTRUCTION } from '@/lib/gemini';
-import { UserRole } from '@prisma/client';
+import { UserRole, SubscriptionTier } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,12 +24,13 @@ export async function POST(req: NextRequest) {
     await prisma.$transaction(async (tx) => {
       const dbUser = await tx.user.findUnique({
         where: { id: user.id },
-        select: { aiTokenBalance: true, role: true }
+        select: { aiTokenBalance: true, role: true, subscriptionTier: true }
       });
 
       if (!dbUser) throw new Error("User not found");
 
-      if (dbUser.role === UserRole.ULTIMATE || dbUser.role === UserRole.ADMIN) {
+      // Premier tier or Admin get unlimited (or effectively unlimited)
+      if (dbUser.subscriptionTier === SubscriptionTier.PREMIER || dbUser.role === UserRole.ADMIN) {
         allowed = true;
       } else if (dbUser.aiTokenBalance > 0) {
         await tx.user.update({

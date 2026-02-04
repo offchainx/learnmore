@@ -3,7 +3,7 @@
  * 练习中心类型定义
  */
 
-import type { Question, QuestionType, UserRole } from '@prisma/client'
+import type { Question, QuestionType, UserRole, SubscriptionTier } from '@prisma/client'
 
 // ============ 章节相关类型 ============
 
@@ -106,38 +106,28 @@ export interface QuotaStatus {
 }
 
 /**
- * 各角色的配额配置
+ * 各角色的配额配置 (基于等级)
  */
-export const QUOTA_CONFIGS: Record<UserRole, QuotaConfig> = {
-  STUDENT: {
-    dailyQuestionLimit: 50,
-    weeklyExamLimit: 3,
-    aiTokenDaily: 5,
-  },
-  PARENT: {
-    dailyQuestionLimit: 0,      // 家长不答题
-    weeklyExamLimit: 0,
+export const QUOTA_CONFIGS: Record<SubscriptionTier, QuotaConfig> = {
+  STARTER: {
+    dailyQuestionLimit: 20,
+    weeklyExamLimit: 1,
     aiTokenDaily: 0,
   },
-  PRO: {
-    dailyQuestionLimit: 200,
-    weeklyExamLimit: 10,
-    aiTokenDaily: 20,
+  STANDARD: {
+    dailyQuestionLimit: 50,
+    weeklyExamLimit: 5,
+    aiTokenDaily: 5,
   },
-  ULTIMATE: {
-    dailyQuestionLimit: -1,     // -1 表示无限制
-    weeklyExamLimit: -1,
-    aiTokenDaily: 50,
+  SMART_PLUS: {
+    dailyQuestionLimit: 150,
+    weeklyExamLimit: 15,
+    aiTokenDaily: 30,
   },
-  TEACHER: {
-    dailyQuestionLimit: -1,
+  PREMIER: {
+    dailyQuestionLimit: -1, // 无限制
     weeklyExamLimit: -1,
     aiTokenDaily: 100,
-  },
-  ADMIN: {
-    dailyQuestionLimit: -1,
-    weeklyExamLimit: -1,
-    aiTokenDaily: -1,
   },
 }
 
