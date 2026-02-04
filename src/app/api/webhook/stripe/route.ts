@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
-import { UserRole, ReferralStatus } from '@prisma/client';
+import { UserRole, ReferralStatus, SubscriptionTier } from '@prisma/client';
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -42,12 +42,17 @@ export async function POST(req: Request) {
       const now = new Date();
       const subscriptionDuration = 30 * 24 * 60 * 60 * 1000; // 30天
 
+      // Map UserRole to SubscriptionTier
+      let tier: SubscriptionTier = SubscriptionTier.STARTER;
+      if (role === UserRole.PRO) tier = SubscriptionTier.STANDARD;
+      else if (role === UserRole.ULTIMATE) tier = SubscriptionTier.PREMIER;
+
       // 1. 更新用户订阅状态
       await prisma.user.update({
         where: { id: userId },
         data: {
           role: role,
-          subscriptionTier: role,
+          subscriptionTier: tier,
           subscriptionStart: now,
           subscriptionEnd: new Date(now.getTime() + subscriptionDuration),
         },
