@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useMemo, useEffect, useState } from 'react'
-import { Copy, GitCommit, Loader2 } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Copy, Check, GitCommit, Loader2 } from 'lucide-react'
 import { UserDetail, ReferralNode } from '@/types/admin-user'
 import { UserTierBadge } from '../UserBadges'
 import { getUserReferralData } from '@/actions/admin/user-details'
+import { toast } from 'sonner'
 
 interface GrowthTabProps {
   user: UserDetail
@@ -27,6 +28,7 @@ const ReferralNodeView: React.FC<{ node: ReferralNode; depth?: number }> = ({ no
 
 export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
   const [data, setData] = useState<{
     stats: {
       referralCode: string | null;
@@ -70,8 +72,22 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
              <code className="bg-slate-950 border border-slate-800 px-3 py-2 rounded text-lg font-mono text-emerald-400 tracking-widest">
                {data.stats.referralCode || 'NOT_SET'}
              </code>
-             <button className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors">
-               <Copy size={18} />
+             <button
+               onClick={async () => {
+                 if (!data.stats.referralCode) return
+                 try {
+                   await navigator.clipboard.writeText(data.stats.referralCode)
+                   setCopied(true)
+                   toast.success('推荐码已复制到剪贴板')
+                   setTimeout(() => setCopied(false), 2000)
+                 } catch {
+                   toast.error('复制失败，请手动复制')
+                 }
+               }}
+               className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors"
+               title="复制推荐码"
+             >
+               {copied ? <Check size={18} className="text-emerald-400" /> : <Copy size={18} />}
              </button>
           </div>
         </div>

@@ -247,6 +247,12 @@ export async function getCurrentUser() {
     }
   }
 
+  // 封禁用户视同未登录——受保护路由和 Server Action 会自动拒绝
+  if (dbUser && dbUser.status === 'BANNED') {
+    console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
+    return null
+  }
+
   return dbUser
 }
 

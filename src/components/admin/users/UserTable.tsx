@@ -224,31 +224,70 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
   }
 
   const renderPaginationButtons = () => {
-    const pages: number[] = []
     const { totalPages } = data
+    const items: React.ReactNode[] = []
 
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    if (totalPages <= 7) {
+      // Show all pages directly
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
+              currentPage === i
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            {i}
+          </button>
+        )
+      }
     } else {
-      let start = Math.max(1, currentPage - 2)
-      let end = Math.min(totalPages, start + 4)
-      if (end - start < 4) start = Math.max(1, end - 4)
-      for (let i = start; i <= end; i++) pages.push(i)
+      // Determine window around current page
+      let start = Math.max(2, currentPage - 1)
+      let end = Math.min(totalPages - 1, currentPage + 1)
+
+      // Always show first page
+      items.push(
+        <button key={1} onClick={() => handlePageChange(1)} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${currentPage === 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>1</button>
+      )
+
+      // Left ellipsis
+      if (start > 2) {
+        items.push(<span key="ellipsis-left" className="w-8 h-8 flex items-center justify-center text-slate-500 text-sm">…</span>)
+      }
+
+      // Middle pages
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
+              currentPage === i
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
+          >
+            {i}
+          </button>
+        )
+      }
+
+      // Right ellipsis
+      if (end < totalPages - 1) {
+        items.push(<span key="ellipsis-right" className="w-8 h-8 flex items-center justify-center text-slate-500 text-sm">…</span>)
+      }
+
+      // Always show last page
+      items.push(
+        <button key={totalPages} onClick={() => handlePageChange(totalPages)} className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${currentPage === totalPages ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>{totalPages}</button>
+      )
     }
 
-    return pages.map(p => (
-      <button
-        key={p}
-        onClick={() => handlePageChange(p)}
-        className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${
-          currentPage === p
-            ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
-            : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-        }`}
-      >
-        {p}
-      </button>
-    ))
+    return items
   }
 
   if (isLoading && data.data.length === 0) {
@@ -337,7 +376,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-950/50 border-b border-slate-800">
+              <tr className="bg-slate-950/80 border-b border-slate-800 sticky top-0 z-10">
                 <th
                   className="py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-slate-200 group select-none"
                   onClick={() => handleSort('name')}

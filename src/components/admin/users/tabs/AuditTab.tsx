@@ -70,12 +70,16 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
             <div className="text-center text-slate-500 py-10">暂无审计日志</div>
           ) : (
             filteredAuditLogs.map((log, i) => {
-              // Logic for grouping Impersonation events visually
-              const isGrouped = (log.meta?.isSessionEnd && filteredAuditLogs[i+1]?.meta?.isSessionStart);
-              
+              // Highlight any impersonation START or END event as a grouped item
+              const isImpersonateEvent = log.meta?.isSessionStart || log.meta?.isSessionEnd;
+
+              // For the connector line between START and END: highlight if current is END and next is START
+              const nextIsStart = filteredAuditLogs[i + 1]?.meta?.isSessionStart;
+              const isGroupedConnector = log.meta?.isSessionEnd && nextIsStart;
+
               let icon = <Activity size={14} />;
               let colorClass = 'text-slate-400 bg-slate-900 border-slate-700';
-              
+
               if (log.type === AuditEventType.STATUS) {
                 icon = <Ban size={14} />;
                 colorClass = 'text-red-400 bg-red-950/30 border-red-900';
@@ -90,11 +94,18 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
                 colorClass = 'text-blue-400 bg-blue-950/30 border-blue-900';
               }
 
+              // Render endReason badge map
+              const endReasonLabel: Record<string, string> = {
+                TOKEN_EXPIRED: '令牌过期',
+                MANUAL_LOGOUT: '手动退出',
+                ADMIN_REVOKED: '管理员撤销',
+              };
+
               return (
                 <div key={log.id} className="relative pl-8 pb-8 group last:pb-0">
                   {/* Vertical Line */}
                   {i !== filteredAuditLogs.length - 1 && (
-                    <div className={`absolute left-[11px] top-8 bottom-0 w-px ${isGrouped ? 'bg-amber-800/50 w-0.5' : 'bg-slate-800'}`}></div>
+                    <div className={`absolute left-[11px] top-8 bottom-0 w-px ${isGroupedConnector ? 'bg-amber-800/50 w-0.5' : 'bg-slate-800'}`}></div>
                   )}
 
                   {/* Icon Bubble */}
@@ -102,8 +113,8 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
                     {icon}
                   </div>
 
-                  {/* Content */}
-                  <div className={`flex flex-col gap-1 ${isGrouped ? 'bg-amber-900/10 -m-2 p-3 rounded border border-amber-900/20' : ''}`}>
+                  {/* Content — highlight both START and END impersonation events */}
+                  <div className={`flex flex-col gap-1 ${isImpersonateEvent ? 'bg-amber-900/10 -mx-2 px-3 py-2 rounded border border-amber-900/20' : ''}`}>
                     <div className="flex items-baseline gap-3">
                       <span className="text-sm font-bold text-slate-200">{log.title}</span>
                       <span className="text-xs text-slate-500 font-mono">{new Date(log.timestamp).toLocaleString()}</span>
@@ -111,6 +122,25 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
                     <p className="text-xs text-slate-400 leading-relaxed">
                       {log.description}
                     </p>
+                    {/* Duration + EndReason badges for IMPERSONATE_END */}
+                    {log.meta?.isSessionEnd && (
+                      <div className="flex items-center gap-2 mt-1">
+                        {log.meta.durationLabel && (
+                          <span className="inline-flex items-center gap-1 text-xs bg-amber-950/40 text-amber-300 border border-amber-900/40 px-2 py-0.5 rounded-full">
+                            持续时长: {log.meta.durationLabel}
+                          </span>
+                        )}
+                        {log.meta.endReason && (
+                          <span className={`inline-flex items-center gap-1 text-xs border px-2 py-0.5 rounded-full ${
+                            log.meta.endReason === 'TOKEN_EXPIRED'
+                              ? 'bg-red-950/40 text-red-300 border-red-900/40'
+                              : 'bg-slate-800 text-slate-300 border-slate-700'
+                          }`}>
+                            退出原因: {endReasonLabel[log.meta.endReason] || log.meta.endReason}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

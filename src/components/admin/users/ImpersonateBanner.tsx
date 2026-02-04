@@ -114,8 +114,6 @@ export function useImpersonationState(): {
   })
 
   useEffect(() => {
-    // 从 Cookie 或 localStorage 读取伪装状态
-    // 这里简化处理：通过 API 检查
     async function checkImpersonation() {
       try {
         const res = await fetch('/api/auth/impersonate/status')
@@ -127,14 +125,23 @@ export function useImpersonationState(): {
               targetEmail: data.targetEmail,
               expiresAt: data.expiresAt,
             })
+          } else {
+            // 伪装状态已结束（如服务端撤销），清除本地状态
+            setState({ isImpersonating: false, targetEmail: null, expiresAt: null })
           }
         }
-      } catch (error) {
-        // 忽略错误
+      } catch {
+        // 网络错误时忽略，等下一次轮询
       }
     }
 
+    // 立即检查一次
     checkImpersonation()
+
+    // 每 30 秒轮询一次伪装状态
+    const interval = setInterval(checkImpersonation, 30 * 1000)
+
+    return () => clearInterval(interval)
   }, [])
 
   return state

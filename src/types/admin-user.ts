@@ -188,6 +188,8 @@ export interface AuditLogItem {
   meta?: {
     isSessionStart?: boolean
     isSessionEnd?: boolean
+    durationLabel?: string | null
+    endReason?: string | null
   }
 }
 

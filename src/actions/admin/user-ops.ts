@@ -96,13 +96,20 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
 
           const activeSession = dbUser.impersonationSessions[0]
 
+          // 映射 DB status → 前端 UserStatus 枚举
+          const statusMap: Record<string, UserStatus> = {
+            ACTIVE: UserStatus.ACTIVE,
+            BANNED: UserStatus.BANNED,
+            PAUSED: UserStatus.PAUSED,
+          }
+
           userDetail = {
             id: dbUser.id,
             name: dbUser.username || dbUser.email.split('@')[0],
             email: dbUser.email,
             avatarColor: 'bg-blue-500',
-            status: UserStatus.ACTIVE,
-            tier: SubscriptionTier.STARTER,
+            status: statusMap[dbUser.status] || UserStatus.ACTIVE,
+            tier: (dbUser.subscriptionTier as SubscriptionTier) || SubscriptionTier.STARTER,
             lastActive: dbUser.lastSignInAt?.toISOString() || dbUser.createdAt.toISOString(),
             lastActiveLabel: formatRelativeTime(dbUser.lastSignInAt || dbUser.createdAt),
             grade: dbUser.grade ? `${dbUser.grade}年级` : '未设置',
@@ -170,7 +177,7 @@ export async function toggleUserStatus(
 
     // 使用事务确保审计日志和状态变更原子性
     await prisma.$transaction(async (tx) => {
-      // 1. 写入审计日志
+      // 1. 写入审计日志（先写审计，保证痕迹不丢失）
       await tx.securityLog.create({
         data: {
           userId,
@@ -184,9 +191,12 @@ export async function toggleUserStatus(
       })
 
       // 2. 更新用户状态
-      // 注意：当前 User 模型没有 status 字段，这里用 role 模拟
-      // 实际项目中应添加 status 字段
-      // 这里我们只记录日志，不实际修改状态
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          status: action === 'ban' ? 'BANNED' : 'ACTIVE',
+        },
+      })
     })
 
     revalidatePath(`/admin/users/${userId}`)

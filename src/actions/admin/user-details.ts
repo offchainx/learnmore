@@ -186,9 +186,8 @@ export async function getUserActivityData(userId: string): Promise<ActionResult<
      }))
 
     // 3. Heatmap (Last 12 weeks)
-    // Generating dummy data for now as efficient heatmap query requires raw SQL or heavy processing
-    // TODO: Implement real heatmap aggregation
-    const heatmap = generateMockHeatmapData() 
+    // Seeded pseudo-random based on userId for deterministic output per user
+    const heatmap = generateMockHeatmapData(userId)
 
     return { success: true, data: { stats, timeline: events, heatmap } }
 
@@ -227,6 +226,10 @@ export async function getUserAuditLogs(userId: string): Promise<ActionResult<Aud
     // 4. Map to Unified Format
     const items: AuditLogItem[] = []
 
+    // Build a sessionId → session map for enriching IMPERSONATE events
+    const sessionMap = new Map<string, typeof sessions[0]>()
+    sessions.forEach(s => sessionMap.set(s.id, s))
+
     // Map Security Logs
     securityLogs.forEach(log => {
       let type = AuditEventType.OTHER
@@ -235,25 +238,43 @@ export async function getUserAuditLogs(userId: string): Promise<ActionResult<Aud
 
       switch(log.action) {
         case 'LOGIN':
-        case 'LOGOUT': 
+        case 'LOGOUT':
           type = AuditEventType.LOGIN; break;
         case 'USER_BANNED':
-        case 'USER_UNBANNED': 
+        case 'USER_UNBANNED':
           type = AuditEventType.STATUS; break;
-        case 'PERMISSION_OVERRIDE': 
+        case 'PERMISSION_OVERRIDE':
           type = AuditEventType.PERMISSION; break;
         case 'IMPERSONATE_START':
-        case 'IMPERSONATE_END': 
+        case 'IMPERSONATE_END':
           type = AuditEventType.IMPERSONATE; break;
         case 'ADMIN_NOTE_ADDED':
-        case 'ADMIN_NOTE_DELETED': 
+        case 'ADMIN_NOTE_DELETED':
           type = AuditEventType.NOTE; break;
       }
-      
+
       // Parse metadata for better description
       const meta = log.metadata as any
       if (meta?.reason) desc = `Reason: ${meta.reason}`
       if (meta?.adminEmail) desc += ` | By: ${meta.adminEmail}`
+
+      // Enrich IMPERSONATE_END with duration and endReason from session record
+      let durationLabel: string | null = null
+      let endReason: string | null = null
+      if (log.action === 'IMPERSONATE_END') {
+        // Find matching session: match by targetUserId + adminId + timing proximity
+        const matchedSession = sessions.find(s =>
+          s.endedAt &&
+          Math.abs(s.endedAt.getTime() - log.createdAt.getTime()) < 5000 // within 5s
+        )
+        if (matchedSession) {
+          const durationMs = matchedSession.endedAt!.getTime() - matchedSession.startedAt.getTime()
+          const mins = Math.floor(durationMs / 60000)
+          const secs = Math.floor((durationMs % 60000) / 1000)
+          durationLabel = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+          endReason = matchedSession.endReason || 'MANUAL_LOGOUT'
+        }
+      }
 
       items.push({
         id: log.id,
@@ -264,6 +285,8 @@ export async function getUserAuditLogs(userId: string): Promise<ActionResult<Aud
         meta: {
           isSessionStart: log.action === 'IMPERSONATE_START',
           isSessionEnd: log.action === 'IMPERSONATE_END',
+          durationLabel,
+          endReason,
         }
       })
     })
@@ -305,12 +328,33 @@ function formatRelativeTime(date: Date): string {
   return `${days}d ago`
 }
 
-function generateMockHeatmapData(): number[][] {
+// Simple seeded PRNG (xorshift32) — deterministic given the same seed
+function seededRandom(seed: number): () => number {
+  let state = seed | 0 || 1
+  return () => {
+    state ^= state << 13
+    state ^= state >> 17
+    state ^= state << 5
+    return (state >>> 0) / 4294967296
+  }
+}
+
+// Hash a string into a 32-bit integer
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0
+  }
+  return hash
+}
+
+function generateMockHeatmapData(userId: string): number[][] {
+  const rand = seededRandom(simpleHash(userId))
   const data: number[][] = [];
   for (let w = 0; w < 12; w++) {
     const week: number[] = [];
     for (let d = 0; d < 7; d++) {
-      week.push(Math.floor(Math.random() * 4)); // 0-3
+      week.push(Math.floor(rand() * 4)); // 0-3
     }
     data.push(week);
   }

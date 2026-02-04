@@ -88,13 +88,12 @@ export const HighRiskConfirmDialog: React.FC<HighRiskConfirmDialogProps> = ({
   const isDanger = config.variant === 'danger'
 
   const handleConfirm = async () => {
-    // Only require 10 chars for ban if reason is provided, 
-    // but the original AI Studio design says Reason is optional.
-    // However, to keep it safe, we'll follow the mandate of "min 10 chars" from the story if we want to be strict.
-    // BUT the user specifically asked to match the UI which says "(Optional)".
-    // I'll stick to the UI design: Optional reason, but if provided, we can log it.
-    
-    await onConfirm(reason, isBan ? duration : undefined)
+    if (reason.trim().length < 10) {
+      setError('原因至少需要 10 个字符')
+      return
+    }
+    setError('')
+    await onConfirm(reason.trim(), isBan ? duration : undefined)
     setReason('')
   }
 
@@ -168,16 +167,17 @@ export const HighRiskConfirmDialog: React.FC<HighRiskConfirmDialogProps> = ({
           {/* Reason Input */}
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-              Reason {isBan ? '(Optional)' : '(Required)'}
+              Reason <span className="text-red-400">*</span>
             </label>
             <textarea
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={isBan ? "Violation of terms..." : "请输入操作原因..."}
+              onChange={(e) => { setReason(e.target.value); if (error) setError('') }}
+              placeholder="请输入操作原因（至少 10 个字符）..."
               rows={3}
               disabled={isLoading}
-              className="w-full bg-[#050505] border border-slate-700 rounded-lg p-3 text-slate-200 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all resize-none placeholder:text-slate-600"
+              className={`w-full bg-[#050505] border rounded-lg p-3 text-slate-200 text-sm focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all resize-none placeholder:text-slate-600 ${error ? 'border-red-500' : 'border-slate-700'}`}
             />
+            {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
           </div>
         </div>
 
@@ -192,7 +192,7 @@ export const HighRiskConfirmDialog: React.FC<HighRiskConfirmDialogProps> = ({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isLoading || (!isBan && reason.length < 10)}
+            disabled={isLoading || reason.trim().length < 10}
             className={`flex-1 py-2.5 rounded-lg text-white transition-all font-medium text-sm shadow-lg flex items-center justify-center gap-2 ${
               isDanger
                 ? 'bg-[#ef4444] hover:bg-red-500 shadow-red-900/20'

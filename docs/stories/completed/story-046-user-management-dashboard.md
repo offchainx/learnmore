@@ -1,5 +1,6 @@
-# Story-046: 用户全生命周期管理后台 (User 360 Dashboard)
+# Story-046: 用户全生命周期管理后台 (User 360 Dashboard) — Completed ✅
 
+**状态**: Completed ✅
 **阶段**: Phase 7: Business & Monetization
 **目标**: 构建"上帝视角"的用户管理系统，赋予 Admin/客服一站式解决用户问题的能力（查询、诊断、干预、审计）
 **预估时间**: 55-65 Hours

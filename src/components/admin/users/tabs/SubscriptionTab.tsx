@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import { CreditCard } from 'lucide-react'
-import { UserDetail } from '@/types/admin-user'
+import { UserDetail, SubscriptionTier } from '@/types/admin-user'
 import { UserTierBadge } from '../UserBadges'
 import { generatePaymentHistory } from '../mock/userMockData'
 import { GrantPermissionDialog } from '../GrantPermissionDialog'
@@ -43,20 +43,37 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div>
               <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Duration</div>
-              <div className="text-slate-200 text-sm font-mono">Oct 24, 2023 - Oct 24, 2024</div>
+              <div className="text-slate-200 text-sm font-mono">
+                {(() => {
+                  if (user.tier === SubscriptionTier.STARTER) return 'Free Tier'
+                  const start = new Date(user.joinDate)
+                  const end = new Date(start)
+                  end.setFullYear(end.getFullYear() + 1)
+                  return `${start.toLocaleDateString('zh-CN')} - ${end.toLocaleDateString('zh-CN')}`
+                })()}
+              </div>
             </div>
             <div>
               <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Auto-Renew</div>
-              <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium">
-                <div className="w-8 h-4 bg-emerald-900/50 rounded-full relative border border-emerald-800">
-                  <div className="absolute right-0.5 top-0.5 w-3 h-3 bg-emerald-500 rounded-full shadow-sm"></div>
+              <div className={`flex items-center gap-2 text-sm font-medium ${user.tier === SubscriptionTier.STARTER ? 'text-slate-500' : 'text-emerald-400'}`}>
+                <div className={`w-8 h-4 rounded-full relative border ${user.tier === SubscriptionTier.STARTER ? 'bg-slate-800 border-slate-700' : 'bg-emerald-900/50 border-emerald-800'}`}>
+                  <div className={`absolute top-0.5 w-3 h-3 rounded-full shadow-sm transition-all ${user.tier === SubscriptionTier.STARTER ? 'left-0.5 bg-slate-600' : 'right-0.5 bg-emerald-500'}`}></div>
                 </div>
-                ON
+                {user.tier === SubscriptionTier.STARTER ? 'OFF' : 'ON'}
               </div>
             </div>
             <div>
               <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Remaining</div>
-              <div className="text-blue-400 text-sm font-bold">18 Days</div>
+              <div className={`text-sm font-bold ${user.tier === SubscriptionTier.STARTER ? 'text-slate-500' : 'text-blue-400'}`}>
+                {(() => {
+                  if (user.tier === SubscriptionTier.STARTER) return 'N/A'
+                  const start = new Date(user.joinDate)
+                  const end = new Date(start)
+                  end.setFullYear(end.getFullYear() + 1)
+                  const remaining = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                  return remaining > 0 ? `${remaining} Days` : 'Expired'
+                })()}
+              </div>
             </div>
           </div>
         </div>

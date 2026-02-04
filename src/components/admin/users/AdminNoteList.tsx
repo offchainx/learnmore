@@ -8,6 +8,7 @@
  */
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   MessageSquare,
   Plus,
@@ -28,6 +29,7 @@ interface AdminNoteListProps {
 }
 
 export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) => {
+  const router = useRouter()
   const [showDeleted, setShowDeleted] = useState(false)
   const [newNote, setNewNote] = useState('')
   const [isAdding, setIsAdding] = useState(false)
@@ -45,6 +47,7 @@ export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) =
       if (result.success) {
         toast.success('备注已添加')
         setNewNote('')
+        router.refresh()
       } else {
         toast.error(result.error || '添加失败')
       }
@@ -62,6 +65,7 @@ export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) =
       const result = await softDeleteAdminNote(noteId)
       if (result.success) {
         toast.success('备注已删除')
+        router.refresh()
       } else {
         toast.error(result.error || '删除失败')
       }
@@ -79,6 +83,7 @@ export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) =
       const result = await restoreAdminNote(noteId)
       if (result.success) {
         toast.success('备注已恢复')
+        router.refresh()
       } else {
         toast.error(result.error || '恢复失败')
       }
@@ -96,6 +101,7 @@ export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) =
       const result = await toggleNotePin(noteId)
       if (result.success) {
         toast.success('置顶状态已更新')
+        router.refresh()
       } else {
         toast.error(result.error || '操作失败')
       }

@@ -33,28 +33,24 @@ export const GrantPermissionDialog: React.FC<GrantPermissionDialogProps> = ({
   userId,
   currentTier,
 }) => {
-  const [tier, setTier] = useState<SubscriptionTier>(currentTier === 'PREMIER' ? 'PREMIER' : 'SMART_PLUS')
+  const [tier, setTier] = useState<string>(currentTier === SubscriptionTier.PREMIER ? 'PREMIER' : 'SMART_PLUS')
   const [duration, setDuration] = useState('7_days')
   const [reason, setReason] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleConfirm = async () => {
-    if (reason.trim().length < 5) {
-      toast.error('Please provide a reason (min 5 characters)')
+    if (reason.trim().length < 10) {
+      toast.error('原因至少需要 10 个字符')
       return
     }
 
     setIsLoading(true)
     try {
-      // 这里的 Server Action 需要对应修改以支持 duration 参数
-      // 目前 applyAdminOverride 只接受 tier 和 reason，duration 需要后续扩展
-      // 暂时我们在 reason 中备注 duration
-      const fullReason = `[Duration: ${duration}] ${reason}`
-      
       await applyAdminOverride({
         userId,
-        tier: tier as any, // Cast to match Prisma enum if needed
-        reason: fullReason,
+        tier: tier as any,
+        reason: reason.trim(),
+        duration, // 直接传递 duration，由后端计算 expiresAt
       })
 
       toast.success('Permission granted successfully')
@@ -101,7 +97,7 @@ export const GrantPermissionDialog: React.FC<GrantPermissionDialogProps> = ({
               {TIERS.map((t) => (
                 <button
                   key={t.value}
-                  onClick={() => setTier(t.value as SubscriptionTier)}
+                  onClick={() => setTier(t.value)}
                   disabled={isLoading}
                   className={`text-sm px-3 py-2 rounded-lg border transition-all ${
                     tier === t.value
