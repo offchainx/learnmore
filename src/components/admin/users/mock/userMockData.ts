@@ -12,7 +12,11 @@ import {
   SubscriptionTier,
   UserFilterState,
   PaginationParams,
-  PaginatedResponse
+  PaginatedResponse,
+  PaymentRecord,
+  AuditLogItem,
+  AuditEventType,
+  ReferralNode
 } from '@/types/admin-user'
 
 // 数据池
@@ -34,7 +38,7 @@ function getRandomElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-function generateRelativeTime(offsetHours: number = 0): { iso: string; label: string } {
+export function generateRelativeTime(offsetHours: number = 0): { iso: string; label: string } {
   const now = new Date()
   const time = new Date(now.getTime() - (offsetHours * 60 * 60 * 1000) - Math.random() * 10000000)
 
@@ -91,8 +95,11 @@ function generateUser(index: number): User {
 
   const timeInfo = generateRelativeTime(timeOffset)
 
+  // 使用确定性 ID，避免 SSR/Client 重新生成导致 ID 不匹配
+  const deterministicId = `usr_${(10000 + index).toString()}`
+
   return {
-    id: `usr_${Math.random().toString(36).substr(2, 9)}`,
+    id: deterministicId,
     name,
     email,
     avatarColor: getRandomElement(AVATAR_COLORS),
@@ -216,3 +223,114 @@ export function getUserById(id: string): User | undefined {
   const users = generateUsers(200)
   return users.find(u => u.id === id)
 }
+
+// --- New Mock Generators for Tab Content ---
+
+export const generatePaymentHistory = (count: number): PaymentRecord[] => {
+  return Array.from({ length: count }).map((_, i) => ({
+    id: `pay_${i}`,
+    date: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    amount: i === count - 1 ? 199 : 29, // Initial higher, monthly lower
+    type: i === count - 1 ? 'Initial' : 'Renewal',
+    status: Math.random() > 0.95 ? 'Refunded' : 'Success',
+  }));
+};
+
+export const generateAuditLogs = (): AuditLogItem[] => {
+  // Hardcoded to match the specific "Grouping" requirement in prompt
+  return [
+    {
+      id: 'aud_1',
+      type: AuditEventType.STATUS,
+      title: 'USER_BANNED',
+      description: 'Admin: system_bot | Reason: Suspicious API usage spike',
+      timestamp: generateRelativeTime(2).label
+    },
+    {
+      id: 'aud_2',
+      type: AuditEventType.IMPERSONATE,
+      title: 'IMPERSONATE_END',
+      description: 'Reason: Active troubleshooting complete | Duration: 12 min',
+      timestamp: generateRelativeTime(5).label,
+      meta: { isSessionEnd: true }
+    },
+    {
+      id: 'aud_3',
+      type: AuditEventType.IMPERSONATE,
+      title: 'IMPERSONATE_START',
+      description: 'Admin: sarah.admin@co.com | Reason: User reported dashboard error',
+      timestamp: generateRelativeTime(5.2).label, // Slightly older than end
+      meta: { isSessionStart: true }
+    },
+    {
+      id: 'aud_4',
+      type: AuditEventType.PERMISSION,
+      title: 'PERMISSION_OVERRIDE',
+      description: 'Grant: 7 Days Trial | Reason: Customer support compensation',
+      timestamp: generateRelativeTime(24).label
+    },
+    {
+      id: 'aud_5',
+      type: AuditEventType.NOTE,
+      title: 'ADMIN_NOTE_ADDED',
+      description: 'Admin: mike.support | Content: "User requested refund for May"',
+      timestamp: generateRelativeTime(48).label
+    },
+    {
+      id: 'aud_6',
+      type: AuditEventType.LOGIN,
+      title: 'LOGIN',
+      description: 'IP: 192.168.1.45 | Method: Google OAuth',
+      timestamp: generateRelativeTime(72).label
+    }
+  ];
+};
+
+export const generateReferralTree = (): ReferralNode => {
+  return {
+    id: 'root',
+    name: 'Current User',
+    tier: SubscriptionTier.PREMIER,
+    children: [
+      {
+        id: 'ref_1',
+        name: 'Alice M.',
+        tier: SubscriptionTier.STANDARD,
+        children: [
+          { id: 'ref_1a', name: 'Bob D.', tier: SubscriptionTier.STARTER }
+        ]
+      },
+      {
+        id: 'ref_2',
+        name: 'Charlie H.',
+        tier: SubscriptionTier.SMART_PLUS,
+        children: []
+      },
+      {
+        id: 'ref_3',
+        name: 'Diana P.',
+        tier: SubscriptionTier.STARTER,
+        children: []
+      }
+    ]
+  };
+};
+
+export const generateHeatmapData = () => {
+  // 12 weeks, 7 days
+  const weeks = [];
+  for (let w = 0; w < 12; w++) {
+    const days = [];
+    for (let d = 0; d < 7; d++) {
+      // 0 = none, 1 = low, 2 = medium, 3 = high
+      const val = Math.random();
+      let intensity = 0;
+      if (val > 0.8) intensity = 3;
+      else if (val > 0.6) intensity = 2;
+      else if (val > 0.3) intensity = 1;
+      days.push(intensity);
+    }
+    weeks.push(days);
+  }
+  return weeks;
+};

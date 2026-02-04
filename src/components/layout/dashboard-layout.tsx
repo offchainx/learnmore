@@ -115,7 +115,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
     { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content/review' },
     { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/content/statistics' },
     { id: 'admin-reports', icon: AlertCircle, label: t.sidebar.adminReports, href: '/admin/content/reports' },
-    { id: 'admin-users', icon: Users, label: t.sidebar.adminUsers, href: '/admin/users' },
   ];
 
   return (
@@ -154,27 +153,38 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, curr
 
           {/* Admin Section - Only for ADMIN and TEACHER */}
           {isAdmin && (
-            <SidebarSection
-              icon={ShieldCheck}
-              label={t.sidebar.admin}
-              isExpanded={isAdminExpanded}
-              onToggle={() => setIsAdminExpanded(!isAdminExpanded)}
-              isActive={isAdminRouteActive}
-            >
-              {adminSubItems.map(subItem => (
-                <SidebarItem
-                  key={subItem.id}
-                  icon={subItem.icon}
-                  label={subItem.label}
-                  active={pathname === subItem.href}
-                  onClick={() => {
-                    router.push(subItem.href);
-                    setSidebarOpen(false);
-                  }}
-                  indent
-                />
-              ))}
-            </SidebarSection>
+            <>
+              <SidebarItem
+                icon={Users}
+                label={t.sidebar.adminUsers}
+                active={pathname?.startsWith('/admin/users')}
+                onClick={() => {
+                  router.push('/admin/users');
+                  setSidebarOpen(false);
+                }}
+              />
+              <SidebarSection
+                icon={ShieldCheck}
+                label={t.sidebar.admin}
+                isExpanded={isAdminExpanded}
+                onToggle={() => setIsAdminExpanded(!isAdminExpanded)}
+                isActive={isAdminRouteActive && !pathname?.startsWith('/admin/users')}
+              >
+                {adminSubItems.map(subItem => (
+                  <SidebarItem
+                    key={subItem.id}
+                    icon={subItem.icon}
+                    label={subItem.label}
+                    active={pathname === subItem.href}
+                    onClick={() => {
+                      router.push(subItem.href);
+                      setSidebarOpen(false);
+                    }}
+                    indent
+                  />
+                ))}
+              </SidebarSection>
+            </>
           )}
 
           {/* Achievement Card - Only for students */}

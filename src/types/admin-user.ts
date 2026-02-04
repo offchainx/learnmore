@@ -149,3 +149,51 @@ export interface ActionResult<T = void> {
   data?: T
   error?: string
 }
+
+// ============ Task C/D: 额外 Tab 相关类型 ============
+
+export interface PaymentRecord {
+  id: string
+  date: string
+  amount: number
+  type: 'Renewal' | 'Initial' | 'Adjustment'
+  status: 'Success' | 'Refunded' | 'Failed'
+}
+
+export interface PermissionRecord {
+  id: string
+  type: string
+  duration: string
+  reason: string
+  admin: string
+  date: string
+}
+
+export enum AuditEventType {
+  ALL = 'All',
+  PERMISSION = 'Permission Change',
+  IMPERSONATE = 'Impersonation',
+  STATUS = 'Status Change',
+  LOGIN = 'Login',
+  NOTE = 'Note',
+  OTHER = 'Other',
+}
+
+export interface AuditLogItem {
+  id: string
+  type: AuditEventType
+  title: string
+  description: string
+  timestamp: string
+  meta?: {
+    isSessionStart?: boolean
+    isSessionEnd?: boolean
+  }
+}
+
+export interface ReferralNode {
+  id: string
+  name: string
+  tier: SubscriptionTier
+  children?: ReferralNode[]
+}
