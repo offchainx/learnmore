@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { replyToFeedback } from '@/actions/support';
-import { FeedbackStatus, FeedbackCategory } from '@prisma/client';
+import { FeedbackStatus, FeedbackCategory } from '@/types/feedback';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';

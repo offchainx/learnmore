@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FeedbackStatus, FeedbackCategory } from '@prisma/client';
+import { FeedbackStatus, FeedbackCategory } from '@/types/feedback';
 import {
   Table,
   TableBody,

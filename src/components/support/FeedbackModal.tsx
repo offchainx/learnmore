@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { FeedbackCategory } from '@prisma/client';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +34,7 @@ import { Button } from '@/components/ui/button';
 import { submitFeedback } from '@/actions/support';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Sparkles } from 'lucide-react';
+import { FeedbackCategory } from '@/types/feedback';
 
 const feedbackSchema = z.object({
   category: z.nativeEnum(FeedbackCategory),

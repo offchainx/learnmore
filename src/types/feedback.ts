@@ -1,0 +1,16 @@
+export enum FeedbackCategory {
+  BUG = 'BUG',
+  FEATURE = 'FEATURE',
+  SUGGESTION = 'SUGGESTION',
+  BILLING = 'BILLING',
+  CONTENT_ISSUE = 'CONTENT_ISSUE',
+  OTHER = 'OTHER',
+}
+
+export enum FeedbackStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESOLVED = 'RESOLVED',
+  REJECTED = 'REJECTED',
+  CLOSED = 'CLOSED',
+}
