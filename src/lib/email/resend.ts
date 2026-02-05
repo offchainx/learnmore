@@ -15,7 +15,7 @@ export const FROM_EMAIL = process.env.NEXT_PUBLIC_FROM_EMAIL || 'LearnMore <nore
 interface SendEmailOptions {
   to: string | string[];
   subject: string;
-  react: React.ReactElement;
+  react?: React.ReactElement;
   text?: string;
   replyTo?: string;
 }
@@ -26,9 +26,9 @@ export async function sendEmail({ to, subject, react, text, replyTo }: SendEmail
       from: FROM_EMAIL,
       to,
       subject,
-      react,
+      react: react || undefined,
       text: text || '',
-      reply_to: replyTo,
+      replyTo: replyTo,
     });
 
     if (error) {

@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 import { ReferralStatus, SubscriptionTier } from '@prisma/client';
+import { triggerReceiptNotification } from '@/actions/notification-triggers';
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -43,6 +44,8 @@ export async function POST(req: Request) {
     if (tier) {
       const now = new Date();
       const subscriptionDuration = 30 * 24 * 60 * 60 * 1000; // 30天
+      const email = session.customer_details?.email || '';
+      const amount = (session.amount_total || 0) / 100;
 
       // 1. 更新用户订阅状态
       await prisma.user.update({
@@ -53,6 +56,19 @@ export async function POST(req: Request) {
           subscriptionEnd: new Date(now.getTime() + subscriptionDuration),
         },
       });
+
+      // 1.5 触发支付收据通知
+      try {
+        await triggerReceiptNotification(
+          userId,
+          email,
+          amount,
+          session.id,
+          normalizedPlan
+        );
+      } catch (e) {
+        console.error('[Webhook] Receipt trigger error:', e);
+      }
 
       // 2. 查找是否有待处理的推荐关系
       const referral = await prisma.referral.findUnique({

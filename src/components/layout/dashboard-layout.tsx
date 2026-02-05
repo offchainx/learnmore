@@ -10,6 +10,7 @@ import {
 import { useApp } from '@/providers/app-provider';
 import { logoutAction } from '@/actions/auth';
 import { TrialBanner } from './TrialBanner';
+import { NotificationBell } from '../notification/NotificationBell';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -250,12 +251,28 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <main className={`flex-1 overflow-y-auto p-4 sm:p-8 scroll-smooth ${currentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}>
          <TrialBanner subscriptionTier={subscriptionTier || null} subscriptionEnd={subscriptionEnd || null} />
          
-         {/* Mobile Menu Trigger */}
-         <div className="lg:hidden mb-4">
-            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500">
-               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-            </button>
+         {/* Top Header Bar */}
+         <div className="flex items-center justify-between mb-6 lg:mb-8">
+            <div className="flex items-center gap-4">
+               {/* Mobile Menu Trigger */}
+               <button 
+                  onClick={() => setSidebarOpen(true)} 
+                  className="lg:hidden p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-all"
+               >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+               </button>
+               
+               {/* Contextual Title (Optional, could be added later) */}
+               <h1 className="text-xl font-bold text-slate-900 dark:text-white hidden sm:block capitalize">
+                  {currentView === 'dashboard' ? t.sidebar.dashboard : currentView}
+               </h1>
+            </div>
+
+            <div className="flex items-center gap-3">
+               <NotificationBell />
+            </div>
          </div>
+
          {children}
       </main>
     </div>

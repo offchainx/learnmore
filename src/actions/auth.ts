@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
+import { triggerWelcomeNotification } from './notification-triggers'
 
 // 生成推荐码（8位，大写字母+数字）
 function generateReferralCode(): string {
@@ -166,6 +167,13 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
       })
     } catch (e) {
       console.error('[Auth] UserSettings upsert error:', e)
+    }
+
+    // 4. 触发欢迎通知和邮件
+    try {
+      await triggerWelcomeNotification(authData.user.id, parsed.data.email, parsed.data.username || undefined);
+    } catch (e) {
+      console.error('[Auth] Welcome notification trigger error:', e)
     }
   }
 

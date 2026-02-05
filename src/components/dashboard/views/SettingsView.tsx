@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -10,10 +10,11 @@ import { useApp } from '@/providers/app-provider'; // Import Context
 import { updateProfile } from '@/actions/profile';
 import { updateAIConfig } from '@/actions/settings';
 import { generateInviteCode } from '@/actions/parent';
+import { getNotificationPreferences, updateNotificationPreferences } from '@/actions/notification-preferences';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
-  Moon, Sun, CircleCheck, Globe, Gift, Users
+  Moon, Sun, CircleCheck, Globe, Gift, Users, Bell
 } from 'lucide-react';
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
@@ -191,7 +192,7 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
   );
 }
 
-type TabId = 'profile' | 'account' | 'ai-config' | 'subscription';
+type TabId = 'profile' | 'account' | 'notifications' | 'ai-config' | 'subscription';
 
 const initialState = { error: undefined, success: undefined };
 
@@ -233,9 +234,38 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   const [profileState, profileAction] = useFormState(updateProfile, initialState);
   const [aiConfigState, aiConfigAction] = useFormState(updateAIConfig, initialState);
 
+  // Notification Preferences State
+  const [notifPrefs, setNotifPrefs] = useState<any>(null);
+  const [isNotifLoading, setIsNotifLoading] = useState(false);
+  const [notifUpdateSuccess, setNotifUpdateSuccess] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      const fetchPrefs = async () => {
+        setIsNotifLoading(true);
+        const result = await getNotificationPreferences();
+        if (result.success) {
+          setNotifPrefs(result.data);
+        }
+        setIsNotifLoading(false);
+      };
+      fetchPrefs();
+    }
+  }, [activeTab]);
+
+  const handleTogglePreference = async (key: string, value: boolean) => {
+    setNotifPrefs((prev: any) => ({ ...prev, [key]: value }));
+    const result = await updateNotificationPreferences({ [key]: value });
+    if (result.success) {
+      setNotifUpdateSuccess(true);
+      setTimeout(() => setNotifUpdateSuccess(false), 3000);
+    }
+  };
+
   const menuItems = [
     { id: 'profile', label: t.settings.tabs.profile, icon: User },
     { id: 'ai-config', label: t.settings.tabs.aiConfig, icon: Brain },
+    { id: 'notifications', label: '通知设置', icon: Bell },
     { id: 'account', label: t.settings.tabs.account, icon: Shield },
     { id: 'subscription', label: t.settings.tabs.subscription, icon: CreditCard },
   ];
@@ -538,6 +568,125 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     </form>
   );
 
+  const renderNotificationsContent = () => {
+    const NotificationToggle = ({ label, description, checked, onChange, disabled = false }: any) => (
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 transition-all hover:border-blue-500/30">
+        <div className="flex-1 pr-4">
+          <div className="font-bold text-slate-900 dark:text-white text-sm">{label}</div>
+          <div className="text-xs text-slate-500 mt-1">{description}</div>
+        </div>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(!checked)}
+          className={`w-12 h-6 rounded-full p-1 transition-colors relative shrink-0 ${
+            checked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+          } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-6' : 'translate-x-0'}`}></div>
+        </button>
+      </div>
+    );
+
+    return (
+      <div className="space-y-8 animate-fade-in-up w-full">
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-6 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">通知设置</h2>
+            <p className="text-slate-500 text-base">管理您接收通知的方式和类型</p>
+          </div>
+          {notifUpdateSuccess && (
+            <div className="flex items-center gap-2 text-green-500 text-sm font-bold bg-green-500/10 px-4 py-2 rounded-full">
+              <CircleCheck className="w-4 h-4" /> 偏好已更新
+            </div>
+          )}
+        </div>
+
+        {isNotifLoading ? (
+          <div className="py-20 flex flex-col items-center justify-center">
+            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-500">加载设置中...</p>
+          </div>
+        ) : (
+          <div className="space-y-10">
+            {/* In-App Notifications */}
+            <section>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-blue-500" /> 站内通知 (In-App)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <NotificationToggle
+                  label="系统通知"
+                  description="重要的更新、公告和系统维护通知。"
+                  checked={notifPrefs?.inAppSystem}
+                  onChange={(v: boolean) => handleTogglePreference('inAppSystem', v)}
+                />
+                <NotificationToggle
+                  label="社交动态"
+                  description="有人回复了你的帖子或提到你时发送通知。"
+                  checked={notifPrefs?.inAppSocial}
+                  onChange={(v: boolean) => handleTogglePreference('inAppSocial', v)}
+                />
+                <NotificationToggle
+                  label="学习提醒"
+                  description="每日任务、复习计划和学习进度提醒。"
+                  checked={notifPrefs?.inAppStudy}
+                  onChange={(v: boolean) => handleTogglePreference('inAppStudy', v)}
+                />
+                <NotificationToggle
+                  label="成就奖励"
+                  description="当你获得勋章、升级或完成里程碑时发送通知。"
+                  checked={notifPrefs?.inAppAchievement}
+                  onChange={(v: boolean) => handleTogglePreference('inAppAchievement', v)}
+                />
+              </div>
+            </section>
+
+            {/* Email Notifications */}
+            <section>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                <Globe className="w-5 h-5 text-purple-500" /> 邮件通知 (Email)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <NotificationToggle
+                  label="系统 & 安全"
+                  description="登录尝试、密码更改和系统公告邮件。"
+                  checked={notifPrefs?.emailSystem}
+                  onChange={(v: boolean) => handleTogglePreference('emailSystem', v)}
+                />
+                <NotificationToggle
+                  label="社交回复"
+                  description="当你不在站内时，将重要的社区动态通过邮件发送给你。"
+                  checked={notifPrefs?.emailSocial}
+                  onChange={(v: boolean) => handleTogglePreference('emailSocial', v)}
+                />
+                <NotificationToggle
+                  label="每周学习报告"
+                  description="每周一早上汇总你的学习成果和下周计划。"
+                  checked={notifPrefs?.emailWeekly}
+                  onChange={(v: boolean) => handleTogglePreference('emailWeekly', v)}
+                />
+                <NotificationToggle
+                  label="账单与收据"
+                  description="订阅确认、扣款成功收据（强制开启）。"
+                  checked={true}
+                  disabled={true}
+                  onChange={() => {}}
+                />
+                <NotificationToggle
+                  label="营销与推广"
+                  description="新功能发布、限时优惠和学习资源推荐。"
+                  checked={notifPrefs?.emailMarketing}
+                  onChange={(v: boolean) => handleTogglePreference('emailMarketing', v)}
+                />
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderAccountContent = () => (
     <div className="space-y-8 animate-fade-in-up w-full">
       <div className="border-b border-slate-200 dark:border-slate-800 pb-6">
@@ -606,6 +755,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         <Card className="flex-1 w-full p-6 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl">
            {activeTab === 'profile' && renderProfileContent()}
            {activeTab === 'ai-config' && renderAIConfigContent()}
+           {activeTab === 'notifications' && renderNotificationsContent()}
            {activeTab === 'account' && renderAccountContent()}
            {activeTab === 'subscription' && (
               <div className="text-center py-20 animate-fade-in-up">

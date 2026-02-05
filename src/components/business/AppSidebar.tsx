@@ -152,7 +152,6 @@ const SidebarContent = ({ onClose, userRole }: { onClose?: () => void; userRole?
 
 export function AppSidebar() {
   const [isOpen, setIsOpen] = useState(false)
-  const { user } = useApp()
 
   return (
     <>
@@ -164,13 +163,13 @@ export function AppSidebar() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0 border-r-0">
-          <SidebarContent onClose={() => setIsOpen(false)} userRole={user?.role} />
+          <SidebarContent onClose={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>
 
       {/* Desktop Sidebar */}
       <div className="hidden border-r bg-white dark:bg-[#050505] lg:block w-72 h-screen sticky top-0 border-slate-200 dark:border-white/5">
-        <SidebarContent userRole={user?.role} />
+        <SidebarContent />
       </div>
     </>
   )

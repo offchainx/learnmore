@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { getCurrentUser } from '@/actions/auth'
+import { triggerSocialReplyNotification } from './notification-triggers'
 
 export type PostWithAuthor = Prisma.PostGetPayload<{
   include: {
@@ -293,6 +294,11 @@ export async function createComment({
   }
 
   try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true, title: true }
+    })
+
     const newComment = await prisma.comment.create({
       data: {
         postId,
@@ -310,6 +316,22 @@ export async function createComment({
         },
       },
     })
+
+    // Trigger notification for post author (if not the same person)
+    if (post && post.authorId !== user.id) {
+      try {
+        await triggerSocialReplyNotification(
+          post.authorId,
+          user.username || '有人',
+          postId,
+          post.title,
+          content
+        )
+      } catch (e) {
+        console.error('Error triggering social notification:', e)
+      }
+    }
+
     return { success: true, comment: newComment }
   } catch (error: unknown) {
     console.error('Error creating comment:', error)
