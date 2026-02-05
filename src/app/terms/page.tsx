@@ -1,7 +1,14 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next'
 import { Navbar } from '@/components/layout/navbar';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | LearnMore',
+  description: 'Read LearnMore\'s Terms of Service. Understand your rights, responsibilities, and our policies on account usage, content, and subscriptions.',
+  openGraph: {
+    title: 'Terms of Service | LearnMore',
+    description: 'Understand your rights and responsibilities as a LearnMore user — covering accounts, content, payments, and more.',
+  },
+}
 
 export default function TermsPage() {
   return (

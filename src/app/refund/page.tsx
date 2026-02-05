@@ -1,7 +1,14 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next'
 import { Navbar } from '@/components/layout/navbar';
+
+export const metadata: Metadata = {
+  title: 'Refund Policy | LearnMore',
+  description: 'LearnMore\'s refund policy: 7-day money-back guarantee, eligibility criteria, non-refundable items, and how to request a refund.',
+  openGraph: {
+    title: 'Refund Policy | LearnMore',
+    description: 'Everything you need to know about requesting a refund — including our 7-day money-back guarantee.',
+  },
+}
 
 export default function RefundPage() {
   return (

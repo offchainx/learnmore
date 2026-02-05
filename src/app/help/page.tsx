@@ -10,6 +10,7 @@ import { FeedbackModal } from '@/components/support/FeedbackModal';
 
 export default function HelpPage() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
     <div className="dark min-h-screen bg-[#020617] text-white font-sans">
@@ -23,9 +24,11 @@ export default function HelpPage() {
           </h1>
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-5 w-5" />
-            <Input 
+            <Input
               className="w-full pl-12 pr-4 py-6 bg-slate-900/50 border-slate-800 text-white rounded-2xl focus:ring-blue-500/20 focus:border-blue-500 transition-all text-lg"
               placeholder="Search for articles, guides..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -39,7 +42,7 @@ export default function HelpPage() {
               <span className="h-8 w-1 bg-blue-500 rounded-full"></span>
               Frequently Asked Questions
             </h2>
-            <FAQAccordion />
+            <FAQAccordion searchQuery={searchQuery} />
           </div>
 
           {/* Contact Support Section */}

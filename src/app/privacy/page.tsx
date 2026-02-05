@@ -1,7 +1,14 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next'
 import { Navbar } from '@/components/layout/navbar';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | LearnMore',
+  description: 'Learn how LearnMore collects, uses, and protects your personal data. Our privacy policy covers cookies, data sharing, and your rights.',
+  openGraph: {
+    title: 'Privacy Policy | LearnMore',
+    description: 'How LearnMore collects, uses, and safeguards your information — including cookie policy and data rights.',
+  },
+}
 
 export default function PrivacyPage() {
   return (
