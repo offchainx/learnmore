@@ -27,7 +27,7 @@ export const ReceiptEmail = ({
   amount = 'RM 99.00',
   planName = 'Smart Plus 订阅',
   date = new Date().toLocaleDateString(),
-  invoiceUrl,
+  invoiceUrl = '#',
 }: ReceiptEmailProps) => (
   <Html>
     <Head />
@@ -48,16 +48,16 @@ export const ReceiptEmail = ({
             <Text style={infoText}><strong>支付金额：</strong> {amount}</Text>
             <Text style={infoText}><strong>日期：</strong> {date}</Text>
           </Section>
-          <Text style={paragraph}>
-            你可以前往个人中心管理你的订阅。
-          </Text>
-          {invoiceUrl && (
+          {invoiceUrl && invoiceUrl !== '#' && (
             <Section style={buttonContainer}>
               <Link style={button} href={invoiceUrl}>
                 查看发票
               </Link>
             </Section>
           )}
+          <Text style={paragraph}>
+            你可以前往个人中心管理你的订阅。
+          </Text>
           <Hr style={hr} />
           <Text style={footer}>
             此邮件作为你的支付凭证，请妥善保管。<br />
@@ -128,13 +128,13 @@ const button = {
   backgroundColor: '#10b981',
   borderRadius: '5px',
   color: '#fff',
-  fontSize: '16px',
+  fontSize: '14px',
   fontWeight: 'bold',
   textDecoration: 'none',
   textAlign: 'center' as const,
   display: 'inline-block',
-  width: '180px',
-  padding: '12px',
+  width: '150px',
+  padding: '10px',
 };
 
 const hr = {

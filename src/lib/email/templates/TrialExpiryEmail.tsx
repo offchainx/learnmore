@@ -26,48 +26,52 @@ export const TrialExpiryEmail = ({
   daysLeft = 3,
   urgency = 'warning',
   upgradeUrl = `${baseUrl}/pricing`,
-}: TrialExpiryEmailProps) => (
-  <Html>
-    <Head />
-    <Preview>{urgency === 'urgent' ? '⚡ 紧急：你的试用期明天结束！' : '温馨提醒：你的试用期即将结束'}</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        {urgency === 'urgent' && (
-          <Section style={urgentBanner}>
-            <Text style={urgentBannerText}>⚡ 紧急警告：您的试用期明天结束，请立即采取行动。</Text>
+}: TrialExpiryEmailProps) => {
+  const isUrgent = daysLeft <= 1 || urgency === 'urgent';
+
+  return (
+    <Html>
+      <Head />
+      <Preview>{isUrgent ? '紧急：你的试用期即将于 24 小时内结束！' : '温馨提醒：你的试用期即将结束'}</Preview>
+      <Body style={main}>
+        <Container style={container}>
+          <Section style={{ ...header, backgroundColor: isUrgent ? '#fef2f2' : '#fff7ed' }}>
+            <Heading style={{ ...heading, color: isUrgent ? '#991b1b' : '#ea580c' }}>
+              {isUrgent ? '⚠️ 试用期即将结束' : '试用期提醒'}
+            </Heading>
           </Section>
-        )}
-        <Section style={header}>
-          <Heading style={heading}>试用期提醒</Heading>
-        </Section>
-        <Section style={content}>
-          <Text style={paragraph}>你好，{username}！</Text>
-          <Text style={paragraph}>
-            你的免费试用期将于 <strong>{daysLeft <= 1 ? '明天' : `${daysLeft} 天后`}</strong> 结束。为了确保你的学习进度不被中断，建议你及时升级订阅。
-          </Text>
-          <Text style={paragraph}>
-            升级后，你将继续享有：
-            <ul style={list}>
-              <li>无限制使用 AI 智能导师</li>
-              <li>解锁全部进阶题库</li>
-              <li>获取详细的学习进度报告</li>
-            </ul>
-          </Text>
-          <Section style={buttonContainer}>
-            <Link style={urgency === 'urgent' ? buttonUrgent : button} href={upgradeUrl}>
-              立即升级
-            </Link>
+          <Section style={content}>
+            <Text style={paragraph}>你好，{username}！</Text>
+            <Text style={paragraph}>
+              你的免费试用期将于 <strong>{daysLeft <= 1 ? '明天' : `${daysLeft} 天后`}</strong> 结束{isUrgent ? '（不足 24 小时）' : ''}。为了确保你的学习进度不被中断，建议你及时升级订阅。
+            </Text>
+            <Text style={paragraph}>
+              升级后，你将继续享有：
+              <ul style={list}>
+                <li>无限制使用 AI 智能导师</li>
+                <li>解锁全部进阶题库</li>
+                <li>获取详细的学习进度报告</li>
+              </ul>
+            </Text>
+            <Section style={buttonContainer}>
+              <Link
+                style={{ ...button, backgroundColor: isUrgent ? '#b91c1c' : '#ea580c' }}
+                href={upgradeUrl}
+              >
+                立即升级
+              </Link>
+            </Section>
+            <Hr style={hr} />
+            <Text style={footer}>
+              如果你有任何问题，欢迎随时联系我们。<br />
+              © 2026 LearnMore. All rights reserved.
+            </Text>
           </Section>
-          <Hr style={hr} />
-          <Text style={footer}>
-            如果你有任何问题，欢迎随时联系我们。<br />
-            © 2026 LearnMore. All rights reserved.
-          </Text>
-        </Section>
-      </Container>
-    </Body>
-  </Html>
-);
+        </Container>
+      </Body>
+    </Html>
+  );
+};
 
 export default TrialExpiryEmail;
 
@@ -82,27 +86,12 @@ const container = {
   padding: '20px 0 48px',
 };
 
-const urgentBanner = {
-  backgroundColor: '#dc2626',
-  padding: '12px 24px',
-  textAlign: 'center' as const,
-};
-
-const urgentBannerText = {
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: 'bold',
-  margin: '0',
-};
-
 const header = {
   padding: '32px',
   textAlign: 'center' as const,
-  backgroundColor: '#fff7ed',
 };
 
 const heading = {
-  color: '#ea580c',
   fontSize: '24px',
   fontWeight: 'bold',
   margin: '0',
@@ -130,7 +119,6 @@ const buttonContainer = {
 };
 
 const button = {
-  backgroundColor: '#ea580c',
   borderRadius: '5px',
   color: '#fff',
   fontSize: '16px',
@@ -140,11 +128,6 @@ const button = {
   display: 'inline-block',
   width: '200px',
   padding: '12px',
-};
-
-const buttonUrgent = {
-  ...button,
-  backgroundColor: '#dc2626',
 };
 
 const hr = {

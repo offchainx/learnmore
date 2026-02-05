@@ -965,7 +965,6 @@ enum NotificationType {
   BILLING         // 支付通知 (收据、试用到期) — 不允许用户关闭
   STUDY_REMINDER  // 学习提醒
   ACHIEVEMENT     // 成就达成
-  ACCOUNT_UPDATE  // 账户变动 (如订阅、密码)
   FEEDBACK_REPLY  // 反馈回复
   WEEKLY_REPORT   // 学习周报
   PROMOTION       // 优惠活动
@@ -993,20 +992,20 @@ model Notification {
 }
 
 model NotificationPreference {
-  userId          String   @id @map("user_id") @db.Uuid
-
+  userId    String   @id @map("user_id") @db.Uuid
+  
   // 站内通知开关
   inAppSystem      Boolean @default(true) @map("in_app_system")
-  inAppSocial      Boolean @default(true) @map("in_app_social")       // 社交回复
+  inAppSocial      Boolean @default(true) @map("in_app_social")
   inAppStudy       Boolean @default(true) @map("in_app_study")
   inAppAchievement Boolean @default(true) @map("in_app_achievement")
-
+  
   // 邮件通知开关
-  emailBilling     Boolean @default(true) @map("email_billing")       // 支付确认 — 始终开启，不可修改
   emailSystem      Boolean @default(true) @map("email_system")
-  emailStudy       Boolean @default(true) @map("email_study")
+  emailSocial      Boolean @default(true) @map("email_social")
   emailWeekly      Boolean @default(true) @map("email_weekly")
   emailMarketing   Boolean @default(true) @map("email_marketing")
+  emailBilling     Boolean @default(true) @map("email_billing") // 始终为 true，仅用于占位或逻辑记录
   
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -1017,8 +1016,10 @@ model NotificationPreference {
 
 enum FeedbackCategory {
   BUG             // 漏洞反馈
-  FEATURE         // 功能建议
+  FEATURE         // 功能建议 (原有)
+  SUGGESTION      // 功能建议 (新版)
   BILLING         // 支付问题
+  CONTENT_ISSUE   // 内容错误 (如题目错误)
   OTHER           // 其他
 }
 
@@ -1032,11 +1033,11 @@ enum FeedbackStatus {
 
 model UserFeedback {
   id          String           @id @default(uuid()) @db.Uuid
-  userId     String?          @map("user_id") @db.Uuid  // 可选: 支持匿名反馈
+  userId      String?          @map("user_id") @db.Uuid // 可选，支持匿名
+  email       String?          // 匿名用户的联系邮箱
   category    FeedbackCategory
   title       String
   content     String           @db.Text
-  email       String?                                     // 联系邮箱 (匿名时如果想收到确认需要填写)
   attachments String[]         // 附件图片 URL 列表
   status      FeedbackStatus   @default(PENDING)
   priority    Int              @default(0) // 优先级 0-3

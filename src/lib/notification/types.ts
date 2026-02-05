@@ -1,7 +1,7 @@
 import type {
   Notification,
   UserFeedback, FeedbackCategory, FeedbackStatus,
-  NotificationPreference
+  NotificationPreference, User
 } from '@prisma/client'
 
 // ==================== 通知 ====================
@@ -23,17 +23,16 @@ export type NotificationMetadata = {
   [key: string]: any
 }
 
-export type NotificationWithMeta = Omit<Notification, 'metadata'> & {
-  metadata?: NotificationMetadata | null
+export interface NotificationWithMetadata extends Omit<Notification, 'metadata'> {
+  metadata: NotificationMetadata | null;
 }
 
-// 保留旧别名，兼容已有代码
-export type NotificationWithMetadata = NotificationWithMeta
-
 export interface NotificationListResponse {
-  notifications: NotificationWithMeta[]
-  total: number
-  unreadCount: number
+  success: boolean;
+  data?: NotificationWithMetadata[];
+  unreadCount?: number;
+  total?: number;
+  error?: any;
 }
 
 export type NotificationPreferenceData = Omit<NotificationPreference, 'userId' | 'emailBilling' | 'updatedAt'>
@@ -46,12 +45,14 @@ export interface SendEmailParams {
   react?: React.ReactElement
   text?: string
   replyTo?: string
+  template?: string
+  props?: any
 }
 
 export interface SendEmailResult {
   success: boolean
-  data?: { id: string }
-  error?: unknown
+  data?: any
+  error?: any
 }
 
 // ==================== 反馈 ====================
@@ -65,17 +66,14 @@ export interface SubmitFeedbackInput {
   attachments?: string[]
 }
 
-export type FeedbackWithUser = Omit<UserFeedback, 'user'> & {
-  user?: {
-    id: string
-    email: string
-    username: string | null
-    subscriptionTier: string | null
-  } | null
+export interface FeedbackWithUser extends UserFeedback {
+  user?: Partial<User> | null;
 }
 
 export interface FeedbackListResponse {
-  feedbacks: FeedbackWithUser[]
-  total: number
-  byStatus: Partial<Record<FeedbackStatus, number>>
+  success: boolean;
+  data?: FeedbackWithUser[];
+  total?: number;
+  byStatus?: Partial<Record<FeedbackStatus, number>>;
+  error?: any;
 }

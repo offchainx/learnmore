@@ -3,13 +3,13 @@
 import prisma from '@/lib/prisma';
 import { FeedbackCategory } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { getCurrentUser } from './auth';
 
 interface CreateFeedbackParams {
-  userId?: string;           // 可选: 支持匿名反馈
   category: FeedbackCategory;
   title: string;
   content: string;
-  email?: string;             // 联系邮箱 (匿名时如果想收到确认需要填写)
+  email?: string; // 用于匿名反馈
   attachments?: string[];
 }
 
@@ -18,7 +18,6 @@ interface CreateFeedbackParams {
  * ⭐ 支持匿名提交：userId 和 email 均可选
  */
 export async function submitFeedback({
-  userId,
   category,
   title,
   content,
@@ -26,13 +25,15 @@ export async function submitFeedback({
   attachments = [],
 }: CreateFeedbackParams) {
   try {
+    const user = await getCurrentUser();
+    
     const feedback = await prisma.userFeedback.create({
       data: {
-        userId: userId ?? null,
+        userId: user?.id || null, // 如果未登录，则为 null
+        email: user?.email || email || null, // 优先使用账户邮箱，否则使用填写的邮箱
         category,
         title,
         content,
-        email: email ?? null,
         attachments,
       },
     });
@@ -40,7 +41,7 @@ export async function submitFeedback({
     try {
       revalidatePath('/dashboard/support');
     } catch (e) {
-      // 忽略脚本调用时的 revalidatePath 错误
+      // 忽略
     }
 
     return { success: true, data: feedback };
@@ -51,12 +52,15 @@ export async function submitFeedback({
 }
 
 /**
- * 获取用户的反馈历史
+ * 获取当前用户的反馈历史
  */
-export async function getUserFeedbacks(userId: string) {
+export async function getUserFeedbacks() {
   try {
+    const user = await getCurrentUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
     const feedbacks = await prisma.userFeedback.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     });
 
