@@ -30,6 +30,7 @@ export const translations = {
       adminReports: "User Reports",
       adminPermissions: "Permissions Control",
       adminUsers: "User List",
+      adminFeedback: "Feedback Inbox",
       settings: "Settings",
       logout: "Log Out",
       achievements: "Achievements"
@@ -151,6 +152,7 @@ export const translations = {
       adminReports: "用户报错",
       adminPermissions: "权限调控",
       adminUsers: "用户列表",
+      adminFeedback: "反馈中心",
       settings: "设置",
       logout: "退出登录",
       achievements: "成就系统"
@@ -272,6 +274,7 @@ export const translations = {
       adminReports: "Laporan Pengguna",
       adminPermissions: "Kawalan Kebenaran",
       adminUsers: "Senarai Pengguna",
+      adminFeedback: "Peti Masuk Maklum Balas",
       settings: "Tetapan",
       logout: "Log Keluar",
       achievements: "Pencapaian"

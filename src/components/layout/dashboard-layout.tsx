@@ -110,7 +110,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isAdmin = userRole === 'ADMIN' || userRole === 'TEACHER';
 
   // Check if any admin route is active
-  const isUserAdminActive = pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions');
+  const isUserAdminActive = pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions') || pathname?.startsWith('/admin/feedback');
   const isContentAdminActive = pathname?.startsWith('/admin/content');
 
   const menuItems = isParent ? [
@@ -126,6 +126,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const adminUserSubItems = [
     { id: 'admin-users', icon: Users, label: t.sidebar.adminUsers, href: '/admin/users' },
     { id: 'admin-permissions', icon: ShieldCheck, label: t.sidebar.adminPermissions, href: '/admin/permissions' },
+    { id: 'admin-feedback', icon: MessageCircle, label: t.sidebar.adminFeedback, href: '/admin/feedback' },
   ];
 
   const adminContentSubItems = [
