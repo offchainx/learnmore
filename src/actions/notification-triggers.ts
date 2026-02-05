@@ -84,21 +84,21 @@ export async function triggerTrialExpiryNotification(
   const existing = await prisma.notification.findFirst({
     where: {
       userId,
-      type: 'SYSTEM',
+      type: 'BILLING',
       createdAt: { gte: today },
       title: { contains: '试用期' }
     }
   });
 
   if (existing) {
-    console.log(`User ${userId} already notified about trial today. Skipping.`);
+    console.warn(`[TrialExpiry] User ${userId} already notified today. Skipping.`);
     return { success: true, skipped: true };
   }
 
-  // 2. 发送站内通知
+  // 2. 发送站内通知 (BILLING 类型不受偏好控制，始终创建)
   await createInAppNotification({
     userId,
-    type: 'SYSTEM',
+    type: 'BILLING',
     title: daysLeft <= 0 ? '你的试用期已结束' : `你的试用期还剩 ${daysLeft} 天`,
     content: daysLeft <= 0 
       ? '你的高级会员试用已到期，请及时续费以继续使用所有功能。'
@@ -107,15 +107,12 @@ export async function triggerTrialExpiryNotification(
     metadata: { daysLeft } as NotificationMetadata,
   });
 
-  // 3. 发送邮件
-  const prefs = await prisma.notificationPreference.findUnique({ where: { userId } });
-  if (!prefs || prefs.emailSystem) {
-    await sendEmail({
-      to: email,
-      subject: daysLeft <= 0 ? 'LearnMore 试用期到期提醒' : `LearnMore 试用期还剩 ${daysLeft} 天`,
-      react: React.createElement(TrialExpiryEmail, { daysLeft }),
-    });
-  }
+  // 3. 发送邮件 (BILLING 类型邮件不受偏好控制，始终发送)
+  await sendEmail({
+    to: email,
+    subject: daysLeft <= 0 ? 'LearnMore 试用期到期提醒' : `LearnMore 试用期还剩 ${daysLeft} 天`,
+    react: React.createElement(TrialExpiryEmail, { daysLeft }),
+  });
 
   return { success: true };
 }
