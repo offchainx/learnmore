@@ -41,12 +41,12 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
       },
     });
 
-    // 2. 发送确认邮件给用户
-    await sendEmail({
+    // 2. 发送确认邮件给用户 (fire-and-forget, 不阻塞主流程 — ADR-004)
+    sendEmail({
       to: userEmail,
       subject: `We've received your feedback: ${params.title}`,
       text: `Hi,\n\nThank you for reaching out to LearnMore. We've received your feedback regarding "${params.category}" and our team will look into it as soon as possible.\n\nYour Feedback:\n${params.content}\n\nBest regards,\nLearnMore Support Team`,
-    });
+    }).catch(err => console.error('Feedback ack email failed:', err));
 
     // 3. 站内通知用户（如果是登录用户）
     if (userId) {
@@ -148,12 +148,12 @@ export async function replyToFeedback(feedbackId: string, reply: string, status:
       },
     });
 
-    // 2. 发送邮件通知用户
-    await sendEmail({
+    // 2. 发送邮件通知用户 (fire-and-forget, 不阻塞主流程 — ADR-004)
+    sendEmail({
       to: feedback.email || '',
       subject: `Update on your feedback: ${feedback.title}`,
       text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${reply}\n\nStatus: ${status}\n\nThank you for being part of LearnMore.\n\nBest regards,\nLearnMore Support Team`,
-    });
+    }).catch(err => console.error('Feedback reply email failed:', err));
 
     // 3. 如果是登录用户，发送站内通知
     if (feedback.userId) {
