@@ -12,6 +12,8 @@ import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { UnsupportedBrowserWarning } from '@/components/compatibility/UnsupportedBrowserWarning'
 import { PolyfillsLoader } from '@/components/polyfills/PolyfillsLoader'
 import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBannerWrapper'
+import { CookieConsent } from '@/components/layout/CookieConsent'
+import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -87,6 +89,8 @@ export default function RootLayout({
             <BottomTabBar />
           </AppProvider>
         </ThemeProvider>
+        <CookieConsent />
+        <FeedbackWidget />
         <Toaster />
         <Sonner position="top-center" />
       </body>

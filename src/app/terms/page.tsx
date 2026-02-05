@@ -10,27 +10,35 @@ export default function TermsPage() {
       <main className="pt-32 pb-20 px-4 max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Terms of Service</h1>
         <div className="space-y-6 text-slate-300 leading-relaxed">
-          <p>Last updated: December 13, 2025</p>
+          <p>Last updated: February 5, 2026</p>
           <p>
-            Please read these Terms of Service (&quot;Terms&quot;) carefully before using the LearnMore Edu platform operated by us.
+            Please read these Terms of Service (&quot;Terms&quot;) carefully before using the LearnMore Edu platform operated by us. Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms.
           </p>
           
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">1. Acceptance of Terms</h2>
           <p>
-            By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.
+            By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service. These Terms apply to all visitors, users, and others who access or use the Service.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">2. User Accounts</h2>
           <p>
-            When you create an account with us, you must provide us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.
+            When you create an account with us, you must provide us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account. You are responsible for safeguarding the password that you use to access the Service and for any activities or actions under your password.
           </p>
 
-          <h2 className="text-2xl font-semibold text-white mt-8 mb-4">3. Intellectual Property</h2>
+          <h2 className="text-2xl font-semibold text-white mt-8 mb-4">3. Content and Intellectual Property</h2>
           <p>
-            The Service and its original content (excluding Content provided by users), features, and functionality are and will remain the exclusive property of LearnMore Edu and its licensors.
+            Our Service allows you to post, link, store, share and otherwise make available certain information, text, graphics, videos, or other material (&quot;Content&quot;). You are responsible for the Content that you post to the Service.
+          </p>
+          <p>
+            The Service and its original content, features, and functionality are and will remain the exclusive property of LearnMore Edu and its licensors.
           </p>
 
-          <h2 className="text-2xl font-semibold text-white mt-8 mb-4">4. Termination</h2>
+          <h2 className="text-2xl font-semibold text-white mt-8 mb-4">4. Subscriptions and Payments</h2>
+          <p>
+            Some parts of the Service are billed on a subscription basis. You will be billed in advance on a recurring and periodic basis. At the end of each Billing Cycle, your Subscription will automatically renew under the exact same conditions unless you cancel it or LearnMore Edu cancels it.
+          </p>
+
+          <h2 className="text-2xl font-semibold text-white mt-8 mb-4">5. Termination</h2>
           <p>
             We may terminate or suspend access to our Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
           </p>
@@ -39,7 +47,7 @@ export default function TermsPage() {
 
       <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
          <div className="max-w-7xl mx-auto px-4">
-            <p>© 2025 LearnMore Edu. All rights reserved.</p>
+            <p>© 2026 LearnMore Edu. All rights reserved.</p>
          </div>
       </footer>
     </div>
