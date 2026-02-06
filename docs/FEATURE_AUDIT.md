@@ -23,25 +23,38 @@ src/
 │   │   ├── DashboardClient.tsx ✅ (Dashboard - 路由控制器)
 │   │   ├── DashboardHome.tsx ✅ (Dashboard - 主页UI)
 │   │   ├── Widgets.tsx ✅ (Dashboard - DailyInspiration组件)
-│   │   └── DailyMissions.tsx ✅ (Dashboard - 今日任务)
+│   │   ├── DailyMissions.tsx ✅ (Dashboard - 今日任务)
+│   │   └── SectionViews.tsx ✅ (共享 - barrel export)
+│   ├── courses/
+│   │   ├── CoursesView.tsx ✅ (Courses - 主视图)
+│   │   └── LessonPlayer.tsx ✅ (Courses - 课程播放器)
+│   ├── shared/
+│   │   └── data.tsx ✅ (共享 - Mock数据)
+│   ├── layout/
+│   │   └── dashboard-layout.tsx ✅ (共享 - Dashboard布局)
 │   └── ui/
 │       ├── button.tsx ✅ (共享UI组件)
 │       └── card.tsx ✅ (共享UI组件)
 ├── app/
 │   └── (dashboard)/
 │       └── dashboard/
-│           └── page.tsx ✅ (Dashboard页面层)
+│           ├── page.tsx ✅ (Dashboard页面层)
+│           └── courses/
+│               ├── page.tsx ✅ (Courses页面层)
+│               └── client-wrapper.tsx ✅ (Courses包装器)
 ├── actions/
 │   ├── dashboard.ts ✅ (Dashboard逻辑层)
 │   └── profile.ts ✅ (共享 - getProfile)
+├── providers/
+│   └── app-provider.tsx ✅ (共享 - 翻译上下文)
 └── lib/
     └── prisma.ts ✅ (共享 - 数据库连接)
 ```
 
 **统计**:
-- 已审计文件: 10
-- 待审计: ~500+ (预估)
-- 审计进度: 2.0%
+- 已审计文件: 38
+- 待审计: ~480+ (预估)
+- 审计进度: 7.3%
 
 **⚠️ 发现的重复/废弃文件**:
 - ❌ `app/(dashboard)/dashboard/DashboardClient.tsx` (282行) - 从未被使用
@@ -49,6 +62,7 @@ src/
 - ❌ `components/dashboard/DailyInspiration.tsx` - 与 `components/dashboard/Widgets.tsx` 重复（第2个）
 - ❌ `components/business/SubjectCard.tsx` - Dashboard不使用此组件
 - ❌ `components/business/charts/DashboardCharts.tsx` - 需确认是否被使用
+- ✅ `components/dashboard/views/QuestionBankView/` - 已迁移到 `components/practice/PracticeView/`
 
 **🔍 审计策略说明**:
 本文档采用**功能导向审计**，而非**文件夹导向审计**。
@@ -67,7 +81,7 @@ src/
 |---------|------|----------|----------|------|
 | ✅ Dashboard | 已完成 | ✅ PASS | ❌ 无 | 完全符合5层架构 |
 | ✅ Courses | 已完成 | ✅ PASS | ❌ 无 | 已迁移到 components/courses/ |
-| ⏳ Question Bank | 待检查 | - | - | - |
+| ✅ Practice (Question Bank) | 已完成 | ✅ PASS | ❌ 无 | 已迁移到 components/practice/ |
 | ⏳ Leaderboard | 待检查 | - | - | - |
 | ⏳ Community | 待检查 | - | - | - |
 | ⏳ Settings | 待检查 | - | - | - |
@@ -579,11 +593,290 @@ src/
 
 ---
 
-## 3️⃣ Question Bank (题库)
+## 3️⃣ Practice / Question Bank (刷题中心)
 
-### ⏳ 审计状态: 待检查
+### ✅ 审计状态: 已完成 | 架构合规: ✅ PASS | 重复开发: ❌ 无
 
-*待填充...*
+### 5层架构分析
+
+#### 1. Entry Point (入口)
+**文件**: `src/components/business/AppSidebar.tsx`
+```typescript
+// Line 26
+{ title: 'Question Bank', href: '/dashboard/questions', icon: PenTool }
+```
+**⚠️ 注意**: Sidebar指向 `/dashboard/questions`，但DashboardClient实际重定向到 `/dashboard/practice`
+
+#### 2. Route (路由)
+**路径**: `/dashboard/practice`
+**对应**: Next.js App Router 自动路由
+
+#### 3. Page Layer (页面层 - Server Component)
+**文件**: `src/app/(dashboard)/dashboard/practice/page.tsx` (20 lines)
+
+**职责**:
+- ✅ 身份验证检查 (`getProfile()`)
+- ✅ 数据传递给 Client Component
+
+**关键代码**:
+```typescript
+export default async function PracticePage() {
+  const profile = await getProfile()
+  if (!profile) {
+    redirect('/login')
+  }
+  return <PracticeClientWrapper user={profile} />
+}
+```
+
+**设计模式**: ✅ Client Wrapper Pattern
+
+#### 4. Component Layer (组件层 - Client Component)
+
+##### 4.1 Page Wrapper层
+**文件**: `src/app/(dashboard)/dashboard/practice/client-wrapper.tsx` (47 lines)
+
+**职责**:
+- ✅ 页面包装器，管理导航事件
+- ✅ 使用 DashboardLayout 布局
+- ✅ 传递翻译上下文 (t) 给 PracticeView
+
+**关键代码**:
+```typescript
+export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
+  const router = useRouter()
+  const { t } = useApp()
+
+  return (
+    <DashboardLayout currentView="questionBank" onNavigate={handleNavigate} userRole={user.role}>
+      <PracticeView t={t} userId={user.id} />
+    </DashboardLayout>
+  )
+}
+```
+
+##### 4.2 Practice UI层
+**文件**: `src/components/practice/PracticeView/index.tsx` (108 lines)
+**原名**: QuestionBankView（已重命名为 PracticeView）
+
+**职责**:
+- ✅ Practice 主页 UI 渲染
+- ✅ 学科选择器（6门学科）
+- ✅ 3种训练模式：Smart Drill, Error Wiper, Mock Arena
+- ✅ Chapter Map（章节地图）
+- ✅ 学习分析侧边栏
+- ✅ 响应式设计与暗黑模式支持
+
+**页面结构**:
+```
+PracticeView
+├── Subject Selector (学科选择器)
+├── Training Mode Cards (3种训练模式)
+│   ├── Smart Drill (智能刷题)
+│   ├── Error Wiper (错题清除)
+│   └── Mock Arena (模拟考场)
+├── Chapter Map (章节地图)
+│   └── ChapterCard (章节卡片)
+├── Past Papers Section (历年真题)
+└── Analytics Sidebar (学习分析侧边栏)
+    ├── KnowledgeHive (知识蜂巢)
+    ├── ExamForecast (考试预测)
+    └── WeaknessCard (弱点卡片)
+```
+
+**子组件清单**:
+1. **SubjectSelector.tsx** (47 lines) - 学科选择器
+2. **TrainingModeCards.tsx** (65 lines) - 训练模式卡片（3种）
+3. **ChapterMap/index.tsx** (93 lines) - 章节地图（分页展示）
+4. **ChapterMap/ChapterCard.tsx** (70 lines) - 单个章节卡片（显示掌握度、热点、弱点标签）
+5. **PastPapersSection.tsx** (36 lines) - 历年真题区域
+6. **AnalyticsSidebar/index.tsx** (34 lines) - 学习分析侧边栏
+7. **types.ts** (定义 DbSubject, DbChapter 类型)
+
+**Analytics子组件**（来自 `components/practice/analytics/`）:
+- **KnowledgeHive.tsx** - 知识蜂巢可视化
+- **ExamForecast.tsx** - 考试预测分析
+- **WeaknessCard.tsx** - 弱点识别卡片
+
+#### 5. Logic Layer (逻辑层 - Server Actions)
+**文件**:
+- `src/actions/subject.ts` - `getAllSubjects()` 获取所有学科
+- `src/actions/practice/data-service.ts` - `getSubjectChapters(subjectId, userId)` 获取章节数据
+
+**核心功能**:
+```typescript
+// 1. 获取所有学科
+const result = await getAllSubjects();
+
+// 2. 根据学科ID获取章节（包含统计数据）
+const data = await getSubjectChapters(selectedSubjectId, userId);
+```
+
+**数据库操作**:
+- ✅ Prisma ORM (类型安全)
+- ✅ 包含章节掌握度统计
+- ✅ 包含近期答题记录
+- ✅ 包含热点/弱点识别
+
+---
+
+### 数据流图
+
+```
+用户点击Sidebar "Question Bank"
+    ↓
+Next.js 路由: /dashboard/practice
+    ↓
+PracticePage (Server Component, app/(dashboard)/dashboard/practice/page.tsx)
+    ├── getProfile() → 检查用户身份
+    └── 无数据预取（客户端按需加载）
+    ↓
+数据传递给 PracticeClientWrapper (props)
+    ↓
+PracticeClientWrapper (app/(dashboard)/dashboard/practice/client-wrapper.tsx)
+    ├── 包裹 DashboardLayout
+    ├── 获取翻译上下文 (useApp)
+    └── 传递 user 和 t
+    ↓
+PracticeView (components/practice/PracticeView/index.tsx - UI层)
+    ├── useEffect: getAllSubjects() → 加载学科列表
+    ├── useEffect: getSubjectChapters(subjectId, userId) → 加载章节数据
+    ├── SubjectSelector (学科切换)
+    ├── TrainingModeCards (3种训练模式)
+    │   ├── Smart Drill → /dashboard/practice/smart-drill
+    │   ├── Error Wiper → /dashboard/practice/error-wiper
+    │   └── Mock Arena → /dashboard/practice/mock-arena
+    ├── ChapterMap (章节地图)
+    │   └── ChapterCard → /dashboard/practice/chapter-drill/[chapterId]
+    ├── PastPapersSection (历年真题)
+    └── AnalyticsSidebar (学习分析)
+        ├── KnowledgeHive (知识蜂巢)
+        ├── ExamForecast (考试预测)
+        └── WeaknessCard (弱点卡片)
+```
+
+---
+
+### 完整文件依赖树
+
+```
+Practice 功能涉及的所有文件:
+
+src/
+├── components/
+│   ├── business/
+│   │   └── AppSidebar.tsx ✅ (入口点 - Line 26)
+│   ├── practice/ ✅ NEW DIRECTORY (功能垂直切分)
+│   │   ├── PracticeView/ ✅ (主视图 - 从 dashboard/views 迁移)
+│   │   │   ├── index.tsx ✅ (主组件 - 108 lines)
+│   │   │   ├── SubjectSelector.tsx ✅ (学科选择器 - 47 lines)
+│   │   │   ├── TrainingModeCards.tsx ✅ (训练模式 - 65 lines)
+│   │   │   ├── ChapterMap/
+│   │   │   │   ├── index.tsx ✅ (章节地图 - 93 lines)
+│   │   │   │   └── ChapterCard.tsx ✅ (章节卡片 - 70 lines)
+│   │   │   ├── PastPapersSection.tsx ✅ (历年真题 - 36 lines)
+│   │   │   ├── AnalyticsSidebar/
+│   │   │   │   ├── index.tsx ✅ (侧边栏 - 34 lines)
+│   │   │   │   └── types.ts ✅
+│   │   │   └── types.ts ✅
+│   │   ├── analytics/ ✅ (已存在)
+│   │   │   ├── KnowledgeHive.tsx ✅
+│   │   │   ├── ExamForecast.tsx ✅
+│   │   │   └── WeaknessCard.tsx ✅
+│   │   ├── chapter-drill/ ✅ (已存在)
+│   │   ├── modes/ ✅ (已存在)
+│   │   ├── session/ ✅ (已存在)
+│   │   └── smart-parser/ ✅ (已存在)
+│   ├── dashboard/
+│   │   ├── DashboardClient.tsx ✅ (引用 PracticeView)
+│   │   └── SectionViews.tsx ✅ (barrel export)
+│   ├── layout/
+│   │   └── dashboard-layout.tsx ✅ (布局组件)
+│   └── ui/
+│       ├── button.tsx ✅
+│       └── card.tsx ✅
+├── app/
+│   └── (dashboard)/
+│       └── dashboard/
+│           └── practice/
+│               ├── page.tsx ✅ (页面层 - Server Component - 20 lines)
+│               ├── client-wrapper.tsx ✅ (页面包装器 - 47 lines)
+│               ├── smart-drill/
+│               │   └── page.tsx ✅ (Smart Drill 子路由)
+│               ├── error-wiper/
+│               │   └── page.tsx ✅ (Error Wiper 子路由)
+│               ├── mock-arena/
+│               │   ├── page.tsx ✅ (Mock Arena 列表)
+│               │   └── [examId]/
+│               │       └── page.tsx ✅ (Mock Arena 考试)
+│               └── chapter-drill/
+│                   └── [chapterId]/
+│                       └── page.tsx ✅ (Chapter Drill 子路由)
+├── actions/
+│   ├── subject.ts ✅ (getAllSubjects)
+│   ├── practice/
+│   │   └── data-service.ts ✅ (getSubjectChapters)
+│   └── profile.ts ✅ (getProfile 函数)
+├── providers/
+│   └── app-provider.tsx ✅ (翻译上下文)
+└── lib/
+    ├── prisma.ts ✅ (数据库连接)
+    └── practice/
+        └── types.ts ✅ (ChapterWithStats 等类型)
+
+已审计文件: 38
+⚠️ 使用真实数据库查询（Prisma）
+
+🔄 迁移记录:
+src/components/dashboard/views/QuestionBankView/
+    → src/components/practice/PracticeView/ ✅
+├── index.tsx (QuestionBankView → PracticeView, 保留向后兼容别名)
+├── SubjectSelector.tsx ✅
+├── TrainingModeCards.tsx ✅
+├── ChapterMap/ ✅
+├── PastPapersSection.tsx ✅
+├── AnalyticsSidebar/ ✅
+└── types.ts ✅
+```
+
+---
+
+### 审计发现
+
+#### ✅ 符合项
+1. **架构范式一致性**: 完全符合5层架构模式
+2. **Client Wrapper模式**: 正确使用Server Component包裹Client Component
+3. **类型安全**: 全程TypeScript + Prisma类型推导
+4. **响应式设计**: 支持移动端和桌面端
+5. **暗黑模式支持**: 完整的dark mode实现
+6. **组件模块化**: 清晰的子组件拆分，可维护性强
+7. **真实数据集成**: 使用Prisma查询真实数据库（与Courses的Mock数据不同）
+8. **子路由完整**: 4种训练模式都有独立的子路由页面
+
+#### 🟢 优秀设计
+1. **功能垂直切分**: `components/practice/` 目录包含所有Practice相关组件（analytics, modes, session等）
+2. **章节统计**: ChapterCard显示掌握度、热点、弱点标签，提供清晰的学习引导
+3. **分页展示**: ChapterMap使用滚轮分页，避免长列表性能问题
+4. **训练模式多样化**: 提供Smart Drill（智能刷题）、Error Wiper（错题清除）、Mock Arena（模拟考场）3种模式
+5. **学习分析**: KnowledgeHive, ExamForecast, WeaknessCard提供多维度学习分析
+
+#### ⚠️ 组件迁移成功
+1. ✅ **目录重组完成**: 从 `dashboard/views/QuestionBankView` 迁移到 `practice/PracticeView`
+2. ✅ **命名规范化**: "QuestionBankView" → "PracticeView" 统一命名（保留向后兼容别名）
+3. ✅ **导入路径更新**: 所有文件导入路径已更新为新路径
+4. ✅ **构建验证通过**: TypeScript检查和Next.js构建全部通过
+5. ✅ **旧文件归档**: 旧QuestionBankView已移动到 `__deprecated__/`
+
+#### 🔴 路由不一致问题
+1. **Sidebar指向不匹配**: AppSidebar指向 `/dashboard/questions`，但DashboardClient重定向到 `/dashboard/practice`
+   - 建议: 统一使用 `/dashboard/practice` 或者移除DashboardClient的重定向逻辑
+   - 影响: 可能导致用户混淆或未来维护问题
+
+#### ⚠️ 潜在优化点
+1. **缓存策略**: 可以为`getAllSubjects()`添加缓存 (SWR或React Query)
+2. **章节加载优化**: `getSubjectChapters`可以考虑添加服务端缓存 (TTL: 5分钟)
+3. **Past Papers功能**: 当前PastPapersSection只有Mock数据，需要连接真实数据
+4. **Analytics侧边栏**: KnowledgeHive等组件需要验证数据查询性能
 
 ---
 
@@ -621,24 +914,24 @@ src/
 
 ## 📊 总体统计
 
-- **已完成**: 1 / 8
-- **架构合规率**: 100% (1/1)
+- **已完成**: 3 / 8 (Dashboard, Courses, Practice)
+- **架构合规率**: 100% (3/3)
 - **发现重复开发**: 0
 - **发现架构违反**: 0
-- **优化建议**: 3 (Dashboard缓存策略、分页、索引)
+- **发现路由不一致**: 1 (Practice模块Sidebar指向与实际路由不匹配)
+- **优化建议**: 7 (缓存策略、分页、索引、Past Papers数据、Analytics性能等)
 
 ---
 
 ## 🔍 下一步行动
 
 1. ✅ Dashboard - 已完成
-2. ⏳ My Courses - 下一个检查项
-3. ⏳ Question Bank
-4. ⏳ Mistake Book
-5. ⏳ Leaderboard
-6. ⏳ Community
-7. ⏳ Settings
-8. ⏳ Admin Panel
+2. ✅ Courses - 已完成
+3. ✅ Practice (Question Bank) - 已完成
+4. ⏳ Leaderboard - 下一个检查项
+5. ⏳ Community
+6. ⏳ Settings
+7. ⏳ Admin Panel
 
 ---
 

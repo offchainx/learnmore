@@ -1,8 +1,8 @@
 // This file now serves as a barrel file to export all views.
-// The actual implementations have been moved to individual files in `components/dashboard/views/`.
+// The actual implementations have been moved to individual files in their respective feature directories.
 
 export { CoursesView } from '@/components/courses/CoursesView';
-export { QuestionBankView } from './views/QuestionBankView';
+export { PracticeView, QuestionBankView } from '@/components/practice/PracticeView';
 export { LeaderboardView } from './views/LeaderboardView';
 export { SettingsView } from './views/SettingsView';
 export { AchievementsView } from './views/AchievementsView';

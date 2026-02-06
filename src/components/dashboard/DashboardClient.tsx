@@ -10,7 +10,7 @@ import { DashboardData } from '@/actions/dashboard';
 import { DashboardHome } from './DashboardHome';
 import { CommunityView } from './views/CommunityView';
 import { CoursesView } from '@/components/courses/CoursesView';
-import { QuestionBankView } from './views/QuestionBankView';
+import { PracticeView } from '@/components/practice/PracticeView';
 import { LeaderboardView } from './views/LeaderboardView';
 import { SettingsView } from './views/SettingsView';
 import { AchievementsView } from './views/AchievementsView';
@@ -84,7 +84,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     switch(currentView) {
       case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
       case 'courses': return <CoursesView t={appT} />;
-      case 'questionBank': return <QuestionBankView t={appT} userId={user.id} />;
+      case 'questionBank': return <PracticeView t={appT} userId={user.id} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
       case 'community': return <CommunityView />;
       case 'settings': return <SettingsView user={user} />;
