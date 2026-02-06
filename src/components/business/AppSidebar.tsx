@@ -23,7 +23,7 @@ interface NavItem {
 const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { title: 'Courses', href: '/dashboard/courses', icon: BookOpen },
-  { title: 'Question Bank', href: '/dashboard/questions', icon: PenTool },
+  { title: 'Question Bank', href: '/dashboard/practice', icon: PenTool },
   { title: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
   { title: 'Community', href: '/dashboard/community', icon: MessageCircle },
 ]

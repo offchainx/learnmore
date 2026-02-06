@@ -605,7 +605,7 @@ src/
 // Line 26
 { title: 'Question Bank', href: '/dashboard/questions', icon: PenTool }
 ```
-**⚠️ 注意**: Sidebar指向 `/dashboard/questions`，但DashboardClient实际重定向到 `/dashboard/practice`
+**✅ 已修复**: Sidebar现已统一指向 `/dashboard/practice`
 
 #### 2. Route (路由)
 **路径**: `/dashboard/practice`
@@ -867,10 +867,11 @@ src/components/dashboard/views/QuestionBankView/
 4. ✅ **构建验证通过**: TypeScript检查和Next.js构建全部通过
 5. ✅ **旧文件归档**: 旧QuestionBankView已移动到 `__deprecated__/`
 
-#### 🔴 路由不一致问题
-1. **Sidebar指向不匹配**: AppSidebar指向 `/dashboard/questions`，但DashboardClient重定向到 `/dashboard/practice`
-   - 建议: 统一使用 `/dashboard/practice` 或者移除DashboardClient的重定向逻辑
-   - 影响: 可能导致用户混淆或未来维护问题
+#### ✅ 路由一致性问题已修复
+1. **已修复**: AppSidebar已统一使用 `/dashboard/practice` 路由
+   - 修改: `AppSidebar.tsx` Line 26: `/dashboard/questions` → `/dashboard/practice`
+   - 状态: ✅ 路由现在完全一致
+   - 验证: TypeScript + Build 全部通过
 
 #### ⚠️ 潜在优化点
 1. **缓存策略**: 可以为`getAllSubjects()`添加缓存 (SWR或React Query)
@@ -918,7 +919,7 @@ src/components/dashboard/views/QuestionBankView/
 - **架构合规率**: 100% (3/3)
 - **发现重复开发**: 0
 - **发现架构违反**: 0
-- **发现路由不一致**: 1 (Practice模块Sidebar指向与实际路由不匹配)
+- **发现路由不一致**: 0 (Practice模块路由已修复)
 - **优化建议**: 7 (缓存策略、分页、索引、Past Papers数据、Analytics性能等)
 
 ---
