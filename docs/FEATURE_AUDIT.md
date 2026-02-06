@@ -92,7 +92,7 @@ src/
 | ✅ Practice (Question Bank) | 已完成 | ✅ PASS | ❌ 无 | 已迁移到 components/practice/ |
 | ✅ Leaderboard | 已完成 | ✅ PASS | ❌ 无 | 已迁移到 components/leaderboard/, 详见audit报告 |
 | ✅ Community | 已完成 | ✅ PASS | ⚠️ 1个废弃 | 单文件组件，位于 views/ 目录 |
-| ⏳ Settings | 待检查 | - | - | - |
+| ✅ Settings | 已完成 | ✅ PASS | ⚠️ 2个废弃 | 主视图+子组件，目录结构规范 |
 | ✅ Admin Panel | 已完成 | ✅ PASS | ❌ 无 | 多功能模块，无重复组件 |
 
 **注**: Notification、Payment 等其他功能将在主要功能审计完成后处理
@@ -1832,12 +1832,13 @@ components/admin/
 
 ## 📊 总体统计
 
-- **已完成**: 6 / 8 (Dashboard, Courses, Practice, Community, Leaderboard, Admin Panel)
-- **架构合规率**: 100% (6/6)
+- **已完成**: 7 / 8 (Dashboard, Courses, Practice, Community, Leaderboard, Settings, Admin Panel)
+- **架构合规率**: 100% (7/7)
 - **发现重复开发**: 1 (Community旧版本已清理)
+- **发现废弃文件**: 3 (Community 1个, Settings 2个)
 - **发现架构违反**: 0
 - **发现路由不一致**: 0 (Practice模块路由已修复)
-- **优化建议**: 18 (缓存策略、分页、索引、Past Papers数据、Analytics性能、Community搜索/详情页、Leaderboard数据集成、Admin目录结构、Mock数据统一等)
+- **优化建议**: 22 (缓存策略、分页、索引、Past Papers数据、Analytics性能、Community搜索/详情页、Leaderboard数据集成、Admin目录结构、Mock数据统一、Settings推荐系统、通知测试、AI配置预览、头像上传完善等)
 
 ---
 
@@ -1848,8 +1849,9 @@ components/admin/
 3. ✅ Practice (Question Bank) - 已完成
 4. ✅ Community - 已完成
 5. ✅ Leaderboard - 已完成
-6. ✅ Admin Panel - 已完成
-7. ⏳ Settings - 下一个检查项
+6. ✅ Settings - 已完成
+7. ✅ Admin Panel - 已完成
+8. ⏳ Achievements - 下一个检查项
 
 ---
 
@@ -1892,3 +1894,221 @@ wc -l all_files.txt
 - 2026-02-06: 创建文档，完成Dashboard审计，添加文件追踪机制
 - 2026-02-06: 完成Community模块审计，发现并清理1个废弃文件
 - 2026-02-06: 完成Admin Panel审计，确认无重复组件，记录目录结构优化建议
+- 2026-02-06: 完成Settings模块审计，清理2个废弃文件，确认架构规范
+
+---
+
+## 6️⃣ Settings (设置中心)
+
+### ✅ 审计状态: 已完成 | 架构合规: ✅ PASS | 废弃文件: ⚠️ 2个
+
+### 5层架构分析
+
+#### 1. Entry Point (入口)
+**文件**: `src/components/business/AppSidebar.tsx`
+```typescript
+// Line 130
+{ title: 'Settings', href: '/dashboard/settings', icon: Settings }
+```
+
+#### 2. Route (路由)
+**路径**: 
+- `/dashboard/settings` (主设置页)
+- `/dashboard/settings/notifications` (通知设置页)
+
+**对应**: Next.js App Router 自动路由
+
+#### 3. Page Layer (页面层 - Server Component)
+
+**文件1**: `src/app/(dashboard)/dashboard/settings/page.tsx` (13 lines)
+**职责**:
+- ✅ 身份验证检查 (`getProfile()`)
+- ✅ 重定向未登录用户
+- ✅ 渲染 SettingsClientWrapper
+
+**文件2**: `src/app/(dashboard)/dashboard/settings/notifications/page.tsx` (13 lines)
+**职责**:
+- ✅ 身份验证检查 (`getProfile()`)
+- ✅ 重定向未登录用户
+- ✅ 渲染 NotificationSettingsClient
+
+#### 4. Component Layer (组件层 - Client Component)
+
+**主视图1**: `src/app/(dashboard)/dashboard/settings/client-wrapper.tsx` (49 lines)
+**职责**:
+- ✅ 包裹 DashboardLayout
+- ✅ 处理路由导航
+- ✅ 渲染 SettingsView 组件
+
+**主视图2**: `src/app/(dashboard)/dashboard/settings/notifications/client-wrapper.tsx` (250 lines)
+**职责**:
+- ✅ 包裹 DashboardLayout
+- ✅ 通知偏好矩阵UI (站内通知 + 邮件通知)
+- ✅ 实时保存偏好设置
+
+**核心组件**: `src/components/dashboard/views/SettingsView.tsx` (774 lines)
+**职责**:
+- ✅ 多Tab设置界面 (Profile, AI Config, Notifications, Account, Subscription)
+- ✅ 集成多个设置表单
+- ✅ 推荐好友系统 (ReferralSection组件)
+- ✅ 暗黑模式切换
+- ✅ 语言切换 (中文/英文/马来文)
+
+**子组件目录**: `src/components/business/settings/`
+- ✅ `AvatarUpload.tsx` (83 lines) - 头像上传组件，被 ProfileForm 使用
+- ✅ `profile-form.tsx` (170 lines) - 个人资料表单，被 ProfileDialog 使用
+- ✅ `GoalsForm.tsx` (108 lines) - 学习目标表单，被 GoalsDialog 使用
+
+**子组件特点**:
+- ✅ 使用 React Hook Form + Zod 验证
+- ✅ 使用 useFormState 和 useFormStatus (React 19)
+- ✅ 乐观更新 + Toast 提示
+
+#### 5. Logic Layer (逻辑层 - Server Actions)
+
+**主要Actions**:
+1. **`src/actions/profile.ts`** - 用户资料管理
+   - `getProfile()` - 获取用户信息
+   - `updateProfile()` - 更新用户资料 (username, grade, avatar)
+
+2. **`src/actions/settings.ts`** - AI配置管理
+   - `updateAIConfig()` - 更新AI个性化设置 (aiPersonality, difficultyCalibration)
+
+3. **`src/actions/notification-preferences.ts`** - 通知偏好管理
+   - `getNotificationPreferences()` - 获取通知偏好（含自动迁移逻辑）
+   - `updateNotificationPreferences()` - 更新通知偏好
+
+4. **`src/actions/parent.ts`** - 家长账号连接
+   - `generateInviteCode()` - 生成家长邀请码
+
+**数据模型**:
+- ✅ User (id, email, username, avatar, grade, role, referralCode, referralCount, referralLimit)
+- ✅ UserSettings (language, theme, aiPersonality, difficultyCalibration, notificationDaily, notificationWeekly)
+- ✅ NotificationPreference (站内通知4项 + 邮件通知4项 + emailBilling强制开启)
+
+---
+
+### 废弃文件发现 ⚠️
+
+#### ❌ BadgeGrid.tsx
+**路径**: `src/components/business/settings/BadgeGrid.tsx` (83 lines)
+**问题**: 无任何引用，Settings UI 中没有徽章展示功能
+**处理**: ✅ 已移动到 `src/__deprecated__/components/business/settings/BadgeGrid.tsx`
+
+#### ❌ ai-config-form.tsx
+**路径**: `src/components/business/settings/ai-config-form.tsx` (93 lines)
+**问题**: 无任何引用，SettingsView 已内联实现AI配置功能
+**处理**: ✅ 已移动到 `src/__deprecated__/components/business/settings/ai-config-form.tsx`
+
+---
+
+### 目录结构评估
+
+**当前结构**:
+```
+src/
+├── app/(dashboard)/dashboard/settings/
+│   ├── page.tsx (主设置页面层)
+│   ├── client-wrapper.tsx (主设置包装器)
+│   └── notifications/
+│       ├── page.tsx (通知设置页面层)
+│       └── client-wrapper.tsx (通知设置包装器)
+├── components/dashboard/views/
+│   └── SettingsView.tsx (主视图组件)
+└── components/business/settings/
+    ├── AvatarUpload.tsx (头像上传)
+    ├── profile-form.tsx (资料表单)
+    └── GoalsForm.tsx (目标表单)
+```
+
+**评估**: ✅ **目录结构规范，无需重组**
+
+**理由**:
+- Page层在App Router目录 ✅
+- Client Wrapper在page同级目录 ✅ (Next.js约定)
+- 主视图在 `components/dashboard/views/` ✅
+- 子组件在 `components/business/settings/` ✅
+- 与Community、Leaderboard保持一致 ✅
+
+---
+
+### 架构评估
+
+#### ✅ 优点
+
+1. **分层清晰**: Page → Client Wrapper → View Component → Sub Components 结构完整
+2. **路由规范**: 使用App Router嵌套路由 (`/settings` + `/settings/notifications`)
+3. **数据自动迁移**: `getNotificationPreferences()` 包含自动字段迁移逻辑
+4. **表单最佳实践**: React Hook Form + Zod + Server Actions
+5. **国际化支持**: 语言切换功能完善 (中/英/马来文)
+6. **权限控制**: 推荐功能根据订阅等级显示不同UI
+7. **无重复组件**: 所有Settings组件职责清晰，无重复实现
+
+#### ⚠️ 发现的问题
+
+**废弃文件**:
+- ⚠️ `BadgeGrid.tsx` 和 `ai-config-form.tsx` 未被使用 (已清理)
+
+**数据连接**:
+- ✅ 所有Settings功能已连接数据库 (Prisma)
+- ✅ 通知偏好使用独立表 `NotificationPreference`
+
+**代码质量**:
+- ✅ TypeScript 类型安全 ✅
+- ✅ ESLint 检查通过 ✅
+- ✅ 构建成功 ✅
+
+---
+
+### 优化建议
+
+1. **推荐系统集成**:
+   - 当前推荐功能UI完善，但需要确保后端逻辑实现
+   - 建议添加推荐奖励发放记录查询
+
+2. **通知设置增强**:
+   - 考虑添加"测试邮件"功能，让用户验证邮箱地址
+   - 添加"全部禁用"/"全部启用"快捷按钮
+
+3. **AI配置扩展**:
+   - 考虑添加"预览AI风格"功能，让用户在切换前体验不同风格
+   - 添加"难度校准建议"基于用户历史答题正确率
+
+4. **头像上传**:
+   - AvatarUpload组件已存在，但 ProfileForm 中使用占位符图片
+   - 建议完善头像上传到Supabase Storage的功能
+
+---
+
+### 文件清单
+
+**已审计**:
+
+**Page Layer** (2个):
+- ✅ `src/app/(dashboard)/dashboard/settings/page.tsx`
+- ✅ `src/app/(dashboard)/dashboard/settings/notifications/page.tsx`
+
+**Client Wrapper** (2个):
+- ✅ `src/app/(dashboard)/dashboard/settings/client-wrapper.tsx`
+- ✅ `src/app/(dashboard)/dashboard/settings/notifications/client-wrapper.tsx`
+
+**Component Layer** (4个):
+- ✅ `src/components/dashboard/views/SettingsView.tsx`
+- ✅ `src/components/business/settings/AvatarUpload.tsx`
+- ✅ `src/components/business/settings/profile-form.tsx`
+- ✅ `src/components/business/settings/GoalsForm.tsx`
+
+**Logic Layer** (4个):
+- ✅ `src/actions/profile.ts`
+- ✅ `src/actions/settings.ts`
+- ✅ `src/actions/notification-preferences.ts`
+- ✅ `src/actions/parent.ts`
+
+**废弃文件** (2个):
+- ❌ `src/__deprecated__/components/business/settings/BadgeGrid.tsx`
+- ❌ `src/__deprecated__/components/business/settings/ai-config-form.tsx`
+
+**总代码行数**: ~1600 lines
+
+---
+
