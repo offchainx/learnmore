@@ -24,10 +24,8 @@ const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { title: 'My Courses', href: '/dashboard/courses', icon: BookOpen },
   { title: 'Question Bank', href: '/dashboard/questions', icon: PenTool },
-  { title: 'Mistake Book', href: '/dashboard/mistakes', icon: BookMarked },
   { title: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy },
   { title: 'Community', href: '/dashboard/community', icon: MessageCircle },
-  { title: 'UI Kit Debug', href: '/dashboard/debug/ui-kit', icon: Settings },
 ]
 
 const SidebarContent = ({ onClose, userRole }: { onClose?: () => void; userRole?: string }) => {

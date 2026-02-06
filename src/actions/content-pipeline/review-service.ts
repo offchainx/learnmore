@@ -1,7 +1,7 @@
 'use server'
 
 import { QuestionReviewData } from '@/types/content-pipeline'
-import { MOCK_REVIEW_QUESTIONS } from '@/lib/mock/content-pipeline-data'
+import { MOCK_REVIEW_QUESTIONS } from '@/__dev__/mock/content-pipeline-data'
 import prisma from '@/lib/prisma'
 
 /**

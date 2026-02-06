@@ -10,7 +10,7 @@ import { StatsCards } from '@/components/admin/content/StatsCards'
 import { BatchTable } from '@/components/admin/content/BatchTable'
 import { AuditLogDrawer } from '@/components/admin/content/AuditLogDrawer'
 import { NewBatchImportModal } from '@/components/admin/content/NewBatchImportModal'
-import { MOCK_STATS, MOCK_BATCHES, MOCK_AUDIT_LOGS } from '@/lib/mock/content-pipeline-data'
+import { MOCK_STATS, MOCK_BATCHES, MOCK_AUDIT_LOGS } from '@/__dev__/mock/content-pipeline-data'
 
 interface ImportClientProps {
   userRole: string

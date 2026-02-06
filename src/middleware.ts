@@ -6,7 +6,7 @@ const JWT_SECRET =
   process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
 const jwtSecret = new TextEncoder().encode(JWT_SECRET)
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // ── 伪装登录 Token 过期检测 (Story-046 B5) ──────────────────
   // 跳过伪装相关 API 本身（避免无穷重定向）
   const isImpersonateEndpoint = request.nextUrl.pathname.startsWith('/api/auth/impersonate')
