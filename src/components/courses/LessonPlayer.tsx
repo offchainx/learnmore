@@ -5,7 +5,7 @@ import {
   Trophy, ChevronRight, Notebook, X, Info, ArrowLeft, Edit3, Highlighter, 
   Trash2, Bookmark, MessageSquare, ThumbsUp, Reply, Zap
 } from 'lucide-react';
-import { Section, ConfidenceLevel, Confetti } from '../shared';
+import { Section, ConfidenceLevel, Confetti } from '@/components/shared/data';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Section & { chapterTitle: string }, onBack: () => void, onComplete: () => void, t?: unknown }) => {

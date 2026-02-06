@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { MyCoursesView } from '@/components/dashboard/views/MyCoursesView'
+import { CoursesView } from '@/components/courses/CoursesView'
 import { useApp } from '@/providers/app-provider'
 import { User } from '@prisma/client'
 
@@ -41,7 +41,7 @@ export function CoursesClientWrapper({ user }: CoursesClientWrapperProps) {
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <MyCoursesView t={t} />
+      <CoursesView t={t} />
     </DashboardLayout>
   )
 }

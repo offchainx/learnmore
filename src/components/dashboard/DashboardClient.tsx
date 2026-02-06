@@ -9,7 +9,7 @@ import { DashboardData } from '@/actions/dashboard';
 // Import Views
 import { DashboardHome } from './DashboardHome';
 import { CommunityView } from './views/CommunityView';
-import { MyCoursesView } from './views/MyCoursesView';
+import { CoursesView } from '@/components/courses/CoursesView';
 import { QuestionBankView } from './views/QuestionBankView';
 import { LeaderboardView } from './views/LeaderboardView';
 import { SettingsView } from './views/SettingsView';
@@ -83,7 +83,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
 
     switch(currentView) {
       case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
-      case 'courses': return <MyCoursesView t={appT} />;
+      case 'courses': return <CoursesView t={appT} />;
       case 'questionBank': return <QuestionBankView t={appT} userId={user.id} />;
       case 'leaderboard': return <LeaderboardView t={appT} />;
       case 'community': return <CommunityView />;

@@ -177,3 +177,91 @@ src/components/
 - ✅ 功能边界清晰
 - ✅ 避免重复文件混淆
 - ✅ 便于维护和审计
+
+---
+
+## 📦 Courses 功能迁移 (2026-02-06)
+
+### 执行内容
+
+按照推荐的目录重组方案，完成了 Courses 功能的独立目录迁移：
+
+#### 迁移的文件
+
+```
+旧路径 → 新路径:
+
+src/components/dashboard/views/MyCoursesView.tsx (496行)
+  → src/components/courses/CoursesView.tsx ✅
+
+src/components/dashboard/views/LessonPlayer.tsx (200+行)
+  → src/components/courses/LessonPlayer.tsx ✅
+
+src/components/dashboard/shared.tsx (Mock数据)
+  → src/components/shared/data.tsx ✅
+```
+
+#### 命名规范化
+
+- ✅ 组件重命名: `MyCoursesView` → `CoursesView`
+- ✅ 菜单项: "My Courses" → "Courses" (AppSidebar.tsx Line 25)
+- ✅ 页面标题: "My Courses - LearnMore" → "Courses - LearnMore" (page.tsx)
+
+#### 导入路径更新
+
+更新了以下文件的导入路径:
+
+1. `src/components/courses/CoursesView.tsx` - Line 10
+2. `src/components/courses/LessonPlayer.tsx` - Line 8
+3. `src/app/(dashboard)/dashboard/courses/client-wrapper.tsx` - Line 5, 44
+4. `src/components/dashboard/DashboardClient.tsx` - Line 12, 86
+5. `src/components/dashboard/SectionViews.tsx` - Line 4
+
+#### 验证结果
+
+- ✅ TypeScript 检查: 0 errors (`pnpm tsc --noEmit`)
+- ✅ Next.js 构建: 46 routes 成功生成 (`pnpm build`)
+- ✅ 无代码重复: 未发现 Courses 功能相关的重复组件
+
+#### 实现的归档结构
+
+```
+src/components/
+├── courses/                          ✅ NEW
+│   ├── CoursesView.tsx              (主视图)
+│   └── LessonPlayer.tsx             (课程播放器)
+├── shared/                           ✅ NEW
+│   └── data.tsx                     (跨功能Mock数据)
+└── dashboard/
+    ├── DashboardClient.tsx          ✅ 已更新导入
+    ├── DashboardHome.tsx
+    ├── Widgets.tsx
+    └── DailyMissions.tsx
+```
+
+### 审计结论
+
+- ❌ **无重复组件**: Courses 功能未发现组件重复问题
+- ✅ **架构合规**: 完全符合5层架构范式
+- ✅ **目录规范**: 按功能垂直切分，实现了推荐的目录结构
+- ⚠️ **待实现**: Server Actions尚未实现，当前使用Mock数据
+
+---
+
+## 📝 总结
+
+### 审计完成情况
+
+| 功能 | 重复组件 | 迁移状态 | 审计状态 |
+|------|----------|----------|----------|
+| Dashboard | 13个 | ✅ 已清理 | ✅ 完成 |
+| Courses | 0个 | ✅ 已迁移 | ✅ 完成 |
+| Question Bank | - | ⏳ 待审计 | ⏳ 待开始 |
+| Leaderboard | - | ⏳ 待审计 | ⏳ 待开始 |
+| Community | - | ⏳ 待审计 | ⏳ 待开始 |
+| Settings | - | ⏳ 待审计 | ⏳ 待开始 |
+| Admin Panel | - | ⏳ 待审计 | ⏳ 待开始 |
+
+### 下一步行动
+
+继续按功能审计，下一个推荐: **Question Bank** (题库)

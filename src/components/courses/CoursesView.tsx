@@ -7,11 +7,11 @@ import {
   List, Brain, GraduationCap, Search, PlayCircle, FileText, HelpCircle,
   Coffee, X, Zap, ArrowUpRight
 } from 'lucide-react';
-import { subjectsData, mockUserContent, Section, SubTabType } from '../shared';
+import { subjectsData, mockUserContent, Section, SubTabType } from '@/components/shared/data';
 import { LessonPlayer } from './LessonPlayer';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const MyCoursesView = ({ t }: { t: any }) => {
+export const CoursesView = ({ t }: { t: any }) => {
   const [activeLesson, setActiveLesson] = useState<Section & { chapterTitle: string } | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
   const [activeViewMode, setActiveViewMode] = useState<'curriculum' | 'review' | 'notebook'>('curriculum');
