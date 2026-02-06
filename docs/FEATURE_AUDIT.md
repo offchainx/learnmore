@@ -893,46 +893,284 @@ src/components/dashboard/views/QuestionBankView/
 
 ### ✅ 审计状态: 已完成 | 架构合规: ✅ PASS | 重复开发: ❌ 无
 
-> 📄 **详细审计报告**: [docs/audits/leaderboard-audit.md](./audits/leaderboard-audit.md)
+### 5层架构分析
 
-### 快速总结
+#### 1. Entry Point (入口)
+**文件**: `src/components/business/AppSidebar.tsx`
+```typescript
+// Line 27
+{ title: 'Leaderboard', href: '/dashboard/leaderboard', icon: Trophy }
+```
 
-**架构追踪**:
-```
-AppSidebar → /dashboard/leaderboard → page.tsx → client-wrapper.tsx → LeaderboardView.tsx
+#### 2. Route (路由)
+**路径**: `/dashboard/leaderboard`
+**对应**: Next.js App Router 自动路由
+
+#### 3. Page Layer (页面层 - Server Component)
+**文件**: `src/app/(dashboard)/dashboard/leaderboard/page.tsx` (19 lines)
+
+**职责**:
+- ✅ 身份验证检查 (`getProfile()`)
+- ✅ 数据传递给 Client Component
+
+**关键代码**:
+```typescript
+export default async function LeaderboardPage() {
+  const profile = await getProfile()
+  if (!profile) {
+    redirect('/login')
+  }
+  return <LeaderboardClientWrapper user={profile} />
+}
 ```
 
-**组件重构**: 单文件380行 → 拆分为8个独立组件
+**设计模式**: ✅ Client Wrapper Pattern
+
+#### 4. Component Layer (组件层 - Client Component)
+
+##### 4.1 Page Wrapper层
+**文件**: `src/app/(dashboard)/dashboard/leaderboard/client-wrapper.tsx` (47 lines)
+
+**职责**:
+- ✅ 页面包装器，管理导航事件
+- ✅ 使用 DashboardLayout 布局
+- ✅ 传递翻译上下文 (t) 给 LeaderboardView
+
+**关键代码**:
+```typescript
+export function LeaderboardClientWrapper({ user }: LeaderboardClientWrapperProps) {
+  const router = useRouter()
+  const { t } = useApp()
+
+  return (
+    <DashboardLayout currentView="leaderboard" onNavigate={handleNavigate} userRole={user.role}>
+      <LeaderboardView t={t} />
+    </DashboardLayout>
+  )
+}
 ```
-components/leaderboard/
-├── LeaderboardView.tsx (58行 - 主容器)
+
+##### 4.2 Leaderboard UI层
+**文件**: `src/components/leaderboard/LeaderboardView.tsx` (58 lines)
+
+**职责**:
+- ✅ Leaderboard 主页 UI 渲染
+- ✅ 组装所有子组件
+- ✅ 管理 Global/Friends 切换状态
+- ✅ 响应式设计与暗黑模式支持
+
+**页面结构**:
+```
+LeaderboardView
+├── Header Section (The Journey & Context)
+│   ├── TierRoadmap (段位路线图 - Bronze到Challenger)
+│   └── SeasonBanner (赛季横幅 - Season 4: Sniper Elite)
+├── Main Content Area (2列布局)
+│   ├── Left Column (70% - The Arena)
+│   │   ├── Podium (前三名领奖台)
+│   │   └── LeaderboardList (排行榜列表 - 含Global/Friends切换)
+│   └── Right Column (30% - The HUD)
+│       ├── XPBreakdown (XP分布图)
+│       ├── DailyQuests (每日任务)
+│       └── RivalWatch (竞争对手追踪)
+```
+
+**子组件清单**:
+1. **TierRoadmap.tsx** (58 lines) - 6段位进度路线图（Bronze → Challenger）
+2. **SeasonBanner.tsx** (45 lines) - 赛季信息横幅（含倒计时）
+3. **Podium.tsx** (76 lines) - 前三名领奖台（Gold/Silver/Bronze）
+4. **LeaderboardList.tsx** (127 lines) - 排行榜列表（含Tab切换、Sticky Footer）
+5. **XPBreakdown.tsx** (35 lines) - XP分布圆环图（Study/Community）
+6. **DailyQuests.tsx** (64 lines) - 每日任务卡片（含进度条）
+7. **RivalWatch.tsx** (37 lines) - 竞争对手追踪卡片
+8. **mock-data.ts** (47 lines) - Mock数据（分离到独立文件）
+
+#### 5. Logic Layer (逻辑层 - Server Actions)
+**文件**:
+- `src/actions/leaderboard.ts` - Server Actions (已实现但未集成)
+- `src/lib/leaderboard/pg-adapter.ts` - PostgreSQL适配器 (Adapter Pattern)
+- `src/lib/leaderboard/types.ts` - 类型定义
+
+**核心函数**:
+```typescript
+// 1. 更新用户分数
+export async function updateLeaderboardScore(userId: string, points: number)
+
+// 2. 获取排行榜数据（支持WEEKLY/MONTHLY/ALL_TIME）
+export async function getLeaderboard(
+  period: LeaderboardPeriod = 'WEEKLY',
+  limit: number = 100
+): Promise<LeaderboardEntryWithUser[]>
+
+// 3. 获取用户排名
+export async function getUserRank(userId: string, period: LeaderboardPeriod = 'WEEKLY')
+```
+
+**数据库操作**:
+- ✅ Prisma ORM (类型安全)
+- ✅ Upsert操作（updateScore使用事务）
+- ✅ 支持多时间段（周榜/月榜/总榜）
+- ✅ Adapter Pattern（未来可扩展Redis）
+
+**⚠️ 当前状态**:
+- Server Actions已完整实现
+- LeaderboardView**未调用**这些Actions
+- 当前使用**硬编码Mock数据**
+
+---
+
+### 数据流图
+
+```
+用户点击Sidebar "Leaderboard"
+    ↓
+Next.js 路由: /dashboard/leaderboard
+    ↓
+LeaderboardPage (Server Component, app/(dashboard)/dashboard/leaderboard/page.tsx)
+    ├── getProfile() → 检查用户身份
+    └── 无数据预取（当前使用 Mock 数据）
+    ↓
+数据传递给 LeaderboardClientWrapper (props)
+    ↓
+LeaderboardClientWrapper (app/(dashboard)/dashboard/leaderboard/client-wrapper.tsx)
+    ├── 包裹 DashboardLayout
+    ├── 获取翻译上下文 (useApp)
+    └── 传递 user 和 t
+    ↓
+LeaderboardView (components/leaderboard/LeaderboardView.tsx - UI层)
+    ├── Header: TierRoadmap + SeasonBanner
+    ├── Left Column: Podium + LeaderboardList
+    │   ├── Global/Friends Tab切换
+    │   ├── 排行榜列表（含Zone标识：Promotion/Safe/Demotion）
+    │   └── Sticky User Footer（当前用户排名）
+    └── Right Column: XPBreakdown + DailyQuests + RivalWatch
+    ↓
+数据来源: components/leaderboard/mock-data.ts (Mock Data)
+    ├── topThree: 前三名数据
+    ├── listData: 排行榜列表数据
+    ├── quests: 每日任务数据
+    └── seasonData: 赛季信息
+```
+
+---
+
+### 完整文件依赖树
+
+```
+Leaderboard 功能涉及的所有文件:
+
+src/
 ├── components/
-│   ├── TierRoadmap.tsx (段位路线图)
-│   ├── SeasonBanner.tsx (赛季横幅)
-│   ├── Podium.tsx (前三名领奖台)
-│   ├── LeaderboardList.tsx (排行榜列表)
-│   ├── XPBreakdown.tsx (XP分布图)
-│   ├── DailyQuests.tsx (每日任务)
-│   └── RivalWatch.tsx (竞争对手追踪)
-└── mock-data.ts (Mock数据)
+│   ├── business/
+│   │   └── AppSidebar.tsx ✅ (入口点 - Line 27)
+│   ├── leaderboard/ ✅ NEW DIRECTORY (功能垂直切分)
+│   │   ├── LeaderboardView.tsx ✅ (主视图 - 58 lines)
+│   │   ├── components/ ✅ (子组件目录)
+│   │   │   ├── TierRoadmap.tsx ✅ (段位路线图 - 58 lines)
+│   │   │   ├── SeasonBanner.tsx ✅ (赛季横幅 - 45 lines)
+│   │   │   ├── Podium.tsx ✅ (前三名领奖台 - 76 lines)
+│   │   │   ├── LeaderboardList.tsx ✅ (排行榜列表 - 127 lines)
+│   │   │   ├── XPBreakdown.tsx ✅ (XP分布图 - 35 lines)
+│   │   │   ├── DailyQuests.tsx ✅ (每日任务 - 64 lines)
+│   │   │   └── RivalWatch.tsx ✅ (竞争对手追踪 - 37 lines)
+│   │   └── mock-data.ts ✅ (Mock数据 - 47 lines)
+│   ├── dashboard/
+│   │   ├── DashboardClient.tsx ✅ (引用 LeaderboardView)
+│   │   └── SectionViews.tsx ✅ (barrel export)
+│   ├── layout/
+│   │   └── dashboard-layout.tsx ✅ (布局组件)
+│   └── ui/
+│       ├── button.tsx ✅
+│       └── card.tsx ✅
+├── app/
+│   └── (dashboard)/
+│       └── dashboard/
+│           └── leaderboard/
+│               ├── page.tsx ✅ (页面层 - Server Component - 19 lines)
+│               └── client-wrapper.tsx ✅ (页面包装器 - 47 lines)
+├── actions/
+│   ├── leaderboard.ts ✅ (Server Actions - 已实现但未集成)
+│   └── profile.ts ✅ (getProfile 函数)
+├── lib/
+│   ├── leaderboard/
+│   │   ├── pg-adapter.ts ✅ (PostgreSQL适配器 - 122 lines)
+│   │   └── types.ts ✅ (类型定义 - 16 lines)
+│   ├── prisma.ts ✅ (数据库连接)
+│   └── dynamic-imports.ts ✅ (已删除DynamicLeaderboardView)
+├── providers/
+│   └── app-provider.tsx ✅ (翻译上下文)
+└── components/deprecated/
+    └── dashboard/
+        └── views/
+            └── LeaderboardView.tsx ⚠️ (旧单文件组件 - 380 lines)
+
+已审计文件: 21
+⚠️ 当前使用 Mock 数据，Server Actions已实现但未集成
+
+🔄 迁移记录:
+src/components/dashboard/views/LeaderboardView.tsx (380行单文件)
+    → src/components/leaderboard/ ✅ (拆分为8个文件)
+    ├── LeaderboardView.tsx (主容器 - 58 lines)
+    ├── components/ (7个子组件)
+    └── mock-data.ts (数据分离)
+
+旧文件归档: src/components/deprecated/dashboard/views/LeaderboardView.tsx
 ```
 
-**Server Actions状态**: ⚠️ 已实现但未集成
-- ✅ `actions/leaderboard.ts` - 完整实现（updateScore, getLeaderboard, getUserRank）
-- ✅ `lib/leaderboard/pg-adapter.ts` - PostgreSQL适配器（Adapter Pattern）
-- ❌ LeaderboardView当前使用Mock数据，未调用Server Actions
+---
 
-**审计发现**:
-- ✅ **架构合规**: 100%符合5层架构范式
-- ✅ **组件模块化**: 可维护性提升85%
-- 🔴 **主要问题**: Server Actions未集成，排行榜数据无法实时更新
-- 🟡 **次要问题**: `DynamicLeaderboardView`从未被引用
+### 审计发现
+
+#### ✅ 符合项
+1. **架构范式一致性**: 完全符合5层架构模式
+2. **Client Wrapper模式**: 正确使用Server Component包裹Client Component
+3. **类型安全**: 全程TypeScript类型推导
+4. **响应式设计**: 支持移动端和桌面端
+5. **暗黑模式支持**: 完整的dark mode实现
+6. **组件模块化**: 从380行单文件拆分为8个独立组件，可维护性大幅提升
+7. **Adapter Pattern**: 使用PgAdapter实现数据库抽象，未来可扩展Redis
+
+#### 🟢 优秀设计
+1. **游戏化体验**: Tier Roadmap（段位系统）、Season（赛季机制）、Rival Watch（竞争对手）
+2. **视觉层次清晰**: Podium（领奖台）突出前三名，Zone标识（Promotion/Demotion）引导用户
+3. **激励机制**: Daily Quests（每日任务）提供即时反馈，XP Breakdown展示成长路径
+4. **实时对比**: Sticky User Footer固定显示当前用户排名，便于对比
+5. **多时间段**: 支持周榜/月榜/总榜切换（已实现但未集成）
+
+#### ⚠️ 组件重构成功
+1. ✅ **目录重组完成**: 从单文件380行拆分到 `components/leaderboard/` 模块化目录
+2. ✅ **子组件拆分**: 7个功能独立的子组件 + 1个数据文件
+3. ✅ **导入路径更新**: 所有引用文件（client-wrapper, SectionViews, DashboardClient）已更新
+4. ✅ **构建验证通过**: TypeScript检查和Next.js构建全部通过
+5. ✅ **旧文件归档**: 旧LeaderboardView已移动到 `components/deprecated/`
+6. ✅ **未使用导出清理**: 删除了`DynamicLeaderboardView`（从未被引用）
+
+#### 🔴 未集成Server Actions
+**问题**: Server Actions已完整实现但**未被前端使用**
+
+**已实现的功能**:
+- ✅ `updateLeaderboardScore()` - 更新用户分数
+- ✅ `getLeaderboard()` - 获取排行榜（支持3种时间段）
+- ✅ `getUserRank()` - 获取用户排名
+- ✅ PgAdapter - PostgreSQL适配器（Adapter Pattern）
+
+**影响**:
+- 当前LeaderboardView使用硬编码Mock数据
+- 排行榜数据无法实时更新
+- 用户操作（答题、学习）无法影响排名
 
 **建议**:
-1. 集成Server Actions替换Mock数据
-2. 删除未使用的`DynamicLeaderboardView`导出
+1. 在LeaderboardView中使用`useEffect`调用`getLeaderboard()`
+2. 在答题/学习成功后调用`updateLeaderboardScore()`
+3. 使用SWR或TanStack Query实现客户端缓存和实时更新
 
-**已审计文件**: 21个
+#### ⚠️ 潜在优化点
+1. **数据集成**: 将Mock数据替换为真实数据库查询（`getLeaderboard`）
+2. **实时更新**: 使用WebSocket或轮询实现排行榜实时刷新
+3. **缓存策略**: 为`getLeaderboard()`添加缓存 (TTL: 1分钟)
+4. **分页加载**: 当前显示17个用户，未来可能需要虚拟滚动或分页
+5. **Redis迁移**: 当QPS > 1000时，将PgAdapter替换为RedisAdapter
+6. **图片优化**: 替换`<img>`标签为Next.js `<Image/>`组件（6处警告）
 
 ---
 
