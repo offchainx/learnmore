@@ -28,6 +28,9 @@ src/
 │   ├── courses/
 │   │   ├── CoursesView.tsx ✅ (Courses - 主视图)
 │   │   └── LessonPlayer.tsx ✅ (Courses - 课程播放器)
+│   ├── dashboard/
+│   │   └── views/
+│   │       └── CommunityView.tsx ✅ (Community - 主视图)
 │   ├── shared/
 │   │   └── data.tsx ✅ (共享 - Mock数据)
 │   ├── layout/
@@ -39,11 +42,15 @@ src/
 │   └── (dashboard)/
 │       └── dashboard/
 │           ├── page.tsx ✅ (Dashboard页面层)
-│           └── courses/
-│               ├── page.tsx ✅ (Courses页面层)
-│               └── client-wrapper.tsx ✅ (Courses包装器)
+│           ├── courses/
+│           │   ├── page.tsx ✅ (Courses页面层)
+│           │   └── client-wrapper.tsx ✅ (Courses包装器)
+│           └── community/
+│               ├── page.tsx ✅ (Community页面层)
+│               └── client-wrapper.tsx ✅ (Community包装器)
 ├── actions/
 │   ├── dashboard.ts ✅ (Dashboard逻辑层)
+│   ├── community.ts ✅ (Community逻辑层)
 │   └── profile.ts ✅ (共享 - getProfile)
 ├── providers/
 │   └── app-provider.tsx ✅ (共享 - 翻译上下文)
@@ -52,9 +59,9 @@ src/
 ```
 
 **统计**:
-- 已审计文件: 38
-- 待审计: ~480+ (预估)
-- 审计进度: 7.3%
+- 已审计文件: 41
+- 待审计: ~477+ (预估)
+- 审计进度: 7.9%
 
 **⚠️ 发现的重复/废弃文件**:
 - ❌ `app/(dashboard)/dashboard/DashboardClient.tsx` (282行) - 从未被使用
@@ -63,6 +70,7 @@ src/
 - ❌ `components/business/SubjectCard.tsx` - Dashboard不使用此组件
 - ❌ `components/business/charts/DashboardCharts.tsx` - 需确认是否被使用
 - ✅ `components/dashboard/views/QuestionBankView/` - 已迁移到 `components/practice/PracticeView/`
+- ✅ `components/dashboard/CommunityView.tsx` - 已移动到 `__deprecated__/CommunityView.OLD.tsx` (使用Mock数据的旧版本)
 
 **🔍 审计策略说明**:
 本文档采用**功能导向审计**，而非**文件夹导向审计**。
@@ -83,7 +91,7 @@ src/
 | ✅ Courses | 已完成 | ✅ PASS | ❌ 无 | 已迁移到 components/courses/ |
 | ✅ Practice (Question Bank) | 已完成 | ✅ PASS | ❌ 无 | 已迁移到 components/practice/ |
 | ⏳ Leaderboard | 待检查 | - | - | - |
-| ⏳ Community | 待检查 | - | - | - |
+| ✅ Community | 已完成 | ✅ PASS | ⚠️ 1个废弃 | 单文件组件，位于 views/ 目录 |
 | ⏳ Settings | 待检查 | - | - | - |
 | ⏳ Admin Panel | 待检查 | - | - | - |
 
@@ -891,9 +899,262 @@ src/components/dashboard/views/QuestionBankView/
 
 ## 5️⃣ Community (社区)
 
-### ⏳ 审计状态: 待检查
+### ✅ 审计状态: 已完成 | 架构合规: ✅ PASS | 重复开发: ⚠️ 1个废弃
 
-*待填充...*
+### 5层架构分析
+
+#### 1. Entry Point (入口)
+**文件**: `src/components/business/AppSidebar.tsx`
+```typescript
+// Line 28
+{ title: 'Community', href: '/dashboard/community', icon: MessageCircle }
+```
+
+#### 2. Route (路由)
+**路径**: `/dashboard/community`
+**对应**: Next.js App Router 自动路由
+
+#### 3. Page Layer (页面层 - Server Component)
+**文件**: `src/app/(dashboard)/dashboard/community/page.tsx` (25 lines)
+
+**职责**:
+- ✅ 身份验证检查 (`getProfile()`)
+- ✅ 未登录重定向到 `/login`
+- ✅ 使用 CommunityClientWrapper 包裹组件
+
+**关键代码**:
+```typescript
+export default async function CommunityPage() {
+  const profile = await getProfile()
+  if (!profile) {
+    redirect('/login')
+  }
+  return (
+    <CommunityClientWrapper user={profile}>
+      <CommunityView />
+    </CommunityClientWrapper>
+  )
+}
+```
+
+**设计模式**: ✅ Client Wrapper Pattern
+
+#### 3.5 Client Wrapper (客户端包装器)
+**文件**: `src/app/(dashboard)/dashboard/community/client-wrapper.tsx` (45 lines)
+
+**职责**:
+- ✅ 包裹子组件并提供 DashboardLayout
+- ✅ 处理导航逻辑 (router.push)
+- ✅ 传递用户角色、订阅信息给布局
+
+**关键代码**:
+```typescript
+export function CommunityClientWrapper({ children, user }: CommunityClientWrapperProps) {
+  const router = useRouter()
+  const handleNavigate = (view: string) => {
+    const routes: Record<string, string> = { /* ... */ }
+    router.push(routes[view] || '/dashboard')
+  }
+  return (
+    <DashboardLayout currentView="community" onNavigate={handleNavigate} userRole={user.role}>
+      {children}
+    </DashboardLayout>
+  )
+}
+```
+
+#### 4. Component Layer (组件层 - Client Component)
+
+**文件**: `src/components/dashboard/views/CommunityView.tsx` (397 lines)
+
+**职责**:
+- ✅ 社区主视图 UI 渲染
+- ✅ 帖子列表展示（支持过滤：latest, popular, unanswered）
+- ✅ 创建帖子功能（textarea + 发送按钮）
+- ✅ 点赞/评论互动
+- ✅ Markdown + KaTeX 渲染支持
+- ✅ 响应式设计
+
+**页面结构** (2列布局):
+```
+CommunityView
+├── 左列 (8/12): 帖子列表
+│   ├── 创建帖子卡片 (textarea + Send按钮)
+│   ├── 过滤标签 (Latest, Popular, Unanswered)
+│   └── 帖子卡片列表
+│       ├── 帖子头部（作者、角色、时间）
+│       ├── 帖子内容（支持Markdown + KaTeX）
+│       ├── AI Tutor提示（未解决的问题）
+│       ├── 标签列表
+│       └── 互动按钮（点赞、评论、分享）
+└── 右列 (4/12): 侧边栏小部件
+    ├── Live Rooms (语音聊天室 - Mock数据)
+    ├── Top Contributors (贡献者排行)
+    └── Trending Topics (热门话题)
+```
+
+**状态管理**:
+```typescript
+const [activeTab, setActiveTab] = useState('latest')           // 当前过滤标签
+const [posts, setPosts] = useState<PostWithAuthor[]>([])       // 帖子列表
+const [loading, setLoading] = useState(true)                   // 加载状态
+const [newPostContent, setNewPostContent] = useState('')       // 新帖子内容
+const [isSubmitting, setIsSubmitting] = useState(false)        // 提交状态
+```
+
+**关键功能**:
+1. **帖子加载** (`fetchPosts`):
+   - 调用 Server Action `getPosts()`
+   - 支持过滤参数 (unanswered)
+   - 分页参数 (page, limit)
+
+2. **创建帖子** (`handleCreatePost`):
+   - 调用 Server Action `createPost()`
+   - 自动提取标题（第一行前100字符）
+   - 成功后重新加载帖子列表
+
+3. **点赞功能** (`handleLike`):
+   - 乐观更新 (Optimistic Update)
+   - 调用 Server Action `toggleLike()`
+   - 失败时重新加载数据
+
+4. **Markdown 渲染**:
+   - 使用 `react-markdown` 渲染内容
+   - 支持 KaTeX 数学公式 (remarkMath + rehypeKatex)
+   - 使用 `date-fns` 格式化时间
+
+**设计亮点**:
+- ✅ 不同类型帖子有不同样式（Question: 蓝色左边框，Achievement: 黄色渐变）
+- ✅ 未解决的问题显示 "Ask AI Tutor" 提示
+- ✅ 使用 `formatDistanceToNow()` 显示相对时间
+- ✅ 空状态提示（无帖子时显示占位符）
+
+#### 5. Logic Layer (逻辑层 - Server Actions)
+
+**文件**: `src/actions/community.ts` (404 lines)
+
+**职责**:
+- ✅ 所有社区相关的数据库操作
+- ✅ 权限校验（用户认证）
+- ✅ 事务处理（点赞计数）
+
+**核心函数**:
+
+1. **`getPosts()`** - 获取帖子列表
+   - 支持过滤（subjectId, category, unanswered, search）
+   - 支持分页（page, limit）
+   - 返回帖子数组 + 分页元数据
+   - 包含作者信息、评论数、点赞数、学科信息
+
+2. **`getCategories()`** - 获取分类列表
+   - 返回所有学科及其帖子数量
+   - 按 order 字段排序
+
+3. **`createPost()`** - 创建新帖子
+   - 参数：title, content, category, subjectId, tags
+   - 校验用户认证
+   - 返回创建的帖子或错误信息
+
+4. **`getPostById()`** - 获取帖子详情
+   - 包含完整评论列表（按时间升序）
+   - 包含当前用户的点赞状态 (userLiked)
+   - 返回 null 如果帖子不存在
+
+5. **`createComment()`** - 创建评论
+   - 校验用户认证
+   - **触发通知**: 使用 `triggerSocialReplyNotification()` 通知帖子作者
+   - 返回新创建的评论（包含作者信息）
+
+6. **`toggleLike()`** - 点赞/取消点赞
+   - 使用事务 (Transaction) 确保数据一致性
+   - 同时更新 PostLike 表和 Post.likeCount 字段
+   - 返回点赞状态 (liked: true/false)
+
+**数据库设计**:
+```typescript
+PostWithAuthor = Post + {
+  author: { id, username, avatar, role }
+  _count: { comments, likes }
+  subject: { id, name, icon }
+}
+
+PostWithAuthorAndComments = PostWithAuthor + {
+  comments: [Comment + { author }]
+}
+```
+
+**安全措施**:
+- ✅ 所有写操作需要用户认证
+- ✅ 使用 Prisma 防止 SQL 注入
+- ✅ 错误处理（try-catch + 返回 success/error）
+
+### 架构评估
+
+#### ✅ 优点
+1. **架构清晰**: 严格遵循 5 层架构模式
+2. **组件复用**: 使用 DashboardLayout 保持一致性
+3. **数据流清晰**: Server Actions → Client Component
+4. **用户体验**: 乐观更新提升交互速度
+5. **功能完整**: 支持帖子创建、点赞、评论、过滤、搜索
+6. **通知集成**: 评论时自动触发通知
+7. **Markdown 支持**: 可渲染富文本和数学公式
+
+#### ⚠️ 发现的问题
+
+**重复开发**:
+- ❌ 发现 1 个废弃文件: `src/components/dashboard/CommunityView.tsx`
+  - **差异**: 旧版本使用 Mock 数据 + Gemini AI，未连接数据库
+  - **处理**: 已移动到 `src/components/__deprecated__/CommunityView.OLD.tsx`
+  - **引用修复**: 已更新 `src/lib/dynamic-imports.ts` 的引用路径
+
+**⚠️ 路由不一致**:
+- 发现两个废弃的子路由页面：
+  - `src/app/(dashboard)/dashboard/community/[postId]/page.tsx` - 重定向到主页
+  - `src/app/(dashboard)/dashboard/community/new/page.tsx` - 重定向到主页
+  - **原因**: 帖子详情和新建功能可能计划在同一页面内完成
+
+**代码质量**:
+- ✅ TypeScript 严格模式 ✅
+- ✅ ESLint 检查通过 ✅
+- ✅ 构建成功 ✅
+
+### 优化建议
+
+1. **性能优化**:
+   - 建议添加虚拟滚动 (react-window) 处理大量帖子
+   - 考虑实现无限滚动加载（当前只有分页）
+   - 缓存热门帖子（Redis）
+
+2. **功能增强**:
+   - 实现帖子详情页（当前只有重定向）
+   - 实现新建帖子页（当前在主页面内完成）
+   - 添加图片上传功能（代码中有 ImageIcon 按钮但未实现）
+   - 添加话题标签选择器（当前只有 AI Suggestion）
+
+3. **数据完整性**:
+   - Live Rooms、Top Contributors、Trending Topics 使用 Mock 数据
+   - 建议连接真实数据源或标记为 "Coming Soon"
+
+4. **搜索功能**:
+   - 搜索框存在但未实现功能
+   - 建议添加实时搜索或使用防抖
+
+5. **通知优化**:
+   - 已集成评论通知（`triggerSocialReplyNotification`）
+   - 建议添加点赞通知、@提及通知
+
+### 文件清单
+
+**已审计 (3 个文件)**:
+- ✅ `src/components/dashboard/views/CommunityView.tsx` (397 lines)
+- ✅ `src/app/(dashboard)/dashboard/community/page.tsx` (25 lines)
+- ✅ `src/app/(dashboard)/dashboard/community/client-wrapper.tsx` (45 lines)
+- ✅ `src/actions/community.ts` (404 lines)
+
+**废弃文件 (1 个)**:
+- ❌ `src/components/__deprecated__/CommunityView.OLD.tsx` (401 lines) - 旧版本
+
+**总代码行数**: 871 lines (不含废弃文件)
 
 ---
 
@@ -915,12 +1176,12 @@ src/components/dashboard/views/QuestionBankView/
 
 ## 📊 总体统计
 
-- **已完成**: 3 / 8 (Dashboard, Courses, Practice)
-- **架构合规率**: 100% (3/3)
-- **发现重复开发**: 0
+- **已完成**: 4 / 8 (Dashboard, Courses, Practice, Community)
+- **架构合规率**: 100% (4/4)
+- **发现重复开发**: 1 (Community旧版本已清理)
 - **发现架构违反**: 0
 - **发现路由不一致**: 0 (Practice模块路由已修复)
-- **优化建议**: 7 (缓存策略、分页、索引、Past Papers数据、Analytics性能等)
+- **优化建议**: 12 (缓存策略、分页、索引、Past Papers数据、Analytics性能、Community搜索/详情页等)
 
 ---
 
@@ -929,8 +1190,8 @@ src/components/dashboard/views/QuestionBankView/
 1. ✅ Dashboard - 已完成
 2. ✅ Courses - 已完成
 3. ✅ Practice (Question Bank) - 已完成
-4. ⏳ Leaderboard - 下一个检查项
-5. ⏳ Community
+4. ✅ Community - 已完成
+5. ⏳ Leaderboard - 下一个检查项
 6. ⏳ Settings
 7. ⏳ Admin Panel
 
@@ -973,3 +1234,4 @@ wc -l all_files.txt
 
 **更新记录**:
 - 2026-02-06: 创建文档，完成Dashboard审计，添加文件追踪机制
+- 2026-02-06: 完成Community模块审计，发现并清理1个废弃文件

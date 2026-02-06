@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic'
 
 // 社区组件 (非首屏关键)
 export const DynamicCommunityView = dynamic(
-  () => import('@/components/dashboard/CommunityView').then((mod) => ({ default: mod.CommunityView })),
+  () => import('@/components/dashboard/views/CommunityView').then((mod) => ({ default: mod.CommunityView })),
   {
     ssr: false, // 禁用服务端渲染
   }
@@ -15,7 +15,7 @@ export const DynamicCommunityView = dynamic(
 
 // 排行榜组件 (非首屏关键)
 export const DynamicLeaderboardView = dynamic(
-  () => import('@/components/dashboard/views/LeaderboardView').then((mod) => ({ default: mod.LeaderboardView })),
+  () => import('@/components/leaderboard/LeaderboardView').then((mod) => ({ default: mod.LeaderboardView })),
   {
     ssr: false,
   }
