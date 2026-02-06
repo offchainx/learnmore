@@ -13,14 +13,6 @@ export const DynamicCommunityView = dynamic(
   }
 )
 
-// 排行榜组件 (非首屏关键)
-export const DynamicLeaderboardView = dynamic(
-  () => import('@/components/leaderboard/LeaderboardView').then((mod) => ({ default: mod.LeaderboardView })),
-  {
-    ssr: false,
-  }
-)
-
 // 设置页面 (非首屏关键)
 export const DynamicSettingsView = dynamic(
   () => import('@/components/dashboard/views/SettingsView').then((mod) => ({ default: mod.SettingsView })),
