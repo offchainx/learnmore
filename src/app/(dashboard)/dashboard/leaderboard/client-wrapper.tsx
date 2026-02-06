@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { LeaderboardView } from '@/components/dashboard/views/LeaderboardView'
+import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
 import { useApp } from '@/providers/app-provider'
 import { User } from '@prisma/client'
 

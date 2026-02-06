@@ -3,6 +3,6 @@
 
 export { CoursesView } from '@/components/courses/CoursesView';
 export { PracticeView, QuestionBankView } from '@/components/practice/PracticeView';
-export { LeaderboardView } from './views/LeaderboardView';
+export { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 export { SettingsView } from './views/SettingsView';
 export { AchievementsView } from './views/AchievementsView';

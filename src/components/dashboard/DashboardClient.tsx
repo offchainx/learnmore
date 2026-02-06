@@ -11,7 +11,7 @@ import { DashboardHome } from './DashboardHome';
 import { CommunityView } from './views/CommunityView';
 import { CoursesView } from '@/components/courses/CoursesView';
 import { PracticeView } from '@/components/practice/PracticeView';
-import { LeaderboardView } from './views/LeaderboardView';
+import { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 import { SettingsView } from './views/SettingsView';
 import { AchievementsView } from './views/AchievementsView';
 import { ParentDashboardView } from './views/ParentDashboardView';
