@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
-import { QuestionEditorForm } from '@/components/admin/QuestionEditorForm'
+import { QuestionEditorForm } from '@/components/admin/questions'
 import type { QuestionWithRelations } from '@/lib/content-pipeline/types'
 
 export default async function QuestionEditPage({

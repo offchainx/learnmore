@@ -2,8 +2,8 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { getQuestions, getPendingReviewQuestions } from "@/actions/content-pipeline/question-service"
 import { getAllSubjects } from "@/actions/courses/subject"
-import { QuestionReviewTable } from "@/components/admin/QuestionReviewTable"
-import { SubjectFilter } from "@/components/admin/SubjectFilter"
+import { QuestionReviewTable } from "@/components/admin/questions"
+import { SubjectFilter } from "@/components/admin/common"
 import { 
   Card, 
   CardContent, 
@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuestionFilter } from "@/lib/content-pipeline/types"
 import { ContentStatus } from "@prisma/client"
-import { AdminClientWrapper } from "@/components/admin/AdminClientWrapper"
+import { AdminClientWrapper } from "@/components/admin/common"
 import { getProfile } from "@/actions/user/profile"
 import { redirect } from "next/navigation"
 

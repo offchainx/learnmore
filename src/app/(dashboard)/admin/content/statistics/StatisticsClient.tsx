@@ -31,7 +31,7 @@ import {
   BarChart3, 
   PieChart as PieChartIcon
 } from 'lucide-react'
-import { AdminClientWrapper } from '@/components/admin/AdminClientWrapper'
+import { AdminClientWrapper } from '@/components/admin/common'
 
 interface StatisticsClientProps {
   userRole: string

@@ -27,7 +27,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/components/ui/use-toast'
 
-import { RichTextEditor } from './RichTextEditor'
+import { RichTextEditor } from '../common/RichTextEditor'
 import { QuestionPreview } from './QuestionPreview'
 import { updateQuestion } from '@/actions/content-pipeline/question-service'
 import type { QuestionWithRelations } from '@/lib/content-pipeline/types'

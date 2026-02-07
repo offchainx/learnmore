@@ -24,8 +24,8 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, CheckCircle, XCircle, ArrowUpCircle, FileText, Edit, ClipboardCheck } from "lucide-react"
-import { DifficultyBadge } from "./DifficultyBadge"
-import { QualityScoreBadge } from "./QualityScoreBadge"
+import { DifficultyBadge } from "../common/DifficultyBadge"
+import { QualityScoreBadge } from "../common/QualityScoreBadge"
 import { QuestionWithRelations } from "@/lib/content-pipeline/types"
 import { ContentStatus } from "@prisma/client"
 import { bulkUpdateQuestionStatus } from "@/actions/content-pipeline/question-service"

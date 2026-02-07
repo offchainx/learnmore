@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getProfile } from '@/actions/user/profile'
-import { AdminClientWrapper } from '@/components/admin/AdminClientWrapper'
+import { AdminClientWrapper } from '@/components/admin/common'
 import { FeedbackList } from '@/components/admin/feedback/FeedbackList'
 import { getFeedbackList } from '@/actions/support/ticket'
 

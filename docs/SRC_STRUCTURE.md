@@ -2,16 +2,102 @@
 
 > **📝 更新记录**:
 > - **2026-02-07 (最新)**:
+>   - ✅ 重构 `components/admin/` 结构 (新增 common/, questions/ 子目录)
 >   - ✅ 重构 `components/business/` 结构 (新增 courses/, layout/, shared/ 子目录)
 >   - ✅ 合并 `components/course/` 到 `components/courses/`
 >   - ✅ 删除所有废弃代码目录 (__deprecated__, deprecated/)
 >   - ✅ 为所有主要模块添加 barrel exports (index.ts)
+>   - ✅ 添加组件分层策略文档
 > - **2026-02-07 (早期)**:
 >   - ✅ 修正 `lib/` 目录结构 (采用实际的模块化组织方式)
 >   - ✅ 修正 `providers/` 内容 (整合型Provider模式)
 >   - ✅ 修正 `types/` 内容 (分散式类型定义策略)
 >   - ✅ 补充 `components/` 缺失的子目录 (mobile/, notification/, performance/ 等)
 >   - ✅ 更新统计数据和快速查找指南
+
+---
+
+## 🏗️ 组件分层策略 (Component Architecture)
+
+### 设计哲学
+
+本项目采用**混合分层架构**，将组件按**技术职责**和**业务功能**分离：
+
+**1. 共享 UI 层 (Shared UI Layer)** - `components/business/`
+- **职责**: 提供无业务逻辑的纯展示组件
+- **特点**: 高复用性、可在多个业务模块中使用
+- **示例**:
+  - `business/question/` - 题目渲染组件（被 practice/, courses/, admin/ 复用）
+  - `business/quiz/` - 测验控制组件（被 practice/, courses/ 复用）
+  - `business/layout/` - 布局组件（Header, Sidebar, UserNav）
+
+**2. 业务功能层 (Business Logic Layer)** - `components/practice/`, `components/courses/` 等
+- **职责**: 封装特定业务领域的逻辑和状态管理
+- **特点**: 组合共享 UI 层组件，添加业务逻辑
+- **示例**:
+  - `practice/modes/` - 练习模式（章节刷题、错题清零、智能刷题）
+  - `courses/` - 课程学习（课程列表、课程播放器）
+
+**3. 管理功能层 (Admin Layer)** - `components/admin/`
+- **职责**: 管理端专用组件
+- **特点**: 按功能模块组织（content/, users/, feedback/）
+- **子模块**:
+  - `admin/common/` - 跨子模块共享的通用组件
+  - `admin/questions/` - 题目管理专用组件
+  - `admin/content/`, `admin/users/` 等 - 各功能模块
+
+### 分层优势
+
+✅ **避免代码重复**: 共享 UI 组件只需维护一份
+✅ **清晰的职责边界**: UI 逻辑与业务逻辑分离
+✅ **避免循环依赖**: 业务模块通过共享层通信，不直接依赖
+✅ **易于测试**: 纯 UI 组件可独立测试
+✅ **符合 DDD 原则**: 分离领域逻辑和展示逻辑
+
+### 代码示例
+
+**共享 UI 层** (`business/question/QuestionCard.tsx`):
+```typescript
+// 纯 UI 组件，不包含业务逻辑
+export function QuestionCard({ question, onAnswer }: Props) {
+  return (
+    <Card>
+      <QuestionContent content={question.content} />
+      {question.type === 'SINGLE_CHOICE' && <SingleChoice />}
+      {/* 仅渲染逻辑，不关心数据来源 */}
+    </Card>
+  )
+}
+```
+
+**业务功能层** (`practice/session/PracticeSession.tsx`):
+```typescript
+import { QuestionCard } from '@/components/business/question'
+
+// 包含练习模式的业务逻辑
+export function PracticeSession() {
+  const { questions, submitAnswer } = usePracticeLogic() // 业务逻辑
+
+  return questions.map(q => (
+    <QuestionCard
+      question={q}
+      onAnswer={(answer) => submitAnswer(q.id, answer, 'PRACTICE_MODE')}
+    />
+  ))
+}
+```
+
+### 导入路径规范
+
+```typescript
+// ✅ 推荐：使用 barrel exports
+import { QuestionCard, SingleChoice } from '@/components/business/question'
+import { Header, AppSidebar } from '@/components/business/layout'
+import { AdminClientWrapper } from '@/components/admin/common'
+
+// ❌ 避免：直接导入具体文件（除非有特殊需求）
+import { QuestionCard } from '@/components/business/question/QuestionCard'
+```
 
 ---
 
@@ -330,19 +416,25 @@ app/
 
 ```
 components/
-├── admin/                                                # 管理员专用组件
-│   ├── index.ts                                          # Barrel Export (主要组件)
-│   ├── AdminClientWrapper.tsx                            # 客户端包装器: Admin页面容器
-│   ├── DifficultyBadge.tsx                               # UI组件: 难度徽章 (1-5星)
-│   ├── ImportHistoryTable.tsx                            # UI组件: 导入历史表格
-│   ├── QualityCheckDisplay.tsx                           # UI组件: 质量检查结果展示
-│   ├── QualityScoreBadge.tsx                             # UI组件: 质量评分徽章
-│   ├── QuestionEditorForm.tsx                            # UI组件: 题目编辑表单
-│   ├── QuestionPreview.tsx                               # UI组件: 题目预览卡片
-│   ├── QuestionReviewPanel.tsx                           # UI组件: 审核面板
-│   ├── QuestionReviewTable.tsx                           # UI组件: 审核队列表格
-│   ├── RichTextEditor.tsx                                # UI组件: 富文本编辑器 (Tiptap)
-│   ├── SubjectFilter.tsx                                 # UI组件: 科目筛选器
+├── admin/                                                # 管理员专用组件 (已模块化)
+│   ├── index.ts                                          # Barrel Export (聚合所有子模块)
+│   │
+│   ├── common/                                           # 通用组件模块 (跨子模块共享)
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── AdminClientWrapper.tsx                        # 客户端包装器: Admin页面容器
+│   │   ├── DifficultyBadge.tsx                           # UI组件: 难度徽章 (1-5星)
+│   │   ├── QualityScoreBadge.tsx                         # UI组件: 质量评分徽章
+│   │   ├── QualityCheckDisplay.tsx                       # UI组件: 质量检查结果展示
+│   │   ├── SubjectFilter.tsx                             # UI组件: 科目筛选器
+│   │   └── RichTextEditor.tsx                            # UI组件: 富文本编辑器 (Tiptap)
+│   │
+│   ├── questions/                                        # 题目管理模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── QuestionEditorForm.tsx                        # UI组件: 题目编辑表单
+│   │   ├── QuestionPreview.tsx                           # UI组件: 题目预览卡片
+│   │   ├── QuestionReviewPanel.tsx                       # UI组件: 审核面板
+│   │   ├── QuestionReviewTable.tsx                       # UI组件: 审核队列表格
+│   │   └── ImportHistoryTable.tsx                        # UI组件: 导入历史表格
 │   │
 │   ├── content/                                          # 内容管理子组件
 │   │   ├── AuditLogDrawer.tsx                            # UI组件: 审计日志抽屉

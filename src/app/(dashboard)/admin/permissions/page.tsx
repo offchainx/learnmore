@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getProfile } from '@/actions/user/profile'
-import { AdminClientWrapper } from '@/components/admin/AdminClientWrapper'
+import { AdminClientWrapper } from '@/components/admin/common'
 import { UserPermissionManager } from '@/components/admin/permissions/UserPermissionManager'
 
 export const dynamic = 'force-dynamic'

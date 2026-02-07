@@ -8,7 +8,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { getProfile } from '@/actions/user/profile'
 import { getUserDetail } from '@/actions/admin/user-ops'
-import { AdminClientWrapper } from '@/components/admin/AdminClientWrapper'
+import { AdminClientWrapper } from '@/components/admin/common'
 import { UserDetailClient } from './UserDetailClient'
 
 export const dynamic = 'force-dynamic'
