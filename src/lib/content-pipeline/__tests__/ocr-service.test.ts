@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { OCRService } from '../ocr-service'
-import { OCRResult } from '../ocr-types'
+import { OCRResult } from '../types/ocr'
 import * as pdfUtils from '../pdf-utils'
 
 // Mock dependencies

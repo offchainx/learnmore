@@ -5,7 +5,7 @@ import { startOfWeek, startOfMonth } from "date-fns"
 
 const ALL_TIME_START = new Date(0)
 
-export class PgAdapter implements LeaderboardAdapter {
+export class PgLeaderboardAdapter implements LeaderboardAdapter {
   async updateScore(userId: string, points: number): Promise<void> {
     const now = new Date()
     // Define the periods to update

@@ -13,8 +13,8 @@ import type {
   TextBlock,
   ImageProcessOptions,
   GoogleVisionConfig,
-} from '../ocr-types'
-import { OCRError } from '../ocr-types'
+} from '../types/ocr'
+import { OCRError } from '../types/ocr'
 
 /**
  * Google Vision API 响应类型

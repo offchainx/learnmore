@@ -1,6 +1,6 @@
 /**
- * OCR 服务类型定义
- * Story-044: Task B1 - OCR服务集成
+ * OCR 服务相关类型定义
+ * Story-044: Task B1 - OCR服务集成 + Task B3 - PDF导入
  */
 
 // ==================== 基础类型 ====================
@@ -166,22 +166,6 @@ export interface ImageProcessOptions {
 }
 
 /**
- * PDF 处理选项
- */
-export interface PDFProcessOptions extends BatchProcessOptions {
-  /** 起始页码 (从1开始) */
-  startPage?: number
-  /** 结束页码 */
-  endPage?: number
-  /** DPI (默认 150) */
-  dpi?: number
-  /** 是否合并所有页面文本 */
-  mergePages?: boolean
-  /** 最大处理页数 */
-  maxPages?: number
-}
-
-/**
  * 批量处理选项
  */
 export interface BatchProcessOptions extends ImageProcessOptions {
@@ -296,4 +280,28 @@ export class OCRError extends Error {
     super(message)
     this.name = 'OCRError'
   }
+}
+
+// ==================== OCR 处理配置 ====================
+
+/**
+ * OCR 处理结果（简化版，供其他模块使用）
+ */
+export interface SimpleOCRResult {
+  success: boolean
+  rawText?: string
+  confidence?: number
+  pageCount?: number
+  error?: string
+  processedAt?: Date
+}
+
+/**
+ * OCR 处理配置
+ */
+export interface OCRConfig {
+  provider: 'google-vision' | 'mathpix' | 'tesseract'
+  language?: string
+  enableMathDetection?: boolean
+  outputFormat?: 'text' | 'latex' | 'markdown'
 }

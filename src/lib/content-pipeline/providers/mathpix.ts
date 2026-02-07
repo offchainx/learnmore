@@ -13,8 +13,8 @@ import type {
   TextBlock,
   ImageProcessOptions,
   MathpixConfig,
-} from '../ocr-types'
-import { OCRError } from '../ocr-types'
+} from '../types/ocr'
+import { OCRError } from '../types/ocr'
 
 /**
  * Mathpix API 响应类型

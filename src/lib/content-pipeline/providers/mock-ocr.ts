@@ -10,7 +10,7 @@ import type {
   OCRResult,
   PageOCRResult,
   ImageProcessOptions,
-} from '../ocr-types'
+} from '../types/ocr'
 
 /**
  * Mock OCR Provider

@@ -19,8 +19,8 @@ import type {
   TextBlock,
   ImageProcessOptions,
   TesseractConfig,
-} from '../ocr-types'
-import { OCRError } from '../ocr-types'
+} from '../types/ocr'
+import { OCRError } from '../types/ocr'
 
 // 动态导入 Tesseract.js（避免服务端/客户端问题）
 let Tesseract: typeof import('tesseract.js') | null = null

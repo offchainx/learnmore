@@ -20,9 +20,9 @@ import type {
   BatchProcessOptions,
   QuotaStatus,
   OCRUsageStats,
-  PDFProcessOptions,
-} from './ocr-types'
-import { OCRError } from './ocr-types'
+} from './types/ocr'
+import { OCRError } from './types/ocr'
+import type { PDFProcessOptions } from './types/pdf'
 import { convertPDFToImages } from './pdf-utils'
 
 /**

@@ -11,8 +11,8 @@ import type {
   PageOCRResult,
   TextBlock,
   ImageProcessOptions,
-} from '../ocr-types'
-import { OCRError } from '../ocr-types'
+} from '../types/ocr'
+import { OCRError } from '../types/ocr'
 
 /**
  * OCR Provider 抽象基类

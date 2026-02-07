@@ -3,7 +3,8 @@
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '../user/auth';
 import { Prisma, DailyTaskType } from '@prisma/client';
-import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
+import { checkAndRefreshStreak } from '@/actions/gamification/streak';
+import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
 import { getEffectiveTier } from '@/lib/permissions/engine';
 import { getRetentionDate } from '@/lib/permissions/prisma-scope';
 

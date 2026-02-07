@@ -1,10 +1,10 @@
 'use server'
 
-import { PgAdapter } from '@/lib/leaderboard/pg-adapter'
+import { PgLeaderboardAdapter } from '@/lib/leaderboard/pg-adapter'
 import { LeaderboardPeriod } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 
-const adapter = new PgAdapter()
+const adapter = new PgLeaderboardAdapter()
 
 // Keep this interface compatible with the frontend component
 export interface LeaderboardEntryWithUser {

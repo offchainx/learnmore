@@ -3,12 +3,9 @@
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import dayjs from 'dayjs'
-import { 
-  ensureDailyTasks, 
-  checkAndRefreshStreak, 
-  calculateLevel, 
-  calculateNextLevelXp 
-} from '@/lib/gamification-utils'
+import { ensureDailyTasks } from '@/actions/gamification/daily-tasks'
+import { checkAndRefreshStreak } from '@/actions/gamification/streak'
+import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
 import { DailyTask } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'

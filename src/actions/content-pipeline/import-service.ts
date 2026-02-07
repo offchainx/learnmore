@@ -25,7 +25,7 @@ import type {
   ServiceResult,
   ImportStage
 } from '@/lib/content-pipeline/types'
-import type { OCRResult } from '@/lib/content-pipeline/ocr-types'
+import type { OCRResult } from '@/lib/content-pipeline'
 import {
   MAX_PAGES,
   DEFAULT_MAX_OCR_COST,

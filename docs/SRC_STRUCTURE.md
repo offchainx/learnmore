@@ -1,7 +1,15 @@
 # src/ 文件夹结构与文件用途说明
 
 > **📝 更新记录**:
-> - **2026-02-07 (最新)**:
+> - **2026-02-07 (lib/ 重构)**:
+>   - ✅ 解决 `permissions.ts` 与 `permissions/` 目录冲突 (删除旧文件，统一使用目录)
+>   - ✅ 为8个模块添加 barrel exports (practice, email, hooks, leaderboard, supabase, store, notification, content-pipeline)
+>   - ✅ 拆分 `gamification-utils.ts` 为 `lib/gamification/` (纯逻辑) + `actions/gamification/` (Server Actions)
+>   - ✅ 拆分 `practice/types.ts` (250行) → 6个文件 (chapters, questions, quota, hive, forecast, common)
+>   - ✅ 拆分 `content-pipeline/types.ts` (661行) + `ocr-types.ts` (299行) → 6个文件 (ocr, pdf, quality, ai, common + index)
+>   - ✅ 更新约20处导入路径，修复所有 barrel export 问题
+>   - ✅ 符合 Prisma 隔离原则：lib/ 不包含 Prisma 操作，所有 DB 操作迁移到 actions/
+> - **2026-02-07 (components/ 重构)**:
 >   - ✅ 重构 `components/admin/` 结构 (新增 common/, questions/ 子目录)
 >   - ✅ 重构 `components/business/` 结构 (新增 courses/, layout/, shared/ 子目录)
 >   - ✅ 合并 `components/course/` 到 `components/courses/`
@@ -784,14 +792,17 @@ lib/
 │   ├── client.ts                                        # 工具函数: 客户端Supabase Client
 │   └── server.ts                                        # 工具函数: 服务端Supabase Client
 │
+├── gamification/                                         # 游戏化系统模块 (2026-02-07重构)
+│   ├── index.ts                                          # Barrel export: 统一导出
+│   ├── calculations.ts                                   # 工具函数: 纯计算逻辑 (XP, Level, Streak)
+│   ├── types.ts                                          # 类型定义: 游戏化类型
+│   └── config.ts                                         # 配置: 日常任务、XP奖励
+│
 ├── browser-compatibility.ts                              # 工具函数: 浏览器兼容性检测
 ├── dynamic-imports.ts                                    # 工具函数: 动态导入管理
-├── email.ts                                              # 工具函数: 邮件发送服务
 ├── fonts.ts                                              # 配置: Next.js字体配置
-├── gamification-utils.ts                                 # 工具函数: 游戏化系统工具
 ├── gemini.ts                                             # 配置: Google Gemini API客户端
 ├── jwt.ts                                                # 工具函数: JWT令牌处理
-├── permissions.ts                                        # 工具函数: 权限检查快捷函数
 ├── polyfills.ts                                          # 工具函数: Polyfill加载器
 ├── prisma.ts                                             # 配置: Prisma客户端单例
 ├── stripe.ts                                             # 配置: Stripe SDK初始化
@@ -800,6 +811,30 @@ lib/
 ├── translations.ts                                       # 配置: 国际化翻译
 └── utils.ts                                              # 工具函数: 通用工具函数 (cn等)
 ```
+
+**⚠️ 2026-02-07 重构说明**:
+
+1. **权限系统**: 删除了 `permissions.ts`，统一使用 `permissions/` 目录
+   - 旧 API (基于 UserRole) 作为 deprecated 保留在 `permissions/index.ts` 中
+   - 新 API (基于 SubscriptionTier) 为推荐使用方式
+
+2. **游戏化系统**: 将 `gamification-utils.ts` 拆分为模块化结构
+   - `lib/gamification/` - 纯计算逻辑（无 Prisma 操作）
+   - `actions/gamification/` - Server Actions（包含 Prisma 操作）
+   - 符合 **Prisma 隔离原则**：lib/ 不包含数据库操作
+
+3. **类型文件拆分**:
+   - `practice/types.ts` (250行) → `practice/types/` (6个文件)
+     - chapters.ts, questions.ts, quota.ts, hive.ts, forecast.ts, common.ts
+   - `content-pipeline/types.ts` (661行) + `ocr-types.ts` (299行) → `content-pipeline/types/` (6个文件)
+     - ocr.ts, pdf.ts, quality.ts, ai.ts, common.ts, index.ts
+   - 优势：按功能域组织，易于维护和按需导入
+
+4. **Barrel Exports**: 为8个模块添加 `index.ts`
+   - practice, email, hooks, leaderboard, supabase, store, notification, content-pipeline
+   - 简化导入路径：`import { X } from '@/lib/practice'` 而非 `'@/lib/practice/types'`
+
+5. **邮件模块**: 删除了根目录的 `email.ts`，统一使用 `email/` 目录
 
 ---
 

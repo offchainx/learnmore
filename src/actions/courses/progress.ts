@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'; // Import createClient
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
+import { checkAndRefreshStreak } from '@/actions/gamification/streak';
+import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
 import { DailyTaskType } from '@prisma/client';
 
 export async function updateUserLessonProgress(lessonId: string, progressInSeconds: number) {

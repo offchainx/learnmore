@@ -5,7 +5,8 @@ import { getCurrentUser } from '../user/auth';
 import { z } from 'zod';
 import { QuestionType, Prisma, DailyTaskType } from '@prisma/client';
 import { updateLeaderboardScore } from '../leaderboard';
-import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
+import { checkAndRefreshStreak } from '@/actions/gamification/streak';
+import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
 
 const SubmitQuizSchema = z.object({
   chapterId: z.string().optional(),
