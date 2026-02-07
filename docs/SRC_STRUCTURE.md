@@ -268,33 +268,35 @@ app/
 │               ├── client-wrapper.tsx                    # 客户端包装器
 │               └── page.tsx                              # 页面: 通知偏好设置
 │
-├── about-us/page.tsx                                     # 页面: 关于我们
-├── blog/                                                 # 博客
-│   ├── page.tsx                                          # 页面: 博客列表
-│   └── [slug]/page.tsx                                   # 页面: 博客详情 (动态路由)
+├── (marketing)/                                          # 营销路由组 (URL 路径不含 /marketing)
+│   ├── layout.tsx                                        # 布局: 营销页面统一布局 (SEO metadata)
+│   │
+│   ├── about-us/page.tsx                                 # 页面: 关于我们 (URL: /about-us)
+│   ├── blog/                                             # 博客
+│   │   ├── page.tsx                                      # 页面: 博客列表 (URL: /blog)
+│   │   └── [slug]/page.tsx                               # 页面: 博客详情 (URL: /blog/[slug])
+│   │
+│   ├── contact/page.tsx                                  # 页面: 联系我们 (URL: /contact)
+│   ├── help/                                             # 帮助中心
+│   │   ├── layout.tsx                                    # 布局: 帮助中心布局
+│   │   └── page.tsx                                      # 页面: 帮助中心首页 (URL: /help)
+│   │
+│   ├── how-it-works/page.tsx                             # 页面: 如何使用 (URL: /how-it-works)
+│   ├── pricing/page.tsx                                  # 页面: 定价方案 (URL: /pricing)
+│   ├── privacy/page.tsx                                  # 页面: 隐私政策 (URL: /privacy)
+│   ├── refund/page.tsx                                   # 页面: 退款政策 (URL: /refund)
+│   ├── student-care/page.tsx                             # 页面: 学生关怀 (URL: /student-care)
+│   ├── study-guides/page.tsx                             # 页面: 学习指南 (URL: /study-guides)
+│   ├── subjects/page.tsx                                 # 页面: 科目介绍 (URL: /subjects)
+│   ├── success-stories/page.tsx                          # 页面: 成功案例 (URL: /success-stories)
+│   └── terms/page.tsx                                    # 页面: 服务条款 (URL: /terms)
 │
-├── contact/page.tsx                                      # 页面: 联系我们
-│
-├── course/                                               # 课程学习页面
+├── course/                                               # 课程学习页面 (根目录，核心功能)
 │   └── [subjectId]/                                      # 科目动态路由
 │       ├── layout.tsx                                    # 布局: 课程页面布局 (含章节树)
 │       ├── loading.tsx                                   # 加载状态
 │       ├── page.tsx                                      # 页面: 科目首页
 │       └── [lessonId]/page.tsx                           # 页面: 课程详情 (视频/文档/练习)
-│
-├── help/                                                 # 帮助中心
-│   ├── layout.tsx                                        # 布局: 帮助中心布局
-│   └── page.tsx                                          # 页面: 帮助中心首页
-│
-├── how-it-works/page.tsx                                 # 页面: 如何使用
-├── pricing/page.tsx                                      # 页面: 定价方案
-├── privacy/page.tsx                                      # 页面: 隐私政策
-├── refund/page.tsx                                       # 页面: 退款政策
-├── student-care/page.tsx                                 # 页面: 学生关怀
-├── study-guides/page.tsx                                 # 页面: 学习指南
-├── subjects/page.tsx                                     # 页面: 科目介绍
-├── success-stories/page.tsx                              # 页面: 成功案例
-├── terms/page.tsx                                        # 页面: 服务条款
 │
 ├── api/                                                  # API Routes (非Server Actions的HTTP端点)
 │   ├── ai-tutor/route.ts                                 # API: AI导师流式响应接口
