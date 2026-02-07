@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { DashboardData } from '@/actions/dashboard';
 
 // Import Views

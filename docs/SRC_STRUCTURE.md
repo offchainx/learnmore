@@ -1,6 +1,21 @@
 # src/ 文件夹结构与文件用途说明
 
 > **📝 更新记录**:
+> - **2026-02-07 (providers/ & types/ 重构)** 🆕:
+>   - ✅ 创建 `providers/index.ts` barrel export，统一导入入口 (21个文件)
+>   - ✅ 使用 TypeScript Namespace 解决类型冲突：
+>     - `Student.User` / `Student.Subject` (学生端)
+>     - `Admin.User` / `Admin.UserDetail` (管理端)
+>   - ✅ 拆分 `types/admin-user.ts` (201行) → `types/admin/` (6个子文件)
+>     - user-basic.ts (用户基础信息)
+>     - user-security.ts (安全日志、伪装登录、备注)
+>     - user-subscription.ts (订阅和支付)
+>     - user-audit.ts (审计日志、推荐树)
+>     - user-detail.ts (用户详情完整数据)
+>     - common.ts (分页、排序、响应)
+>   - ✅ 移动业务逻辑函数：`types/content-pipeline.ts` → `lib/content-pipeline/mappers.ts`
+>   - ✅ 重构 `types/index.ts` 为完整 barrel export
+>   - ✅ 批量更新导入路径 (48个文件：21 providers + 18 admin + 9 content-pipeline)
 > - **2026-02-07 (lib/ 重构)**:
 >   - ✅ 解决 `permissions.ts` 与 `permissions/` 目录冲突 (删除旧文件，统一使用目录)
 >   - ✅ 为8个模块添加 barrel exports (practice, email, hooks, leaderboard, supabase, store, notification, content-pipeline)
@@ -842,11 +857,14 @@ lib/
 
 ```
 providers/
-├── app-provider.tsx                                      # Context: 应用全局Provider (整合型)
-└── theme-provider.tsx                                    # Context: 主题切换Provider (暗黑模式)
+├── index.ts                                              # Barrel Export: 统一导出入口 ✨
+├── app-provider.tsx                                      # Context: 应用全局Provider (多语言 + 主题)
+└── theme-provider.tsx                                    # Context: next-themes封装
 ```
 
-**说明**: `app-provider.tsx` 整合了认证、权限、Toast等多个Context，采用单一Provider模式简化使用。
+**说明**:
+- `app-provider.tsx` 提供多语言切换 (i18n) 和主题切换功能
+- 所有导入统一使用 `import { useApp, ThemeProvider } from '@/providers'`
 
 ---
 
@@ -854,19 +872,47 @@ providers/
 
 ```
 types/
-├── admin-user.ts                                         # 类型定义: 管理员用户相关类型
-├── content-pipeline.ts                                   # 类型定义: 内容导入管道类型
-├── feedback.ts                                           # 类型定义: 用户反馈类型
-└── index.ts                                              # 类型导出: 统一导出入口
+├── index.ts                                              # Barrel Export: 统一导出入口 ✨
+├── admin/                                                # Admin Namespace: 管理端类型 (Story-046) ✨
+│   ├── index.ts                                          # Admin Namespace Wrapper
+│   ├── user-basic.ts                                     # 用户基础信息 (UserStatus, UserSummary, User)
+│   ├── user-security.ts                                  # 安全相关 (SecurityAction, AdminNote, SecurityLogEntry)
+│   ├── user-subscription.ts                              # 订阅支付 (PaymentRecord, PermissionRecord)
+│   ├── user-audit.ts                                     # 审计日志 (AuditEventType, AuditLogItem, ReferralNode)
+│   ├── user-detail.ts                                    # 用户详情完整数据
+│   └── common.ts                                         # 通用工具类型 (SortConfig, PaginationParams, ActionResult)
+├── content-pipeline.ts                                   # 内容流水线类型 (批量导入、题目审核)
+└── feedback.ts                                           # 用户反馈类型
 ```
+
+**✨ 重构亮点**:
+
+1. **TypeScript Namespace 解决类型冲突**:
+   ```typescript
+   // 学生端使用
+   import { Student } from '@/types'
+   const user: Student.User = { ... }
+
+   // 管理端使用
+   import { Admin } from '@/types'
+   const adminUser: Admin.User = { ... }
+   ```
+
+2. **Admin 类型模块化拆分**:
+   - 原 `admin-user.ts` (201行) → 6个子文件
+   - 按功能域组织：基础/安全/订阅/审计/详情/通用
+
+3. **业务逻辑函数分离**:
+   - 类型定义：`types/content-pipeline.ts`
+   - 映射函数：`lib/content-pipeline/mappers.ts` (mapImportTaskToBatchData, mapProcessingStatusToBatchStatus)
 
 **⚠️ 重要说明**:
 大部分类型定义采用**模块化分散存储**策略，分布在各个功能模块内：
-- `lib/practice/types.ts` - 练习系统类型
+- `lib/practice/types/` - 练习系统类型 (6个文件)
+- `lib/content-pipeline/types/` - 内容管道类型 (6个文件)
 - `lib/permissions/types.ts` - 权限系统类型
 - `lib/leaderboard/types.ts` - 排行榜类型
 - `lib/notification/types.ts` - 通知类型
-- `lib/content-pipeline/types.ts` - 内容管道类型
 - `components/admin/content-reports/types.ts` - 举报管理类型
 - `components/admin/content-statistics/types.ts` - 统计类型
 

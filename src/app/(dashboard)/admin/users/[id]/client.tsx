@@ -2,12 +2,12 @@
 
 import { useRouter } from 'next/navigation'
 import { UserDetail } from '@/components/admin/users/UserDetail'
-import { User, UserStatus } from '@/types/admin-user'
+import { Admin } from '@/types'
 
-export function UserDetailPageClient({ user }: { user: User }) {
+export function UserDetailPageClient({ user }: { user: Admin.User }) {
   const router = useRouter()
 
-  const handleUpdateStatus = (userId: string, status: UserStatus) => {
+  const handleUpdateStatus = (userId: string, status: Admin.UserStatus) => {
     // TODO: Call Server Action (Task B)
     console.log(`Update user ${userId} status to ${status}`)
     // For mock demo, we refresh the page to reflect changes (if real data)

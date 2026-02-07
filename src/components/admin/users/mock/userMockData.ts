@@ -5,19 +5,7 @@
  * 生成 200 条用户数据，覆盖所有 Status × Tier 组合
  */
 
-import {
-  User,
-  UserSummary,
-  UserStatus,
-  SubscriptionTier,
-  UserFilterState,
-  PaginationParams,
-  PaginatedResponse,
-  PaymentRecord,
-  AuditLogItem,
-  AuditEventType,
-  ReferralNode
-} from '@/types/admin-user'
+import { Admin } from '@/types'
 
 // 数据池
 const FIRST_NAMES = ['Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Jamie', 'Cameron', 'Quinn', 'Avery', 'Sarah', 'Michael', 'David', 'Emma', 'Olivia', '小明', '小红', '小刚', '小芳', '志强']
@@ -58,7 +46,7 @@ export function generateRelativeTime(offsetHours: number = 0): { iso: string; la
 }
 
 // 生成单个用户
-function generateUser(index: number): User {
+function generateUser(index: number): Admin.User {
   const firstName = getRandomElement(FIRST_NAMES)
   const lastName = getRandomElement(LAST_NAMES)
   const name = firstName.length === 1 ? `${lastName}${firstName}` : `${firstName} ${lastName}`
@@ -66,11 +54,11 @@ function generateUser(index: number): User {
   const email = `${emailName}${Math.floor(Math.random() * 100)}@${getRandomElement(DOMAINS)}`
 
   // 确保覆盖所有 Status × Tier 组合
-  const statuses = Object.values(UserStatus)
-  const tiers = Object.values(SubscriptionTier)
+  const statuses = Object.values(Admin.UserStatus)
+  const tiers = Object.values(Admin.SubscriptionTier)
 
-  let status: UserStatus
-  let tier: SubscriptionTier
+  let status: Admin.UserStatus
+  let tier: Admin.SubscriptionTier
 
   // 前 12 个用户确保覆盖所有组合 (3 status × 4 tier = 12)
   if (index < 12) {
@@ -79,9 +67,9 @@ function generateUser(index: number): User {
   } else {
     // 其余用户随机分配，但保持合理的分布
     const statusRoll = Math.random()
-    if (statusRoll < 0.8) status = UserStatus.ACTIVE
-    else if (statusRoll < 0.9) status = UserStatus.PAUSED
-    else status = UserStatus.BANNED
+    if (statusRoll < 0.8) status = Admin.UserStatus.ACTIVE
+    else if (statusRoll < 0.9) status = Admin.UserStatus.PAUSED
+    else status = Admin.UserStatus.BANNED
 
     tier = getRandomElement(tiers)
   }
@@ -128,14 +116,14 @@ function generateUser(index: number): User {
 }
 
 // 生成用户列表（缓存）
-let cachedUsers: User[] | null = null
+let cachedUsers: Admin.User[] | null = null
 
-export function generateUsers(count: number = 200): User[] {
+export function generateUsers(count: number = 200): Admin.User[] {
   if (cachedUsers && cachedUsers.length === count) {
     return cachedUsers
   }
 
-  const users: User[] = []
+  const users: Admin.User[] = []
   for (let i = 0; i < count; i++) {
     users.push(generateUser(i))
   }
@@ -149,9 +137,9 @@ export function generateUsers(count: number = 200): User[] {
 
 // 模拟服务端分页、筛选、排序
 export function fetchMockUsers(
-  filters: UserFilterState,
-  pagination: PaginationParams
-): PaginatedResponse<UserSummary> {
+  filters: Admin.UserFilterState,
+  pagination: Admin.PaginationParams
+): Admin.PaginatedResponse<Admin.UserSummary> {
   let result = generateUsers(200)
 
   // 1. 筛选
@@ -195,8 +183,8 @@ export function fetchMockUsers(
   const startIndex = (pagination.page - 1) * pagination.pageSize
   const paginatedData = result.slice(startIndex, startIndex + pagination.pageSize)
 
-  // 返回 UserSummary（不含完整用户信息）
-  const summaries: UserSummary[] = paginatedData.map(u => ({
+  // 返回 Admin.UserSummary（不含完整用户信息）
+  const summaries: Admin.UserSummary[] = paginatedData.map(u => ({
     id: u.id,
     name: u.name,
     email: u.email,
@@ -219,14 +207,14 @@ export function fetchMockUsers(
 }
 
 // 根据 ID 获取用户详情
-export function getUserById(id: string): User | undefined {
+export function getUserById(id: string): Admin.User | undefined {
   const users = generateUsers(200)
   return users.find(u => u.id === id)
 }
 
 // --- New Mock Generators for Tab Content ---
 
-export const generatePaymentHistory = (count: number): PaymentRecord[] => {
+export const generatePaymentHistory = (count: number): Admin.PaymentRecord[] => {
   return Array.from({ length: count }).map((_, i) => ({
     id: `pay_${i}`,
     date: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
@@ -236,19 +224,19 @@ export const generatePaymentHistory = (count: number): PaymentRecord[] => {
   }));
 };
 
-export const generateAuditLogs = (): AuditLogItem[] => {
+export const generateAuditLogs = (): Admin.AuditLogItem[] => {
   // Hardcoded to match the specific "Grouping" requirement in prompt
   return [
     {
       id: 'aud_1',
-      type: AuditEventType.STATUS,
+      type: Admin.AuditEventType.STATUS,
       title: 'USER_BANNED',
       description: 'Admin: system_bot | Reason: Suspicious API usage spike',
       timestamp: generateRelativeTime(2).label
     },
     {
       id: 'aud_2',
-      type: AuditEventType.IMPERSONATE,
+      type: Admin.AuditEventType.IMPERSONATE,
       title: 'IMPERSONATE_END',
       description: 'Reason: Active troubleshooting complete | Duration: 12 min',
       timestamp: generateRelativeTime(5).label,
@@ -256,7 +244,7 @@ export const generateAuditLogs = (): AuditLogItem[] => {
     },
     {
       id: 'aud_3',
-      type: AuditEventType.IMPERSONATE,
+      type: Admin.AuditEventType.IMPERSONATE,
       title: 'IMPERSONATE_START',
       description: 'Admin: sarah.admin@co.com | Reason: User reported dashboard error',
       timestamp: generateRelativeTime(5.2).label, // Slightly older than end
@@ -264,21 +252,21 @@ export const generateAuditLogs = (): AuditLogItem[] => {
     },
     {
       id: 'aud_4',
-      type: AuditEventType.PERMISSION,
+      type: Admin.AuditEventType.PERMISSION,
       title: 'PERMISSION_OVERRIDE',
       description: 'Grant: 7 Days Trial | Reason: Customer support compensation',
       timestamp: generateRelativeTime(24).label
     },
     {
       id: 'aud_5',
-      type: AuditEventType.NOTE,
+      type: Admin.AuditEventType.NOTE,
       title: 'ADMIN_NOTE_ADDED',
       description: 'Admin: mike.support | Content: "User requested refund for May"',
       timestamp: generateRelativeTime(48).label
     },
     {
       id: 'aud_6',
-      type: AuditEventType.LOGIN,
+      type: Admin.AuditEventType.LOGIN,
       title: 'LOGIN',
       description: 'IP: 192.168.1.45 | Method: Google OAuth',
       timestamp: generateRelativeTime(72).label
@@ -286,30 +274,30 @@ export const generateAuditLogs = (): AuditLogItem[] => {
   ];
 };
 
-export const generateReferralTree = (): ReferralNode => {
+export const generateReferralTree = (): Admin.ReferralNode => {
   return {
     id: 'root',
     name: 'Current User',
-    tier: SubscriptionTier.PREMIER,
+    tier: Admin.SubscriptionTier.PREMIER,
     children: [
       {
         id: 'ref_1',
         name: 'Alice M.',
-        tier: SubscriptionTier.STANDARD,
+        tier: Admin.SubscriptionTier.STANDARD,
         children: [
-          { id: 'ref_1a', name: 'Bob D.', tier: SubscriptionTier.STARTER }
+          { id: 'ref_1a', name: 'Bob D.', tier: Admin.SubscriptionTier.STARTER }
         ]
       },
       {
         id: 'ref_2',
         name: 'Charlie H.',
-        tier: SubscriptionTier.SMART_PLUS,
+        tier: Admin.SubscriptionTier.SMART_PLUS,
         children: []
       },
       {
         id: 'ref_3',
         name: 'Diana P.',
-        tier: SubscriptionTier.STARTER,
+        tier: Admin.SubscriptionTier.STARTER,
         children: []
       }
     ]

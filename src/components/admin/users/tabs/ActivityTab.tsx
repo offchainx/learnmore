@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useMemo, useEffect, useState } from 'react'
-import { UserDetail } from '@/types/admin-user'
+import { Admin } from '@/types'
 import { getUserActivityData } from '@/actions/admin/user-details'
 import { Loader2 } from 'lucide-react'
 
 interface ActivityTabProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
 const Heatmap: React.FC<{ data: number[][] }> = ({ data }) => {

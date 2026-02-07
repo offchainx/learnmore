@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Quote, Play, Star, TrendingUp, Heart, Sparkles, ArrowRight } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 
 const SuccessStoriesPage: React.FC = () => {
   const router = useRouter();

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/labeled-input';
 import { Label } from '@/components/ui/label';
-import { useApp } from '@/providers/app-provider'; // Import Context
+import { useApp } from '@/providers'; // Import Context
 import { updateProfile } from '@/actions/user/profile';
 import { updateAIConfig } from '@/actions/user/settings';
 import { generateInviteCode } from '@/actions/user/parent';

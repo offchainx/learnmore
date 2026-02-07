@@ -2,14 +2,14 @@
 
 import React, { useMemo, useState } from 'react'
 import { CreditCard } from 'lucide-react'
-import { UserDetail, SubscriptionTier } from '@/types/admin-user'
+import { Admin } from '@/types'
 import { UserTierBadge } from '../UserBadges'
 import { generatePaymentHistory } from '../mock/userMockData'
 import { GrantPermissionDialog } from '../GrantPermissionDialog'
 import { StripeHistoryTable } from '../StripeHistoryTable'
 
 interface SubscriptionTabProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
 const PermissionRow: React.FC<{ type: string; duration: string; reason: string; admin: string; time: string }> = ({ type, duration, reason, admin, time }) => (
@@ -45,7 +45,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
               <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Duration</div>
               <div className="text-slate-200 text-sm font-mono">
                 {(() => {
-                  if (user.tier === SubscriptionTier.STARTER) return 'Free Tier'
+                  if (user.tier === Admin.SubscriptionTier.STARTER) return 'Free Tier'
                   const start = new Date(user.joinDate)
                   const end = new Date(start)
                   end.setFullYear(end.getFullYear() + 1)
@@ -55,18 +55,18 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
             </div>
             <div>
               <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Auto-Renew</div>
-              <div className={`flex items-center gap-2 text-sm font-medium ${user.tier === SubscriptionTier.STARTER ? 'text-slate-500' : 'text-emerald-400'}`}>
-                <div className={`w-8 h-4 rounded-full relative border ${user.tier === SubscriptionTier.STARTER ? 'bg-slate-800 border-slate-700' : 'bg-emerald-900/50 border-emerald-800'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 rounded-full shadow-sm transition-all ${user.tier === SubscriptionTier.STARTER ? 'left-0.5 bg-slate-600' : 'right-0.5 bg-emerald-500'}`}></div>
+              <div className={`flex items-center gap-2 text-sm font-medium ${user.tier === Admin.SubscriptionTier.STARTER ? 'text-slate-500' : 'text-emerald-400'}`}>
+                <div className={`w-8 h-4 rounded-full relative border ${user.tier === Admin.SubscriptionTier.STARTER ? 'bg-slate-800 border-slate-700' : 'bg-emerald-900/50 border-emerald-800'}`}>
+                  <div className={`absolute top-0.5 w-3 h-3 rounded-full shadow-sm transition-all ${user.tier === Admin.SubscriptionTier.STARTER ? 'left-0.5 bg-slate-600' : 'right-0.5 bg-emerald-500'}`}></div>
                 </div>
-                {user.tier === SubscriptionTier.STARTER ? 'OFF' : 'ON'}
+                {user.tier === Admin.SubscriptionTier.STARTER ? 'OFF' : 'ON'}
               </div>
             </div>
             <div>
               <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Remaining</div>
-              <div className={`text-sm font-bold ${user.tier === SubscriptionTier.STARTER ? 'text-slate-500' : 'text-blue-400'}`}>
+              <div className={`text-sm font-bold ${user.tier === Admin.SubscriptionTier.STARTER ? 'text-slate-500' : 'text-blue-400'}`}>
                 {(() => {
-                  if (user.tier === SubscriptionTier.STARTER) return 'N/A'
+                  if (user.tier === Admin.SubscriptionTier.STARTER) return 'N/A'
                   const start = new Date(user.joinDate)
                   const end = new Date(start)
                   end.setFullYear(end.getFullYear() + 1)

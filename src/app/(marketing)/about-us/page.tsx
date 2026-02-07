@@ -5,7 +5,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Globe, Users, Brain, ArrowRight, Linkedin, Twitter } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 
 const AboutUsPage: React.FC = () => {
   const { lang, setLang } = useApp();

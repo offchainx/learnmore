@@ -7,7 +7,7 @@ import {
   Settings, LogOut, Trophy, ChevronRight, ShieldCheck,
   Upload, CheckSquare, BarChart, AlertCircle, ChevronDown, Users
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { logoutAction } from '@/actions/user/auth';
 import { TrialBanner } from './TrialBanner';
 import { NotificationBell } from '../notification/NotificationBell';

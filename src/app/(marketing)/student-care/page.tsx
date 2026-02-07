@@ -11,7 +11,7 @@ import {
   Users, School, Share2, 
   Phone, Mail, MapPin, BookOpen
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 
 const StudentCarePage: React.FC = () => {
   const router = useRouter();

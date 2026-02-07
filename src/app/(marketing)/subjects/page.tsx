@@ -10,7 +10,7 @@ import {
   Map as MapIcon, History, PlayCircle,
   GraduationCap, Briefcase, Layers, Rocket, Sparkles, Brain
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 
 const SubjectsPage: React.FC = () => {
   const router = useRouter();

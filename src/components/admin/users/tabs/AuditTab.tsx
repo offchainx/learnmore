@@ -2,17 +2,17 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import { Activity, Ban, User as UserIcon, Lock, FileText, Loader2 } from 'lucide-react'
-import { UserDetail, AuditEventType, AuditLogItem } from '@/types/admin-user'
+import { Admin } from '@/types'
 import { getUserAuditLogs } from '@/actions/admin/user-details'
 
 interface AuditTabProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
 export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
   const [auditFilter, setAuditFilter] = useState<string>('All');
   const [loading, setLoading] = useState(true);
-  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [auditLogs, setAuditLogs] = useState<Admin.AuditLogItem[]>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -29,9 +29,9 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
   // Filter Audit Logs
   const filteredAuditLogs = useMemo(() => {
     if (auditFilter === 'All') return auditLogs;
-    if (auditFilter === 'Permission Change') return auditLogs.filter(l => l.type === AuditEventType.PERMISSION);
-    if (auditFilter === 'Impersonation') return auditLogs.filter(l => l.type === AuditEventType.IMPERSONATE);
-    if (auditFilter === 'Status Change') return auditLogs.filter(l => l.type === AuditEventType.STATUS);
+    if (auditFilter === 'Permission Change') return auditLogs.filter(l => l.type === Admin.AuditEventType.PERMISSION);
+    if (auditFilter === 'Impersonation') return auditLogs.filter(l => l.type === Admin.AuditEventType.IMPERSONATE);
+    if (auditFilter === 'Status Change') return auditLogs.filter(l => l.type === Admin.AuditEventType.STATUS);
     return auditLogs;
   }, [auditLogs, auditFilter]);
 
@@ -80,16 +80,16 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
               let icon = <Activity size={14} />;
               let colorClass = 'text-slate-400 bg-slate-900 border-slate-700';
 
-              if (log.type === AuditEventType.STATUS) {
+              if (log.type === Admin.AuditEventType.STATUS) {
                 icon = <Ban size={14} />;
                 colorClass = 'text-red-400 bg-red-950/30 border-red-900';
-              } else if (log.type === AuditEventType.IMPERSONATE) {
+              } else if (log.type === Admin.AuditEventType.IMPERSONATE) {
                 icon = <UserIcon size={14} />;
                 colorClass = 'text-amber-400 bg-amber-950/30 border-amber-900';
-              } else if (log.type === AuditEventType.PERMISSION) {
+              } else if (log.type === Admin.AuditEventType.PERMISSION) {
                 icon = <Lock size={14} />;
                 colorClass = 'text-purple-400 bg-purple-950/30 border-purple-900';
-              } else if (log.type === AuditEventType.NOTE) {
+              } else if (log.type === Admin.AuditEventType.NOTE) {
                 icon = <FileText size={14} />;
                 colorClass = 'text-blue-400 bg-blue-950/30 border-blue-900';
               }

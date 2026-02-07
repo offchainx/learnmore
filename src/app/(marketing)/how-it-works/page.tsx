@@ -9,7 +9,7 @@ import {
   Bell
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 
 // Local translations
 const localTranslations = {

@@ -48,55 +48,6 @@ export interface ImportTask {
   source?: string
 }
 
-/**
- * 将数据库 ProcessingStatus 转换为 UI BatchStatusUI
- */
-export function mapProcessingStatusToBatchStatus(status: ProcessingStatus): BatchStatusUI {
-  switch (status) {
-    case 'COMPLETED':
-      return 'Completed'
-    case 'FAILED':
-      return 'Error'
-    case 'PROCESSING':
-      return 'Processing'
-    case 'PENDING':
-      return 'Queued'
-    default:
-      return 'Pending'
-  }
-}
-
-/**
- * 将 ImportTask 转换为 BatchData（用于UI展示）
- */
-export function mapImportTaskToBatchData(task: ImportTask): BatchData {
-  return {
-    id: task.id,
-    name: task.filename,
-    fileCount: 1,
-    subject: task.subject?.name || '未知科目',
-    year: task.sourceYear || new Date().getFullYear(),
-    progress: task.status === 'COMPLETED' ? 100 : task.status === 'PROCESSING' ? 50 : 0,
-    status: mapProcessingStatusToBatchStatus(task.status),
-    statusMessage: getStatusMessage(task.status),
-    createdAt: task.createdAt,
-    questionsCount: task.questionsCount,
-  }
-}
-
-function getStatusMessage(status: ProcessingStatus): string | undefined {
-  switch (status) {
-    case 'PROCESSING':
-      return '正在处理...'
-    case 'FAILED':
-      return '处理失败'
-    case 'PENDING':
-      return '等待处理...'
-    default:
-      return undefined
-  }
-}
-
 // ==================== 审核日志相关 ====================
 
 /**

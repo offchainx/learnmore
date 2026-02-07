@@ -2,14 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
-import { 
-  ActionResult, 
-  ReferralNode, 
-  SubscriptionTier as TierEnum,
-  AuditEventType,
-  AuditLogItem,
-  SecurityAction
-} from '@/types/admin-user'
+import { Admin } from '@/types'
 
 // ============ 权限检查 ============
 
@@ -33,7 +26,7 @@ interface ReferralStats {
   rewardSummary: string // Mocked for now, or derived
 }
 
-export async function getUserReferralData(userId: string): Promise<ActionResult<{ stats: ReferralStats, tree: ReferralNode }>> {
+export async function getUserReferralData(userId: string): Promise<Admin.ActionResult<{ stats: ReferralStats, tree: Admin.ReferralNode }>> {
   try {
     await requireAdmin()
 
@@ -87,18 +80,18 @@ export async function getUserReferralData(userId: string): Promise<ActionResult<
     }
 
     // Build Tree (Depth 2)
-    const tree: ReferralNode = {
+    const tree: Admin.ReferralNode = {
       id: user.id,
       name: user.username || user.email.split('@')[0],
-      tier: (user.subscriptionTier as TierEnum) || TierEnum.STARTER,
+      tier: (user.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
       children: user.referralsGiven.map(r1 => ({
         id: r1.referee.id,
         name: r1.referee.username || r1.referee.email.split('@')[0],
-        tier: (r1.referee.subscriptionTier as TierEnum) || TierEnum.STARTER,
+        tier: (r1.referee.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
         children: r1.referee.referralsGiven.map(r2 => ({
           id: r2.referee.id,
           name: r2.referee.username || r2.referee.email.split('@')[0],
-          tier: (r2.referee.subscriptionTier as TierEnum) || TierEnum.STARTER,
+          tier: (r2.referee.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
         }))
       }))
     }
@@ -127,7 +120,7 @@ interface ActivityEvent {
   timestamp: Date // for sorting if needed
 }
 
-export async function getUserActivityData(userId: string): Promise<ActionResult<{ stats: ActivityStats, timeline: ActivityEvent[], heatmap: number[][] }>> {
+export async function getUserActivityData(userId: string): Promise<Admin.ActionResult<{ stats: ActivityStats, timeline: ActivityEvent[], heatmap: number[][] }>> {
   try {
     await requireAdmin()
 
@@ -199,7 +192,7 @@ export async function getUserActivityData(userId: string): Promise<ActionResult<
 
 // ============ Task D: Audit Tab - Consolidated Logs ============
 
-export async function getUserAuditLogs(userId: string): Promise<ActionResult<AuditLogItem[]>> {
+export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResult<Admin.AuditLogItem[]>> {
   try {
     await requireAdmin()
 
@@ -224,7 +217,7 @@ export async function getUserAuditLogs(userId: string): Promise<ActionResult<Aud
     })
 
     // 4. Map to Unified Format
-    const items: AuditLogItem[] = []
+    const items: Admin.AuditLogItem[] = []
 
     // Build a sessionId → session map for enriching IMPERSONATE events
     const sessionMap = new Map<string, typeof sessions[0]>()
@@ -232,25 +225,25 @@ export async function getUserAuditLogs(userId: string): Promise<ActionResult<Aud
 
     // Map Security Logs
     securityLogs.forEach(log => {
-      let type = AuditEventType.OTHER
+      let type = Admin.AuditEventType.OTHER
       const title = log.action as string
       let desc = JSON.stringify(log.metadata || {})
 
       switch(log.action) {
         case 'LOGIN':
         case 'LOGOUT':
-          type = AuditEventType.LOGIN; break;
+          type = Admin.AuditEventType.LOGIN; break;
         case 'USER_BANNED':
         case 'USER_UNBANNED':
-          type = AuditEventType.STATUS; break;
+          type = Admin.AuditEventType.STATUS; break;
         case 'PERMISSION_OVERRIDE':
-          type = AuditEventType.PERMISSION; break;
+          type = Admin.AuditEventType.PERMISSION; break;
         case 'IMPERSONATE_START':
         case 'IMPERSONATE_END':
-          type = AuditEventType.IMPERSONATE; break;
+          type = Admin.AuditEventType.IMPERSONATE; break;
         case 'ADMIN_NOTE_ADDED':
         case 'ADMIN_NOTE_DELETED':
-          type = AuditEventType.NOTE; break;
+          type = Admin.AuditEventType.NOTE; break;
       }
 
       // Parse metadata for better description

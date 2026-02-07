@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useApp } from '@/providers/app-provider'
+import { useApp } from '@/providers'
 
 interface NavItem {
   title: string

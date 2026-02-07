@@ -20,10 +20,10 @@ import {
   Smartphone,
 } from 'lucide-react'
 import { AdminNoteList } from '../AdminNoteList'
-import type { UserDetail, SecurityLogEntry, SecurityAction } from '@/types/admin-user'
+import type { Admin } from '@/types'
 
 interface OverviewTabProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ user }) => {
@@ -126,10 +126,10 @@ const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value }) => (
 )
 
 interface SecurityLogItemProps {
-  log: SecurityLogEntry
+  log: Admin.SecurityLogEntry
 }
 
-const actionLabels: Record<SecurityAction, { label: string; color: string }> = {
+const actionLabels: Record<Admin.SecurityAction, { label: string; color: string }> = {
   LOGIN: { label: '登录', color: 'text-green-400' },
   LOGOUT: { label: '登出', color: 'text-slate-400' },
   PASSWORD_RESET: { label: '密码重置', color: 'text-amber-400' },

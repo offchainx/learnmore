@@ -6,7 +6,7 @@ import { Target, ArrowRight, CircleCheck } from 'lucide-react';
 import { claimTaskReward, completeOnboardingTask } from '@/actions/gamification/achievement';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from 'next/navigation';
 

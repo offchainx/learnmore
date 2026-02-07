@@ -6,10 +6,10 @@
  */
 
 import React from 'react'
-import { UserStatus, SubscriptionTier } from '@/types/admin-user'
+import { Admin } from '@/types'
 
 interface StatusBadgeProps {
-  status: UserStatus
+  status: Admin.UserStatus
 }
 
 export const UserStatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
@@ -17,15 +17,15 @@ export const UserStatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   let textColor = ''
 
   switch (status) {
-    case UserStatus.ACTIVE:
+    case Admin.UserStatus.ACTIVE:
       dotColor = 'bg-emerald-500'
       textColor = 'text-emerald-400'
       break
-    case UserStatus.BANNED:
+    case Admin.UserStatus.BANNED:
       dotColor = 'bg-red-500'
       textColor = 'text-red-400'
       break
-    case UserStatus.PAUSED:
+    case Admin.UserStatus.PAUSED:
       dotColor = 'bg-amber-500'
       textColor = 'text-amber-400'
       break
@@ -43,23 +43,23 @@ export const UserStatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
 }
 
 interface TierBadgeProps {
-  tier: SubscriptionTier
+  tier: Admin.SubscriptionTier
 }
 
 export const UserTierBadge: React.FC<TierBadgeProps> = ({ tier }) => {
   let classes = ''
 
   switch (tier) {
-    case SubscriptionTier.STARTER:
+    case Admin.SubscriptionTier.STARTER:
       classes = 'bg-slate-800 text-slate-300 border border-slate-700'
       break
-    case SubscriptionTier.STANDARD:
+    case Admin.SubscriptionTier.STANDARD:
       classes = 'bg-blue-900/40 text-blue-300 border border-blue-800/50'
       break
-    case SubscriptionTier.SMART_PLUS:
+    case Admin.SubscriptionTier.SMART_PLUS:
       classes = 'bg-purple-900/40 text-purple-300 border border-purple-800/50'
       break
-    case SubscriptionTier.PREMIER:
+    case Admin.SubscriptionTier.PREMIER:
       classes = 'bg-amber-900/40 text-amber-300 border border-amber-800/50'
       break
     default:

@@ -20,12 +20,12 @@ import {
   Send,
 } from 'lucide-react'
 import { addAdminNote, softDeleteAdminNote, restoreAdminNote, toggleNotePin } from '@/actions/admin/user-ops'
-import type { AdminNote } from '@/types/admin-user'
+import type { Admin } from '@/types'
 import { toast } from 'sonner'
 
 interface AdminNoteListProps {
   userId: string
-  notes: AdminNote[]
+  notes: Admin.AdminNote[]
 }
 
 export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) => {
@@ -189,7 +189,7 @@ export const AdminNoteList: React.FC<AdminNoteListProps> = ({ userId, notes }) =
 // --- Note Item Component ---
 
 interface NoteItemProps {
-  note: AdminNote
+  note: Admin.AdminNote
   isLoading: boolean
   onDelete: () => void
   onRestore: () => void

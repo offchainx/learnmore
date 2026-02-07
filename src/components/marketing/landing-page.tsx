@@ -11,7 +11,7 @@ import {
   BarChart2, HelpCircle, Phone, Mail, MapPin,
   TrendingUp, Activity, Sparkles, Share2, Quote, ChevronRight
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import type { PlatformStats } from '@/actions/marketing/campaign';
 

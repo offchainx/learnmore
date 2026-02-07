@@ -23,15 +23,7 @@ import {
   Ban,
   Mail,
 } from 'lucide-react'
-import {
-  UserSummary,
-  UserStatus,
-  SubscriptionTier,
-  SortConfig,
-  UserFilterState,
-  PaginatedResponse,
-  HighRiskAction
-} from '@/types/admin-user'
+import { Admin } from '@/types'
 import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { fetchMockUsers } from './mock/userMockData'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
@@ -69,21 +61,21 @@ const IconButton: React.FC<{
 // --- Main Component ---
 
 interface UserTableProps {
-  onUserSelect?: (user: UserSummary) => void
+  onUserSelect?: (user: Admin.UserSummary) => void
 }
 
 export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
   const router = useRouter()
 
   // Filters
-  const [filters, setFilters] = useState<UserFilterState>({
+  const [filters, setFilters] = useState<Admin.UserFilterState>({
     search: '',
     status: 'All',
     tier: 'All',
   })
 
   // Sorting
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
+  const [sortConfig, setSortConfig] = useState<Admin.SortConfig>({
     key: 'lastActive',
     direction: 'desc',
   })
@@ -98,12 +90,12 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
   
   // Dialog State
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [dialogAction, setDialogAction] = useState<HighRiskAction>('ban')
-  const [selectedUser, setSelectedUser] = useState<UserSummary | null>(null)
+  const [dialogAction, setDialogAction] = useState<Admin.HighRiskAction>('ban')
+  const [selectedUser, setSelectedUser] = useState<Admin.UserSummary | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
 
   // Data
-  const [data, setData] = useState<PaginatedResponse<UserSummary>>({
+  const [data, setData] = useState<Admin.PaginatedResponse<Admin.UserSummary>>({
     data: [],
     total: 0,
     page: 1,
@@ -147,7 +139,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
 
   // --- Handlers ---
 
-  const handleSort = (key: keyof UserSummary) => {
+  const handleSort = (key: keyof Admin.UserSummary) => {
     setSortConfig(current => ({
       key,
       direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc',
@@ -169,7 +161,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     setCurrentPage(1)
   }
 
-  const handleUserClick = (user: UserSummary) => {
+  const handleUserClick = (user: Admin.UserSummary) => {
     if (onUserSelect) {
       onUserSelect(user)
     } else {
@@ -177,7 +169,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     }
   }
   
-  const handleQuickAction = (user: UserSummary, action: HighRiskAction) => {
+  const handleQuickAction = (user: Admin.UserSummary, action: Admin.HighRiskAction) => {
     setSelectedUser(user)
     setDialogAction(action)
     setDialogOpen(true)
@@ -206,7 +198,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     setData(result)
   }
   
-  const handleSendInvitation = (user: UserSummary) => {
+  const handleSendInvitation = (user: Admin.UserSummary) => {
     // 模拟发送邀请
     alert(`已向 ${user.email} 发送邀请邮件 (Mock)`)
     setActiveDropdownId(null)
@@ -216,7 +208,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
 
   // --- Render Helpers ---
 
-  const renderSortIcon = (key: keyof UserSummary) => {
+  const renderSortIcon = (key: keyof Admin.UserSummary) => {
     if (sortConfig.key !== key) return <div className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-30" />
     return sortConfig.direction === 'asc'
       ? <ArrowUp className="w-4 h-4 ml-1 text-blue-400" />
@@ -336,11 +328,11 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
             <div className="relative min-w-[140px]">
               <select
                 value={filters.status}
-                onChange={(e) => setFilters(f => ({ ...f, status: e.target.value as UserStatus | 'All' }))}
+                onChange={(e) => setFilters(f => ({ ...f, status: e.target.value as Admin.UserStatus | 'All' }))}
                 className="w-full appearance-none bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg pl-3 pr-10 py-2.5 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer hover:bg-slate-800 transition-colors"
               >
                 <option value="All">状态: 全部</option>
-                {Object.values(UserStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                {Object.values(Admin.UserStatus).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
             </div>
@@ -349,11 +341,11 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
             <div className="relative min-w-[140px]">
               <select
                 value={filters.tier}
-                onChange={(e) => setFilters(f => ({ ...f, tier: e.target.value as SubscriptionTier | 'All' }))}
+                onChange={(e) => setFilters(f => ({ ...f, tier: e.target.value as Admin.SubscriptionTier | 'All' }))}
                 className="w-full appearance-none bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg pl-3 pr-10 py-2.5 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none cursor-pointer hover:bg-slate-800 transition-colors"
               >
                 <option value="All">等级: 全部</option>
-                {Object.values(SubscriptionTier).map(t => <option key={t} value={t}>{t}</option>)}
+                {Object.values(Admin.SubscriptionTier).map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={16} />
             </div>
@@ -502,12 +494,12 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
                             <button
                               onClick={() => handleQuickAction(
                                 user, 
-                                user.status === UserStatus.BANNED ? 'unban' : 'ban'
+                                user.status === Admin.UserStatus.BANNED ? 'unban' : 'ban'
                               )}
                               className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center gap-2"
                             >
                               <Ban size={14} />
-                              {user.status === UserStatus.BANNED ? '解除封禁' : '快速封禁'}
+                              {user.status === Admin.UserStatus.BANNED ? '解除封禁' : '快速封禁'}
                             </button>
                           </div>
                         </div>

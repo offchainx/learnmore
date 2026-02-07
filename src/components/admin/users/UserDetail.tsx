@@ -5,7 +5,7 @@ import {
   RotateCcw, CheckCircle, CreditCard, Activity, 
   GitCommit, Users, FileText, Lock, GraduationCap
 } from 'lucide-react';
-import { User, UserStatus, SubscriptionTier, AuditEventType } from '@/types/admin-user';
+import { Admin } from '@/types';
 import { UserStatusBadge, UserTierBadge } from './UserBadges';
 import { 
   generateAuditLogs, 
@@ -21,9 +21,9 @@ import { AddNoteModal, BanUserModal } from './Modals';
 type TabType = 'Overview' | 'Subscription' | 'Learning' | 'Referral' | 'Audit';
 
 interface UserDetailProps {
-  user: User;
+  user: Admin.User;
   onBack: () => void;
-  onUpdateStatus: (userId: string, status: UserStatus) => void;
+  onUpdateStatus: (userId: string, status: Admin.UserStatus) => void;
 }
 
 // 1. Overview Tab Components
@@ -154,9 +154,9 @@ export const UserDetail: React.FC<UserDetailProps> = ({ user, onBack, onUpdateSt
   // Filter Audit Logs
   const filteredAuditLogs = useMemo(() => {
     if (auditFilter === 'All') return auditLogs;
-    if (auditFilter === 'Permission Change') return auditLogs.filter(l => l.type === AuditEventType.PERMISSION);
-    if (auditFilter === 'Impersonation') return auditLogs.filter(l => l.type === AuditEventType.IMPERSONATE);
-    if (auditFilter === 'Status Change') return auditLogs.filter(l => l.type === AuditEventType.STATUS);
+    if (auditFilter === 'Permission Change') return auditLogs.filter(l => l.type === Admin.AuditEventType.PERMISSION);
+    if (auditFilter === 'Impersonation') return auditLogs.filter(l => l.type === Admin.AuditEventType.IMPERSONATE);
+    if (auditFilter === 'Status Change') return auditLogs.filter(l => l.type === Admin.AuditEventType.STATUS);
     return auditLogs;
   }, [auditLogs, auditFilter]);
 
@@ -192,7 +192,7 @@ export const UserDetail: React.FC<UserDetailProps> = ({ user, onBack, onUpdateSt
             <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-amber-600/50 text-amber-500 hover:bg-amber-950/30 transition-colors text-sm font-medium">
               <UserIcon size={16} /> Impersonate
             </button>
-            {user.status !== UserStatus.BANNED ? (
+            {user.status !== Admin.UserStatus.BANNED ? (
               <button 
                 onClick={() => setShowBanModal(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-600/50 text-red-500 hover:bg-red-950/30 transition-colors text-sm font-medium"
@@ -201,7 +201,7 @@ export const UserDetail: React.FC<UserDetailProps> = ({ user, onBack, onUpdateSt
               </button>
             ) : (
               <button 
-                onClick={() => onUpdateStatus(user.id, UserStatus.ACTIVE)}
+                onClick={() => onUpdateStatus(user.id, Admin.UserStatus.ACTIVE)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-600/50 text-emerald-500 hover:bg-emerald-950/30 transition-colors text-sm font-medium"
               >
                 <CheckCircle size={16} /> Unban User
@@ -554,16 +554,16 @@ export const UserDetail: React.FC<UserDetailProps> = ({ user, onBack, onUpdateSt
                     let icon = <Activity size={14} />;
                     let colorClass = 'text-slate-400 bg-slate-900 border-slate-700';
                     
-                    if (log.type === AuditEventType.STATUS) {
+                    if (log.type === Admin.AuditEventType.STATUS) {
                       icon = <Ban size={14} />;
                       colorClass = 'text-red-400 bg-red-950/30 border-red-900';
-                    } else if (log.type === AuditEventType.IMPERSONATE) {
+                    } else if (log.type === Admin.AuditEventType.IMPERSONATE) {
                       icon = <UserIcon size={14} />;
                       colorClass = 'text-amber-400 bg-amber-950/30 border-amber-900';
-                    } else if (log.type === AuditEventType.PERMISSION) {
+                    } else if (log.type === Admin.AuditEventType.PERMISSION) {
                       icon = <Lock size={14} />;
                       colorClass = 'text-purple-400 bg-purple-950/30 border-purple-900';
-                    } else if (log.type === AuditEventType.NOTE) {
+                    } else if (log.type === Admin.AuditEventType.NOTE) {
                       icon = <FileText size={14} />;
                       colorClass = 'text-blue-400 bg-blue-950/30 border-blue-900';
                     }
@@ -609,7 +609,7 @@ export const UserDetail: React.FC<UserDetailProps> = ({ user, onBack, onUpdateSt
         onClose={() => setShowBanModal(false)}
         onConfirm={(duration, reason) => {
           console.log(`Banning user ${user.id} for ${duration} because: ${reason}`);
-          onUpdateStatus(user.id, UserStatus.BANNED);
+          onUpdateStatus(user.id, Admin.UserStatus.BANNED);
         }}
       />
 

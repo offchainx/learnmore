@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { PracticeView } from '@/components/practice/PracticeView'
-import { useApp } from '@/providers/app-provider'
+import { useApp } from '@/providers'
 import { User } from '@prisma/client'
 
 interface PracticeClientWrapperProps {

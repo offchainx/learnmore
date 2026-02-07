@@ -7,7 +7,7 @@ import {
   Target, Clock, PenTool, AlertTriangle, Star, Trophy,
   Flame, Activity, ChevronRight, Play, Brain, ArrowUpRight, Zap
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { DashboardData } from '@/actions/dashboard';
 import { User, UserSettings } from '@prisma/client';
 

@@ -11,8 +11,7 @@ import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
-import type { ActionResult, AdminNote, SecurityLogEntry, UserDetail } from '@/types/admin-user'
-import { SecurityAction as SecurityActionEnum, UserStatus, SubscriptionTier } from '@/types/admin-user'
+import { Admin } from '@/types'
 import { getUserById } from '@/components/admin/users/mock/userMockData'
 
 // ============ 权限检查 ============
@@ -30,11 +29,11 @@ async function requireAdmin() {
 
 // ============ 获取用户详情 ============
 
-export async function getUserDetail(userId: string): Promise<ActionResult<UserDetail>> {
+export async function getUserDetail(userId: string): Promise<Admin.ActionResult<Admin.UserDetail>> {
   try {
     await requireAdmin()
 
-    let userDetail: UserDetail | null = null
+    let userDetail: Admin.UserDetail | null = null
 
     // 如果 ID 是 Mock 格式（以 usr_ 开头），直接使用 Mock 数据，不查询数据库
     // 否则 Prisma 会抛出 UUID 格式错误
@@ -73,7 +72,7 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
 
         if (dbUser) {
           // 转换为前端类型
-          const notes: AdminNote[] = dbUser.adminNotes.map((n) => ({
+          const notes: Admin.AdminNote[] = dbUser.adminNotes.map((n) => ({
             id: n.id,
             userId: n.userId,
             authorId: n.authorId,
@@ -84,10 +83,10 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
             deletedAt: n.deletedAt?.toISOString() || null,
           }))
 
-          const recentSecurityLogs: SecurityLogEntry[] = dbUser.securityLogs.map((l) => ({
+          const recentSecurityLogs: Admin.SecurityLogEntry[] = dbUser.securityLogs.map((l) => ({
             id: l.id,
             userId: l.userId,
-            action: l.action as SecurityActionEnum,
+            action: l.action as Admin.SecurityAction,
             ipAddress: l.ipAddress,
             userAgent: l.userAgent,
             metadata: l.metadata as Record<string, unknown> | null,
@@ -96,11 +95,11 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
 
           const activeSession = dbUser.impersonationSessions[0]
 
-          // 映射 DB status → 前端 UserStatus 枚举
-          const statusMap: Record<string, UserStatus> = {
-            ACTIVE: UserStatus.ACTIVE,
-            BANNED: UserStatus.BANNED,
-            PAUSED: UserStatus.PAUSED,
+          // 映射 DB status → 前端 Admin.UserStatus 枚举
+          const statusMap: Record<string, Admin.UserStatus> = {
+            ACTIVE: Admin.UserStatus.ACTIVE,
+            BANNED: Admin.UserStatus.BANNED,
+            PAUSED: Admin.UserStatus.PAUSED,
           }
 
           userDetail = {
@@ -108,8 +107,8 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
             name: dbUser.username || dbUser.email.split('@')[0],
             email: dbUser.email,
             avatarColor: 'bg-blue-500',
-            status: statusMap[dbUser.status] || UserStatus.ACTIVE,
-            tier: (dbUser.subscriptionTier as SubscriptionTier) || SubscriptionTier.STARTER,
+            status: statusMap[dbUser.status] || Admin.UserStatus.ACTIVE,
+            tier: (dbUser.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
             lastActive: dbUser.lastSignInAt?.toISOString() || dbUser.createdAt.toISOString(),
             lastActiveLabel: formatRelativeTime(dbUser.lastSignInAt || dbUser.createdAt),
             grade: dbUser.grade ? `${dbUser.grade}年级` : '未设置',
@@ -146,7 +145,7 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
         }
       } catch (dbError) {
         // 如果数据库查询出错（例如非法 UUID），记录错误但不中断，尝试 Mock（虽然上面已经处理了 Mock ID）
-        console.error('[getUserDetail] DB Query skipped or failed:', dbError)
+        console.error('[getAdmin.UserDetail] DB Query skipped or failed:', dbError)
       }
     }
 
@@ -156,7 +155,7 @@ export async function getUserDetail(userId: string): Promise<ActionResult<UserDe
 
     return { success: true, data: userDetail }
   } catch (error) {
-    console.error('[getUserDetail] Error:', error)
+    console.error('[getAdmin.UserDetail] Error:', error)
     return { success: false, error: error instanceof Error ? error.message : '获取用户详情失败' }
   }
 }
@@ -167,7 +166,7 @@ export async function toggleUserStatus(
   userId: string,
   action: 'ban' | 'unban',
   reason: string
-): Promise<ActionResult> {
+): Promise<Admin.ActionResult> {
   try {
     const admin = await requireAdmin()
 
@@ -202,14 +201,14 @@ export async function toggleUserStatus(
     revalidatePath(`/admin/users/${userId}`)
     return { success: true }
   } catch (error) {
-    console.error('[toggleUserStatus] Error:', error)
+    console.error('[toggleAdmin.UserStatus] Error:', error)
     return { success: false, error: error instanceof Error ? error.message : '操作失败' }
   }
 }
 
 // ============ Admin Note 系统 ============
 
-export async function addAdminNote(userId: string, content: string): Promise<ActionResult<AdminNote>> {
+export async function addAdminNote(userId: string, content: string): Promise<Admin.ActionResult<Admin.AdminNote>> {
   try {
     const admin = await requireAdmin()
 
@@ -252,12 +251,12 @@ export async function addAdminNote(userId: string, content: string): Promise<Act
       },
     }
   } catch (error) {
-    console.error('[addAdminNote] Error:', error)
+    console.error('[addAdmin.AdminNote] Error:', error)
     return { success: false, error: error instanceof Error ? error.message : '添加备注失败' }
   }
 }
 
-export async function softDeleteAdminNote(noteId: string): Promise<ActionResult> {
+export async function softDeleteAdminNote(noteId: string): Promise<Admin.ActionResult> {
   try {
     const admin = await requireAdmin()
 
@@ -287,12 +286,12 @@ export async function softDeleteAdminNote(noteId: string): Promise<ActionResult>
     revalidatePath(`/admin/users/${note.userId}`)
     return { success: true }
   } catch (error) {
-    console.error('[softDeleteAdminNote] Error:', error)
+    console.error('[softDeleteAdmin.AdminNote] Error:', error)
     return { success: false, error: error instanceof Error ? error.message : '删除备注失败' }
   }
 }
 
-export async function restoreAdminNote(noteId: string): Promise<ActionResult> {
+export async function restoreAdminNote(noteId: string): Promise<Admin.ActionResult> {
   try {
     const admin = await requireAdmin()
 
@@ -322,12 +321,12 @@ export async function restoreAdminNote(noteId: string): Promise<ActionResult> {
     revalidatePath(`/admin/users/${note.userId}`)
     return { success: true }
   } catch (error) {
-    console.error('[restoreAdminNote] Error:', error)
+    console.error('[restoreAdmin.AdminNote] Error:', error)
     return { success: false, error: error instanceof Error ? error.message : '恢复备注失败' }
   }
 }
 
-export async function toggleNotePin(noteId: string): Promise<ActionResult> {
+export async function toggleNotePin(noteId: string): Promise<Admin.ActionResult> {
   try {
     await requireAdmin()
 
@@ -354,7 +353,7 @@ export async function toggleNotePin(noteId: string): Promise<ActionResult> {
 export async function impersonateUser(
   targetUserId: string,
   reason: string
-): Promise<ActionResult<{ redirectUrl: string }>> {
+): Promise<Admin.ActionResult<{ redirectUrl: string }>> {
   try {
     const admin = await requireAdmin()
 

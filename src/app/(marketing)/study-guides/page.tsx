@@ -8,7 +8,7 @@ import {
   Map, Play, Zap, Target, Timer, MessageCircle, Trophy, 
   ArrowRight, Rocket
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 
 const StudyGuidePage: React.FC = () => {
   const router = useRouter();

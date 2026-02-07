@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Navbar } from '@/components/layout/navbar';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { BlogPost } from '@prisma/client';
 import ReactMarkdown from 'react-markdown';

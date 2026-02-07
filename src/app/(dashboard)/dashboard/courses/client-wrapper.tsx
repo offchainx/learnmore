@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { CoursesView } from '@/components/courses/CoursesView'
-import { useApp } from '@/providers/app-provider'
+import { useApp } from '@/providers'
 import { User } from '@prisma/client'
 
 interface CoursesClientWrapperProps {

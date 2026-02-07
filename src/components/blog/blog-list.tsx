@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Tag, ArrowRight } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { BlogPost } from '@prisma/client';
 import Link from 'next/link';

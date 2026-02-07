@@ -10,20 +10,20 @@
 
 import React, { useState } from 'react'
 import { AlertTriangle, X, Shield, UserX, LogIn, KeyRound } from 'lucide-react'
-import type { HighRiskAction } from '@/types/admin-user'
+import type { Admin } from '@/types'
 
 interface HighRiskConfirmDialogProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (reason: string, duration?: string) => Promise<void>
-  action: HighRiskAction
+  action: Admin.HighRiskAction
   userEmail: string
   userName?: string
   isLoading?: boolean
 }
 
 const actionConfig: Record<
-  HighRiskAction,
+  Admin.HighRiskAction,
   {
     title: string
     description: string

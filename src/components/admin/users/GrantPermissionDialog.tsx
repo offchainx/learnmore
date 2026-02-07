@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { X, Check, Loader2 } from 'lucide-react'
-import { SubscriptionTier } from '@/types/admin-user'
+import { Admin } from '@/types'
 import { applyAdminOverride } from '@/actions/admin/permission-override'
 import { toast } from 'sonner'
 
@@ -10,7 +10,7 @@ interface GrantPermissionDialogProps {
   isOpen: boolean
   onClose: () => void
   userId: string
-  currentTier: SubscriptionTier
+  currentTier: Admin.SubscriptionTier
 }
 
 const TIERS = [
@@ -33,7 +33,7 @@ export const GrantPermissionDialog: React.FC<GrantPermissionDialogProps> = ({
   userId,
   currentTier,
 }) => {
-  const [tier, setTier] = useState<string>(currentTier === SubscriptionTier.PREMIER ? 'PREMIER' : 'SMART_PLUS')
+  const [tier, setTier] = useState<string>(currentTier === Admin.SubscriptionTier.PREMIER ? 'PREMIER' : 'SMART_PLUS')
   const [duration, setDuration] = useState('7_days')
   const [reason, setReason] = useState('')
   const [isLoading, setIsLoading] = useState(false)

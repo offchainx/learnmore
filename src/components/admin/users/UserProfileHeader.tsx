@@ -23,28 +23,28 @@ import {
 import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
 import { toggleUserStatus, impersonateUser } from '@/actions/admin/user-ops'
-import type { UserDetail, HighRiskAction, UserStatus } from '@/types/admin-user'
+import type { Admin } from '@/types'
 import { toast } from 'sonner'
 
 interface UserProfileHeaderProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
 export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) => {
   const router = useRouter()
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean
-    action: HighRiskAction
+    action: Admin.HighRiskAction
   }>({ isOpen: false, action: 'ban' })
   const [isLoading, setIsLoading] = useState(false)
 
-  const isBanned = user.status === ('Banned' as UserStatus)
+  const isBanned = user.status === ('Banned' as Admin.UserStatus)
 
   const handleBack = () => {
     router.push('/admin/users')
   }
 
-  const openConfirmDialog = (action: HighRiskAction) => {
+  const openConfirmDialog = (action: Admin.HighRiskAction) => {
     setDialogState({ isOpen: true, action })
   }
 

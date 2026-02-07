@@ -14,7 +14,7 @@ import { SubscriptionTab } from '@/components/admin/users/tabs/SubscriptionTab'
 import { ActivityTab } from '@/components/admin/users/tabs/ActivityTab'
 import { GrowthTab } from '@/components/admin/users/tabs/GrowthTab'
 import { AuditTab } from '@/components/admin/users/tabs/AuditTab'
-import type { UserDetail } from '@/types/admin-user'
+import type { Admin } from '@/types'
 import {
   LayoutDashboard,
   CreditCard,
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 
 interface UserDetailClientProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
 type TabId = 'overview' | 'subscription' | 'activity' | 'growth' | 'audit'

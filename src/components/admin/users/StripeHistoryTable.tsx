@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { PaymentRecord } from '@/types/admin-user'
+import { Admin } from '@/types'
 
 interface StripeHistoryTableProps {
-  payments: PaymentRecord[]
+  payments: Admin.PaymentRecord[]
 }
 
 export const StripeHistoryTable: React.FC<StripeHistoryTableProps> = ({ payments }) => {

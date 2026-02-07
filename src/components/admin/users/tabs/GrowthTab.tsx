@@ -2,16 +2,16 @@
 
 import React, { useEffect, useState } from 'react'
 import { Copy, Check, GitCommit, Loader2 } from 'lucide-react'
-import { UserDetail, ReferralNode } from '@/types/admin-user'
+import { Admin } from '@/types'
 import { UserTierBadge } from '../UserBadges'
 import { getUserReferralData } from '@/actions/admin/user-details'
 import { toast } from 'sonner'
 
 interface GrowthTabProps {
-  user: UserDetail
+  user: Admin.UserDetail
 }
 
-const ReferralNodeView: React.FC<{ node: ReferralNode; depth?: number }> = ({ node, depth = 0 }) => (
+const ReferralNodeView: React.FC<{ node: Admin.ReferralNode; depth?: number }> = ({ node, depth = 0 }) => (
   <div className={`${depth > 0 ? 'ml-6 border-l border-slate-800 pl-4' : ''} mt-3`}>
     <div className="flex items-center gap-3 p-2 rounded bg-slate-800/30 border border-slate-800">
       <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
@@ -20,7 +20,7 @@ const ReferralNodeView: React.FC<{ node: ReferralNode; depth?: number }> = ({ no
       <span className="text-sm text-slate-200 font-medium">{node.name}</span>
       <UserTierBadge tier={node.tier} />
     </div>
-    {node.children && node.children.map((child: ReferralNode) => (
+    {node.children && node.children.map((child: Admin.ReferralNode) => (
       <ReferralNodeView key={child.id} node={child} depth={depth + 1} />
     ))}
   </div>
@@ -35,7 +35,7 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
       totalInvites: number;
       rewardSummary: string;
     };
-    tree: ReferralNode | null;
+    tree: Admin.ReferralNode | null;
   } | null>(null);
 
   useEffect(() => {

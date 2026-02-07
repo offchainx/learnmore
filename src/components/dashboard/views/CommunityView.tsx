@@ -7,7 +7,7 @@ import {
   Plus, ImageIcon, Hash, Heart, MessageSquare, Share2, MoreHorizontal, 
   Mic, Flame, Crown, CircleCheck, Sparkles, Bot, Search, Send
 } from 'lucide-react';
-import { useApp } from '@/providers/app-provider';
+import { useApp } from '@/providers';
 import { getPosts, createPost, toggleLike, PostWithAuthor } from '@/actions/community/post';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
