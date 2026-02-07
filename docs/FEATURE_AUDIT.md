@@ -2093,9 +2093,12 @@ src/
 Achievements 是一个**用户成就与统计展示模块**，提供个人资料、学习统计、徽章收藏和能力可视化。
 
 **入口方式**:
-- ❌ 未在 AppSidebar 中显示
-- ✅ 通过 DashboardClient 内嵌视图访问
-- ✅ 通过独立路由 `/dashboard/achievements` 访问
+- ⚠️ AppSidebar 底部有 **Level Progress Card**（显示等级、XP进度条）
+  - 位置: AppSidebar.tsx 第150-162行
+  - 状态: 有 `cursor-pointer` 样式，但**点击功能尚未实现**
+  - 建议: 添加 onClick 或 Link 跳转到 `/dashboard/achievements`
+- ✅ 通过 DashboardClient 内嵌视图访问（旧模式）
+- ✅ 通过独立路由 `/dashboard/achievements` 访问（新模式）
 
 **功能特性**:
 - 用户个人资料卡片（头像、等级、XP进度条）
@@ -2111,11 +2114,19 @@ Achievements 是一个**用户成就与统计展示模块**，提供个人资料
 
 #### 1. Sidebar Layer (入口层)
 
-**状态**: ❌ 未在 AppSidebar 中显示
+**状态**: ⚠️ 部分实现 - Level Progress Card存在但点击功能待实现
 
-**访问方式**:
-1. DashboardClient 内嵌模式（旧模式）
-2. 独立路由模式 `/dashboard/achievements`（新模式）
+**AppSidebar 中的入口**:
+- **Level Progress Card** (第150-162行)
+  - 显示: "Level 12" + XP进度条 (1,250/2,000 XP)
+  - 样式: `cursor-pointer` ✅ (表示可点击)
+  - **问题**: 缺少 onClick 或 Link 处理 ❌
+  - **建议**: 包装 `<Link href="/dashboard/achievements">` 或添加 onClick 处理
+
+**当前访问方式**:
+1. DashboardClient 内嵌模式（旧模式）- 通过代码调用
+2. 独立路由模式 `/dashboard/achievements`（新模式）- 直接URL访问
+3. Level Progress Card - **待实现点击跳转**
 
 #### 2. Route Layer
 
