@@ -1,6 +1,6 @@
 'use server'
 
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
 import { SubscriptionTier, SecurityAction } from '@prisma/client'
 import { revalidatePath } from 'next/cache'

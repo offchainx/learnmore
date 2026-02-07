@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getAllSubjects } from '../subject';
+import { getAllSubjects } from '../courses/subject';
 
 const mockSubjects = [
   { id: 's1', name: 'Math', icon: null, order: 1 },

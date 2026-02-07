@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 
 export const metadata: Metadata = {
   title: 'New Post - LearnMore',

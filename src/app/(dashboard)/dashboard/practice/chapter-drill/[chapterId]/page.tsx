@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getChapterWithStats, getRandomQuestions } from '@/actions/practice/data-service';
-import { getCurrentUser } from '@/actions/auth';
+import { getCurrentUser } from '@/actions/user/auth';
 import DrillInterface from '@/components/practice/chapter-drill/DrillInterface';
 import { Problem, UserStats } from '@/components/practice/chapter-drill/types';
 import prisma from '@/lib/prisma';
@@ -47,7 +47,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
   }));
 
   // 2. Fetch Questions (Real Data)
-  let questions = await getRandomQuestions({
+  const questions = await getRandomQuestions({
     chapterIds: [chapterId],
     limit: 20, 
     userId: user.id

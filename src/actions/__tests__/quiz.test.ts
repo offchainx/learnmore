@@ -25,9 +25,9 @@ vi.mock('../leaderboard', () => ({
   updateLeaderboardScore: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-import { submitQuiz } from '../quiz';
+import { submitQuiz } from '../practice/quiz';
 import { QuestionType } from '@prisma/client';
-import { getCurrentUser } from '../auth';
+import { getCurrentUser } from '../user/auth';
 
 // Define a type for the mocked user function
 const mockGetCurrentUser = getCurrentUser as unknown as ReturnType<typeof vi.fn>;

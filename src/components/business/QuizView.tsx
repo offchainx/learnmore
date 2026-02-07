@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Question, QuestionType } from '@prisma/client';
-import { submitQuiz, QuizSubmissionResult } from '@/actions/quiz';
+import { submitQuiz, QuizSubmissionResult } from '@/actions/practice/quiz';
 import { Loader2, CircleCheck, CircleX } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';

@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { createInAppNotification } from './notification';
+import { createInAppNotification } from './core';
 import { sendEmail } from '@/lib/email/resend';
 import React from 'react';
 

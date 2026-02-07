@@ -246,8 +246,8 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
       }
     } else {
       // Determine window around current page
-      let start = Math.max(2, currentPage - 1)
-      let end = Math.min(totalPages - 1, currentPage + 1)
+      const start = Math.max(2, currentPage - 1)
+      const end = Math.min(totalPages - 1, currentPage + 1)
 
       // Always show first page
       items.push(

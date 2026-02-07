@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import { z } from 'zod'
 
 const aiConfigSchema = z.object({

@@ -7,10 +7,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/labeled-input';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/app-provider'; // Import Context
-import { updateProfile } from '@/actions/profile';
-import { updateAIConfig } from '@/actions/settings';
-import { generateInviteCode } from '@/actions/parent';
-import { getNotificationPreferences, updateNotificationPreferences } from '@/actions/notification-preferences';
+import { updateProfile } from '@/actions/user/profile';
+import { updateAIConfig } from '@/actions/user/settings';
+import { generateInviteCode } from '@/actions/user/parent';
+import { getNotificationPreferences, updateNotificationPreferences } from '@/actions/notification/preferences';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,

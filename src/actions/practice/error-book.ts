@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { getCurrentUser } from '../auth';
+import { getCurrentUser } from '../user/auth';
 import { Prisma, DailyTaskType } from '@prisma/client';
 import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
 import { getEffectiveTier } from '@/lib/permissions/engine';

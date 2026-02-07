@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { VideoPlayer } from './VideoPlayer';
 import useDebounce from '@/lib/hooks/useDebounce';
-import { updateUserLessonProgress } from '@/actions/progress'; // Import the server action
+import { updateUserLessonProgress } from '@/actions/courses/progress'; // Import the server action
 
 interface LessonVideoPlayerProps {
 

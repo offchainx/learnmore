@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/actions/auth'
-import { getAllSubjects } from '@/actions/subject'
+import { getCurrentUser } from '@/actions/user/auth'
+import { getAllSubjects } from '@/actions/courses/subject'
 import { checkWeeklyExamQuota } from '@/actions/practice/quota'
 import MockArenaSelector from './MockArenaSelector'
 

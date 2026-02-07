@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getPlatformStats } from '@/actions/marketing';
+import { getPlatformStats } from '@/actions/marketing/campaign';
 import { LandingPage } from '@/components/marketing/landing-page';
 import { createClient } from '@/lib/supabase/server';
 

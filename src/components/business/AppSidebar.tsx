@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { logoutAction } from '@/actions/auth'
+import { logoutAction } from '@/actions/user/auth'
 import {
   Menu, BookOpen, LayoutDashboard, PenTool, BookMarked,
   Trophy, MessageCircle, MessageSquare, Settings, LogOut, ShieldCheck

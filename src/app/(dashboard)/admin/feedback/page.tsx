@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { getProfile } from '@/actions/profile'
+import { getProfile } from '@/actions/user/profile'
 import { AdminClientWrapper } from '@/components/admin/AdminClientWrapper'
 import { FeedbackList } from '@/components/admin/feedback/FeedbackList'
-import { getFeedbackList } from '@/actions/support'
+import { getFeedbackList } from '@/actions/support/ticket'
 
 export const dynamic = 'force-dynamic'
 

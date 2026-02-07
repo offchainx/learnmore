@@ -14,7 +14,7 @@ import { ProcessingStatus, ContentStatus } from '@prisma/client'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
 import { bulkCreateQuestions } from './question-service'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import type {
   ImportFromPDFInput,
   ImportResult,

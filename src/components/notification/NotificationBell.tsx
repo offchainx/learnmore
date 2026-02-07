@@ -6,7 +6,7 @@ import {
   getNotifications, 
   markNotificationAsRead, 
   markAllAsRead 
-} from '@/actions/notification';
+} from '@/actions/notification/core';
 import { NotificationWithMetadata } from '@/lib/notification/types';
 import { NotificationDropdown } from './NotificationDropdown';
 import { useOnClickOutside } from '@/lib/hooks/use-on-click-outside';

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import MockArenaExam from './MockArenaExam'
 

@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
-import { triggerWelcomeNotification } from './notification-triggers'
+import { triggerWelcomeNotification } from '../notification/triggers'
 
 // 生成推荐码（8位，大写字母+数字）
 function generateReferralCode(): string {

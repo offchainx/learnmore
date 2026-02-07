@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { triggerTrialExpiryNotification } from '@/actions/notification-triggers';
+import { triggerTrialExpiryNotification } from '@/actions/notification/triggers';
 
 /**
  * 定时任务：扫描并发送试用期过期通知

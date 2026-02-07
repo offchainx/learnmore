@@ -43,7 +43,7 @@ vi.mock('../../auth', () => ({
   getCurrentUser: vi.fn(),
 }));
 
-import { getCurrentUser } from '../../auth';
+import { getCurrentUser } from '../../user/auth';
 
 const mockGetCurrentUser = getCurrentUser as unknown as ReturnType<typeof vi.fn>;
 

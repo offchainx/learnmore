@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllSubjects } from '@/actions/subject';
+import { getAllSubjects } from '@/actions/courses/subject';
 import { getSubjectChapters } from '@/actions/practice/data-service';
 import type { DbSubject, DbChapter } from './types';
 

@@ -50,7 +50,7 @@ vi.mock('@/lib/prisma', () => ({
   default: mockPrisma,
 }))
 
-vi.mock('@/actions/auth', () => ({
+vi.mock('@/actions/user/auth', () => ({
   getCurrentUser: vi.fn(),
 }))
 
@@ -58,7 +58,7 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => mockSupabase),
 }))
 
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 
 describe('getSignedVideoUrl', () => {
   beforeEach(() => {

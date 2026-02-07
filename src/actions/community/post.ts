@@ -2,8 +2,8 @@
 
 import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
-import { getCurrentUser } from '@/actions/auth'
-import { triggerSocialReplyNotification } from './notification-triggers'
+import { getCurrentUser } from '@/actions/user/auth'
+import { triggerSocialReplyNotification } from '../notification/triggers'
 
 export type PostWithAuthor = Prisma.PostGetPayload<{
   include: {

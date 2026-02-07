@@ -4,7 +4,7 @@ import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
 import Stripe from 'stripe';
 import { ReferralStatus, SubscriptionTier } from '@prisma/client';
-import { triggerReceiptNotification } from '@/actions/notification-triggers';
+import { triggerReceiptNotification } from '@/actions/notification/triggers';
 
 export async function POST(req: Request) {
   const body = await req.text();

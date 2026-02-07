@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import { getCurrentUser } from './auth';
+import { getCurrentUser } from '../user/auth';
 
 import { NotificationMetadata } from '@/lib/notification/types';
 

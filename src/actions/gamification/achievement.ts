@@ -1,6 +1,6 @@
 "use server";
 
-import { getCurrentUser } from "@/actions/auth"; // Assuming this is how we get the current user
+import { getCurrentUser } from "@/actions/user/auth"; // Assuming this is how we get the current user
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { DailyTaskType } from "@prisma/client";

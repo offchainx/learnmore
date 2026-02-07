@@ -1,5 +1,5 @@
 import { AdminClientWrapper } from "@/components/admin/AdminClientWrapper"
-import { getProfile } from "@/actions/profile"
+import { getProfile } from "@/actions/user/profile"
 import { redirect } from "next/navigation"
 import { Header } from "@/components/admin/content-statistics/Header"
 import { DashboardStats } from "@/components/admin/content-statistics/DashboardStats"

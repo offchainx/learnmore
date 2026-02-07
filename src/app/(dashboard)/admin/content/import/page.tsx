@@ -1,7 +1,7 @@
 import { ImportClient } from './ImportClient'
 import { getImportTasks } from '@/actions/content-pipeline/import-service'
-import { getAllSubjects } from '@/actions/subject'
-import { getProfile } from '@/actions/profile'
+import { getAllSubjects } from '@/actions/courses/subject'
+import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 

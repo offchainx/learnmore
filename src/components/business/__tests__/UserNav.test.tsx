@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 
 // Mock the logout action
-vi.mock('@/actions/auth', () => ({
+vi.mock('@/actions/user/auth', () => ({
   logoutAction: vi.fn(),
 }));
 

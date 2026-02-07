@@ -6,7 +6,7 @@
  */
 
 import { redirect, notFound } from 'next/navigation'
-import { getProfile } from '@/actions/profile'
+import { getProfile } from '@/actions/user/profile'
 import { getUserDetail } from '@/actions/admin/user-ops'
 import { AdminClientWrapper } from '@/components/admin/AdminClientWrapper'
 import { UserDetailClient } from './UserDetailClient'

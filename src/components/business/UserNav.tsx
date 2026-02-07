@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { logoutAction } from '@/actions/auth'
+import { logoutAction } from '@/actions/user/auth'
 import { User } from '@prisma/client'
 import { useTransition } from 'react'
 

@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
 import { QuestionEditorForm } from '@/components/admin/QuestionEditorForm'
 import type { QuestionWithRelations } from '@/lib/content-pipeline/types'

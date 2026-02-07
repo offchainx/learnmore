@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { replyToFeedback } from '@/actions/support';
+import { replyToFeedback } from '@/actions/support/ticket';
 import { FeedbackStatus, FeedbackCategory } from '@/types/feedback';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

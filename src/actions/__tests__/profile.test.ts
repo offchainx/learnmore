@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getProfile, updateProfile } from '../profile';
+import { getProfile, updateProfile } from '../user/profile';
 import { UserRole } from '@prisma/client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,7 +49,7 @@ vi.mock('@/lib/prisma', () => ({
   default: mockPrisma,
 }));
 
-vi.mock('@/actions/auth', () => ({
+vi.mock('@/actions/user/auth', () => ({
   getCurrentUser: vi.fn(),
 }));
 
@@ -58,7 +58,7 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
-import { getCurrentUser } from '@/actions/auth';
+import { getCurrentUser } from '@/actions/user/auth';
 
 describe('Profile Server Actions', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;

@@ -1,4 +1,4 @@
-import { getBlogPosts } from '@/actions/blog';
+import { getBlogPosts } from '@/actions/community/blog';
 import { BlogList } from '@/components/blog/blog-list';
 
 export default async function BlogPage() {

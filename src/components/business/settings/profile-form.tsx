@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useState } from 'react'
-import { updateProfile, ProfileFormState } from '@/actions/profile'
+import { updateProfile, ProfileFormState } from '@/actions/user/profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

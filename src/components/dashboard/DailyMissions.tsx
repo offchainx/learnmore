@@ -3,7 +3,7 @@
 import React, { useTransition, useState } from 'react';
 import { DailyTask, User, UserSettings, DailyTaskType } from '@prisma/client';
 import { Target, ArrowRight, CircleCheck } from 'lucide-react';
-import { claimTaskReward, completeOnboardingTask } from '@/actions/gamification';
+import { claimTaskReward, completeOnboardingTask } from '@/actions/gamification/achievement';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useApp } from '@/providers/app-provider';

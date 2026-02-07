@@ -8,7 +8,7 @@
  */
 
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
 import type { ActionResult, AdminNote, SecurityLogEntry, UserDetail } from '@/types/admin-user'

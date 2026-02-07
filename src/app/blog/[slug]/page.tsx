@@ -1,4 +1,4 @@
-import { getBlogPostBySlug } from '@/actions/blog';
+import { getBlogPostBySlug } from '@/actions/community/blog';
 import { notFound } from 'next/navigation';
 import { BlogDetailClient } from '@/components/blog/blog-detail';
 import { Metadata } from 'next';

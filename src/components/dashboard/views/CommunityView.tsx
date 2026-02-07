@@ -8,7 +8,7 @@ import {
   Mic, Flame, Crown, CircleCheck, Sparkles, Bot, Search, Send
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
-import { getPosts, createPost, toggleLike, PostWithAuthor } from '@/actions/community';
+import { getPosts, createPost, toggleLike, PostWithAuthor } from '@/actions/community/post';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';

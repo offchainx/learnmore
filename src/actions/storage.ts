@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { v4 as uuidv4 } from 'uuid'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
 
 interface UploadImageResult {

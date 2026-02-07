@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import { FeedbackCategory } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import { getCurrentUser } from './auth';
+import { getCurrentUser } from '../user/auth';
 
 interface CreateFeedbackParams {
   category: FeedbackCategory;

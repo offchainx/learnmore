@@ -8,7 +8,7 @@ import {
   Upload, CheckSquare, BarChart, AlertCircle, ChevronDown, Users
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
-import { logoutAction } from '@/actions/auth';
+import { logoutAction } from '@/actions/user/auth';
 import { TrialBanner } from './TrialBanner';
 import { NotificationBell } from '../notification/NotificationBell';
 

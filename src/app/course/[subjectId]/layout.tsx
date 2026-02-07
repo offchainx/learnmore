@@ -1,6 +1,6 @@
 import { Header } from '@/components/business/Header';
 import { CourseLayoutClient } from '@/components/business/CourseLayoutClient';
-import { getSubjectDetails } from '@/actions/subject';
+import { getSubjectDetails } from '@/actions/courses/subject';
 import { notFound } from 'next/navigation';
 
 export default async function CourseLayout({

@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getQuestionForReview } from '@/actions/content-pipeline/review-service'
 import { QuestionReviewClient } from './QuestionReviewClient'
 import { AdminClientWrapper } from "@/components/admin/AdminClientWrapper"
-import { getProfile } from "@/actions/profile"
+import { getProfile } from "@/actions/user/profile"
 
 interface PageProps {
   params: Promise<{ questionId: string }>

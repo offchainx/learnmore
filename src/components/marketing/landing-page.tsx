@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
-import type { PlatformStats } from '@/actions/marketing';
+import type { PlatformStats } from '@/actions/marketing/campaign';
 
 // Local translations for Landing Page content
 const localTranslations = {

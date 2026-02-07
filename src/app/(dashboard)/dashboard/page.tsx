@@ -1,7 +1,7 @@
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
-import { getProfile } from '@/actions/profile';
+import { getProfile } from '@/actions/user/profile';
 import { getDashboardStats } from '@/actions/dashboard';
-import { syncCurrentUserToDatabase } from '@/actions/auth';
+import { syncCurrentUserToDatabase } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';

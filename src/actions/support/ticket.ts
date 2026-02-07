@@ -2,9 +2,9 @@
 
 import prisma from '@/lib/prisma';
 import { FeedbackCategory, FeedbackStatus } from '@prisma/client';
-import { getCurrentUser } from './auth';
+import { getCurrentUser } from '../user/auth';
 import { sendEmail } from '@/lib/email/resend';
-import { createInAppNotification } from './notification';
+import { createInAppNotification } from '../notification/core';
 import { revalidatePath } from 'next/cache';
 
 export interface SubmitFeedbackParams {

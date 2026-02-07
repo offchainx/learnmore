@@ -3,7 +3,7 @@
 import React, { useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LabeledInput as Input } from '@/components/ui/labeled-input';
-import { subscribeToNewsletter } from '@/actions/marketing';
+import { subscribeToNewsletter } from '@/actions/marketing/campaign';
 import { Mail } from 'lucide-react';
 
 interface NewsletterFormProps {

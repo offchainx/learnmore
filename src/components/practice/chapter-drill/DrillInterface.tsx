@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/practice/chapter-drill/Header';
 import { Sidebar } from '@/components/practice/chapter-drill/Sidebar';
 import { ProgressBar } from '@/components/practice/chapter-drill/ProgressBar';
-import { getProblemHint, explainSolution } from '@/actions/ai-tutor';
+import { getProblemHint, explainSolution } from '@/actions/ai/tutor';
 import { Problem, UserStats } from '@/components/practice/chapter-drill/types';
 import { Check, Lightbulb, Loader2, Sparkles } from 'lucide-react';
 

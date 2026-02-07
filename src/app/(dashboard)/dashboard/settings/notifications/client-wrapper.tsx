@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, ChevronLeft } from 'lucide-react'
-import { getNotificationPreferences, updateNotificationPreferences } from '@/actions/notification-preferences'
+import { getNotificationPreferences, updateNotificationPreferences } from '@/actions/notification/preferences'
 import type { User, UserSettings } from '@prisma/client'
 
 type UserProfile = User & { settings: UserSettings | null }

@@ -1,7 +1,7 @@
 'use server'
 
 import { genAI } from '@/lib/gemini'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 
 export interface ParsedQuestion {
   content: string

@@ -1,10 +1,10 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { getCurrentUser } from './auth';
+import { getCurrentUser } from '../user/auth';
 import { z } from 'zod';
 import { QuestionType, Prisma, DailyTaskType } from '@prisma/client';
-import { updateLeaderboardScore } from './leaderboard';
+import { updateLeaderboardScore } from '../leaderboard';
 import { checkAndRefreshStreak, trackDailyProgress } from '@/lib/gamification-utils';
 
 const SubmitQuizSchema = z.object({

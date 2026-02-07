@@ -1,7 +1,7 @@
 'use server';
 
 import { stripe } from '@/lib/stripe';
-import { getCurrentUser } from '@/actions/auth';
+import { getCurrentUser } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
 
 export async function createCheckoutSession(priceId: string, planName: string) {

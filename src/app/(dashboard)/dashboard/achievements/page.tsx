@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getProfile } from '@/actions/profile'
+import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { AchievementsClientWrapper } from './client-wrapper'
 

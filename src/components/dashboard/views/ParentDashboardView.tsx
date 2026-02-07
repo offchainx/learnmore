@@ -9,7 +9,7 @@ import {
   TrendingUp, Award, Calendar, ChevronRight,
   AlertCircle, CircleCheck, Sparkles
 } from 'lucide-react'
-import { getLinkedStudents, bindStudent, getStudentStats } from '@/actions/parent'
+import { getLinkedStudents, bindStudent, getStudentStats } from '@/actions/user/parent'
 import { toast } from '@/components/ui/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 

@@ -6,7 +6,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/providers/app-provider';
-import { createCheckoutSession } from '@/actions/stripe-actions';
+import { createCheckoutSession } from '@/actions/billing/stripe';
 import { toast } from '@/components/ui/use-toast';
 
 // ─── 比较表单元格类型 ─────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { getLessonData } from '@/actions/subject'
+import { getLessonData } from '@/actions/courses/subject'
 import { getSignedVideoUrl } from '@/actions/storage'
 import { LessonVideoPlayer } from '@/components/business/LessonVideoPlayer'
 import { CourseNavigation } from '@/components/business/CourseNavigation'

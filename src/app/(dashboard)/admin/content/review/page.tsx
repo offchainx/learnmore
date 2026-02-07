@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import { getQuestions, getPendingReviewQuestions } from "@/actions/content-pipeline/question-service"
-import { getAllSubjects } from "@/actions/subject"
+import { getAllSubjects } from "@/actions/courses/subject"
 import { QuestionReviewTable } from "@/components/admin/QuestionReviewTable"
 import { SubjectFilter } from "@/components/admin/SubjectFilter"
 import { 
@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuestionFilter } from "@/lib/content-pipeline/types"
 import { ContentStatus } from "@prisma/client"
 import { AdminClientWrapper } from "@/components/admin/AdminClientWrapper"
-import { getProfile } from "@/actions/profile"
+import { getProfile } from "@/actions/user/profile"
 import { redirect } from "next/navigation"
 
 export const dynamic = 'force-dynamic'

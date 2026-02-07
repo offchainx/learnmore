@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 

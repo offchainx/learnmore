@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { submitFeedback } from '@/actions/support';
+import { submitFeedback } from '@/actions/support/ticket';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Sparkles } from 'lucide-react';
 import { FeedbackCategory } from '@/types/feedback';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/actions/auth'; // Ensure this works in API routes (it should if using auth() helper)
+import { getCurrentUser } from '@/actions/user/auth'; // Ensure this works in API routes (it should if using auth() helper)
 import prisma from '@/lib/prisma';
 import { genAI, TUTOR_SYSTEM_INSTRUCTION } from '@/lib/gemini';
 import { UserRole, SubscriptionTier } from '@prisma/client';

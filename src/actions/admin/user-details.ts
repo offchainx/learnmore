@@ -1,7 +1,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/auth'
+import { getCurrentUser } from '@/actions/user/auth'
 import { 
   ActionResult, 
   ReferralNode, 
@@ -233,7 +233,7 @@ export async function getUserAuditLogs(userId: string): Promise<ActionResult<Aud
     // Map Security Logs
     securityLogs.forEach(log => {
       let type = AuditEventType.OTHER
-      let title = log.action as string
+      const title = log.action as string
       let desc = JSON.stringify(log.metadata || {})
 
       switch(log.action) {
