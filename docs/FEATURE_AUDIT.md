@@ -1435,14 +1435,6 @@ PostWithAuthorAndComments = PostWithAuthor + {
 
 ---
 
-## 6️⃣ Settings (设置)
-
-### ⏳ 审计状态: 待检查
-
-*待填充...*
-
----
-
 ## 7️⃣ Admin Panel (管理后台)
 
 ### ✅ 审计状态: 已完成 (2026-02-06)
