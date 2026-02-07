@@ -1435,7 +1435,7 @@ PostWithAuthorAndComments = PostWithAuthor + {
 
 ---
 
-## 7️⃣ Admin Panel (管理后台)
+## 6️⃣ Admin Panel (管理后台)
 
 ### ✅ 审计状态: 已完成 (2026-02-06)
 
@@ -1890,7 +1890,7 @@ wc -l all_files.txt
 
 ---
 
-## 6️⃣ Settings (设置中心)
+## 7️⃣ Settings (设置中心)
 
 ### ✅ 审计状态: 已完成 | 架构合规: ✅ PASS | 废弃文件: ⚠️ 2个
 
