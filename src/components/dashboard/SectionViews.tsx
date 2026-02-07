@@ -5,4 +5,4 @@ export { CoursesView } from '@/components/courses/CoursesView';
 export { PracticeView, QuestionBankView } from '@/components/practice/PracticeView';
 export { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 export { SettingsView } from './views/SettingsView';
-export { AchievementsView } from './views/AchievementsView';
+export { AchievementsView } from '@/components/achievements/AchievementsView';

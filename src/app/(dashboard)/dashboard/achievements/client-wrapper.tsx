@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { AchievementsView } from '@/components/dashboard/views/AchievementsView'
+import { AchievementsView } from '@/components/achievements/AchievementsView'
 import { User } from '@prisma/client'
 
 interface AchievementsClientWrapperProps {

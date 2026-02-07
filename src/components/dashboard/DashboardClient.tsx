@@ -13,7 +13,7 @@ import { CoursesView } from '@/components/courses/CoursesView';
 import { PracticeView } from '@/components/practice/PracticeView';
 import { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 import { SettingsView } from './views/SettingsView';
-import { AchievementsView } from './views/AchievementsView';
+import { AchievementsView } from '@/components/achievements/AchievementsView';
 import { ParentDashboardView } from './views/ParentDashboardView';
 import { KnowledgeGraphView } from './views/KnowledgeGraphView';
 import { User, UserSettings } from '@prisma/client';
