@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { Header } from '../Header'
+import { Header } from '../layout/Header'
 import { vi, describe, it, expect } from 'vitest'
 
 // Mock usePathname

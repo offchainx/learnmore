@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest'; // Removed beforeEach
-import CourseTree, { CourseChapter } from '../CourseTree';
+import CourseTree, { CourseChapter } from '../courses/CourseTree';
 
 // Mock Lucide icons
 vi.mock('lucide-react', () => ({

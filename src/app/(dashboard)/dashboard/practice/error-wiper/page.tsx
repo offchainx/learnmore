@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Brain, ArrowLeft } from 'lucide-react';
-import { QuestionType } from '@/components/business/question/types';
+import { QuestionType } from '@/components/business/question';
 
 export const metadata = {
   title: 'Error Wiper | LearnMore',

@@ -1,11 +1,17 @@
 # src/ 文件夹结构与文件用途说明
 
-> **📝 更新记录 (2026-02-07)**:
-> - ✅ 修正 `lib/` 目录结构 (采用实际的模块化组织方式)
-> - ✅ 修正 `providers/` 内容 (整合型Provider模式)
-> - ✅ 修正 `types/` 内容 (分散式类型定义策略)
-> - ✅ 补充 `components/` 缺失的子目录 (mobile/, notification/, performance/ 等)
-> - ✅ 更新统计数据和快速查找指南
+> **📝 更新记录**:
+> - **2026-02-07 (最新)**:
+>   - ✅ 重构 `components/business/` 结构 (新增 courses/, layout/, shared/ 子目录)
+>   - ✅ 合并 `components/course/` 到 `components/courses/`
+>   - ✅ 删除所有废弃代码目录 (__deprecated__, deprecated/)
+>   - ✅ 为所有主要模块添加 barrel exports (index.ts)
+> - **2026-02-07 (早期)**:
+>   - ✅ 修正 `lib/` 目录结构 (采用实际的模块化组织方式)
+>   - ✅ 修正 `providers/` 内容 (整合型Provider模式)
+>   - ✅ 修正 `types/` 内容 (分散式类型定义策略)
+>   - ✅ 补充 `components/` 缺失的子目录 (mobile/, notification/, performance/ 等)
+>   - ✅ 更新统计数据和快速查找指南
 
 ---
 
@@ -324,11 +330,8 @@ app/
 
 ```
 components/
-├── __deprecated__/
-│   ├── README.md                                         # 废弃组件说明
-│   └── CommunityView.OLD.tsx                             # 废弃: 社区视图旧版本
-│
 ├── admin/                                                # 管理员专用组件
+│   ├── index.ts                                          # Barrel Export (主要组件)
 │   ├── AdminClientWrapper.tsx                            # 客户端包装器: Admin页面容器
 │   ├── DifficultyBadge.tsx                               # UI组件: 难度徽章 (1-5星)
 │   ├── ImportHistoryTable.tsx                            # UI组件: 导入历史表格
@@ -406,6 +409,7 @@ components/
 │           └── SubscriptionTab.tsx                       # UI组件: 订阅管理Tab
 │
 ├── achievements/                                         # 成就系统组件
+│   ├── index.ts                                          # Barrel Export
 │   └── AchievementsView.tsx                              # UI组件: 成就页面主视图
 │
 ├── ai/
@@ -415,57 +419,67 @@ components/
 │   ├── blog-detail.tsx                                   # UI组件: 博客详情页
 │   └── blog-list.tsx                                     # UI组件: 博客列表页
 │
-├── business/                                             # 业务核心组件
-│   ├── AppSidebar.tsx                                    # UI组件: 应用侧边栏 (Sidebar Layer - 入口层)
-│   ├── CourseLayoutClient.tsx                            # 客户端组件: 课程布局容器
-│   ├── CourseNavigation.tsx                              # UI组件: 课程导航栏
-│   ├── CourseTree.tsx                                    # UI组件: 课程树形结构 (章节树)
-│   ├── Header.tsx                                        # UI组件: 顶部导航栏
-│   ├── LessonVideoPlayer.tsx                             # UI组件: 课程视频播放器
-│   ├── QuizView.tsx                                      # UI组件: 测验视图
+├── business/                                             # 业务核心组件 (已模块化重构)
+│   ├── __tests__/                                        # 业务组件单元测试
+│   │   └── ...                                           # 测试文件
 │   │
-│   ├── dashboard/                                        # Dashboard子组件
-│   │   ├── CircularProgress.tsx                          # UI组件: 环形进度条
-│   │   ├── DailyInspiration.tsx                          # UI组件: 每日激励语
-│   │   ├── DashboardCharts.tsx                           # UI组件: Dashboard图表集合
-│   │   ├── StatsCards.tsx                                # UI组件: 统计卡片组
-│   │   ├── SubjectCard.tsx                               # UI组件: 科目卡片
-│   │   └── SubjectProgressChart.tsx                      # UI组件: 科目进度图表
+│   ├── auth/                                             # 认证表单模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── login-form.tsx                                # UI组件: 登录表单
+│   │   └── register-form.tsx                             # UI组件: 注册表单
 │   │
-│   ├── settings/                                         # 设置页面子组件
-│   │   ├── AccountSettings.tsx                           # UI组件: 账户设置区域
-│   │   ├── AchievementSettings.tsx                       # UI组件: 成就显示设置
-│   │   ├── AiTutorSettings.tsx                           # UI组件: AI导师设置
-│   │   ├── NotificationSettings.tsx                      # UI组件: 通知设置
-│   │   ├── ParentLinkSection.tsx                         # UI组件: 家长绑定区域
-│   │   ├── PrivacySettings.tsx                           # UI组件: 隐私设置
-│   │   ├── ProfilePictureUpload.tsx                      # UI组件: 头像上传
-│   │   └── ReferralCode.tsx                              # UI组件: 推荐码区域
+│   ├── courses/                                          # 课程学习模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── CourseLayoutClient.tsx                        # 客户端组件: 课程布局容器
+│   │   ├── CourseNavigation.tsx                          # UI组件: 课程导航栏
+│   │   ├── CourseTree.tsx                                # UI组件: 课程树形结构 (章节树)
+│   │   ├── LessonVideoPlayer.tsx                         # UI组件: 课程视频播放器 (带进度追踪)
+│   │   └── VideoPlayer.tsx                               # UI组件: 通用视频播放器
 │   │
-│   └── shared/                                           # 业务共享组件
-│       ├── DataExport.tsx                                # UI组件: 数据导出按钮
-│       ├── OnboardingChecklist.tsx                       # UI组件: 新手引导清单
-│       └── StreakDisplay.tsx                             # UI组件: 连续学习天数展示
+│   ├── layout/                                           # 布局组件模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── AppSidebar.tsx                                # UI组件: 应用侧边栏
+│   │   ├── Header.tsx                                    # UI组件: 顶部导航栏
+│   │   └── UserNav.tsx                                   # UI组件: 用户导航菜单
+│   │
+│   ├── question/                                         # 题目渲染模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── FillBlank.tsx                                 # UI组件: 填空题
+│   │   ├── MultiChoice.tsx                               # UI组件: 多选题
+│   │   ├── QuestionCard.tsx                              # UI组件: 题目卡片容器
+│   │   ├── QuestionContent.tsx                           # UI组件: 题目内容展示
+│   │   ├── SingleChoice.tsx                              # UI组件: 单选题
+│   │   └── types.ts                                      # TypeScript类型定义
+│   │
+│   ├── quiz/                                             # 测验系统模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── QuizAnswerGrid.tsx                            # UI组件: 答题卡网格
+│   │   ├── QuizTimer.tsx                                 # UI组件: 测验计时器
+│   │   ├── QuizView.tsx                                  # UI组件: 测验主视图
+│   │   └── ScoreCard.tsx                                 # UI组件: 成绩卡片
+│   │
+│   ├── settings/                                         # 设置页面模块
+│   │   ├── index.ts                                      # Barrel Export
+│   │   ├── AvatarUpload.tsx                              # UI组件: 头像上传
+│   │   ├── GoalsForm.tsx                                 # UI组件: 学习目标表单
+│   │   └── profile-form.tsx                              # UI组件: 个人资料表单
+│   │
+│   └── shared/                                           # 共享业务组件模块
+│       ├── index.ts                                      # Barrel Export
+│       └── StrengthBar.tsx                               # UI组件: 强度进度条
 │
 ├── compatibility/                                        # 浏览器兼容性组件
 │   └── UnsupportedBrowserWarning.tsx                     # UI组件: 不支持浏览器警告
 │
-├── course/                                               # 课程页面组件
-│   ├── CoursePageClient.tsx                              # 客户端组件: 课程页主容器
-│   ├── LessonContent.tsx                                 # UI组件: 课程内容展示 (视频/文档)
-│   └── VideoPlayer.tsx                                   # UI组件: 视频播放器 (带进度追踪)
-│
-├── courses/                                              # 课程列表组件
+├── courses/                                              # 课程列表组件 (已合并 course/)
+│   ├── index.ts                                          # Barrel Export
 │   ├── CoursesView.tsx                                   # UI组件: 课程列表视图
-│   └── LessonPlayer.tsx                                  # UI组件: 课程播放器
+│   ├── LessonPlayer.tsx                                  # UI组件: 课程播放器
+│   └── LessonSwipeView.tsx                               # UI组件: 手势滑动视图
 │
 ├── dashboard/                                            # Dashboard专用组件
 │   ├── dialogs/                                          # Dashboard对话框组件
 │   └── views/                                            # Dashboard视图组件
-│
-├── deprecated/                                           # 已废弃组件 (和__deprecated__不同)
-│   ├── README.md                                         # 废弃说明
-│   └── dashboard/                                        # 废弃的Dashboard组件
 │
 ├── layout/                                               # 布局组件
 │   ├── CookieConsent.tsx                                 # UI组件: Cookie同意横幅
@@ -476,17 +490,17 @@ components/
 │   └── navbar.tsx                                        # UI组件: 通用导航栏
 │
 ├── leaderboard/                                          # 排行榜组件
-│   ├── components/                                       # 排行榜子组件
-│   ├── LeaderboardTabs.tsx                               # UI组件: 排行榜Tab (周/月/总)
+│   ├── index.ts                                          # Barrel Export
 │   ├── LeaderboardView.tsx                               # UI组件: 排行榜主视图
-│   ├── RankCard.tsx                                      # UI组件: 排名卡片
-│   └── UserRankCard.tsx                                  # UI组件: 当前用户排名卡片
-│
-├── leaderboard/                                          # 排行榜组件
-│   ├── LeaderboardTabs.tsx                               # UI组件: 排行榜Tab (周/月/总)
-│   ├── LeaderboardView.tsx                               # UI组件: 排行榜主视图
-│   ├── RankCard.tsx                                      # UI组件: 排名卡片
-│   └── UserRankCard.tsx                                  # UI组件: 当前用户排名卡片
+│   ├── mock-data.ts                                      # Mock数据: 排行榜测试数据
+│   └── components/                                       # 排行榜子组件
+│       ├── DailyQuests.tsx                               # UI组件: 每日任务
+│       ├── LeaderboardList.tsx                           # UI组件: 排行榜列表
+│       ├── Podium.tsx                                    # UI组件: 前三名领奖台
+│       ├── RivalWatch.tsx                                # UI组件: 竞争对手监控
+│       ├── SeasonBanner.tsx                              # UI组件: 赛季横幅
+│       ├── TierRoadmap.tsx                               # UI组件: 段位路线图
+│       └── XPBreakdown.tsx                               # UI组件: 经验值分解
 │
 ├── marketing/                                            # 营销页面组件
 │   ├── AboutUsView.tsx                                   # UI组件: 关于我们页面
@@ -514,6 +528,7 @@ components/
 │   └── PullToRefresh.tsx                                 # UI组件: 下拉刷新
 │
 ├── notification/                                         # 通知中心组件
+│   ├── index.ts                                          # Barrel Export
 │   ├── NotificationBell.tsx                              # UI组件: 通知铃铛图标
 │   └── NotificationDropdown.tsx                          # UI组件: 通知下拉列表
 │

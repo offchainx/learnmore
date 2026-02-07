@@ -1,5 +1,5 @@
-import { Header } from '@/components/business/Header';
-import { CourseLayoutClient } from '@/components/business/CourseLayoutClient';
+import { Header } from '@/components/business/layout/Header';
+import { CourseLayoutClient } from '@/components/business/courses/CourseLayoutClient';
 import { getSubjectDetails } from '@/actions/courses/subject';
 import { notFound } from 'next/navigation';
 

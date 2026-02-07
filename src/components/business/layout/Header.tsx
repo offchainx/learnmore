@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Search, Zap, Bell, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
-import { UserNav } from '@/components/business/UserNav'
+import { UserNav } from './UserNav'
 
 export function Header() {
   const { setTheme, theme } = useTheme()

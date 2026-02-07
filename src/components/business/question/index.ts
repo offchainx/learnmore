@@ -1,2 +1,6 @@
-export * from './QuestionCard';
-export * from './types';
+export { QuestionCard } from './QuestionCard'
+export { QuestionContent } from './QuestionContent'
+export { SingleChoice } from './SingleChoice'
+export { MultiChoice } from './MultiChoice'
+export { FillBlank } from './FillBlank'
+export type * from './types'

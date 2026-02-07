@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { QuestionCard } from '@/components/business/question/QuestionCard'
+import { QuestionCard } from '@/components/business/question'
 import CountdownTimer from '@/components/practice/session/CountdownTimer'
 import { submitExam, type UserAnswerSubmission, type ExamResult } from '@/actions/practice/exam'
 import { cn } from '@/lib/utils'
@@ -18,7 +18,7 @@ import {
   Loader2,
   AlertTriangle
 } from 'lucide-react'
-import type { Question as QuestionType } from '@/components/business/question/types'
+import type { Question as QuestionType } from '@/components/business/question'
 import type { Question as PrismaQuestion } from '@prisma/client'
 import {
   Dialog,

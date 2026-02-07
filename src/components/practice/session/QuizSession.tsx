@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Question } from '@prisma/client'
-import { QuestionCard } from '@/components/business/question/QuestionCard'
+import { QuestionCard } from '@/components/business/question'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'

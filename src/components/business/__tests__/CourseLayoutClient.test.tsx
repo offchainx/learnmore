@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CourseLayoutClient } from '../CourseLayoutClient'
-import { CourseChapter } from '../CourseTree'
+import { CourseLayoutClient } from '../courses/CourseLayoutClient'
+import { CourseChapter } from '../courses/CourseTree'
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({

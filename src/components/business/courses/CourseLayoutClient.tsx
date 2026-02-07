@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import CourseTree, { CourseChapter } from '@/components/business/CourseTree';
+import CourseTree, { CourseChapter } from './CourseTree';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';

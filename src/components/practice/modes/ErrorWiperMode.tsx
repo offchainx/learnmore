@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Question } from '@/components/business/question/types';
+import { Question } from '@/components/business/question';
 
 export interface ErrorBookEntry {
   id: string;

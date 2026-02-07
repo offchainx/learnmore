@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { AppSidebar } from '../AppSidebar'
+import { AppSidebar } from '../layout/AppSidebar'
 import { beforeEach, describe, expect, it, vi, Mock } from 'vitest'
 import { usePathname } from 'next/navigation'
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { VideoPlayer } from '../VideoPlayer'
+import { VideoPlayer } from '../courses/VideoPlayer'
 
 // Mock react-player with dynamic import
 vi.mock('react-player', () => ({

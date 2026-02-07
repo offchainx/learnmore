@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { UserNav } from '../UserNav'
+import { UserNav } from '../layout/UserNav'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi } from 'vitest'
 
