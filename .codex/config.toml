@@ -1,0 +1,49 @@
+version = 1
+name = "learn_more_v1.0_codex_project_config"
+
+[project]
+root = "/Users/victorsim/Desktop/Projects/learn_more_v1.0"
+language = "zh-CN"
+governance = "lightweight_enforced"
+
+[assistant_defaults]
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+model_reasoning_summary = "detailed"
+
+[paths]
+codex_root = ".codex"
+specs_template = ".codex/specs/_template"
+iteration_log = ".codex/prompts/iteration-log.md"
+rules_file = ".codex/codex.md"
+feature_radar = ".codex/features/radar.md"
+task_sop = ".codex/workflows/new-task-sop.md"
+
+[workflow]
+require_spec_bundle_on_new_task = true
+require_session_close_each_interaction = true
+require_iteration_log_before_commit_when_code_changes = true
+require_rule_patch_on_mistake = true
+
+[commands]
+session_close = "pnpm codex:close"
+session_check = "pnpm codex:check"
+install_hooks = "pnpm codex:install-hooks"
+
+[mcp_recommendations]
+enabled = ["context7", "chrome-devtools"]
+note = "推荐启用文档检索与前端调试类 MCP；密钥通过本机环境变量注入，不写入仓库。"
+
+[security_defaults]
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+network_access = "restricted"
+shell_environment_inherit = "minimal"
+note = "不采用 never + danger-full-access 作为默认，仅在排障时临时提权。"
+
+[sync]
+memory_bank_targets = ["docs/memory-bank/active_context.md", "docs/memory-bank/progress.md"]
+
+[notes]
+runtime_consumed_by_codex = false
+description = "该文件为项目内协作约定配置，供团队与脚本参考；包含推荐模型/MCP/安全默认值，不替代 .codex/environments/environment.toml。"
