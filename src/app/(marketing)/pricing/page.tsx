@@ -71,8 +71,11 @@ const PricingPage: React.FC = () => {
     setLang(nextLang);
   };
 
-  const handleSubscribe = async (planName: string, priceId: string) => {
-    if (!priceId) {
+  const handleSubscribe = async (
+    planName: string,
+    planKey: 'starter' | 'standard' | 'smart_plus' | 'premier'
+  ) => {
+    if (planKey === 'starter') {
       router.push('/register');
       return;
     }
@@ -80,7 +83,7 @@ const PricingPage: React.FC = () => {
     setLoadingPlan(planName);
     startTransition(async () => {
       try {
-        await createCheckoutSession(priceId, planName);
+        await createCheckoutSession(planKey, isAnnual ? 'annual' : 'monthly');
       } catch (error) {
         console.error(error);
         toast({
@@ -263,35 +266,31 @@ const PricingPage: React.FC = () => {
   // TODO: 价格占位 — 待定价确认后更新。Stripe Price ID 也需同步更新。
   const plansData = [
     {
+      key: 'starter' as const,
       monthlyPrice: 0,
       annualPrice: 0,
-      monthlyPriceId: "prod_TeMN7HTeRvreOX",
-      annualPriceId: "prod_TeMNTQGeDCo27L",
       color: "border-cyan-400",
       btnVariant: "outline" as const,
     },
     {
+      key: 'standard' as const,
       monthlyPrice: 60,
       annualPrice: 54, // 10% off
-      monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SELF_LEARNER_MONTHLY || "",
-      annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SELF_LEARNER_ANNUAL || "",
       color: "border-blue-500",
       btnVariant: "outline" as const,
     },
     {
+      key: 'smart_plus' as const,
       monthlyPrice: 150,
       annualPrice: 135, // 10% off
-      monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCHOLAR_MONTHLY || "",
-      annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCHOLAR_ANNUAL || "",
       color: "border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.15)]",
       btnVariant: "glow" as const,
       highlight: true,
     },
     {
+      key: 'premier' as const,
       monthlyPrice: 260,
       annualPrice: 234, // 10% off
-      monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ULTIMATE_MONTHLY || "",
-      annualPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_ULTIMATE_ANNUAL || "",
       color: "border-amber-500",
       btnVariant: "solid-gold" as const,
     }
@@ -301,7 +300,6 @@ const PricingPage: React.FC = () => {
     ...p,
     ...currentT.plans[i],
     price: p.monthlyPrice === 0 ? 0 : (isAnnual ? p.annualPrice : p.monthlyPrice),
-    priceId: isAnnual ? p.annualPriceId : p.monthlyPriceId
   }));
 
   // ─── 比较表数据 ──────────────────────────────────────────────
@@ -510,7 +508,7 @@ const PricingPage: React.FC = () => {
                           ${plan.btnVariant === 'glow' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 border-none' : ''}
                           ${plan.btnVariant === 'solid-gold' ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg shadow-amber-500/25 border-none' : ''}
                        `}
-                       onClick={() => handleSubscribe(plan.name, plan.priceId)}
+                      onClick={() => handleSubscribe(plan.name, plan.key)}
                        disabled={loadingPlan !== null}
                     >
                        {loadingPlan === plan.name ? (

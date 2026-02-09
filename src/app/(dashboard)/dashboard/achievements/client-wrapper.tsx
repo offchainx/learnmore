@@ -4,12 +4,18 @@ import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { AchievementsView } from '@/components/achievements/AchievementsView'
 import { User } from '@prisma/client'
+import type {
+  AchievementOverview,
+  BadgeWithUnlockStatus,
+} from '@/lib/gamification/achievements-types'
 
 interface AchievementsClientWrapperProps {
   user: User
+  overview: AchievementOverview | null
+  badges: BadgeWithUnlockStatus[]
 }
 
-export function AchievementsClientWrapper({ user }: AchievementsClientWrapperProps) {
+export function AchievementsClientWrapper({ user, overview, badges }: AchievementsClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -39,7 +45,14 @@ export function AchievementsClientWrapper({ user }: AchievementsClientWrapperPro
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <AchievementsView />
+      <AchievementsView
+        user={{
+          username: user.username,
+          avatar: user.avatar,
+        }}
+        overview={overview}
+        badges={badges}
+      />
     </DashboardLayout>
   )
 }

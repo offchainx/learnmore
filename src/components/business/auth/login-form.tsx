@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
 import { loginAction, type AuthFormState } from '@/actions/user/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +21,7 @@ function SubmitButton() {
 const initialState: AuthFormState = {}
 
 export function LoginForm() {
-  const [state, formAction] = useFormState(loginAction, initialState)
+  const [state, formAction] = useActionState(loginAction, initialState)
 
   return (
     <Card className="w-full max-w-md mx-auto">

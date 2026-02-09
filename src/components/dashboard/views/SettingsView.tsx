@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useActionState, useState, useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/labeled-input';
@@ -231,8 +231,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   const [inviteCode, setInviteCode] = useState<string | null>(null);
 
   // Form states
-  const [profileState, profileAction] = useFormState(updateProfile, initialState);
-  const [aiConfigState, aiConfigAction] = useFormState(updateAIConfig, initialState);
+  const [profileState, profileAction] = useActionState(updateProfile, initialState);
+  const [aiConfigState, aiConfigAction] = useActionState(updateAIConfig, initialState);
 
   // Notification Preferences State
   const [notifPrefs, setNotifPrefs] = useState<any>(null);

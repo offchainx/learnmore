@@ -85,10 +85,30 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
       case 'courses': return <CoursesView t={appT} />;
       case 'questionBank': return <PracticeView t={appT} userId={user.id} />;
-      case 'leaderboard': return <LeaderboardView t={appT} />;
+      case 'leaderboard':
+        return (
+          <LeaderboardView
+            t={appT}
+            currentUser={{
+              id: user.id,
+              username: user.username,
+              avatar: user.avatar,
+            }}
+          />
+        );
       case 'community': return <CommunityView />;
       case 'settings': return <SettingsView user={user} />;
-      case 'achievements': return <AchievementsView />;
+      case 'achievements':
+        return (
+          <AchievementsView
+            user={{
+              username: user.username,
+              avatar: user.avatar,
+            }}
+            overview={null}
+            badges={[]}
+          />
+        );
       case 'knowledgeGraph': return <KnowledgeGraphView />;
       default: return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
     }

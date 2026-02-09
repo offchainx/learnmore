@@ -4,16 +4,49 @@ import { stripe } from '@/lib/stripe';
 import { getCurrentUser } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
 
-export async function createCheckoutSession(priceId: string, planName: string) {
+type PlanKey = 'starter' | 'standard' | 'smart_plus' | 'premier'
+type BillingCycle = 'monthly' | 'annual'
+
+function resolvePriceId(planKey: Exclude<PlanKey, 'starter'>, cycle: BillingCycle) {
+  const map = {
+    standard: {
+      monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_SELF_LEARNER_MONTHLY || '',
+      annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_SELF_LEARNER_ANNUAL || '',
+    },
+    smart_plus: {
+      monthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCHOLAR_MONTHLY || '',
+      annual: process.env.NEXT_PUBLIC_STRIPE_PRICE_SCHOLAR_ANNUAL || '',
+    },
+    premier: {
+      monthly:
+        process.env.NEXT_PUBLIC_STRIPE_PRICE_ULTIMATE_MONTHLY ||
+        process.env.NEXT_PUBLIC_STRIPE_PRICE_CHAMPION_MONTHLY ||
+        '',
+      annual:
+        process.env.NEXT_PUBLIC_STRIPE_PRICE_ULTIMATE_ANNUAL ||
+        process.env.NEXT_PUBLIC_STRIPE_PRICE_CHAMPION_ANNUAL ||
+        '',
+    },
+  } as const
+
+  return map[planKey][cycle]
+}
+
+export async function createCheckoutSession(planKey: PlanKey, billingCycle: BillingCycle) {
   const user = await getCurrentUser();
 
-  console.warn('[Stripe Debug] Starting checkout for user:', user?.id);
-  console.warn('[Stripe Debug] Price ID:', priceId);
-  console.warn('[Stripe Debug] API Key present:', !!process.env.STRIPE_SECRET_KEY);
-
   if (!user || !user.email) {
-    console.error('[Stripe Debug] User missing or no email');
     throw new Error('Unauthorized or missing email');
+  }
+
+  if (planKey === 'starter') {
+    redirect('/register')
+  }
+
+  const safePlanKey: Exclude<PlanKey, 'starter'> = planKey
+  const priceId = resolvePriceId(safePlanKey, billingCycle)
+  if (!priceId) {
+    throw new Error(`Price not configured for ${safePlanKey}:${billingCycle}`)
   }
 
   // 1. Find or Create Stripe Customer
@@ -26,7 +59,6 @@ export async function createCheckoutSession(priceId: string, planName: string) {
 
   if (existingCustomers.data.length > 0) {
     customerId = existingCustomers.data[0].id;
-    console.warn('[Stripe Debug] Found existing customer:', customerId);
   } else {
     const newCustomer = await stripe.customers.create({
       email: user.email,
@@ -36,7 +68,6 @@ export async function createCheckoutSession(priceId: string, planName: string) {
       }
     });
     customerId = newCustomer.id;
-    console.warn('[Stripe Debug] Created new customer:', customerId);
   }
 
   try {
@@ -55,19 +86,18 @@ export async function createCheckoutSession(priceId: string, planName: string) {
       // Remove customer_email since we are providing customer ID
       metadata: {
         userId: user.id,
-        planName: planName,
+        planKey: safePlanKey,
+        billingCycle,
       },
     });
 
     if (!session.url) {
-      console.error('[Stripe Debug] Session created but no URL');
       throw new Error('Failed to create checkout session');
     }
 
-    console.warn('[Stripe Debug] Redirecting to:', session.url);
     redirect(session.url);
   } catch (error) {
-    console.error('[Stripe Debug] Stripe API Error:', error);
+    console.error('[Stripe] Checkout Error:', error);
     throw error; // Re-throw to be caught by client
   }
 }

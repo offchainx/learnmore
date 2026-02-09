@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { signupAction, type AuthFormState } from '@/actions/user/auth'
 import { Button } from '@/components/ui/button'
@@ -21,7 +22,7 @@ function SubmitButton() {
 const initialState: AuthFormState = {}
 
 export function RegisterForm() {
-  const [state, formAction] = useFormState(signupAction, initialState)
+  const [state, formAction] = useActionState(signupAction, initialState)
   const searchParams = useSearchParams()
   const defaultReferralCode = searchParams.get('ref') || ''
 

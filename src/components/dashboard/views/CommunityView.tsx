@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { 
@@ -109,8 +110,10 @@ export const CommunityView = () => {
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input type="text" placeholder={t.common.search} className="pl-9 pr-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 w-64" />
             </div>
-            <Button variant="glow" className="shadow-blue-500/20">
-              <Plus className="w-4 h-4 mr-2" /> Join Room
+            <Button asChild variant="glow" className="shadow-blue-500/20">
+              <Link href="/dashboard/community/new">
+                <Plus className="w-4 h-4 mr-2" /> New Post
+              </Link>
             </Button>
         </div>
       </div>
@@ -227,7 +230,9 @@ export const CommunityView = () => {
 
                   {/* Content */}
                   <div className="mb-4">
-                     <h4 className="text-base font-bold text-slate-900 dark:text-white mb-2">{post.title}</h4>
+                              <Link href={`/dashboard/community/${post.id}`} className="text-base font-bold text-slate-900 dark:text-white mb-2 hover:underline block">
+                                {post.title}
+                              </Link>
                      <div className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed prose prose-sm dark:prose-invert max-w-none">
                         <ReactMarkdown 
                           remarkPlugins={[remarkMath]} 

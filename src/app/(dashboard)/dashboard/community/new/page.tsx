@@ -1,6 +1,9 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/actions/user/auth'
+import { getProfile } from '@/actions/user/profile'
+import { CommunityClientWrapper } from '../client-wrapper'
+import { NewPostPageClient } from '@/components/community/NewPostPageClient'
+import { getCategories } from '@/actions/community/post'
 
 export const metadata: Metadata = {
   title: 'New Post - LearnMore',
@@ -8,12 +11,21 @@ export const metadata: Metadata = {
 }
 
 export default async function NewPostPage() {
-  const user = await getCurrentUser()
+  const profile = await getProfile()
 
-  if (!user) {
+  if (!profile) {
     redirect('/login')
   }
 
-  // Redirect to main community page for now (old PostEditorForm was deleted)
-  redirect('/dashboard/community')
+  const categories = await getCategories()
+  const subjects = categories.map((item) => ({
+    id: item.id,
+    name: item.name,
+  }))
+
+  return (
+    <CommunityClientWrapper user={profile}>
+      <NewPostPageClient subjects={subjects} />
+    </CommunityClientWrapper>
+  )
 }

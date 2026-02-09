@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { getCurrentUser } from '@/actions/user/auth'
 import { triggerSocialReplyNotification } from '../notification/triggers'
+import { awardBadgeIfEligible } from '@/actions/gamification/achievements'
 
 export type PostWithAuthor = Prisma.PostGetPayload<{
   include: {
@@ -209,6 +210,7 @@ export async function createPost({
         tags,
       },
     })
+    await awardBadgeIfEligible(user.id, 'COMMUNITY')
     return { success: true, post: newPost }
   } catch (error: unknown) {
     console.error('Error creating post:', error)
@@ -316,6 +318,8 @@ export async function createComment({
         },
       },
     })
+
+    await awardBadgeIfEligible(user.id, 'COMMUNITY')
 
     // Trigger notification for post author (if not the same person)
     if (post && post.authorId !== user.id) {

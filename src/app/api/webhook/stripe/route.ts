@@ -27,15 +27,31 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
-    const planName = session.metadata?.planName; // 'starter', 'standard', 'smart_plus', 'premier'
+    const planKey = session.metadata?.planKey || session.metadata?.planName; // backward compatible
+    const billingCycle = session.metadata?.billingCycle || 'monthly';
 
-    if (!userId || !planName) {
+    if (!userId || !planKey) {
       return new NextResponse('Webhook Error: Missing metadata', { status: 400 });
+    }
+
+    // Idempotency guard: replayed webhook should be ignored safely
+    const eventLogLink = `stripe:event:${event.id}`
+    const exists = await prisma.notification.findFirst({
+      where: {
+        userId,
+        type: 'BILLING',
+        link: eventLogLink,
+      },
+      select: { id: true },
+    })
+
+    if (exists) {
+      return new NextResponse(null, { status: 200 })
     }
 
     // Map plan name to SubscriptionTier
     let tier: SubscriptionTier | undefined;
-    const normalizedPlan = planName.toLowerCase();
+    const normalizedPlan = planKey.toLowerCase();
     
     if (normalizedPlan === 'standard' || normalizedPlan === 'self-learner') tier = SubscriptionTier.STANDARD;
     else if (normalizedPlan === 'smart_plus' || normalizedPlan === 'scholar') tier = SubscriptionTier.SMART_PLUS;
@@ -43,7 +59,9 @@ export async function POST(req: Request) {
 
     if (tier) {
       const now = new Date();
-      const subscriptionDuration = 30 * 24 * 60 * 60 * 1000; // 30天
+      const subscriptionDuration = billingCycle === 'annual'
+        ? 365 * 24 * 60 * 60 * 1000
+        : 30 * 24 * 60 * 60 * 1000
       const email = session.customer_details?.email || '';
       const amount = (session.amount_total || 0) / 100;
 
@@ -121,6 +139,25 @@ export async function POST(req: Request) {
         // eslint-disable-next-line no-console
         console.log(`[Referral] Reward granted: ${referral.referrerId} -> ${userId}`);
       }
+
+      // 5. 记录 webhook 处理事件（用于幂等追踪）
+      await prisma.notification.create({
+        data: {
+          userId,
+          type: 'BILLING',
+          title: 'Billing Event Processed',
+          content: `Stripe checkout processed (${normalizedPlan}/${billingCycle})`,
+          link: eventLogLink,
+          isArchived: true,
+          metadata: {
+            eventId: event.id,
+            sessionId: session.id,
+            planKey: normalizedPlan,
+            billingCycle,
+            amount,
+          },
+        },
+      })
     }
   }
 

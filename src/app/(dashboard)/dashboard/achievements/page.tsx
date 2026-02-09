@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { AchievementsClientWrapper } from './client-wrapper'
+import { getAchievementOverview, listUserBadges } from '@/actions/gamification/achievements'
 
 export const metadata: Metadata = {
   title: 'Achievements - LearnMore',
@@ -15,5 +16,16 @@ export default async function AchievementsPage() {
     redirect('/login')
   }
 
-  return <AchievementsClientWrapper user={profile} />
+  const [overview, badges] = await Promise.all([
+    getAchievementOverview(profile.id),
+    listUserBadges(profile.id),
+  ])
+
+  return (
+    <AchievementsClientWrapper
+      user={profile}
+      overview={overview}
+      badges={badges}
+    />
+  )
 }

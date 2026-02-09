@@ -7,6 +7,7 @@ import { QuestionType, Prisma, DailyTaskType } from '@prisma/client';
 import { updateLeaderboardScore } from '../leaderboard';
 import { checkAndRefreshStreak } from '@/actions/gamification/streak';
 import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
+import { awardBadgeIfEligible } from '@/actions/gamification/achievements';
 
 const SubmitQuizSchema = z.object({
   chapterId: z.string().optional(),
@@ -157,6 +158,7 @@ export async function submitQuiz(
     // 5. Gamification
     await checkAndRefreshStreak(user.id);
     await trackDailyProgress(user.id, DailyTaskType.QUIZ_SCORE);
+    await awardBadgeIfEligible(user.id, 'PRACTICE');
 
     return {
       success: true,

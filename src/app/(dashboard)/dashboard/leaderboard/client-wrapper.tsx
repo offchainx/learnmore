@@ -41,7 +41,14 @@ export function LeaderboardClientWrapper({ user }: LeaderboardClientWrapperProps
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <LeaderboardView t={t} />
+      <LeaderboardView
+        t={t}
+        currentUser={{
+          id: user.id,
+          username: user.username,
+          avatar: user.avatar,
+        }}
+      />
     </DashboardLayout>
   )
 }

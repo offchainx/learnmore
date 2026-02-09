@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils'
 
 const tabs = [
   { id: 'home', icon: Home, label: '首页', path: '/dashboard' },
-  { id: 'courses', icon: BookOpen, label: '课程', path: '/courses' },
-  { id: 'practice', icon: Edit, label: '练习', path: '/practice' },
-  { id: 'community', icon: MessageCircle, label: '社区', path: '/community' },
-  { id: 'profile', icon: User, label: '我的', path: '/profile' },
+  { id: 'courses', icon: BookOpen, label: '课程', path: '/dashboard/courses' },
+  { id: 'practice', icon: Edit, label: '练习', path: '/dashboard/practice' },
+  { id: 'community', icon: MessageCircle, label: '社区', path: '/dashboard/community' },
+  { id: 'profile', icon: User, label: '我的', path: '/dashboard/settings' },
 ]
 
 export function BottomTabBar() {
