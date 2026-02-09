@@ -213,7 +213,7 @@ src/app/
 
 ## 🔗 相关文档
 
-- **路由结构详解**: `/ROUTE_STRUCTURE.md`
+- **路由结构详解**: `/docs/reports/ROUTE_STRUCTURE.md`
 - **项目结构文档**: `/docs/stories/项目结构&文件介绍.md`
 - **中间件配置**: `/middleware.ts`
 - **认证系统**: Story-003 Authentication System

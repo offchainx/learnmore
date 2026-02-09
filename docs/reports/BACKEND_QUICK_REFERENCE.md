@@ -358,7 +358,7 @@ FROM pg_tables;
 
 ## 相关文档
 
-- 完整调查报告: `BACKEND_INVESTIGATION_REPORT.md`
+- 完整调查报告: `docs/reports/BACKEND_INVESTIGATION_REPORT.md`
 - 产品需求文档: `docs/PRD.md`
 - 技术栈指南: `docs/TECH_STACK.md`
 - 故事库索引: `docs/stories/README.md`
