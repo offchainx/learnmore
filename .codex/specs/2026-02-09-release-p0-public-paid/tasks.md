@@ -13,6 +13,7 @@
 | P0-08 | Achievement MVP | codex | doing |  |
 | P0-09 | 支付订阅闭环 | codex | doing |  |
 | P0-10 | 观测与上线验收 | codex | doing |  |
+| P0-11 | 上线前专项测试（Referral/Notification） | codex | todo |  |
 
 ## 备注
 - 当前状态 doing 仅表示文档重写进行中，不代表代码开发进行中。

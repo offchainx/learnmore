@@ -83,7 +83,18 @@ const PricingPage: React.FC = () => {
     setLoadingPlan(planName);
     startTransition(async () => {
       try {
-        await createCheckoutSession(planKey, isAnnual ? 'annual' : 'monthly');
+        const result = await createCheckoutSession(planKey, isAnnual ? 'annual' : 'monthly');
+        if (!result.ok) {
+          toast({
+            title: "Error",
+            description: result.error.message,
+            variant: "destructive"
+          });
+          setLoadingPlan(null);
+          return;
+        }
+
+        window.location.assign(result.checkoutUrl);
       } catch (error) {
         console.error(error);
         toast({

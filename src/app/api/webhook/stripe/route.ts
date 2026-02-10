@@ -6,67 +6,182 @@ import Stripe from 'stripe';
 import { ReferralStatus, SubscriptionTier } from '@prisma/client';
 import { triggerReceiptNotification } from '@/actions/notification/triggers';
 
+type NormalizedPlanKey = 'standard' | 'smart_plus' | 'premier';
+type NormalizedBillingCycle = 'monthly' | 'annual';
+
+const PLAN_TO_TIER: Record<NormalizedPlanKey, SubscriptionTier> = {
+  standard: SubscriptionTier.STANDARD,
+  smart_plus: SubscriptionTier.SMART_PLUS,
+  premier: SubscriptionTier.PREMIER,
+};
+
+function jsonResponse(
+  body: {
+    ok: boolean;
+    code: string;
+    message: string;
+    eventId?: string;
+    userId?: string;
+  },
+  status = 200,
+) {
+  return NextResponse.json(body, { status });
+}
+
+function auditLog(payload: Record<string, unknown>) {
+  console.warn('[WebhookAudit]', JSON.stringify({
+    timestamp: new Date().toISOString(),
+    ...payload,
+  }));
+}
+
+function normalizePlanKey(rawPlanKey: string | undefined): NormalizedPlanKey | null {
+  if (!rawPlanKey) return null;
+  const normalized = rawPlanKey.toLowerCase();
+  if (normalized === 'standard' || normalized === 'self-learner') return 'standard';
+  if (normalized === 'smart_plus' || normalized === 'scholar') return 'smart_plus';
+  if (normalized === 'premier' || normalized === 'ultimate') return 'premier';
+  return null;
+}
+
+function normalizeBillingCycle(rawCycle: string | undefined): NormalizedBillingCycle | null {
+  if (!rawCycle) return 'monthly';
+  const normalized = rawCycle.toLowerCase();
+  if (normalized === 'monthly' || normalized === 'annual') return normalized;
+  return null;
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
-  const signature = (await headers()).get('Stripe-Signature') as string;
+  const signature = (await headers()).get('Stripe-Signature');
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event: Stripe.Event;
+
+  if (!webhookSecret) {
+    auditLog({ action: 'webhook', result: 'missing_webhook_secret' });
+    return jsonResponse({
+      ok: false,
+      code: 'MISSING_WEBHOOK_SECRET',
+      message: 'STRIPE_WEBHOOK_SECRET is not configured',
+    }, 500);
+  }
+
+  if (!signature) {
+    auditLog({ action: 'webhook', result: 'missing_signature' });
+    return jsonResponse({
+      ok: false,
+      code: 'MISSING_SIGNATURE',
+      message: 'Stripe-Signature header is required',
+    }, 400);
+  }
 
   try {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      webhookSecret
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new NextResponse(`Webhook Error: ${errorMessage}`, { status: 400 });
+    auditLog({
+      action: 'webhook',
+      result: 'invalid_signature',
+      error: errorMessage,
+    });
+    return jsonResponse({
+      ok: false,
+      code: 'INVALID_SIGNATURE',
+      message: errorMessage,
+    }, 400);
   }
 
-  // 处理首次付费成功事件
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.metadata?.userId;
-    const planKey = session.metadata?.planKey || session.metadata?.planName; // backward compatible
-    const billingCycle = session.metadata?.billingCycle || 'monthly';
+  if (event.type !== 'checkout.session.completed') {
+    return jsonResponse({
+      ok: true,
+      code: 'IGNORED_EVENT',
+      message: `Event ${event.type} ignored`,
+      eventId: event.id,
+    }, 200);
+  }
 
-    if (!userId || !planKey) {
-      return new NextResponse('Webhook Error: Missing metadata', { status: 400 });
-    }
+  const session = event.data.object as Stripe.Checkout.Session;
+  const userId = session.metadata?.userId?.trim() || '';
+  const normalizedPlan = normalizePlanKey(session.metadata?.planKey || session.metadata?.planName);
+  const billingCycle = normalizeBillingCycle(session.metadata?.billingCycle);
 
-    // Idempotency guard: replayed webhook should be ignored safely
-    const eventLogLink = `stripe:event:${event.id}`
-    const exists = await prisma.notification.findFirst({
-      where: {
-        userId,
-        type: 'BILLING',
-        link: eventLogLink,
-      },
-      select: { id: true },
-    })
+  if (!userId || !isUuid(userId) || !normalizedPlan || !billingCycle) {
+    auditLog({
+      action: 'webhook',
+      result: 'invalid_metadata',
+      eventId: event.id,
+      userId,
+      planKey: session.metadata?.planKey || session.metadata?.planName,
+      billingCycle: session.metadata?.billingCycle,
+    });
+    return jsonResponse({
+      ok: false,
+      code: 'INVALID_METADATA',
+      message: 'Missing or invalid metadata fields',
+      eventId: event.id,
+      userId,
+    }, 400);
+  }
 
-    if (exists) {
-      return new NextResponse(null, { status: 200 })
-    }
+  const userExists = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+  if (!userExists) {
+    auditLog({
+      action: 'webhook',
+      result: 'unknown_user',
+      eventId: event.id,
+      userId,
+    });
+    return jsonResponse({
+      ok: false,
+      code: 'UNKNOWN_USER',
+      message: 'User not found for webhook metadata',
+      eventId: event.id,
+      userId,
+    }, 400);
+  }
 
-    // Map plan name to SubscriptionTier
-    let tier: SubscriptionTier | undefined;
-    const normalizedPlan = planKey.toLowerCase();
-    
-    if (normalizedPlan === 'standard' || normalizedPlan === 'self-learner') tier = SubscriptionTier.STANDARD;
-    else if (normalizedPlan === 'smart_plus' || normalizedPlan === 'scholar') tier = SubscriptionTier.SMART_PLUS;
-    else if (normalizedPlan === 'premier' || normalizedPlan === 'ultimate') tier = SubscriptionTier.PREMIER;
+  const tier = PLAN_TO_TIER[normalizedPlan];
+  const now = new Date();
+  const amount = (session.amount_total || 0) / 100;
+  const eventLogLink = `stripe:event:${event.id}`;
+  const subscriptionDuration =
+    billingCycle === 'annual'
+      ? 365 * 24 * 60 * 60 * 1000
+      : 30 * 24 * 60 * 60 * 1000;
 
-    if (tier) {
-      const now = new Date();
-      const subscriptionDuration = billingCycle === 'annual'
-        ? 365 * 24 * 60 * 60 * 1000
-        : 30 * 24 * 60 * 60 * 1000
-      const email = session.customer_details?.email || '';
-      const amount = (session.amount_total || 0) / 100;
+  let isDuplicate = false;
 
-      // 1. 更新用户订阅状态
-      await prisma.user.update({
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${event.id}))`;
+
+      const alreadyProcessed = await tx.notification.findFirst({
+        where: {
+          userId,
+          type: 'BILLING',
+          link: eventLogLink,
+        },
+        select: { id: true },
+      });
+
+      if (alreadyProcessed) {
+        isDuplicate = true;
+        return;
+      }
+
+      await tx.user.update({
         where: { id: userId },
         data: {
           subscriptionTier: tier,
@@ -75,57 +190,48 @@ export async function POST(req: Request) {
         },
       });
 
-      // 1.5 触发支付收据通知
-      try {
-        await triggerReceiptNotification(
-          userId,
-          email,
-          amount,
-          session.id,
-          normalizedPlan
-        );
-      } catch (e) {
-        console.error('[Webhook] Receipt trigger error:', e);
-      }
-
-      // 2. 查找是否有待处理的推荐关系
-      const referral = await prisma.referral.findUnique({
+      const referral = await tx.referral.findUnique({
         where: { refereeId: userId },
-        include: { referrer: true },
+        select: {
+          id: true,
+          status: true,
+          referrerId: true,
+          referrer: {
+            select: {
+              subscriptionEnd: true,
+            },
+          },
+        },
       });
 
       if (referral && referral.status === ReferralStatus.PENDING) {
-        // 3. 发放推荐奖励
-        const referrerExtension = 14 * 24 * 60 * 60 * 1000; // 推荐人 +14 天
-        const refereeExtension = 7 * 24 * 60 * 60 * 1000;   // 被推荐人 +7 天
+        const referrerExtensionMs = 14 * 24 * 60 * 60 * 1000;
+        const refereeExtensionMs = 7 * 24 * 60 * 60 * 1000;
 
-        // 获取被推荐人当前的订阅结束时间（刚刚更新的）
-        const referee = await prisma.user.findUnique({
+        const referee = await tx.user.findUnique({
           where: { id: userId },
           select: { subscriptionEnd: true },
         });
 
-        // 推荐人奖励：延长 2 周订阅
-        const referrerCurrentEnd = referral.referrer.subscriptionEnd?.getTime() || now.getTime();
-        await prisma.user.update({
+        const referrerCurrentEnd =
+          referral.referrer.subscriptionEnd?.getTime() || now.getTime();
+        await tx.user.update({
           where: { id: referral.referrerId },
           data: {
-            subscriptionEnd: new Date(referrerCurrentEnd + referrerExtension),
+            subscriptionEnd: new Date(referrerCurrentEnd + referrerExtensionMs),
             referralCount: { increment: 1 },
           },
         });
 
-        // 被推荐人奖励：延长 1 周订阅
         const refereeCurrentEnd = referee?.subscriptionEnd?.getTime() || now.getTime();
-        await prisma.user.update({
+        await tx.user.update({
           where: { id: userId },
           data: {
-            subscriptionEnd: new Date(refereeCurrentEnd + refereeExtension),
+            subscriptionEnd: new Date(refereeCurrentEnd + refereeExtensionMs),
           },
         });
 
-        // 4. 更新推荐记录状态为 COMPLETED
-        await prisma.referral.update({
+        await tx.referral.update({
           where: { id: referral.id },
           data: {
             status: ReferralStatus.COMPLETED,
@@ -135,13 +241,16 @@ export async function POST(req: Request) {
           },
         });
 
-        // Log referral reward (production: use proper logging service)
-        // eslint-disable-next-line no-console
-        console.log(`[Referral] Reward granted: ${referral.referrerId} -> ${userId}`);
+        console.warn('[WebhookAudit]', JSON.stringify({
+          action: 'referral_reward_granted',
+          eventId: event.id,
+          referrerId: referral.referrerId,
+          refereeId: userId,
+          timestamp: now.toISOString(),
+        }));
       }
 
-      // 5. 记录 webhook 处理事件（用于幂等追踪）
-      await prisma.notification.create({
+      await tx.notification.create({
         data: {
           userId,
           type: 'BILLING',
@@ -152,14 +261,83 @@ export async function POST(req: Request) {
           metadata: {
             eventId: event.id,
             sessionId: session.id,
+            userId,
+            action: 'webhook.checkout.session.completed',
+            result: 'processed',
+            timestamp: now.toISOString(),
             planKey: normalizedPlan,
             billingCycle,
             amount,
           },
         },
-      })
-    }
+      });
+    });
+  } catch (error) {
+    console.error('[Webhook] Processing Error:', error);
+    auditLog({
+      action: 'webhook',
+      result: 'processing_failed',
+      eventId: event.id,
+      userId,
+    });
+    return jsonResponse({
+      ok: false,
+      code: 'PROCESSING_FAILED',
+      message: 'Webhook processing failed',
+      eventId: event.id,
+      userId,
+    }, 500);
   }
 
-  return new NextResponse(null, { status: 200 });
+  if (isDuplicate) {
+    auditLog({
+      action: 'webhook',
+      result: 'duplicate_event',
+      eventId: event.id,
+      userId,
+    });
+    return jsonResponse({
+      ok: true,
+      code: 'DUPLICATE_EVENT',
+      message: 'Event already processed',
+      eventId: event.id,
+      userId,
+    }, 200);
+  }
+
+  try {
+    const email = session.customer_details?.email || '';
+    await triggerReceiptNotification(
+      userId,
+      email,
+      amount,
+      session.id,
+      normalizedPlan
+    );
+  } catch (error) {
+    console.error('[Webhook] Receipt trigger error:', error);
+    auditLog({
+      action: 'receipt_notification',
+      result: 'failed',
+      eventId: event.id,
+      userId,
+    });
+  }
+
+  auditLog({
+    action: 'webhook',
+    result: 'processed',
+    eventId: event.id,
+    userId,
+    planKey: normalizedPlan,
+    billingCycle,
+  });
+
+  return jsonResponse({
+    ok: true,
+    code: 'PROCESSED',
+    message: 'Webhook processed successfully',
+    eventId: event.id,
+    userId,
+  }, 200);
 }

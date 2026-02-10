@@ -3,7 +3,7 @@
  * Story-044: Task C - 质量检查系统
  */
 
-import type { ContentStatus } from '@prisma/client'
+import type { ContentStatus, ReportIssueType, ReportStatus } from '@prisma/client'
 import type { JsonValue } from './common'
 
 // ==================== 质量检查结果类型 ====================
@@ -129,7 +129,7 @@ export interface ReviewLogFilter {
 export interface CreateReportInput {
   questionId: string
   reportedBy: string
-  issueType: 'CONTENT_ERROR' | 'OPTION_ERROR' | 'ANSWER_ERROR' | 'EXPLANATION_ERROR' | 'INAPPROPRIATE_CONTENT'
+  issueType: ReportIssueType
   description: string
 }
 
@@ -139,7 +139,7 @@ export interface CreateReportInput {
 export interface ResolveReportInput {
   reportId: string
   reviewedBy: string
-  status: 'PENDING' | 'REVIEWING' | 'RESOLVED' | 'REJECTED'
+  status: ReportStatus
   resolution?: string
 }
 
@@ -149,8 +149,8 @@ export interface ResolveReportInput {
 export interface ReportFilter {
   questionId?: string
   reportedBy?: string
-  status?: string | string[]
-  issueType?: string | string[]
+  status?: ReportStatus | ReportStatus[]
+  issueType?: ReportIssueType | ReportIssueType[]
   createdAfter?: Date
   createdBefore?: Date
 }

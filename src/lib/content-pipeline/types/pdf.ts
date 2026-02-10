@@ -4,6 +4,7 @@
  */
 
 import type { ImportStage } from './ai'
+import type { OCRResult } from './ocr'
 
 // ==================== PDF 导入类型 ====================
 
@@ -159,5 +160,5 @@ export interface PDFProcessOptions {
   /** 失败时是否继续处理其他文件 */
   continueOnError?: boolean
   /** 进度回调 */
-  onProgress?: (current: number, total: number) => void
+  onProgress?: (current: number, total: number, result?: OCRResult) => void
 }
