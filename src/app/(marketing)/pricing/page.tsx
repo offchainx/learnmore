@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState, useTransition } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/providers';
-import { createCheckoutSession } from '@/actions/billing/stripe';
-import { toast } from '@/components/ui/use-toast';
 
 // ─── 比较表单元格类型 ─────────────────────────────────────────
 // string: 直接文本
@@ -63,7 +61,6 @@ const PricingPage: React.FC = () => {
   const router = useRouter();
   const [isAnnual, setIsAnnual] = useState(false);
   const { lang, setLang } = useApp();
-  const [, startTransition] = useTransition();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const toggleLang = () => {
@@ -71,7 +68,7 @@ const PricingPage: React.FC = () => {
     setLang(nextLang);
   };
 
-  const handleSubscribe = async (
+  const handleSubscribe = (
     planName: string,
     planKey: 'starter' | 'standard' | 'smart_plus' | 'premier'
   ) => {
@@ -81,30 +78,8 @@ const PricingPage: React.FC = () => {
     }
 
     setLoadingPlan(planName);
-    startTransition(async () => {
-      try {
-        const result = await createCheckoutSession(planKey, isAnnual ? 'annual' : 'monthly');
-        if (!result.ok) {
-          toast({
-            title: "Error",
-            description: result.error.message,
-            variant: "destructive"
-          });
-          setLoadingPlan(null);
-          return;
-        }
-
-        window.location.assign(result.checkoutUrl);
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: "Error",
-          description: "Failed to start checkout. Please try again.",
-          variant: "destructive"
-        });
-        setLoadingPlan(null);
-      }
-    });
+    const billingCycle = isAnnual ? 'annual' : 'monthly';
+    router.push(`/checkout/config?planKey=${planKey}&billingCycle=${billingCycle}`);
   };
 
   const isZh = lang === 'zh';

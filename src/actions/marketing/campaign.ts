@@ -60,78 +60,64 @@ export async function subscribeToNewsletter(
       `,
     });
 
-        return {
-
-          success: true,
-
-          message: 'Successfully subscribed! Please check your email.',
-
-        };
-
-      } catch (error) {
-
-        console.error('Subscription error:', error);
-
-        return {
-
-          success: false,
-
-          message: 'Something went wrong. Please try again later.',
-
-        };
-
-      }
-
-    }
-
-    
-
-    export type PlatformStats = {
-
-      activeStudents: number;
-
-      questionsSolved: number;
-
+    return {
+      success: true,
+      message: 'Successfully subscribed! Please check your email.',
     };
+  } catch (error) {
+    console.error('Subscription error:', error);
+    return {
+      success: false,
+      message: 'Something went wrong. Please try again later.',
+    };
+  }
+}
 
-    
+export type PlatformStats = {
+  activeStudents: number;
+  questionsSolved: number;
+};
 
-    export async function getPlatformStats(): Promise<PlatformStats> {
+function isPrismaConnectivityError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
 
-      try {
+  const asRecord = error as { name?: string; message?: string; code?: string };
+  const message = (asRecord.message || '').toLowerCase();
+  const name = (asRecord.name || '').toLowerCase();
 
-        const [userCount, attemptCount] = await Promise.all([
+  return (
+    name.includes('prismaclientinitializationerror') ||
+    message.includes('authentication failed against database server') ||
+    message.includes("can't reach database server") ||
+    message.includes('provided database credentials') ||
+    message.includes('database server at the configured address')
+  );
+}
 
-          prisma.user.count(),
+export async function getPlatformStats(): Promise<PlatformStats> {
+  try {
+    const [userCount, attemptCount] = await Promise.all([
+      prisma.user.count(),
+      prisma.userAttempt.count(),
+    ]);
 
-          prisma.userAttempt.count(),
-
-        ]);
-
-    
-
-        return {
-
-          activeStudents: userCount || 0,
-
-          questionsSolved: attemptCount || 0,
-
-        };
-
-      } catch (error) {
-
-        console.error('Error fetching platform stats:', error);
-
-        return {
-
-          activeStudents: 0,
-
-          questionsSolved: 0,
-
-        };
-
-      }
-
+    return {
+      activeStudents: userCount || 0,
+      questionsSolved: attemptCount || 0,
+    };
+  } catch (error) {
+    if (isPrismaConnectivityError(error)) {
+      console.warn('[PlatformStats] Database unavailable, fallback to zero stats.');
+      return {
+        activeStudents: 0,
+        questionsSolved: 0,
+      };
     }
 
-    
+    console.error('Error fetching platform stats:', error);
+    return {
+      activeStudents: 0,
+      questionsSolved: 0,
+    };
+  }
+}

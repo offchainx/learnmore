@@ -1,40 +1,85 @@
 # 验收标准（Acceptance）
 
 ## 功能验收（Given / When / Then）
-- 给定：生产环境变量已配置
-  当：触发支付结账与 webhook
-  则：订阅状态正确落库且重复 webhook 不重复写入。
-- 给定：回滚预案存在
-  当：演练失败路径
-  则：可恢复到上一稳定版本。
+- 给定：新用户完成注册
+  当：首次进入系统
+  则：默认订阅为 Starter（非 Standard 试用）。
+- 给定：用户从 Dashboard 发起升级
+  当：进入 `/pricing` 并选择付费计划
+  则：先进入支付配置页，而不是直接跳转 Stripe。
+- 给定：用户位于支付配置页
+  当：查看支付模式
+  则：Stripe 可用；Touch n Go/银行转账显示“即将支持”。
+- 给定：用户选择 Standard 并走 Stripe 下单
+  当：创建试用订阅
+  则：当日不扣款，7 天后触发首扣。
+- 给定：用户处于 Standard 试用期
+  当：进入 Settings 订阅管理
+  则：可看到试用剩余时间、下次扣款时间与 Cancel Plan 按钮。
+- 给定：用户在 Settings 点击 Cancel Plan
+  当：取消成功
+  则：状态为到期不续费（cancel_at_period_end=true），权益保留至到期并降级 Starter。
+- 给定：用户在 Upgrade 流程填写 referral code
+  当：首次绑定成功
+  则：推荐码不可修改且不允许重复绑定。
+- 给定：推荐关系已绑定
+  当：仅发生 `checkout.session.completed`（试用开始）
+  则：不发放 referral 奖励。
+- 给定：推荐关系已绑定
+  当：首笔真实扣款成功（invoice.payment_succeeded）
+  则：按 referral 规则结算奖励。
+- 给定：用户输入有效 voucher 且 referral 已绑定
+  当：提交支付配置
+  则：voucher 折扣与 referral 奖励可同时生效（互不冲突）。
+- 给定：Stripe 重放同一 event
+  当：重复推送 webhook
+  则：不重复结算订阅、奖励与通知（幂等通过）。
 
-## Server Action 验证矩阵（本地 + 预发都要执行）
+## Server Action 验证矩阵（本地 + 预发）
 | Action 名称 | 调用入口（页面/按钮/事件） | 输入样例（正常/异常） | 权限校验（未登录/越权） | 预期输出（成功/失败） | 幂等要求 | 日志与错误码 | 结果（pass/fail） | 证据 |
 |---|---|---|---|---|---|---|---|---|
-| createCheckoutSession | pricing 页面提交 | 异常：`["bad_plan","monthly"]`；正常：`["standard","monthly"]` | 未登录应拒绝 | 失败返回结构化错误码（INVALID_INPUT/UNAUTHORIZED） | 同参数重放不产生重复写入 | `BillingAudit` 可检索 | partial（本地 pass；预发 fail） | 本地（2026-02-10）：`Next-Action: 607b12628901748bc823a607af1c74e67b8034c650` -> `{"code":"INVALID_INPUT"}`；未登录 -> `{"code":"UNAUTHORIZED"}`；日志含 `result":"unauthorized"`。预发（2026-02-10）：`Next-Action: 6083ac7bd5ba50785e26f1716b0f17d339c1044d5b` 调用返回 `HTTP 500`（digest: `3095804688`），待触发预发重新部署并复测。 |
-| POST /api/webhook/stripe | Stripe 推送事件 | 异常：缺少签名、伪造签名 | 外部调用，必须验签 | 均返回 400 | 重放异常事件不应落库 | `WebhookAudit` 可检索 | pass（本地负路径 + 预发负路径） | 本地（2026-02-10）：`MISSING_SIGNATURE`、`INVALID_SIGNATURE` 均 400；日志含 `result":"missing_signature"` 与 `result":"invalid_signature"`。预发（2026-02-10）：缺签名 400 响应 `Webhook Error: No stripe-signature header value was provided.`；伪签名 400 响应 `Webhook Error: No signatures found matching...`（提示预发 webhook 仍走 Stripe 默认错误串，非统一 JSON 响应，疑似未部署最新修复）。 |
+| prepareCheckoutAction | checkout config 提交 | 正常：`{standard,monthly,stripe}`；异常：非法 paymentMode/plan | 未登录应拒绝 | 成功返回 checkoutUrl；失败结构化错误 | 重复提交不写脏数据 | checkout 编排日志 |  |  |
+| bindReferralCodeAction | checkout config 推荐码输入 | 正常：有效码；异常：无效码/自推荐/重复绑定 | 未登录应拒绝 | 成功绑定；失败明确错误码 | 重复提交不重复绑定 | bind 审计日志 |  |  |
+| cancelSubscriptionAction | settings Cancel Plan 按钮 | 正常：有订阅；异常：无订阅或状态异常 | 未登录应拒绝 | 成功设置到期不续费；失败结构化错误 | 重复点击幂等 | cancel 审计日志 |  |  |
+| POST /api/webhook/stripe | Stripe 推送 | 正常：签名正确；异常：缺签名/伪签名 | 外部调用，必须验签 | 正常 200，异常拒绝 | 同 event 不重复处理 | webhook 审计日志 |  |  |
 
 ## 数据表核对矩阵（逐项）
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
 |---|---|---|---|---|---|---|---|
-| 支付成功 | users | subscription_tier、subscription_end | 待预发执行 | 待预发执行 | 待预发执行 | 待预发执行 | pending（需要真实 Stripe 成功回调） |
-| webhook 幂等重放 | notifications | type、link | `users=8, referrals=0, notifications=4, stripeEvents=1` | `users=8, referrals=0, notifications=4, stripeEvents=1` | 无新增脏写入 | 本地仅验证“异常重放不写入” | pass（异常重放） |
-| 推荐奖励结算 | referrals, users | status、reward_granted、subscription_end | `referrals=0`（无可结算样本） | 待预发执行 | 待预发执行 | 待预发执行 | pending（无本地样本） |
+| 注册默认 Starter | users | subscription_tier、subscription_status | 注册前用户不存在 | 注册后应为 STARTER | 默认状态正确 | 回滚后可恢复旧策略 |  |
+| Standard trial 创建 | users | subscription_status、subscription_start、subscription_end、stripe_subscription_id | 下单前状态 | `TRIALING` + trial 时间窗口写入 | 当日不扣款 | 回滚后恢复旧下单路径 |  |
+| Cancel Plan | users | cancel_at_period_end、subscription_status | 取消前状态 | cancel_at_period_end=true | 到期不续费生效 | 回滚后可恢复续费策略 |  |
+| Referral 首扣结算 | referrals, users | status、reward_granted、deferred_*、first_paid_at | 首扣前 referral=PENDING | 首扣后按规则变更 | 仅首扣触发奖励 | 回滚后核对状态一致 |  |
+| Voucher 应用 | voucher_codes、voucher_redemptions、notifications | discount_type、discount_value、applied_amount | 应用前兑换记录为空 | 应用后写入 redemption | 折扣口径正确 | 回滚后记录可追踪 |  |
+| webhook 幂等 | notifications（或 webhook_event 表） | link/metadata.eventId | 首次处理后 count=1 | 重放后 count 仍为 1 | 无重复写入 | 重放复验 |  |
 
-## 预发复测进度（T-006）
-- 2026-02-10 探测结果：
-  - `https://learnmore.vercel.app` 可访问（`200`），但首页内容为 `Create Next App` 默认模板，不是当前项目。
-  - 通过 GitHub Deployments API 反查到当前项目的真实 Vercel 预发地址模式：`https://learnmorev10-<suffix>-chainvistas-projects.vercel.app`。
-  - 最近成功部署样例：`https://learnmorev10-ppll31n91-chainvistas-projects.vercel.app`（deployment id: `3790299001`）。
-  - 初始访问返回 `401 Authentication Required`（Vercel Deployment Protection）。
-  - 已通过 bypass token 设置 bypass cookie，预发 `/pricing` 可访问（`200`）。
-  - 预发 webhook 负路径（缺签名/伪签名）均返回 `400`（详见上方矩阵证据）。
-  - 预发 `createCheckoutSession` Server Action 调用返回 `500`（digest），无法完成“结构化错误码”复测。
-- 结论：预发环境已定位且可访问，但预发行为与本地实现不一致（webhook 未统一 JSON、action 500），疑似预发部署版本未包含本地修复；需触发预发重新部署（或切换到正确的 preview deployment）后再完成 T-006。
+## 关键字段验收（新增）
+- `users.subscriptionStatus`
+- `users.cancelAtPeriodEnd`
+- `users.firstPaidAt`
+- `referrals.status`
+- `referrals.deferredRewardTier`
+- `referrals.deferredRewardWeeks`
+- `referrals.deferredSettledAt`
+- `voucher_codes`
+- `voucher_redemptions`
+- `notifications`（event 幂等记录）
+
+## 页面一致性验收
+- [ ] Dashboard 左上 LearnMore 图标区域显示 subscription tier。
+- [ ] Sidebar 有明确 Upgrade 入口，且由 `dashboard-layout.tsx` 统一提供。
+- [ ] `/pricing` 选择 paid plan 后跳转至支付配置页。
+- [ ] 支付配置页中 Touch n Go/银行转账为可见但不可用。
+- [ ] Settings 订阅管理展示 trial 倒计时、下次扣款、Cancel Plan。
+
+## 历史基线证据（已完成，保留）
+- 已验证 `createCheckoutSession` 与 `POST /api/webhook/stripe` 的负路径与正向幂等基础能力。
+- 已验证 `CRON_SECRET` 鉴权生效。
+- 现阶段新增需求验收将在 T-007~T-016 执行后补全证据。
 
 ## 发布检查
-- [x] 本地验证完成并附证据
-- [ ] 预发复测完成并附证据
-- [x] 幂等与越权场景通过（本地负路径）
-- [ ] 回滚方案可执行
-- [x] 已获得用户批准进入开发
+- [x] 已完成文档归位（P0-01 作为唯一实现文档源）
+- [ ] 新增 Action/数据模型口径实现并通过本地验证
+- [ ] 新增 Action/数据模型口径通过预发验证
+- [ ] webhook 重放幂等通过
+- [ ] 回滚方案可执行并有证据

@@ -2,12 +2,23 @@
 
 | id | description | owner | status (todo/doing/done) | link (PR/commit) |
 |---|---|---|---|---|
-| T-001 | 重写 P0-01 生产环境与发布基线 的 spec.md 与 plan.md 并补齐接口契约 | codex | done |  |
+| T-001 | 重写 P0-01 spec.md 与 plan.md 并补齐接口契约 | codex | done |  |
 | T-002 | 重写 acceptance.md，加入 Action 与数据表核对矩阵 | codex | done |  |
 | T-003 | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
-| T-004 | 开发实现（门禁项，等待用户批准） | codex | done |  |
+| T-004 | 第一轮开发实现（原门禁项） | codex | done |  |
 | T-005 | 本地验证（Action + SQL 快照） | codex | done | 2026-02-10 本地证据见 acceptance.md |
-| T-006 | 预发复测与收尾 | codex | doing | 2026-02-10 已通过 Vercel bypass cookie 访问预发（/pricing 200、webhook 负路径 400）。但 `createCheckoutSession` 的 Server Action 在预发调用返回 500（digest），且预发 webhook 返回仍为 Stripe 默认错误串（非 JSON），疑似预发部署版本未包含本地修复；需触发重新部署并复测后才能结项。 |
+| T-006 | 预发复测与收尾（原范围） | codex | doing | 已完成：负路径矩阵、CRON_SECRET、正向支付与 webhook 幂等证据。剩余：推荐结算样本 + 回滚演练证据。新增开发项并入 T-007~T-016。 |
+| T-007 | 文档归位确认（P0-01 作为唯一实现源） | codex | todo |  |
+| T-008 | 数据模型变更方案定稿（users/referrals/voucher/webhook 审计） | codex | todo |  |
+| T-009 | 注册默认 Starter 与注册页 referral 入口迁移方案定稿 | codex | todo |  |
+| T-010 | Pricing -> Checkout Config 路由与交互改造方案定稿 | codex | todo |  |
+| T-011 | Stripe trial/cancel/webhook 事件扩展方案定稿 | codex | todo |  |
+| T-012 | Referral 绑定与首扣结算服务化方案定稿 | codex | todo |  |
+| T-013 | Voucher 后台配置与前台应用方案定稿 | codex | todo |  |
+| T-014 | Dashboard/Sidebar tier 与 Upgrade 入口统一改造方案定稿 | codex | todo |  |
+| T-015 | Settings 订阅管理页（trial 倒计时 + cancel plan）方案定稿 | codex | todo |  |
+| T-016 | 本地与预发验收回填 + 回滚演练证据收敛 | codex | todo |  |
 
 ## 备注
-- 用户已确认“通过 + 批准”，当前进入开发实施阶段。
+- 本轮仅进行文档归位与口径冻结，不进行代码开发。
+- `p0-09` 仅保留历史参考，实施口径统一以 `p0-01` 为准。

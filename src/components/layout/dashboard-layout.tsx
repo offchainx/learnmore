@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   BookOpen, LayoutDashboard, PenTool, MessageCircle,
   Settings, LogOut, Trophy, ChevronRight, ShieldCheck,
-  Upload, CheckSquare, BarChart, AlertCircle, ChevronDown, Users
+  Upload, CheckSquare, BarChart, AlertCircle, ChevronDown, Users, Rocket
 } from 'lucide-react';
 import { useApp } from '@/providers';
 import { logoutAction } from '@/actions/user/auth';
@@ -108,6 +108,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   const isParent = userRole === 'PARENT';
   const isAdmin = userRole === 'ADMIN' || userRole === 'TEACHER';
+  const effectiveTier = (subscriptionTier || 'STARTER').toUpperCase();
+  const tierLabelMap: Record<string, string> = {
+    STARTER: 'Starter',
+    STANDARD: 'Standard',
+    SMART_PLUS: 'Smart Plus',
+    PREMIER: 'Premier',
+  };
+  const tierLabel = tierLabelMap[effectiveTier] || 'Starter';
 
   // Check if any admin route is active
   const isUserAdminActive = pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions') || pathname?.startsWith('/admin/feedback');
@@ -154,7 +162,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
                 <BookOpen className="h-4 w-4 text-white" />
              </div>
-             <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">LearnMore</span>
+             <div className="flex flex-col">
+               <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">LearnMore</span>
+               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full w-fit bg-blue-500/15 text-blue-600 dark:text-blue-300 border border-blue-500/20">
+                 {tierLabel}
+               </span>
+             </div>
           </div>
         </div>
         
@@ -169,6 +182,26 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               onClick={() => { onNavigate(item.id); setSidebarOpen(false); }}
             />
           ))}
+
+          {!isParent && (
+            <button
+              onClick={() => {
+                router.push('/pricing');
+                setSidebarOpen(false);
+              }}
+              className="mt-4 w-full rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 px-4 py-4 text-left hover:border-blue-400 transition-all"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                  <Rocket className="w-4 h-4 text-blue-300" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-white">Upgrade</div>
+                  <div className="text-xs text-slate-300 mt-0.5">升级套餐，解锁更多功能</div>
+                </div>
+              </div>
+            </button>
+          )}
 
           {/* Admin Section - Only for ADMIN and TEACHER */}
           {isAdmin && (

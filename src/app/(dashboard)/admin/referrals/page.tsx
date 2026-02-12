@@ -31,6 +31,7 @@ export default async function AdminReferralsPage() {
               <th className="p-4 text-left">推荐码</th>
               <th className="p-4 text-left">状态</th>
               <th className="p-4 text-left">奖励发放</th>
+              <th className="p-4 text-left">延迟奖励</th>
               <th className="p-4 text-left">注册时间</th>
             </tr>
           </thead>
@@ -69,6 +70,8 @@ export default async function AdminReferralsPage() {
                     className={`px-2 py-1 rounded text-xs ${
                       ref.status === 'COMPLETED'
                         ? 'bg-green-100 text-green-800'
+                        : ref.status === 'DEFERRED'
+                          ? 'bg-indigo-100 text-indigo-800'
                         : ref.status === 'PENDING'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-gray-100 text-gray-800'
@@ -82,6 +85,30 @@ export default async function AdminReferralsPage() {
                     <span className="text-green-600">✅ 已发放</span>
                   ) : (
                     <span className="text-gray-400">未发放</span>
+                  )}
+                </td>
+                <td className="p-4 text-xs">
+                  {ref.status === 'DEFERRED' || ref.deferredRewardWeeks > 0 ? (
+                    <div className="space-y-1">
+                      <div>
+                        <span className="text-slate-500">Tier:</span>{' '}
+                        <span className="font-medium">{ref.deferredRewardTier || 'STANDARD'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Weeks:</span>{' '}
+                        <span className="font-medium">{ref.deferredRewardWeeks}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Settled:</span>{' '}
+                        <span className="font-medium">
+                          {ref.deferredSettledAt
+                            ? new Date(ref.deferredSettledAt).toLocaleString('zh-CN')
+                            : 'No'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">—</span>
                   )}
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">

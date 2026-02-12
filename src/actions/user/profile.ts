@@ -40,7 +40,18 @@ export async function getProfile() {
           posts: true,
           leaderboardEntries: true,
         }
-      }
+      },
+      referralsGiven: {
+        where: {
+          status: 'DEFERRED',
+          deferredRewardWeeks: { gt: 0 },
+        },
+        select: {
+          id: true,
+          deferredRewardWeeks: true,
+          deferredRewardTier: true,
+        },
+      },
     }
   })
 

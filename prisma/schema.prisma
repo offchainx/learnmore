@@ -38,6 +38,11 @@ model User {
   subscriptionTier  SubscriptionTier? @default(STARTER) @map("subscription_tier")
   subscriptionStart DateTime? @map("subscription_start")
   subscriptionEnd   DateTime? @map("subscription_end")
+  subscriptionStatus SubscriptionStatus @default(CANCELED) @map("subscription_status")
+  cancelAtPeriodEnd Boolean @default(false) @map("cancel_at_period_end")
+  stripeCustomerId String? @map("stripe_customer_id")
+  stripeSubscriptionId String? @map("stripe_subscription_id")
+  firstPaidAt DateTime? @map("first_paid_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -79,6 +84,7 @@ model User {
   notifications           Notification[]
   notificationPreference  NotificationPreference?
   feedbacks               UserFeedback[]
+  voucherRedemptions      VoucherRedemption[]
 
   @@map("users")
 }
@@ -141,6 +147,14 @@ enum SubscriptionTier {
   STANDARD
   SMART_PLUS
   PREMIER
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  CANCEL_AT_PERIOD_END
+  CANCELED
+  PAST_DUE
 }
 
 enum UserRole {
@@ -588,6 +602,7 @@ enum PracticeMode {
 enum ReferralStatus {
   PENDING // 被推荐人已注册，但未付费
   COMPLETED // 被推荐人已付费，奖励已发放
+  DEFERRED // 被推荐人已付费，但推荐人奖励延迟发放
   EXPIRED // 推荐码过期（可选）
   CANCELLED // 被推荐人退款（可选）
 }
@@ -602,6 +617,12 @@ model Referral {
   status        ReferralStatus @default(PENDING)
   rewardGranted Boolean        @default(false) @map("reward_granted") // 奖励是否已发放
   rewardDate    DateTime?      @map("reward_date") // 奖励发放时间
+  bindSource    String         @default("UPGRADE") @map("bind_source")
+  refereeRewardGrantedAt DateTime? @map("referee_reward_granted_at")
+  referrerRewardGrantedAt DateTime? @map("referrer_reward_granted_at")
+  deferredRewardTier SubscriptionTier? @map("deferred_reward_tier")
+  deferredRewardWeeks Int @default(0) @map("deferred_reward_weeks")
+  deferredSettledAt DateTime? @map("deferred_settled_at")
 
   // 追踪信息
   refereeEmail  String    @map("referee_email") // 被推荐人邮箱（冗余，方便查询）
@@ -1054,4 +1075,45 @@ model UserFeedback {
   @@index([userId])
   @@index([status])
   @@map("user_feedbacks")
+}
+
+enum VoucherDiscountType {
+  AMOUNT
+  PERCENT
+}
+
+model VoucherCode {
+  id            String              @id @default(uuid()) @db.Uuid
+  code          String              @unique
+  discountType  VoucherDiscountType @map("discount_type")
+  discountValue Int                 @map("discount_value")
+  maxRedemptions Int?               @map("max_redemptions")
+  redeemedCount Int                 @default(0) @map("redeemed_count")
+  isActive      Boolean             @default(true) @map("is_active")
+  validFrom     DateTime?           @map("valid_from")
+  validTo       DateTime?           @map("valid_to")
+  stripeCouponId String?            @map("stripe_coupon_id")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  redemptions VoucherRedemption[]
+
+  @@index([isActive, validFrom, validTo])
+  @@map("voucher_codes")
+}
+
+model VoucherRedemption {
+  id             String   @id @default(uuid()) @db.Uuid
+  voucherId      String   @map("voucher_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  stripeSessionId String? @map("stripe_session_id")
+  appliedAmount  Int      @default(0) @map("applied_amount")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  voucher VoucherCode @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId])
+  @@index([userId, createdAt])
+  @@map("voucher_redemptions")
 }

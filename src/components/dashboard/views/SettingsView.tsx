@@ -2,6 +2,7 @@
 
 import React, { useActionState, useState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/labeled-input';
@@ -11,6 +12,8 @@ import { updateProfile } from '@/actions/user/profile';
 import { updateAIConfig } from '@/actions/user/settings';
 import { generateInviteCode } from '@/actions/user/parent';
 import { getNotificationPreferences, updateNotificationPreferences } from '@/actions/notification/preferences';
+import { cancelSubscriptionAction } from '@/actions/billing/stripe';
+import { toast } from '@/components/ui/use-toast';
 import {
   User, Shield, Brain, CreditCard, Camera,
   Bot, Glasses, ClipboardList, Link as LinkIcon, Copy,
@@ -28,10 +31,9 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
 
 // 推荐好友板块组件
 type ReferralUser = {
-  role: string;
   referralCode: string | null;
   referralCount: number;
-  referralLimit: number;
+  referralLimit?: number;
 };
 
 export function ReferralSection({ user }: { user: ReferralUser }) {
@@ -39,8 +41,8 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const referralUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/register?ref=${user.referralCode}`
-    : `/register?ref=${user.referralCode}`;
+    ? `${window.location.origin}/pricing`
+    : '/pricing';
 
   const handleCopyCode = () => {
     if (user.referralCode) {
@@ -55,37 +57,6 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
-
-  // 只有付费用户才显示完整推荐功能
-  if (!['PRO', 'ULTIMATE'].includes(user.role)) {
-    return (
-      <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-b border-amber-500/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-xl">
-              <Gift className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">推荐好友</CardTitle>
-              <CardDescription>
-                升级到 PRO 或 ULTIMATE 会员后，您可以邀请好友并获得奖励
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="text-center py-4">
-            <p className="text-slate-500 dark:text-slate-400 mb-4">
-              解锁推荐功能，与好友一起学习，共享奖励
-            </p>
-            <Button variant="primary">
-              升级会员
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="overflow-hidden">
@@ -126,7 +97,7 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
 
         {/* 推荐链接 */}
         <div>
-          <Label className="text-slate-700 dark:text-slate-300 font-semibold">推荐链接</Label>
+          <Label className="text-slate-700 dark:text-slate-300 font-semibold">推荐入口链接</Label>
           <div className="flex gap-2 mt-2">
             <div className="flex-1 relative">
               <input
@@ -154,7 +125,7 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
           <ul className="text-sm space-y-2 text-slate-600 dark:text-slate-400">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0"></span>
-              <span>好友使用您的推荐码注册并完成首次付费后</span>
+              <span>好友在升级流程填写您的推荐码并完成首笔真实扣款后</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0"></span>
@@ -162,30 +133,16 @@ export function ReferralSection({ user }: { user: ReferralUser }) {
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
-              <span>好友可获得 <strong className="text-blue-600 dark:text-blue-400">1 周</strong> 免费试用</span>
+              <span>好友可获得 <strong className="text-blue-600 dark:text-blue-400">2 周</strong> 额外会员时长</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0"></span>
               <span>
                 您已成功推荐 <strong className="text-purple-600 dark:text-purple-400">{user.referralCount}</strong> 位好友
-                （上限 <strong>{user.referralLimit}</strong> 位）
+                （当前不设上限）
               </span>
             </li>
           </ul>
-
-          {/* 推荐进度条 */}
-          <div className="pt-2">
-            <div className="flex justify-between text-xs text-slate-500 mb-1">
-              <span>推荐进度</span>
-              <span>{user.referralCount} / {user.referralLimit}</span>
-            </div>
-            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min((user.referralCount / user.referralLimit) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -203,6 +160,18 @@ type UserProfile = {
   avatar: string | null;
   grade: number | null;
   role: string;
+  subscriptionTier?: string | null;
+  subscriptionStatus?: string | null;
+  subscriptionStart?: Date | string | null;
+  subscriptionEnd?: Date | string | null;
+  cancelAtPeriodEnd?: boolean;
+  stripeSubscriptionId?: string | null;
+  firstPaidAt?: Date | string | null;
+  referralsGiven?: Array<{
+    id: string;
+    deferredRewardWeeks: number;
+    deferredRewardTier: string | null;
+  }>;
   settings: {
     aiPersonality?: string | null;
     difficultyCalibration?: number | null;
@@ -219,8 +188,10 @@ type SettingsViewProps = {
 
 export const SettingsView = ({ user }: SettingsViewProps) => {
   const { t, lang, setLang, theme, toggleTheme } = useApp(); // Use global state
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>('profile');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   // Initialize AI settings from user data
   const initialAiPersonality = (user?.settings?.aiPersonality?.toLowerCase() as 'encouraging' | 'socratic' | 'strict') || 'encouraging';
@@ -238,6 +209,34 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   const [notifPrefs, setNotifPrefs] = useState<any>(null);
   const [isNotifLoading, setIsNotifLoading] = useState(false);
   const [notifUpdateSuccess, setNotifUpdateSuccess] = useState(false);
+
+  const tierLabelMap: Record<string, string> = {
+    STARTER: 'Starter',
+    STANDARD: 'Standard',
+    SMART_PLUS: 'Smart Plus',
+    PREMIER: 'Premier',
+  };
+  const statusLabelMap: Record<string, string> = {
+    TRIALING: '试用中',
+    ACTIVE: '已生效',
+    CANCEL_AT_PERIOD_END: '到期取消',
+    CANCELED: '已取消',
+    PAST_DUE: '逾期待处理',
+  };
+
+  const normalizedTier = (user?.subscriptionTier || 'STARTER').toUpperCase();
+  const normalizedStatus = (user?.subscriptionStatus || 'CANCELED').toUpperCase();
+  const subscriptionEndDate = user?.subscriptionEnd ? new Date(user.subscriptionEnd) : null;
+  const now = Date.now();
+  const remainingMs = subscriptionEndDate ? subscriptionEndDate.getTime() - now : 0;
+  const trialDaysLeft = normalizedStatus === 'TRIALING' && remainingMs > 0
+    ? Math.ceil(remainingMs / (24 * 60 * 60 * 1000))
+    : 0;
+  const pendingDeferredRewards = user?.referralsGiven || [];
+  const pendingDeferredWeeks = pendingDeferredRewards.reduce(
+    (total, item) => total + (item.deferredRewardWeeks || 0),
+    0
+  );
 
   useEffect(() => {
     if (activeTab === 'notifications') {
@@ -286,6 +285,37 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       navigator.clipboard.writeText(inviteCode);
       alert('Code copied to clipboard!');
     }
+  };
+
+  const handleCancelPlan = async () => {
+    if (!user?.stripeSubscriptionId) {
+      toast({
+        title: '无法取消',
+        description: '当前没有可取消的 Stripe 订阅',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsCanceling(true);
+    const result = await cancelSubscriptionAction();
+    setIsCanceling(false);
+
+    if (!result.ok) {
+      toast({
+        title: '取消失败',
+        description: result.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: '已设置到期取消',
+      description: result.cancelAt
+        ? `订阅将在 ${new Date(result.cancelAt).toLocaleString('zh-CN')} 到期后自动降级为 Starter`
+        : result.message,
+    });
   };
 
   const renderSidebar = () => (
@@ -737,10 +767,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       {user && (
         <ReferralSection
           user={{
-            role: user.role,
             referralCode: user.referralCode,
             referralCount: user.referralCount ?? 0,
-            referralLimit: user.referralLimit ?? 10,
           }}
         />
       )}
@@ -758,12 +786,84 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
            {activeTab === 'notifications' && renderNotificationsContent()}
            {activeTab === 'account' && renderAccountContent()}
            {activeTab === 'subscription' && (
-              <div className="text-center py-20 animate-fade-in-up">
-                 <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CreditCard className="w-10 h-10 text-slate-400" />
+              <div className="space-y-6 animate-fade-in-up">
+                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                      <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">订阅管理</h2>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          当前套餐与续费状态会在 Stripe 事件后自动同步。
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20">
+                          {tierLabelMap[normalizedTier] || normalizedTier}
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          {statusLabelMap[normalizedStatus] || normalizedStatus}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4 mt-6 text-sm">
+                      <div className="rounded-xl bg-slate-50 dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800">
+                        <p className="text-slate-500 dark:text-slate-400 mb-1">当前套餐</p>
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {tierLabelMap[normalizedTier] || normalizedTier}
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800">
+                        <p className="text-slate-500 dark:text-slate-400 mb-1">下次扣款 / 到期时间</p>
+                        <p className="font-semibold text-slate-900 dark:text-white">
+                          {subscriptionEndDate ? subscriptionEndDate.toLocaleString('zh-CN') : '暂无'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {normalizedStatus === 'TRIALING' && (
+                      <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
+                        <p className="text-sm text-amber-200">
+                          Standard 试用剩余 <span className="font-bold">{trialDaysLeft}</span> 天。
+                          首次真实扣款前可在此页面取消计划。
+                        </p>
+                      </div>
+                    )}
+
+                    {user?.cancelAtPeriodEnd && (
+                      <div className="mt-4 rounded-xl border border-orange-400/30 bg-orange-400/10 p-4">
+                        <p className="text-sm text-orange-200">
+                          当前已设置到期取消。到期后将自动降级为 Starter。
+                        </p>
+                      </div>
+                    )}
+
+                    {pendingDeferredWeeks > 0 && (
+                      <div className="mt-4 rounded-xl border border-indigo-400/30 bg-indigo-400/10 p-4">
+                        <p className="text-sm text-indigo-100">
+                          待结算推荐奖励：共 {pendingDeferredRewards.length} 条，合计 {pendingDeferredWeeks} 周。
+                          当你后续成为 Standard 及以上并完成扣款后会自动补发。
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-3 mt-6">
+                      <Button onClick={() => router.push('/pricing')}>
+                        Upgrade
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelPlan}
+                        disabled={
+                          isCanceling ||
+                          !user?.stripeSubscriptionId ||
+                          normalizedStatus === 'CANCELED' ||
+                          !!user?.cancelAtPeriodEnd
+                        }
+                      >
+                        {isCanceling ? '提交中...' : 'Cancel Plan（到期生效）'}
+                      </Button>
+                    </div>
                  </div>
-                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Manage Subscription</h2>
-                 <Button variant="outline" size="lg">View Billing History</Button>
               </div>
            )}
         </Card>

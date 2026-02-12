@@ -7,6 +7,42 @@ import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
 import { triggerWelcomeNotification } from '../notification/triggers'
 
+function isPrismaConnectivityError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+
+  const asRecord = error as { name?: string; message?: string }
+  const name = (asRecord.name || '').toLowerCase()
+  const message = (asRecord.message || '').toLowerCase()
+
+  return (
+    name.includes('prismaclientinitializationerror') ||
+    message.includes('authentication failed against database server') ||
+    message.includes("can't reach database server") ||
+    message.includes('provided database credentials') ||
+    message.includes('database server at the configured address')
+  )
+}
+
+function isPrismaSchemaMismatchError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+
+  const asRecord = error as { name?: string; message?: string; code?: string }
+  const name = (asRecord.name || '').toLowerCase()
+  const message = (asRecord.message || '').toLowerCase()
+  const code = (asRecord.code || '').toUpperCase()
+
+  return (
+    name.includes('prismaclientknownrequesterror') &&
+    (
+      code === 'P2021' || // table does not exist
+      code === 'P2022' || // column does not exist
+      message.includes('does not exist') ||
+      message.includes('the column') ||
+      message.includes('the table')
+    )
+  )
+}
+
 // 生成推荐码（8位，大写字母+数字）
 function generateReferralCode(): string {
   // 使用 crypto.randomBytes 生成随机字节，转为 base64，提取字母数字字符
@@ -21,7 +57,6 @@ const signupSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z.string().min(6, '密码至少6位'),
   username: z.string().min(2, '用户名至少2位').optional(),
-  referralCode: z.string().length(8, '推荐码必须是8位').optional().or(z.literal('')),
 })
 
 const loginSchema = z.object({
@@ -38,50 +73,12 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     username: formData.get('username') as string | undefined,
-    referralCode: (formData.get('referralCode') as string | undefined) || '',
   }
 
   // Zod 验证
   const parsed = signupSchema.safeParse(data)
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message }
-  }
-
-  const usedReferralCode = parsed.data.referralCode?.trim() || null
-
-  // 验证推荐码（如果提供）
-  let referrerId: string | null = null
-  if (usedReferralCode) {
-    const referrer = await prisma.user.findUnique({
-      where: { referralCode: usedReferralCode },
-      include: {
-        permissionOverrides: {
-          where: {
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } }
-            ]
-          }
-        }
-      },
-    })
-
-    if (!referrer) {
-      return { error: '无效的推荐码' }
-    }
-
-    const { getEffectiveTier } = await import('@/lib/permissions/engine')
-    const effectiveTier = getEffectiveTier(referrer)
-
-    if (effectiveTier !== 'PREMIER') {
-      return { error: '该推荐码已失效（推荐人非领航版用户）' }
-    }
-
-    if (referrer.referralCount >= referrer.referralLimit) {
-      return { error: '该推荐码已达到使用上限' }
-    }
-
-    referrerId = referrer.id
   }
 
   const supabase = await createClient()
@@ -105,9 +102,8 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   if (authData.user) {
     // 生成用户自己的推荐码
     const myReferralCode = generateReferralCode()
-    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    // 1. 更新用户推荐码和用户名，并设置试用期
+    // 1. 更新用户推荐码和用户名，并设置默认 Starter 状态
     // 注意：Trigger 会先创建用户，这里用 upsert 兜底
     try {
       await prisma.user.upsert({
@@ -117,42 +113,28 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
           email: parsed.data.email,
           username: parsed.data.username || null,
           referralCode: myReferralCode,
-          subscriptionTier: 'STANDARD',
-          subscriptionStart: new Date(),
-          subscriptionEnd: trialEndDate,
+          subscriptionTier: 'STARTER',
+          subscriptionStatus: 'CANCELED',
+          subscriptionStart: null,
+          subscriptionEnd: null,
+          cancelAtPeriodEnd: false,
         },
         update: {
           username: parsed.data.username || undefined,
           referralCode: myReferralCode,
-          subscriptionTier: 'STANDARD',
-          subscriptionStart: new Date(),
-          subscriptionEnd: trialEndDate,
+          subscriptionTier: 'STARTER',
+          subscriptionStatus: 'CANCELED',
+          subscriptionStart: null,
+          subscriptionEnd: null,
+          cancelAtPeriodEnd: false,
         },
       })
-      console.log('[Auth] User trial subscription (STANDARD) granted until:', trialEndDate)
+      console.log('[Auth] User initialized with STARTER tier')
     } catch (e) {
       console.error('[Auth] User upsert error:', e)
     }
 
-    // 2. 如果使用了推荐码，创建推荐关系记录
-    if (referrerId && usedReferralCode) {
-      try {
-        await prisma.referral.create({
-          data: {
-            referrerId: referrerId,
-            refereeId: authData.user.id,
-            referralCode: usedReferralCode,
-            refereeEmail: parsed.data.email,
-            status: 'PENDING', // 等待付费
-          },
-        })
-        console.log('[Auth] Referral record created')
-      } catch (e) {
-        console.error('[Auth] Referral create error:', e)
-      }
-    }
-
-    // 3. 初始化 UserSettings（Trigger 可能已创建，用 upsert 兜底）
+    // 2. 初始化 UserSettings（Trigger 可能已创建，用 upsert 兜底）
     try {
       await prisma.userSettings.upsert({
         where: { userId: authData.user.id },
@@ -169,7 +151,7 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
       console.error('[Auth] UserSettings upsert error:', e)
     }
 
-    // 4. 触发欢迎通知和邮件
+    // 3. 触发欢迎通知和邮件
     try {
       await triggerWelcomeNotification(authData.user.id, parsed.data.email, parsed.data.username || undefined);
     } catch (e) {
@@ -239,24 +221,38 @@ export async function getCurrentUser() {
   if (!user) return null
 
   // 从 public.users 获取完整用户信息
-  let dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    include: {
-      permissionOverrides: {
-        where: {
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
-          ]
+  let dbUser = null
+  try {
+    dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        permissionOverrides: {
+          where: {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } }
+            ]
+          }
         }
       }
+    })
+  } catch (error) {
+    if (isPrismaConnectivityError(error)) {
+      console.warn('[Auth] Database unavailable in getCurrentUser; returning null.')
+      return null
     }
-  })
+
+    if (isPrismaSchemaMismatchError(error)) {
+      console.warn('[Auth] Database schema mismatch in getCurrentUser; returning null.')
+      return null
+    }
+
+    throw error
+  }
 
   // 如果数据库中没有用户记录，自动同步创建
   if (!dbUser && user.email) {
     console.warn(`[Auth] User ${user.id} not found in database, auto-syncing...`)
-    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     try {
       dbUser = await prisma.user.create({
         data: {
@@ -264,9 +260,11 @@ export async function getCurrentUser() {
           email: user.email,
           username: user.user_metadata?.username || user.email.split('@')[0],
           referralCode: generateReferralCode(),
-          subscriptionTier: 'STANDARD',
-          subscriptionStart: new Date(),
-          subscriptionEnd: trialEndDate,
+          subscriptionTier: 'STARTER',
+          subscriptionStatus: 'CANCELED',
+          subscriptionStart: null,
+          subscriptionEnd: null,
+          cancelAtPeriodEnd: false,
         },
         include: {
           permissionOverrides: {
@@ -287,8 +285,16 @@ export async function getCurrentUser() {
           theme: 'light',
         },
       })
-      console.warn(`[Auth] User ${user.id} synced successfully with trial STANDARD`)
+      console.warn(`[Auth] User ${user.id} synced successfully with STARTER`)
     } catch (e) {
+      if (isPrismaConnectivityError(e)) {
+        console.warn('[Auth] Database unavailable while auto-sync user.')
+        return null
+      }
+      if (isPrismaSchemaMismatchError(e)) {
+        console.warn('[Auth] Database schema mismatch while auto-sync user.')
+        return null
+      }
       console.error('[Auth] Failed to sync user:', e)
     }
   }
@@ -317,7 +323,6 @@ export async function syncCurrentUserToDatabase() {
   }
 
   try {
-    const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },
       create: {
@@ -325,9 +330,11 @@ export async function syncCurrentUserToDatabase() {
         email: user.email,
         username: user.user_metadata?.username || user.email.split('@')[0],
         referralCode: generateReferralCode(),
-        subscriptionTier: 'STANDARD',
-        subscriptionStart: new Date(),
-        subscriptionEnd: trialEndDate,
+        subscriptionTier: 'STARTER',
+        subscriptionStatus: 'CANCELED',
+        subscriptionStart: null,
+        subscriptionEnd: null,
+        cancelAtPeriodEnd: false,
       },
       update: {
         email: user.email,
