@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe';
 import { getCurrentUser } from '@/actions/user/auth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { z } from 'zod';
 
 const checkoutInputSchema = z.object({
@@ -87,16 +88,58 @@ function resolvePriceId(planKey: PaidPlanKey, cycle: BillingCycle) {
   return map[planKey][cycle]
 }
 
-function resolveAppBaseUrl(): string | null {
-  const fallback = 'http://localhost:3000';
-  const candidate = process.env.NEXT_PUBLIC_APP_URL || fallback;
-
+function normalizeOrigin(candidate: string): string | null {
   try {
     const url = new URL(candidate);
     return url.origin;
   } catch {
     return null;
   }
+}
+
+function pickFirstHostHeader(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const host = value.split(',')[0]?.trim();
+  return host || null;
+}
+
+async function resolveAppBaseUrl(): Promise<string | null> {
+  const incomingHeaders = await headers();
+  const forwardedHost =
+    pickFirstHostHeader(incomingHeaders.get('x-forwarded-host')) ||
+    pickFirstHostHeader(incomingHeaders.get('host'));
+  const forwardedProto =
+    pickFirstHostHeader(incomingHeaders.get('x-forwarded-proto')) ||
+    (forwardedHost?.includes('localhost') ? 'http' : 'https');
+
+  if (forwardedHost) {
+    const fromRequest = normalizeOrigin(`${forwardedProto}://${forwardedHost}`);
+    if (fromRequest) {
+      return fromRequest;
+    }
+  }
+
+  const envCandidates = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    'http://localhost:3000',
+  ];
+
+  for (const candidate of envCandidates) {
+    if (!candidate) {
+      continue;
+    }
+
+    const normalized = normalizeOrigin(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
 }
 
 function fail(code: CheckoutActionErrorCode, message: string): CheckoutActionResult {
@@ -155,9 +198,9 @@ export async function createCheckoutSession(
     return fail('MISSING_PRICE_CONFIG', `Price not configured for ${safePlanKey}:${billingCycle}`);
   }
 
-  const appBaseUrl = resolveAppBaseUrl();
+  const appBaseUrl = await resolveAppBaseUrl();
   if (!appBaseUrl) {
-    return fail('INVALID_APP_URL', 'NEXT_PUBLIC_APP_URL is invalid');
+    return fail('INVALID_APP_URL', 'Unable to resolve app base URL');
   }
 
   // 1. Find or Create Stripe Customer
@@ -247,6 +290,7 @@ export async function createCheckoutSession(
       billingCycle,
       customerId,
       sessionId: session.id,
+      appBaseUrl,
       timestamp,
     }));
 
