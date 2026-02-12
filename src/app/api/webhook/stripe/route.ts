@@ -507,7 +507,9 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
     invoice.metadata?.userId ||
     invoice.parent?.subscription_details?.metadata?.userId ||
     null;
-  const amount = invoice.amount_paid / 100;
+  const amountPaid = invoice.amount_paid || 0;
+  const amount = amountPaid / 100;
+  const isRealCharge = amountPaid > 0;
   const eventLogLink = `stripe:event:${event.id}`;
 
   let userId = '';
@@ -550,34 +552,47 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
       await tx.user.update({
         where: { id: user.id },
         data: {
-          subscriptionStatus: SubscriptionStatus.ACTIVE,
+          subscriptionStatus: isRealCharge
+            ? SubscriptionStatus.ACTIVE
+            : user.subscriptionStatus,
           subscriptionStart: periodStart,
           subscriptionEnd: periodEnd,
           cancelAtPeriodEnd: false,
           ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
           ...(customerId ? { stripeCustomerId: customerId } : {}),
-          ...(user.firstPaidAt ? {} : { firstPaidAt: now }),
+          ...(isRealCharge && !user.firstPaidAt ? { firstPaidAt: now } : {}),
         },
       });
 
-      const purchasedTier = user.subscriptionTier || SubscriptionTier.STANDARD;
-      const referralResult = await settleReferralOnFirstPaid(tx, {
-        refereeId: user.id,
-        purchasedTier,
-        now,
-      });
-      if (referralResult.updatedRefereeEnd) {
-        periodEnd = referralResult.updatedRefereeEnd;
-      }
+      let referralResult = {
+        didSettle: false,
+        updatedRefereeEnd: null as Date | null,
+      };
+      let deferredSettle = {
+        settledCount: 0,
+        updatedSubscriptionEnd: null as Date | null,
+      };
 
-      const deferredSettle = await settleDeferredRewardsForReferrer(tx, {
-        referrerId: user.id,
-        referrerTier: purchasedTier,
-        currentSubscriptionEnd: periodEnd,
-        now,
-      });
-      if (deferredSettle.updatedSubscriptionEnd) {
-        periodEnd = deferredSettle.updatedSubscriptionEnd;
+      if (isRealCharge) {
+        const purchasedTier = user.subscriptionTier || SubscriptionTier.STANDARD;
+        referralResult = await settleReferralOnFirstPaid(tx, {
+          refereeId: user.id,
+          purchasedTier,
+          now,
+        });
+        if (referralResult.updatedRefereeEnd) {
+          periodEnd = referralResult.updatedRefereeEnd;
+        }
+
+        deferredSettle = await settleDeferredRewardsForReferrer(tx, {
+          referrerId: user.id,
+          referrerTier: purchasedTier,
+          currentSubscriptionEnd: periodEnd,
+          now,
+        });
+        if (deferredSettle.updatedSubscriptionEnd) {
+          periodEnd = deferredSettle.updatedSubscriptionEnd;
+        }
       }
 
       await createBillingNotification(tx, {
@@ -590,9 +605,10 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
           invoiceId: invoice.id,
           userId: user.id,
           action: 'webhook.invoice.payment_succeeded',
-          result: 'processed',
+          result: isRealCharge ? 'processed' : 'processed_no_charge',
           timestamp: now.toISOString(),
           amount,
+          isRealCharge,
           currency: invoice.currency,
           settledReferral: referralResult.didSettle,
           settledDeferredCount: deferredSettle.settledCount,
