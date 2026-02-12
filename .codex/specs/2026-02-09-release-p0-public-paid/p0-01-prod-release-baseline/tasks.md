@@ -7,7 +7,7 @@
 | T-003 | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
 | T-004 | 第一轮开发实现（原门禁项） | codex | done |  |
 | T-005 | 本地验证（Action + SQL 快照） | codex | done | 2026-02-10 本地证据见 acceptance.md |
-| T-006 | 预发复测与收尾（原范围） | codex | doing | 已完成：负路径矩阵、CRON_SECRET、正向支付与 webhook 幂等证据。剩余：推荐结算样本 + 回滚演练证据。新增开发项并入 T-007~T-016。 |
+| T-006 | 预发复测与收尾（原范围） | codex | doing | 已完成：负路径矩阵、CRON_SECRET、正向支付回跳、`checkout.session.completed` + `invoice.payment_succeeded` 双事件落库、0金额发票防误结算修复（commit `93410b6`）。剩余：推荐结算样本 + 回滚演练证据。新增开发项并入 T-007~T-016。 |
 | T-007 | 文档归位确认（P0-01 作为唯一实现源） | codex | todo |  |
 | T-008 | 数据模型变更方案定稿（users/referrals/voucher/webhook 审计） | codex | todo |  |
 | T-009 | 注册默认 Starter 与注册页 referral 入口迁移方案定稿 | codex | todo |  |

@@ -41,7 +41,7 @@
 | prepareCheckoutAction | checkout config 提交 | 正常：`{standard,monthly,stripe}`；异常：非法 paymentMode/plan | 未登录应拒绝 | 成功返回 checkoutUrl；失败结构化错误 | 重复提交不写脏数据 | checkout 编排日志 |  |  |
 | bindReferralCodeAction | checkout config 推荐码输入 | 正常：有效码；异常：无效码/自推荐/重复绑定 | 未登录应拒绝 | 成功绑定；失败明确错误码 | 重复提交不重复绑定 | bind 审计日志 |  |  |
 | cancelSubscriptionAction | settings Cancel Plan 按钮 | 正常：有订阅；异常：无订阅或状态异常 | 未登录应拒绝 | 成功设置到期不续费；失败结构化错误 | 重复点击幂等 | cancel 审计日志 |  |  |
-| POST /api/webhook/stripe | Stripe 推送 | 正常：签名正确；异常：缺签名/伪签名 | 外部调用，必须验签 | 正常 200，异常拒绝 | 同 event 不重复处理 | webhook 审计日志 |  |  |
+| POST /api/webhook/stripe | Stripe 推送 | 正常：签名正确；异常：缺签名/伪签名 | 外部调用，必须验签 | 正常 200，异常拒绝 | 同 event 不重复处理 | webhook 审计日志 | pass（预发正路径） | 2026-02-12：`evt_1Szv77C7GQGI7MR1Dm56IwuA`（checkout.session.completed）与 `evt_1Szv77C7GQGI7MR1q5YvaFO1`（invoice.payment_succeeded）均 `pending_webhooks=0`；`notifications` 入库 `action=webhook.checkout.session.completed(result=processed)` 与 `action=webhook.invoice.payment_succeeded(result=processed_no_charge,isRealCharge=false)`；`users.firstPaidAt` 仍为 `null`。 |
 
 ## 数据表核对矩阵（逐项）
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
@@ -75,6 +75,7 @@
 ## 历史基线证据（已完成，保留）
 - 已验证 `createCheckoutSession` 与 `POST /api/webhook/stripe` 的负路径与正向幂等基础能力。
 - 已验证 `CRON_SECRET` 鉴权生效。
+- 已验证生产域名回跳修复与双事件落库：`checkout.session.completed` + `invoice.payment_succeeded`。
 - 现阶段新增需求验收将在 T-007~T-016 执行后补全证据。
 
 ## 发布检查
