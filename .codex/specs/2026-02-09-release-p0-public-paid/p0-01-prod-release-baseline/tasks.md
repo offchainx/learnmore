@@ -7,7 +7,7 @@
 | T-003 | 文档审阅与范围确认（用户确认前禁止开发） | user | done | 2026-03-02 已确认后进入开发。 |
 | T-004 | 第一轮开发实现（原门禁项） | codex | done | 2026-03-02 已完成 `prepareCheckout/bindReferral/cancel/webhook/voucher` 实装。 |
 | T-005 | 本地验证（Action + SQL 快照） | codex | done | 2026-03-02：`scripts/p0-01-internal-smoke.mjs` 通过（trial/首扣/referral/voucher/幂等）；最新复验 13:27 MYT 仍通过。 |
-| T-006 | 预发复测与收尾（原范围） | codex | done | 2026-02-12 + 2026-03-02：webhook 正负路径、CRON_SECRET、回跳、落库证据闭环。 |
+| T-006 | 预发复测与收尾（原范围） | codex | done | 2026-02-12 + 2026-03-02：webhook 正负路径、CRON_SECRET、回跳、落库证据闭环；最新部署 `3955963652`（`learnmorev10-87whp0c74...`）复测通过。 |
 | T-007 | 文档归位确认（P0-01 作为唯一实现源） | codex | done | 2026-03-02：`spec.md/plan.md/tasks.md/acceptance.md/task-kickoff-checklist.md` 已同步。 |
 | T-008 | 数据模型变更方案定稿（users/referrals/voucher/webhook 审计） | codex | done | 2026-03-02：Prisma 字段与 webhook 处理口径已落地。 |
 | T-009 | 注册默认 Starter 与注册页 referral 入口迁移 | codex | done | 2026-03-02：注册实测新用户默认 `STARTER`。 |
@@ -17,7 +17,7 @@
 | T-013 | Voucher 后台配置与前台应用 | codex | done | 2026-03-02：新增 `/admin/vouchers` + 首扣 `voucher_redemptions` 落库。 |
 | T-014 | Dashboard/Sidebar tier 与 Upgrade 入口统一改造 | codex | done | 2026-03-02：统一在 `dashboard-layout.tsx` 展示 tier 与 Upgrade。 |
 | T-015 | Settings 订阅管理页（trial 倒计时 + cancel plan） | codex | done | 2026-03-02：Subscription Tab 展示状态/到期/Upgrade/Cancel；取消链路实测通过。 |
-| T-016 | 本地与预发验收回填 + 回滚演练证据收敛 | codex | done | 2026-03-02：本地内测全通过并回填；回滚策略可执行；同日复验通过。 |
+| T-016 | 本地与预发验收回填 + 回滚演练证据收敛 | codex | done | 2026-03-02：本地内测全通过并回填；回滚策略可执行；同日复验通过，含最新部署验收证据。 |
 
 ## 备注
 - 本轮已完成代码实现 + 本地内测，不再是仅文档定稿阶段。

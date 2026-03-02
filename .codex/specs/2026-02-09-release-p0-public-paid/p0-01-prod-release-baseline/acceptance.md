@@ -4,6 +4,7 @@
 - 本文档已从“待实现口径”切换为“代码实装 + 本地内测证据”。
 - 本轮结论：P0-01 新增开发项已完成，本地内测通过（含注册/升级/checkout-config/referral/cancel/webhook/voucher/幂等）。
 - 最新复验：2026-03-02 13:27（MYT，本地）执行 `scripts/p0-01-internal-smoke.mjs` 返回 `ok=true`，`referralStatus=COMPLETED`，`billingNotificationCount=3`。
+- 预发复测：2026-03-02 13:48（MYT）最新部署 `https://learnmorev10-87whp0c74-chainvistas-projects.vercel.app`（GitHub Deployment `3955963652`）完成 UI 与路由验收。
 
 ## 功能验收（Given / When / Then）
 - 给定：新用户完成注册
@@ -47,6 +48,18 @@
 | bindReferralCodeAction | checkout config 推荐码输入 | 正常：`J9ODMGIJ`；异常：二次改绑 `R2782743` | 未登录应拒绝 | 首次绑定成功；二次改绑拒绝 | 重复提交不重复绑定 | bind 审计 + DB | pass（本地） | 2026-03-02：`test01@gmail.com` 绑定后 `referrals.referral_code=J9ODMGIJ`、`bind_source=UPGRADE`；再次改绑后记录未变化。 |
 | cancelSubscriptionAction | settings Cancel Plan 按钮 | 正常：`test01@gmail.com` 有有效 `stripeSubscriptionId` | 未登录应拒绝 | 成功设置到期不续费 | 重复点击幂等（按钮置灰） | cancel 审计 + toast | pass（本地） | 2026-03-02：Settings 点击 Cancel 后提示成功；DB 变更为 `subscription_status=CANCEL_AT_PERIOD_END`、`cancel_at_period_end=true`。 |
 | POST /api/webhook/stripe | Stripe 推送 | 正常：签名正确；异常：缺签名/伪签名 | 外部调用，必须验签 | 正常 200，异常拒绝 | 同 event 不重复处理 | webhook 审计日志 | pass（本地+预发） | 2026-03-02：`scripts/p0-01-internal-smoke.mjs` 覆盖 `checkout.session.completed`、`invoice.payment_succeeded`（0金额与真实扣款）、重放幂等，全部通过。 |
+
+## 预发复测记录（2026-03-02，最新 main 部署）
+- 部署来源：`main` commit `325263f` 推送后由 GitHub Deployment 自动触发。
+- 部署 ID：`3955963652`
+- 部署 URL：`https://learnmorev10-87whp0c74-chainvistas-projects.vercel.app`
+- 执行结果：
+  - PASS：`/pricing` 页面渲染，存在 `Choose Your Plan` 与 `Start 7-Day Free Trial`。
+  - PASS：`/checkout/config?planKey=standard&billingCycle=monthly` 渲染，`Touch n Go/银行转账` 为占位禁用，存在 `继续前往支付`。
+  - PASS：登录后 Dashboard 可见 tier 徽标与 Sidebar `Upgrade` 入口。
+  - PASS：Settings -> Subscription 可见 `订阅管理`、`Upgrade` 与 `Cancel Plan（到期生效）` 状态。
+  - PASS：`GET /api/webhook/stripe` 返回 `405`（路由在线，仅允许 POST）。
+  - NOTE：本轮未在预发执行“正向签名 webhook 事件”回放（预发 `STRIPE_WEBHOOK_SECRET` 与本地脚本密钥不一致，签名校验返回 `INVALID_SIGNATURE`），该项以本地签名回放通过 + 历史预发支付证据作为闭环依据。
 
 ## 数据表核对矩阵（逐项）
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
