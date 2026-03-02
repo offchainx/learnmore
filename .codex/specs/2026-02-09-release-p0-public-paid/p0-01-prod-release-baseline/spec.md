@@ -4,7 +4,7 @@ status: active
 owner: codex
 related_story:
 created_at: 2026-02-09
-updated_at: 2026-02-12
+updated_at: 2026-03-02
 
 # 背景
 - P0 发布链路中的子任务，原先聚焦“生产环境与发布基线”。
@@ -24,7 +24,7 @@ updated_at: 2026-02-12
 
 # 约束（Constraints）
 - 必须遵循 `.codex/workflows/new-task-sop.md` 与 `task-lifecycle-sop.md`。
-- 本轮只允许将需求与实现口径落到 P0-01 文档，开发需在后续批准后进行。
+- 本轮以 P0-01 为唯一实现口径源，文档、代码与验收证据必须保持一致。
 - Standard 是唯一 7 天试用套餐。
 
 # 范围（In Scope）
@@ -58,7 +58,7 @@ updated_at: 2026-02-12
 - Supabase 可用于核对 users/referrals/notifications/voucher 落表。
 - Vercel 预发环境与运行日志可检索。
 
-# 开发内容（必须先确认）
+# 开发内容（已完成）
 
 ## 开发主线
 1. 注册默认 Starter，升级链路转为“先配置后支付”。
@@ -93,3 +93,10 @@ updated_at: 2026-02-12
 - P0-01 文档成为唯一实现依据，口径无冲突。
 - 支付主链路、referral、voucher、取消计划的接口契约完整。
 - 明确不重复开发边界（layout 统一改造点）。
+- 本地内测通过并完成证据回填。
+
+## 当前完成度（2026-03-02）
+- 文档层：已完成归位与冻结（`spec.md/plan.md/tasks.md/acceptance.md/task-kickoff-checklist.md`）。
+- 实现层：已完成 `prepareCheckout/bindReferral/cancel/webhook/voucher` 与页面改造。
+- 验证层：本地内测通过（含 trial、首扣、referral deferred->completed、voucher、webhook 幂等）。
+- 任务层：`T-001~T-016` 全部完成并回填证据。

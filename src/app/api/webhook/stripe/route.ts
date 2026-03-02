@@ -62,6 +62,11 @@ function normalizeBillingCycle(rawCycle?: string): NormalizedBillingCycle | null
   return null;
 }
 
+function normalizeVoucherCode(rawVoucherCode?: string | null): string | null {
+  const normalized = rawVoucherCode?.trim().toUpperCase();
+  return normalized ? normalized : null;
+}
+
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
@@ -103,9 +108,7 @@ async function lookupUserByStripeIdentifiers(
   const { customerId, subscriptionId, metadataUserId } = input;
 
   if (metadataUserId && isUuid(metadataUserId)) {
-    const byId = await tx.user.findUnique({
-      where: { id: metadataUserId },
-    });
+    const byId = await tx.user.findUnique({ where: { id: metadataUserId } });
     if (byId) return byId;
   }
 
@@ -169,11 +172,10 @@ async function settleReferralOnFirstPaid(
   tx: Prisma.TransactionClient,
   input: {
     refereeId: string;
-    purchasedTier: SubscriptionTier;
     now: Date;
   }
 ) {
-  const { refereeId, purchasedTier, now } = input;
+  const { refereeId, now } = input;
 
   const referral = await tx.referral.findUnique({
     where: { refereeId },
@@ -183,7 +185,6 @@ async function settleReferralOnFirstPaid(
           id: true,
           subscriptionTier: true,
           subscriptionEnd: true,
-          referralCount: true,
         },
       },
       referee: {
@@ -203,7 +204,6 @@ async function settleReferralOnFirstPaid(
   }
 
   const refereeExtendedEnd = extendSubscriptionEnd(referral.referee.subscriptionEnd, now, TWO_WEEKS_MS);
-
   await tx.user.update({
     where: { id: refereeId },
     data: { subscriptionEnd: refereeExtendedEnd },
@@ -330,6 +330,90 @@ async function settleDeferredRewardsForReferrer(
   return {
     settledCount: deferredList.length,
     updatedSubscriptionEnd: extendedEnd,
+  };
+}
+
+async function applyVoucherRedemptionOnFirstPaid(
+  tx: Prisma.TransactionClient,
+  input: {
+    userId: string;
+    invoiceId: string;
+    voucherCode?: string | null;
+    discountAmountMinor: number;
+  }
+) {
+  const normalizedVoucherCode = normalizeVoucherCode(input.voucherCode);
+  if (!normalizedVoucherCode) {
+    return {
+      redeemed: false,
+      reason: 'NO_VOUCHER_CODE',
+      voucherCode: null,
+    };
+  }
+
+  const voucher = await tx.voucherCode.findUnique({
+    where: { code: normalizedVoucherCode },
+    select: {
+      id: true,
+      code: true,
+      isActive: true,
+      maxRedemptions: true,
+      redeemedCount: true,
+    },
+  });
+
+  if (!voucher || !voucher.isActive) {
+    return {
+      redeemed: false,
+      reason: 'INVALID_OR_INACTIVE',
+      voucherCode: normalizedVoucherCode,
+    };
+  }
+
+  if (voucher.maxRedemptions !== null && voucher.redeemedCount >= voucher.maxRedemptions) {
+    return {
+      redeemed: false,
+      reason: 'EXHAUSTED',
+      voucherCode: voucher.code,
+    };
+  }
+
+  const existing = await tx.voucherRedemption.findFirst({
+    where: {
+      userId: input.userId,
+      voucherId: voucher.id,
+    },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return {
+      redeemed: false,
+      reason: 'ALREADY_REDEEMED',
+      voucherCode: voucher.code,
+    };
+  }
+
+  await tx.voucherRedemption.create({
+    data: {
+      voucherId: voucher.id,
+      userId: input.userId,
+      stripeSessionId: input.invoiceId,
+      appliedAmount: Math.max(0, Math.trunc(input.discountAmountMinor)),
+    },
+  });
+
+  await tx.voucherCode.update({
+    where: { id: voucher.id },
+    data: {
+      redeemedCount: { increment: 1 },
+    },
+  });
+
+  return {
+    redeemed: true,
+    reason: 'REDEEMED',
+    voucherCode: voucher.code,
   };
 }
 
@@ -510,6 +594,14 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
   const amountPaid = invoice.amount_paid || 0;
   const amount = amountPaid / 100;
   const isRealCharge = amountPaid > 0;
+  const discountAmountMinor = invoice.total_discount_amounts?.reduce(
+    (sum, item) => sum + (item.amount || 0),
+    0
+  ) || 0;
+  const voucherCode =
+    invoice.metadata?.voucherCode ||
+    invoice.parent?.subscription_details?.metadata?.voucherCode ||
+    null;
   const eventLogLink = `stripe:event:${event.id}`;
 
   let userId = '';
@@ -572,12 +664,16 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
         settledCount: 0,
         updatedSubscriptionEnd: null as Date | null,
       };
+      let voucherResult = {
+        redeemed: false,
+        reason: 'SKIPPED',
+        voucherCode: null as string | null,
+      };
 
       if (isRealCharge) {
         const purchasedTier = user.subscriptionTier || SubscriptionTier.STANDARD;
         referralResult = await settleReferralOnFirstPaid(tx, {
           refereeId: user.id,
-          purchasedTier,
           now,
         });
         if (referralResult.updatedRefereeEnd) {
@@ -593,6 +689,13 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
         if (deferredSettle.updatedSubscriptionEnd) {
           periodEnd = deferredSettle.updatedSubscriptionEnd;
         }
+
+        voucherResult = await applyVoucherRedemptionOnFirstPaid(tx, {
+          userId: user.id,
+          invoiceId: invoice.id,
+          voucherCode,
+          discountAmountMinor,
+        });
       }
 
       await createBillingNotification(tx, {
@@ -610,6 +713,10 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
           amount,
           isRealCharge,
           currency: invoice.currency,
+          voucherCode: normalizeVoucherCode(voucherCode),
+          voucherRedeemed: voucherResult.redeemed,
+          voucherResult: voucherResult.reason,
+          discountAmountMinor,
           settledReferral: referralResult.didSettle,
           settledDeferredCount: deferredSettle.settledCount,
           subscriptionEnd: periodEnd?.toISOString() || null,
@@ -660,6 +767,15 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
       console.error('[Webhook] receipt notification failed', error);
     }
   }
+
+  auditLog({
+    action: 'webhook.invoice.payment_succeeded',
+    result: 'processed',
+    eventId: event.id,
+    userId,
+    isRealCharge,
+    amount,
+  });
 
   return jsonResponse({
     ok: true,

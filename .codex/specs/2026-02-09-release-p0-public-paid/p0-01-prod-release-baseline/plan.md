@@ -5,6 +5,12 @@
 - 方案摘要：以 P0-01 为唯一实现文档源，完成注册默认 Starter、升级支付配置页、Standard 试用、Cancel Plan、Referral 首扣结算、Voucher 规则。
 - 执行原则：先文档定稿，后开发实施。
 
+## 执行快照（2026-03-02）
+- 文档定稿：完成（T-001~T-003、T-007）。
+- 代码实现：完成（T-004、T-008~T-015）。
+- 证据收敛：完成（T-005、T-006、T-016，见 acceptance.md）。
+- 当前阶段：进入上线前观察与缺陷修复窗口，无待开发项。
+
 ## 强制门禁（本任务必须满足）
 1. P0-01 四件套（spec/plan/tasks/acceptance）完成并通过审阅。
 2. 关键接口契约冻结：`prepareCheckoutAction`、`bindReferralCodeAction`、`cancelSubscriptionAction`、`POST /api/webhook/stripe`。
@@ -134,3 +140,8 @@
 ### 开发完成判定（DoD）
 - 文档口径与实现口径一致，且无重复开发点。
 - 配置页与 settings 的订阅/取消/奖励逻辑可验收。
+- 本地内测矩阵全部通过且证据已回填。
+
+## 口径说明
+- 本任务当前状态为“文档+代码+验收证据”三者闭环完成。
+- 后续如有规则新增，必须先更新 P0-01 文档再实施。
