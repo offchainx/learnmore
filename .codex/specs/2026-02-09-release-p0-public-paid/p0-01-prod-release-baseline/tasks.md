@@ -18,8 +18,11 @@
 | T-014 | Dashboard/Sidebar tier 与 Upgrade 入口统一改造 | codex | done | 2026-03-02：统一在 `dashboard-layout.tsx` 展示 tier 与 Upgrade。 |
 | T-015 | Settings 订阅管理页（trial 倒计时 + cancel plan） | codex | done | 2026-03-02：Subscription Tab 展示状态/到期/Upgrade/Cancel；取消链路实测通过。 |
 | T-016 | 本地与预发验收回填 + 回滚演练证据收敛 | codex | done | 2026-03-02：本地内测全通过并回填；回滚策略可执行；同日复验通过，含最新部署验收证据。 |
+| T-017 | 新用户默认主题修复（默认暗黑，不跟随系统主题） | codex | done | 2026-03-02：`src/app/layout.tsx` 改为 `defaultTheme=dark` + `enableSystem=false`，Playwright 复验 `html.class` 包含 `dark`。 |
+| T-018 | Dashboard 首屏加载优化（新用户首屏等待缩短） | codex | done | 2026-03-02：`getDashboardProfile` 轻量查询 + `getDashboardStats` 并行/聚合优化，Playwright 复验导航耗时约 1.1s。 |
+| T-019 | webhook 竞态修复（trial 场景 subscription_status 被覆盖为 CANCELED） | codex | done | 2026-03-02：`invoice.payment_succeeded` 0 金额场景改为基于 Stripe Subscription 推导状态，不再回写旧值；并新增按 `subscriptionId/userId` 串行锁。 |
 
 ## 备注
 - 本轮已完成代码实现 + 本地内测，不再是仅文档定稿阶段。
-- `p0-09` 仅保留历史参考，实施口径统一以 `p0-01` 为准。
+- `p0-10` 仅保留历史参考，实施口径统一以 `p0-01` 为准。
 - 仍存在全局历史 lint 债务（非本任务改动范围），不阻塞本任务验收。

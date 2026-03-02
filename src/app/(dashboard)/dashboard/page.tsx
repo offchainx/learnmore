@@ -1,5 +1,5 @@
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
-import { getProfile } from '@/actions/user/profile';
+import { getDashboardProfile } from '@/actions/user/profile';
 import { getDashboardStats } from '@/actions/dashboard';
 import { syncCurrentUserToDatabase } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
@@ -8,7 +8,10 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 export default async function DashboardPage() {
-  const profile = await getProfile();
+  const [profile, dashboardData] = await Promise.all([
+    getDashboardProfile(),
+    getDashboardStats(),
+  ]);
 
   if (!profile) {
     // Check if we have a valid session but missing database record
@@ -88,8 +91,6 @@ export default async function DashboardPage() {
 
     redirect('/login');
   }
-
-  const dashboardData = await getDashboardStats();
 
   if (!dashboardData) {
     redirect('/login');

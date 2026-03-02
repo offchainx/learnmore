@@ -9,13 +9,14 @@ updated_at: 2026-03-02
 # 背景
 - P0 发布链路中的子任务，原先聚焦“生产环境与发布基线”。
 - 本轮将 onboarding + 升级 + 支付配置页 + Standard 试用 + Cancel Plan + Referral 首扣结算 + Voucher 规则并入 P0-01，作为唯一实现依据。
-- `p0-09-billing-subscription-loop` 保留历史参考，不再作为实现主文档源。
+- `p0-10-billing-subscription-loop` 保留历史参考，不再作为实现主文档源。
 
 # 目标（Goals）
 - 建立“注册默认 Starter -> Upgrade -> /pricing -> 支付配置页 -> Stripe 试用订阅 -> 首扣后 referral 结算 -> Settings 取消计划”的完整闭环。
 - 固化支付模式页为必经步骤，避免 `/pricing` 直接跳 Stripe。
 - 统一 referral 入口与触发口径，消除注册入口与升级入口双写风险。
 - 在不重复开发的前提下，统一 dashboard 入口改造位置。
+- 修复新用户首次体验基线：默认暗黑主题 + Dashboard 首屏加载可接受。
 
 # 非目标（Non-Goals）
 - 本期不接入新的非 Stripe 网关。
@@ -99,4 +100,5 @@ updated_at: 2026-03-02
 - 文档层：已完成归位与冻结（`spec.md/plan.md/tasks.md/acceptance.md/task-kickoff-checklist.md`）。
 - 实现层：已完成 `prepareCheckout/bindReferral/cancel/webhook/voucher` 与页面改造。
 - 验证层：本地内测通过（含 trial、首扣、referral deferred->completed、voucher、webhook 幂等）。
-- 任务层：`T-001~T-016` 全部完成并回填证据。
+- 体验修复层：已完成默认主题修复与首屏加载优化（`T-017~T-018`）。
+- 任务层：`T-001~T-018` 全部完成并回填证据。

@@ -8,6 +8,7 @@ import { checkAndRefreshStreak } from '@/actions/gamification/streak'
 import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
 import { DailyTask } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
+import type { UserWithOverrides } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
 export interface DashboardData {
@@ -79,162 +80,175 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   if (!userData) return null
 
   // 2.1 Get Retention Policy (C3)
-  const tier = getEffectiveTier(userData as any)
+  const tier = getEffectiveTier(userData as UserWithOverrides)
   const minDate = getRetentionDate(tier)
 
-  // 3. Fetch Daily Tasks
+  // 3. Fetch tasks + stats (并行，减少首屏等待)
   const today = dayjs().startOf('day')
-  const tomorrow = dayjs().endOf('day')
-  
-  const dailyTasks = await prisma.dailyTask.findMany({
-    where: {
-      userId: user.id,
-      date: {
-        gte: today.toDate(),
-        lt: tomorrow.toDate()
-      }
-    },
-    orderBy: { type: 'asc' }
-  })
+  const endOfToday = dayjs().endOf('day')
+  const weekStart = today.subtract(6, 'day').startOf('day')
+  const retentionStart = dayjs(minDate)
+  const weekQueryStart = retentionStart.isAfter(weekStart) ? retentionStart.startOf('day') : weekStart
 
-  // 4. Calculate Stats
-  const dailyActivity: { date: string; activityCount: number }[] = []
-
-  for (let i = 6; i >= 0; i--) {
-      const date = today.subtract(i, 'day')
-      const startOfDay = date.toDate()
-      const endOfDay = date.endOf('day').toDate()
-
-      // 仅统计在保留期内的活跃度
-      const isDateInRetention = dayjs(startOfDay).isAfter(dayjs(minDate)) || dayjs(startOfDay).isSame(dayjs(minDate), 'day')
-
-      const activityCount = isDateInRetention 
-        ? await prisma.userAttempt.count({
-          where: {
-              userId: user.id,
-              createdAt: {
-                  gte: startOfDay,
-                  lte: endOfDay,
-                  // 不需要额外加 minDate，因为 startOfDay 已经限定了日期
-              }
-          }
-        })
-        : 0
-
-      dailyActivity.push({
-          date: date.format('YYYY-MM-DD'),
-          activityCount
-      })
-  }
-
-  const totalAttempts = await prisma.userAttempt.count({
-      where: { 
+  const [dailyTasks, weeklyAttempts, totalAttempts, correctAttempts, mistakeCount, recentProgress] = await Promise.all([
+    prisma.dailyTask.findMany({
+      where: {
         userId: user.id,
-        createdAt: { gte: minDate } // C3: Retention filter
-      }
-  })
-
-  const correctAttempts = await prisma.userAttempt.count({
-      where: { 
-        userId: user.id, 
+        date: {
+          gte: today.toDate(),
+          lt: endOfToday.toDate(),
+        },
+      },
+      orderBy: { type: 'asc' },
+    }),
+    prisma.userAttempt.findMany({
+      where: {
+        userId: user.id,
+        createdAt: {
+          gte: weekQueryStart.toDate(),
+          lte: endOfToday.toDate(),
+        },
+      },
+      select: { createdAt: true },
+    }),
+    prisma.userAttempt.count({
+      where: {
+        userId: user.id,
+        createdAt: { gte: minDate }, // C3: Retention filter
+      },
+    }),
+    prisma.userAttempt.count({
+      where: {
+        userId: user.id,
         isCorrect: true,
-        createdAt: { gte: minDate } // C3: Retention filter
-      }
-  })
-
-  const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
-
-  const mistakeCount = await prisma.errorBook.count({
-      where: { 
+        createdAt: { gte: minDate }, // C3: Retention filter
+      },
+    }),
+    prisma.errorBook.count({
+      where: {
         userId: user.id,
-        updatedAt: { gte: minDate } // C3: Retention filter
-      }
-  })
-
-  // Convert seconds to hours
-  const studyHours = (userData.totalStudyTime / 3600).toFixed(1)
-
-  // 5. Recent Activity
-  const recentProgress = await prisma.userProgress.findMany({
+        updatedAt: { gte: minDate }, // C3: Retention filter
+      },
+    }),
+    prisma.userProgress.findMany({
       where: { userId: user.id },
       orderBy: { updatedAt: 'desc' },
       take: 3,
       include: {
-          lesson: {
+        lesson: {
+          include: {
+            chapter: {
               include: {
-                  chapter: {
-                      include: {
-                          subject: true
-                      }
-                  }
-              }
-          }
-      }
-  })
+                subject: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+  ])
 
-  // 6. Subject Strength
-  const attempts = await prisma.userAttempt.findMany({
-      where: { 
+  // 4. Daily activity（单次查询聚合为 7 天数据）
+  const dailyActivity: { date: string; activityCount: number }[] = []
+  const attemptsByDate = new Map<string, number>()
+
+  for (const attempt of weeklyAttempts) {
+    const key = dayjs(attempt.createdAt).format('YYYY-MM-DD')
+    attemptsByDate.set(key, (attemptsByDate.get(key) ?? 0) + 1)
+  }
+
+  for (let i = 6; i >= 0; i--) {
+    const date = today.subtract(i, 'day')
+    const key = date.format('YYYY-MM-DD')
+    const dayInRetention = !date.endOf('day').isBefore(retentionStart)
+
+    dailyActivity.push({
+      date: key,
+      activityCount: dayInRetention ? (attemptsByDate.get(key) ?? 0) : 0,
+    })
+  }
+
+  const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
+
+  // Convert seconds to hours
+  const studyHours = (userData.totalStudyTime / 3600).toFixed(1)
+
+  // 5. Subject Strength（新用户无尝试时跳过重查询）
+  let subjectStrengths: { subject: string; accuracy: number }[] = []
+
+  if (totalAttempts > 0) {
+    const attempts = await prisma.userAttempt.findMany({
+      where: {
         userId: user.id,
-        createdAt: { gte: minDate } // C3: Retention filter
+        createdAt: { gte: minDate }, // C3: Retention filter
       },
       include: {
-          question: {
+        question: {
+          include: {
+            chapter: {
               include: {
-                  chapter: {
-                      include: {
-                          subject: true
-                      }
-                  }
-              }
-          }
-      }
-  })
+                subject: true,
+              },
+            },
+          },
+        },
+      },
+    })
 
-  const subjectStats: Record<string, { total: number; correct: number }> = {}
-  attempts.forEach(a => {
+    const subjectStats: Record<string, { total: number; correct: number }> = {}
+    attempts.forEach((a) => {
       const subjectName = a.question.chapter?.subject?.name ?? '未分类'
       if (!subjectStats[subjectName]) {
-          subjectStats[subjectName] = { total: 0, correct: 0 }
+        subjectStats[subjectName] = { total: 0, correct: 0 }
       }
       subjectStats[subjectName].total++
       if (a.isCorrect) subjectStats[subjectName].correct++
-  })
+    })
 
-  const subjectStrengths = Object.entries(subjectStats).map(([name, stats]) => ({
+    subjectStrengths = Object.entries(subjectStats).map(([name, stats]) => ({
       subject: name,
-      accuracy: Math.round((stats.correct / stats.total) * 100)
-  }))
+      accuracy: Math.round((stats.correct / stats.total) * 100),
+    }))
+  }
 
-  // 7. Weakness Sniper
-  const errors = await prisma.errorBook.findMany({
-    where: { 
-      userId: user.id,
-      updatedAt: { gte: minDate } // C3: Retention filter
-    },
-    take: 5,
-    orderBy: { masteryLevel: 'asc' },
-    include: {
+  // 6. Weakness Sniper（无错题时跳过重查询）
+  let weaknesses: {
+    id: string
+    topic: string
+    subject: string
+    masteryLevel: number
+  }[] = []
+
+  if (mistakeCount > 0) {
+    const errors = await prisma.errorBook.findMany({
+      where: {
+        userId: user.id,
+        updatedAt: { gte: minDate }, // C3: Retention filter
+      },
+      take: 5,
+      orderBy: { masteryLevel: 'asc' },
+      include: {
         question: {
-            include: {
-                chapter: {
-                    include: {
-                        subject: true
-                    }
-                }
-            }
-        }
-    }
-  });
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+              },
+            },
+          },
+        },
+      },
+    })
 
-  const weaknesses = errors
-    .filter(e => e.question.chapter !== null)
-    .map(e => ({
-      id: e.id,
-      topic: e.question.chapter!.title,
-      subject: e.question.chapter!.subject.name,
-      masteryLevel: e.masteryLevel
-  }));
+    weaknesses = errors
+      .filter((e) => e.question.chapter !== null)
+      .map((e) => ({
+        id: e.id,
+        topic: e.question.chapter!.title,
+        subject: e.question.chapter!.subject.name,
+        masteryLevel: e.masteryLevel,
+      }))
+  }
 
   const level = calculateLevel(userData.xp);
   const nextLevelXp = calculateNextLevelXp(level);

@@ -20,7 +20,11 @@ function SubmitButton() {
 
 const initialState: AuthFormState = {}
 
-export function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string
+}
+
+export function LoginForm({ redirectTo }: LoginFormProps) {
   const [state, formAction] = useActionState(loginAction, initialState)
 
   return (
@@ -32,6 +36,7 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <form action={formAction}>
+        <input type="hidden" name="redirectTo" value={redirectTo || ''} />
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">邮箱</Label>

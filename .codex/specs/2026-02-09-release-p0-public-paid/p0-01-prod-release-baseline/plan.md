@@ -9,7 +9,23 @@
 - 文档定稿：完成（T-001~T-003、T-007）。
 - 代码实现：完成（T-004、T-008~T-015）。
 - 证据收敛：完成（T-005、T-006、T-016，见 acceptance.md）。
-- 当前阶段：进入上线前观察与缺陷修复窗口，无待开发项。
+- 增量修复：完成（T-017 默认主题暗黑、T-018 Dashboard 首屏加载优化、T-019 webhook trial 状态竞态修复）。
+- 当前阶段：进入上线前观察窗口，无待开发项。
+
+## 增量修复方案（2026-03-02）
+1. 默认主题修复
+- 文件：`src/app/layout.tsx`
+- 变更：`ThemeProvider` 从 `defaultTheme=system` 改为 `defaultTheme=dark`，并关闭 `enableSystem`；用户初始化 `theme` 默认值改为 `dark`。
+- 目标：确保新用户首次进入默认暗黑主题，且不受系统主题影响。
+
+2. Dashboard 首屏加载优化
+- 文件：`src/actions/user/profile.ts`、`src/app/(dashboard)/dashboard/page.tsx`、`src/actions/dashboard.ts`
+- 变更：
+  - 新增 `getDashboardProfile()` 轻量查询（仅 `user + settings`）。
+  - Dashboard 页面并行拉取 `profile + stats`，减少串行等待。
+  - `getDashboardStats()` 改为并行查询与 7 日活跃度单次聚合，避免循环 7 次 count。
+  - 对新用户（零 attempts / 零 mistakes）跳过重查询。
+- 目标：缩短登录后 Dashboard 首屏“加载中”停留时间。
 
 ## 强制门禁（本任务必须满足）
 1. P0-01 四件套（spec/plan/tasks/acceptance）完成并通过审阅。

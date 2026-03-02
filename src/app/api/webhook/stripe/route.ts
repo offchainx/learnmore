@@ -22,6 +22,7 @@ const PLAN_TO_TIER: Record<NormalizedPlanKey, SubscriptionTier> = {
 
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+const EIGHT_DAYS_MS = 8 * 24 * 60 * 60 * 1000;
 
 function jsonResponse(
   body: {
@@ -97,6 +98,26 @@ function mapStripeStatus(
   return SubscriptionStatus.CANCELED;
 }
 
+async function acquireBillingSubjectLock(
+  tx: Prisma.TransactionClient,
+  input: {
+    userId?: string | null;
+    subscriptionId?: string | null;
+    customerId?: string | null;
+  }
+) {
+  const key = input.subscriptionId
+    ? `stripe:sub:${input.subscriptionId}`
+    : input.userId
+      ? `user:${input.userId}`
+      : input.customerId
+        ? `stripe:cus:${input.customerId}`
+        : null;
+
+  if (!key) return;
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${key}))`;
+}
+
 async function lookupUserByStripeIdentifiers(
   input: {
     customerId?: string | null;
@@ -127,6 +148,17 @@ async function lookupUserByStripeIdentifiers(
   }
 
   return null;
+}
+
+function isStaleSubscriptionEvent(
+  user: {
+    stripeSubscriptionId: string | null;
+  },
+  subscriptionId?: string | null
+) {
+  if (!subscriptionId) return false;
+  if (!user.stripeSubscriptionId) return false;
+  return user.stripeSubscriptionId !== subscriptionId;
 }
 
 async function hasProcessedEvent(
@@ -478,6 +510,11 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event, session: Stri
   try {
     await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${event.id}))`;
+      await acquireBillingSubjectLock(tx, {
+        userId: metadataUserId,
+        subscriptionId: stripeSubscriptionId,
+        customerId: stripeCustomerId,
+      });
 
       const user = await tx.user.findUnique({
         where: { id: metadataUserId },
@@ -603,9 +640,19 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
     invoice.parent?.subscription_details?.metadata?.voucherCode ||
     null;
   const eventLogLink = `stripe:event:${event.id}`;
+  let invoiceSubscription: Stripe.Subscription | null = null;
+
+  if (subscriptionId) {
+    try {
+      invoiceSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+    } catch (error) {
+      console.error('[Webhook] failed to fetch invoice subscription', error);
+    }
+  }
 
   let userId = '';
   let duplicate = false;
+  let staleIgnored = false;
   let planForReceipt = 'standard';
 
   try {
@@ -627,8 +674,19 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
       userId = user.id;
       planForReceipt = (user.subscriptionTier || SubscriptionTier.STANDARD).toLowerCase();
 
+      await acquireBillingSubjectLock(tx, {
+        userId: user.id,
+        subscriptionId,
+        customerId,
+      });
+
       if (await hasProcessedEvent(tx, user.id, eventLogLink)) {
         duplicate = true;
+        return;
+      }
+
+      if (isStaleSubscriptionEvent(user, subscriptionId)) {
+        staleIgnored = true;
         return;
       }
 
@@ -640,16 +698,32 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
         fromUnixTimestamp(invoice.lines.data[0]?.period?.end) ||
         user.subscriptionEnd ||
         new Date(now.getTime() + MONTH_MS);
+      const mappedStatusFromStripe = invoiceSubscription
+        ? mapStripeStatus(
+            invoiceSubscription.status,
+            !!invoiceSubscription.cancel_at_period_end
+          )
+        : null;
+      const periodWindowMs = Math.max(0, periodEnd.getTime() - periodStart.getTime());
+      const fallbackNoChargeStatus =
+        !isRealCharge && !mappedStatusFromStripe
+          ? periodWindowMs <= EIGHT_DAYS_MS
+            ? SubscriptionStatus.TRIALING
+            : SubscriptionStatus.ACTIVE
+          : null;
+      const derivedStatus = isRealCharge
+        ? SubscriptionStatus.ACTIVE
+        : mappedStatusFromStripe || fallbackNoChargeStatus;
 
       await tx.user.update({
         where: { id: user.id },
         data: {
-          subscriptionStatus: isRealCharge
-            ? SubscriptionStatus.ACTIVE
-            : user.subscriptionStatus,
+          ...(derivedStatus ? { subscriptionStatus: derivedStatus } : {}),
           subscriptionStart: periodStart,
           subscriptionEnd: periodEnd,
-          cancelAtPeriodEnd: false,
+          cancelAtPeriodEnd: invoiceSubscription
+            ? !!invoiceSubscription.cancel_at_period_end
+            : false,
           ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
           ...(customerId ? { stripeCustomerId: customerId } : {}),
           ...(isRealCharge && !user.firstPaidAt ? { firstPaidAt: now } : {}),
@@ -713,6 +787,8 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
           amount,
           isRealCharge,
           currency: invoice.currency,
+          mappedSubscriptionStatus: derivedStatus,
+          fallbackStatusApplied: !isRealCharge && !mappedStatusFromStripe && !!fallbackNoChargeStatus,
           voucherCode: normalizeVoucherCode(voucherCode),
           voucherRedeemed: voucherResult.redeemed,
           voucherResult: voucherResult.reason,
@@ -759,6 +835,24 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
     });
   }
 
+  if (staleIgnored) {
+    auditLog({
+      action: 'webhook.invoice.payment_succeeded',
+      result: 'ignored_stale_subscription',
+      eventId: event.id,
+      userId,
+      subscriptionId: subscriptionId || undefined,
+    });
+
+    return jsonResponse({
+      ok: true,
+      code: 'IGNORED_STALE_SUBSCRIPTION',
+      message: 'Stale subscription event ignored',
+      eventId: event.id,
+      userId,
+    });
+  }
+
   if (userId && amount > 0) {
     try {
       const email = invoice.customer_email || '';
@@ -793,6 +887,7 @@ async function handleSubscriptionUpdated(event: Stripe.Event, subscription: Stri
   const subscriptionId = subscription.id;
   let userId = '';
   let duplicate = false;
+  let staleIgnored = false;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -806,9 +901,19 @@ async function handleSubscriptionUpdated(event: Stripe.Event, subscription: Stri
         throw new Error('UNKNOWN_USER');
       }
       userId = user.id;
+      await acquireBillingSubjectLock(tx, {
+        userId: user.id,
+        subscriptionId,
+        customerId,
+      });
 
       if (await hasProcessedEvent(tx, user.id, eventLogLink)) {
         duplicate = true;
+        return;
+      }
+
+      if (isStaleSubscriptionEvent(user, subscriptionId)) {
+        staleIgnored = true;
         return;
       }
 
@@ -882,6 +987,24 @@ async function handleSubscriptionUpdated(event: Stripe.Event, subscription: Stri
     });
   }
 
+  if (staleIgnored) {
+    auditLog({
+      action: 'webhook.customer.subscription.updated',
+      result: 'ignored_stale_subscription',
+      eventId: event.id,
+      userId,
+      subscriptionId,
+    });
+
+    return jsonResponse({
+      ok: true,
+      code: 'IGNORED_STALE_SUBSCRIPTION',
+      message: 'Stale subscription event ignored',
+      eventId: event.id,
+      userId,
+    });
+  }
+
   return jsonResponse({
     ok: true,
     code: 'PROCESSED',
@@ -898,6 +1021,7 @@ async function handleSubscriptionDeleted(event: Stripe.Event, subscription: Stri
   const subscriptionId = subscription.id;
   let userId = '';
   let duplicate = false;
+  let staleIgnored = false;
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -911,9 +1035,19 @@ async function handleSubscriptionDeleted(event: Stripe.Event, subscription: Stri
         throw new Error('UNKNOWN_USER');
       }
       userId = user.id;
+      await acquireBillingSubjectLock(tx, {
+        userId: user.id,
+        subscriptionId,
+        customerId,
+      });
 
       if (await hasProcessedEvent(tx, user.id, eventLogLink)) {
         duplicate = true;
+        return;
+      }
+
+      if (isStaleSubscriptionEvent(user, subscriptionId)) {
+        staleIgnored = true;
         return;
       }
 
@@ -974,6 +1108,24 @@ async function handleSubscriptionDeleted(event: Stripe.Event, subscription: Stri
       ok: true,
       code: 'DUPLICATE_EVENT',
       message: 'Event already processed',
+      eventId: event.id,
+      userId,
+    });
+  }
+
+  if (staleIgnored) {
+    auditLog({
+      action: 'webhook.customer.subscription.deleted',
+      result: 'ignored_stale_subscription',
+      eventId: event.id,
+      userId,
+      subscriptionId,
+    });
+
+    return jsonResponse({
+      ok: true,
+      code: 'IGNORED_STALE_SUBSCRIPTION',
+      message: 'Stale subscription event ignored',
       eventId: event.id,
       userId,
     });

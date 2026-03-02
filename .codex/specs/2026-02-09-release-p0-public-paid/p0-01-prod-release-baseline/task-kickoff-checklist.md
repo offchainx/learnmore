@@ -30,6 +30,7 @@
 - [x] 明确任务完成后要回写的 `docs/memory-bank` 条目
 
 ## 收尾确认（2026-03-02）
-- [x] `T-001~T-016` 全部完成
+- [x] `T-001~T-018` 全部完成
 - [x] 核心链路本地内测通过（trial / 首扣 / referral deferred->completed / voucher / webhook 幂等）
 - [x] 文档与实现口径一致（spec/plan/tasks/acceptance 已回填）
+- [x] 新用户体验修复完成（默认暗黑主题 + Dashboard 首屏加载优化）

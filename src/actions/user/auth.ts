@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
@@ -64,8 +65,24 @@ const loginSchema = z.object({
   password: z.string().min(1, '请输入密码'),
 })
 
+const DEFAULT_POST_LOGIN_REDIRECT = '/dashboard'
+
 export type AuthFormState = {
   error?: string
+}
+
+function resolvePostLoginRedirect(rawValue: FormDataEntryValue | null): string {
+  if (typeof rawValue !== 'string') return DEFAULT_POST_LOGIN_REDIRECT
+
+  const redirectTo = rawValue.trim()
+  if (!redirectTo) return DEFAULT_POST_LOGIN_REDIRECT
+  if (!redirectTo.startsWith('/')) return DEFAULT_POST_LOGIN_REDIRECT
+  if (redirectTo.startsWith('//')) return DEFAULT_POST_LOGIN_REDIRECT
+  if (redirectTo.startsWith('/login') || redirectTo.startsWith('/register')) {
+    return DEFAULT_POST_LOGIN_REDIRECT
+  }
+
+  return redirectTo
 }
 
 export async function signupAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -141,7 +158,7 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
         create: {
           userId: authData.user.id,
           language: 'zh',
-          theme: 'light',
+          theme: 'dark',
         },
         update: {
           // 不覆盖已有设置
@@ -184,12 +201,9 @@ export async function loginAction(prevState: AuthFormState, formData: FormData):
     return { error: '邮箱或密码错误' }
   }
 
-  redirect('/dashboard')
+  const redirectTo = resolvePostLoginRedirect(formData.get('redirectTo'))
+  redirect(redirectTo)
 }
-
-import { revalidatePath } from 'next/cache'
-
-// ... (imports)
 
 export async function logoutAction() {
   const supabase = await createClient()
@@ -205,6 +219,7 @@ export async function logoutAction() {
   // 清除所有相关路径的缓存
   revalidatePath('/', 'layout')
   revalidatePath('/dashboard', 'layout')
+  revalidatePath('/admin', 'layout')
   revalidatePath('/login', 'layout')
 
   // 重定向到 Landing Page,这样用户可以看到 "Login" 按钮
@@ -282,7 +297,7 @@ export async function getCurrentUser() {
         data: {
           userId: user.id,
           language: 'zh',
-          theme: 'light',
+          theme: 'dark',
         },
       })
       console.warn(`[Auth] User ${user.id} synced successfully with STARTER`)
@@ -347,7 +362,7 @@ export async function syncCurrentUserToDatabase() {
       create: {
         userId: user.id,
         language: 'zh',
-        theme: 'light',
+        theme: 'dark',
       },
       update: {},
     })

@@ -5,11 +5,32 @@ import { jwtVerify } from 'jose'
 const JWT_SECRET =
   process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
 const jwtSecret = new TextEncoder().encode(JWT_SECRET)
+const DEFAULT_POST_LOGIN_REDIRECT = '/dashboard'
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  const isProtectedRoute =
+    pathname.startsWith('/dashboard') || pathname.startsWith('/admin')
+  const isAuthPage = pathname === '/login' || pathname === '/register'
+
+  const getSafeRedirectTarget = (rawValue: string | null): string => {
+    if (!rawValue) return DEFAULT_POST_LOGIN_REDIRECT
+
+    const redirectTo = rawValue.trim()
+    if (!redirectTo) return DEFAULT_POST_LOGIN_REDIRECT
+    if (!redirectTo.startsWith('/')) return DEFAULT_POST_LOGIN_REDIRECT
+    if (redirectTo.startsWith('//')) return DEFAULT_POST_LOGIN_REDIRECT
+    if (redirectTo.startsWith('/login') || redirectTo.startsWith('/register')) {
+      return DEFAULT_POST_LOGIN_REDIRECT
+    }
+
+    return redirectTo
+  }
+
   // ── 伪装登录 Token 过期检测 (Story-046 B5) ──────────────────
   // 跳过伪装相关 API 本身（避免无穷重定向）
-  const isImpersonateEndpoint = request.nextUrl.pathname.startsWith('/api/auth/impersonate')
+  const isImpersonateEndpoint = pathname.startsWith('/api/auth/impersonate')
   const impersonationToken = request.cookies.get('impersonation_token')?.value
 
   if (impersonationToken && !isImpersonateEndpoint) {
@@ -94,20 +115,18 @@ export async function middleware(request: NextRequest) {
     data: { user }, 
   } = await supabase.auth.getUser()
 
-  // 1. Auth Guard: Protect dashboard routes
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  // 1. Auth Guard: protect dashboard/admin routes
+  if (!user && isProtectedRoute) {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    const redirectTo = `${pathname}${request.nextUrl.search}`
+    loginUrl.searchParams.set('redirectTo', redirectTo)
     return NextResponse.redirect(loginUrl)
   }
 
-  // 2. Guest Guard: Redirect logged-in users away from auth pages
-  if (
-    user &&
-    (request.nextUrl.pathname === '/login' ||
-      request.nextUrl.pathname === '/register')
-  ) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // 2. Guest Guard: redirect logged-in users away from auth pages
+  if (user && isAuthPage) {
+    const redirectTo = getSafeRedirectTarget(request.nextUrl.searchParams.get('redirectTo'))
+    return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
   return response

@@ -58,6 +58,24 @@ export async function getProfile() {
   return profile
 }
 
+/**
+ * Dashboard 首屏仅需用户基础信息 + settings。
+ * 使用轻量查询避免拉取 badges/count/referrals 等重数据。
+ */
+export async function getDashboardProfile() {
+  const user = await getCurrentUser()
+  if (!user) return null
+
+  const profile = await prisma.user.findUnique({
+    where: { id: user.id },
+    include: {
+      settings: true,
+    },
+  })
+
+  return profile
+}
+
 export async function updateProfile(prevState: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
   const user = await getCurrentUser()
   if (!user) {

@@ -5,6 +5,12 @@
 - 本轮结论：P0-01 新增开发项已完成，本地内测通过（含注册/升级/checkout-config/referral/cancel/webhook/voucher/幂等）。
 - 最新复验：2026-03-02 13:27（MYT，本地）执行 `scripts/p0-01-internal-smoke.mjs` 返回 `ok=true`，`referralStatus=COMPLETED`，`billingNotificationCount=3`。
 - 预发复测：2026-03-02 13:48（MYT）最新部署 `https://learnmorev10-87whp0c74-chainvistas-projects.vercel.app`（GitHub Deployment `3955963652`）完成 UI 与路由验收。
+- 增量修复复验：2026-03-02 15:01（MYT，本地）完成“默认主题 + 首屏加载”验证：
+  - `document.documentElement.className` 含 `dark`
+  - Dashboard 导航样本 `duration ~= 1105ms`
+- 增量修复复验：2026-03-02 17:52（MYT，本地）完成“webhook trial 状态竞态”修复：
+  - `invoice.payment_succeeded(amount=0)` 不再回写旧状态（避免 `TRIALING -> CANCELED` 覆盖）
+  - 事件处理新增同订阅串行锁（`subscriptionId/userId`）
 
 ## 功能验收（Given / When / Then）
 - 给定：新用户完成注册
@@ -16,6 +22,9 @@
 - 给定：用户位于支付配置页
   当：查看支付模式
   则：Stripe 可用；Touch n Go/银行转账显示“即将支持”。
+- 给定：新用户首次登录且本地无主题缓存
+  当：进入 Dashboard
+  则：默认使用暗黑主题（`dark`），不跟随系统主题。
 - 给定：用户选择 Standard 并走 Stripe 下单
   当：创建试用订阅
   则：当日不扣款，7 天后触发首扣。
@@ -40,6 +49,9 @@
 - 给定：Stripe 重放同一 event
   当：重复推送 webhook
   则：不重复结算订阅、奖励与通知（幂等通过）。
+- 给定：`checkout.session.completed` 与 `invoice.payment_succeeded(amount=0)` 近同时到达
+  当：webhook 并发处理
+  则：订阅状态不应从 `TRIALING` 被回退为 `CANCELED`。
 
 ## Server Action 验证矩阵（本地 + 预发）
 | Action 名称 | 调用入口（页面/按钮/事件） | 输入样例（正常/异常） | 权限校验（未登录/越权） | 预期输出（成功/失败） | 幂等要求 | 日志与错误码 | 结果（pass/fail） | 证据 |
@@ -86,6 +98,8 @@
 ## 页面一致性验收
 - [x] Dashboard 左上 LearnMore 图标区域显示 subscription tier（Playwright 观测到 `Starter/Standard` 标识）。
 - [x] Sidebar 有明确 Upgrade 入口，且由 `dashboard-layout.tsx` 统一提供。
+- [x] 新用户首次登录默认暗黑主题（Playwright 观测 `html.class` 为 `dark`）。
+- [x] Dashboard 首屏加载优化生效（Playwright 导航样本时长约 `1.1s`）。
 - [x] `/pricing` 选择 paid plan 后跳转至支付配置页（并可继续到 Stripe Checkout）。
 - [x] 支付配置页中 Touch n Go/银行转账为可见但不可用（显示“即将支持”）。
 - [x] Settings 订阅管理展示状态、到期时间、Upgrade、Cancel Plan；Cancel 实测成功。
