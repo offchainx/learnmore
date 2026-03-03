@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StatsCards } from './StatsCards';
 import { ReportsTable } from './ReportsTable';
 import { ReportDetailsDrawer } from './ReportDetailsDrawer';
@@ -11,12 +11,6 @@ import { Report } from './types';
 export const ReportsClient: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  // Initialize selected report to match screenshot for demo purposes
-  useEffect(() => {
-    setSelectedReport(MOCK_REPORTS[0]);
-    setIsDrawerOpen(true);
-  }, []);
 
   const handleSelectReport = (report: Report) => {
     setSelectedReport(report);
