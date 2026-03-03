@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { User } from '@prisma/client'
 
@@ -12,7 +12,6 @@ interface AdminClientWrapperProps {
 
 export function AdminClientWrapper({ children, user, userRole }: AdminClientWrapperProps) {
   const router = useRouter()
-  const pathname = usePathname()
 
   const handleNavigate = (view: string) => {
     const routes: Record<string, string> = {
@@ -24,7 +23,7 @@ export function AdminClientWrapper({ children, user, userRole }: AdminClientWrap
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
       'knowledgeGraph': '/dashboard/knowledge-graph',
-      'admin': '/admin/content/review'
+      'admin': '/admin'
     }
 
     const route = routes[view] || '/dashboard'

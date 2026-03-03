@@ -118,6 +118,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const tierLabel = tierLabelMap[effectiveTier] || 'Starter';
 
   // Check if any admin route is active
+  const isAdminDashboardActive = pathname === '/admin';
   const isUserAdminActive = pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions') || pathname?.startsWith('/admin/feedback');
   const isContentAdminActive = pathname?.startsWith('/admin/content');
 
@@ -208,6 +209,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {isAdmin && (
             <>
               <div className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-6 mb-3 px-4">Administration</div>
+
+              <SidebarItem
+                icon={LayoutDashboard}
+                label={t.sidebar.adminDashboard}
+                active={isAdminDashboardActive}
+                onClick={() => {
+                  router.push('/admin');
+                  setSidebarOpen(false);
+                }}
+              />
               
               <SidebarSection
                 icon={Users}

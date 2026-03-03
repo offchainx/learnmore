@@ -25,7 +25,7 @@ export function CoursesClientWrapper({ user }: CoursesClientWrapperProps) {
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
       'knowledgeGraph': '/dashboard/knowledge-graph',
-      'admin': '/admin/content',
+      'admin': '/admin',
       'parent': '/dashboard'
     }
 

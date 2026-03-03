@@ -29,7 +29,7 @@ export function AchievementsClientWrapper({ user, overview, badges }: Achievemen
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
       'knowledgeGraph': '/dashboard/knowledge-graph',
-      'admin': '/admin/content',
+      'admin': '/admin',
       'parent': '/dashboard'
     }
 
