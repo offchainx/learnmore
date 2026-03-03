@@ -30,7 +30,8 @@
 | AC-04 | 未登录访问 `/dashboard/**` | URL 跳转 + `redirectTo` 参数 | 跳到 `/login?redirectTo=...` 且回跳路径正确 |  |  |
 | AC-04 | 未登录访问 `/admin/**` | URL 跳转 + `redirectTo` 参数 | 跳到 `/login?redirectTo=...` 且回跳路径正确 |  |  |
 | AC-04 | 已登录访问 `/login` 或 `/register` | URL 跳转 | 按 `redirectTo` 或默认 `/dashboard` 跳转 |  |  |
-| AC-04 | 已登录访问 `/admin` | URL 跳转 + 页面渲染结果 | 进入管理员总览面板，不再重定向到 `/admin/content/review` |  |  |
+| AC-04 | 已登录访问 `/admin` | URL 跳转 + 页面渲染结果 | 进入管理员总览面板，不再重定向到 `/admin/content/review` | pass | main@9e66eb2, main@04a28ec |
+| AC-04 | 已登录访问 `/admin/content/{id}/edit`（旧路由） | URL 状态 | 返回 404（路由已下线） | pass | code cleanup (T-006.1) |
 | AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 |  |  |
 | AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 |  |  |
 

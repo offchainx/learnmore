@@ -56,6 +56,12 @@
 2. `/admin` 从“重定向页”调整为“真实管理员总览面板入口页”。
 3. 保持 `/admin/content -> /admin/content/review` 兼容重定向（不回归现有工作流）。
 
+### 当前进展（2026-03-03）
+1. `/admin` 入口已完成改造：已登录进入管理员总览面板，不再跳转 `/admin/content/review`。
+2. 侧边栏已新增“管理仪表盘”入口，并将应用内 `admin` 导航统一收口至 `/admin`。
+3. 编辑链路已合并：`/admin/content/[id]/edit` 与旧编辑 UI 已移除，统一入口为 `/admin/content/review/[questionId]`。
+4. `T-006.1` 仍在进行：待补齐 `admin/**` 全量路由矩阵验证与证据归档。
+
 ## T-007 执行章节（异常后台请求排查与修复）
 
 ### 根因定位维度

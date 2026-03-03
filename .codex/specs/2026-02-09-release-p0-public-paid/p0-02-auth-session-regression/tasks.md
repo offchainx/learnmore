@@ -7,7 +7,7 @@
 | T-003 | DOC | 新增 user/voucher 表格与字段逻辑核对工作项，并同步四件套文档 | codex | done |  |
 | T-004 | GATE | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
 | T-005 | AC-01 | 实现登录/登出/刷新/跨标签会话一致性与受保护路由行为 | codex | done |  |
-| T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | todo |  |
+| T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | doing | main@9e66eb2, main@04a28ec |
 | T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | todo |  |
 | T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | todo |  |
 | T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | todo |  |
@@ -24,9 +24,15 @@
 
 | sub-id | scope | description | status (todo/doing/done) | evidence |
 |---|---|---|---|---|
-| T-006.1 | admin/* | 梳理并修复 `/admin/**` 重定向与入口行为（含 `/admin` 管理员总览面板入口） | todo |  |
+| T-006.1 | admin/* | 梳理并修复 `/admin/**` 重定向与入口行为（含 `/admin` 管理员总览面板入口） | doing | `/admin` 入口已完成：main@9e66eb2, main@04a28ec |
 | T-006.2 | dashboard/* | 梳理并修复 `/dashboard/**` 重定向与会话保护行为 | todo |  |
 | T-006.3 | auth + middleware | 统一 `/login`、`/register`、`redirectTo` 与 middleware 安全规则 | todo |  |
+
+## T-006.1 阶段进展（2026-03-03）
+- [x] `/admin` 从重定向入口改为真实管理员总览面板入口。
+- [x] 侧边栏新增“管理仪表盘”，并统一站内 `admin` 导航入口到 `/admin`。
+- [x] 移除重复编辑链路：删除 `/admin/content/[id]/edit` 路由与旧编辑组件（`QuestionEditorForm`、`QuestionReviewPanel`）。
+- [ ] 完成 `admin/**` 全量未登录重定向与已登录行为矩阵验证。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。
