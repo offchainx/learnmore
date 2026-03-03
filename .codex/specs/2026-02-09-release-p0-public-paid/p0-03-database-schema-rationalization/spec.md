@@ -41,11 +41,33 @@ updated_at: 2026-03-02
 - 风险：迁移顺序不当导致数据不一致。
   - 影响：业务状态错乱或统计偏差。
   - 缓解策略：迁移前后 SQL 快照比对 + 可回滚脚本。
+- 风险：同邮箱出现不同 UUID（身份映射漂移）。
+  - 影响：账户识别混乱，可能导致权限/订阅归属错误。
+  - 缓解策略：纳入专项 SQL 核查并建立存量豁免与修复计划。
+- 风险：脚本直写 `public.users` 绕过 `auth.users -> trigger` 主链路。
+  - 影响：双表长期偏离，后续审计和回滚成本升高。
+  - 缓解策略：统一脚本口径、补齐来源标记并持续监控差异增量。
 
 # 依赖（Dependencies）
 - Prisma schema 与迁移链路可用。
 - 本地与预发数据库均可执行验证 SQL。
 - 关键 Server Action 日志可追踪 userId/action/result/timestamp。
+
+# 当前发现（Auth/Public Users 同步现状）
+- 检查时间：2026-03-02（基于当前 `.env` 指向数据库，统计口径为脱敏汇总）。
+- 基线结论：`auth.users` 与 `public.users` 当前不同步。
+- 基线计数：
+  - `auth_users_count = 24`
+  - `public_users_count = 29`
+  - `missing_in_public = 12`（`auth.users` 有、`public.users` 无）
+  - `missing_in_auth = 17`（`public.users` 有、`auth.users` 无）
+- 差异时间窗口：
+  - `missing_in_public`：`2025-12-09` ～ `2026-01-21`
+  - `missing_in_auth`：`2026-01-27` ～ `2026-03-02`
+- 来源分类（脱敏汇总）：
+  - `p0-01-internal-smoke`：14
+  - `prisma-seed-likely`：3
+  - 历史触发器失效窗口：待进一步复核（用于解释 `missing_in_public` 存量）
 
 # 开发内容（必须先确认）
 

@@ -15,6 +15,7 @@
 | 表名 | 字段 | 类型/约束 | 业务语义 | 读取入口 | 写入入口 | 状态（保留/删除） | 证据 |
 |---|---|---|---|---|---|---|---|
 | users | subscription_tier | enum + not null | 用户订阅等级 | getDashboardStats | webhook/stripe |  |  |
+| auth.users <-> public.users | id, email, created_at | UUID + email + 时间戳 | 认证主表与业务用户表身份对齐 | 对账 SQL | signupAction + Auth Trigger + syncCurrentUserToDatabase |  |  |
 | daily_tasks | progress | int + default 0 | 每日任务进度 | Dashboard 数据聚合 | trackDailyProgress |  |  |
 | referrals | reward_granted | boolean | 推荐奖励是否发放 | referral 查询 | webhook/referral 结算 |  |  |
 | notifications | link | string | 通知幂等追踪链接 | 通知中心列表 | 系统通知创建 |  |  |
@@ -32,9 +33,24 @@
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
 |---|---|---|---|---|---|---|---|
 | 字段引用核对 | information_schema + prisma 模型 | column_name, data_type | 导出字段清单 SQL | 对照映射完成后复核 SQL | 无遗漏字段 | 不适用 |  |
+| 认证用户同步链路 | auth.users, public.users | id, email, created_at | 双表计数与差异 SQL 快照 | 新注册/修复后复测同组 SQL | 主链路注册后在可接受延迟内可对齐；无新增同邮箱异 UUID；非业务脚本差异有豁免标记 | 差异修复计划验证（不在本轮执行） |  |
 | 任务进度链路 | daily_tasks | progress, is_claimed | SELECT * FROM daily_tasks WHERE user_id={{userId}}; | 执行任务后重复查询 | 仅预期字段变化 | 可恢复前值 |  |
 | 支付订阅链路 | users, referrals, notifications | subscription_tier, reward_granted, link | 支付前快照 SQL | webhook 后重复查询 | 幂等重放不重复变更 | 回滚脚本可恢复 |  |
 | 榜单读取链路 | leaderboard_entries | period, score | SELECT period, score FROM leaderboard_entries LIMIT 20; | 周期切换后重复查询 | 仅读取不引入写入 | 不适用 |  |
+
+## 证据字段模板（同步审计专用）
+- 检查时间：`YYYY-MM-DD HH:mm:ss`（含时区）
+- 检查环境：`local` / `staging` / `production`
+- 计数快照：
+  - `auth_users_count`
+  - `public_users_count`
+  - `missing_in_public`
+  - `missing_in_auth`
+- 差异分类统计：
+  - `smoke脚本`
+  - `seed脚本`
+  - `历史触发器失效窗口`
+- 备注：仅记录脱敏统计，不记录具体邮箱与 UUID。
 
 ## 发布检查
 - [ ] 字段-逻辑映射表完整并附证据

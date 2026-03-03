@@ -23,10 +23,62 @@
 | 相关表 | 关键字段 | 读/写 | 触发场景 | 核对方式 |
 |---|---|---|---|---|
 | users | subscription_tier, updated_at | 读/写 | 支付后用户权益刷新 | 前后快照 + 行级对比 |
+| auth.users <-> public.users | id, email, created_at | 读/写（跨表同步） | 注册建档与账户修复 | 双表对账 SQL + 差异分类 |
 | daily_tasks | type, progress, is_claimed | 读/写 | 任务进度推进与领取 | 事件前后快照 |
 | referrals | status, reward_granted, reward_date | 读/写 | 推荐奖励结算 | 幂等重放对比 |
 | notifications | type, link, is_read | 读/写 | 系统通知生成/读取 | 重放计数与唯一性核对 |
 | leaderboard_entries | period, score, rank | 读 | 榜单渲染 | 页面结果与 SQL 对照 |
+
+## 入库路径说明（auth.users 与 public.users）
+1. 注册主路径（标准链路）
+   - 入口：`signupAction` 调用 `supabase.auth.signUp`。
+   - 写入顺序：`auth.users` 插入 -> 触发器 `on_auth_user_created` -> `public.handle_new_user()` 写入 `public.users`（并初始化 `user_settings`、`daily_tasks`）。
+   - 参考：`src/actions/user/auth.ts`、`supabase/migrations/005_fix_auth_trigger.sql`。
+2. 应用兜底路径（修复链路）
+   - 入口：`getCurrentUser` 发现 `public.users` 缺失时自动补写；`syncCurrentUserToDatabase` 手动 upsert。
+   - 作用：覆盖触发器偶发失效或历史遗留缺口。
+   - 参考：`src/actions/user/auth.ts`。
+3. 脚本直写路径（非标准链路）
+   - 入口：测试/种子脚本直接 `prisma.user.create/upsert` 写 `public.users`。
+   - 风险：绕过 `auth.users` 主链路，造成双表差异。
+   - 参考：`prisma/seed.ts`、`scripts/p0-01-internal-smoke.mjs`。
+
+## 同步核对 SQL 套件（模板）
+1. 总量对比 SQL
+```sql
+SELECT
+  (SELECT COUNT(*) FROM auth.users)   AS auth_users_count,
+  (SELECT COUNT(*) FROM public.users) AS public_users_count;
+```
+2. `auth 缺 public` SQL
+```sql
+SELECT a.id, a.email, a.created_at
+FROM auth.users a
+LEFT JOIN public.users u ON a.id = u.id
+WHERE u.id IS NULL
+ORDER BY a.created_at DESC;
+```
+3. `public 缺 auth` SQL
+```sql
+SELECT u.id, u.email, u.created_at
+FROM public.users u
+LEFT JOIN auth.users a ON a.id = u.id
+WHERE a.id IS NULL
+ORDER BY u.created_at DESC;
+```
+4. 同邮箱异 UUID SQL
+```sql
+SELECT a.email, a.id AS auth_id, u.id AS public_id
+FROM auth.users a
+JOIN public.users u ON lower(a.email) = lower(u.email)
+WHERE a.id <> u.id
+ORDER BY a.email;
+```
+
+## 差异来源分类口径
+1. `smoke脚本`：邮箱模式命中 `smoke-referrer-*` / `smoke-referee-*`。
+2. `seed脚本`：种子脚本固定账户或批量构造账户导致的 `public.users` 存量。
+3. `历史触发器失效窗口`：存在 `auth.users` 记录但未同步到 `public.users` 的历史时段。
 
 ## 可在本步骤并行完成的工作
 1. 约束审计：主键/外键/唯一/非空/默认值一致性检查。
