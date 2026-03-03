@@ -32,6 +32,9 @@
 | AC-04 | 已登录访问 `/login` 或 `/register` | URL 跳转 | 按 `redirectTo` 或默认 `/dashboard` 跳转 |  |  |
 | AC-04 | 已登录访问 `/admin` | URL 跳转 + 页面渲染结果 | 进入管理员总览面板，不再重定向到 `/admin/content/review` | pass | main@9e66eb2, main@04a28ec |
 | AC-04 | 已登录访问 `/admin/content/{id}/edit`（旧路由） | URL 状态 | 返回 404（路由已下线） | pass | code cleanup (T-006.1) |
+| AC-04 | 已登录访问 `/admin/content/reports`（首次进入） | 页面初始 UI 状态 | 右侧详情卡片默认不弹出 | pass | main@818587c |
+| AC-04 | `/admin/content/reports` 点击具体报错后 | 详情交互 | 右侧详情卡片弹出，点击遮罩或按 `ESC` 可关闭 | pass | main@9116d18 |
+| AC-04 | 全局语言为中文时访问 `/admin/content/reports` | 页面文案语言 | 标题、筛选、表头、抽屉动作等文案显示中文 | pass | workspace change (reports i18n) |
 | AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 |  |  |
 | AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 |  |  |
 

@@ -3,6 +3,8 @@
 import React from 'react';
 import { Report, IssueType } from './types';
 import { X, BarChart3, Star, HelpCircle, Check, CheckCircle2, XCircle, Wrench } from 'lucide-react';
+import { useApp } from '@/providers';
+import { getReportsI18n } from './i18n';
 
 interface ReportDetailsDrawerProps {
   isOpen: boolean;
@@ -11,6 +13,9 @@ interface ReportDetailsDrawerProps {
 }
 
 export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen, onClose, report }) => {
+  const { lang } = useApp();
+  const text = getReportsI18n(lang);
+
   if (!report) return null;
 
   const systemAnswerId = report.systemCorrectOptionId;
@@ -48,7 +53,7 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10 relative z-10 bg-white/50 dark:bg-black/20 backdrop-blur-md">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <BarChart3 className="text-purple-500" size={24} />
-          Report Details
+          {text.drawer.reportDetails}
         </h2>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-500 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10">
           <X size={20} />
@@ -72,26 +77,26 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
             </div>
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">{report.user.name}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Student • {report.question.subject}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{text.drawer.student} • {report.question.subject}</p>
             </div>
           </div>
           <div className="flex flex-col items-end">
             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-500/20 mb-1 text-nowrap">
-              {report.issueType}
+              {text.issueType[report.issueType]}
             </span>
-            <span className="text-xs text-gray-400">ID: #{report.id}</span>
+            <span className="text-xs text-gray-400">{text.drawer.idPrefix}: #{report.id}</span>
           </div>
         </div>
 
         <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 border border-gray-200 dark:border-white/5">
-          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">User Comment</h4>
-          <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{report.comment}"</p>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{text.drawer.userComment}</h4>
+          <p className="text-sm text-gray-700 dark:text-gray-300 italic">&ldquo;{report.comment}&rdquo;</p>
         </div>
 
         <div>
           <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
             <HelpCircle className="text-primary" size={18} />
-            Question Content
+            {text.drawer.questionContent}
           </h4>
           <div className="bg-white dark:bg-[#161B26] border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
             <div className="p-4 border-b border-gray-200 dark:border-white/5">
@@ -115,12 +120,12 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
 
         <div className="grid grid-cols-2 gap-4">
           <div className="p-3 rounded-xl bg-green-50 dark:bg-green-500/5 border border-green-200 dark:border-green-500/10 text-center">
-             <div className="text-xs text-green-500 font-semibold mb-1">System Answer</div>
-             <div className="text-lg font-bold text-gray-900 dark:text-white">Option {systemAnswerId}</div>
+             <div className="text-xs text-green-500 font-semibold mb-1">{text.drawer.systemAnswer}</div>
+             <div className="text-lg font-bold text-gray-900 dark:text-white">{text.drawer.option} {systemAnswerId}</div>
           </div>
           <div className="p-3 rounded-xl bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/10 text-center">
-            <div className="text-xs text-red-500 font-semibold mb-1">User Suggests</div>
-            <div className="text-lg font-bold text-gray-900 dark:text-white">Option {userAnswerId}</div>
+            <div className="text-xs text-red-500 font-semibold mb-1">{text.drawer.userSuggests}</div>
+            <div className="text-lg font-bold text-gray-900 dark:text-white">{text.drawer.option} {userAnswerId}</div>
           </div>
         </div>
       </div>
@@ -128,16 +133,16 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
       <div className="p-6 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#11141B] flex flex-col gap-3 relative z-10">
         <button className="w-full py-2.5 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium shadow-lg shadow-green-500/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
           <CheckCircle2 size={18} />
-          Confirm Error & Refund
+          {text.drawer.confirmErrorRefund}
         </button>
         <div className="flex gap-3">
           <button className="flex-1 py-2.5 rounded-lg border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
             <XCircle size={18} />
-            Reject Report
+            {text.drawer.rejectReport}
           </button>
           <button className="flex-1 py-2.5 rounded-lg bg-blue-600/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-600/20 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)] transition-colors flex items-center justify-center gap-2 text-sm font-medium">
             <Wrench size={18} />
-            Mark as Fixed
+            {text.drawer.markAsFixed}
           </button>
         </div>
       </div>

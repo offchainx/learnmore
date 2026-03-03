@@ -60,7 +60,9 @@
 1. `/admin` 入口已完成改造：已登录进入管理员总览面板，不再跳转 `/admin/content/review`。
 2. 侧边栏已新增“管理仪表盘”入口，并将应用内 `admin` 导航统一收口至 `/admin`。
 3. 编辑链路已合并：`/admin/content/[id]/edit` 与旧编辑 UI 已移除，统一入口为 `/admin/content/review/[questionId]`。
-4. `T-006.1` 仍在进行：待补齐 `admin/**` 全量路由矩阵验证与证据归档。
+4. `/admin/content/reports` 交互已修复：首屏不自动弹出详情卡片，仅点击报错后弹出，支持遮罩点击与 `ESC` 关闭。
+5. `/admin/content/reports` 本地化已修复：页面文案按全局语言渲染（中文优先）。
+6. `T-006.1` 仍在进行：待补齐 `admin/**` 全量路由矩阵验证与证据归档。
 
 ## T-007 执行章节（异常后台请求排查与修复）
 

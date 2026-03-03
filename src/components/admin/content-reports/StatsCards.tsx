@@ -2,8 +2,13 @@
 
 import React from 'react';
 import { ClipboardList, CheckCircle2, Clock, ArrowUp, TrendingUp, ArrowDown } from 'lucide-react';
+import { useApp } from '@/providers';
+import { getReportsI18n } from './i18n';
 
 export const StatsCards: React.FC = () => {
+  const { lang } = useApp();
+  const text = getReportsI18n(lang).stats;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       {/* Pending Reports */}
@@ -14,12 +19,12 @@ export const StatsCards: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-red-500 shadow-glow-red animate-pulse"></div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Pending Reports</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{text.pendingReports}</span>
           </div>
           <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">24</div>
           <div className="flex items-center text-xs text-red-500 font-medium">
             <ArrowUp size={14} className="mr-0.5" />
-            <span>+4 since yesterday</span>
+            <span>{text.sinceYesterday}</span>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
@@ -33,12 +38,12 @@ export const StatsCards: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-500 shadow-glow-green"></div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Resolved Today</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{text.resolvedToday}</span>
           </div>
           <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">18</div>
           <div className="flex items-center text-xs text-green-500 font-medium">
             <TrendingUp size={14} className="mr-0.5" />
-            <span>94% resolution rate</span>
+            <span>{text.resolutionRate}</span>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
@@ -52,12 +57,12 @@ export const StatsCards: React.FC = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-glow-blue"></div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Avg. Resolution Time</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{text.avgResolutionTime}</span>
           </div>
-          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">2.5<span className="text-lg font-normal text-gray-500 ml-1">hrs</span></div>
+          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">2.5<span className="text-lg font-normal text-gray-500 ml-1">{text.hours}</span></div>
           <div className="flex items-center text-xs text-blue-500 font-medium">
             <ArrowDown size={14} className="mr-0.5" />
-            <span>-15min from last week</span>
+            <span>{text.fromLastWeek}</span>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>

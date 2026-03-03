@@ -32,6 +32,8 @@
 - [x] `/admin` 从重定向入口改为真实管理员总览面板入口。
 - [x] 侧边栏新增“管理仪表盘”，并统一站内 `admin` 导航入口到 `/admin`。
 - [x] 移除重复编辑链路：删除 `/admin/content/[id]/edit` 路由与旧编辑组件（`QuestionEditorForm`、`QuestionReviewPanel`）。
+- [x] 修复 `/admin/content/reports` 交互：首屏不自动弹出详情卡片；仅点击具体报错后弹出；支持遮罩点击与 `ESC` 关闭。
+- [x] 修复 `/admin/content/reports` 文案本地化：全局语言为中文时页面文案显示中文。
 - [ ] 完成 `admin/**` 全量未登录重定向与已登录行为矩阵验证。
 
 ## 备注

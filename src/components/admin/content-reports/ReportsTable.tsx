@@ -3,6 +3,8 @@
 import React from 'react';
 import { Report, ReportStatus, IssueType } from './types';
 import { Eye, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
+import { useApp } from '@/providers';
+import { getReportsI18n } from './i18n';
 
 interface ReportsTableProps {
   reports: Report[];
@@ -10,6 +12,9 @@ interface ReportsTableProps {
 }
 
 export const ReportsTable: React.FC<ReportsTableProps> = ({ reports, onSelectReport }) => {
+  const { lang } = useApp();
+  const text = getReportsI18n(lang);
+
   const getStatusColor = (status: ReportStatus) => {
     switch (status) {
       case ReportStatus.IN_REVIEW: return 'text-yellow-600 dark:text-yellow-400';
@@ -37,13 +42,14 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ reports, onSelectRep
 
   const getIssueBadge = (type: IssueType) => {
     const baseClasses = "px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border";
+    const issueText = text.issueType[type];
     switch (type) {
       case IssueType.ANSWER_WRONG:
-        return <span className={`${baseClasses} bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border-red-200 dark:border-red-500/20`}>{type}</span>;
+        return <span className={`${baseClasses} bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border-red-200 dark:border-red-500/20`}>{issueText}</span>;
       case IssueType.TYPO_ERROR:
-        return <span className={`${baseClasses} bg-orange-100 dark:bg-orange-500/10 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-500/20`}>{type}</span>;
+        return <span className={`${baseClasses} bg-orange-100 dark:bg-orange-500/10 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-500/20`}>{issueText}</span>;
       case IssueType.IMAGE_MISSING:
-        return <span className={`${baseClasses} bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 border-blue-200 dark:border-blue-500/20`}>{type}</span>;
+        return <span className={`${baseClasses} bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 border-blue-200 dark:border-blue-500/20`}>{issueText}</span>;
     }
   };
 
@@ -53,11 +59,11 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ reports, onSelectRep
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reporter</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Issue Type</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[35%]">Question Preview</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{text.table.reporter}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{text.table.issueType}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[35%]">{text.table.questionPreview}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{text.table.status}</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">{text.table.actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-white/5 text-sm">
@@ -95,13 +101,13 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ reports, onSelectRep
                   <div className="flex items-center gap-2">
                     {getStatusIndicator(report.status)}
                     <span className={`text-xs font-medium ${getStatusColor(report.status)}`}>
-                        {report.status === ReportStatus.IN_REVIEW ? 'In Review' : report.status.charAt(0) + report.status.slice(1).toLowerCase()}
+                        {report.status === ReportStatus.IN_REVIEW ? text.table.inReview : report.status === ReportStatus.PENDING ? text.table.pending : text.table.resolved}
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors" title="View Details" onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}>
+                    <button className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors" title={text.table.viewDetails} onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}>
                       <Eye size={20} />
                     </button>
                   </div>
@@ -113,7 +119,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({ reports, onSelectRep
       </div>
       <div className="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between bg-gray-50/50 dark:bg-black/20">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Showing <span className="font-medium text-gray-900 dark:text-white">1</span> to <span className="font-medium text-gray-900 dark:text-white">4</span> of <span className="font-medium text-gray-900 dark:text-white">24</span> results
+          {text.table.showing} <span className="font-medium text-gray-900 dark:text-white">1</span> {text.table.to} <span className="font-medium text-gray-900 dark:text-white">4</span> {text.table.of} <span className="font-medium text-gray-900 dark:text-white">24</span> {text.table.results}
         </div>
         <div className="flex gap-2">
           <button className="p-2 rounded-lg border border-gray-200 dark:border-white/10 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
