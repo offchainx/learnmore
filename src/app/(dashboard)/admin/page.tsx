@@ -1,71 +1,174 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { AlertTriangle, CheckSquare, MessageCircle, ShieldCheck, Users } from 'lucide-react'
 import { getProfile } from '@/actions/user/profile'
 import { AdminClientWrapper } from '@/components/admin/common'
+import AdminDashboardV2 from '@/components/admin/dashboard/v2/AdminDashboardV2'
+import type {
+  AdminDashboardAuditItem,
+  AdminDashboardMetric,
+  AdminDashboardQuickAction,
+  AdminDashboardRiskItem,
+  AdminDashboardRole,
+  AdminDashboardWorkItem,
+} from '@/types/admin-dashboard'
 
 export const dynamic = 'force-dynamic'
 
-type AdminRole = 'ADMIN' | 'TEACHER'
-
-type MetricCard = {
-  id: string
-  label: string
-  value: string
-  delta: string
-  hint: string
-}
-
-type WorkItem = {
-  id: string
-  title: string
-  meta: string
-  level: 'normal' | 'urgent'
-}
-
-type ShortcutItem = {
-  id: string
-  label: string
-  desc: string
-  href: string
-  visibleTo: AdminRole[]
-  icon: typeof CheckSquare
-}
-
-const metricCards: MetricCard[] = [
-  { id: 'users', label: '总用户数', value: '12,345', delta: '+123', hint: '本周累计 850' },
-  { id: 'active', label: '活跃课程', value: '48', delta: '+2', hint: '本周累计 5' },
-  { id: 'refund', label: '待处理退款', value: '3', delta: '+1', hint: '本周累计 12' },
-  { id: 'security', label: '系统异常', value: '0', delta: '0', hint: '本周累计 1' },
+const mockKpis: AdminDashboardMetric[] = [
+  {
+    id: 'kpi-active-users',
+    title: '活跃用户',
+    value: '2,845',
+    trend: 3.2,
+    trendLabel: '较昨日',
+    sparklineData: [2120, 2201, 2310, 2250, 2418, 2550, 2845],
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'kpi-revenue',
+    title: '营收',
+    value: '¥128,420',
+    trend: 12.5,
+    trendLabel: '较昨日',
+    sparklineData: [92000, 96000, 99800, 105000, 111000, 119000, 128420],
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'kpi-completion',
+    title: '课程完成率',
+    value: '68.2%',
+    trend: 5.1,
+    trendLabel: '较上周',
+    sparklineData: [60, 61, 63, 64, 66, 67, 68.2],
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'kpi-tickets',
+    title: '待处理工单',
+    value: '12',
+    trend: -10.0,
+    trendLabel: '较昨日',
+    sparklineData: [20, 18, 16, 15, 13, 10, 12],
+    exception: '2 个超时风险',
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'kpi-system-errors',
+    title: '系统异常',
+    value: '3',
+    trend: 50.0,
+    trendLabel: '较昨日',
+    sparklineData: [0, 1, 0, 2, 1, 2, 3],
+    exception: '1 个 critical',
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
 ]
 
-const pendingItems: WorkItem[] = [
-  { id: 'p1', title: '新课程发布申请：Python 进阶', meta: '提交人：张老师 · 2 小时前', level: 'normal' },
-  { id: 'p2', title: '学生作业复核：算法基础', meta: '待复核数量：15 · 5 小时前', level: 'urgent' },
+const mockWorkQueue: AdminDashboardWorkItem[] = [
+  {
+    id: 'w1',
+    title: '审核新课程: Python 数据分析实战',
+    sla: '1 小时剩余',
+    slaLevel: 'critical',
+    type: 'review',
+    href: '/admin/content/review',
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'w2',
+    title: '用户投诉: 无法播放视频 (ID: 9527)',
+    sla: '4 小时剩余',
+    slaLevel: 'warning',
+    type: 'feedback',
+    href: '/admin/feedback',
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'w3',
+    title: '审核评论: 包含敏感词汇',
+    sla: '12 小时剩余',
+    slaLevel: 'normal',
+    type: 'review',
+    href: '/admin/content/reports',
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'w4',
+    title: '退款申请: 误操作购买',
+    sla: '23 小时剩余',
+    slaLevel: 'normal',
+    type: 'feedback',
+    href: '/admin/feedback',
+    visibleTo: ['ADMIN'],
+  },
 ]
 
-const feedbackItems: WorkItem[] = [
-  { id: 'f1', title: '视频播放卡顿反馈（user_9527）', meta: '10 分钟前', level: 'normal' },
+const mockRisks: AdminDashboardRiskItem[] = [
+  {
+    id: 'r1',
+    title: '异常登录: 连续失败 50 次 (IP: 10.0.0.1)',
+    level: 'critical',
+    time: '10:42',
+    source: 'Security_Gateway',
+    href: '/admin/permissions',
+    visibleTo: ['ADMIN'],
+  },
+  {
+    id: 'r2',
+    title: '数据库 CPU 使用率 > 90%',
+    level: 'high',
+    time: '09:15',
+    source: 'Monitor_DB_Master',
+    href: '/admin/permissions',
+    visibleTo: ['ADMIN'],
+  },
+  {
+    id: 'r3',
+    title: 'API 响应延迟 > 2s',
+    level: 'medium',
+    time: '08:30',
+    source: 'Monitor_API',
+    href: '/admin/permissions',
+    visibleTo: ['ADMIN'],
+  },
 ]
 
-const securityItems: WorkItem[] = [
-  { id: 's1', title: '异常登录尝试 IP 封禁', meta: 'IP: 192.168.x.x · 刚刚', level: 'urgent' },
+const mockAudits: AdminDashboardAuditItem[] = [
+  {
+    id: 'a1',
+    actor: 'admin_alice',
+    action: '强制下架',
+    target: 'Course_ID_8821',
+    time: '10:30',
+    level: 'critical',
+    visibleTo: ['ADMIN'],
+  },
+  {
+    id: 'a2',
+    actor: 'teacher_bob',
+    action: '更新章节',
+    target: 'React_Basics_Ch3',
+    time: '09:45',
+    level: 'info',
+    visibleTo: ['ADMIN', 'TEACHER'],
+  },
+  {
+    id: 'a3',
+    actor: 'system_bot',
+    action: '自动封禁',
+    target: 'User_Spam_112',
+    time: '09:00',
+    level: 'warning',
+    visibleTo: ['ADMIN'],
+  },
 ]
 
-const shortcutItems: ShortcutItem[] = [
-  { id: 'review', label: '内容审核', desc: '进入题目审核队列', href: '/admin/content/review', visibleTo: ['ADMIN', 'TEACHER'], icon: CheckSquare },
-  { id: 'users', label: '用户管理', desc: '查看用户状态与订阅', href: '/admin/users', visibleTo: ['ADMIN', 'TEACHER'], icon: Users },
-  { id: 'feedback', label: '学员反馈', desc: '处理反馈工单', href: '/admin/feedback', visibleTo: ['ADMIN'], icon: MessageCircle },
-  { id: 'security', label: '权限配置', desc: '管理角色权限与风险项', href: '/admin/permissions', visibleTo: ['ADMIN'], icon: ShieldCheck },
+const mockActions: AdminDashboardQuickAction[] = [
+  { id: 'qa1', label: '内容审核', icon: 'review', href: '/admin/content/review', visibleTo: ['ADMIN', 'TEACHER'] },
+  { id: 'qa2', label: '用户管理', icon: 'users', href: '/admin/users', visibleTo: ['ADMIN', 'TEACHER'] },
+  { id: 'qa3', label: '权限配置', icon: 'permissions', href: '/admin/permissions', visibleTo: ['ADMIN'] },
+  { id: 'qa4', label: '学员反馈', icon: 'feedback', href: '/admin/feedback', visibleTo: ['ADMIN', 'TEACHER'] },
+  { id: 'qa5', label: '优惠券管理', icon: 'vouchers', href: '/admin/vouchers', visibleTo: ['ADMIN'] },
 ]
-
-function levelClass(level: WorkItem['level']): string {
-  if (level === 'urgent') {
-    return 'bg-red-500/15 text-red-300 border border-red-400/30'
-  }
-
-  return 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30'
-}
 
 export default async function AdminDashboardPage() {
   const profile = await getProfile()
@@ -78,133 +181,19 @@ export default async function AdminDashboardPage() {
     redirect('/dashboard')
   }
 
-  const role = profile.role as AdminRole
-  const canViewSecurity = role === 'ADMIN'
-  const visibleShortcuts = shortcutItems.filter((item) => item.visibleTo.includes(role))
-  const updatedAt = new Intl.DateTimeFormat('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date())
+  const role = profile.role as AdminDashboardRole
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
-      <div className="space-y-6">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-bold text-white">管理员总览</h1>
-              <p className="mt-1 text-sm text-slate-400">数据窗口：今日 + 近 7 天</p>
-            </div>
-            <div className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs text-slate-300">
-              更新时间 {updatedAt}
-            </div>
-          </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {metricCards.map((card) => (
-            <article key={card.id} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-              <p className="text-sm text-slate-400">{card.label}</p>
-              <div className="mt-2 flex items-end gap-2">
-                <p className="text-3xl font-semibold text-white">{card.value}</p>
-                <p className="text-sm text-emerald-300">{card.delta}</p>
-              </div>
-              <p className="mt-4 text-xs text-slate-500">{card.hint}</p>
-            </article>
-          ))}
-        </section>
-
-        <section className={`grid gap-4 ${canViewSecurity ? 'xl:grid-cols-3' : 'xl:grid-cols-2'}`}>
-          <article className="rounded-2xl border border-slate-800 bg-slate-900/80">
-            <header className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
-              <h2 className="font-semibold text-white">待审核事项</h2>
-              <Link href="/admin/content/review" className="text-xs text-blue-300 hover:text-blue-200">
-                查看全部
-              </Link>
-            </header>
-            <ul className="space-y-4 p-5">
-              {pendingItems.map((item) => (
-                <li key={item.id} className="space-y-2">
-                  <p className="text-sm font-medium text-slate-100">{item.title}</p>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-slate-400">{item.meta}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${levelClass(item.level)}`}>
-                      {item.level}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          <article className="rounded-2xl border border-slate-800 bg-slate-900/80">
-            <header className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
-              <h2 className="font-semibold text-white">用户反馈</h2>
-              <Link href="/admin/feedback" className="text-xs text-blue-300 hover:text-blue-200">
-                查看全部
-              </Link>
-            </header>
-            <ul className="space-y-4 p-5">
-              {feedbackItems.map((item) => (
-                <li key={item.id} className="space-y-2">
-                  <p className="text-sm font-medium text-slate-100">{item.title}</p>
-                  <p className="text-xs text-slate-400">{item.meta}</p>
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          {canViewSecurity && (
-            <article className="rounded-2xl border border-slate-800 bg-slate-900/80">
-              <header className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
-                <h2 className="font-semibold text-white">安全风险监控</h2>
-                <Link href="/admin/permissions" className="text-xs text-blue-300 hover:text-blue-200">
-                  查看全部
-                </Link>
-              </header>
-              <ul className="space-y-4 p-5">
-                {securityItems.map((item) => (
-                  <li key={item.id} className="space-y-2">
-                    <p className="flex items-center gap-2 text-sm font-medium text-slate-100">
-                      <AlertTriangle className="h-4 w-4 text-red-300" />
-                      {item.title}
-                    </p>
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs text-slate-400">{item.meta}</p>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${levelClass(item.level)}`}>
-                        {item.level}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </article>
-          )}
-        </section>
-
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/80">
-          <header className="border-b border-slate-800 px-5 py-4">
-            <h2 className="font-semibold text-white">快捷入口</h2>
-          </header>
-          <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
-            {visibleShortcuts.map((item) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  className="rounded-xl border border-slate-700 bg-slate-950/70 p-4 transition hover:border-blue-400/60 hover:bg-slate-950"
-                >
-                  <Icon className="h-5 w-5 text-blue-300" />
-                  <p className="mt-3 text-sm font-semibold text-slate-100">{item.label}</p>
-                  <p className="mt-1 text-xs text-slate-400">{item.desc}</p>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-      </div>
+      <AdminDashboardV2
+        role={role}
+        kpis={mockKpis}
+        workQueue={mockWorkQueue}
+        risks={mockRisks}
+        audits={mockAudits}
+        actions={mockActions}
+        lastUpdated={new Date().toISOString()}
+      />
     </AdminClientWrapper>
   )
 }
