@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatsCards } from './StatsCards';
 import { ReportsTable } from './ReportsTable';
 import { ReportDetailsDrawer } from './ReportDetailsDrawer';
@@ -11,6 +11,19 @@ import { Report } from './types';
 export const ReportsClient: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDrawerOpen]);
 
   const handleSelectReport = (report: Report) => {
     setSelectedReport(report);
@@ -30,10 +43,10 @@ export const ReportsClient: React.FC = () => {
         <ReportsTable reports={MOCK_REPORTS} onSelectReport={handleSelectReport} />
       </div>
 
-      {/* Invisible overlay to catch clicks when drawer is open */}
+      {/* Semi-transparent overlay: click or ESC to close drawer */}
       {isDrawerOpen && (
         <div 
-          className="fixed inset-0 z-40 cursor-default"
+          className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[2px] transition-opacity duration-300"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
