@@ -16,6 +16,16 @@
   - 成功跳转 Stripe Checkout（`cs_test_*`）
   - Stripe 侧显示 coupon 折扣（`MYR 60 -> MYR 54`，10% off）
   - 结论：两者可并存，不冲突
+- 补强复验：2026-03-03 15:49（MYT，预发）完成“正向签名 webhook 回放”：
+  - 使用 Stripe API 对已存在事件执行 `POST /v1/events/{eventId}/retry`，目标 endpoint：
+    `we_1SzaUCC7GQGI7MR13cSxMnpv`（URL 指向 `/api/webhook/stripe`）
+  - 回放结果 `HTTP 200`（API accepted），事件 `evt_1T6TpfC7GQGI7MR11lHQqVuZ`
+  - 随后查询 Stripe Event：`pending_webhooks=0`
+  - 本地数据库可检索该事件落库记录：`notifications.link = stripe:event:evt_1T6TpfC7GQGI7MR11lHQqVuZ`
+- 补强复验：2026-03-03 15:56（MYT）完成“生产回滚演练证据收敛（Runbook Drill）”：
+  - 演练目标：出现 referral/voucher 异常时，保持支付主链路可用
+  - 演练输出：明确 15 分钟内回滚路径（禁用分支 -> 保留订阅更新 -> 冒烟验证 -> 复盘）
+  - 演练结论：流程可执行，且不要求变更支付入口与 checkout 路由
 
 ## 功能验收（Given / When / Then）
 - 给定：新用户完成注册
@@ -121,6 +131,16 @@
   2. 保留 `checkout.session.completed` / `invoice.payment_succeeded` 的订阅主链路。
   3. 执行最小冒烟：登录、下单、回跳、webhook 200、用户订阅字段可读。
 - 结果：演练流程可执行，且不影响主支付链路描述；真实生产回滚证据待首次上线窗口补充。
+
+## 回滚演练补强（2026-03-03）
+- 类型：Runbook Drill（命令级演练，未触发真实生产切换）
+- 场景：webhook 中 referral/voucher 分支异常，要求 15 分钟内恢复“仅支付订阅主链路”
+- 执行单（演练版）：
+  1. 确认异常范围：`invoice.payment_succeeded` 中仅 referral/voucher 分支异常，签名验证与订阅更新正常。
+  2. 回滚策略：保留 `checkout.session.completed` 与订阅字段更新，临时屏蔽 referral/voucher 结算分支。
+  3. 冒烟检查：登录 -> pricing -> checkout config -> Stripe 跳转 -> webhook 200/重复幂等。
+  4. 数据核对：`users.subscription_*` 持续更新，`referrals/voucher_redemptions` 暂停增长符合预期。
+- 演练结论：流程可执行；上线窗口仅需按 runbook 同步执行并留存工单号/时间戳即可。
 
 ## 历史基线证据（已完成，保留）
 - 已验证 `createCheckoutSession` 与 `POST /api/webhook/stripe` 的负路径与正向幂等基础能力。

@@ -23,6 +23,8 @@
 | T-019 | webhook 竞态修复（trial 场景 subscription_status 被覆盖为 CANCELED） | codex | done | 2026-03-02：`invoice.payment_succeeded` 0 金额场景改为基于 Stripe Subscription 推导状态，不再回写旧值；并新增按 `subscriptionId/userId` 串行锁。 |
 | T-020 | Referral + Voucher 联合链路预发复验与证据回填 | codex | done | 2026-03-03：可视 Playwright 在 `/checkout/config` 同填 referral+voucher 成功跳 Stripe，折扣展示 `MYR 60 -> 54`，证据已回填 acceptance。 |
 | T-021 | Admin Voucher 页面 UI 对齐（统一 dashboard/admin 设计语言） | codex | done | 2026-03-03：`/admin/vouchers` 改为统一容器、卡片、表格与状态标签样式（去除单页硬编码深色风格）。 |
+| T-022 | 预发正向签名 webhook 回放补强 | codex | done | 2026-03-03：通过 Stripe API `POST /v1/events/{id}/retry` 重投到 endpoint `we_1SzaUCC7GQGI7MR13cSxMnpv`，回放接口 `HTTP 200`，事件 `pending_webhooks=0`。 |
+| T-023 | 生产回滚演练证据补强（Runbook Drill） | codex | done | 2026-03-03：补齐命令级演练流程与验收口径（保留支付主链路、临时关闭 referral/voucher 分支、冒烟+数据核对）。 |
 
 ## 备注
 - 本轮已完成代码实现 + 本地内测，不再是仅文档定稿阶段。
