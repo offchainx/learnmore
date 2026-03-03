@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { cookies } from 'next/headers'
 import './globals.css'
 import '@/lib/suppress-warnings' // 抑制已知的框架警告
 import { ThemeProvider, AppProvider } from '@/providers'
@@ -14,6 +15,7 @@ import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBa
 import { CookieConsent } from '@/components/layout/CookieConsent'
 import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
+import type { Lang } from '@/providers/app-provider'
 
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
@@ -61,11 +63,22 @@ export const viewport: Viewport = {
   viewportFit: 'cover', // 支持刘海屏/药丸屏
 }
 
-export default function RootLayout({
+const parseLangCookie = (value: string | undefined): Lang => {
+  if (value === 'en' || value === 'zh' || value === 'ms') {
+    return value
+  }
+
+  return 'zh'
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const initialLang = parseLangCookie(cookieStore.get('lm_lang')?.value)
+
   return (
     <html lang="zh-CN" suppressHydrationWarning className={fonts.className}>
       <body className="antialiased">
@@ -75,7 +88,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <AppProvider>
+          <AppProvider initialLang={initialLang}>
             <ImpersonateBannerWrapper />
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />

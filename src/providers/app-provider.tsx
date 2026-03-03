@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { translations } from '../lib/translations';
 import { useTheme } from 'next-themes';
 
-type Lang = 'en' | 'zh' | 'ms';
+export type Lang = 'en' | 'zh' | 'ms';
 
 interface AppContextType {
   lang: Lang;
@@ -16,24 +16,39 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [lang, setLang] = useState<Lang>('en');
+const isValidLang = (value: string | null | undefined): value is Lang => {
+  return value === 'en' || value === 'zh' || value === 'ms';
+};
+
+export const AppProvider = ({
+  children,
+  initialLang = 'zh',
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) => {
+  const [lang, setLang] = useState<Lang>(initialLang);
   const { theme, setTheme, resolvedTheme } = useTheme();
 
-  // Load saved language preference
+  // Sync saved language preference after hydration
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedLang = localStorage.getItem('lang') as Lang;
-      if (savedLang && ['en', 'zh', 'ms'].includes(savedLang)) {
-        setTimeout(() => setLang(savedLang), 0);
-      }
+    if (typeof window === 'undefined') return;
+
+    const savedLang = localStorage.getItem('lang');
+    if (isValidLang(savedLang)) {
+      // Keep cookie and localStorage in sync for server-first language rendering.
+      document.cookie = `lm_lang=${savedLang}; path=/; max-age=31536000; samesite=lax`;
+    } else {
+      localStorage.setItem('lang', lang);
+      document.cookie = `lm_lang=${lang}; path=/; max-age=31536000; samesite=lax`;
     }
-  }, []);
+  }, [lang]);
 
   const handleSetLang = (newLang: Lang) => {
     setLang(newLang);
     if (typeof window !== 'undefined') {
       localStorage.setItem('lang', newLang);
+      document.cookie = `lm_lang=${newLang}; path=/; max-age=31536000; samesite=lax`;
     }
   };
 
