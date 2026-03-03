@@ -1,6 +1,6 @@
 # 验收标准（Acceptance）
 
-## 执行状态（2026-03-02）
+## 执行状态（2026-03-03）
 - 本文档已从“待实现口径”切换为“代码实装 + 本地内测证据”。
 - 本轮结论：P0-01 新增开发项已完成，本地内测通过（含注册/升级/checkout-config/referral/cancel/webhook/voucher/幂等）。
 - 最新复验：2026-03-02 13:27（MYT，本地）执行 `scripts/p0-01-internal-smoke.mjs` 返回 `ok=true`，`referralStatus=COMPLETED`，`billingNotificationCount=3`。
@@ -11,6 +11,11 @@
 - 增量修复复验：2026-03-02 17:52（MYT，本地）完成“webhook trial 状态竞态”修复：
   - `invoice.payment_succeeded(amount=0)` 不再回写旧状态（避免 `TRIALING -> CANCELED` 覆盖）
   - 事件处理新增同订阅串行锁（`subscriptionId/userId`）
+- 第 8 步联测复验：2026-03-03 15:16（MYT，预发可视 Playwright）完成“Referral + Voucher 同时输入”验证：
+  - 在 `/checkout/config` 同时输入 `referralCode=WOH3WO5N` 与 `voucherCode=P0V22428540`
+  - 成功跳转 Stripe Checkout（`cs_test_*`）
+  - Stripe 侧显示 coupon 折扣（`MYR 60 -> MYR 54`，10% off）
+  - 结论：两者可并存，不冲突
 
 ## 功能验收（Given / When / Then）
 - 给定：新用户完成注册
@@ -46,6 +51,9 @@
 - 给定：用户输入有效 voucher 且 referral 已绑定
   当：提交支付配置
   则：voucher 折扣与 referral 奖励可同时生效（互不冲突）。
+- 给定：用户仅完成 checkout session 创建，尚未产生真实扣款
+  当：查询 `public.voucher_codes.redeemed_count`
+  则：计数保持不变；仅在 `invoice.payment_succeeded(amount_paid>0)` 后递增。
 - 给定：Stripe 重放同一 event
   当：重复推送 webhook
   则：不重复结算订阅、奖励与通知（幂等通过）。
@@ -81,6 +89,7 @@
 | Cancel Plan | users | cancel_at_period_end、subscription_status | `test01@gmail.com`：`ACTIVE`、`cancel_at_period_end=false` | 执行后：`CANCEL_AT_PERIOD_END`、`cancel_at_period_end=true` | 与规则一致 | N/A | pass（本地，2026-03-02） |
 | Referral 首扣结算 | referrals, users | status、reward_granted、deferred_*、first_paid_at | smoke 初始：`PENDING` | 首扣后：`DEFERRED`；推荐人后续扣款后：`COMPLETED`、`deferred_reward_weeks=0`、`deferred_settled_at` 有值 | 与 Case A/延迟补发一致 | N/A | pass（`scripts/p0-01-internal-smoke.mjs`） |
 | Voucher 应用 | voucher_codes、voucher_redemptions、notifications | discount_type、discount_value、applied_amount | smoke 初始 `redeemed_count=0` | 首扣后：`voucher_redemptions` 新增 1 条、`voucher_codes.redeemed_count=1`、通知 metadata 含 voucher 字段 | 与规则一致 | N/A | pass（本地脚本 + SQL） |
+| Referral+Voucher 联合入场 | Stripe Checkout、voucher_codes | checkout 会话、折扣展示、redeemed_count | 输入 referral+voucher 前，`redeemed_count` 不变 | 成功进入 Stripe 且展示 coupon 折扣；若未完成真实扣款，`redeemed_count` 仍保持原值 | 与“首扣计数”规则一致 | N/A | pass（预发 Playwright，2026-03-03，`MYR 60 -> MYR 54`） |
 | webhook 幂等 | notifications（或 webhook_event 表） | link/metadata.eventId | 首次处理后 event 记录存在 | 重放后无重复 redemption / 无重复同 event 通知 | 幂等有效 | 已复验 | pass（本地脚本 + 历史预发） |
 
 ## 关键字段验收（新增）

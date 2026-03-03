@@ -108,8 +108,11 @@ export function VoucherAdminClient({ vouchers }: VoucherAdminClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-        <h2 className="text-xl font-bold text-white mb-4">创建 Voucher</h2>
+      <div className="rounded-lg border bg-card p-6">
+        <h2 className="text-xl font-bold mb-1">创建 Voucher</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          本期支持金额减免（AMOUNT）与百分比折扣（PERCENT）。
+        </p>
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label="Code"
@@ -119,9 +122,9 @@ export function VoucherAdminClient({ vouchers }: VoucherAdminClientProps) {
           />
 
           <div>
-            <label className="text-sm text-slate-300 block mb-2">Discount Type</label>
+            <label className="text-sm text-muted-foreground block mb-2">Discount Type</label>
             <select
-              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={discountType}
               onChange={(event) => setDiscountType(event.target.value as VoucherDiscountType)}
             >
@@ -175,11 +178,11 @@ export function VoucherAdminClient({ vouchers }: VoucherAdminClientProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 overflow-auto">
-        <h2 className="text-xl font-bold text-white mb-4">Voucher 列表</h2>
-        <table className="w-full text-sm text-left text-slate-200">
+      <div className="rounded-lg border bg-card p-6 overflow-auto">
+        <h2 className="text-xl font-bold mb-4">Voucher 列表</h2>
+        <table className="w-full text-sm text-left">
           <thead>
-            <tr className="border-b border-slate-700">
+            <tr className="border-b">
               <th className="py-2 pr-4">Code</th>
               <th className="py-2 pr-4">Type</th>
               <th className="py-2 pr-4">Value</th>
@@ -192,7 +195,7 @@ export function VoucherAdminClient({ vouchers }: VoucherAdminClientProps) {
           </thead>
           <tbody>
             {vouchers.map((voucher) => (
-              <tr key={voucher.id} className="border-b border-slate-800/60">
+              <tr key={voucher.id} className="border-b">
                 <td className="py-3 pr-4 font-mono">{voucher.code}</td>
                 <td className="py-3 pr-4">{voucher.discountType}</td>
                 <td className="py-3 pr-4">
@@ -213,8 +216,8 @@ export function VoucherAdminClient({ vouchers }: VoucherAdminClientProps) {
                   <span
                     className={`rounded-full px-2 py-1 text-xs ${
                       voucher.isActive
-                        ? 'bg-green-500/20 text-green-300'
-                        : 'bg-slate-700 text-slate-300'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {voucher.isActive ? 'ACTIVE' : 'INACTIVE'}

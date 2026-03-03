@@ -21,6 +21,8 @@
 | T-017 | 新用户默认主题修复（默认暗黑，不跟随系统主题） | codex | done | 2026-03-02：`src/app/layout.tsx` 改为 `defaultTheme=dark` + `enableSystem=false`，Playwright 复验 `html.class` 包含 `dark`。 |
 | T-018 | Dashboard 首屏加载优化（新用户首屏等待缩短） | codex | done | 2026-03-02：`getDashboardProfile` 轻量查询 + `getDashboardStats` 并行/聚合优化，Playwright 复验导航耗时约 1.1s。 |
 | T-019 | webhook 竞态修复（trial 场景 subscription_status 被覆盖为 CANCELED） | codex | done | 2026-03-02：`invoice.payment_succeeded` 0 金额场景改为基于 Stripe Subscription 推导状态，不再回写旧值；并新增按 `subscriptionId/userId` 串行锁。 |
+| T-020 | Referral + Voucher 联合链路预发复验与证据回填 | codex | done | 2026-03-03：可视 Playwright 在 `/checkout/config` 同填 referral+voucher 成功跳 Stripe，折扣展示 `MYR 60 -> 54`，证据已回填 acceptance。 |
+| T-021 | Admin Voucher 页面 UI 对齐（统一 dashboard/admin 设计语言） | codex | done | 2026-03-03：`/admin/vouchers` 改为统一容器、卡片、表格与状态标签样式（去除单页硬编码深色风格）。 |
 
 ## 备注
 - 本轮已完成代码实现 + 本地内测，不再是仅文档定稿阶段。

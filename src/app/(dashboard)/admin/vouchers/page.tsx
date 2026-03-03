@@ -29,8 +29,13 @@ export default async function AdminVouchersPage() {
   });
 
   return (
-    <div className="container py-8 text-white">
-      <h1 className="text-3xl font-bold mb-6">Voucher 管理</h1>
+    <div className="container py-8 space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">Voucher 管理</h1>
+        <p className="text-sm text-muted-foreground">
+          创建、启停与追踪 Voucher 使用情况（仅管理员可见）。
+        </p>
+      </div>
       <VoucherAdminClient
         vouchers={vouchers.map((voucher) => ({
           ...voucher,
