@@ -22,3 +22,13 @@ export interface DbChapter {
   order: number;
   stats: DbChapterStats;
 }
+
+export interface DbPastPaper {
+  id: string;
+  title: string;
+  sourcePaper: string | null;
+  sourceYear: number | null;
+  questionCount: number;
+  status: string;
+  updatedAt: string;
+}

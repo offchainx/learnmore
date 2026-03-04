@@ -16,7 +16,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 interface QuizViewProps {
-  chapterId: string;
+  chapterId?: string;
   questions: Question[];
   onComplete?: () => void;
 }
@@ -55,7 +55,7 @@ export function QuizView({ chapterId, questions, onComplete }: QuizViewProps) {
       }));
 
       const res = await submitQuiz({
-        chapterId,
+        ...(chapterId ? { chapterId } : {}),
         answers: formattedAnswers,
         duration: 60, // Placeholder duration
       });

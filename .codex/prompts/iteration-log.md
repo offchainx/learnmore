@@ -16,6 +16,8 @@
 | 2026-03-04 | T-006 路由收口：通知设置并轨 + 全量路由扫描 | 将 `/dashboard/settings/notifications` 下线并把通知设置统一到 `/dashboard/settings?tab=notifications`；同步扫描 `src/app/**/page.tsx` 并更新受保护/无保护路由基线 | 代码已收口（旧路由 404、通知入口改链、settings 通知矩阵统一保存），并在 p0-02 文档补齐全量路由清单和“可能重复/可收口”候选 | 先收口重复入口，再做全量扫描，最后统一回填 specs 与 release 审计文档 | 如果只改代码不补基线，后续路由治理容易再次漂移 | 先执行“代码收口 -> 路由全扫 -> 文档单一事实源更新 -> lint/tsc 校验”固定流水线 | 下一步按候选清单逐条确认是否下线，并补齐 AC-04 全路由矩阵验证证据 |
 | 2026-03-04 | T-006 路由进一步收口：下线 `/admin/content`、`/course/**`、`/checkout/config` | 将 4 个确认废弃路由改为显式 404，并清理入口与回填文档（含受保护/无保护路由表） | 代码侧已完成路由下线、入口替换（内容入口收口到 `/admin/content/review`；课程入口收口到 `/dashboard/courses`；支付入口收口到 `/pricing` 直连 checkout action），文档同步完成 | 先处理真实入口（避免死链），再下线路由，最后更新审计文档与回归用例 | 仅下线路由不处理入口会产生体验回退（点进去即 404） | 固化“入口替换 -> 路由下线 -> 审计文档更新 -> lint/tsc”四步法 | 下一步继续按路由矩阵做 `admin/**` 与 `dashboard/**` 全量验收打证据 |
 
+| 2026-03-04 | p0-06-practice-prod-validation/T-005 | 修复 Past Year Paper 模式：真实数据源 + 动态路由 + 可提交 | 新增 getPastPapersBySubject、改造 PastPapersSection、新增 /dashboard/practice/past-paper/[groupId] 页面、QuizView chapterId 支持可选、T-005 置为 done | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

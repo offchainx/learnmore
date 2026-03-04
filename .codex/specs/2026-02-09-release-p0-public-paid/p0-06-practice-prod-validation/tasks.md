@@ -6,11 +6,17 @@
 | T-002 | 形成题目域数据表分层清单与当前库基线（含记录数快照） | codex | done |  |
 | T-003 | 设计 Examcoo 初中教育导入链路（列表页 -> 逐题页 -> RPC）与字段映射 | codex | done |  |
 | T-004 | 梳理当前练习题相关数据表、字段合理性与用户答题采集链路（本次） | codex | done |  |
-| T-005 | 实现导入脚本（可分页抓取、可重试、可幂等） | codex | todo |  |
-| T-006 | 执行首批导入（优先初三数学 k=60，再扩展初中教育其他分类） | codex | todo |  |
-| T-007 | 导入后数据审计（去重、类型分布、来源追溯完整性） | codex | todo |  |
-| T-008 | Practice 主链路回归（提交判分/错题/榜单/成就） | codex | todo |  |
-| T-009 | 本地 + 预发双环境验收与收尾 | codex | todo |  |
+| T-005 | 修复练习中心五模式入口闭环（补齐 Past Year Paper 动态路由与真实数据源） | codex | done |  |
+| T-006 | Smart Drill 答题落库改造（统一提交到 exam_records/user_attempts/error_book） | codex | todo |  |
+| T-007 | Chapter Drill 答题落库改造（移除纯前端判题孤岛，接入统一提交） | codex | todo |  |
+| T-008 | 统一防重复做题策略（Smart/Chapter/Mock 三模式统一排重参数与默认窗口） | codex | todo |  |
+| T-009 | 统一错题本掌握度语义（修复 submitQuiz 与 submitExam 对 masteryLevel 的冲突） | codex | todo |  |
+| T-010 | 抽题发布态约束（仅抽取 VERIFIED/PUBLISHED 题目） | codex | todo |  |
+| T-011 | Weakness Quick Fix 服务端化（UI 改为复用 getWeaknessAnalysis） | codex | todo |  |
+| T-012 | 实现 Examcoo 爬虫导入脚本（list -> exercise -> rpc -> mapping -> 入库） | codex | todo |  |
+| T-013 | 执行首批导入与幂等审计（优先初三数学 k=60，再扩展初中教育） | codex | todo |  |
+| T-014 | 本地 + 预发双环境验收与收尾（含回滚演练） | codex | todo |  |
 
 ## 备注
-- 2026-03-04 已完成文档与基线梳理，下一步进入脚本实现与首批录入。
+- 执行优先级已确认：先修练习链路，再做爬虫录题。
+- 爬虫导入策略已确认：全量入库，但默认 `REVIEW_PENDING`，审核后再进入可练题池。

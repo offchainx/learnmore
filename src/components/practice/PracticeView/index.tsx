@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { getAllSubjects } from '@/actions/courses/subject';
-import { getSubjectChapters } from '@/actions/practice/data-service';
 import type { DbSubject, DbChapter } from './types';
 
 // Components
@@ -25,18 +23,27 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t, userId }) => {
   // Load subject data
   useEffect(() => {
     async function fetchDbSubjects() {
-      const result = await getAllSubjects();
-      if (result.success && result.data) {
-        setDbSubjects(result.data);
+      const response = await fetch('/api/courses/subjects', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) return;
+      const result = await response.json();
+
+      if (result.success && Array.isArray(result.data)) {
+        const subjects = result.data as DbSubject[];
+        setDbSubjects(subjects);
         // Find mathematics or select the first one
-        const mathSubject = result.data.find(s =>
+        const mathSubject = subjects.find((s) =>
           s.name.toLowerCase().includes('math') ||
           s.name.toLowerCase().includes('数学')
         );
         if (mathSubject) {
           setSelectedSubjectId(mathSubject.id);
-        } else if (result.data.length > 0) {
-          setSelectedSubjectId(result.data[0].id);
+        } else if (subjects.length > 0) {
+          setSelectedSubjectId(subjects[0].id);
         }
       }
     }
@@ -50,9 +57,23 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t, userId }) => {
 
       setIsLoadingChapters(true);
       try {
-        const data = await getSubjectChapters(selectedSubjectId, userId);
-        if (data && data.chapters) {
-          setDbChapters(data.chapters);
+        const response = await fetch(
+          `/api/practice/subject-chapters?subjectId=${encodeURIComponent(selectedSubjectId)}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          },
+        );
+
+        if (!response.ok) {
+          setDbChapters([]);
+          return;
+        }
+
+        const result = await response.json();
+        if (result.success && result.data?.chapters) {
+          setDbChapters(result.data.chapters);
         } else {
           setDbChapters([]);
         }
@@ -65,7 +86,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t, userId }) => {
     }
 
     fetchChapters();
-  }, [selectedSubjectId, userId]);
+  }, [selectedSubjectId]);
 
   // Derived current subject info
   const currentDbSubject = dbSubjects.find(s => s.id === selectedSubjectId);
@@ -90,7 +111,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t, userId }) => {
           <div className="lg:col-span-2">
              <TrainingModeCards selectedSubjectId={selectedSubjectId} />
              <ChapterMap chapters={dbChapters} isLoading={isLoadingChapters} />
-             <PastPapersSection />
+             <PastPapersSection selectedSubjectId={selectedSubjectId} />
           </div>
 
           <AnalyticsSidebar 
