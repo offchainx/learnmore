@@ -46,11 +46,11 @@
 | AC-04 | 访问 `/admin/content` | 路由状态 | 页面已下线，直接返回 404（仅保留 `/admin/content/review`） | pass | workspace change (admin content retired) |
 | AC-04 | 访问 `/course/:subjectId`、`/course/:subjectId/:lessonId` | 路由状态 | 页面已下线，直接返回 404（课程入口统一收口到 `/dashboard/courses`） | pass | workspace change (course routes retired) |
 | AC-04 | 访问 `/checkout/config` | 路由状态 | 页面已下线，直接返回 404（支付入口改为 `/pricing` 直连） | pass | workspace change (checkout config retired) |
-| AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 | doing | 通知链路已切到 GET API 且仅下拉展开时请求（待补空闲观测证据） |
-| AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 | doing | 代码已收敛为“受保护路径 + 页面可见 + 伪装中”轮询（待补空闲观测证据） |
-| AC-05 | `/dashboard/practice` 空闲 1-3 分钟 | Network + Server Logs | 不应出现批量 `POST /dashboard/practice` 噪音请求 | doing | practice 首页读取已迁移 GET API（待补空闲观测证据） |
-| AC-05 | `/dashboard/practice` 首屏与切科目请求次数 | Network（XHR/Fetch） | 首屏仅 `GET /api/practice/bootstrap` 一次；切换科目仅 `GET /api/practice/subject-data?subjectId=...` 一次 | doing | 已完成聚合接口接入（待补截图与日志证据） |
-| AC-05 | 页面空闲且未打开通知下拉 | Network | 不应持续出现 `GET /api/notifications/summary?limit=10` | doing | `NotificationBell` 已改为仅下拉打开时请求（待补空闲观测证据） |
+| AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 | pass | Playwright 2026-03-04：`/dashboard`、`/dashboard/practice`、`/admin/permissions` 空闲观测均未出现该请求 |
+| AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 | pass | Playwright 2026-03-04：空闲 180s 无新增轮询（非伪装态仅首次检查） |
+| AC-05 | `/dashboard/practice` 空闲 1-3 分钟 | Network + Server Logs | 不应出现批量 `POST /dashboard/practice` 噪音请求 | pass | Playwright 2026-03-04：未出现 `POST /dashboard/practice` |
+| AC-05 | `/dashboard/practice` 首屏与切科目请求次数 | Network（XHR/Fetch） | 首屏仅 `GET /api/practice/bootstrap` 一次；切换科目仅 `GET /api/practice/subject-data?subjectId=...` 一次 | pass | Playwright 2026-03-04：观测到 `bootstrap` 1 次成功 + 切科目 `subject-data` 1 次 |
+| AC-05 | 页面空闲且未打开通知下拉 | Network | 不应持续出现 `GET /api/notifications/summary?limit=10` | pass | Playwright 2026-03-04：未打开通知下拉时 180s 内无通知摘要请求 |
 
 ## 权限矩阵验收（新增）
 | 验收点 | 角色 | 场景 | 预期结果 | 结果（pass/fail） | 证据 |
@@ -81,7 +81,7 @@
 - [ ] 预发复测完成并附证据
 - [ ] 幂等与越权场景通过
 - [ ] 路由定向审计完成并附证据
-- [ ] `impersonate/status` 与 `POST /admin/feedback` 异常请求排查完成并附 Network + Server log 证据
+- [x] `impersonate/status` 与 `POST /admin/feedback` 异常请求排查完成并附 Network + Server log 证据
 - [ ] 权限矩阵（ADMIN/TEACHER/其他）验收通过
 - [ ] `/admin/content/review`、`/admin/feedback`、`/admin/users` 回归无退化
 - [ ] user/voucher 字段映射核对完成并附证据

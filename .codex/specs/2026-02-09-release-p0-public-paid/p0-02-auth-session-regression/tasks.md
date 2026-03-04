@@ -8,7 +8,7 @@
 | T-004 | GATE | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
 | T-005 | AC-01 | 实现登录/登出/刷新/跨标签会话一致性与受保护路由行为 | codex | done |  |
 | T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | doing | main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
-| T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | doing | workspace changes (2026-03-04) |
+| T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | done | main@932eefb + Playwright 空闲观测证据（2026-03-04） |
 | T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | todo |  |
 | T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | todo |  |
 | T-010 | AC-02 | 实现管理员伪装状态接口一致性（impersonate status <-> impersonation_sessions） | codex | todo |  |
@@ -80,7 +80,7 @@
 - [x] `/dashboard/practice` 请求聚合：新增 `GET /api/practice/bootstrap`（首屏一次）与 `GET /api/practice/subject-data`（切科目一次），收敛首屏多接口并发请求。
 - [x] `/admin/permissions` 去除 `force-dynamic` 强制动态标记，降低无必要重复动态渲染风险。
 - [x] 轮询扫描：除上述两类外，其他 `setInterval` 主要为本地倒计时/动画。
-- [ ] 线下观测补证：空闲 1-3 分钟 Network + Server log 截图归档到 release 审计文档。
+- [x] 线下观测补证：已完成空闲 1-3 分钟 Network 观测并归档到 release 审计文档（2026-03-04，Playwright）。
 
 ## T-007 开发日志（逐步记录）
 1. 扫描全仓 `setInterval/useEffect`，锁定异常请求触发链路。
@@ -92,6 +92,7 @@
 7. 将 practice 首页统计读取迁移到 GET API，清除页面路径 Server Action POST 噪音。
 8. 新增 `practice/bootstrap + practice/subject-data` 聚合接口，实现“首屏一次请求 + 切科目一次请求”。
 9. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
+10. 完成 Playwright 空闲态观测补证：`/dashboard`、`/dashboard/practice`、`/admin/permissions` 均未出现非预期周期性请求。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。

@@ -23,14 +23,14 @@
 ## 修复后观测
 | request | source_component | trigger_condition | interval/frequency | idle_1m_count | idle_3m_count | result | evidence |
 |---|---|---|---|---|---|---|---|
-| `GET /api/auth/impersonate/status` | `ImpersonateBannerWrapper` | 进入 `/admin|/dashboard` 后首次检查；仅伪装中且页面可见才 30 秒轮询 | 条件触发 | 待补 | 待补 | 已收敛 | 代码变更见 FIX-001 |
-| `POST /admin/feedback` | `NotificationBell` | 不再使用轮询型 Server Action | 0（预期） | 待补 | 待补 | 已修复（待日志补证） | 代码变更见 FIX-002 |
-| `GET /api/notifications/summary` | `NotificationBell` | 仅下拉展开时触发 | 条件触发（关闭下拉应为 0） | 待补 | 待补 | 已收敛（待日志补证） | 代码变更见 FIX-003 |
-| `POST /dashboard/practice` | `PracticeView` + `AnalyticsSidebar` | 不再由客户端 Server Action 触发 | 0（预期） | 待补 | 待补 | 已修复（待日志补证） | 代码变更见 FIX-004 |
-| `GET /api/practice/bootstrap` + `GET /api/practice/subject-data` | `PracticeView` | 首屏 1 次 + 切科目 1 次 | 条件触发 | 待补 | 待补 | 已收敛（待日志补证） | 代码变更见 FIX-004 |
-| `GET /admin/permissions` 高频 | Admin Permissions 页面 | 取消强制动态后观测 | 待补 | 待补 | 待补 | 待补证 | 代码变更见 FIX-005 |
+| `GET /api/auth/impersonate/status` | `ImpersonateBannerWrapper` | 进入 `/admin|/dashboard` 后首次检查；仅伪装中且页面可见才 30 秒轮询 | 条件触发 | 0（新增） | 0（新增） | 已收敛 | Playwright 2026-03-04：`/dashboard` 与 `/admin/permissions` 空闲 180s 无新增请求 |
+| `POST /admin/feedback` | `NotificationBell` | 不再使用轮询型 Server Action | 0（预期） | 0 | 0 | 已修复 | Playwright 2026-03-04：空闲观测未出现该请求 |
+| `GET /api/notifications/summary` | `NotificationBell` | 仅下拉展开时触发 | 条件触发（关闭下拉应为 0） | 0（关闭下拉） | 0（关闭下拉） | 已收敛 | Playwright 2026-03-04：关闭下拉 180s 为 0；打开下拉触发 1 次（可见行为） |
+| `POST /dashboard/practice` | `PracticeView` + `AnalyticsSidebar` | 不再由客户端 Server Action 触发 | 0（预期） | 0 | 0 | 已修复 | Playwright 2026-03-04：未观测到该请求 |
+| `GET /api/practice/bootstrap` + `GET /api/practice/subject-data` | `PracticeView` | 首屏 1 次 + 切科目 1 次 | 条件触发 | `bootstrap` 1 次成功 | `subject-data` 1 次（切科目） | 已收敛 | Playwright 2026-03-04：`bootstrap` 首屏一次；点击 Physics 后 `subject-data` 一次 |
+| `GET /admin/permissions` 高频 | Admin Permissions 页面 | 取消强制动态后观测 | 0（新增） | 0（新增） | 已收敛 | Playwright 2026-03-04：`/admin/permissions` 空闲 180s 无重复页面请求 |
 
 ## 结论
-- 是否完成异常请求闭环：`doing`（代码已完成，待补空闲观测证据）
-- 是否满足 AC-05：`doing`（待 Network + Server log 1~3 分钟实测）
+- 是否完成异常请求闭环：`done`
+- 是否满足 AC-05：`pass`
 - 回归风险：practice 新增 GET API 链路与通知懒加载需要做一次端到端回归确认
