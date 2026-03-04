@@ -132,7 +132,7 @@ export function NotificationDropdown({
           className="w-full text-xs font-medium rounded-xl h-9"
           asChild
         >
-          <Link href="/dashboard/settings/notifications">
+          <Link href="/dashboard/settings?tab=notifications">
             通知设置
           </Link>
         </Button>

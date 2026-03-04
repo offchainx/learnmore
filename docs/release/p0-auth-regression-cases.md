@@ -8,7 +8,7 @@
 | 9-10 | AC-05 | T-007 |
 | 11-14 | AC-04（回归） | T-006 / T-008 |
 | 15-17 | AC-04（权限） | T-006 |
-| 18-19 | AC-04（路由下线） | T-006 |
+| 18-22 | AC-04（路由下线） | T-006 |
 
 ## AC-01 用例
 
@@ -116,3 +116,18 @@
 - Given：任意登录态用户
 - When：访问 `/dashboard/knowledge-graph`
 - Then：页面直接返回 404，不再作为业务可访问路由
+
+### 用例 20：`/dashboard/practice/import` 已下线
+- Given：任意登录态用户
+- When：访问 `/dashboard/practice/import`
+- Then：页面直接返回 404；题目录入应统一走 `/admin/content/import`
+
+### 用例 21：`/dashboard/settings/notifications` 已下线
+- Given：任意登录态用户
+- When：访问 `/dashboard/settings/notifications`
+- Then：页面直接返回 404；不再保留独立通知设置页
+
+### 用例 22：通知设置统一收口到 settings tab
+- Given：任意登录态用户
+- When：从通知中心点击“通知设置”
+- Then：跳转到 `/dashboard/settings?tab=notifications` 并展示通知偏好矩阵（统一保存入口）

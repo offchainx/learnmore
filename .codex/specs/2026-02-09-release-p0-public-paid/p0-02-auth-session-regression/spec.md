@@ -102,4 +102,6 @@ updated_at: 2026-03-04
 - `/admin/users`：已修复列表区域宽度收缩问题，页面主区全宽渲染。
 - `/dashboard/debug/ui-kit`：已下线，当前行为为显式 404。
 - `/dashboard/knowledge-graph`：已下线，当前行为为显式 404。
+- `/dashboard/practice/import`：已下线，当前行为为显式 404，题目录入统一收口到内容管理流程。
+- `/dashboard/settings/notifications`：已下线，当前行为为显式 404；通知设置统一收口到 `/dashboard/settings` 的通知 tab。
 - 开发过程记录：`T-006` 每一步执行日志已同步到 `tasks.md` 与 `plan.md`。

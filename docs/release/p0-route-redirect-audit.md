@@ -15,6 +15,8 @@
 | `/dashboard/*` | 未登录 | `/login?redirectTo=原路径` |  |  |  |  |
 | `/dashboard/debug/ui-kit` | 任意登录态 | 调试页下线并返回 404 | 调试页可访问 | 路由文件改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
 | `/dashboard/knowledge-graph` | 任意登录态 | 功能页下线并返回 404 | 功能页可访问 | 路由文件改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
+| `/dashboard/practice/import` | 任意登录态 | 功能页下线并返回 404 | 页面可访问并可上传题目 | 路由文件改为显式 `notFound()`（题目录入收口到 `/admin/content/import`） | 直接返回 404 | workspace change (2026-03-04) |
+| `/dashboard/settings/notifications` | 任意登录态 | 独立通知页下线并返回 404 | 与 `/dashboard/settings` 通知 tab 重复开发 | 路由文件改为显式 `notFound()`，通知中心入口改链到 `/dashboard/settings?tab=notifications` | 直接返回 404，通知设置统一在 settings 内完成 | workspace change (2026-03-04) |
 | `/login` | 已登录 | 按 `redirectTo` 或默认 `/dashboard` |  |  |  |  |
 | `/register` | 已登录 | 按 `redirectTo` 或默认 `/dashboard` |  |  |  |  |
 
