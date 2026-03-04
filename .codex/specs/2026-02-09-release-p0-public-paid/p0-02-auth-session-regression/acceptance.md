@@ -49,6 +49,7 @@
 | AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 | doing | 通知链路已切到 GET API 且仅下拉展开时请求（待补空闲观测证据） |
 | AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 | doing | 代码已收敛为“受保护路径 + 页面可见 + 伪装中”轮询（待补空闲观测证据） |
 | AC-05 | `/dashboard/practice` 空闲 1-3 分钟 | Network + Server Logs | 不应出现批量 `POST /dashboard/practice` 噪音请求 | doing | practice 首页读取已迁移 GET API（待补空闲观测证据） |
+| AC-05 | `/dashboard/practice` 首屏与切科目请求次数 | Network（XHR/Fetch） | 首屏仅 `GET /api/practice/bootstrap` 一次；切换科目仅 `GET /api/practice/subject-data?subjectId=...` 一次 | doing | 已完成聚合接口接入（待补截图与日志证据） |
 | AC-05 | 页面空闲且未打开通知下拉 | Network | 不应持续出现 `GET /api/notifications/summary?limit=10` | doing | `NotificationBell` 已改为仅下拉打开时请求（待补空闲观测证据） |
 
 ## 权限矩阵验收（新增）

@@ -41,7 +41,7 @@ export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <PracticeView t={t} userId={user.id} />
+      <PracticeView t={t} />
     </DashboardLayout>
   )
 }

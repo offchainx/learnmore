@@ -44,6 +44,109 @@ function isPrismaSchemaMismatchError(error: unknown): boolean {
   )
 }
 
+type LegacyUserRow = {
+  id: string
+  email: string
+  username: string | null
+  role: 'STUDENT' | 'PARENT' | 'TEACHER' | 'ADMIN'
+  status: 'ACTIVE' | 'BANNED' | 'PAUSED'
+  avatar: string | null
+  grade: number | null
+  streak: number | null
+  totalStudyTime: number | null
+  xp: number | null
+  aiTokenBalance: number | null
+  lastStudyDate: Date | null
+  referralCode: string | null
+  referralCount: number | null
+  referralLimit: number | null
+  subscriptionTier: 'STARTER' | 'STANDARD' | 'SMART_PLUS' | 'PREMIER' | null
+  subscriptionStart: Date | null
+  subscriptionEnd: Date | null
+  subscriptionStatus: 'TRIALING' | 'ACTIVE' | 'CANCEL_AT_PERIOD_END' | 'CANCELED' | 'PAST_DUE'
+  cancelAtPeriodEnd: boolean | null
+  stripeCustomerId: string | null
+  stripeSubscriptionId: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+async function getCurrentUserFallbackByRaw(userId: string) {
+  try {
+    const rows = await prisma.$queryRaw<LegacyUserRow[]>`
+      SELECT
+        id,
+        email,
+        username,
+        role,
+        status,
+        avatar,
+        grade,
+        streak,
+        total_study_time AS "totalStudyTime",
+        xp,
+        ai_token_balance AS "aiTokenBalance",
+        last_study_date AS "lastStudyDate",
+        referral_code AS "referralCode",
+        referral_count AS "referralCount",
+        referral_limit AS "referralLimit",
+        subscription_tier AS "subscriptionTier",
+        subscription_start AS "subscriptionStart",
+        subscription_end AS "subscriptionEnd",
+        subscription_status AS "subscriptionStatus",
+        cancel_at_period_end AS "cancelAtPeriodEnd",
+        stripe_customer_id AS "stripeCustomerId",
+        stripe_subscription_id AS "stripeSubscriptionId",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      FROM users
+      WHERE id::text = ${userId}
+      LIMIT 1
+    `
+
+    const row = rows[0]
+    if (!row) return null
+
+    return {
+      id: row.id,
+      email: row.email,
+      username: row.username,
+      role: row.role,
+      status: row.status,
+      avatar: row.avatar,
+      grade: row.grade,
+      school: null,
+      streak: row.streak ?? 0,
+      totalStudyTime: row.totalStudyTime ?? 0,
+      xp: row.xp ?? 0,
+      aiTokenBalance: row.aiTokenBalance ?? 0,
+      lastStudyDate: row.lastStudyDate,
+      lastSignInAt: null,
+      signInCount: 0,
+      utmSource: null,
+      utmMedium: null,
+      utmCampaign: null,
+      referralCode: row.referralCode,
+      referralCount: row.referralCount ?? 0,
+      referralLimit: row.referralLimit ?? 10,
+      subscriptionTier: row.subscriptionTier ?? 'STARTER',
+      subscriptionStart: row.subscriptionStart,
+      subscriptionEnd: row.subscriptionEnd,
+      subscriptionStatus: row.subscriptionStatus,
+      cancelAtPeriodEnd: row.cancelAtPeriodEnd ?? false,
+      stripeCustomerId: row.stripeCustomerId,
+      stripeSubscriptionId: row.stripeSubscriptionId,
+      firstPaidAt: null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      permissionOverrides: [],
+    }
+  } catch (fallbackError) {
+    console.warn('[Auth] Fallback raw query failed in getCurrentUser:', fallbackError)
+    return null
+  }
+}
+
 // 生成推荐码（8位，大写字母+数字）
 function generateReferralCode(): string {
   // 使用 crypto.randomBytes 生成随机字节，转为 base64，提取字母数字字符
@@ -202,7 +305,7 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
           utmCampaign: parsed.data.utmCampaign || undefined,
         },
       })
-      console.log('[Auth] User initialized with STARTER tier')
+      console.warn('[Auth] User initialized with STARTER tier')
     } catch (e) {
       console.error('[Auth] User upsert error:', e)
     }
@@ -317,7 +420,11 @@ export async function getCurrentUser() {
     }
 
     if (isPrismaSchemaMismatchError(error)) {
-      console.warn('[Auth] Database schema mismatch in getCurrentUser; returning null.')
+      console.warn('[Auth] Database schema mismatch in getCurrentUser; trying fallback query.')
+      const fallbackUser = await getCurrentUserFallbackByRaw(user.id)
+      if (fallbackUser) {
+        return fallbackUser
+      }
       return null
     }
 

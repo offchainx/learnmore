@@ -20,6 +20,8 @@
 
 | 2026-03-04 | T-007 请求治理与路由噪音收敛 | 排查并修复 impersonate/notifications/practice/admin-permissions 异常请求 | 已完成代码修复并更新文档，待提交推送 | - | - | - | - |
 
+| 2026-03-04 | T-007 请求治理 | 将/dashboard/practice多请求聚合为首屏一次+切科目一次，并同步文档 | 新增bootstrap/subject-data聚合API并完成前端接入，文档已更新 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

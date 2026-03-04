@@ -168,7 +168,7 @@
 ### 用例 29：`/dashboard/practice` 不再出现页面路径 POST 噪音
 - Given：登录用户访问 `/dashboard/practice`
 - When：页面首屏加载并空闲观察
-- Then：不应出现批量 `POST /dashboard/practice`，读取请求应走 `/api/practice/*` 与 `/api/courses/subjects`
+- Then：不应出现批量 `POST /dashboard/practice`；首屏仅触发 `GET /api/practice/bootstrap`，切换科目仅触发 `GET /api/practice/subject-data?subjectId=...`
 
 ### 用例 30：`/admin/permissions` 路由请求频率收敛
 - Given：登录 ADMIN 用户访问 `/admin/permissions`

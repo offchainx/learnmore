@@ -25,37 +25,52 @@ export async function getProfile() {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const profile = await prisma.user.findUnique({
-    where: { id: user.id },
-    include: {
-      settings: true,
-      badges: {
-        include: {
-          badge: true
-        }
-      },
-      _count: {
-        select: {
-          errorBook: true,
-          posts: true,
-          leaderboardEntries: true,
-        }
-      },
-      referralsGiven: {
-        where: {
-          status: 'DEFERRED',
-          deferredRewardWeeks: { gt: 0 },
+  try {
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        settings: true,
+        badges: {
+          include: {
+            badge: true
+          }
         },
-        select: {
-          id: true,
-          deferredRewardWeeks: true,
-          deferredRewardTier: true,
+        _count: {
+          select: {
+            errorBook: true,
+            posts: true,
+            leaderboardEntries: true,
+          }
         },
-      },
-    }
-  })
+        referralsGiven: {
+          where: {
+            status: 'DEFERRED',
+            deferredRewardWeeks: { gt: 0 },
+          },
+          select: {
+            id: true,
+            deferredRewardWeeks: true,
+            deferredRewardTier: true,
+          },
+        },
+      }
+    })
 
-  return profile
+    return profile
+  } catch (error) {
+    console.warn('[Profile] Falling back to lightweight profile due database schema mismatch:', error)
+    return {
+      ...user,
+      settings: null,
+      badges: [],
+      _count: {
+        errorBook: 0,
+        posts: 0,
+        leaderboardEntries: 0,
+      },
+      referralsGiven: [],
+    }
+  }
 }
 
 /**
@@ -66,14 +81,22 @@ export async function getDashboardProfile() {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const profile = await prisma.user.findUnique({
-    where: { id: user.id },
-    include: {
-      settings: true,
-    },
-  })
+  try {
+    const profile = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        settings: true,
+      },
+    })
 
-  return profile
+    return profile
+  } catch (error) {
+    console.warn('[Profile] Falling back to dashboard profile due database schema mismatch:', error)
+    return {
+      ...user,
+      settings: null,
+    }
+  }
 }
 
 export async function updateProfile(prevState: ProfileFormState, formData: FormData): Promise<ProfileFormState> {

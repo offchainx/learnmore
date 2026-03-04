@@ -77,6 +77,7 @@
 - [x] `useImpersonationState` 同步收敛，避免未来复用时重新引入高频轮询。
 - [x] PWA 链路下线：移除 Service Worker 注册、安装提示、`sw.js`、`manifest.json`、`offline.html`，消除潜在前端自动更新干扰。
 - [x] `/dashboard/practice` 客户端拉数改造：将多个客户端 Server Action 调用改为 GET API，消除批量 `POST /dashboard/practice` 噪音。
+- [x] `/dashboard/practice` 请求聚合：新增 `GET /api/practice/bootstrap`（首屏一次）与 `GET /api/practice/subject-data`（切科目一次），收敛首屏多接口并发请求。
 - [x] `/admin/permissions` 去除 `force-dynamic` 强制动态标记，降低无必要重复动态渲染风险。
 - [x] 轮询扫描：除上述两类外，其他 `setInterval` 主要为本地倒计时/动画。
 - [ ] 线下观测补证：空闲 1-3 分钟 Network + Server log 截图归档到 release 审计文档。
@@ -89,7 +90,8 @@
 5. 通知中心继续收敛为“仅打开下拉时请求”，空闲态不再主动拉取摘要。
 6. 下线 PWA 运行链路（SW/manifest/install prompt），避免潜在自动刷新干扰。
 7. 将 practice 首页统计读取迁移到 GET API，清除页面路径 Server Action POST 噪音。
-8. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
+8. 新增 `practice/bootstrap + practice/subject-data` 聚合接口，实现“首屏一次请求 + 切科目一次请求”。
+9. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。

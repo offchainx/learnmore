@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { FileText, ChevronRight, Loader2 } from 'lucide-react';
@@ -6,52 +6,16 @@ import type { DbPastPaper } from './types';
 
 interface PastPapersSectionProps {
   selectedSubjectId: string;
+  papers: DbPastPaper[];
+  isLoading: boolean;
 }
 
-export const PastPapersSection: React.FC<PastPapersSectionProps> = ({ selectedSubjectId }) => {
+export const PastPapersSection: React.FC<PastPapersSectionProps> = ({
+  selectedSubjectId,
+  papers,
+  isLoading,
+}) => {
   const router = useRouter();
-  const [papers, setPapers] = useState<DbPastPaper[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    async function fetchPapers() {
-      if (!selectedSubjectId) {
-        setPapers([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `/api/practice/past-papers?subjectId=${encodeURIComponent(selectedSubjectId)}`,
-          {
-            method: 'GET',
-            credentials: 'include',
-            cache: 'no-store',
-          },
-        );
-
-        if (!response.ok) {
-          setPapers([]);
-          return;
-        }
-
-        const result = await response.json();
-        if (result.success && Array.isArray(result.data)) {
-          setPapers(result.data as DbPastPaper[]);
-        } else {
-          setPapers([]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch past papers:', error);
-        setPapers([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchPapers();
-  }, [selectedSubjectId]);
 
   const handleStart = (paperId: string) => {
     router.push(`/dashboard/practice/past-paper/${paperId}?subjectId=${selectedSubjectId}`);

@@ -16,7 +16,7 @@
 | FIX-001 | `GET /api/auth/impersonate/status` | 轮询条件收敛（受保护路径 + 页面可见 + 伪装态），非伪装态不再固定 30 秒轮询 | `src/components/admin/users/ImpersonateBannerWrapper.tsx`、`src/components/admin/users/ImpersonateBanner.tsx` | 降低非必要轮询，避免空闲噪音 | done |
 | FIX-002 | `POST /admin/feedback` | 通知轮询从 Server Action 改为 GET API（仅轮询读操作） | `src/components/notification/NotificationBell.tsx`、`src/app/api/notifications/summary/route.ts` | 消除空闲态周期性 POST 到当前页面路径 | done |
 | FIX-003 | `GET /api/notifications/summary` 空闲态请求 | 通知拉取进一步收敛为“仅下拉打开时请求/轮询” | `src/components/notification/NotificationBell.tsx` | 关闭通知下拉时无背景请求 | done |
-| FIX-004 | `POST /dashboard/practice` | 将 practice 首页读取链路迁移到 GET API（subjects/chapters/papers/hive/forecast） | `src/components/practice/**`、`src/app/api/courses/subjects/route.ts`、`src/app/api/practice/*/route.ts` | 消除页面路径批量 POST 噪音 | done |
+| FIX-004 | `POST /dashboard/practice` + 首屏多 GET 并发 | 将 practice 首页读取链路迁移为聚合接口：`GET /api/practice/bootstrap`（首屏）+ `GET /api/practice/subject-data`（切科目） | `src/components/practice/**`、`src/app/api/practice/bootstrap/route.ts`、`src/app/api/practice/subject-data/route.ts`、`src/app/api/practice/_lib/subject-data.ts` | 消除页面路径批量 POST 噪音，并收敛请求次数 | done |
 | FIX-005 | `GET /admin/permissions` 高频 | 移除 `force-dynamic` 强制动态标记，收敛重复动态请求风险 | `src/app/(dashboard)/admin/permissions/page.tsx` | 降低重复路由请求概率 | done |
 | FIX-006 | PWA 相关潜在干扰 | 下线 SW/manifest/install prompt 运行链路 | `src/app/layout.tsx`、`next.config.ts`、`public/sw.js`、`public/manifest.json`、`public/offline.html` | 清除 PWA 注册与更新行为 | done |
 
@@ -27,6 +27,7 @@
 | `POST /admin/feedback` | `NotificationBell` | 不再使用轮询型 Server Action | 0（预期） | 待补 | 待补 | 已修复（待日志补证） | 代码变更见 FIX-002 |
 | `GET /api/notifications/summary` | `NotificationBell` | 仅下拉展开时触发 | 条件触发（关闭下拉应为 0） | 待补 | 待补 | 已收敛（待日志补证） | 代码变更见 FIX-003 |
 | `POST /dashboard/practice` | `PracticeView` + `AnalyticsSidebar` | 不再由客户端 Server Action 触发 | 0（预期） | 待补 | 待补 | 已修复（待日志补证） | 代码变更见 FIX-004 |
+| `GET /api/practice/bootstrap` + `GET /api/practice/subject-data` | `PracticeView` | 首屏 1 次 + 切科目 1 次 | 条件触发 | 待补 | 待补 | 已收敛（待日志补证） | 代码变更见 FIX-004 |
 | `GET /admin/permissions` 高频 | Admin Permissions 页面 | 取消强制动态后观测 | 待补 | 待补 | 待补 | 待补证 | 代码变更见 FIX-005 |
 
 ## 结论

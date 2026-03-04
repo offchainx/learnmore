@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState, useEffect } from 'react'
+import { memo } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,8 +14,9 @@ import type { ExamForecast as ExamForecastType, TrendDirection } from '@/lib/pra
 import { cn } from '@/lib/utils'
 
 interface ExamForecastProps {
-  userId: string
-  subjectId?: string
+  forecast: ExamForecastType | null
+  loading?: boolean
+  error?: string | null
   className?: string
 }
 
@@ -179,53 +180,14 @@ function ExamForecastSkeleton() {
 
 /**
  * 考分预测主组件
- * 基于用户近期练习表现预测考试成绩
+ * 基于用户近期练习表现预测考试成绩（数据由父组件注入）
  */
-function ExamForecastInner({ userId, subjectId, className }: ExamForecastProps) {
-  const [forecast, setForecast] = useState<ExamForecastType | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function fetchData() {
-      try {
-        setLoading(true)
-        setError(null)
-        const params = new URLSearchParams()
-        if (subjectId) params.set('subjectId', subjectId)
-        const query = params.toString()
-        const response = await fetch(`/api/practice/exam-forecast${query ? `?${query}` : ''}`, {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch exam forecast')
-        }
-
-        const result = await response.json()
-        const data = result.success ? (result.data as ExamForecastType | null) : null
-
-        if (!isMounted) return
-        setForecast(data)
-      } catch (err) {
-        if (!isMounted) return
-        console.error('Failed to fetch exam forecast data:', err)
-        setError('加载预测数据失败')
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
-
-    fetchData()
-
-    return () => {
-      isMounted = false
-    }
-  }, [userId, subjectId])
+function ExamForecastInner({
+  forecast,
+  loading = false,
+  error = null,
+  className,
+}: ExamForecastProps) {
 
   if (loading) {
     return <ExamForecastSkeleton />

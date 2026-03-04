@@ -1,3 +1,5 @@
+import type { ExamForecast, HiveNode } from '@/lib/practice/types';
+
 export interface DbSubject {
   id: string;
   name: string;
@@ -31,4 +33,11 @@ export interface DbPastPaper {
   questionCount: number;
   status: string;
   updatedAt: string;
+}
+
+export interface PracticeSubjectData {
+  chapters: DbChapter[];
+  pastPapers: DbPastPaper[];
+  knowledgeHive: HiveNode[];
+  examForecast: ExamForecast | null;
 }

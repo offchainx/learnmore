@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState, useEffect } from 'react'
+import { memo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Hexagon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,9 +9,10 @@ import type { HiveNode, HiveNodeStatus } from '@/lib/practice/types'
 import { cn } from '@/lib/utils'
 
 interface KnowledgeHiveProps {
-  userId: string
-  subjectId: string
+  nodes: HiveNode[]
   subjectName?: string
+  loading?: boolean
+  error?: string | null
 }
 
 /**
@@ -137,56 +138,15 @@ const HiveRow = memo(function HiveRow({
 
 /**
  * 知识蜂巢主组件
- * 显示用户在某科目各章节的掌握度可视化
+ * 显示用户在某科目各章节的掌握度可视化（数据由父组件注入）
  */
-function KnowledgeHiveInner({ userId, subjectId, subjectName }: KnowledgeHiveProps) {
+function KnowledgeHiveInner({
+  nodes,
+  subjectName,
+  loading = false,
+  error = null,
+}: KnowledgeHiveProps) {
   const router = useRouter()
-  const [nodes, setNodes] = useState<HiveNode[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let isMounted = true
-
-    async function fetchData() {
-      if (!userId || !subjectId) return
-
-      try {
-        setLoading(true)
-        setError(null)
-        const response = await fetch(
-          `/api/practice/knowledge-hive?subjectId=${encodeURIComponent(subjectId)}`,
-          {
-            method: 'GET',
-            credentials: 'include',
-            cache: 'no-store',
-          },
-        )
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch knowledge hive')
-        }
-
-        const result = await response.json()
-        const data = (result.success && Array.isArray(result.data)) ? result.data : []
-
-        if (!isMounted) return
-        setNodes(data)
-      } catch (err) {
-        if (!isMounted) return
-        console.error('Failed to fetch knowledge hive data:', err)
-        setError('加载知识蜂巢数据失败')
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
-
-    fetchData()
-
-    return () => {
-      isMounted = false
-    }
-  }, [userId, subjectId])
 
   const handleNodeClick = (node: HiveNode) => {
     if (node.status === 'locked') return

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { DbSubject, DbChapter } from './types';
+import type { DbSubject, PracticeSubjectData } from './types';
 
 // Components
 import { SubjectSelector } from './SubjectSelector';
@@ -11,86 +11,156 @@ import { AnalyticsSidebar } from './AnalyticsSidebar';
 interface PracticeViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
-  userId: string;
 }
 
-export const PracticeView: React.FC<PracticeViewProps> = ({ t, userId }) => {
+function createEmptySubjectData(): PracticeSubjectData {
+  return {
+    chapters: [],
+    pastPapers: [],
+    knowledgeHive: [],
+    examForecast: null,
+  };
+}
+
+export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [dbSubjects, setDbSubjects] = useState<DbSubject[]>([]);
-  const [dbChapters, setDbChapters] = useState<DbChapter[]>([]);
-  const [isLoadingChapters, setIsLoadingChapters] = useState(false);
+  const [loadedSubjectId, setLoadedSubjectId] = useState<string>('');
+  const [subjectData, setSubjectData] = useState<PracticeSubjectData>(createEmptySubjectData);
+  const [isBootstrapLoading, setIsBootstrapLoading] = useState(true);
+  const [isSubjectDataLoading, setIsSubjectDataLoading] = useState(false);
+  const [subjectDataError, setSubjectDataError] = useState<string | null>(null);
 
-  // Load subject data
+  // 首屏一次性拉取：subjects + 默认科目数据
   useEffect(() => {
-    async function fetchDbSubjects() {
-      const response = await fetch('/api/courses/subjects', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store',
-      });
+    let cancelled = false;
+    const controller = new AbortController();
 
-      if (!response.ok) return;
-      const result = await response.json();
+    async function fetchPracticeBootstrap() {
+      setIsBootstrapLoading(true);
+      setSubjectDataError(null);
+      try {
+        const response = await fetch('/api/practice/bootstrap', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+          signal: controller.signal,
+        });
 
-      if (result.success && Array.isArray(result.data)) {
-        const subjects = result.data as DbSubject[];
+        if (!response.ok) {
+          throw new Error(`Bootstrap request failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (!result.success || !result.data) {
+          throw new Error(result.error || 'Invalid bootstrap response');
+        }
+
+        if (cancelled) return;
+
+        const subjects = Array.isArray(result.data.subjects) ? (result.data.subjects as DbSubject[]) : [];
+        const defaultSubjectId = typeof result.data.defaultSubjectId === 'string' ? result.data.defaultSubjectId : '';
+        const bootstrapSubjectData = result.data.subjectData as PracticeSubjectData | null;
+
         setDbSubjects(subjects);
-        // Find mathematics or select the first one
-        const mathSubject = subjects.find((s) =>
-          s.name.toLowerCase().includes('math') ||
-          s.name.toLowerCase().includes('数学')
-        );
-        if (mathSubject) {
-          setSelectedSubjectId(mathSubject.id);
-        } else if (subjects.length > 0) {
-          setSelectedSubjectId(subjects[0].id);
+        setSelectedSubjectId(defaultSubjectId);
+        if (defaultSubjectId && bootstrapSubjectData) {
+          setSubjectData(bootstrapSubjectData);
+          setLoadedSubjectId(defaultSubjectId);
+        } else {
+          setSubjectData(createEmptySubjectData());
+          setLoadedSubjectId('');
+        }
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Failed to fetch practice bootstrap:', error);
+        setDbSubjects([]);
+        setSelectedSubjectId('');
+        setLoadedSubjectId('');
+        setSubjectData(createEmptySubjectData());
+        setSubjectDataError('加载练习中心数据失败');
+      } finally {
+        if (!cancelled) {
+          setIsBootstrapLoading(false);
         }
       }
     }
-    fetchDbSubjects();
+
+    fetchPracticeBootstrap();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
-  // Fetch chapters when subject changes
+  // 切换科目一次性拉取该科目的所有练习数据
   useEffect(() => {
-    async function fetchChapters() {
-      if (!selectedSubjectId) return;
+    if (!selectedSubjectId) {
+      setSubjectData(createEmptySubjectData());
+      setLoadedSubjectId('');
+      return;
+    }
 
-      setIsLoadingChapters(true);
+    if (selectedSubjectId === loadedSubjectId) {
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function fetchSubjectData() {
+      setIsSubjectDataLoading(true);
+      setSubjectDataError(null);
+      setSubjectData(createEmptySubjectData());
       try {
         const response = await fetch(
-          `/api/practice/subject-chapters?subjectId=${encodeURIComponent(selectedSubjectId)}`,
+          `/api/practice/subject-data?subjectId=${encodeURIComponent(selectedSubjectId)}`,
           {
             method: 'GET',
             credentials: 'include',
             cache: 'no-store',
+            signal: controller.signal,
           },
         );
 
         if (!response.ok) {
-          setDbChapters([]);
-          return;
+          throw new Error(`Subject data request failed: ${response.status}`);
         }
 
         const result = await response.json();
-        if (result.success && result.data?.chapters) {
-          setDbChapters(result.data.chapters);
-        } else {
-          setDbChapters([]);
+        if (!result.success || !result.data) {
+          throw new Error(result.error || 'Invalid subject data response');
         }
+
+        if (cancelled) {
+          return;
+        }
+
+        setSubjectData(result.data as PracticeSubjectData);
+        setLoadedSubjectId(selectedSubjectId);
       } catch (error) {
-        console.error('Failed to fetch chapters:', error);
-        setDbChapters([]);
+        if (cancelled) return;
+        console.error('Failed to fetch subject data:', error);
+        setSubjectData(createEmptySubjectData());
+        setSubjectDataError('加载科目数据失败');
       } finally {
-        setIsLoadingChapters(false);
+        if (!cancelled) {
+          setIsSubjectDataLoading(false);
+        }
       }
     }
 
-    fetchChapters();
-  }, [selectedSubjectId]);
+    fetchSubjectData();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [selectedSubjectId, loadedSubjectId]);
 
   // Derived current subject info
   const currentDbSubject = dbSubjects.find(s => s.id === selectedSubjectId);
   const currentSubjectTitle = currentDbSubject ? currentDbSubject.name : 'Loading...';
+  const isLoadingSubjectData = isBootstrapLoading || isSubjectDataLoading;
 
   return (
     <div className="pb-12 animate-fade-in-up">
@@ -110,15 +180,22 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t, userId }) => {
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2">
              <TrainingModeCards selectedSubjectId={selectedSubjectId} />
-             <ChapterMap chapters={dbChapters} isLoading={isLoadingChapters} />
-             <PastPapersSection selectedSubjectId={selectedSubjectId} />
+             <ChapterMap chapters={subjectData.chapters} isLoading={isLoadingSubjectData} />
+             <PastPapersSection
+               selectedSubjectId={selectedSubjectId}
+               papers={subjectData.pastPapers}
+               isLoading={isLoadingSubjectData}
+             />
           </div>
 
           <AnalyticsSidebar 
-            userId={userId}
             selectedSubjectId={selectedSubjectId}
             currentSubjectTitle={currentSubjectTitle}
-            chapters={dbChapters}
+            chapters={subjectData.chapters}
+            knowledgeHive={subjectData.knowledgeHive}
+            examForecast={subjectData.examForecast}
+            isLoading={isLoadingSubjectData}
+            errorMessage={subjectDataError}
           />
        </div>
     </div>
