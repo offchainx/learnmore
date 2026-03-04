@@ -49,4 +49,6 @@ export interface AdminReferralsViewProps {
   onRowClick?: (id: string) => void
   pagination?: AdminReferralPagination
   lastUpdatedLabel?: string
+  isLoading?: boolean
+  isError?: boolean
 }
