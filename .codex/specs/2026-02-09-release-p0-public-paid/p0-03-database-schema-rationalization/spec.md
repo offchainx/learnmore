@@ -4,7 +4,7 @@ status: active
 owner: codex
 related_story:
 created_at: 2026-03-02
-updated_at: 2026-03-02
+updated_at: 2026-03-04
 
 # 背景
 - 当前 P0 发布链路新增数据库专项梳理任务，目标是在上线前消除“字段无业务承接、表结构冗余、逻辑失配”的风险。
@@ -68,6 +68,91 @@ updated_at: 2026-03-02
   - `p0-01-internal-smoke`：14
   - `prisma-seed-likely`：3
   - 历史触发器失效窗口：待进一步复核（用于解释 `missing_in_public` 存量）
+- 2026-03-03 最终快照（T-005 已完成）：
+  - `auth_users_count = 25`
+  - `public_users_count = 25`
+  - `missing_in_public = 0`
+  - `missing_in_auth = 0`
+  - `email_id_mismatch = 0`
+
+# T-004 定义阶段摘要（已完成）
+## 修复目标（可验收）
+1. 新增注册链路下，双表差异增量为 0（可接受延迟内）。
+2. 历史存量差异完成分桶处理并有豁免台账。
+3. 同邮箱异 UUID 新增量为 0，存量具备逐条处置策略。
+4. 非标准写入路径（seed/smoke）具备显式标记，不污染生产口径。
+
+## 修复原则
+1. 先止血、后清存量、再固化防回归。
+2. 不直接物理删除历史记录；先软处置与豁免登记。
+3. 全程保留 SQL 快照和执行证据。
+4. 所有修复动作可回滚、可复盘。
+
+# T-005 执行阶段范围（已完成）
+1. Phase A（止血）：锁定非标准写入入口，核验 trigger 链路，建立每日只读监控 SQL。
+2. Phase B（分类）：按 smoke/seed/历史触发器窗口/unknown 分桶并评级。
+3. Phase C（处置）：分别处理 `missing_in_public`、`missing_in_auth`、同邮箱异 UUID。
+4. Phase D（防回归）：发布门禁+周期审计+阈值告警。
+
+# T-006 字段审计结论（文档）
+## 审计口径
+1. `auth.users`：按 Supabase 托管层处理，不提出删改字段建议。
+2. `public.users`：按业务字段保守分级，仅标注“保留/观察/待补齐链路”，不直接判定删除。
+3. 本轮仅文档审计，不执行 schema / 数据改动。
+
+## 双表字段分层（结论）
+1. 基线结构：
+   - `public.users` 共 30 字段。
+   - `auth.users` 共 35 字段。
+   - 同名交集字段 6 个：`id` / `email` / `created_at` / `updated_at` / `last_sign_in_at` / `role`。
+2. `auth.users`（托管层）：
+   - 平台托管字段（密码、token、确认/恢复、SSO、匿名、审计时间等）保留，不纳入删改范围。
+   - 与业务同步关键字段聚焦：`id`、`email`、`created_at`、`updated_at`、`raw_user_meta_data`、`last_sign_in_at`。
+3. `public.users`（业务层）：
+   - A类（有稳定生成逻辑）：`id`、`email`、`updated_at`（强制非空无默认值）、`created_at`、`role`、`status`、`subscription_tier`、`subscription_status`、`cancel_at_period_end`、`xp`、`streak`、`ai_token_balance`、`referral_count`、`referral_limit`。
+   - B类（保留，存在潜在生成逻辑但当前数据弱）：`username`、`avatar`、`grade`、`referral_code`、`subscription_start`、`subscription_end`、`stripe_customer_id`、`stripe_subscription_id`、`first_paid_at`、`utm_source`、`utm_medium`、`utm_campaign`。
+   - C类（保留，逻辑待补齐）：`last_sign_in_at`、`sign_in_count`、`total_study_time`。
+
+## 关键判断
+1. “是否所有字段都有逻辑能生成”：
+   - 结论：关键必填字段均可生成并可运行；并非所有字段都有稳定生成链路（存在 C 类待补齐）。
+2. “是否有冗余或不必要字段”：
+   - 结论：本轮不直接判删；仅识别观察项与待补链路项，进入后续 `T-007` 方案定义。
+3. 链路缺口：
+   - `auth.users.last_sign_in_at` 有数据，但 `public.users.last_sign_in_at` 当前未同步。
+   - `total_study_time` 可读但缺少稳定累计写入入口（seed 之外）。
+
+# T-007 字段链路补齐与冗余字段调整方案（文档，已完成）
+## 方案边界
+1. 本阶段只定义方案，不执行代码、SQL、schema、数据变更。
+2. `auth.users` 维持托管口径，不提出结构删改。
+3. `public.users` 采用“保留优先、链路补齐优先、延后删除判定”。
+
+## 字段级调整方案（定义结果）
+| 字段/字段组 | 当前分级 | 现状问题 | 调整方案（仅定义） | 归属任务 |
+|---|---|---|---|---|
+| `public.users.last_sign_in_at` | C | 与 `auth.users.last_sign_in_at` 不同步 | 以 `auth.users` 为主数据源；在登录后链路增加镜像更新或读时回填，确保可对齐 | T-008 |
+| `public.users.sign_in_count` | C | 缺稳定累计入口 | 在统一登录成功事件上做幂等累加（按会话去重），失败可重放 | T-008 |
+| `public.users.total_study_time` | C | 仅 seed 可写，业务链路不稳定 | 收敛到单一累计入口（学习/练习完成事件），统一秒级单位与上限保护 | T-008 |
+| `utm_source/utm_medium/utm_campaign` | B | 当前覆盖率低且存在全空 | 补齐注册/落地页采集入口；若连续观察窗口仍为 0，再进入删除评审 | T-008（先补链路） |
+| `stripe_customer_id/stripe_subscription_id/first_paid_at` | B | 部分环境覆盖率低 | 保留并继续由 webhook 写入；加入空值告警，不进入删除候选 | T-008（增强校验） |
+| `auth.users` 托管字段集 | 托管 | 平台内核字段，业务侧不可控 | 仅做读与映射，不做删改建议 | 托管范围外 |
+
+## 冗余字段判定口径（T-007 输出）
+1. 当前无“立即删除字段”。
+2. 仅存在“观察候选字段”：`utm_source`、`utm_medium`、`utm_campaign`。
+3. 观察候选转删除候选的前提（后续任务再评审）：
+   - 连续两个发布周期无读路径；
+   - 连续两个发布周期数据覆盖率维持 0；
+   - 完成影响评估与回滚脚本草案。
+
+# 开发顺序（唯一顺序）
+1. `T-003` 文档确认完成。
+2. `T-004` 审计与策略定义完成。
+3. `T-005` 执行对齐与验证闭环。
+4. `T-006` 字段逻辑与冗余审计（文档）完成。
+5. `T-007` 字段链路补齐与冗余字段调整方案定义（文档）完成。
+6. `T-008` 执行字段链路补齐与冗余字段治理开发（待开始）。
 
 # 开发内容（必须先确认）
 

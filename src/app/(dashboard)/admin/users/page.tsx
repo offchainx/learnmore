@@ -26,8 +26,8 @@ export default async function AdminUsersPage() {
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="w-full space-y-6">
+        <div className="w-full">
           <UserTable />
         </div>
       </div>

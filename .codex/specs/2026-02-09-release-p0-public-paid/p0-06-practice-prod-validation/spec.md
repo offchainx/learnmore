@@ -1,54 +1,104 @@
 id: SPEC-20260209-P0-06
-title: P0-06 Practice 生产验收
+title: P0-06 Practice 生产验收（题库审计与初中题目录入）
 status: active
 owner: codex
 related_story:
 created_at: 2026-02-09
-updated_at: 2026-02-09
+updated_at: 2026-03-04
 
 # 背景
 - P0 发布链路中的子任务，需可独立验收与回滚。
+- 当前 Practice 主链路可跑通，但题库规模不足，且“题目相关表”的职责边界与数据质量门禁尚未形成统一审计基线。
+- 本阶段新增两条主线：
+  1) 先分类/梳理/审计当前数据库中“题目域”所有相关表。
+  2) 启动题目录入，优先接入 Examcoo「学历类 -> 初中教育」公开题库数据。
 
 # 目标（Goals）
-- 验证拉题、提交、判分、错题与配额链路。
+- 完成题目域数据库分类审计，输出“表职责/关系/读写链路/风险/核查 SQL”基线。
+- 完成 Examcoo 初中教育题目录入流程定义，并落地首批可复现录入。
+- 继续验证拉题、提交、判分、错题与配额链路在新数据下可稳定运行。
 
 # 非目标（Non-Goals）
 - 不扩展到 P1 范围。
+- 不在本任务内完成全量历史题库清洗（仅做首批录入与质量门禁）。
 
 # 约束（Constraints）
-- 必须遵循 .codex/workflows/new-task-sop.md。
+- 必须遵循 `.codex/workflows/new-task-sop.md`。
+- 题目录入必须保留来源元数据（平台、分类、试卷 ID、原始 URL、抓取时间）。
+- 录入过程必须可幂等（重复执行不产生重复题目）。
+- 图片题（仅图片无文本）允许先落地为“待 OCR/待复审”状态，不阻塞主流程。
 
 # 范围（In Scope）
-- 当前子任务的方案、实施、验收、收尾。
+- 题目相关表分层与审计（结构层、内容层、练习日志层、质控层）。
+- Examcoo 初中教育分类映射与采集链路设计（列表页 -> 逐题页 -> RPC 数据）。
+- 题目转换/去重/入库策略（Question + SourceFile + QuestionGroup 等）。
+- Practice 验证与表级核账。
 
 # 范围外（Out of Scope）
 - 其他 P0 子任务的实现细节。
+- 题目语义深度纠错与学科教研审核全流程。
 
 # 风险（Risks）
-- 风险：实现跨度过大。
-  - 影响：延期与返工。
-  - 缓解策略：拆分为可日清的小任务并先过验收。
+- 风险：外部源题目结构不统一，部分题目为图片片段导致结构化困难。
+  - 影响：录入质量与速度不稳定。
+  - 缓解策略：分批入库 + 状态机审核（DRAFT/REVIEW_PENDING）+ OCR 补录。
+- 风险：重复抓取导致脏数据。
+  - 影响：题目重复、统计失真。
+  - 缓解策略：`contentHash` + 来源唯一键（source + paperId + questionNo）双重去重。
+- 风险：题库扩容后 Practice 性能波动。
+  - 影响：抽题变慢、提交延迟。
+  - 缓解策略：按章节/难度建立核查索引与慢查询观察。
 
 # 依赖（Dependencies）
 - release 总计划与共享基础能力可用。
+- Prisma 与数据库连接可用。
+- Examcoo 公开页面可访问。
 
 # 开发内容（必须先确认）
 
 ## 开发主线
-1. 打通 Practice 主链路：拉题 -> 作答 -> 提交 -> 判分 -> 回写。
-2. 保证配额策略、排行榜联动、成就触发均可复现。
-3. 逐表核对作答与错题数据变更。
+1. 题目域数据库表分类与审计（结构、内容、练习、质控四层）。
+2. 初中教育题目录入（优先 Examcoo: `mid=1#s2`）。
+3. Practice 主链路在新题库下回归验证（拉题 -> 作答 -> 提交 -> 判分 -> 回写）。
 
-## 流程级开发映射
-| 流程 | Action | 关键输出 | 数据表 |
-|---|---|---|---|
-| 拉题 | question/quota actions | 可作答题目集合 | questions, users, user_attempts |
-| 提交判分 | submitQuiz | score, correctCount, results | exam_records, user_attempts |
-| 错题回写 | submitQuiz 内部 | masteryLevel 更新 | error_book |
-| 榜单联动 | updateLeaderboardScore | 积分增量 | leaderboard_entries |
-| 成就联动 | awardBadgeIfEligible | 新授予徽章 | user_badges, notifications |
+## 题目域表分层（审计范围）
+| 分层 | 数据表 | 角色 |
+|---|---|---|
+| 结构层 | subjects, chapters, chapter_prerequisites | 学科与章节结构 |
+| 内容层 | questions, question_groups, source_files | 题目主体与来源 |
+| 标签层 | question_tags, question_tag_relations, knowledge_points, question_kp_relations | 标签/知识点关联 |
+| 练习日志层 | exam_records, user_attempts, error_book | 作答、判分、错题回写 |
+| 质控层 | content_review_logs, question_reports | 审核流与报错治理 |
+
+## 当前数据库基线（2026-03-04 本地快照）
+| 表 | 当前记录数 |
+|---|---|
+| subjects | 8 |
+| chapters | 36 |
+| questions | 61 |
+| question_groups | 0 |
+| question_tags | 0 |
+| question_tag_relations | 0 |
+| knowledge_points | 0 |
+| question_kp_relations | 0 |
+| source_files | 2 |
+| content_review_logs | 0 |
+| question_reports | 0 |
+| exam_records | 2 |
+| user_attempts | 106 |
+| error_book | 12 |
+
+## 外部源（Examcoo）初中教育分类映射（首批）
+- 入口：`https://www.examcoo.com/index/detail/mid/1/#s2`
+- 重点分类（示例）：
+  - 初一：`k=42~49`
+  - 初二：`k=50~58`
+  - 初三：`k=59~68`
+  - 初中会考：`k=69~78`
+  - 中考：`k=79~90`
 
 ## 交付判定（DoD）
-- 一次完整练习流程可核账到表。
-- 失败场景有可识别错误。
+- 题目域“分层+读写+风险+核查 SQL”审计文档完成并可复核。
+- 初中教育首批题目录入完成，具备来源可追溯与去重能力。
+- 一次完整练习流程可核账到表，失败场景有可识别错误。
 - 重放与重复提交不产生脏数据。

@@ -55,9 +55,26 @@ async function sendWebhook(eventPayload, webhookSecret, endpoint) {
   return json;
 }
 
+async function cleanupSmokeArtifacts({ referrerId, refereeId, voucherCode }) {
+  await prisma.$transaction(async (tx) => {
+    await tx.notification.deleteMany({
+      where: { OR: [{ userId: referrerId }, { userId: refereeId }] },
+    });
+    await tx.referral.deleteMany({
+      where: { OR: [{ referrerId }, { refereeId }] },
+    });
+    await tx.voucherRedemption.deleteMany({
+      where: { OR: [{ userId: referrerId }, { userId: refereeId }] },
+    });
+    await tx.user.deleteMany({ where: { id: { in: [referrerId, refereeId] } } });
+    await tx.voucherCode.deleteMany({ where: { code: voucherCode } });
+  });
+}
+
 async function main() {
   const webhookSecret = req(process.env.STRIPE_WEBHOOK_SECRET, 'Missing STRIPE_WEBHOOK_SECRET');
   const endpoint = process.env.P001_WEBHOOK_ENDPOINT || 'http://localhost:3000/api/webhook/stripe';
+  const keepSmokeData = process.env.P001_KEEP_SMOKE_DATA === '1';
 
   const suffix = Date.now().toString().slice(-8);
   const referrerEmail = `smoke-referrer-${suffix}@example.com`;
@@ -351,6 +368,13 @@ async function main() {
     voucherCode,
     billingNotificationCount: billingNotifications.length,
   }, null, 2));
+
+  if (!keepSmokeData) {
+    await cleanupSmokeArtifacts({ referrerId, refereeId, voucherCode });
+    console.log('[p0-01-smoke] cleaned up smoke artifacts');
+  } else {
+    console.log('[p0-01-smoke] skip cleanup because P001_KEEP_SMOKE_DATA=1');
+  }
 
   await prisma.$disconnect();
 }

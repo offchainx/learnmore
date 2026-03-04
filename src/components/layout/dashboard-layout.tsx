@@ -100,7 +100,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     || pathname?.startsWith('/admin/feedback')
     || pathname?.startsWith('/admin/referrals')
     || false;
-  const isContentAdminRoute = pathname?.startsWith('/admin/content') || false;
+  const isContentAdminRoute = pathname?.startsWith('/admin/content')
+    || pathname?.startsWith('/admin/vouchers')
+    || false;
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false);
   const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(false);

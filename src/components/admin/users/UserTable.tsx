@@ -7,7 +7,7 @@
  * 包含：筛选、排序、分页、行操作
  */
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Search,
@@ -292,7 +292,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* --- Header --- */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">

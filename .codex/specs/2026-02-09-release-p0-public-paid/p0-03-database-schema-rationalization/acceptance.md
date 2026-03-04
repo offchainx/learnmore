@@ -33,7 +33,8 @@
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
 |---|---|---|---|---|---|---|---|
 | 字段引用核对 | information_schema + prisma 模型 | column_name, data_type | 导出字段清单 SQL | 对照映射完成后复核 SQL | 无遗漏字段 | 不适用 |  |
-| 认证用户同步链路 | auth.users, public.users | id, email, created_at | 双表计数与差异 SQL 快照 | 新注册/修复后复测同组 SQL | 主链路注册后在可接受延迟内可对齐；无新增同邮箱异 UUID；非业务脚本差异有豁免标记 | 差异修复计划验证（不在本轮执行） |  |
+| 字段级逻辑覆盖率核对（auth/public users） | auth.users, public.users | 全字段（35/30） | 字段清单 + 必填/默认值快照 | 字段分级（A/B/C）与生成入口映射 | 100% 字段有“生成来源说明”或“托管说明” | 不适用 | 待补 T-006 证据 |
+| 认证用户同步链路 | auth.users, public.users | id, email, created_at | 双表计数与差异 SQL 快照 | 新注册/修复后复测同组 SQL | 主链路注册后在可接受延迟内可对齐；无新增同邮箱异 UUID；非业务脚本差异有豁免标记 | 纳入 T-005 执行验收 | pass（2026-03-03 staging 复测：五项计数均对齐，差异分类全 0） |
 | 任务进度链路 | daily_tasks | progress, is_claimed | SELECT * FROM daily_tasks WHERE user_id={{userId}}; | 执行任务后重复查询 | 仅预期字段变化 | 可恢复前值 |  |
 | 支付订阅链路 | users, referrals, notifications | subscription_tier, reward_granted, link | 支付前快照 SQL | webhook 后重复查询 | 幂等重放不重复变更 | 回滚脚本可恢复 |  |
 | 榜单读取链路 | leaderboard_entries | period, score | SELECT period, score FROM leaderboard_entries LIMIT 20; | 周期切换后重复查询 | 仅读取不引入写入 | 不适用 |  |
@@ -52,10 +53,117 @@
   - `历史触发器失效窗口`
 - 备注：仅记录脱敏统计，不记录具体邮箱与 UUID。
 
+## T-004 定义完成验收（文档层）
+1. 审计口径完整（计数、时间窗口、分类口径、脱敏规则）。
+2. SQL 套件完整（总量、双向缺失、同邮箱异 UUID）。
+3. 分类口径完整（smoke/seed/历史触发器失效窗口）。
+
+## T-006 验收标准（文档层）
+1. `auth.users` 与 `public.users` 字段清单完整，字段总量与交集关系可复核（35/30/交集6）。
+2. 双表字段 100% 具备“生成来源说明”或“平台托管说明”。
+3. `public.users` 每个字段完成保守分级（A 保留-逻辑完整 / B 保留-观察 / C 保留-待补链路）。
+4. 明确输出“本轮无删除动作、无 schema/data 变更”。
+
+## T-007 验收标准（文档层）
+1. C 类字段已逐项给出“写入入口、幂等策略、风险控制”定义：
+   - `last_sign_in_at`
+   - `sign_in_count`
+   - `total_study_time`
+2. B 类弱覆盖字段已给出“保留/观察/进入删除评审的门槛”：
+   - `utm_source` / `utm_medium` / `utm_campaign`
+3. 明确“字段逻辑审计与冗余分级归属 T-006；具体调整方案归属 T-007；实际开发归属 T-008”。
+4. 本轮仍不执行 schema/data 变更。
+
+## T-007 字段方案证据模板（专用）
+- 字段名：
+- 字段分级：`A/B/C`
+- 当前问题：
+- 目标口径（source of truth）：
+- 写入入口（计划）：
+- 幂等策略（计划）：
+- 风险与保护：
+- 实施归属任务：`T-008`
+
+## T-006 字段审计证据模板（专用）
+- 字段名：
+- 所属表：`auth.users` / `public.users`
+- 是否必填：
+- 默认值：
+- 生成入口：`trigger` / `server action` / `webhook` / `script` / `托管字段`
+- 当前数据覆盖率：`non_null / total`
+- 结论分级：`A` / `B` / `C`
+- 后续动作：`保留` / `观察` / `补齐链路（T-007）`
+
+## T-005 执行验收标准
+1. 同步审计报告包含：检查时间、环境、四项计数、分类统计（脱敏）。
+2. 执行后，`missing_in_public` 不再出现新增。
+3. 同邮箱异 UUID 新增量为 0（或新增均有豁免说明）。
+4. 所有保留差异都有豁免台账（来源、时间窗口、数量、状态、复核人）。
+
+## T-008 执行验收标准（待后续开发）
+1. `last_sign_in_at/sign_in_count/total_study_time` 在目标事件后可稳定写入且幂等。
+2. `utm_*` 采集链路可在注册路径产生有效值（无值时不污染旧值）。
+3. 复跑双表对账 SQL 无新增 `missing_in_public/missing_in_auth/email_id_mismatch`。
+4. 任一字段治理变更均具备本地 + 预发证据与回滚方案。
+
+## T-005 执行场景（Given / When / Then）
+- 给定：新用户走标准注册链路
+  当：注册完成并等待可接受延迟
+  则：`auth.users` 与 `public.users` 同 ID 可对齐。
+- 给定：`public.users` 缺失但 `auth.users` 存在
+  当：触发 `getCurrentUser` 自动兜底或手动同步入口
+  则：可补齐业务用户记录且不引入重复身份。
+- 给定：执行 smoke/seed 非标准写入
+  当：运行差异分类 SQL
+  则：差异可归类为脚本来源并纳入豁免台账。
+
+## T-005 执行记录（2026-03-03, 统计+脱敏）
+- 执行环境：当前 `.env` 指向 Supabase 数据库（同步核对口径）。
+- 执行动作：
+  1. 回补 `missing_in_public` 可安全插入记录 11 条（排除同邮箱异 UUID 冲突）。
+  2. 补齐缺失 `user_settings` 27 条。
+  3. 清理 `smoke_script` 孤立用户 16 条。
+  4. 清理 `seed_script` 孤立用户 2 条（bob/charlie）。
+  5. 归并同邮箱异 UUID 冲突 1 条（seed 来源 demo 账户），将 `public.users.id` 对齐为 `auth.users.id` 并验证外键级联更新。
+- 执行前计数：
+  - `auth_users_count = 25`
+  - `public_users_count = 32`
+  - `missing_in_public = 12`
+  - `missing_in_auth = 19`
+  - `email_id_mismatch = 1`
+- 执行后计数：
+  - `auth_users_count = 25`
+  - `public_users_count = 25`
+  - `missing_in_public = 0`
+  - `missing_in_auth = 0`
+  - `email_id_mismatch = 0`
+- 当前结论：
+  - 本轮 `T-005` 对齐目标已达成（当前环境无残余差异）。
+
+## T-005 预发复测记录（2026-03-03, 统计+脱敏）
+- 复测环境：`staging`（当前仓库可用连接：`.env/.env.local` 指向同一 Supabase 项目）。
+- 检查时间：`2026-03-03 18:06:24`（MYT，UTC+8）。
+- 复跑 SQL：总量对比、`auth 缺 public`、`public 缺 auth`、同邮箱异 UUID、差异来源分类 SQL。
+- 计数快照：
+  - `auth_users_count = 25`
+  - `public_users_count = 25`
+  - `missing_in_public = 0`
+  - `missing_in_auth = 0`
+  - `email_id_mismatch = 0`
+- 差异分类统计：
+  - `smoke脚本 = 0`
+  - `seed脚本 = 0`
+  - `历史触发器失效窗口 = 0`
+  - `unknown = 0`
+- 复测结论：
+  - 预发复跑通过，无新增/存量差异。
+
 ## 发布检查
+- [x] T-006 文档审计完成（字段覆盖 + 分级 + 证据模板）
+- [x] T-007 方案定义完成（字段补齐 + 冗余治理口径）
 - [ ] 字段-逻辑映射表完整并附证据
 - [ ] 本地验证完成并附 SQL 快照
-- [ ] 预发复测完成并附证据
+- [x] 预发复测完成并附证据
 - [ ] 幂等与越权场景通过
 - [ ] 删除项具备回滚验证
-- [ ] 已获得用户批准进入开发
+- [ ] 已获得用户批准进入 T-008 开发

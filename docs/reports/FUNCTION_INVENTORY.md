@@ -1,0 +1,413 @@
+# 函数清单（按分类）
+
+- 扫描文件数: 492
+- 顶层函数/方法总数: 717
+- 说明: 统计 TS/TSX/JS/MJS/CJS/JSX 文件中的顶层 function、函数变量、对象方法、类方法（不含函数体内部的局部函数）。
+
+## 分类汇总
+
+- 前端组件 components: 258（176 个文件）
+- 服务端 Actions: 169（45 个文件）
+- 底层库 lib: 140（38 个文件）
+- App 页面与布局: 84（78 个文件）
+- API Route Handlers: 29（7 个文件）
+- 脚本 scripts: 19（10 个文件）
+- 测试代码: 7（4 个文件）
+- Providers: 4（2 个文件）
+- 其他: 4（2 个文件）
+- Prisma/Seed: 3（2 个文件）
+
+## API Route Handlers
+
+- src/app/api/ai-tutor/route.ts (1)：`POST`
+- src/app/api/auth/impersonate/end/route.ts (2)：`POST`、`GET`
+- src/app/api/auth/impersonate/route.ts (1)：`GET`
+- src/app/api/auth/impersonate/status/route.ts (1)：`GET`
+- src/app/api/cron/cleanup-leaderboard/route.ts (1)：`GET`
+- src/app/api/cron/trial-expiry/route.ts (1)：`GET`
+- src/app/api/webhook/stripe/route.ts (22)：`jsonResponse`、`auditLog`、`normalizePlanKey`、`normalizeBillingCycle`、`normalizeVoucherCode`、`isUuid`、`fromUnixTimestamp`、`extendSubscriptionEnd`、`mapStripeStatus`、`acquireBillingSubjectLock`、`lookupUserByStripeIdentifiers`、`isStaleSubscriptionEvent`、`hasProcessedEvent`、`createBillingNotification`、`settleReferralOnFirstPaid`、`settleDeferredRewardsForReferrer`、`applyVoucherRedemptionOnFirstPaid`、`handleCheckoutSessionCompleted`、`handleInvoicePaymentSucceeded`、`handleSubscriptionUpdated`、`handleSubscriptionDeleted`、`POST`
+
+## App 页面与布局
+
+- src/app/(auth)/layout.tsx (1)：`AuthLayout`
+- src/app/(auth)/login/page.tsx (1)：`LoginPage`
+- src/app/(auth)/register/page.tsx (1)：`RegisterPage`
+- src/app/(dashboard)/admin/content/import/ImportClient.tsx (1)：`ImportClient`
+- src/app/(dashboard)/admin/content/import/page.tsx (1)：`ImportPage`
+- src/app/(dashboard)/admin/content/page.tsx (1)：`AdminContentRedirect`
+- src/app/(dashboard)/admin/content/reports/page.tsx (1)：`ReportsPage`
+- src/app/(dashboard)/admin/content/review/[questionId]/page.tsx (1)：`QuestionReviewPage`
+- src/app/(dashboard)/admin/content/review/[questionId]/QuestionReviewClient.tsx (1)：`QuestionReviewClient`
+- src/app/(dashboard)/admin/content/review/page.tsx (1)：`AdminContentPage`
+- src/app/(dashboard)/admin/content/statistics/page.tsx (1)：`StatisticsPage`
+- src/app/(dashboard)/admin/content/statistics/StatisticsClient.tsx (1)：`StatisticsClient`
+- src/app/(dashboard)/admin/feedback/[id]/page.tsx (1)：`AdminFeedbackDetailPage`
+- src/app/(dashboard)/admin/feedback/page.tsx (1)：`AdminFeedbackPage`
+- src/app/(dashboard)/admin/page.tsx (1)：`AdminDashboardPage`
+- src/app/(dashboard)/admin/permissions/page.tsx (1)：`AdminPermissionsPage`
+- src/app/(dashboard)/admin/referrals/page.tsx (1)：`AdminReferralsPage`
+- src/app/(dashboard)/admin/users/[id]/client.tsx (1)：`UserDetailPageClient`
+- src/app/(dashboard)/admin/users/[id]/page.tsx (1)：`AdminUserDetailPage`
+- src/app/(dashboard)/admin/users/[id]/UserDetailClient.tsx (1)：`UserDetailClient`
+- src/app/(dashboard)/admin/users/page.tsx (1)：`AdminUsersPage`
+- src/app/(dashboard)/admin/vouchers/page.tsx (1)：`AdminVouchersPage`
+- src/app/(dashboard)/admin/vouchers/VoucherAdminClient.tsx (1)：`VoucherAdminClient`
+- src/app/(dashboard)/dashboard/achievements/client-wrapper.tsx (1)：`AchievementsClientWrapper`
+- src/app/(dashboard)/dashboard/achievements/page.tsx (1)：`AchievementsPage`
+- src/app/(dashboard)/dashboard/community/[postId]/page.tsx (2)：`generateMetadata`、`PostDetailPage`
+- src/app/(dashboard)/dashboard/community/client-wrapper.tsx (1)：`CommunityClientWrapper`
+- src/app/(dashboard)/dashboard/community/new/page.tsx (1)：`NewPostPage`
+- src/app/(dashboard)/dashboard/community/page.tsx (1)：`CommunityPage`
+- src/app/(dashboard)/dashboard/courses/client-wrapper.tsx (1)：`CoursesClientWrapper`
+- src/app/(dashboard)/dashboard/courses/page.tsx (1)：`CoursesPage`
+- src/app/(dashboard)/dashboard/debug/ui-kit/page.tsx (1)：`UIKitDebugPage`
+- src/app/(dashboard)/dashboard/knowledge-graph/client-wrapper.tsx (1)：`KnowledgeGraphClientWrapper`
+- src/app/(dashboard)/dashboard/knowledge-graph/page.tsx (1)：`KnowledgeGraphPage`
+- src/app/(dashboard)/dashboard/leaderboard/client-wrapper.tsx (1)：`LeaderboardClientWrapper`
+- src/app/(dashboard)/dashboard/leaderboard/page.tsx (1)：`LeaderboardPage`
+- src/app/(dashboard)/dashboard/loading.tsx (1)：`DashboardLoading`
+- src/app/(dashboard)/dashboard/page.tsx (1)：`DashboardPage`
+- src/app/(dashboard)/dashboard/practice/chapter-drill/[chapterId]/page.tsx (1)：`ChapterDrillPage`
+- src/app/(dashboard)/dashboard/practice/client-wrapper.tsx (1)：`PracticeClientWrapper`
+- src/app/(dashboard)/dashboard/practice/error-wiper/page.tsx (1)：`ErrorWiperPage`
+- src/app/(dashboard)/dashboard/practice/import/page.tsx (1)：`ImportQuestionPage`
+- src/app/(dashboard)/dashboard/practice/mock-arena/[examId]/MockArenaExam.tsx (1)：`MockArenaExam`
+- src/app/(dashboard)/dashboard/practice/mock-arena/[examId]/page.tsx (1)：`MockArenaExamPage`
+- src/app/(dashboard)/dashboard/practice/mock-arena/MockArenaSelector.tsx (1)：`MockArenaSelector`
+- src/app/(dashboard)/dashboard/practice/mock-arena/page.tsx (1)：`MockArenaPage`
+- src/app/(dashboard)/dashboard/practice/page.tsx (1)：`PracticePage`
+- src/app/(dashboard)/dashboard/practice/smart-drill/page.tsx (1)：`SmartDrillPage`
+- src/app/(dashboard)/dashboard/settings/client-wrapper.tsx (1)：`SettingsClientWrapper`
+- src/app/(dashboard)/dashboard/settings/notifications/client-wrapper.tsx (1)：`NotificationSettingsClient`
+- src/app/(dashboard)/dashboard/settings/notifications/page.tsx (1)：`NotificationSettingsPage`
+- src/app/(dashboard)/dashboard/settings/page.tsx (1)：`SettingsPage`
+- src/app/(dashboard)/layout.tsx (1)：`DashboardLayout`
+- src/app/(marketing)/about-us/page.tsx (1)：`AboutUsPage`
+- src/app/(marketing)/blog/[slug]/page.tsx (2)：`generateMetadata`、`BlogPostPage`
+- src/app/(marketing)/blog/page.tsx (1)：`BlogPage`
+- src/app/(marketing)/checkout/config/CheckoutConfigClient.tsx (1)：`CheckoutConfigClient`
+- src/app/(marketing)/checkout/config/page.tsx (3)：`parsePlanKey`、`parseBillingCycle`、`CheckoutConfigPage`
+- src/app/(marketing)/contact/page.tsx (1)：`ContactPage`
+- src/app/(marketing)/help/layout.tsx (1)：`HelpLayout`
+- src/app/(marketing)/help/page.tsx (1)：`HelpPage`
+- src/app/(marketing)/how-it-works/page.tsx (1)：`ProductTourPage`
+- src/app/(marketing)/layout.tsx (1)：`MarketingLayout`
+- src/app/(marketing)/pricing/page.tsx (2)：`CellRenderer`、`PricingPage`
+- src/app/(marketing)/privacy/page.tsx (1)：`PrivacyPage`
+- src/app/(marketing)/refund/page.tsx (1)：`RefundPage`
+- src/app/(marketing)/student-care/page.tsx (1)：`StudentCarePage`
+- src/app/(marketing)/study-guides/page.tsx (1)：`StudyGuidePage`
+- src/app/(marketing)/subjects/page.tsx (1)：`SubjectsPage`
+- src/app/(marketing)/success-stories/page.tsx (1)：`SuccessStoriesPage`
+- src/app/(marketing)/terms/page.tsx (1)：`TermsPage`
+- src/app/course/[subjectId]/[lessonId]/page.tsx (1)：`LessonPage`
+- src/app/course/[subjectId]/layout.tsx (1)：`CourseLayout`
+- src/app/course/[subjectId]/loading.tsx (1)：`Loading`
+- src/app/course/[subjectId]/page.tsx (1)：`CourseIndexPage`
+- src/app/layout.tsx (2)：`parseLangCookie`、`RootLayout`
+- src/app/page.tsx (1)：`Home`
+- src/app/sitemap.ts (1)：`sitemap`
+
+## Prisma/Seed
+
+- prisma/seed-posts.ts (1)：`main`
+- prisma/seed.ts (2)：`getRandomInt`、`seedDatabase`
+
+## Providers
+
+- src/providers/app-provider.tsx (3)：`isValidLang`、`AppProvider`、`useApp`
+- src/providers/theme-provider.tsx (1)：`ThemeProvider`
+
+## 其他
+
+- public/sw.js (3)：`cacheFirst`、`networkFirstWithOffline`、`syncLearningProgress`
+- src/middleware.ts (1)：`middleware`
+
+## 前端组件 components
+
+- src/components/achievements/AchievementsView.tsx (1)：`AchievementsView`
+- src/components/admin/common/AdminClientWrapper.tsx (1)：`AdminClientWrapper`
+- src/components/admin/common/DifficultyBadge.tsx (1)：`DifficultyBadge`
+- src/components/admin/common/QualityCheckDisplay.tsx (2)：`QualityCheckDisplay`、`IssueItem`
+- src/components/admin/common/QualityScoreBadge.tsx (1)：`QualityScoreBadge`
+- src/components/admin/common/RichTextEditor.tsx (2)：`RichTextEditor`、`ToolbarButton`
+- src/components/admin/common/SubjectFilter.tsx (1)：`SubjectFilter`
+- src/components/admin/content-reports/Header.tsx (1)：`Header`
+- src/components/admin/content-reports/i18n.ts (1)：`getReportsI18n`
+- src/components/admin/content-reports/ReportDetailsDrawer.tsx (1)：`ReportDetailsDrawer`
+- src/components/admin/content-reports/ReportsClient.tsx (1)：`ReportsClient`
+- src/components/admin/content-reports/ReportsTable.tsx (1)：`ReportsTable`
+- src/components/admin/content-reports/StatsCards.tsx (1)：`StatsCards`
+- src/components/admin/content-statistics/DashboardStats.tsx (1)：`DashboardStats`
+- src/components/admin/content-statistics/DifficultyBreakdown.tsx (1)：`DifficultyBreakdown`
+- src/components/admin/content-statistics/Header.tsx (1)：`Header`
+- src/components/admin/content-statistics/ReviewersList.tsx (2)：`StatusBadge`、`ReviewersList`
+- src/components/admin/content-statistics/StatCard.tsx (1)：`StatCard`
+- src/components/admin/content-statistics/SubjectDistribution.tsx (2)：`CustomTooltip`、`SubjectDistribution`
+- src/components/admin/content/AuditLogDrawer.tsx (1)：`AuditLogDrawer`
+- src/components/admin/content/BatchTable.tsx (1)：`BatchTable`
+- src/components/admin/content/NewBatchImportModal.tsx (1)：`NewBatchImportModal`
+- src/components/admin/content/StatsCards.tsx (1)：`StatsCards`
+- src/components/admin/dashboard/v2/AdminDashboardV2.tsx (10)：`Card`、`Badge`、`Sparkline`、`Header`、`KpiRow`、`PriorityQueue`、`RiskPanel`、`AuditTable`、`QuickActions`、`AdminDashboardV2`
+- src/components/admin/feedback/FeedbackDetailView.tsx (1)：`FeedbackDetailView`
+- src/components/admin/feedback/FeedbackList.tsx (1)：`FeedbackList`
+- src/components/admin/permissions/OverrideModal.tsx (1)：`OverrideModal`
+- src/components/admin/permissions/UserPermissionManager.tsx (1)：`UserPermissionManager`
+- src/components/admin/permissions/UserTable.tsx (1)：`UserTable`
+- src/components/admin/questions/ImportHistoryTable.tsx (1)：`ImportHistoryTable`
+- src/components/admin/questions/QuestionPreview.tsx (4)：`QuestionPreview`、`MarkdownRenderer`、`isCorrectOption`、`renderAnswer`
+- src/components/admin/questions/QuestionReviewTable.tsx (1)：`QuestionReviewTable`
+- src/components/admin/referrals/AdminReferralsView.tsx (5)：`formatDateTime`、`formatTableDateTime`、`matchesDateRange`、`TrendIcon`、`AdminReferralsView`
+- src/components/admin/review/EditableSection.tsx (1)：`EditableSection`
+- src/components/admin/review/EditorToolbar.tsx (1)：`EditorToolbar`
+- src/components/admin/review/MathRenderer.tsx (1)：`MathRenderer`
+- src/components/admin/review/MetadataPanel.tsx (1)：`MetadataPanel`
+- src/components/admin/review/QuestionPanel.tsx (1)：`QuestionPanel`
+- src/components/admin/users/AdminNoteList.tsx (2)：`AdminNoteList`、`NoteItem`
+- src/components/admin/users/GrantPermissionDialog.tsx (1)：`GrantPermissionDialog`
+- src/components/admin/users/HighRiskConfirmDialog.tsx (1)：`HighRiskConfirmDialog`
+- src/components/admin/users/ImpersonateBanner.tsx (2)：`ImpersonateBanner`、`useImpersonationState`
+- src/components/admin/users/ImpersonateBannerWrapper.tsx (1)：`ImpersonateBannerWrapper`
+- src/components/admin/users/mock/userMockData.ts (10)：`getRandomElement`、`generateRelativeTime`、`generateUser`、`generateUsers`、`fetchMockUsers`、`getUserById`、`generatePaymentHistory`、`generateAuditLogs`、`generateReferralTree`、`generateHeatmapData`
+- src/components/admin/users/Modals.tsx (3)：`Modal`、`BanUserModal`、`AddNoteModal`
+- src/components/admin/users/StripeHistoryTable.tsx (1)：`StripeHistoryTable`
+- src/components/admin/users/tabs/ActivityTab.tsx (2)：`Heatmap`、`ActivityTab`
+- src/components/admin/users/tabs/AuditTab.tsx (1)：`AuditTab`
+- src/components/admin/users/tabs/GrowthTab.tsx (2)：`ReferralNodeView`、`GrowthTab`
+- src/components/admin/users/tabs/OverviewTab.tsx (4)：`OverviewTab`、`InfoItem`、`SecurityLogItem`、`formatMetadata`
+- src/components/admin/users/tabs/SubscriptionTab.tsx (2)：`PermissionRow`、`SubscriptionTab`
+- src/components/admin/users/UserBadges.tsx (2)：`UserStatusBadge`、`UserTierBadge`
+- src/components/admin/users/UserDetail.tsx (5)：`NoteBubble`、`PermissionRow`、`Heatmap`、`ReferralNodeView`、`UserDetail`
+- src/components/admin/users/UserProfileHeader.tsx (1)：`UserProfileHeader`
+- src/components/admin/users/UserTable.tsx (3)：`Avatar`、`IconButton`、`UserTable`
+- src/components/ai/AiTutorButton.tsx (1)：`AiTutorButton`
+- src/components/blog/blog-detail.tsx (1)：`BlogDetailClient`
+- src/components/blog/blog-list.tsx (1)：`BlogList`
+- src/components/business/auth/login-form.tsx (2)：`SubmitButton`、`LoginForm`
+- src/components/business/auth/register-form.tsx (2)：`SubmitButton`、`RegisterForm`
+- src/components/business/courses/CourseLayoutClient.tsx (2)：`SidebarContent`、`CourseLayoutClient`
+- src/components/business/courses/CourseNavigation.tsx (1)：`CourseNavigation`
+- src/components/business/courses/CourseTree.tsx (2)：`CourseTree`、`CourseTreeItem`
+- src/components/business/courses/LessonVideoPlayer.tsx (1)：`LessonVideoPlayer`
+- src/components/business/courses/VideoPlayer.tsx (1)：`VideoPlayer`
+- src/components/business/layout/AppSidebar.tsx (2)：`SidebarContent`、`AppSidebar`
+- src/components/business/layout/Header.tsx (1)：`Header`
+- src/components/business/layout/UserNav.tsx (1)：`UserNav`
+- src/components/business/question/FillBlank.tsx (1)：`FillBlank`
+- src/components/business/question/MultiChoice.tsx (1)：`MultiChoice`
+- src/components/business/question/QuestionCard.tsx (1)：`QuestionCard`
+- src/components/business/question/QuestionContent.tsx (1)：`QuestionContent`
+- src/components/business/question/SingleChoice.tsx (1)：`SingleChoice`
+- src/components/business/quiz/QuizAnswerGrid.tsx (1)：`QuizAnswerGrid`
+- src/components/business/quiz/QuizTimer.tsx (1)：`QuizTimer`
+- src/components/business/quiz/QuizView.tsx (1)：`QuizView`
+- src/components/business/quiz/ScoreCard.tsx (1)：`ScoreCard`
+- src/components/business/settings/AvatarUpload.tsx (1)：`AvatarUpload`
+- src/components/business/settings/GoalsForm.tsx (1)：`GoalsForm`
+- src/components/business/settings/profile-form.tsx (1)：`ProfileForm`
+- src/components/business/shared/StrengthBar.tsx (1)：`StrengthBar`
+- src/components/community/NewPostPageClient.tsx (1)：`NewPostPageClient`
+- src/components/community/PostDetailClient.tsx (1)：`PostDetailClient`
+- src/components/compatibility/UnsupportedBrowserWarning.tsx (1)：`UnsupportedBrowserWarning`
+- src/components/courses/CoursesView.tsx (1)：`CoursesView`
+- src/components/courses/LessonPlayer.tsx (1)：`LessonPlayer`
+- src/components/courses/LessonSwipeView.tsx (1)：`LessonSwipeView`
+- src/components/dashboard/DailyMissions.tsx (1)：`DailyMissions`
+- src/components/dashboard/DashboardClient.tsx (1)：`DashboardClient`
+- src/components/dashboard/DashboardHome.tsx (1)：`DashboardHome`
+- src/components/dashboard/dialogs/AssessmentDialog.tsx (1)：`AssessmentDialog`
+- src/components/dashboard/dialogs/GoalsDialog.tsx (1)：`GoalsDialog`
+- src/components/dashboard/dialogs/ProfileDialog.tsx (1)：`ProfileDialog`
+- src/components/dashboard/views/CommunityView.tsx (1)：`CommunityView`
+- src/components/dashboard/views/KnowledgeGraphView.tsx (3)：`getLayoutedElements`、`KnowledgeNode`、`KnowledgeGraphView`
+- src/components/dashboard/views/ParentDashboardView.tsx (2)：`ParentDashboardView`、`StatCard`
+- src/components/dashboard/views/SettingsView.tsx (3)：`SubmitButton`、`ReferralSection`、`SettingsView`
+- src/components/dashboard/Widgets.tsx (5)：`SidebarItem`、`SubjectCard`、`CircularProgress`、`StrengthBar`、`DailyInspiration`
+- src/components/layout/CookieConsent.tsx (1)：`CookieConsent`
+- src/components/layout/dashboard-layout.tsx (3)：`SidebarItem`、`SidebarSection`、`DashboardLayout`
+- src/components/layout/Footer.tsx (1)：`Footer`
+- src/components/layout/LandingPageNavbar.tsx (1)：`LandingPageNavbar`
+- src/components/layout/navbar.tsx (1)：`Navbar`
+- src/components/layout/TrialBanner.tsx (1)：`TrialBanner`
+- src/components/leaderboard/components/DailyQuests.tsx (1)：`DailyQuests`
+- src/components/leaderboard/components/LeaderboardList.tsx (1)：`LeaderboardList`
+- src/components/leaderboard/components/Podium.tsx (1)：`Podium`
+- src/components/leaderboard/components/RivalWatch.tsx (1)：`RivalWatch`
+- src/components/leaderboard/components/SeasonBanner.tsx (1)：`SeasonBanner`
+- src/components/leaderboard/components/TierRoadmap.tsx (1)：`TierRoadmap`
+- src/components/leaderboard/components/XPBreakdown.tsx (1)：`XPBreakdown`
+- src/components/leaderboard/LeaderboardView.tsx (2)：`getStatusByRank`、`LeaderboardView`
+- src/components/marketing/landing-page.tsx (1)：`LandingPage`
+- src/components/marketing/newsletter-form.tsx (1)：`NewsletterForm`
+- src/components/mobile/BottomTabBar.tsx (1)：`BottomTabBar`
+- src/components/mobile/LongPressMenu.tsx (1)：`LongPressMenu`
+- src/components/mobile/MobileHeader.tsx (1)：`MobileHeader`
+- src/components/mobile/PullToRefresh.tsx (1)：`PullToRefresh`
+- src/components/notification/NotificationBell.tsx (1)：`NotificationBell`
+- src/components/notification/NotificationDropdown.tsx (2)：`NotificationIcon`、`NotificationDropdown`
+- src/components/performance/LazyImage.tsx (2)：`LazyImage`、`ResponsiveImage`
+- src/components/performance/LazyLoad.tsx (3)：`LazyLoad`、`SkeletonLoader`、`CardSkeleton`
+- src/components/performance/ResourceHints.tsx (1)：`ResourceHints`
+- src/components/performance/VirtualGrid.tsx (2)：`VirtualGrid`、`ResponsiveVirtualGrid`
+- src/components/performance/VirtualList.tsx (2)：`VirtualList`、`FixedVirtualList`
+- src/components/permissions/EfficiencyMirror.tsx (1)：`EfficiencyMirror`
+- src/components/permissions/FeatureLock.tsx (1)：`FeatureLock`
+- src/components/permissions/MemoryDecayVisual.tsx (1)：`MemoryDecayVisual`
+- src/components/permissions/PreviewHook.tsx (1)：`PreviewHook`
+- src/components/permissions/UpsellModal.tsx (1)：`UpsellModal`
+- src/components/polyfills/PolyfillsLoader.tsx (1)：`PolyfillsLoader`
+- src/components/practice/analytics/ExamForecast.tsx (2)：`ExamForecastSkeleton`、`ExamForecastInner`
+- src/components/practice/analytics/KnowledgeHive.tsx (1)：`KnowledgeHiveInner`
+- src/components/practice/analytics/WeaknessCard.tsx (1)：`WeaknessCard`
+- src/components/practice/chapter-drill/DrillInterface.tsx (1)：`DrillInterface`
+- src/components/practice/chapter-drill/Gauge.tsx (1)：`Gauge`
+- src/components/practice/chapter-drill/Header.tsx (1)：`Header`
+- src/components/practice/chapter-drill/ProgressBar.tsx (1)：`ProgressBar`
+- src/components/practice/chapter-drill/Sidebar.tsx (1)：`Sidebar`
+- src/components/practice/modes/ErrorWiperMode.tsx (2)：`MasteryDots`、`ErrorWiperMode`
+- src/components/practice/modes/SmartDrillMode.tsx (1)：`SmartDrillMode`
+- src/components/practice/PracticeView/AnalyticsSidebar/index.tsx (1)：`AnalyticsSidebar`
+- src/components/practice/PracticeView/ChapterMap/ChapterCard.tsx (1)：`ChapterCard`
+- src/components/practice/PracticeView/ChapterMap/index.tsx (1)：`ChapterMap`
+- src/components/practice/PracticeView/index.tsx (1)：`PracticeView`
+- src/components/practice/PracticeView/PastPapersSection.tsx (1)：`PastPapersSection`
+- src/components/practice/PracticeView/SubjectSelector.tsx (1)：`SubjectSelector`
+- src/components/practice/PracticeView/TrainingModeCards.tsx (1)：`TrainingModeCards`
+- src/components/practice/session/CountdownTimer.tsx (1)：`CountdownTimer`
+- src/components/practice/session/QuizSession.tsx (1)：`QuizSession`
+- src/components/practice/session/ResultSummary.tsx (1)：`ResultSummary`
+- src/components/practice/smart-parser/ImageUploader.tsx (1)：`ImageUploader`
+- src/components/practice/smart-parser/ProcessingOverlay.tsx (1)：`ProcessingOverlay`
+- src/components/practice/smart-parser/QuestionEditor.tsx (1)：`QuestionEditor`
+- src/components/practice/smart-parser/SmartQuestionParser.tsx (1)：`SmartQuestionParser`
+- src/components/pwa/InstallPrompt.tsx (1)：`InstallPrompt`
+- src/components/pwa/ServiceWorkerRegistration.tsx (1)：`ServiceWorkerRegistration`
+- src/components/shared/data.tsx (2)：`generateChapters`、`Confetti`
+- src/components/support/FAQAccordion.tsx (1)：`FAQAccordion`
+- src/components/support/FeedbackModal.tsx (1)：`FeedbackModal`
+- src/components/support/FeedbackWidget.tsx (1)：`FeedbackWidget`
+- src/components/ui/badge.tsx (1)：`Badge`
+- src/components/ui/breadcrumb.tsx (2)：`BreadcrumbSeparator`、`BreadcrumbEllipsis`
+- src/components/ui/custom-tabs.tsx (1)：`CustomTabs`
+- src/components/ui/dialog.tsx (2)：`DialogHeader`、`DialogFooter`
+- src/components/ui/dropdown-menu.tsx (1)：`DropdownMenuShortcut`
+- src/components/ui/file-upload.tsx (1)：`FileUpload`
+- src/components/ui/form.tsx (2)：`FormField`、`useFormField`
+- src/components/ui/PinchZoomImage.tsx (1)：`PinchZoomImage`
+- src/components/ui/resizable.tsx (2)：`ResizablePanelGroup`、`ResizableHandle`
+- src/components/ui/sheet.tsx (2)：`SheetHeader`、`SheetFooter`
+- src/components/ui/skeleton.tsx (1)：`Skeleton`
+- src/components/ui/theme-toggle.tsx (1)：`ThemeToggle`
+- src/components/ui/toaster.tsx (1)：`Toaster`
+- src/components/ui/use-toast.tsx (6)：`genId`、`addToRemoveQueue`、`reducer`、`dispatch`、`toast`、`useToast`
+- src/components/ui/ZoomableFormula.tsx (1)：`ZoomableFormula`
+
+## 底层库 lib
+
+- src/lib/browser-compatibility.ts (6)：`detectBrowserCapabilities`、`checkWebGLSupport`、`checkStorageSupport`、`getBrowserInfo`、`isUnsupportedBrowser`、`generateCompatibilityReport`
+- src/lib/content-pipeline/ai-structurer.ts (3)：`AIStructurer.structureQuestions`、`AIStructurer.buildPrompt`、`AIStructurer.parseResponse`
+- src/lib/content-pipeline/import-utils.ts (5)：`extractFilename`、`calculateProgress`、`createProgress`、`convertToCreateInput`、`calculateQualityScore`
+- src/lib/content-pipeline/mappers.ts (3)：`mapProcessingStatusToBatchStatus`、`mapImportTaskToBatchData`、`getStatusMessage`
+- src/lib/content-pipeline/ocr-service.ts (15)：`OCRService.processImage`、`OCRService.processPDF`、`OCRService.batchProcess`、`OCRService.getQuotaStatus`、`OCRService.getUsageStats`、`OCRService.getAvailableProviders`、`OCRService.checkProviderAvailability`、`OCRService.initializeProviders`、`OCRService.initializeQuotaTracker`、`OCRService.getTodayString`、`OCRService.checkQuota`、`OCRService.updateQuota`、`OCRService.getProvidersToTry`、`getOCRService`、`resetOCRService`
+- src/lib/content-pipeline/pdf-utils.ts (1)：`convertPDFToImages`
+- src/lib/content-pipeline/providers/base-provider.ts (14)：`BaseOCRProvider.processImage`、`BaseOCRProvider.checkAvailability`、`BaseOCRProvider.isBase64Image`、`BaseOCRProvider.isUrl`、`BaseOCRProvider.extractBase64Data`、`BaseOCRProvider.urlToBase64`、`BaseOCRProvider.calculateAverageConfidence`、`BaseOCRProvider.mergeBlocksToText`、`BaseOCRProvider.createSuccessResult`、`BaseOCRProvider.createFailureResult`、`BaseOCRProvider.createPageResult`、`BaseOCRProvider.withTimeout`、`BaseOCRProvider.withRetry`、`BaseOCRProvider.delay`
+- src/lib/content-pipeline/providers/google-vision.ts (5)：`GoogleVisionProvider.processImage`、`GoogleVisionProvider.checkAvailability`、`GoogleVisionProvider.buildRequest`、`GoogleVisionProvider.callApi`、`GoogleVisionProvider.parseResponse`
+- src/lib/content-pipeline/providers/mathpix.ts (4)：`MathpixProvider.processImage`、`MathpixProvider.checkAvailability`、`MathpixProvider.callApi`、`MathpixProvider.parseResponse`
+- src/lib/content-pipeline/providers/mock-ocr.ts (2)：`MockOCRProvider.processImage`、`MockOCRProvider.checkAvailability`
+- src/lib/content-pipeline/providers/tesseract.ts (5)：`loadTesseract`、`TesseractProvider.processImage`、`TesseractProvider.checkAvailability`、`TesseractProvider.runOCR`、`TesseractProvider.parseBlocks`
+- src/lib/content-pipeline/quality-checker.ts (16)：`QuestionQualityChecker.check`、`QuestionQualityChecker.checkBatch`、`QuestionQualityChecker.calculateQuickScore`、`QuestionQualityChecker.checkContent`、`QuestionQualityChecker.checkOptions`、`QuestionQualityChecker.checkAnswer`、`QuestionQualityChecker.checkLatex`、`QuestionQualityChecker.extractImageUrls`、`QuestionQualityChecker.checkImages`、`QuestionQualityChecker.checkImageExists`、`QuestionQualityChecker.hasValidExplanation`、`QuestionQualityChecker.hasValidTags`、`QuestionQualityChecker.generateSuggestions`、`createQualityChecker`、`calculateQuickQualityScore`、`checkQuestionQuality`
+- src/lib/email.ts (1)：`sendEmail`
+- src/lib/email/resend.ts (1)：`sendEmail`
+- src/lib/email/templates/FeedbackAckEmail.tsx (1)：`FeedbackAckEmail`
+- src/lib/email/templates/ReceiptEmail.tsx (1)：`ReceiptEmail`
+- src/lib/email/templates/TrialExpiryEmail.tsx (1)：`TrialExpiryEmail`
+- src/lib/email/templates/WeeklyReportEmail.tsx (1)：`WeeklyReportEmail`
+- src/lib/email/templates/WelcomeEmail.tsx (1)：`WelcomeEmail`
+- src/lib/gamification/calculations.ts (6)：`calculateLevel`、`calculateNextLevelXp`、`calculateLevelProgress`、`checkStreakStatus`、`calculateNewStreak`、`calculateStreakMultiplier`
+- src/lib/gemini.ts (1)：`generateAIResponse`
+- src/lib/hooks/use-on-click-outside.ts (1)：`useOnClickOutside`
+- src/lib/hooks/useDebounce.ts (1)：`useDebounce`
+- src/lib/hooks/usePullToRefresh.ts (1)：`usePullToRefresh`
+- src/lib/jwt.ts (4)：`signImpersonationToken`、`verifyImpersonationToken`、`decodeTokenPayload`、`getImpersonationTokenFromCookie`
+- src/lib/leaderboard/pg-adapter.ts (3)：`PgLeaderboardAdapter.updateScore`、`PgLeaderboardAdapter.getLeaderboard`、`PgLeaderboardAdapter.getUserRank`
+- src/lib/permissions/engine.ts (3)：`getEffectiveTier`、`checkPermission`、`findRequiredTier`
+- src/lib/permissions/index.ts (2)：`hasPermission`、`canAccessFeature`
+- src/lib/permissions/prisma-scope.ts (1)：`getRetentionDate`
+- src/lib/polyfills.ts (8)：`loadIntersectionObserverPolyfill`、`loadResizeObserverPolyfill`、`setupWebShareFallback`、`setupClipboardFallback`、`setupVibrationFallback`、`setupRequestIdleCallbackPolyfill`、`initPolyfills`、`needsPolyfills`
+- src/lib/practice/algorithms.ts (8)：`calculateAverageCorrectRate`、`calculateCourseCompletion`、`calculateStreakBonus`、`calculateTrend`、`calculateConfidence`、`generateSparklineData`、`calculateExamForecast`、`getGradeTrendText`
+- src/lib/practice/mastery.ts (9)：`daysBetween`、`calculateDecayWeight`、`filterAttemptsByDays`、`calculateChapterMastery`、`calculateWeightedAccuracy`、`calculateChapterHotness`、`getMasteryLevelLabel`、`getMasteryStars`、`getHotnessDisplay`
+- src/lib/practice/types/forecast.ts (1)：`scoreToGrade`
+- src/lib/practice/types/hive.ts (1)：`getHiveStatus`
+- src/lib/prisma.ts (1)：`prismaClientSingleton`
+- src/lib/supabase/client.ts (1)：`createClient`
+- src/lib/supabase/server.ts (1)：`createClient`
+- src/lib/utils.ts (1)：`cn`
+
+## 服务端 Actions
+
+- src/actions/admin/permission-override.ts (4)：`calcExpiresAt`、`applyAdminOverride`、`searchUsersForOverride`、`getOverrideHistory`
+- src/actions/admin/stripe-mock.ts (1)：`getStripePaymentHistory`
+- src/actions/admin/user-details.ts (8)：`requireAdmin`、`getUserReferralData`、`getUserActivityData`、`getUserAuditLogs`、`formatRelativeTime`、`seededRandom`、`simpleHash`、`generateMockHeatmapData`
+- src/actions/admin/user-ops.ts (9)：`requireAdmin`、`getUserDetail`、`toggleUserStatus`、`addAdminNote`、`softDeleteAdminNote`、`restoreAdminNote`、`toggleNotePin`、`impersonateUser`、`formatRelativeTime`
+- src/actions/admin/voucher.ts (4)：`normalizeVoucherCode`、`ensureAdmin`、`createVoucherCodeAction`、`toggleVoucherStatusAction`
+- src/actions/ai/tutor.ts (3)：`checkAndDeductAiToken`、`getProblemHint`、`explainSolution`
+- src/actions/billing/checkout.ts (3)：`normalizeCode`、`resolveVoucherCouponId`、`prepareCheckoutAction`
+- src/actions/billing/referral.ts (1)：`bindReferralCodeAction`
+- src/actions/billing/stripe.ts (7)：`resolvePriceId`、`normalizeOrigin`、`pickFirstHostHeader`、`resolveAppBaseUrl`、`fail`、`createCheckoutSession`、`cancelSubscriptionAction`
+- src/actions/community/blog.ts (2)：`getBlogPosts`、`getBlogPostBySlug`
+- src/actions/community/post.ts (6)：`getPosts`、`getCategories`、`createPost`、`getPostById`、`createComment`、`toggleLike`
+- src/actions/content-pipeline/import-service.ts (6)：`importFromPDF`、`resumeFailedImport`、`resumeFromStructuring`、`getImportTasks`、`getImportTaskDetail`、`deleteImportTask`
+- src/actions/content-pipeline/question-service.ts (17)：`generateContentHash`、`validateStatusTransition`、`createQuestion`、`bulkCreateQuestions`、`updateQuestionStatus`、`bulkUpdateQuestionStatus`、`getPendingReviewQuestions`、`getQuestionById`、`deleteQuestion`、`updateQuestion`、`getQuestions`、`getQuestionsByChapter`、`reportQuestion`、`getQuestionReports`、`resolveReport`、`bulkResolveReports`、`getContentStats`
+- src/actions/content-pipeline/review-service.ts (4)：`getQuestionForReview`、`updateQuestion`、`approveQuestion`、`rejectQuestion`
+- src/actions/courses/knowledge.ts (1)：`getKnowledgeGraphData`
+- src/actions/courses/progress.ts (1)：`updateUserLessonProgress`
+- src/actions/courses/subject.ts (3)：`getAllSubjects`、`getSubjectDetails`、`getLessonData`
+- src/actions/dashboard.ts (1)：`getDashboardStats`
+- src/actions/gamification/achievement.ts (2)：`completeOnboardingTask`、`claimTaskReward`
+- src/actions/gamification/achievements.ts (5)：`resolveUserId`、`ensureDefaultBadges`、`getAchievementOverview`、`listUserBadges`、`awardBadgeIfEligible`
+- src/actions/gamification/daily-tasks.ts (4)：`ensureDailyTasks`、`trackDailyProgress`、`getTodayTasks`、`claimTaskRewards`
+- src/actions/gamification/streak.ts (1)：`checkAndRefreshStreak`
+- src/actions/leaderboard/index.ts (3)：`updateLeaderboardScore`、`getLeaderboard`、`getUserRank`
+- src/actions/marketing/campaign.ts (3)：`subscribeToNewsletter`、`isPrismaConnectivityError`、`getPlatformStats`
+- src/actions/notification/core.ts (5)：`createInAppNotification`、`getNotifications`、`getUnreadNotificationCount`、`markNotificationAsRead`、`markAllAsRead`
+- src/actions/notification/preferences.ts (2)：`getNotificationPreferences`、`updateNotificationPreferences`
+- src/actions/notification/triggers.ts (4)：`triggerWelcomeNotification`、`triggerReceiptNotification`、`triggerTrialExpiryNotification`、`triggerSocialReplyNotification`
+- src/actions/permissions.ts (2)：`getUserPermissionStatus`、`checkPermissionAction`
+- src/actions/practice/data-service.ts (6)：`getChapterWithStats`、`getSubjectChapters`、`getWeaknessAnalysis`、`getRandomQuestions`、`getUserQuotaStatus`、`getWeekStartDate`
+- src/actions/practice/error-book.ts (5)：`getErrorBookQuestions`、`removeErrorBookEntry`、`updateErrorBookMastery`、`getErrorWiperSession`、`updateErrorWiperProgress`
+- src/actions/practice/exam.ts (7)：`generateMockExam`、`getQuestionsByDifficulty`、`startExam`、`submitExam`、`getExamResult`、`checkAnswer`、`addToErrorBook`
+- src/actions/practice/parser.ts (1)：`parseQuestionImage`
+- src/actions/practice/question.ts (1)：`createQuestion`
+- src/actions/practice/quiz.ts (1)：`submitQuiz`
+- src/actions/practice/quota.ts (2)：`checkDailyQuota`、`checkWeeklyExamQuota`
+- src/actions/practice/recommendation.ts (2)：`resolveSubjectId`、`getSmartDrillQuestions`
+- src/actions/practice/statistics.ts (2)：`getKnowledgeHiveData`、`getExamForecastData`
+- src/actions/storage.ts (3)：`uploadImage`、`uploadSourceFile`、`getSignedVideoUrl`
+- src/actions/support/feedback.ts (2)：`submitFeedback`、`getUserFeedbacks`
+- src/actions/support/ticket.ts (4)：`submitFeedback`、`getFeedbackList`、`replyToFeedback`、`getFeedbackDetail`
+- src/actions/user/auth.ts (9)：`isPrismaConnectivityError`、`isPrismaSchemaMismatchError`、`generateReferralCode`、`resolvePostLoginRedirect`、`signupAction`、`loginAction`、`logoutAction`、`getCurrentUser`、`syncCurrentUserToDatabase`
+- src/actions/user/onboarding.ts (1)：`completeOnboarding`
+- src/actions/user/parent.ts (4)：`generateInviteCode`、`bindStudent`、`getLinkedStudents`、`getStudentStats`
+- src/actions/user/profile.ts (3)：`getProfile`、`getDashboardProfile`、`updateProfile`
+- src/actions/user/settings.ts (4)：`updateGoals`、`updateAIConfig`、`updatePreferences`、`getUserSettings`
+
+## 测试代码
+
+- prisma/seed.test.ts (1)：`runSeedTest`
+- src/components/business/__tests__/CourseLayoutClient.test.tsx (3)：`ResizeObserver.observe`、`ResizeObserver.unobserve`、`ResizeObserver.disconnect`
+- src/lib/__tests__/supabase-connection.test.ts (1)：`testSupabaseConnection`
+- src/lib/practice/__tests__/mastery.test.ts (2)：`createAttempt`、`createAttempts`
+
+## 脚本 scripts
+
+- scripts/apply-trigger.ts (1)：`main`
+- scripts/codex/check-session.mjs (3)：`getChangedFiles`、`isCodeLike`、`main`
+- scripts/codex/close-session.mjs (4)：`parseArgs`、`required`、`esc`、`main`
+- scripts/generate-placeholder-icons.js (1)：`generateSVGIcon`
+- scripts/p0-01-internal-smoke.mjs (5)：`req`、`makeEvent`、`sendWebhook`、`cleanupSmokeArtifacts`、`main`
+- scripts/seed-error-book.ts (1)：`main`
+- scripts/seed-feedback.ts (1)：`main`
+- scripts/seed-more-chapters.ts (1)：`main`
+- scripts/test-supabase-connection.ts (1)：`testConnection`
+- scripts/verify-seed.ts (1)：`main`
+

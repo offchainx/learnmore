@@ -2,12 +2,15 @@
 
 | id | description | owner | status (todo/doing/done) | link (PR/commit) |
 |---|---|---|---|---|
-| T-001 | 重写 P0-06 Practice 生产验收 的 spec.md 与 plan.md 并补齐接口契约 | codex | done |  |
-| T-002 | 重写 acceptance.md，加入 Action 与数据表核对矩阵 | codex | done |  |
-| T-003 | 文档审阅与范围确认（用户确认前禁止开发） | user | doing |  |
-| T-004 | 开发实现（门禁项，等待用户批准） | codex | todo |  |
-| T-005 | 本地验证（Action + SQL 快照） | codex | todo |  |
-| T-006 | 预发复测与收尾 | codex | todo |  |
+| T-001 | 更新 P0-06 文档范围，纳入“题目表审计 + 初中题目录入”两条主线 | codex | done |  |
+| T-002 | 形成题目域数据表分层清单与当前库基线（含记录数快照） | codex | done |  |
+| T-003 | 设计 Examcoo 初中教育导入链路（列表页 -> 逐题页 -> RPC）与字段映射 | codex | done |  |
+| T-004 | 梳理当前练习题相关数据表、字段合理性与用户答题采集链路（本次） | codex | done |  |
+| T-005 | 实现导入脚本（可分页抓取、可重试、可幂等） | codex | todo |  |
+| T-006 | 执行首批导入（优先初三数学 k=60，再扩展初中教育其他分类） | codex | todo |  |
+| T-007 | 导入后数据审计（去重、类型分布、来源追溯完整性） | codex | todo |  |
+| T-008 | Practice 主链路回归（提交判分/错题/榜单/成就） | codex | todo |  |
+| T-009 | 本地 + 预发双环境验收与收尾 | codex | todo |  |
 
 ## 备注
-- 当前阶段只允许文档工作，不允许进入代码实现。
+- 2026-03-04 已完成文档与基线梳理，下一步进入脚本实现与首批录入。
