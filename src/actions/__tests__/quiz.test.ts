@@ -17,12 +17,28 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mockPrisma,
 }));
 
-vi.mock('../auth', () => ({
+vi.mock('../user/auth', () => ({
   getCurrentUser: vi.fn(),
 }));
 
 vi.mock('../leaderboard', () => ({
   updateLeaderboardScore: vi.fn().mockResolvedValue({ success: true }),
+}));
+
+vi.mock('@/actions/user/study-metrics', () => ({
+  incrementTotalStudyTime: vi.fn().mockResolvedValue(0),
+}));
+
+vi.mock('@/actions/gamification/streak', () => ({
+  checkAndRefreshStreak: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/actions/gamification/daily-tasks', () => ({
+  trackDailyProgress: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/actions/gamification/achievements', () => ({
+  awardBadgeIfEligible: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { submitQuiz } from '../practice/quiz';

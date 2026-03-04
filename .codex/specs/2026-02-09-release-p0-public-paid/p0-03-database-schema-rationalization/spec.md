@@ -102,7 +102,7 @@ updated_at: 2026-03-04
 
 ## 双表字段分层（结论）
 1. 基线结构：
-   - `public.users` 共 30 字段。
+   - `public.users` 在 `T-006` 审计时为 30 字段；`T-009` 新增 `school` 后为 31 字段。
    - `auth.users` 共 35 字段。
    - 同名交集字段 6 个：`id` / `email` / `created_at` / `updated_at` / `last_sign_in_at` / `role`。
 2. `auth.users`（托管层）：
@@ -152,7 +152,56 @@ updated_at: 2026-03-04
 3. `T-005` 执行对齐与验证闭环。
 4. `T-006` 字段逻辑与冗余审计（文档）完成。
 5. `T-007` 字段链路补齐与冗余字段调整方案定义（文档）完成。
-6. `T-008` 执行字段链路补齐与冗余字段治理开发（待开始）。
+6. `T-008` 执行字段链路补齐与冗余字段治理开发（已完成）。
+7. `T-009` 执行前端用户域去 Mock 与双表接入开发（已完成）。
+8. `T-010` 处理 Admin 首页非用户双表 mock（待执行）。
+
+# T-008 实施结果（开发完成）
+1. 登录镜像链路：
+   - 新增 migration：`supabase/migrations/006_sync_auth_signin_fields.sql`。
+   - 新增触发器：`on_auth_user_signin_updated`（`auth.users.last_sign_in_at` 变更后同步到 `public.users.last_sign_in_at/sign_in_count`）。
+2. 注册 UTM 入库链路：
+   - 注册页补充隐藏字段：`utm_source/utm_medium/utm_campaign`。
+   - `signupAction` 将 UTM 注入 `supabase.auth.signUp(...options.data)`，由 trigger 落到 `public.users`。
+   - `getCurrentUser/syncCurrentUserToDatabase` 增加 UTM 与 `last_sign_in_at` 的兜底同步。
+3. 学习时长统一累计：
+   - 新增统一入口：`src/actions/user/study-metrics.ts`（秒级、非负、单次上限保护）。
+   - 接入入口：`submitQuiz(duration)`、`submitExam(duration)`、`updateUserLessonProgress(...)`（仅首次完成课程累计）。
+4. 结论：
+   - `T-006` 识别的 C 类字段已进入可执行写入链路；
+   - 冗余字段仍维持“保留+观察”口径，本轮无删除动作。
+
+# T-009 实施结果（开发完成）
+1. 范围与边界：
+   - 本轮仅覆盖“前端用户域”：
+     - 用户管理列表（`/admin/users`）
+     - 权限调控（`/admin/permissions`）
+     - 用户详情中可由用户域支撑的 mock 内容
+   - `admin` 首页 KPI/工单/风险 mock 不在本轮，顺延到 `T-010`。
+2. Schema 与字段：
+   - 新增字段：`public.users.school`（nullable）。
+   - Prisma 模型已新增 `User.school` 映射。
+   - `avatarColor` 保持前端派生值，不落库。
+3. 服务端与入库/读库逻辑：
+   - 新增 `listAdminUsers`，替换列表 mock 数据源，支持分页/筛选/排序。
+   - 映射规则落地：`name=username||email前缀`，`school` 空值兜底“未设置”，`avatarColor` 由 `id+email` 哈希生成。
+   - 删除 `usr_` dev mock 分支：
+     - `getUserDetail` 仅走真实数据库用户。
+     - `applyAdminOverride` 不再接受 mock 用户快速路径。
+4. 前端替换结果：
+   - `UserTable` 已改为真实 `listAdminUsers`，快速封禁/解封走真实 `toggleUserStatus`。
+   - “发送邀请”从 mock 成功提示改为“待接入”禁用态，避免伪成功。
+   - 权限调控链路补强类型：去除 `any[]`，返回序列化安全结构。
+5. 用户详情去 mock：
+   - `SubscriptionTab` 的 Permission Overrides 改为真实 `getOverrideHistory`。
+   - 支付流水无可靠表时显示真实空态，不再伪造支付记录。
+   - `ActivityTab` heatmap 改为真实聚合（`user_attempt + security_log(LOGIN)`）。
+   - `GrowthTab.rewardSummary` 改为真实推荐统计衍生文案，不再写死 mock 字符串。
+6. 清理结果：
+   - 删除未被路由使用、仍引用 mock 的遗留页面组件，避免后续误用。
+7. 验证结果：
+   - `pnpm prisma generate` 通过。
+   - `pnpm exec tsc --noEmit --incremental false` 通过。
 
 # 开发内容（必须先确认）
 

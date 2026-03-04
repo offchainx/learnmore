@@ -7,8 +7,6 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from 'sonner'
 import { BottomTabBar } from '@/components/mobile/BottomTabBar'
 import { MobileHeader } from '@/components/mobile/MobileHeader'
-import { ServiceWorkerRegistration } from '@/components/pwa/ServiceWorkerRegistration'
-import { InstallPrompt } from '@/components/pwa/InstallPrompt'
 import { UnsupportedBrowserWarning } from '@/components/compatibility/UnsupportedBrowserWarning'
 import { PolyfillsLoader } from '@/components/polyfills/PolyfillsLoader'
 import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBannerWrapper'
@@ -20,7 +18,6 @@ import type { Lang } from '@/providers/app-provider'
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
   description: '专为中学生打造的在线学习平台,涵盖数学、物理、化学、英语、语文、生物六大学科',
-  manifest: '/manifest.json',
   icons: {
     icon: [
       { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
@@ -29,11 +26,6 @@ export const metadata: Metadata = {
     apple: [
       { url: '/icons/apple-touch-icon.svg', sizes: '180x180', type: 'image/svg+xml' },
     ],
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'LearnMore',
   },
   formatDetection: {
     telephone: false,
@@ -92,8 +84,6 @@ export default async function RootLayout({
             <ImpersonateBannerWrapper />
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />
-            <ServiceWorkerRegistration />
-            <InstallPrompt />
             <MobileHeader />
             <div className="tablet:pt-0 pt-14">
               {children}

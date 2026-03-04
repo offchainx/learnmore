@@ -7,6 +7,7 @@
 
 import prisma from '@/lib/prisma'
 import type { Question, PracticeMode, Prisma } from '@prisma/client'
+import { incrementTotalStudyTime } from '@/actions/user/study-metrics'
 
 // ============ 类型定义 ============
 
@@ -342,6 +343,8 @@ export async function submitExam(
     if (wrongAnswers.length > 0) {
       await addToErrorBook(userId, wrongAnswers.map(w => w.questionId))
     }
+
+    await incrementTotalStudyTime(userId, duration)
 
     return {
       success: true,

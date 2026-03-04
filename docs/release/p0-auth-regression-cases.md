@@ -9,6 +9,7 @@
 | 11-14 | AC-04（回归） | T-006 / T-008 |
 | 15-17 | AC-04（权限） | T-006 |
 | 18-26 | AC-04（路由下线） | T-006 |
+| 27-30 | AC-05（请求治理） | T-007 |
 
 ## AC-01 用例
 
@@ -151,3 +152,25 @@
 - Given：任意登录态用户
 - When：访问 `/checkout/config`
 - Then：页面直接返回 404；支付入口统一由 `/pricing` 直接发起 checkout action
+
+## AC-05 请求治理扩展用例（T-007）
+
+### 用例 27：未打开通知下拉时不触发通知摘要请求
+- Given：登录用户停留在 `/dashboard` 或 `/admin` 任一页面
+- When：空闲 1-3 分钟且不点击通知铃铛
+- Then：不应持续出现 `GET /api/notifications/summary?limit=10`
+
+### 用例 28：打开通知下拉后才触发通知摘要请求
+- Given：登录用户停留在后台页面
+- When：点击通知铃铛打开下拉
+- Then：触发 `GET /api/notifications/summary?limit=10`，关闭下拉后停止轮询
+
+### 用例 29：`/dashboard/practice` 不再出现页面路径 POST 噪音
+- Given：登录用户访问 `/dashboard/practice`
+- When：页面首屏加载并空闲观察
+- Then：不应出现批量 `POST /dashboard/practice`，读取请求应走 `/api/practice/*` 与 `/api/courses/subjects`
+
+### 用例 30：`/admin/permissions` 路由请求频率收敛
+- Given：登录 ADMIN 用户访问 `/admin/permissions`
+- When：页面空闲观察 1-3 分钟
+- Then：不应出现异常高频 `GET /admin/permissions` 请求

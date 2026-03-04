@@ -8,6 +8,10 @@ vi.mock('../quota', () => ({
   checkWeeklyExamQuota: vi.fn(),
 }))
 
+vi.mock('@/actions/user/study-metrics', () => ({
+  incrementTotalStudyTime: vi.fn().mockResolvedValue(0),
+}))
+
 // Mock prisma
 vi.mock('@/lib/prisma', () => ({
   default: {

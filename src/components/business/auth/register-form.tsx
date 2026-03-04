@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -22,6 +23,10 @@ const initialState: AuthFormState = {}
 
 export function RegisterForm() {
   const [state, formAction] = useActionState(signupAction, initialState)
+  const searchParams = useSearchParams()
+  const utmSource = searchParams.get('utm_source') || ''
+  const utmMedium = searchParams.get('utm_medium') || ''
+  const utmCampaign = searchParams.get('utm_campaign') || ''
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -32,6 +37,9 @@ export function RegisterForm() {
         </CardDescription>
       </CardHeader>
       <form action={formAction}>
+        <input type="hidden" name="utm_source" value={utmSource} />
+        <input type="hidden" name="utm_medium" value={utmMedium} />
+        <input type="hidden" name="utm_campaign" value={utmCampaign} />
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">用户名</Label>

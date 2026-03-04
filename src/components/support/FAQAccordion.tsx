@@ -20,7 +20,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "Can I use LearnMore on my phone?",
-    answer: "Yes! LearnMore is a Progressive Web App (PWA). You can access it via your mobile browser or 'Add to Home Screen' for a native-like experience."
+    answer: "Yes. LearnMore supports mobile browser access, so you can use it directly on your phone without installing a separate app."
   },
   {
     question: "What happens if I encounter a mistake in a question?",

@@ -23,7 +23,7 @@ interface ReferralStats {
   referralCode: string | null
   totalInvites: number
   referralLimit: number
-  rewardSummary: string // Mocked for now, or derived
+  rewardSummary: string
 }
 
 export async function getUserReferralData(userId: string): Promise<Admin.ActionResult<{ stats: ReferralStats, tree: Admin.ReferralNode }>> {
@@ -76,7 +76,7 @@ export async function getUserReferralData(userId: string): Promise<Admin.ActionR
       referralCode: user.referralCode,
       totalInvites: user.referralCount,
       referralLimit: user.referralLimit,
-      rewardSummary: '3 months / $45 credit' // TODO: Calculate from Rewards table if exists
+      rewardSummary: `${user.referralCount}/${user.referralLimit} 推荐额度已使用`
     }
 
     // Build Tree (Depth 2)
@@ -117,7 +117,6 @@ interface ActivityEvent {
   type: string
   color: string
   time: string
-  timestamp: Date // for sorting if needed
 }
 
 export async function getUserActivityData(userId: string): Promise<Admin.ActionResult<{ stats: ActivityStats, timeline: ActivityEvent[], heatmap: number[][] }>> {
@@ -162,25 +161,24 @@ export async function getUserActivityData(userId: string): Promise<Admin.ActionR
       ...recentAttempts.map(a => ({
         type: 'Quiz Completed', // or a.question.type
         color: 'bg-emerald-500',
-        time: a.createdAt.toISOString(),
-        timestamp: a.createdAt
+        time: a.createdAt.toISOString()
       })),
       ...recentLogins.map(l => ({
         type: 'Login',
         color: 'bg-blue-500',
-        time: l.createdAt.toISOString(),
-        timestamp: l.createdAt
+        time: l.createdAt.toISOString()
       }))
-    ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    ]
+      .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
      .slice(0, 10)
      .map(e => ({
-       ...e,
-       time: formatRelativeTime(e.timestamp)
+       type: e.type,
+       color: e.color,
+       time: formatRelativeTime(new Date(e.time))
      }))
 
-    // 3. Heatmap (Last 12 weeks)
-    // Seeded pseudo-random based on userId for deterministic output per user
-    const heatmap = generateMockHeatmapData(userId)
+    // 3. Heatmap (Last 12 weeks, real activity aggregation)
+    const heatmap = await buildActivityHeatmap(userId)
 
     return { success: true, data: { stats, timeline: events, heatmap } }
 
@@ -203,14 +201,7 @@ export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResu
       take: 100
     })
 
-    // 2. Fetch Permission Overrides
-    const overrides = await prisma.userPermissionOverride.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      include: { user: true }
-    })
-
-    // 3. Fetch Impersonation Sessions
+    // 2. Fetch Impersonation Sessions
     const sessions = await prisma.impersonationSession.findMany({
       where: { targetUserId: userId },
       orderBy: { startedAt: 'desc' }
@@ -218,10 +209,6 @@ export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResu
 
     // 4. Map to Unified Format
     const items: Admin.AuditLogItem[] = []
-
-    // Build a sessionId → session map for enriching IMPERSONATE events
-    const sessionMap = new Map<string, typeof sessions[0]>()
-    sessions.forEach(s => sessionMap.set(s.id, s))
 
     // Map Security Logs
     securityLogs.forEach(log => {
@@ -321,35 +308,61 @@ function formatRelativeTime(date: Date): string {
   return `${days}d ago`
 }
 
-// Simple seeded PRNG (xorshift32) — deterministic given the same seed
-function seededRandom(seed: number): () => number {
-  let state = seed | 0 || 1
-  return () => {
-    state ^= state << 13
-    state ^= state >> 17
-    state ^= state << 5
-    return (state >>> 0) / 4294967296
-  }
+function toDateKey(date: Date): string {
+  const year = date.getUTCFullYear()
+  const month = `${date.getUTCMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getUTCDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
-// Hash a string into a 32-bit integer
-function simpleHash(str: string): number {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0
-  }
-  return hash
+function toIntensity(totalEvents: number): number {
+  if (totalEvents <= 0) return 0
+  if (totalEvents <= 2) return 1
+  if (totalEvents <= 5) return 2
+  return 3
 }
 
-function generateMockHeatmapData(userId: string): number[][] {
-  const rand = seededRandom(simpleHash(userId))
-  const data: number[][] = [];
-  for (let w = 0; w < 12; w++) {
-    const week: number[] = [];
-    for (let d = 0; d < 7; d++) {
-      week.push(Math.floor(rand() * 4)); // 0-3
-    }
-    data.push(week);
+async function buildActivityHeatmap(userId: string): Promise<number[][]> {
+  const days = 12 * 7
+  const start = new Date()
+  start.setUTCHours(0, 0, 0, 0)
+  start.setUTCDate(start.getUTCDate() - (days - 1))
+
+  const [attempts, logins] = await Promise.all([
+    prisma.userAttempt.findMany({
+      where: { userId, createdAt: { gte: start } },
+      select: { createdAt: true },
+    }),
+    prisma.securityLog.findMany({
+      where: { userId, action: 'LOGIN', createdAt: { gte: start } },
+      select: { createdAt: true },
+    }),
+  ])
+
+  const dailyCount = new Map<string, number>()
+
+  for (const item of attempts) {
+    const key = toDateKey(item.createdAt)
+    dailyCount.set(key, (dailyCount.get(key) || 0) + 1)
   }
-  return data;
+
+  for (const item of logins) {
+    const key = toDateKey(item.createdAt)
+    dailyCount.set(key, (dailyCount.get(key) || 0) + 1)
+  }
+
+  const flatHeatmap: number[] = []
+  const cursor = new Date(start)
+  for (let i = 0; i < days; i++) {
+    const key = toDateKey(cursor)
+    flatHeatmap.push(toIntensity(dailyCount.get(key) || 0))
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+
+  const heatmap: number[][] = []
+  for (let week = 0; week < 12; week++) {
+    const offset = week * 7
+    heatmap.push(flatHeatmap.slice(offset, offset + 7))
+  }
+  return heatmap
 }

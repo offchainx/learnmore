@@ -12,7 +12,63 @@ import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
 import { Admin } from '@/types'
-import { getUserById } from '@/components/admin/users/mock/userMockData'
+
+const AVATAR_COLOR_PALETTE = [
+  'bg-red-500',
+  'bg-orange-500',
+  'bg-amber-500',
+  'bg-yellow-500',
+  'bg-lime-500',
+  'bg-green-500',
+  'bg-emerald-500',
+  'bg-teal-500',
+  'bg-cyan-500',
+  'bg-sky-500',
+  'bg-blue-500',
+  'bg-indigo-500',
+  'bg-violet-500',
+  'bg-purple-500',
+  'bg-fuchsia-500',
+  'bg-pink-500',
+  'bg-rose-500',
+]
+
+function buildAvatarColor(seed: string): string {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0
+  }
+  const index = Math.abs(hash) % AVATAR_COLOR_PALETTE.length
+  return AVATAR_COLOR_PALETTE[index]
+}
+
+function mapDbStatusToAdmin(status: 'ACTIVE' | 'BANNED' | 'PAUSED'): Admin.UserStatus {
+  if (status === 'BANNED') return Admin.UserStatus.BANNED
+  if (status === 'PAUSED') return Admin.UserStatus.PAUSED
+  return Admin.UserStatus.ACTIVE
+}
+
+function mapAdminStatusToDb(status: Admin.UserStatus): 'ACTIVE' | 'BANNED' | 'PAUSED' {
+  if (status === Admin.UserStatus.BANNED) return 'BANNED'
+  if (status === Admin.UserStatus.PAUSED) return 'PAUSED'
+  return 'ACTIVE'
+}
+
+function mapDbTierToAdmin(tier: 'STARTER' | 'STANDARD' | 'SMART_PLUS' | 'PREMIER' | null): Admin.SubscriptionTier {
+  if (tier === 'PREMIER') return Admin.SubscriptionTier.PREMIER
+  if (tier === 'SMART_PLUS') return Admin.SubscriptionTier.SMART_PLUS
+  if (tier === 'STANDARD') return Admin.SubscriptionTier.STANDARD
+  return Admin.SubscriptionTier.STARTER
+}
+
+function mapAdminTierToDb(
+  tier: Admin.SubscriptionTier
+): 'STARTER' | 'STANDARD' | 'SMART_PLUS' | 'PREMIER' {
+  if (tier === Admin.SubscriptionTier.PREMIER) return 'PREMIER'
+  if (tier === Admin.SubscriptionTier.SMART_PLUS) return 'SMART_PLUS'
+  if (tier === Admin.SubscriptionTier.STANDARD) return 'STANDARD'
+  return 'STARTER'
+}
 
 // ============ 权限检查 ============
 
@@ -27,130 +83,221 @@ async function requireAdmin() {
   return user
 }
 
+async function requireAdminOrTeacher() {
+  const user = await getCurrentUser()
+  if (!user) {
+    throw new Error('未登录')
+  }
+  if (user.role !== 'ADMIN' && user.role !== 'TEACHER') {
+    throw new Error('权限不足：需要管理员或教师权限')
+  }
+  return user
+}
+
+// ============ 用户列表（真实数据） ============
+
+export async function listAdminUsers(
+  filters: Admin.UserFilterState,
+  pagination: Admin.PaginationParams
+): Promise<Admin.ActionResult<Admin.PaginatedResponse<Admin.UserSummary>>> {
+  try {
+    await requireAdminOrTeacher()
+
+    const page = Math.max(1, pagination.page || 1)
+    const pageSize = Math.max(1, Math.min(100, pagination.pageSize || 20))
+
+    const andConditions: any[] = []
+    const search = filters.search?.trim()
+
+    if (search) {
+      const orConditions: any[] = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { username: { contains: search, mode: 'insensitive' } },
+        { school: { contains: search, mode: 'insensitive' } },
+      ]
+
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search)) {
+        orConditions.push({ id: search })
+      }
+
+      andConditions.push({ OR: orConditions })
+    }
+
+    if (filters.status !== 'All') {
+      andConditions.push({ status: mapAdminStatusToDb(filters.status as Admin.UserStatus) })
+    }
+
+    if (filters.tier !== 'All') {
+      andConditions.push({ subscriptionTier: mapAdminTierToDb(filters.tier as Admin.SubscriptionTier) })
+    }
+
+    const where: any = andConditions.length > 0 ? { AND: andConditions } : undefined
+
+    const direction = pagination.sortDirection === 'asc' ? 'asc' : 'desc'
+    const orderBy: any = (() => {
+      switch (pagination.sortField) {
+        case 'name':
+          return [{ username: direction }, { email: direction }]
+        case 'grade':
+          return [{ grade: direction }, { createdAt: 'desc' }]
+        case 'tier':
+          return [{ subscriptionTier: direction }, { createdAt: 'desc' }]
+        case 'status':
+          return [{ status: direction }, { createdAt: 'desc' }]
+        case 'school':
+          return [{ school: direction }, { createdAt: 'desc' }]
+        case 'lastActive':
+          return [{ lastSignInAt: direction }, { createdAt: 'desc' }]
+        default:
+          return [{ createdAt: 'desc' }]
+      }
+    })()
+
+    const [total, users] = await prisma.$transaction([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          status: true,
+          subscriptionTier: true,
+          lastSignInAt: true,
+          grade: true,
+          school: true,
+          createdAt: true,
+        },
+      }),
+    ])
+
+    const data: Admin.UserSummary[] = users.map((user) => {
+      const lastActiveDate = user.lastSignInAt || user.createdAt
+      return {
+        id: user.id,
+        name: user.username || user.email.split('@')[0],
+        email: user.email,
+        avatarColor: buildAvatarColor(`${user.id}:${user.email}`),
+        status: mapDbStatusToAdmin(user.status),
+        tier: mapDbTierToAdmin(user.subscriptionTier),
+        lastActive: lastActiveDate.toISOString(),
+        lastActiveLabel: formatRelativeTime(lastActiveDate),
+        grade: user.grade ? `${user.grade}年级` : '未设置',
+        school: user.school || '未设置',
+      }
+    })
+
+    return {
+      success: true,
+      data: {
+        data,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    }
+  } catch (error) {
+    console.error('[listAdminUsers] Error:', error)
+    return { success: false, error: error instanceof Error ? error.message : '获取用户列表失败' }
+  }
+}
+
 // ============ 获取用户详情 ============
 
 export async function getUserDetail(userId: string): Promise<Admin.ActionResult<Admin.UserDetail>> {
   try {
     await requireAdmin()
 
-    let userDetail: Admin.UserDetail | null = null
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        adminNotes: {
+          orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+          take: 50,
+        },
+        securityLogs: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+        impersonationSessions: {
+          where: { endedAt: null },
+          orderBy: { startedAt: 'desc' },
+          take: 1,
+        },
+      },
+    })
 
-    // 如果 ID 是 Mock 格式（以 usr_ 开头），直接使用 Mock 数据，不查询数据库
-    // 否则 Prisma 会抛出 UUID 格式错误
-    if (userId.startsWith('usr_')) {
-      const mockUser = getUserById(userId)
-      if (mockUser) {
-        userDetail = {
-          ...mockUser,
-          notes: [],
-          recentSecurityLogs: [],
-          activeImpersonationSession: null,
-        }
-      }
-    } else {
-      // 尝试从数据库查询
-      try {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: userId },
-          include: {
-            adminNotes: {
-              orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
-              take: 50,
-            },
-            securityLogs: {
-              orderBy: { createdAt: 'desc' },
-              take: 20,
-            },
-            impersonationSessions: {
-              where: { endedAt: null },
-              orderBy: { startedAt: 'desc' },
-              take: 1,
-            },
-            settings: true,
-          },
-        })
-
-        if (dbUser) {
-          // 转换为前端类型
-          const notes: Admin.AdminNote[] = dbUser.adminNotes.map((n) => ({
-            id: n.id,
-            userId: n.userId,
-            authorId: n.authorId,
-            content: n.content,
-            isPinned: n.isPinned,
-            createdAt: n.createdAt.toISOString(),
-            updatedAt: n.updatedAt.toISOString(),
-            deletedAt: n.deletedAt?.toISOString() || null,
-          }))
-
-          const recentSecurityLogs: Admin.SecurityLogEntry[] = dbUser.securityLogs.map((l) => ({
-            id: l.id,
-            userId: l.userId,
-            action: l.action as Admin.SecurityAction,
-            ipAddress: l.ipAddress,
-            userAgent: l.userAgent,
-            metadata: l.metadata as Record<string, unknown> | null,
-            createdAt: l.createdAt.toISOString(),
-          }))
-
-          const activeSession = dbUser.impersonationSessions[0]
-
-          // 映射 DB status → 前端 Admin.UserStatus 枚举
-          const statusMap: Record<string, Admin.UserStatus> = {
-            ACTIVE: Admin.UserStatus.ACTIVE,
-            BANNED: Admin.UserStatus.BANNED,
-            PAUSED: Admin.UserStatus.PAUSED,
-          }
-
-          userDetail = {
-            id: dbUser.id,
-            name: dbUser.username || dbUser.email.split('@')[0],
-            email: dbUser.email,
-            avatarColor: 'bg-blue-500',
-            status: statusMap[dbUser.status] || Admin.UserStatus.ACTIVE,
-            tier: (dbUser.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
-            lastActive: dbUser.lastSignInAt?.toISOString() || dbUser.createdAt.toISOString(),
-            lastActiveLabel: formatRelativeTime(dbUser.lastSignInAt || dbUser.createdAt),
-            grade: dbUser.grade ? `${dbUser.grade}年级` : '未设置',
-            school: '未设置',
-            role: dbUser.role,
-            location: '未设置',
-            phone: '未设置',
-            joinDate: dbUser.createdAt.toISOString(),
-            joinSource: dbUser.utmSource || '直接访问',
-            totalSpend: 0,
-            projectsCount: 0,
-            apiCalls: 0,
-            activeDeviceCount: 1,
-            learningStats: {
-              totalQuestions: 0,
-              accuracy: 0,
-              mistakes: 0,
-              daysActive: dbUser.streak || 0,
-            },
-            notes,
-            recentSecurityLogs,
-            activeImpersonationSession: activeSession
-              ? {
-                  id: activeSession.id,
-                  adminId: activeSession.adminId,
-                  targetUserId: activeSession.targetUserId,
-                  startedAt: activeSession.startedAt.toISOString(),
-                  expiresAt: activeSession.expiresAt.toISOString(),
-                  endedAt: activeSession.endedAt?.toISOString() || null,
-                  endReason: activeSession.endReason as 'MANUAL_LOGOUT' | 'TOKEN_EXPIRED' | 'ADMIN_REVOKED' | null,
-                }
-              : null,
-          }
-        }
-      } catch (dbError) {
-        // 如果数据库查询出错（例如非法 UUID），记录错误但不中断，尝试 Mock（虽然上面已经处理了 Mock ID）
-        console.error('[getAdmin.UserDetail] DB Query skipped or failed:', dbError)
-      }
+    if (!dbUser) {
+      return { success: false, error: '用户不存在' }
     }
 
-    if (!userDetail) {
-      return { success: false, error: '用户不存在' }
+    const notes: Admin.AdminNote[] = dbUser.adminNotes.map((n) => ({
+      id: n.id,
+      userId: n.userId,
+      authorId: n.authorId,
+      content: n.content,
+      isPinned: n.isPinned,
+      createdAt: n.createdAt.toISOString(),
+      updatedAt: n.updatedAt.toISOString(),
+      deletedAt: n.deletedAt?.toISOString() || null,
+    }))
+
+    const recentSecurityLogs: Admin.SecurityLogEntry[] = dbUser.securityLogs.map((l) => ({
+      id: l.id,
+      userId: l.userId,
+      action: l.action as Admin.SecurityAction,
+      ipAddress: l.ipAddress,
+      userAgent: l.userAgent,
+      metadata: l.metadata as Record<string, unknown> | null,
+      createdAt: l.createdAt.toISOString(),
+    }))
+
+    const activeSession = dbUser.impersonationSessions[0]
+    const lastActiveDate = dbUser.lastSignInAt || dbUser.createdAt
+
+    const userDetail: Admin.UserDetail = {
+      id: dbUser.id,
+      name: dbUser.username || dbUser.email.split('@')[0],
+      email: dbUser.email,
+      avatarColor: buildAvatarColor(`${dbUser.id}:${dbUser.email}`),
+      status: mapDbStatusToAdmin(dbUser.status),
+      tier: mapDbTierToAdmin(dbUser.subscriptionTier),
+      lastActive: lastActiveDate.toISOString(),
+      lastActiveLabel: formatRelativeTime(lastActiveDate),
+      grade: dbUser.grade ? `${dbUser.grade}年级` : '未设置',
+      school: dbUser.school || '未设置',
+      role: dbUser.role,
+      location: '未设置',
+      phone: '未设置',
+      joinDate: dbUser.createdAt.toISOString(),
+      joinSource: dbUser.utmSource || '直接访问',
+      totalSpend: 0,
+      projectsCount: 0,
+      apiCalls: 0,
+      activeDeviceCount: 1,
+      learningStats: {
+        totalQuestions: 0,
+        accuracy: 0,
+        mistakes: 0,
+        daysActive: dbUser.streak || 0,
+      },
+      notes,
+      recentSecurityLogs,
+      activeImpersonationSession: activeSession
+        ? {
+            id: activeSession.id,
+            adminId: activeSession.adminId,
+            targetUserId: activeSession.targetUserId,
+            startedAt: activeSession.startedAt.toISOString(),
+            expiresAt: activeSession.expiresAt.toISOString(),
+            endedAt: activeSession.endedAt?.toISOString() || null,
+            endReason: activeSession.endReason as 'MANUAL_LOGOUT' | 'TOKEN_EXPIRED' | 'ADMIN_REVOKED' | null,
+          }
+        : null,
     }
 
     return { success: true, data: userDetail }

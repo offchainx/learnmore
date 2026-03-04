@@ -2,14 +2,15 @@
 
 ## 概览
 - 子任务：P0-06 Practice 生产验收（题库审计 + 初中题目录入）
-- 方案摘要：先完成题目域数据库审计基线，再接入 Examcoo 初中教育公开题目，最后对 Practice 链路做表级核账验收。
+- 方案摘要：先完成题目域数据库审计基线与练习链路修复，再接入 Examcoo 初中教育公开题目，最后做双环境核账验收。
 - 执行原则：先审计、后录入、再回归；每一步保留可复现证据（SQL/日志/样例 ID）。
 
 ## 强制门禁（本任务必须满足）
 1. 完成 spec.md、plan.md、tasks.md、acceptance.md 四件套并通过审阅。
 2. 题目域数据表审计必须覆盖“结构层/内容层/练习日志层/质控层”。
-3. 录题流程必须具备来源追溯 + 幂等去重 + 失败可重试。
-4. 验证环境固定为本地 + 预发，两轮都要留下证据。
+3. 练习中心五模式必须形成“入口可达 + 数据可拉 + 作答可采集 + 结果可核账”的闭环。
+4. 录题流程必须具备来源追溯 + 幂等去重 + 失败可重试，且默认 `REVIEW_PENDING`。
+5. 验证环境固定为本地 + 预发，两轮都要留下证据。
 
 ## 方案分阶段
 
@@ -20,7 +21,16 @@
   - 当前库基线计数快照（2026-03-04 已采集）。
   - 缺口列表（当前为空/弱约束表：`question_groups`、`question_tags`、`knowledge_points` 等）。
 
-### 阶段 B：Examcoo 初中教育题目录入（首批）
+### 阶段 B：练习链路修复优先（先于爬虫导入）
+- 目标：修复当前练习中心链路不一致问题，统一题目交互采集与落库口径。
+- 范围：
+  - 五模式入口闭环：Smart Drill、Error Wiper、Mock Arena、Chapter Map、Past Year Paper。
+  - Smart Drill / Chapter Drill 接入统一提交动作，落 `exam_records + user_attempts + error_book`。
+  - 防重复做题策略跨模式统一（默认排除最近 N 天做过题）。
+  - `masteryLevel` 语义统一：同一正确/错误行为在不同模式下规则一致。
+  - 抽题只允许 `VERIFIED/PUBLISHED`（禁止将 `DRAFT/REVIEW_PENDING` 直接投喂练习端）。
+
+### 阶段 C：Examcoo 初中教育题目录入（首批）
 - 目标：将初中教育题目按可追溯方式导入本库，优先初三数学并可横向扩展。
 - 数据源链路：
   1. 分类入口：`/index/detail/mid/1/#s2`
@@ -34,13 +44,13 @@
 - 入库策略：
   - `source_files`：记录源 URL、文件类型、抓取状态。
   - `question_groups`：按试卷聚合（sourceYear/sourcePaper）。
-  - `questions`：写入内容、类型、答案、难度、`content_hash`、来源字段。
+  - `questions`：写入内容、类型、答案、难度、`content_hash`、来源字段、默认 `REVIEW_PENDING`。
   - 可选：首批只写 `questions + source_files`，后续补 `question_tags / knowledge_points`。
 - 幂等去重：
   - 一级去重：`questions.content_hash`。
   - 二级去重：`source + paperId + questionIndex`（导入日志层，防重跑）。
 
-### 阶段 C：Practice 链路回归与核账
+### 阶段 D：Practice 链路回归与核账
 - 覆盖链路：拉题 -> 作答 -> 提交 -> 判分 -> 错题回写 -> 榜单/成就。
 - 核账表：`exam_records`、`user_attempts`、`error_book`、`leaderboard_entries`、`user_badges`、`notifications`。
 
@@ -67,9 +77,10 @@
 
 ## 验证步骤（固定流程）
 1. 本地（审计）：执行表计数 + 关键 SQL 快照，生成基线。
-2. 本地（导入）：执行初中教育首批导入，记录 `k/page/paperId/questionCount/importedCount`。
-3. 本地（Practice）：跑成功路径 + 失败/越权路径，核对写表。
-4. 预发复测：复测同批场景，验证幂等和并发。
+2. 本地（修复链路）：先完成 `T-005 ~ T-011`，确保五模式闭环与统一落库。
+3. 本地（导入）：执行 `T-012 ~ T-013`，记录 `k/page/paperId/questionCount/importedCount`。
+4. 本地（Practice）：跑成功路径 + 失败/越权路径，核对写表。
+5. 预发复测：复测同批场景，验证幂等和并发。
 
 ## 风险与回滚
 - 触发回滚：核心路径阻断、题目重复写入、来源不可追溯。
@@ -86,21 +97,31 @@
 | 开发单元 | 入口组件 | Action/API | 数据表 | 核对点 |
 |---|---|---|---|---|
 | 题目域审计 | 审计脚本/SQL | Prisma + SQL | 题目域全表 | 计数与结构一致 |
+| 五模式入口闭环 | PracticeView | 各模式路由与加载函数 | questions, chapters | 每个模式可达且可拉取真实数据 |
+| Smart/Chapter 统一提交 | Quiz/Drill 交互组件 | unified submit action | exam_records, user_attempts, error_book | 作答可采集且可核账 |
+| 防重复做题策略 | 拉题层 | getRandomQuestions/getSmartDrillQuestions/exam draw | questions, user_attempts | 跨模式排重一致 |
 | Examcoo 列表抓取 | 导入脚本 | `/paperlist/index/...` | source_files/question_groups | 试卷元数据完整 |
 | Examcoo 逐题抓取 | 导入脚本 | `/editor/do/exercise` + `/editor/rpc/getexercisecontent` | questions | 题型与答案映射正确 |
 | 拉题与配额 | Practice 页面 | question/quota actions | questions, user_attempts | 配额边界与可拉题结果 |
-| 提交与判分 | QuizSession 提交 | submitQuiz | exam_records, user_attempts | 分数与正确率计算 |
+| 提交与判分 | QuizSession / MockArena 提交 | submitQuiz/submitExam | exam_records, user_attempts | 分数与正确率计算 |
 
 ### 必改文件（计划）
 - `.codex/specs/2026-02-09-release-p0-public-paid/p0-06-practice-prod-validation/*.md`
+- `src/components/practice/PracticeView/*`（模式入口与交互闭环）
+- `src/components/practice/modes/*`（Smart Drill / Error Wiper）
+- `src/components/practice/chapter-drill/*`（Chapter Drill 提交流程）
+- `src/actions/practice/quiz.ts`
+- `src/actions/practice/exam.ts`
+- `src/actions/practice/data-service.ts`
+- `src/actions/practice/recommendation.ts`
 - `scripts/` 下新增 examcoo 导入脚本（待实现）
-- `src/actions/practice/question.ts`（如需补来源字段/章节映射）
-- `src/actions/content-pipeline/question-service.ts`（如需复用批量创建）
+- `src/actions/content-pipeline/question-service.ts`（导入状态与去重复用）
 
 ### 非目标
 - 不做题目全量语义纠错与教研级人工审核。
 
 ### 开发完成判定（DoD）
 - 审计文档可复核。
+- 五模式入口与作答链路闭环完成，数据采集口径统一。
 - 初中教育首批题目完成录入且可追溯。
 - Practice 全链路稳定可验收。

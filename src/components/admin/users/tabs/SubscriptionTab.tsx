@@ -1,37 +1,69 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { CreditCard } from 'lucide-react'
 import { Admin } from '@/types'
 import { UserTierBadge } from '../UserBadges'
-import { generatePaymentHistory } from '../mock/userMockData'
 import { GrantPermissionDialog } from '../GrantPermissionDialog'
 import { StripeHistoryTable } from '../StripeHistoryTable'
+import { getOverrideHistory } from '@/actions/admin/permission-override'
+import type { OverrideHistoryItem } from '@/actions/admin/permission-override'
 
 interface SubscriptionTabProps {
   user: Admin.UserDetail
 }
 
-const PermissionRow: React.FC<{ type: string; duration: string; reason: string; admin: string; time: string }> = ({ type, duration, reason, admin, time }) => (
-  <tr className="border-b border-slate-800/50 last:border-0 hover:bg-slate-800/20">
-    <td className="py-2 px-3 text-sm text-slate-200">{type}</td>
-    <td className="py-2 px-3 text-sm text-slate-400">{duration}</td>
-    <td className="py-2 px-3 text-sm text-slate-400 max-w-[150px] truncate" title={reason}>{reason}</td>
-    <td className="py-2 px-3 text-sm text-slate-500">{admin}</td>
-    <td className="py-2 px-3 text-sm text-slate-500 text-right">{time}</td>
-  </tr>
-);
+function formatRelativeTime(dateIso: string): string {
+  const date = new Date(dateIso)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes} 分钟前`
+  if (hours < 24) return `${hours} 小时前`
+  if (days < 7) return `${days} 天前`
+  return date.toLocaleDateString('zh-CN')
+}
+
+function formatDuration(item: OverrideHistoryItem): string {
+  if (!item.expiresAt) return '永久'
+  return `至 ${new Date(item.expiresAt).toLocaleDateString('zh-CN')}`
+}
+
+function formatOverrideType(item: OverrideHistoryItem): string {
+  const nextValue = item.newValue || 'N/A'
+  if (item.targetField === 'subscriptionTier') {
+    return `Tier -> ${nextValue}`
+  }
+  return `${item.targetField} -> ${nextValue}`
+}
 
 export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
-  // Mock Payment Data
-  const payments = useMemo(() => generatePaymentHistory(3), []);
-  
-  // Dialog State
-  const [isGrantDialogOpen, setIsGrantDialogOpen] = useState(false);
+  const [isGrantDialogOpen, setIsGrantDialogOpen] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(true)
+  const [overrideHistory, setOverrideHistory] = useState<OverrideHistoryItem[]>([])
+
+  const payments = useMemo(() => [], [])
+
+  useEffect(() => {
+    async function loadHistory() {
+      setHistoryLoading(true)
+      try {
+        const history = await getOverrideHistory(user.id)
+        setOverrideHistory(history)
+      } finally {
+        setHistoryLoading(false)
+      }
+    }
+
+    void loadHistory()
+  }, [user.id])
 
   return (
     <div className="max-w-3xl space-y-6">
-      {/* Current Sub */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <CreditCard size={120} className="text-white" />
@@ -79,11 +111,10 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
         </div>
       </div>
 
-      {/* Permissions */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-sm font-semibold text-slate-200">Permission Overrides</h3>
-          <button 
+          <button
             onClick={() => setIsGrantDialogOpen(true)}
             className="text-xs border border-blue-600 text-blue-500 px-3 py-1.5 rounded hover:bg-blue-950/30 transition-colors"
           >
@@ -101,19 +132,38 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
             </tr>
           </thead>
           <tbody>
-            <PermissionRow type="Extended Trial" duration="7 Days" reason="Support Ticket #992" admin="Sarah" time="2h ago" />
-            <PermissionRow type="Feature Unlock" duration="Permanent" reason="Beta Tester Program" admin="Mike" time="3mo ago" />
+            {historyLoading ? (
+              <tr>
+                <td colSpan={5} className="py-6 px-3 text-center text-slate-500 text-sm">
+                  加载中...
+                </td>
+              </tr>
+            ) : overrideHistory.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-6 px-3 text-center text-slate-500 text-sm">
+                  暂无覆写记录
+                </td>
+              </tr>
+            ) : (
+              overrideHistory.map((item) => (
+                <tr key={item.id} className="border-b border-slate-800/50 last:border-0 hover:bg-slate-800/20">
+                  <td className="py-2 px-3 text-sm text-slate-200">{formatOverrideType(item)}</td>
+                  <td className="py-2 px-3 text-sm text-slate-400">{formatDuration(item)}</td>
+                  <td className="py-2 px-3 text-sm text-slate-400 max-w-[150px] truncate" title={item.reason}>{item.reason}</td>
+                  <td className="py-2 px-3 text-sm text-slate-500">{item.admin?.username || item.admin?.email || item.overriddenBy}</td>
+                  <td className="py-2 px-3 text-sm text-slate-500 text-right">{formatRelativeTime(item.createdAt)}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Payments */}
       <StripeHistoryTable payments={payments} />
-      
-      {/* Dialog */}
-      <GrantPermissionDialog 
-        isOpen={isGrantDialogOpen} 
-        onClose={() => setIsGrantDialogOpen(false)} 
+
+      <GrantPermissionDialog
+        isOpen={isGrantDialogOpen}
+        onClose={() => setIsGrantDialogOpen(false)}
         userId={user.id}
         currentTier={user.tier}
       />

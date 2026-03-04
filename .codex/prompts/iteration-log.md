@@ -18,6 +18,8 @@
 
 | 2026-03-04 | p0-06-practice-prod-validation/T-005 | 修复 Past Year Paper 模式：真实数据源 + 动态路由 + 可提交 | 新增 getPastPapersBySubject、改造 PastPapersSection、新增 /dashboard/practice/past-paper/[groupId] 页面、QuizView chapterId 支持可选、T-005 置为 done | - | - | - | - |
 
+| 2026-03-04 | T-007 请求治理与路由噪音收敛 | 排查并修复 impersonate/notifications/practice/admin-permissions 异常请求 | 已完成代码修复并更新文档，待提交推送 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

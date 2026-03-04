@@ -29,7 +29,7 @@
 - [ ] 当前环境已完成残留冲突收口（无新增收口任务）
 
 ## T-006 完成检查项（文档）
-- [ ] 双表字段覆盖审计完成（`auth.users=35`，`public.users=30`，交集字段已核对）
+- [ ] 双表字段覆盖审计完成（`auth.users=35`，`public.users=30`；T-009 后 `public.users=31`，交集字段已核对）
 - [ ] 冗余分级已按保守口径完成（A/B/C）
 - [ ] 字段证据模板已补齐到 `acceptance.md`
 - [ ] 本轮未执行 schema/data 变更
@@ -48,6 +48,17 @@
 - [ ] 用户已明确批准进入 `T-008`
 - [ ] 本地回归与预发复测 SQL 清单已冻结
 - [ ] 回滚步骤与告警阈值已确认
+
+## T-009 完成检查项（开发）
+- [ ] `/admin/users` 已完全替换 mock 数据源并通过分页/筛选/排序回归
+- [ ] 权限调控链路已移除 `usr_` mock 分支并通过回归
+- [ ] 用户详情 mock 已按范围替换（permission history / heatmap / rewardSummary / payment 空态）
+- [ ] `public.users.school` 已在 schema + migration 文件落地
+- [ ] 编译级验证通过（`prisma generate` + `tsc --noEmit`）
+
+## T-010 前置检查项（后续）
+- [ ] 已确认仅处理 `/admin` 首页 KPI/工单/风险/audit/actions mock
+- [ ] 已确认不影响 T-009 已交付的用户双表链路
 
 ## 风险与回滚
 - [ ] 风险清单已写入 `spec.md`

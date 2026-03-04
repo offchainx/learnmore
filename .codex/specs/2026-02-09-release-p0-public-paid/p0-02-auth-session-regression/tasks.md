@@ -8,7 +8,7 @@
 | T-004 | GATE | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
 | T-005 | AC-01 | 实现登录/登出/刷新/跨标签会话一致性与受保护路由行为 | codex | done |  |
 | T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | doing | main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
-| T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | todo |  |
+| T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | doing | workspace changes (2026-03-04) |
 | T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | todo |  |
 | T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | todo |  |
 | T-010 | AC-02 | 实现管理员伪装状态接口一致性（impersonate status <-> impersonation_sessions） | codex | todo |  |
@@ -67,6 +67,29 @@
 17. `/admin/content` 下线为 404，并清理入口链接到 `/admin/content/review`。
 18. `/course/:subjectId` 与 `/course/:subjectId/:lessonId` 下线为 404，统一课程入口为 `/dashboard/courses`。
 19. `/checkout/config` 下线为 404，`/pricing` 改为直接调用 `prepareCheckoutAction` 发起支付。
+
+## T-007 阶段进展（2026-03-04）
+- [x] 根因定位完成：`ImpersonateBannerWrapper` 固定 30 秒轮询触发 `GET /api/auth/impersonate/status`。
+- [x] 根因定位完成：`NotificationBell` 使用 Server Action 轮询，导致当前路由出现周期性 `POST /admin/feedback`。
+- [x] 新增 `GET /api/notifications/summary`（只读通知拉取 API），替换轮询场景的 Server Action 调用。
+- [x] `NotificationBell` 进一步收敛为“仅在通知下拉展开时请求/轮询”，空闲态不再自动请求通知摘要。
+- [x] `ImpersonateBannerWrapper` 轮询收敛：仅在 `/admin` 或 `/dashboard` 路径、且页面可见时执行；非伪装态不持续轮询。
+- [x] `useImpersonationState` 同步收敛，避免未来复用时重新引入高频轮询。
+- [x] PWA 链路下线：移除 Service Worker 注册、安装提示、`sw.js`、`manifest.json`、`offline.html`，消除潜在前端自动更新干扰。
+- [x] `/dashboard/practice` 客户端拉数改造：将多个客户端 Server Action 调用改为 GET API，消除批量 `POST /dashboard/practice` 噪音。
+- [x] `/admin/permissions` 去除 `force-dynamic` 强制动态标记，降低无必要重复动态渲染风险。
+- [x] 轮询扫描：除上述两类外，其他 `setInterval` 主要为本地倒计时/动画。
+- [ ] 线下观测补证：空闲 1-3 分钟 Network + Server log 截图归档到 release 审计文档。
+
+## T-007 开发日志（逐步记录）
+1. 扫描全仓 `setInterval/useEffect`，锁定异常请求触发链路。
+2. 新增 `/api/notifications/summary` 只读接口，复用当前用户会话鉴权与通知查询逻辑。
+3. 通知中心轮询改造为 GET API，避免向当前页面路径发送 Server Action POST。
+4. 伪装状态轮询改造为“受保护路径 + 页面可见 + 伪装中”条件触发。
+5. 通知中心继续收敛为“仅打开下拉时请求”，空闲态不再主动拉取摘要。
+6. 下线 PWA 运行链路（SW/manifest/install prompt），避免潜在自动刷新干扰。
+7. 将 practice 首页统计读取迁移到 GET API，清除页面路径 Server Action POST 噪音。
+8. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。

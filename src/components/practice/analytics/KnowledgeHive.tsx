@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Hexagon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getKnowledgeHiveData } from '@/actions/practice/statistics'
 import type { HiveNode, HiveNodeStatus } from '@/lib/practice/types'
 import { cn } from '@/lib/utils'
 
@@ -155,7 +154,21 @@ function KnowledgeHiveInner({ userId, subjectId, subjectName }: KnowledgeHivePro
       try {
         setLoading(true)
         setError(null)
-        const data = await getKnowledgeHiveData(userId, subjectId)
+        const response = await fetch(
+          `/api/practice/knowledge-hive?subjectId=${encodeURIComponent(subjectId)}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          },
+        )
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch knowledge hive')
+        }
+
+        const result = await response.json()
+        const data = (result.success && Array.isArray(result.data)) ? result.data : []
 
         if (!isMounted) return
         setNodes(data)

@@ -21,13 +21,14 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { applyAdminOverride, getOverrideHistory } from '@/actions/admin/permission-override'
+import type { PermissionSearchUser, OverrideHistoryItem } from '@/actions/admin/permission-override'
 import { useToast } from '@/components/ui/use-toast'
 import { Loader2, History } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 interface OverrideModalProps {
-  user: any
+  user: PermissionSearchUser
   children: React.ReactNode
   onSuccess: () => void
 }
@@ -35,10 +36,10 @@ interface OverrideModalProps {
 export function OverrideModal({ user, children, onSuccess }: OverrideModalProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [tier, setTier] = useState<string>(user.subscriptionTier)
+  const [tier, setTier] = useState<string>(user.subscriptionTier || 'STARTER')
   const [duration, setDuration] = useState<string>('30_days')
   const [reason, setReason] = useState('')
-  const [history, setHistory] = useState<any[]>([])
+  const [history, setHistory] = useState<OverrideHistoryItem[]>([])
   const [showHistory, setShowHistory] = useState(false)
   const { toast } = useToast()
 
@@ -164,7 +165,7 @@ export function OverrideModal({ user, children, onSuccess }: OverrideModalProps)
                 history.map((item) => (
                   <div key={item.id} className="text-xs border-b pb-2 last:border-0 last:pb-0">
                     <div className="flex justify-between font-medium">
-                      <span>{item.newValue}</span>
+                      <span>{item.newValue || 'N/A'}</span>
                       <span className="text-muted-foreground">
                         {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
                       </span>

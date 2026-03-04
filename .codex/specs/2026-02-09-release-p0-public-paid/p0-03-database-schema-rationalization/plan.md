@@ -18,6 +18,8 @@
 4. `T-006` 执行字段逻辑与冗余审计（仅文档，不改库）。
 5. `T-007` 基于 `T-006` 输出字段链路补齐与冗余字段调整方案（仅计划，不开发）。
 6. `T-008` 按已批准方案执行代码/SQL 变更与回归验证。
+7. `T-009` 执行前端用户域去 mock 并接入双表真实数据（开发执行）。
+8. `T-010` 处理 Admin 首页非用户双表 mock（后续任务）。
 
 ## Server Action / 接口契约清单
 | Action/接口 | 调用入口 | 输入与校验 | 输出与错误 | 幂等/并发策略 | 审计字段 |
@@ -177,11 +179,52 @@ ORDER BY a.email;
 2. 仅把 `utm_*` 标为观察候选，进入连续两周期观测后再评审是否删除。
 3. 删除评审前置：无读路径、无写路径、覆盖率为 0、回滚脚本就绪。
 
-## T-008 实施顺序（待执行）
+## T-008 实施顺序（已执行）
 1. 先补 `last_sign_in_at/sign_in_count/total_study_time` 写入链路。
 2. 再补 UTM 采集与写入链路。
 3. 增加字段级 smoke case 与对账 SQL 复跑。
 4. 通过本地与预发验收后，再进入冗余字段删除评审（若用户批准）。
+
+## T-008 实施记录（2026-03-04）
+1. 已落地改动：
+   - `auth/users` 登录镜像：新增 `supabase/migrations/006_sync_auth_signin_fields.sql`。
+   - 注册 UTM 入库：`src/components/business/auth/register-form.tsx` + `src/actions/user/auth.ts`。
+   - `auth -> public` 兜底镜像：`getCurrentUser/syncCurrentUserToDatabase` 同步 `last_sign_in_at/sign_in_count/utm_*`。
+   - 学习时长统一累计：`src/actions/user/study-metrics.ts` + 接入 `quiz/exam/progress`。
+2. 本地验证：
+   - `pnpm vitest run src/actions/__tests__/progress.test.ts src/actions/__tests__/quiz.test.ts src/actions/practice/__tests__/session.integration.test.ts`
+   - 结果：`3 files, 12 tests passed`。
+3. 执行边界：
+   - 本轮未执行字段删除、未执行破坏性迁移。
+
+## T-009 实施顺序（已执行）
+1. 新增 `public.users.school` 字段映射（Prisma + Supabase migration 文件）。
+2. 新增 `listAdminUsers` Server Action 并替换 `/admin/users` 列表 mock 数据源。
+3. 替换列表行操作 mock：快速封禁/解封接真实 action；邀请入口改禁用态（待接入邮件服务）。
+4. 删除 `usr_` 开头 mock 用户兼容分支（`getUserDetail`、`applyAdminOverride`）。
+5. 清理用户详情页 mock：
+   - 覆写历史接真实 `getOverrideHistory`
+   - heatmap 改真实聚合
+   - rewardSummary 改统计衍生文案
+   - 支付流水改真实空态
+6. 类型与编译校验：补齐权限页类型，执行 Prisma generate + TypeScript 编译验证。
+
+## T-009 实施记录（2026-03-04）
+1. 已落地改动：
+   - Schema：`prisma/schema.prisma` 新增 `User.school`，新增 `supabase/migrations/007_add_school_to_users.sql`。
+   - Action：
+     - `src/actions/admin/user-ops.ts` 新增 `listAdminUsers`。
+     - `src/actions/admin/permission-override.ts` 移除 `usr_` mock 分支并补强返回类型。
+     - `src/actions/admin/user-details.ts` 用真实聚合替换 heatmap mock。
+   - UI：
+     - `src/components/admin/users/UserTable.tsx` 改接真实数据与真实高风险操作。
+     - `src/components/admin/users/tabs/SubscriptionTab.tsx` 改接真实覆写历史，支付流水空态。
+     - `src/components/admin/permissions/*` 去 `any` 强类型化。
+2. 已完成验证：
+   - `pnpm prisma generate` 通过。
+   - `pnpm exec tsc --noEmit --incremental false` 通过。
+3. 范围外确认：
+   - `/admin` 首页 KPI/工单/风险 mock 未纳入本轮，已归入 `T-010`。
 
 ## 豁免与台账规则
 1. 豁免只允许：明确 smoke/seed 测试数据，或无业务影响的历史不可逆遗留。
@@ -189,8 +232,8 @@ ORDER BY a.email;
 
 ## 不在本轮执行
 1. 不执行物理删除 `public.users` / `auth.users`。
-2. 不改动触发器实现与数据库 schema。
-3. 不执行自动迁移脚本落库。
+2. 不执行数据库落库动作（迁移文件仅提交，待环境执行）。
+3. 不改动 `auth.users` 托管结构与 Supabase 平台托管字段。
 
 ## 可在本步骤并行完成的工作
 1. 约束审计：主键/外键/唯一/非空/默认值一致性检查。

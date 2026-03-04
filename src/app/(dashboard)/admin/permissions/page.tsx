@@ -3,8 +3,6 @@ import { getProfile } from '@/actions/user/profile'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { UserPermissionManager } from '@/components/admin/permissions/UserPermissionManager'
 
-export const dynamic = 'force-dynamic'
-
 export default async function AdminPermissionsPage() {
   const profile = await getProfile()
 

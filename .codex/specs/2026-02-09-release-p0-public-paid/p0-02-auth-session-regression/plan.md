@@ -109,6 +109,16 @@
 2. 通知轮询改为 GET API，避免周期性 Server Action POST 到当前页面路径。
 3. 保留写操作继续走 Server Action，避免破坏权限与审计链路。
 
+### 当前执行记录（2026-03-04）
+1. 已新增 `GET /api/notifications/summary` 并接入 `NotificationBell`，轮询链路不再走 Server Action。
+2. 已收敛 `NotificationBell`：仅在通知下拉打开时请求并轮询，关闭后停止请求。
+3. 已收敛 `ImpersonateBannerWrapper` 轮询：仅在 `/admin|/dashboard`、页面可见且伪装中时才保留周期检查。
+4. 已补充 `useImpersonationState` 同类收敛，规避未来复用产生重复轮询。
+5. 已新增 practice 读取类 GET API（subjects/chapters/papers/hive/forecast），替换 `/dashboard/practice` 页面上的客户端 Server Action POST 链路。
+6. 已下线 PWA 运行链路（Service Worker 注册、Install Prompt、`sw.js`、`manifest.json`、`offline.html`）。
+7. 已移除 `/admin/permissions` 的 `force-dynamic` 强制动态标记，降低重复动态渲染风险。
+8. 待补：空闲 1~3 分钟 Network + Server log 证据并回填 release 审计文档。
+
 ## 锁定公共接口/类型（开发契约）
 1. Server Action：`getAdminDashboardData(window: 'today_7d')`
 2. 类型文件：`src/types/admin-dashboard.ts`

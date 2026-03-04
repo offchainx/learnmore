@@ -2,8 +2,33 @@
 
 import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
-import { SubscriptionTier, SecurityAction } from '@prisma/client'
+import { SubscriptionTier, SecurityAction, UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+
+export type PermissionSearchUser = {
+  id: string
+  email: string
+  username: string | null
+  subscriptionTier: SubscriptionTier | null
+  subscriptionEnd: string | null
+  role: UserRole
+}
+
+export type OverrideHistoryItem = {
+  id: string
+  userId: string
+  overriddenBy: string
+  targetField: string
+  newValue: string | null
+  reason: string
+  expiresAt: string | null
+  createdAt: string
+  admin?: {
+    id: string
+    username: string | null
+    email: string
+  }
+}
 
 // 将 duration 字符串转换为过期时间戳
 function calcExpiresAt(duration: string): Date | null {
@@ -30,13 +55,6 @@ export async function applyAdminOverride(data: {
   }
 
   const expiresAt = data.duration ? calcExpiresAt(data.duration) : null
-
-  // Handle Mock Users (Story-046 Dev Mode)
-  if (data.userId.startsWith('usr_')) {
-    console.log(`[Mock Override] Granting ${data.tier} to ${data.userId} | duration: ${data.duration} | expiresAt: ${expiresAt} | reason: ${data.reason}`)
-    await new Promise(resolve => setTimeout(resolve, 500))
-    return { success: true }
-  }
 
   // 1. Log the override in UserPermissionOverride（含 expiresAt）
   await prisma.userPermissionOverride.create({
@@ -91,7 +109,7 @@ export async function applyAdminOverride(data: {
 /**
  * 搜索用户以便进行权限覆写
  */
-export async function searchUsersForOverride(query: string) {
+export async function searchUsersForOverride(query: string): Promise<PermissionSearchUser[]> {
   const currentUser = await getCurrentUser()
 
   if (!currentUser || currentUser.role !== 'ADMIN') {
@@ -124,13 +142,20 @@ export async function searchUsersForOverride(query: string) {
     take: 10,
   })
 
-  return users
+  return users.map((user) => ({
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    subscriptionTier: user.subscriptionTier,
+    subscriptionEnd: user.subscriptionEnd?.toISOString() || null,
+    role: user.role,
+  }))
 }
 
 /**
  * 获取用户的权限覆写历史
  */
-export async function getOverrideHistory(userId: string) {
+export async function getOverrideHistory(userId: string): Promise<OverrideHistoryItem[]> {
   const currentUser = await getCurrentUser()
 
   if (!currentUser || currentUser.role !== 'ADMIN') {
@@ -156,7 +181,14 @@ export async function getOverrideHistory(userId: string) {
   const adminMap = new Map(admins.map((a) => [a.id, a]))
 
   return history.map((h) => ({
-    ...h,
+    id: h.id,
+    userId: h.userId,
+    overriddenBy: h.overriddenBy,
+    targetField: h.targetField,
+    newValue: h.newValue,
+    reason: h.reason,
+    expiresAt: h.expiresAt?.toISOString() || null,
+    createdAt: h.createdAt.toISOString(),
     admin: adminMap.get(h.overriddenBy),
   }))
 }

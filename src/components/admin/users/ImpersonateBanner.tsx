@@ -7,7 +7,7 @@
  * 伪装登录状态警告条：显示在页面顶部，包含退出按钮和倒计时
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { AlertCircle, LogOut, Clock } from 'lucide-react'
 
 interface ImpersonateBannerProps {
@@ -112,11 +112,12 @@ export function useImpersonationState(): {
     targetEmail: null as string | null,
     expiresAt: null as string | null,
   })
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     async function checkImpersonation() {
       try {
-        const res = await fetch('/api/auth/impersonate/status')
+        const res = await fetch('/api/auth/impersonate/status', { cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
           if (data.isImpersonating) {
@@ -135,14 +136,45 @@ export function useImpersonationState(): {
       }
     }
 
+    const stopPolling = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+
+    const startPolling = () => {
+      stopPolling()
+      if (document.visibilityState !== 'visible') return
+
+      intervalRef.current = setInterval(() => {
+        void checkImpersonation()
+      }, 30 * 1000)
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void checkImpersonation()
+        if (state.isImpersonating) {
+          startPolling()
+        }
+      } else {
+        stopPolling()
+      }
+    }
+
     // 立即检查一次
-    checkImpersonation()
+    void checkImpersonation()
+    if (state.isImpersonating) {
+      startPolling()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
-    // 每 30 秒轮询一次伪装状态
-    const interval = setInterval(checkImpersonation, 30 * 1000)
-
-    return () => clearInterval(interval)
-  }, [])
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      stopPolling()
+    }
+  }, [state.isImpersonating])
 
   return state
 }

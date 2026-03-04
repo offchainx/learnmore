@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateUserLessonProgress } from '../progress';
+import { updateUserLessonProgress } from '../courses/progress';
 import prisma from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
 
@@ -13,6 +13,7 @@ vi.mock('@/lib/prisma', () => ({
       findUnique: vi.fn(),
     },
     userProgress: {
+      findUnique: vi.fn(),
       upsert: vi.fn(),
     },
   },
@@ -31,15 +32,31 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock('@/actions/user/study-metrics', () => ({
+  __esModule: true,
+  incrementTotalStudyTime: vi.fn().mockResolvedValue(0),
+}));
+
+vi.mock('@/actions/gamification/streak', () => ({
+  __esModule: true,
+  checkAndRefreshStreak: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/actions/gamification/daily-tasks', () => ({
+  __esModule: true,
+  trackDailyProgress: vi.fn().mockResolvedValue(undefined),
+}));
+
 const mockCreateClient = createClient as vi.Mock;
 const mockPrisma = prisma as unknown as {
   lesson: { findUnique: vi.Mock };
-  userProgress: { upsert: vi.Mock };
+  userProgress: { findUnique: vi.Mock; upsert: vi.Mock };
 };
 
 describe('updateUserLessonProgress Server Action', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.userProgress.findUnique.mockResolvedValue(null);
   });
 
   it('should return unauthorized if no user is found', async () => {

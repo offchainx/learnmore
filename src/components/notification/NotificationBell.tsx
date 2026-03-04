@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition } from 'react';
+import React, { useState, useEffect, useRef, useTransition, useCallback } from 'react';
 import { Bell } from 'lucide-react';
 import { 
-  getNotifications, 
   markNotificationAsRead, 
   markAllAsRead 
 } from '@/actions/notification/core';
-import { NotificationWithMetadata } from '@/lib/notification/types';
+import { NotificationWithMetadata, NotificationListResponse } from '@/lib/notification/types';
 import { NotificationDropdown } from './NotificationDropdown';
 import { useOnClickOutside } from '@/lib/hooks/use-on-click-outside';
 
@@ -18,31 +17,80 @@ export function NotificationBell() {
   const [isLoading, setIsLoading] = useState(false);
   const [, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasLoadedRef = useRef(false);
 
   useOnClickOutside(dropdownRef as React.RefObject<HTMLDivElement>, () => setIsOpen(false));
 
-  const fetchNotifications = async (isInitial = false) => {
+  const fetchNotifications = useCallback(async (isInitial = false) => {
     if (isInitial) setIsLoading(true);
-    const result = await getNotifications(undefined, 10);
-    if (result.success && result.data) {
-      setNotifications(result.data as NotificationWithMetadata[]);
-      setUnreadCount(result.unreadCount || 0);
+    try {
+      const response = await fetch('/api/notifications/summary?limit=10', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) return;
+
+      const result: NotificationListResponse = await response.json();
+      if (result.success && result.data) {
+        setNotifications(result.data as NotificationWithMetadata[]);
+        setUnreadCount(result.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
     }
     if (isInitial) setIsLoading(false);
-  };
+  }, []);
 
-  // 轮询：每 60 秒刷新一次
+  // 仅在下拉打开时拉取并轮询，避免空闲态持续请求
   useEffect(() => {
-    fetchNotifications(true);
-    pollingRef.current = setInterval(() => {
-      fetchNotifications();
-    }, 60000);
+    if (!isOpen) {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+
+    const startPolling = () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+
+      if (document.visibilityState !== 'visible') return;
+      pollingRef.current = setInterval(() => {
+        void fetchNotifications();
+      }, 60000);
+    };
+
+    const stopPolling = () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchNotifications(!hasLoadedRef.current);
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    void fetchNotifications(!hasLoadedRef.current);
+    hasLoadedRef.current = true;
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopPolling();
     };
-  }, []);
+  }, [fetchNotifications, isOpen]);
 
   const handleMarkAsRead = async (id: string) => {
     // 乐观更新

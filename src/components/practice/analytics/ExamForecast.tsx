@@ -10,7 +10,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getExamForecastData } from '@/actions/practice/statistics'
 import type { ExamForecast as ExamForecastType, TrendDirection } from '@/lib/practice/types'
 import { cn } from '@/lib/utils'
 
@@ -194,7 +193,21 @@ function ExamForecastInner({ userId, subjectId, className }: ExamForecastProps) 
       try {
         setLoading(true)
         setError(null)
-        const data = await getExamForecastData(userId, subjectId)
+        const params = new URLSearchParams()
+        if (subjectId) params.set('subjectId', subjectId)
+        const query = params.toString()
+        const response = await fetch(`/api/practice/exam-forecast${query ? `?${query}` : ''}`, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch exam forecast')
+        }
+
+        const result = await response.json()
+        const data = result.success ? (result.data as ExamForecastType | null) : null
 
         if (!isMounted) return
         setForecast(data)

@@ -8,6 +8,7 @@ import { updateLeaderboardScore } from '../leaderboard';
 import { checkAndRefreshStreak } from '@/actions/gamification/streak';
 import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
 import { awardBadgeIfEligible } from '@/actions/gamification/achievements';
+import { incrementTotalStudyTime } from '@/actions/user/study-metrics';
 
 const SubmitQuizSchema = z.object({
   chapterId: z.string().optional(),
@@ -159,6 +160,7 @@ export async function submitQuiz(
     await checkAndRefreshStreak(user.id);
     await trackDailyProgress(user.id, DailyTaskType.QUIZ_SCORE);
     await awardBadgeIfEligible(user.id, 'PRACTICE');
+    await incrementTotalStudyTime(user.id, duration);
 
     return {
       success: true,

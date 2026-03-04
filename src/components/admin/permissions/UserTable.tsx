@@ -14,14 +14,15 @@ import { OverrideModal } from './OverrideModal'
 import { ShieldAlert, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
+import type { PermissionSearchUser } from '@/actions/admin/permission-override'
 
 interface UserTableProps {
-  users: any[]
+  users: PermissionSearchUser[]
   onUpdate: () => void
 }
 
 export function UserTable({ users, onUpdate }: UserTableProps) {
-  const getTierBadgeColor = (tier: string) => {
+  const getTierBadgeColor = (tier: string | null) => {
     switch (tier) {
       case 'PREMIER':
         return 'bg-purple-500 hover:bg-purple-600'
@@ -63,7 +64,7 @@ export function UserTable({ users, onUpdate }: UserTableProps) {
               </TableCell>
               <TableCell>
                 <Badge className={getTierBadgeColor(user.subscriptionTier)}>
-                  {user.subscriptionTier}
+                  {user.subscriptionTier || 'STARTER'}
                 </Badge>
               </TableCell>
               <TableCell>

@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { searchUsersForOverride } from '@/actions/admin/permission-override'
+import type { PermissionSearchUser } from '@/actions/admin/permission-override'
 import { UserTable } from './UserTable'
 import { Search, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 
 export function UserPermissionManager() {
   const [query, setQuery] = useState('')
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<PermissionSearchUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 

@@ -58,6 +58,9 @@ const signupSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z.string().min(6, '密码至少6位'),
   username: z.string().min(2, '用户名至少2位').optional(),
+  utmSource: z.string().max(128).optional(),
+  utmMedium: z.string().max(128).optional(),
+  utmCampaign: z.string().max(128).optional(),
 })
 
 const loginSchema = z.object({
@@ -69,6 +72,44 @@ const DEFAULT_POST_LOGIN_REDIRECT = '/dashboard'
 
 export type AuthFormState = {
   error?: string
+}
+
+type UTMData = {
+  utmSource?: string
+  utmMedium?: string
+  utmCampaign?: string
+}
+
+function sanitizeOptionalString(value: unknown, maxLength: number = 128): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  return trimmed.slice(0, maxLength)
+}
+
+function parseAuthTimestamp(value: string | null | undefined): Date | null {
+  if (!value) return null
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function getUtmDataFromFormData(formData: FormData): UTMData {
+  return {
+    utmSource: sanitizeOptionalString(formData.get('utm_source')),
+    utmMedium: sanitizeOptionalString(formData.get('utm_medium')),
+    utmCampaign: sanitizeOptionalString(formData.get('utm_campaign')),
+  }
+}
+
+function getUtmDataFromAuthMetadata(metadata: unknown): UTMData {
+  if (!metadata || typeof metadata !== 'object') return {}
+
+  const record = metadata as Record<string, unknown>
+  return {
+    utmSource: sanitizeOptionalString(record.utm_source),
+    utmMedium: sanitizeOptionalString(record.utm_medium),
+    utmCampaign: sanitizeOptionalString(record.utm_campaign),
+  }
 }
 
 function resolvePostLoginRedirect(rawValue: FormDataEntryValue | null): string {
@@ -86,10 +127,15 @@ function resolvePostLoginRedirect(rawValue: FormDataEntryValue | null): string {
 }
 
 export async function signupAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const utmData = getUtmDataFromFormData(formData)
+
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     username: formData.get('username') as string | undefined,
+    utmSource: utmData.utmSource,
+    utmMedium: utmData.utmMedium,
+    utmCampaign: utmData.utmCampaign,
   }
 
   // Zod 验证
@@ -101,13 +147,17 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   const supabase = await createClient()
 
   // 注册用户 (会自动触发 Auth Trigger 同步到 public.users)
+  const signupMetadata: Record<string, string> = {}
+  if (parsed.data.username) signupMetadata.username = parsed.data.username
+  if (parsed.data.utmSource) signupMetadata.utm_source = parsed.data.utmSource
+  if (parsed.data.utmMedium) signupMetadata.utm_medium = parsed.data.utmMedium
+  if (parsed.data.utmCampaign) signupMetadata.utm_campaign = parsed.data.utmCampaign
+
   const { data: authData, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: {
-        username: parsed.data.username,
-      },
+      data: signupMetadata,
     },
   })
 
@@ -135,6 +185,9 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
           subscriptionStart: null,
           subscriptionEnd: null,
           cancelAtPeriodEnd: false,
+          utmSource: parsed.data.utmSource || null,
+          utmMedium: parsed.data.utmMedium || null,
+          utmCampaign: parsed.data.utmCampaign || null,
         },
         update: {
           username: parsed.data.username || undefined,
@@ -144,6 +197,9 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
           subscriptionStart: null,
           subscriptionEnd: null,
           cancelAtPeriodEnd: false,
+          utmSource: parsed.data.utmSource || undefined,
+          utmMedium: parsed.data.utmMedium || undefined,
+          utmCampaign: parsed.data.utmCampaign || undefined,
         },
       })
       console.log('[Auth] User initialized with STARTER tier')
@@ -235,6 +291,9 @@ export async function getCurrentUser() {
 
   if (!user) return null
 
+  const authLastSignInAt = parseAuthTimestamp(user.last_sign_in_at)
+  const authMetadataUtm = getUtmDataFromAuthMetadata(user.user_metadata)
+
   // 从 public.users 获取完整用户信息
   let dbUser = null
   try {
@@ -280,6 +339,11 @@ export async function getCurrentUser() {
           subscriptionStart: null,
           subscriptionEnd: null,
           cancelAtPeriodEnd: false,
+          lastSignInAt: authLastSignInAt,
+          signInCount: authLastSignInAt ? 1 : 0,
+          utmSource: authMetadataUtm.utmSource || null,
+          utmMedium: authMetadataUtm.utmMedium || null,
+          utmCampaign: authMetadataUtm.utmCampaign || null,
         },
         include: {
           permissionOverrides: {
@@ -320,6 +384,35 @@ export async function getCurrentUser() {
     return null
   }
 
+  // 兜底同步：若 auth.last_sign_in_at 比 public.users 新，补写镜像并累计 sign_in_count
+  if (
+    dbUser &&
+    authLastSignInAt &&
+    (!dbUser.lastSignInAt || authLastSignInAt > dbUser.lastSignInAt)
+  ) {
+    try {
+      dbUser = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          lastSignInAt: authLastSignInAt,
+          signInCount: { increment: 1 },
+        },
+        include: {
+          permissionOverrides: {
+            where: {
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } }
+              ]
+            }
+          }
+        }
+      })
+    } catch (e) {
+      console.warn('[Auth] Failed to sync sign-in mirror fields in getCurrentUser:', e)
+    }
+  }
+
   return dbUser
 }
 
@@ -338,6 +431,19 @@ export async function syncCurrentUserToDatabase() {
   }
 
   try {
+    const authLastSignInAt = parseAuthTimestamp(user.last_sign_in_at)
+    const authMetadataUtm = getUtmDataFromAuthMetadata(user.user_metadata)
+    const existingUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { lastSignInAt: true },
+    })
+
+    const shouldIncrementSignIn = Boolean(
+      existingUser &&
+      authLastSignInAt &&
+      (!existingUser.lastSignInAt || authLastSignInAt > existingUser.lastSignInAt)
+    )
+
     const dbUser = await prisma.user.upsert({
       where: { id: user.id },
       create: {
@@ -350,9 +456,23 @@ export async function syncCurrentUserToDatabase() {
         subscriptionStart: null,
         subscriptionEnd: null,
         cancelAtPeriodEnd: false,
+        lastSignInAt: authLastSignInAt,
+        signInCount: authLastSignInAt ? 1 : 0,
+        utmSource: authMetadataUtm.utmSource || null,
+        utmMedium: authMetadataUtm.utmMedium || null,
+        utmCampaign: authMetadataUtm.utmCampaign || null,
       },
       update: {
         email: user.email,
+        utmSource: authMetadataUtm.utmSource || undefined,
+        utmMedium: authMetadataUtm.utmMedium || undefined,
+        utmCampaign: authMetadataUtm.utmCampaign || undefined,
+        ...(authLastSignInAt
+          ? { lastSignInAt: authLastSignInAt }
+          : {}),
+        ...(shouldIncrementSignIn
+          ? { signInCount: { increment: 1 } }
+          : {}),
       },
     })
 

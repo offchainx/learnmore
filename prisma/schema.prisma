@@ -16,6 +16,7 @@ model User {
   status         UserAccountStatus @default(ACTIVE)
   avatar         String?
   grade          Int? // 年级 (7-9)
+  school         String?   @map("school")
   streak         Int       @default(0)
   totalStudyTime Int       @default(0) @map("total_study_time") // seconds
   xp             Int       @default(0)

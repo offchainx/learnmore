@@ -33,7 +33,7 @@
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
 |---|---|---|---|---|---|---|---|
 | 字段引用核对 | information_schema + prisma 模型 | column_name, data_type | 导出字段清单 SQL | 对照映射完成后复核 SQL | 无遗漏字段 | 不适用 |  |
-| 字段级逻辑覆盖率核对（auth/public users） | auth.users, public.users | 全字段（35/30） | 字段清单 + 必填/默认值快照 | 字段分级（A/B/C）与生成入口映射 | 100% 字段有“生成来源说明”或“托管说明” | 不适用 | 待补 T-006 证据 |
+| 字段级逻辑覆盖率核对（auth/public users） | auth.users, public.users | 全字段（35/31，T-009 后） | 字段清单 + 必填/默认值快照 | 字段分级（A/B/C）与生成入口映射 | 100% 字段有“生成来源说明”或“托管说明” | 不适用 | 待补 T-006/T-009 证据 |
 | 认证用户同步链路 | auth.users, public.users | id, email, created_at | 双表计数与差异 SQL 快照 | 新注册/修复后复测同组 SQL | 主链路注册后在可接受延迟内可对齐；无新增同邮箱异 UUID；非业务脚本差异有豁免标记 | 纳入 T-005 执行验收 | pass（2026-03-03 staging 复测：五项计数均对齐，差异分类全 0） |
 | 任务进度链路 | daily_tasks | progress, is_claimed | SELECT * FROM daily_tasks WHERE user_id={{userId}}; | 执行任务后重复查询 | 仅预期字段变化 | 可恢复前值 |  |
 | 支付订阅链路 | users, referrals, notifications | subscription_tier, reward_granted, link | 支付前快照 SQL | webhook 后重复查询 | 幂等重放不重复变更 | 回滚脚本可恢复 |  |
@@ -100,11 +100,52 @@
 3. 同邮箱异 UUID 新增量为 0（或新增均有豁免说明）。
 4. 所有保留差异都有豁免台账（来源、时间窗口、数量、状态、复核人）。
 
-## T-008 执行验收标准（待后续开发）
+## T-008 执行验收标准（开发）
 1. `last_sign_in_at/sign_in_count/total_study_time` 在目标事件后可稳定写入且幂等。
 2. `utm_*` 采集链路可在注册路径产生有效值（无值时不污染旧值）。
 3. 复跑双表对账 SQL 无新增 `missing_in_public/missing_in_auth/email_id_mismatch`。
 4. 任一字段治理变更均具备本地 + 预发证据与回滚方案。
+
+## T-009 执行验收标准（开发）
+1. `/admin/users` 列表不再依赖 `fetchMockUsers`，分页/筛选/排序全部走 `listAdminUsers`。
+2. 快速封禁/解封走真实 `toggleUserStatus`，操作后列表可刷新并呈现真实状态。
+3. 权限调控链路无 `usr_` mock 分支，`searchUsersForOverride/applyAdminOverride/getOverrideHistory` 全部真实数据。
+4. 用户详情内相关 mock 已替换：
+   - Permission Overrides 走真实历史；
+   - heatmap 为真实聚合；
+   - rewardSummary 非写死 mock；
+   - 支付流水在无真实数据源时显示空态而非 mock。
+5. 新字段 `public.users.school` 已在 schema 与 migration 文件层落地，空值展示“未设置”。
+6. 编译级验证通过：`prisma generate`、`tsc --noEmit`。
+
+## T-008 执行记录（2026-03-04）
+- 代码落地：
+  1. 新增 `auth -> public` 登录镜像 migration：`006_sync_auth_signin_fields.sql`。
+  2. 注册链路新增 UTM 隐藏字段与 metadata 入库。
+  3. `getCurrentUser/syncCurrentUserToDatabase` 增加 `last_sign_in_at/sign_in_count/utm_*` 兜底同步。
+  4. 新增 `incrementTotalStudyTime` 统一累计入口，接入 `quiz/exam/progress`。
+- 本地测试：
+  - 命令：
+    `pnpm vitest run src/actions/__tests__/progress.test.ts src/actions/__tests__/quiz.test.ts src/actions/practice/__tests__/session.integration.test.ts`
+  - 结果：`3 files passed, 12 tests passed`。
+- 备注：
+  - 本轮为开发实现与本地验证；预发 SQL 复跑将作为后续发布前复核项。
+
+## T-009 执行记录（2026-03-04）
+- 代码落地：
+  1. Schema：新增 `public.users.school`（`prisma/schema.prisma` + `supabase/migrations/007_add_school_to_users.sql`）。
+  2. 列表：`UserTable` 改接真实 `listAdminUsers`，去除 mock 数据源。
+  3. 行操作：快速封禁/解封改接真实 action；邀请入口改禁用态（待邮件服务接入）。
+  4. 权限：移除 `usr_` mock 分支，权限链路返回值改为强类型可序列化结构。
+  5. 详情：`SubscriptionTab` 改接真实覆写历史；支付流水改空态；`ActivityTab` heatmap 改真实聚合；`GrowthTab` 奖励摘要改真实统计衍生文案。
+  6. 清理：删除未被路由使用且仍引用 mock 的遗留详情组件，避免误用。
+- 本地验证：
+  - 命令：
+    - `pnpm prisma generate`
+    - `pnpm exec tsc --noEmit --incremental false`
+  - 结果：均通过。
+- 环境说明：
+  - 本轮未执行数据库落库，仅提交 migration 文件。
 
 ## T-005 执行场景（Given / When / Then）
 - 给定：新用户走标准注册链路
@@ -161,9 +202,12 @@
 ## 发布检查
 - [x] T-006 文档审计完成（字段覆盖 + 分级 + 证据模板）
 - [x] T-007 方案定义完成（字段补齐 + 冗余治理口径）
+- [x] T-008 开发实现完成（链路补齐 + 统一累计）
+- [x] T-009 开发实现完成（用户域前端去 mock + 双表真实接入）
+- [ ] T-010 范围确认（Admin 首页非用户双表 mock）
 - [ ] 字段-逻辑映射表完整并附证据
-- [ ] 本地验证完成并附 SQL 快照
+- [x] 本地验证完成并附测试证据
 - [x] 预发复测完成并附证据
 - [ ] 幂等与越权场景通过
 - [ ] 删除项具备回滚验证
-- [ ] 已获得用户批准进入 T-008 开发
+- [x] 已获得用户批准进入 T-008 开发

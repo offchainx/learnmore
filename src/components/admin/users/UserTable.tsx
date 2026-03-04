@@ -7,7 +7,7 @@
  * 包含：筛选、排序、分页、行操作
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Search,
@@ -25,8 +25,9 @@ import {
 } from 'lucide-react'
 import { Admin } from '@/types'
 import { UserStatusBadge, UserTierBadge } from './UserBadges'
-import { fetchMockUsers } from './mock/userMockData'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
+import { listAdminUsers, toggleUserStatus } from '@/actions/admin/user-ops'
+import { toast } from 'sonner'
 
 // --- Helper Components ---
 
@@ -114,23 +115,28 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [activeDropdownId])
 
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true)
+    const result = await listAdminUsers(filters, {
+      page: currentPage,
+      pageSize: itemsPerPage,
+      sortField: sortConfig.key,
+      sortDirection: sortConfig.direction,
+    })
+
+    if (result.success && result.data) {
+      setData(result.data)
+    } else {
+      toast.error(result.error || '加载用户数据失败')
+    }
+
+    setIsLoading(false)
+  }, [filters, currentPage, itemsPerPage, sortConfig])
+
   // Fetch data when filters/sort/pagination change
   useEffect(() => {
-    setIsLoading(true)
-    // 模拟 API 延迟
-    const timer = setTimeout(() => {
-      const result = fetchMockUsers(filters, {
-        page: currentPage,
-        pageSize: itemsPerPage,
-        sortField: sortConfig.key,
-        sortDirection: sortConfig.direction,
-      })
-      setData(result)
-      setIsLoading(false)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [filters, currentPage, itemsPerPage, sortConfig])
+    void loadUsers()
+  }, [loadUsers])
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -176,32 +182,29 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     setActiveDropdownId(null)
   }
   
-  const handleConfirmAction = async (reason: string, duration?: string) => {
+  const handleConfirmAction = async (reason: string, _duration?: string) => {
+    if (!selectedUser) return
+
     setIsActionLoading(true)
-    // 模拟 API 请求
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log(`执行操作: ${dialogAction}, 用户: ${selectedUser?.email}, 原因: ${reason}${duration ? `, 时长: ${duration}` : ''}`)
-    
-    // TODO: 在这里调用真实的 Server Action
-    
-    setIsActionLoading(false)
-    setDialogOpen(false)
-    setSelectedUser(null)
-    
-    // 刷新数据 (模拟)
-    const result = fetchMockUsers(filters, {
-      page: currentPage,
-      pageSize: itemsPerPage,
-      sortField: sortConfig.key,
-      sortDirection: sortConfig.direction,
-    })
-    setData(result)
-  }
-  
-  const handleSendInvitation = (user: Admin.UserSummary) => {
-    // 模拟发送邀请
-    alert(`已向 ${user.email} 发送邀请邮件 (Mock)`)
-    setActiveDropdownId(null)
+    try {
+      if (dialogAction !== 'ban' && dialogAction !== 'unban') {
+        toast.error('当前操作暂不支持')
+        return
+      }
+
+      const result = await toggleUserStatus(selectedUser.id, dialogAction, reason)
+      if (!result.success) {
+        toast.error(result.error || '操作失败')
+        return
+      }
+
+      toast.success(dialogAction === 'ban' ? '用户已封禁' : '用户已解封')
+      setDialogOpen(false)
+      setSelectedUser(null)
+      await loadUsers()
+    } finally {
+      setIsActionLoading(false)
+    }
   }
 
   const isFiltered = filters.search !== '' || filters.status !== 'All' || filters.tier !== 'All'
@@ -484,11 +487,11 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
                               查看详情
                             </button>
                             <button
-                              onClick={() => handleSendInvitation(user)}
-                              className="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2"
+                              disabled
+                              className="w-full text-left px-4 py-2 text-sm text-slate-500 cursor-not-allowed flex items-center gap-2"
                             >
                               <Mail size={14} />
-                              发送邀请
+                              发送邀请（待接入）
                             </button>
                             <div className="h-px bg-slate-800 my-1 mx-2" />
                             <button

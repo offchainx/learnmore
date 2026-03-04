@@ -2,7 +2,7 @@
  * Admin User Management Page
  * Story-046: 用户全生命周期管理后台 - Task A
  *
- * 用户列表页（带高级筛选 + 服务端分页），使用 Mock 数据预填充
+ * 用户列表页（带高级筛选 + 服务端分页），使用真实数据
  */
 
 import { redirect } from 'next/navigation'
