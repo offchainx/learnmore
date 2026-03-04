@@ -35,6 +35,11 @@
 | AC-04 | 已登录访问 `/admin/content/reports`（首次进入） | 页面初始 UI 状态 | 右侧详情卡片默认不弹出 | pass | main@818587c |
 | AC-04 | `/admin/content/reports` 点击具体报错后 | 详情交互 | 右侧详情卡片弹出，点击遮罩或按 `ESC` 可关闭 | pass | main@9116d18 |
 | AC-04 | 全局语言为中文时访问 `/admin/content/reports` | 页面文案语言 | 标题、筛选、表头、抽屉动作等文案显示中文 | pass | workspace change (reports i18n) |
+| AC-04 | 已登录访问 `/admin/referrals` | 页面渲染 + Sidebar 分组状态 | 页面在统一 Admin 容器渲染，且“用户管理”分组保持展开并可见“推荐关系”入口 | pass | main@924c0cf, main@5d2fb92 |
+| AC-04 | 已登录访问 `/admin/vouchers` | 页面渲染 + Sidebar 分组状态 | 页面在统一 Admin 容器渲染，且“内容管理”分组覆盖 `/admin/vouchers` | pass | main@5d2fb92 |
+| AC-04 | 已登录访问 `/admin/users` | 页面布局 | 用户列表主区域全宽展示，无异常右侧留白 | pass | main@5d2fb92 |
+| AC-04 | 访问 `/dashboard/debug/ui-kit` | 路由状态 | 页面已下线，直接返回 404 | pass | workspace change (ui-kit route retired) |
+| AC-04 | 访问 `/dashboard/knowledge-graph` | 路由状态 | 页面已下线，直接返回 404 | pass | workspace change (knowledge-graph route retired) |
 | AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 |  |  |
 | AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 |  |  |
 

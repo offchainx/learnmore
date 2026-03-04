@@ -6,8 +6,9 @@
 | 1-5 | AC-01 | T-005 / T-008 / T-009 |
 | 6-8 | AC-04 | T-006 |
 | 9-10 | AC-05 | T-007 |
-| 11-13 | AC-04（回归） | T-006 / T-008 |
-| 14-16 | AC-04（权限） | T-006 |
+| 11-14 | AC-04（回归） | T-006 / T-008 |
+| 15-17 | AC-04（权限） | T-006 |
+| 18-19 | AC-04（路由下线） | T-006 |
 
 ## AC-01 用例
 
@@ -80,21 +81,38 @@
 ### 用例 13：`/admin/users` 不退化
 - Given：已登录管理员
 - When：访问 `/admin/users`
-- Then：页面可正常访问，列表与操作入口不退化
+- Then：页面可正常访问，列表与操作入口不退化，且列表区域全宽展示无异常右侧留白
+
+### 用例 14：`/admin/vouchers` 不退化
+- Given：已登录管理员
+- When：访问 `/admin/vouchers`
+- Then：页面应通过统一 Admin 容器渲染，侧边栏可见且“内容管理”分组保持一致
 
 ## AC-04 权限矩阵用例
 
-### 用例 14：ADMIN 访问 `/admin`
+### 用例 15：ADMIN 访问 `/admin`
 - Given：ADMIN 角色账号
 - When：访问 `/admin`
 - Then：进入管理员总览面板并可见全量模块
 
-### 用例 15：TEACHER 访问 `/admin`
+### 用例 16：TEACHER 访问 `/admin`
 - Given：TEACHER 角色账号
 - When：访问 `/admin`
 - Then：进入管理员总览面板，但安全/伪装敏感区块隐藏
 
-### 用例 16：其他角色访问 `/admin`
+### 用例 17：其他角色访问 `/admin`
 - Given：非 ADMIN/TEACHER 角色账号
 - When：访问 `/admin`
 - Then：重定向到 `/dashboard`
+
+## AC-04 调试路由下线用例
+
+### 用例 18：`/dashboard/debug/ui-kit` 已下线
+- Given：任意登录态用户
+- When：访问 `/dashboard/debug/ui-kit`
+- Then：页面直接返回 404，不再暴露调试 UI Kit 页面
+
+### 用例 19：`/dashboard/knowledge-graph` 已下线
+- Given：任意登录态用户
+- When：访问 `/dashboard/knowledge-graph`
+- Then：页面直接返回 404，不再作为业务可访问路由

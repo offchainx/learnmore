@@ -4,7 +4,7 @@ status: active
 owner: codex
 related_story:
 created_at: 2026-02-09
-updated_at: 2026-03-03
+updated_at: 2026-03-04
 
 # 背景
 - P0 发布链路中的子任务，需可独立验收与回滚。
@@ -95,3 +95,11 @@ updated_at: 2026-03-03
 - `/api/auth/impersonate/status` 与关联异常请求已定位并完成修复或确认为预期行为。
 - 异常请求“来源-频率-结论”闭环完成并留存证据。
 - user/voucher 字段核对矩阵完成并经审阅确认。
+
+## 最新实现进展（2026-03-04）
+- `/admin/referrals`：已接入统一 Admin 容器与侧边栏二级入口（用户管理），并修复点击反馈中心导致分组折叠的问题。
+- `/admin/vouchers`：已接入统一 Admin 容器，页面恢复与其他 admin 子页一致的 sidebar 嵌套。
+- `/admin/users`：已修复列表区域宽度收缩问题，页面主区全宽渲染。
+- `/dashboard/debug/ui-kit`：已下线，当前行为为显式 404。
+- `/dashboard/knowledge-graph`：已下线，当前行为为显式 404。
+- 开发过程记录：`T-006` 每一步执行日志已同步到 `tasks.md` 与 `plan.md`。

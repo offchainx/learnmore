@@ -1,19 +1,5 @@
-import { Metadata } from 'next'
-import { getProfile } from '@/actions/user/profile'
-import { redirect } from 'next/navigation'
-import { KnowledgeGraphClientWrapper } from './client-wrapper'
+import { notFound } from 'next/navigation'
 
-export const metadata: Metadata = {
-  title: 'Knowledge Graph - LearnMore',
-  description: 'Visualize your learning progress and knowledge connections.',
-}
-
-export default async function KnowledgeGraphPage() {
-  const profile = await getProfile()
-
-  if (!profile) {
-    redirect('/login')
-  }
-
-  return <KnowledgeGraphClientWrapper user={profile} />
+export default function KnowledgeGraphPage() {
+  notFound()
 }

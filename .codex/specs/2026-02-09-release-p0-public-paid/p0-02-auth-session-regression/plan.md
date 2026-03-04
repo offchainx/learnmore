@@ -56,13 +56,33 @@
 2. `/admin` 从“重定向页”调整为“真实管理员总览面板入口页”。
 3. 保持 `/admin/content -> /admin/content/review` 兼容重定向（不回归现有工作流）。
 
-### 当前进展（2026-03-03）
+### 当前进展（2026-03-04）
 1. `/admin` 入口已完成改造：已登录进入管理员总览面板，不再跳转 `/admin/content/review`。
 2. 侧边栏已新增“管理仪表盘”入口，并将应用内 `admin` 导航统一收口至 `/admin`。
 3. 编辑链路已合并：`/admin/content/[id]/edit` 与旧编辑 UI 已移除，统一入口为 `/admin/content/review/[questionId]`。
 4. `/admin/content/reports` 交互已修复：首屏不自动弹出详情卡片，仅点击报错后弹出，支持遮罩点击与 `ESC` 关闭。
 5. `/admin/content/reports` 本地化已修复：页面文案按全局语言渲染（中文优先）。
-6. `T-006.1` 仍在进行：待补齐 `admin/**` 全量路由矩阵验证与证据归档。
+6. `/admin/referrals` 已接入统一 Admin 容器，补齐“用户管理 > 推荐关系”菜单入口，并修复点击反馈中心后分组折叠的问题。
+7. `/admin/vouchers` 已接入统一 Admin 容器，页面恢复侧边栏嵌套，且内容管理分组匹配已覆盖 `/admin/vouchers`。
+8. `/admin/users` 已修复布局宽度收缩问题，列表区改为全宽填充，消除右侧留白。
+9. `/dashboard/debug/ui-kit` 已下线，路由改为显式 404，调试入口不再作为业务路径。
+10. `/dashboard/knowledge-graph` 已下线，路由改为显式 404。
+11. `T-006.1` 仍在进行：待补齐 `admin/**` 全量未登录重定向与已登录行为矩阵验证及证据归档。
+
+### T-006 执行日志（逐步记录）
+1. `/admin` 入口改为真实管理员总览页。
+2. 侧边栏新增“管理仪表盘”，统一 admin 入口导航。
+3. 删除重复编辑链路 `/admin/content/[id]/edit` 与旧编辑组件。
+4. 修复 `/admin/content/reports` 首屏自动弹详情。
+5. reports 详情支持遮罩点击与 `ESC` 关闭。
+6. reports 页面本地化修复，并解决刷新语言闪烁。
+7. `/admin/referrals` 接入统一 Admin 容器与侧边栏入口。
+8. 修复“用户管理”二级菜单在反馈中心点击后折叠问题。
+9. 接入 referrals V3 UI 仿真并对齐现有数据契约。
+10. `/admin/vouchers` 接入统一 Admin 容器与内容分组匹配。
+11. `/admin/users` 页面全宽布局修复，消除右侧留白。
+12. `/dashboard/debug/ui-kit` 下线为 404。
+13. `/dashboard/knowledge-graph` 下线为 404。
 
 ## T-007 执行章节（异常后台请求排查与修复）
 
