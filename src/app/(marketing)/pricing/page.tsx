@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/providers';
+import { prepareCheckoutAction } from '@/actions/billing/checkout';
 
 // ─── 比较表单元格类型 ─────────────────────────────────────────
 // string: 直接文本
@@ -68,7 +69,7 @@ const PricingPage: React.FC = () => {
     setLang(nextLang);
   };
 
-  const handleSubscribe = (
+  const handleSubscribe = async (
     planName: string,
     planKey: 'starter' | 'standard' | 'smart_plus' | 'premier'
   ) => {
@@ -79,7 +80,27 @@ const PricingPage: React.FC = () => {
 
     setLoadingPlan(planName);
     const billingCycle = isAnnual ? 'annual' : 'monthly';
-    router.push(`/checkout/config?planKey=${planKey}&billingCycle=${billingCycle}`);
+    try {
+      const result = await prepareCheckoutAction({
+        planKey,
+        billingCycle,
+        paymentMode: 'stripe',
+        referralCode: '',
+        voucherCode: '',
+      });
+
+      if (!result.ok || !result.checkoutUrl) {
+        alert(result.message || '暂时无法创建支付会话，请稍后重试。');
+        setLoadingPlan(null);
+        return;
+      }
+
+      window.location.assign(result.checkoutUrl);
+    } catch (error) {
+      console.error('[Pricing] prepare checkout failed', error);
+      alert('暂时无法创建支付会话，请稍后重试。');
+      setLoadingPlan(null);
+    }
   };
 
   const isZh = lang === 'zh';

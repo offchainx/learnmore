@@ -48,7 +48,6 @@ interface CourseSidebarProps {
 export function CourseLayoutClient({ chapters, title, children }: CourseSidebarProps) {
   const router = useRouter();
   const params = useParams();
-  const subjectId = params?.subjectId as string;
   const lessonId = params?.lessonId as string;
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -62,8 +61,8 @@ export function CourseLayoutClient({ chapters, title, children }: CourseSidebarP
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleChapterSelect = (chapterId: string) => {
-    router.push(`/course/${subjectId}/${chapterId}`);
+  const handleChapterSelect = () => {
+    router.push('/dashboard/courses');
     setIsOpen(false);
   };
 

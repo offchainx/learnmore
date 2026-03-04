@@ -54,7 +54,7 @@
 ### 默认修复策略
 1. 统一 middleware 受保护路由判定与 redirectTo 安全校验。
 2. `/admin` 从“重定向页”调整为“真实管理员总览面板入口页”。
-3. 保持 `/admin/content -> /admin/content/review` 兼容重定向（不回归现有工作流）。
+3. 重复路由直接下线为显式 404，不做隐式兼容跳转（已确认：`/admin/content`、`/checkout/config`、`/course/**`）。
 
 ### 当前进展（2026-03-04）
 1. `/admin` 入口已完成改造：已登录进入管理员总览面板，不再跳转 `/admin/content/review`。
@@ -70,7 +70,10 @@
 11. `/dashboard/practice/import` 已下线，路由改为显式 404（题目录入统一收口到内容管理）。
 12. `/dashboard/settings/notifications` 已下线，路由改为显式 404；通知设置统一收口到 `/dashboard/settings` 的通知 tab，通知中心入口同步改链。
 13. 已完成 `src/app/**/page.tsx` 全量路由扫描（保护/无保护）并更新 `受保护路由.md`，新增“可能重复/可收口”候选清单。
-14. `T-006.1` 仍在进行：待补齐 `admin/**` 全量未登录重定向与已登录行为矩阵验证及证据归档。
+14. `/admin/content` 已下线为显式 404，内容管理入口统一保留 `/admin/content/review`。
+15. `/course/:subjectId` 与 `/course/:subjectId/:lessonId` 已下线为显式 404，课程入口统一收口到 `/dashboard/courses`。
+16. `/checkout/config` 已下线为显式 404，`/pricing` 改为直连 `prepareCheckoutAction` 发起 Stripe Checkout。
+17. `T-006.1` 仍在进行：待补齐 `admin/**` 全量未登录重定向与已登录行为矩阵验证及证据归档。
 
 ### T-006 执行日志（逐步记录）
 1. `/admin` 入口改为真实管理员总览页。
@@ -89,6 +92,9 @@
 14. `/dashboard/practice/import` 下线为 404（题目录入统一收口到内容管理）。
 15. `/dashboard/settings/notifications` 下线为 404，通知设置统一改为 `/dashboard/settings?tab=notifications`。
 16. 完成 `src/app/**/page.tsx` 全量路由扫描（保护/无保护）并更新路由基线文档。
+17. `/admin/content` 下线为 404，并将入口链接统一到 `/admin/content/review`。
+18. `/course/:subjectId` 与 `/course/:subjectId/:lessonId` 下线为 404，统一课程入口为 `/dashboard/courses`。
+19. `/checkout/config` 下线为 404，`/pricing` 改为直接调用 `prepareCheckoutAction` 发起支付。
 
 ## T-007 执行章节（异常后台请求排查与修复）
 

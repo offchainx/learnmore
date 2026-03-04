@@ -108,7 +108,7 @@ export async function createVoucherCodeAction(input: CreateVoucherInput): Promis
   }
 
   revalidatePath('/admin/vouchers');
-  revalidatePath('/checkout/config');
+  revalidatePath('/pricing');
 
   return {
     ok: true,
@@ -150,7 +150,7 @@ export async function toggleVoucherStatusAction(voucherId: string, isActive: boo
   }
 
   revalidatePath('/admin/vouchers');
-  revalidatePath('/checkout/config');
+  revalidatePath('/pricing');
 
   return {
     ok: true,

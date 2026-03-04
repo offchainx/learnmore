@@ -181,7 +181,7 @@ export const DashboardHome = ({
             {/* Continue Learning Item */}
             {recentActivity.length > 0 ? (
                 recentActivity.map((item, i) => (
-                    <div key={i} onClick={() => navigate(`/course/${item.id}`)} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-blue-500/30 transition-colors group mb-4">
+                    <div key={i} onClick={() => navigate('/dashboard/courses')} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-blue-500/30 transition-colors group mb-4">
                         <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
                             <Play className="w-6 h-6 fill-current" />
                         </div>

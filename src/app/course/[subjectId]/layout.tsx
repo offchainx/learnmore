@@ -1,33 +1,14 @@
-import { Header } from '@/components/business/layout/Header';
-import { CourseLayoutClient } from '@/components/business/courses/CourseLayoutClient';
-import { getSubjectDetails } from '@/actions/courses/subject';
-import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation'
+import type { ReactNode } from 'react'
 
 export default async function CourseLayout({
-  children,
-  params,
+  children: _children,
+  params: _params,
 }: {
-  children: React.ReactNode,
+  children: ReactNode,
   params: Promise<{ subjectId: string }>,
 }) {
-  const { subjectId } = await params;
-  const result = await getSubjectDetails(subjectId);
-
-  if (!result.success || !result.data) {
-    notFound();
-  }
-
-  return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
-      <Header />
-      <div className="flex-1 overflow-hidden">
-        <CourseLayoutClient 
-          chapters={result.data.chapters} 
-          title={result.data.name || "Course"}
-        >
-            {children}
-        </CourseLayoutClient>
-      </div>
-    </div>
-  );
+  void _children
+  void _params
+  notFound()
 }

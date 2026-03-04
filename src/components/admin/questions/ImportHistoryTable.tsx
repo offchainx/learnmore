@@ -55,7 +55,7 @@ export function ImportHistoryTable({ tasks }: ImportHistoryTableProps) {
           variant: 'destructive',
         })
       }
-    } catch (_) {
+    } catch {
       toast({
         title: '重试失败',
         variant: 'destructive',
@@ -139,7 +139,7 @@ export function ImportHistoryTable({ tasks }: ImportHistoryTableProps) {
                   )}
                   {task.status === 'COMPLETED' && (
                     <Button variant="ghost" size="sm" asChild>
-                      <a href={`/admin/content?sourceFileId=${task.id}`}>
+                      <a href={`/admin/content/review?sourceFileId=${task.id}`}>
                         查看
                       </a>
                     </Button>

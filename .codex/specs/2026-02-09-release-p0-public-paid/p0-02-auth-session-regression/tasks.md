@@ -25,7 +25,7 @@
 | sub-id | scope | description | status (todo/doing/done) | evidence |
 |---|---|---|---|---|
 | T-006.1 | admin/* | 梳理并修复 `/admin/**` 重定向与入口行为（含 `/admin` 管理员总览面板入口） | doing | `/admin` 入口与 admin 子路由收口：main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
-| T-006.2 | dashboard/* | 梳理并修复 `/dashboard/**` 重定向与会话保护行为 | doing | 已下线：`/dashboard/debug/ui-kit`、`/dashboard/knowledge-graph`、`/dashboard/practice/import`、`/dashboard/settings/notifications`（workspace changes, 2026-03-04） |
+| T-006.2 | dashboard/* | 梳理并修复 `/dashboard/**` 重定向与会话保护行为 | doing | 已下线：`/dashboard/debug/ui-kit`、`/dashboard/knowledge-graph`、`/dashboard/practice/import`、`/dashboard/settings/notifications`、`/course/:subjectId`、`/course/:subjectId/:lessonId`、`/checkout/config`（workspace changes, 2026-03-04） |
 | T-006.3 | auth + middleware | 统一 `/login`、`/register`、`redirectTo` 与 middleware 安全规则 | todo |  |
 
 ## T-006.1 阶段进展（2026-03-04）
@@ -41,6 +41,9 @@
 - [x] `/dashboard/knowledge-graph` 下线，路由改为显式 404。
 - [x] `/dashboard/practice/import` 下线，路由改为显式 404（题目录入统一收口到内容管理）。
 - [x] `/dashboard/settings/notifications` 下线为 404，通知设置统一收口到 `/dashboard/settings` 的通知 tab（通知中心入口改为 query tab）。
+- [x] `/admin/content` 下线为 404，仅保留 `/admin/content/review` 作为内容审核入口。
+- [x] `/course/:subjectId` 与 `/course/:subjectId/:lessonId` 下线为 404，课程入口统一收口到 `/dashboard/courses`。
+- [x] `/checkout/config` 下线为 404，支付入口统一从 `/pricing` 直连 Stripe Checkout。
 - [x] 完成 `src/app/**/page.tsx` 全量路由扫描（含保护/无保护）并更新 `受保护路由.md` 基线清单。
 - [ ] 完成 `admin/**` 全量未登录重定向与已登录行为矩阵验证。
 
@@ -61,6 +64,9 @@
 14. `/dashboard/practice/import` 下线为 404（题目录入统一收口到内容管理）。
 15. `/dashboard/settings/notifications` 下线为 404，统一改为 `/dashboard/settings?tab=notifications`。
 16. 完成全量页面路由扫描（保护/无保护），并补充“可能重复/可收口”候选清单。
+17. `/admin/content` 下线为 404，并清理入口链接到 `/admin/content/review`。
+18. `/course/:subjectId` 与 `/course/:subjectId/:lessonId` 下线为 404，统一课程入口为 `/dashboard/courses`。
+19. `/checkout/config` 下线为 404，`/pricing` 改为直接调用 `prepareCheckoutAction` 发起支付。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。

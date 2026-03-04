@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { checkAndRefreshStreak } from '@/actions/gamification/streak';
 import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
+import { incrementTotalStudyTime } from '@/actions/user/study-metrics';
 import { DailyTaskType } from '@prisma/client';
 
 export async function updateUserLessonProgress(lessonId: string, progressInSeconds: number) {
@@ -29,9 +30,22 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
 
   const progressPercentage = (progressInSeconds / lesson.duration) * 100;
   const clampedProgressPercentage = Math.min(Math.max(progressPercentage, 0), 100);
+  const normalizedProgressInSeconds = Math.max(0, Math.round(progressInSeconds));
+  const boundedProgressInSeconds = Math.min(normalizedProgressInSeconds, lesson.duration);
 
   try {
+    const existingProgress = await prisma.userProgress.findUnique({
+      where: {
+        userId_lessonId: {
+          userId,
+          lessonId,
+        },
+      },
+      select: { isCompleted: true },
+    });
+
     const isCompleted = clampedProgressPercentage >= 90;
+    const wasCompleted = existingProgress?.isCompleted ?? false;
     
     if (isCompleted) {
        await checkAndRefreshStreak(userId);
@@ -47,7 +61,7 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
       },
       update: {
         progress: clampedProgressPercentage, // Store percentage
-        lastPosition: progressInSeconds, // Store last played position
+        lastPosition: normalizedProgressInSeconds, // Store last played position
         updatedAt: new Date(),
         // Mark as completed if progress is >= 90%
         isCompleted: isCompleted,
@@ -56,7 +70,7 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
         userId,
         lessonId,
         progress: clampedProgressPercentage,
-        lastPosition: progressInSeconds,
+        lastPosition: normalizedProgressInSeconds,
         isCompleted: isCompleted,
       },
       select: {
@@ -65,8 +79,12 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
       },
     });
 
-    // Revalidate the path to reflect changes in UI (e.g., course tree completion status)
-    revalidatePath(`/course/${lessonId}`); // Adjust path as needed, consider more specific revalidation
+    if (isCompleted && !wasCompleted) {
+      await incrementTotalStudyTime(userId, boundedProgressInSeconds);
+    }
+
+    // Revalidate course入口页，确保进度统计与列表状态同步
+    revalidatePath('/dashboard/courses');
 
     return { success: true, progress: userProgress.progress, isCompleted: userProgress.isCompleted };
   } catch (error) {

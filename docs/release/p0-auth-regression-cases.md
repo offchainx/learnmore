@@ -8,7 +8,7 @@
 | 9-10 | AC-05 | T-007 |
 | 11-14 | AC-04（回归） | T-006 / T-008 |
 | 15-17 | AC-04（权限） | T-006 |
-| 18-22 | AC-04（路由下线） | T-006 |
+| 18-26 | AC-04（路由下线） | T-006 |
 
 ## AC-01 用例
 
@@ -131,3 +131,23 @@
 - Given：任意登录态用户
 - When：从通知中心点击“通知设置”
 - Then：跳转到 `/dashboard/settings?tab=notifications` 并展示通知偏好矩阵（统一保存入口）
+
+### 用例 23：`/admin/content` 已下线
+- Given：已登录管理员
+- When：访问 `/admin/content`
+- Then：页面直接返回 404；内容审核入口仅保留 `/admin/content/review`
+
+### 用例 24：`/course/:subjectId` 已下线
+- Given：任意登录态用户
+- When：访问 `/course/任意学科ID`
+- Then：页面直接返回 404；课程入口统一走 `/dashboard/courses`
+
+### 用例 25：`/course/:subjectId/:lessonId` 已下线
+- Given：任意登录态用户
+- When：访问 `/course/任意学科ID/任意课时ID`
+- Then：页面直接返回 404；课程入口统一走 `/dashboard/courses`
+
+### 用例 26：`/checkout/config` 已下线
+- Given：任意登录态用户
+- When：访问 `/checkout/config`
+- Then：页面直接返回 404；支付入口统一由 `/pricing` 直接发起 checkout action

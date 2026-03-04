@@ -308,7 +308,7 @@ export async function importFromPDF(
 
       reportProgress(createProgress('COMPLETED', `导入完成，共 ${questionsCreated} 道题目`))
 
-      revalidatePath('/admin/content')
+      revalidatePath('/admin/content/review')
 
       return {
         success: true,
@@ -559,7 +559,7 @@ async function resumeFromStructuring(
 
     reportProgress(createProgress('COMPLETED', `导入完成，共 ${questionsCreated} 道题目`))
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
 
     return {
       success: true,
@@ -794,7 +794,7 @@ export async function deleteImportTask(
       where: { id: sourceFileId },
     })
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
 
     return {
       success: true,

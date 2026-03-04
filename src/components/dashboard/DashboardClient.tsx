@@ -65,7 +65,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       return;
     }
     if (view === 'admin') {
-      router.push('/admin/content');
+      router.push('/admin');
       return;
     }
     // For other views, still use useState (for now)

@@ -150,7 +150,7 @@ export async function createQuestion(
       },
     })
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
 
     return {
       success: true,
@@ -248,7 +248,7 @@ export async function bulkCreateQuestions(
     }
   }
 
-  revalidatePath('/admin/content')
+  revalidatePath('/admin/content/review')
 
   return {
     success: failed === 0,
@@ -341,7 +341,7 @@ export async function updateQuestionStatus(
       }),
     ])
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
 
     return {
       success: true,
@@ -589,7 +589,7 @@ export async function deleteQuestion(
         where: { id },
       })
 
-      revalidatePath('/admin/content')
+      revalidatePath('/admin/content/review')
 
       return {
         success: true,
@@ -633,7 +633,7 @@ export async function deleteQuestion(
         : []),
     ])
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
 
     return {
       success: true,
@@ -722,7 +722,7 @@ export async function updateQuestion(
       },
     })
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
 
     return {
       success: true,
@@ -1205,7 +1205,7 @@ export async function resolveReport(
       })
     }
 
-    revalidatePath('/admin/content')
+    revalidatePath('/admin/content/review')
     revalidatePath('/admin/reports')
 
     return {

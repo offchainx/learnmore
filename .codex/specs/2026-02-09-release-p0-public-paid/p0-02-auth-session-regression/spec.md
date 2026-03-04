@@ -104,4 +104,7 @@ updated_at: 2026-03-04
 - `/dashboard/knowledge-graph`：已下线，当前行为为显式 404。
 - `/dashboard/practice/import`：已下线，当前行为为显式 404，题目录入统一收口到内容管理流程。
 - `/dashboard/settings/notifications`：已下线，当前行为为显式 404；通知设置统一收口到 `/dashboard/settings` 的通知 tab。
+- `/admin/content`：已下线，当前行为为显式 404；仅保留 `/admin/content/review` 入口。
+- `/course/:subjectId`、`/course/:subjectId/:lessonId`：已下线，当前行为为显式 404；课程入口统一收口到 `/dashboard/courses`。
+- `/checkout/config`：已下线，当前行为为显式 404；支付入口改为 `/pricing` 直连 checkout action。
 - 开发过程记录：`T-006` 每一步执行日志已同步到 `tasks.md` 与 `plan.md`。

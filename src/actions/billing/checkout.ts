@@ -141,7 +141,7 @@ export async function prepareCheckoutAction(input: PrepareCheckoutInput): Promis
     return voucherResult;
   }
 
-  const cancelRedirectPath = `/checkout/config?planKey=${payload.planKey}&billingCycle=${payload.billingCycle}&payment=cancelled`;
+  const cancelRedirectPath = `/pricing?payment=cancelled&planKey=${payload.planKey}&billingCycle=${payload.billingCycle}`;
   const checkoutResult = await createCheckoutSession(payload.planKey, payload.billingCycle, {
     paymentMode: payload.paymentMode,
     referralCode: normalizedReferralCode,
@@ -165,4 +165,3 @@ export async function prepareCheckoutAction(input: PrepareCheckoutInput): Promis
     checkoutUrl: checkoutResult.checkoutUrl,
   };
 }
-

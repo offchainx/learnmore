@@ -43,6 +43,9 @@
 | AC-04 | 访问 `/dashboard/practice/import` | 路由状态 | 页面已下线，直接返回 404（题目录入统一收口到内容管理） | pass | workspace change (practice import route retired) |
 | AC-04 | 访问 `/dashboard/settings/notifications` | 路由状态 | 页面已下线，直接返回 404（通知设置统一收口到 `/dashboard/settings`） | pass | workspace change (settings notifications retired) |
 | AC-04 | 从通知中心点击“通知设置” | 路由跳转 + 页面状态 | 跳转 `/dashboard/settings?tab=notifications` 并展示通知偏好矩阵 | pass | workspace change (settings tab integration) |
+| AC-04 | 访问 `/admin/content` | 路由状态 | 页面已下线，直接返回 404（仅保留 `/admin/content/review`） | pass | workspace change (admin content retired) |
+| AC-04 | 访问 `/course/:subjectId`、`/course/:subjectId/:lessonId` | 路由状态 | 页面已下线，直接返回 404（课程入口统一收口到 `/dashboard/courses`） | pass | workspace change (course routes retired) |
+| AC-04 | 访问 `/checkout/config` | 路由状态 | 页面已下线，直接返回 404（支付入口改为 `/pricing` 直连） | pass | workspace change (checkout config retired) |
 | AC-05 | 页面空闲 1-3 分钟 | Network + Server Logs | 非预期 `POST /admin/feedback` 不应持续出现 |  |  |
 | AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 |  |  |
 

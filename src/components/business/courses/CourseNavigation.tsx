@@ -13,6 +13,7 @@ interface CourseNavigationProps {
 
 export function CourseNavigation({ subjectId, nextLessonId, isCompleted }: CourseNavigationProps) {
   const router = useRouter();
+  void subjectId;
 
   if (!nextLessonId) {
     return (
@@ -28,7 +29,7 @@ export function CourseNavigation({ subjectId, nextLessonId, isCompleted }: Cours
   return (
     <div className="flex justify-end pt-6 border-t">
       <Button 
-        onClick={() => router.push(`/course/${subjectId}/${nextLessonId}`)}
+        onClick={() => router.push('/dashboard/courses')}
         variant={isCompleted ? "outline" : "default"}
         size="lg"
         className="group"
