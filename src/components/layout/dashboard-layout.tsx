@@ -95,10 +95,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const { t } = useApp();
   const router = useRouter();
   const pathname = usePathname();
+  const isUserAdminRoute = pathname?.startsWith('/admin/users')
+    || pathname?.startsWith('/admin/permissions')
+    || pathname?.startsWith('/admin/feedback')
+    || pathname?.startsWith('/admin/referrals')
+    || false;
+  const isContentAdminRoute = pathname?.startsWith('/admin/content') || false;
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions') || false);
-  const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(pathname?.startsWith('/admin/content') || false);
+  const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false);
+  const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(false);
   const [, startTransition] = useTransition();
+  const effectiveUserAdminExpanded = isUserAdminRoute || isUserAdminExpanded;
+  const effectiveContentAdminExpanded = isContentAdminRoute || isContentAdminExpanded;
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -119,8 +127,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   // Check if any admin route is active
   const isAdminDashboardActive = pathname === '/admin';
-  const isUserAdminActive = pathname?.startsWith('/admin/users') || pathname?.startsWith('/admin/permissions') || pathname?.startsWith('/admin/feedback');
-  const isContentAdminActive = pathname?.startsWith('/admin/content');
+  const isUserAdminActive = isUserAdminRoute;
+  const isContentAdminActive = isContentAdminRoute;
 
   const menuItems = isParent ? [
     { id: 'parent', icon: LayoutDashboard, label: t.sidebar.dashboard },
@@ -136,6 +144,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     { id: 'admin-users', icon: Users, label: t.sidebar.adminUsers, href: '/admin/users' },
     { id: 'admin-permissions', icon: ShieldCheck, label: t.sidebar.adminPermissions, href: '/admin/permissions' },
     { id: 'admin-feedback', icon: MessageCircle, label: t.sidebar.adminFeedback, href: '/admin/feedback' },
+    { id: 'admin-referrals', icon: Users, label: t.sidebar.adminReferrals, href: '/admin/referrals' },
   ];
 
   const adminContentSubItems = [
@@ -223,8 +232,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <SidebarSection
                 icon={Users}
                 label={t.sidebar.adminUser}
-                isExpanded={isUserAdminExpanded}
-                onToggle={() => setIsUserAdminExpanded(!isUserAdminExpanded)}
+                isExpanded={effectiveUserAdminExpanded}
+                onToggle={() => setIsUserAdminExpanded(!effectiveUserAdminExpanded)}
                 isActive={isUserAdminActive}
               >
                 {adminUserSubItems.map(subItem => (
@@ -245,8 +254,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <SidebarSection
                 icon={ShieldCheck}
                 label={t.sidebar.adminContent}
-                isExpanded={isContentAdminExpanded}
-                onToggle={() => setIsContentAdminExpanded(!isContentAdminExpanded)}
+                isExpanded={effectiveContentAdminExpanded}
+                onToggle={() => setIsContentAdminExpanded(!effectiveContentAdminExpanded)}
                 isActive={isContentAdminActive}
               >
                 {adminContentSubItems.map(subItem => (
