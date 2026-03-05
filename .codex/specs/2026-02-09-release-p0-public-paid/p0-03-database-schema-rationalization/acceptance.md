@@ -180,8 +180,25 @@
   2. C 类候选（0 调用）：`chapter_prerequisites`、`contact_submissions`、`knowledge_points`、`question_kp_relations`、`question_tags`、`question_tag_relations`。
 - 结论：
   - T-011 仅完成“梳理与分级”，不执行下线；
-  - 候选下线动作归入 `T-012`。
+  - 候选下线动作归入 `T-013`。
   - 逐表明细矩阵（41 表）已写入 `plan.md` 的 `T-011 逐表明细（字段数 + 读写热度 + 入口）` 章节。
+
+## T-012 执行验收标准（开发）
+1. 新增 migration 后，可对 `public` schema 业务表统一开启 RLS。
+2. 不新增匿名宽权限策略（保持最小权限基线）。
+3. 迁移执行后，Advisor 的 “RLS Disabled in Public” 数量显著下降（目标清零）。
+
+## T-012 执行记录（2026-03-05）
+- 代码落地：
+  1. 新增 `supabase/migrations/009_enable_rls_for_public_tables.sql`。
+  2. 采用 `DO $$ ... pg_tables ... ALTER TABLE ... ENABLE ROW LEVEL SECURITY $$` 批量开启。
+- 范围说明：
+  - 本轮先完成 RLS 启用，不在同迁移里放开业务 POLICY。
+- 待验证：
+  - 已在当前环境执行迁移并复核：
+    - `total_public_tables = 43`
+    - `rls_enabled_tables = 43`
+    - `rls_disabled_tables = 0`
 
 ## T-005 执行场景（Given / When / Then）
 - 给定：新用户走标准注册链路
@@ -242,7 +259,8 @@
 - [x] T-009 开发实现完成（用户域前端去 mock + 双表真实接入）
 - [x] T-010 开发实现完成（Admin 首页非用户双表 mock 去除）
 - [x] T-011 文档审计完成（全表分级与收敛候选）
-- [ ] T-012 范围确认（数据库表收敛执行）
+- [x] T-012 RLS 安全加固完成并复跑 SQL 基线
+- [ ] T-013 范围确认（数据库表收敛执行）
 - [ ] 字段-逻辑映射表完整并附证据
 - [x] 本地验证完成并附测试证据
 - [x] 预发复测完成并附证据

@@ -21,7 +21,8 @@
 7. `T-009` 执行前端用户域去 mock 并接入双表真实数据（开发执行）。
 8. `T-010` 处理 Admin 首页非用户双表 mock（已完成）。
 9. `T-011` 执行数据库表格重点梳理（已完成，文档）。
-10. `T-012` 执行数据库表收敛（待用户确认）。
+10. `T-012` 执行 public schema RLS 安全加固（已完成）。
+11. `T-013` 执行数据库表收敛（待用户确认）。
 
 ## Server Action / 接口契约清单
 | Action/接口 | 调用入口 | 输入与校验 | 输出与错误 | 幂等/并发策略 | 审计字段 |
@@ -274,7 +275,7 @@ ORDER BY a.email;
    - `question_tag_relations`
 4. 结论：
    - 本轮仅文档审计，不执行 schema/data 变更；
-   - 收敛执行统一进入 `T-012`，并要求双环境观测与回滚脚本。
+   - 收敛执行统一进入 `T-013`，并要求双环境观测与回滚脚本。
 
 ## T-011 逐表明细（字段数 + 读写热度 + 入口）
 > 说明：`读/写` 统计口径为 `src/**` 非测试代码中的 Prisma 调用次数（读=`find/count/aggregate`，写=`create/update/upsert/delete`）。
@@ -332,7 +333,27 @@ ORDER BY a.email;
 | `question_tags` | 9 | 0/0 | `QuestionTag` | `-` |
 | `question_tag_relations` | 5 | 0/0 | `QuestionTagRelation` | `-` |
 
-## T-012 执行门禁（待执行）
+## T-012 执行策略（RLS 修复）
+1. 对 `public` schema 业务表统一开启 RLS，先解决 Advisor 的“未开启 RLS”问题。
+2. 暂不在同一迁移里放开匿名/认证角色策略，避免误开放数据。
+3. 逐步补策略原则：
+   - 必要公开读：最小白名单列与场景；
+   - 用户私有数据：`auth.uid() = user_id`；
+   - 管理域：仅后端服务角色/Prisma 访问，不对 anon 直出。
+
+## T-012 执行记录（2026-03-05）
+1. 已新增迁移：
+   - `supabase/migrations/009_enable_rls_for_public_tables.sql`
+2. 迁移行为：
+   - 通过 `pg_tables` 枚举 `public` schema 全部表，并执行 `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`。
+3. 现状说明：
+   - 已通过 `prisma db execute` 执行迁移到当前数据库，并完成 SQL 复核。
+4. SQL 复核结果（当前环境）：
+   - `total_public_tables = 43`
+   - `rls_enabled_tables = 43`
+   - `rls_disabled_tables = 0`
+
+## T-013 执行门禁（待执行）
 1. 先验证 C 类表是否存在隐藏读写入口（crons、脚本、后台工具、SQL 任务）。
 2. 连续两个发布周期观测为 0 调用后，才可进入下线评审。
 3. 任一候选下线必须提供：

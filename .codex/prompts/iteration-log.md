@@ -37,6 +37,8 @@
 
 | 2026-03-05 | T-016 questions结构优化 | 完成questions字段重构迁移并做内测 | 已新增迁移SQL与导入脚本新口径，prisma validate与tsc通过 | - | - | - | - |
 
+| 2026-03-05 | 修复content review筛选崩溃 | 处理question-service PrismaClientValidationError | 已对过滤参数做UUID/枚举/空范围校验，subjectId=all不再报错 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

@@ -267,13 +267,42 @@ export async function bulkUpdateQuestionStatus(
   return { success: failed === 0, total: input.questionIds.length, succeeded, failed, results }
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isUuid(value: string | undefined | null): value is string {
+  return !!value && UUID_RE.test(value.trim())
+}
+
+function toValidStatusList(status: QuestionFilter['status']): ContentStatus[] | undefined {
+  if (!status) return undefined
+  const allStatuses = new Set(Object.values(ContentStatus))
+  const list = (Array.isArray(status) ? status : [status]).filter(
+    (item): item is ContentStatus => allStatuses.has(item as ContentStatus)
+  )
+  return list.length > 0 ? list : undefined
+}
+
+function toValidTypeList(type: QuestionFilter['type']): QuestionType[] | undefined {
+  if (!type) return undefined
+  const allTypes = new Set(Object.values(QuestionType))
+  const list = (Array.isArray(type) ? type : [type]).filter(
+    (item): item is QuestionType => allTypes.has(item as QuestionType)
+  )
+  return list.length > 0 ? list : undefined
+}
+
 function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
   const where: Prisma.QuestionWhereInput = {}
-  if (filter.status) where.status = Array.isArray(filter.status) ? { in: filter.status } : filter.status
-  if (filter.type) where.type = Array.isArray(filter.type) ? { in: filter.type } : filter.type
+
+  const statusList = toValidStatusList(filter.status)
+  if (statusList) where.status = statusList.length === 1 ? statusList[0] : { in: statusList }
+
+  const typeList = toValidTypeList(filter.type)
+  if (typeList) where.type = typeList.length === 1 ? typeList[0] : { in: typeList }
+
   if (filter.difficulty) {
     if (typeof filter.difficulty === 'number') where.difficulty = filter.difficulty
-    else {
+    else if (filter.difficulty.min !== undefined || filter.difficulty.max !== undefined) {
       where.difficulty = {
         ...(filter.difficulty.min !== undefined && { gte: filter.difficulty.min }),
         ...(filter.difficulty.max !== undefined && { lte: filter.difficulty.max }),
@@ -285,22 +314,22 @@ function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
   }
   if (filter.grade) {
     if (typeof filter.grade === 'number') where.grade = filter.grade
-    else {
+    else if (filter.grade.min !== undefined || filter.grade.max !== undefined) {
       where.grade = {
         ...(filter.grade.min !== undefined && { gte: filter.grade.min }),
         ...(filter.grade.max !== undefined && { lte: filter.grade.max }),
       }
     }
   }
-  if (filter.chapterId) where.chapterId = filter.chapterId
-  if (filter.subjectId) where.subjectId = filter.subjectId
-  if (filter.sourceFileId) where.sourceFileId = filter.sourceFileId
+  if (isUuid(filter.chapterId)) where.chapterId = filter.chapterId
+  if (isUuid(filter.subjectId)) where.subjectId = filter.subjectId
+  if (isUuid(filter.sourceFileId)) where.sourceFileId = filter.sourceFileId
   if (filter.source) where.source = filter.source
   if (filter.isPastPaper !== undefined) where.isPastPaper = filter.isPastPaper
   if (filter.paperId) where.paperId = filter.paperId
   if (filter.searchText) where.content = { contains: filter.searchText, mode: 'insensitive' }
-  if (filter.createdBy) where.createdBy = filter.createdBy
-  if (filter.reviewedBy) where.reviewedBy = filter.reviewedBy
+  if (isUuid(filter.createdBy)) where.createdBy = filter.createdBy
+  if (isUuid(filter.reviewedBy)) where.reviewedBy = filter.reviewedBy
   if (filter.createdAfter || filter.createdBefore) {
     where.createdAt = {
       ...(filter.createdAfter && { gte: filter.createdAfter }),
