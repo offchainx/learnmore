@@ -19,16 +19,16 @@
 - 输出：
   - 表级审计矩阵（表 -> 字段 -> Action/API -> SQL 校验）。
   - 当前库基线计数快照（2026-03-04 已采集）。
-  - 缺口列表（当前为空/弱约束表：`question_groups`、`question_tags`、`knowledge_points` 等）。
+  - 缺口列表（需下线表与弱约束点：`question_groups`、`question_tag_relations`、`knowledge_points`、`question_kp_relations` 等）。
 
 ### 阶段 B：练习链路修复优先（先于爬虫导入）
 - 目标：修复当前练习中心链路不一致问题，统一题目交互采集与落库口径。
 - 范围：
   - 五模式入口闭环：Smart Drill、Error Wiper、Mock Arena、Chapter Map、Past Year Paper。
-  - Smart Drill / Chapter Drill 接入统一提交动作，落 `exam_records + user_attempts + error_book`。
+  - Smart Drill / Chapter Drill 接入统一提交动作，落 `exam_records + user_attempts`。
   - 防重复做题策略跨模式统一（默认排除最近 N 天做过题）。
   - `masteryLevel` 语义统一：同一正确/错误行为在不同模式下规则一致。
-  - 抽题只允许 `VERIFIED/PUBLISHED`（禁止将 `DRAFT/REVIEW_PENDING` 直接投喂练习端）。
+  - 抽题只允许 `PUBLISHED`（禁止将 `DRAFT/REVIEW_PENDING/VERIFIED` 直接投喂练习端）。
 
 ### 阶段 C：Examcoo 初中教育题目录入（首批）
 - 目标：将初中教育题目按可追溯方式导入本库，优先初三数学并可横向扩展。
@@ -42,37 +42,98 @@
   - 选项答案采用位掩码转字母（如 `1=A,2=B,4=C,8=D`，多选按位拆分）。
   - 题干中 `_djrealurl` 转为完整图片 URL（`https://img.examcoo.com` 前缀），图片题先以 Markdown 图片落库。
 - 入库策略：
-  - `source_files`：记录源 URL、文件类型、抓取状态。
-  - `question_groups`：按试卷聚合（sourceYear/sourcePaper）。
-  - `questions`：写入内容、类型、答案、难度、`content_hash`、来源字段、默认 `REVIEW_PENDING`。
-  - 可选：首批只写 `questions + source_files`，后续补 `question_tags / knowledge_points`。
+  - `source_files`：记录源 URL、文件类型、抓取状态，并通过 `source_file_id` 关联 `questions`。
+  - `questions`：写入内容、类型、答案、难度、`content_hash`、`source`、`source_file_id`、`is_past_paper`、`paper_id`，默认 `REVIEW_PENDING`。
+  - 标签直接写入 `questions.tags(text[])`，不再维护独立标签/知识点关系表。
 - 幂等去重：
   - 一级去重：`questions.content_hash`。
   - 二级去重：`source + paperId + questionIndex`（导入日志层，防重跑）。
 
 ### 阶段 D：Practice 链路回归与核账
-- 覆盖链路：拉题 -> 作答 -> 提交 -> 判分 -> 错题回写 -> 榜单/成就。
-- 核账表：`exam_records`、`user_attempts`、`error_book`、`leaderboard_entries`、`user_badges`、`notifications`。
+- 覆盖链路：拉题 -> 作答 -> 提交 -> 判分 -> attempts 聚合 -> 榜单/成就。
+- 核账表：`exam_records`、`user_attempts`、`leaderboard_entries`、`user_badges`、`notifications`。
+
+## 2026-03-05 重构计划（T-016 ~ T-025）
+
+### 摘要
+- `questions` 采用“关系 + 冗余字段”方案。
+- 废弃表采用“本次直接删表”方案。
+- 错题机制采用“完全基于 `user_attempts` 实时聚合”方案。
+- 练习链路统一为一套记录模型：所有模式走统一提交动作、统一判分与统计口径；`exam_records` 仅保留会话汇总，`user_attempts` 作为唯一行为事实来源。
+
+### 公开接口/数据结构变更（决策完成）
+1. `public.questions` 新增字段：`curriculum`、`grade`、`subject_id`、`asset_url`、`source`、`tags text[]`、`is_past_paper`、`paper_id`。
+2. `public.questions` 删除字段：`ocr_raw_text`、`ocr_confidence`、`original_question_id`、`version`。
+3. 删除表：`chapter_prerequisites`、`question_groups`、`question_tag_relations`、`knowledge_points`、`question_kp_relations`（及失效关系代码）。
+4. `source_files` 保留并增强：主关系改为 `source_files -> questions` 一对多，不再依赖 `question_groups`。
+5. 新增统一提交服务接口：`submitPracticeSession(...)`（覆盖 Smart Drill / Chapter Drill / Mock / Past Paper / Error Wiper）。
+6. `question_reports` 增加用户端入口并接通管理端真实数据流。
+
+### 任务顺延与实施细节
+1. **T-016 优化 `public.questions` 表结构**  
+   实现：新增字段并回填历史数据（`subject_id` 从 `chapter.subject_id` 回填，`source` 从导入来源回填）；删除旧字段；补索引（`subject_id,curriculum,grade,status,is_past_paper`）。  
+   验收：迁移后题目可正常查询、创建、审核、练习；旧数据无丢失；关键查询 SQL 有索引命中。
+2. **T-017 核对 `public.questions` 字段与逻辑映射**  
+   实现：逐字段建立“写入点-读取点-是否保留”清单；清理无读写闭环字段；修复难度过滤逻辑重复覆盖，确保权限难度与用户筛选取交集。  
+   验收：字段映射文档完整；代码无死字段写入；抽题结果符合权限和筛选预期。
+3. **T-018 删除废弃表及对应逻辑**  
+   实现：直接删表与 Prisma 关系；知识图谱边关系下线；Past Paper 从 `question_groups` 改为 `questions.is_past_paper/paper_id`；标签与知识点改为 `questions.tags`。  
+   验收：迁移成功；编译通过；所有引用已清理；无运行时 relation 报错。
+4. **T-019 打通 `source_files` 与三个管理页**  
+   实现：`/admin/content/import` 接真实 `getImportTasks/import`；`/admin/content/review` 改真实 `question-service`；`/admin/content/statistics` 接真实统计接口。  
+   验收：三个页面均展示真实数据库数据并可执行关键操作（导入、审核、查看统计）。
+5. **T-020 录题 -> 审核 -> 答题 -> 记录 -> 掌握度全链路闭环**  
+   实现：统一题目可见条件为 `PUBLISHED`；统一提交入口写 `exam_records + user_attempts`；掌握度/预测/薄弱点仅依赖 attempts 聚合。  
+   验收：从入库到用户可见再到统计展示可端到端走通，且数据可追踪。
+6. **T-021 统一 `user_attempts` / `exam_records` 关系**  
+   实现：`exam_records`=一次会话汇总；`user_attempts`=逐题明细；所有模式都写这两者；Past Paper 仅做题目标记，不再独立统计通道。  
+   验收：任意模式提交后都可在同一统计页体现；同一算法口径下分数与掌握度一致。
+7. **T-022 移除 `error_book`，并入 attempts 实时聚合**  
+   实现：删除 `error_book` 读写逻辑；Error Wiper 改为按 attempts 计算“薄弱题队列”；推荐与蜂巢 mastery 来源统一为 attempts 聚合。  
+   验收：系统无 `error_book` 依赖；错题练习、弱点分析、推荐均可运行且结果合理。
+8. **T-023 Content Review 流程走通**  
+   实现：审核状态机只保留真实 action；审核动作必须写 `content_review_logs`；发布后才进入练习池；被举报达到阈值自动回到复审。  
+   验收：审核页面可完成待审 -> 通过 -> 发布；日志完整；练习侧仅可见已发布题。
+9. **T-024 `question_reports` 前端入口接入**  
+   实现：在做题页/结果页加入“题目纠错”入口，调用 `reportQuestion`；管理页接通 `getQuestionReports + resolveReport`。  
+   验收：用户可提交纠错；管理员可处理；状态与计数正确变化。
+10. **T-025 练习模块全功能复核**  
+    实现：覆盖模式切换、抽题、提交、统计、审核、报错、权限配额、去重抽题、发布门禁；执行自动化测试+手工回归清单。  
+    验收：通过回归矩阵；关键 API 与 UI 无阻断问题；输出最终验收报告。
+
+### 测试与验收场景
+1. 数据迁移测试：旧数据回填正确、删表后无外键/查询崩溃。  
+2. 模式一致性测试：Smart/Chapter/Mock/Past/Error-Wiper 都写入统一 attempts 口径。  
+3. 审核门禁测试：`REVIEW_PENDING` 不可见，`PUBLISHED` 可见。  
+4. 统计一致性测试：用户答题后蜂巢、弱点、预测在同一时间窗内一致。  
+5. 报错闭环测试：用户报错 -> 后台处理 -> 题目状态与计数变化正确。  
+6. 性能基线测试：百万题规模下抽题查询走索引，不做全量 candidate 拉取。
+
+### 默认假设（已锁定）
+1. “图案”字段按题目主图处理，落地为 `questions.asset_url`。  
+2. `questions.tags` 采用 `text[]`，不再维护标签关系表。  
+3. `exam_records` 不删除，仅用于会话级展示与追踪；统计主口径全部来自 `user_attempts`。  
+4. 历届真题不再走独立统计模型，仅通过 `questions.is_past_paper/paper_id` 区分。
 
 ## Server Action / 接口契约清单
 | Action/接口 | 调用入口 | 输入与校验 | 输出与错误 | 幂等/并发策略 | 审计字段 |
 |---|---|---|---|---|---|
-| submitQuiz | Practice 提交按钮 | answers、chapterId、duration 校验 | 成功返回 score，失败返回 error | 重放不应造成关键记录重复写入 | userId、action、result、examRecordId |
+| submitPracticeSession | Practice 提交按钮 | mode、answers、duration、questionIds 校验 | 成功返回 score，失败返回 error | 重放不应造成关键记录重复写入 | userId、action、result、examRecordId |
 | createQuestion / bulkCreateQuestions | 题目录入流程 | content/type/answer 必填 | 成功返回题目 ID；重复返回重复错误 | 基于 content_hash 去重 | source、paperId、questionIndex |
 | getexercisecontent（外部） | 导入脚本内部 | leid + tokenleid | 返回试卷题块 JSON | 失败重试 3 次 + 指数退避 | paperId、leid、token |
-| updateLeaderboardScore | submitQuiz 内部调用 | userId、points | 更新周榜月榜总榜分数 | 同事件重放需验证积分一致性 | userId、period、points |
-| awardBadgeIfEligible | submitQuiz 内部调用 | userId + PRACTICE 触发 | 达标发放徽章 | 重复触发不重复发放 | userId、badgeCode、result |
+| updateLeaderboardScore | submitPracticeSession 内部调用 | userId、points | 更新周榜月榜总榜分数 | 同事件重放需验证积分一致性 | userId、period、points |
+| awardBadgeIfEligible | submitPracticeSession 内部调用 | userId + PRACTICE 触发 | 达标发放徽章 | 重复触发不重复发放 | userId、badgeCode、result |
 
 ## 数据落表点与核对范围
 | 相关表 | 关键字段 | 读/写 | 触发场景 | 核对方式 |
 |---|---|---|---|---|
 | subjects / chapters | name、title、subject_id | 读/写 | 题目挂载章节 | 分类映射核对 |
-| source_files | file_url、status、ocr_raw_text | 写 | 导入试卷来源落表 | 来源追溯核对 |
-| question_groups | source_paper、source_year、subject_id | 写 | 试卷分组 | 一卷一组核对 |
-| questions | content、type、answer、content_hash、group_id | 写 | 批量导题 | 去重 + 类型映射核对 |
+| source_files | file_url、status、metadata、id | 写 | 导入试卷来源落表 | 来源追溯核对 |
+| questions | content、type、answer、content_hash、source_file_id、is_past_paper、paper_id、status | 写 | 批量导题 | 去重 + 类型映射核对 |
 | exam_records | user_id、score、total_questions、correct_count | 写 | 提交一次练习 | 前后快照新增核对 |
 | user_attempts | user_id、question_id、is_correct、exam_record_id | 写 | 批量写入作答记录 | 数量与题数一致性核对 |
-| error_book | user_id、question_id、mastery_level | 写 | 错题回写与掌握度更新 | 正误题更新逻辑核对 |
+| content_review_logs | question_id、action、reviewer_id、notes | 写 | 审核流转与发布 | 状态流转核对 |
+| question_reports | question_id、status、report_type、description | 写 | 用户纠错上报与处理 | 报错闭环核对 |
 | leaderboard_entries | user_id、period、week_start、score | 写 | 提交后积分更新 | 三周期同步核对 |
 
 ## 验证步骤（固定流程）
@@ -85,7 +146,7 @@
 ## 已执行记录（2026-03-05）
 - `T-012`：完成 `view/id/2430396` 前 10 题抓取，输出文件：`tmp/examcoo/paper_2430396_first10_with_explanations.json`。
 - `T-013`：完成 10 题入库，创建：
-  - `question_group_id=67231a06-9ca6-4bfe-8192-3a7a0697dd40`
+  - `paper_id=examcoo-2430396`
   - `source_file_id=3b80185c-51b7-4424-967e-cabd309e33f2`
   - `chapter_id=4db8899b-b3be-4892-8fc2-064e17760fc9`
 - `T-014`：10 题状态迁移为 `PUBLISHED`，`content_review_logs` 累计 21 条。
@@ -98,7 +159,7 @@
 - 触发回滚：核心路径阻断、题目重复写入、来源不可追溯。
 - 回滚步骤：
   1. 停止导入任务。
-  2. 依据导入批次标识回滚新增题目（按 group/source 批量删除）。
+  2. 依据导入批次标识回滚新增题目（按 source_file_id/paper_id 批量删除）。
   3. 恢复旧入口或旧行为。
   4. 重新执行本地与预发冒烟。
 - 观测要求：日志可定位 `source、paperId、questionId、userId、action、result、timestamp`。
@@ -110,12 +171,12 @@
 |---|---|---|---|---|
 | 题目域审计 | 审计脚本/SQL | Prisma + SQL | 题目域全表 | 计数与结构一致 |
 | 五模式入口闭环 | PracticeView | 各模式路由与加载函数 | questions, chapters | 每个模式可达且可拉取真实数据 |
-| Smart/Chapter 统一提交 | Quiz/Drill 交互组件 | unified submit action | exam_records, user_attempts, error_book | 作答可采集且可核账 |
+| Smart/Chapter 统一提交 | Quiz/Drill 交互组件 | submitPracticeSession | exam_records, user_attempts | 作答可采集且可核账 |
 | 防重复做题策略 | 拉题层 | getRandomQuestions/getSmartDrillQuestions/exam draw | questions, user_attempts | 跨模式排重一致 |
-| Examcoo 列表抓取 | 导入脚本 | `/paperlist/index/...` | source_files/question_groups | 试卷元数据完整 |
+| Examcoo 列表抓取 | 导入脚本 | `/paperlist/index/...` | source_files/questions | 试卷元数据完整 |
 | Examcoo 逐题抓取 | 导入脚本 | `/editor/do/exercise` + `/editor/rpc/getexercisecontent` | questions | 题型与答案映射正确 |
 | 拉题与配额 | Practice 页面 | question/quota actions | questions, user_attempts | 配额边界与可拉题结果 |
-| 提交与判分 | QuizSession / MockArena 提交 | submitQuiz/submitExam | exam_records, user_attempts | 分数与正确率计算 |
+| 提交与判分 | QuizSession / MockArena 提交 | submitPracticeSession/submitExam | exam_records, user_attempts | 分数与正确率计算 |
 
 ### 必改文件（计划）
 - `.codex/specs/2026-02-09-release-p0-public-paid/p0-06-practice-prod-validation/*.md`
@@ -123,6 +184,7 @@
 - `src/components/practice/modes/*`（Smart Drill / Error Wiper）
 - `src/components/practice/chapter-drill/*`（Chapter Drill 提交流程）
 - `src/actions/practice/quiz.ts`
+- `src/actions/practice/session.ts`
 - `src/actions/practice/exam.ts`
 - `src/actions/practice/data-service.ts`
 - `src/actions/practice/recommendation.ts`

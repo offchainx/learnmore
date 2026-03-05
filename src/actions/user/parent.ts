@@ -142,8 +142,8 @@ export async function getStudentStats(studentId: string) {
       prisma.userProgress.count({
         where: { userId: studentId, isCompleted: true }
       }),
-      prisma.errorBook.count({
-        where: { userId: studentId }
+      prisma.userAttempt.count({
+        where: { userId: studentId, isCorrect: false }
       }),
       prisma.userAttempt.findMany({
         where: { userId: studentId },
@@ -176,7 +176,7 @@ export async function getStudentStats(studentId: string) {
         errorCount: errorCount || 0,
         accuracy: Math.round(accuracy),
       },
-      recentActivities: (recentAttempts || []).map(a => ({
+      recentActivities: (recentAttempts || []).map((a: (typeof recentAttempts)[number]) => ({
         id: a.id,
         type: 'practice',
         title: `Practiced ${a.question?.chapter?.subject?.name || 'Subject'}`,

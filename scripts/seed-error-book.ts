@@ -1,7 +1,7 @@
 import prisma from '../src/lib/prisma'
 
 /**
- * Seed script to populate ErrorBook with sample data
+ * Seed script to populate weak-attempt samples (replacing ErrorBook)
  * Run with: tsx scripts/seed-error-book.ts
  */
 async function main() {
@@ -21,24 +21,19 @@ async function main() {
   }
 
   for (const user of users) {
-    console.warn(`Seeding error book for user: ${user.email} (${user.id})`)
+    console.warn(`Seeding weak-attempt samples for user: ${user.email} (${user.id})`)
     for (const q of questions) {
-      await prisma.errorBook.upsert({
-        where: {
-          userId_questionId: {
-            userId: user.id,
-            questionId: q.id
-          }
-        },
-        update: {},
-        create: {
+      await prisma.userAttempt.create({
+        data: {
           userId: user.id,
           questionId: q.id,
-          masteryLevel: 0
-        }
+          userAnswer: 'B',
+          isCorrect: false,
+          duration: 30,
+        },
       })
     }
-    console.warn(`Added ${questions.length} questions to error book for ${user.email}.`)
+    console.warn(`Added ${questions.length} weak attempts for ${user.email}.`)
   }
 }
 

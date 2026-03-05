@@ -18,6 +18,7 @@ updated_at: 2026-03-05
 - 完成练习中心五模式闭环修复（入口可达、作答可采集、结果可核账）。
 - 完成 Examcoo 初中教育题目录入流程定义，并落地首批可复现录入。
 - 继续验证拉题、提交、判分、错题与配额链路在新数据下可稳定运行。
+- 按 T-016~T-025 完成练习域结构重构：统一提交口径、清理废弃表、打通审核与报错闭环。
 
 # 非目标（Non-Goals）
 - 不扩展到 P1 范围。
@@ -72,6 +73,20 @@ updated_at: 2026-03-05
 | 标签层 | question_tags, question_tag_relations, knowledge_points, question_kp_relations | 标签/知识点关联 |
 | 练习日志层 | exam_records, user_attempts, error_book | 作答、判分、错题回写 |
 | 质控层 | content_review_logs, question_reports | 审核流与报错治理 |
+
+## 2026-03-05 范围更新（任务顺延）
+1. `questions` 字段重构：
+   - 新增：`curriculum`、`grade`、`subject_id`、`asset_url`、`source`、`tags`、`is_past_paper`、`paper_id`。
+   - 删除：`ocr_raw_text`、`ocr_confidence`、`original_question_id`、`version`。
+2. 直接删除并清理逻辑：
+   - `chapter_prerequisites`、`question_groups`、`question_tag_relations`、`knowledge_points`、`question_kp_relations`。
+3. 统一提交与统计：
+   - 所有练习模式统一写入 `exam_records + user_attempts`。
+   - `error_book` 下线，掌握度与薄弱点改为基于 `user_attempts` 实时聚合。
+4. 管理后台联通：
+   - `/admin/content/import`、`/admin/content/review`、`/admin/content/statistics` 使用真实数据链路。
+5. 报错闭环补齐：
+   - 增加 `question_reports` 用户前端入口并接通后台处理流程。
 
 ## 当前数据库基线（2026-03-05 本地快照）
 | 表 | 当前记录数 |

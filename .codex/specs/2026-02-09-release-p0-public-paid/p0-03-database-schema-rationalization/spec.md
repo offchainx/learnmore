@@ -4,7 +4,7 @@ status: active
 owner: codex
 related_story:
 created_at: 2026-03-02
-updated_at: 2026-03-04
+updated_at: 2026-03-05
 
 # 背景
 - 当前 P0 发布链路新增数据库专项梳理任务，目标是在上线前消除“字段无业务承接、表结构冗余、逻辑失配”的风险。
@@ -154,7 +154,9 @@ updated_at: 2026-03-04
 5. `T-007` 字段链路补齐与冗余字段调整方案定义（文档）完成。
 6. `T-008` 执行字段链路补齐与冗余字段治理开发（已完成）。
 7. `T-009` 执行前端用户域去 Mock 与双表接入开发（已完成）。
-8. `T-010` 处理 Admin 首页非用户双表 mock（待执行）。
+8. `T-010` 处理 Admin 首页非用户双表 mock（已完成）。
+9. `T-011` 数据库表格重点梳理（已完成，文档）。
+10. `T-012` 数据库表收敛执行（待执行，需用户确认）。
 
 # T-008 实施结果（开发完成）
 1. 登录镜像链路：
@@ -202,6 +204,54 @@ updated_at: 2026-03-04
 7. 验证结果：
    - `pnpm prisma generate` 通过。
    - `pnpm exec tsc --noEmit --incremental false` 通过。
+
+# T-010 实施结果（开发完成）
+1. 范围与边界：
+   - 仅处理 `/admin` 首页非用户双表 mock：KPI、工单、风险、审计动作。
+   - 不改动 `T-009` 已交付的用户域列表/权限/详情链路。
+2. 数据与聚合：
+   - 新增 `getAdminDashboardOverview(window)` 统一聚合入口，输出首页所需 KPI 与列表数据。
+   - KPI 第二张卡从“营收”改为“付费用户”（100% 可由真实数据计算）。
+3. 页面接入：
+   - `/admin` 页面改为服务端读取真实 overview 数据，去除首页 mock 常量依赖。
+   - `AdminDashboardV2` 的刷新/窗口切换改为真实刷新（`router.refresh` + URL window 参数）。
+4. 结论：
+   - 首页核心区块已脱离 mock，统计口径可追踪、可复算。
+   - 为后续 `T-011` 的全库表格梳理提供了真实字段消费样本。
+
+# T-011 实施结果（文档完成）
+## 审计范围与基线
+1. 基线对象：
+   - Prisma 模型/业务表：41 张（`prisma/schema.prisma`）。
+   - Supabase 迁移文件：7 个（含 `auth.users -> public.users` 触发器与镜像同步）。
+2. 审计方法：
+   - 表结构层：模型字段与 `@@map` 实际表名对齐。
+   - 运行时层：扫描 `src/**` 中 `prisma.<model>.*` 与 Supabase `.from(...)` 读写入口。
+   - 治理层：按“核心保留/观察保留/收敛候选”三级分组，不直接执行删改。
+
+## 全表分级结论（T-011）
+1. A 类（核心保留，读写活跃）：
+   - `users`、`user_settings`、`user_progress`、`user_attempts`、`questions`、`chapters`、`subjects`、`lessons`、`exam_records`、`error_book`、`daily_tasks`、`referrals`、`notifications`、`notification_preferences`、`security_logs`、`question_reports`、`source_files`、`user_feedbacks`、`user_permission_overrides`、`posts`、`comments`、`post_likes`。
+2. B 类（保留观察，读写较低但有明确业务语义）：
+   - `badges`、`user_badges`、`blog_posts`、`leaderboard_entries`、`voucher_codes`、`voucher_redemptions`、`parent_students`、`invite_codes`、`subscribers`、`admin_notes`、`impersonation_sessions`、`question_groups`、`content_review_logs`。
+3. C 类（收敛候选，当前未观测到运行时入口）：
+   - `chapter_prerequisites`
+   - `contact_submissions`
+   - `knowledge_points`
+   - `question_kp_relations`
+   - `question_tags`
+   - `question_tag_relations`
+
+## 关键结论
+1. 现阶段字段/表能力“够用”，主链路（注册、学习、练习、支付、管理后台）均有稳定数据支撑。
+2. `auth.users` 与 `public.users` 同步链路已在 `T-005/T-008` 闭环，本轮未发现回退迹象。
+3. 冗余风险主要集中在 C 类冷表；当前结论为“候选观察”，不直接删除。
+4. 下一步 `T-012` 只承接“收敛执行”：
+   - 先做冷表双环境探针与发布窗观测；
+   - 再决定下线/归档/保留；
+   - 全程要求回滚脚本与验收证据。
+5. 逐表明细证据：
+   - 41 张业务表的字段数、读写热度、入口样本已落入 `plan.md` 的 `T-011 逐表明细` 章节，可直接用于 T-012 下线评审输入。
 
 # 开发内容（必须先确认）
 

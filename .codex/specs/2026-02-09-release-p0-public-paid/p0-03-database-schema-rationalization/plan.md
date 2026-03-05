@@ -19,7 +19,9 @@
 5. `T-007` 基于 `T-006` 输出字段链路补齐与冗余字段调整方案（仅计划，不开发）。
 6. `T-008` 按已批准方案执行代码/SQL 变更与回归验证。
 7. `T-009` 执行前端用户域去 mock 并接入双表真实数据（开发执行）。
-8. `T-010` 处理 Admin 首页非用户双表 mock（后续任务）。
+8. `T-010` 处理 Admin 首页非用户双表 mock（已完成）。
+9. `T-011` 执行数据库表格重点梳理（已完成，文档）。
+10. `T-012` 执行数据库表收敛（待用户确认）。
 
 ## Server Action / 接口契约清单
 | Action/接口 | 调用入口 | 输入与校验 | 输出与错误 | 幂等/并发策略 | 审计字段 |
@@ -225,6 +227,118 @@ ORDER BY a.email;
    - `pnpm exec tsc --noEmit --incremental false` 通过。
 3. 范围外确认：
    - `/admin` 首页 KPI/工单/风险 mock 未纳入本轮，已归入 `T-010`。
+
+## T-010 实施顺序（已执行）
+1. 新增服务端首页聚合 action，统一输出 KPI/工单/风险/审计动作数据。
+2. `/admin` 页面改为服务端读取真实聚合结果，移除首页 mock 数据依赖。
+3. KPI 卡片口径调整：将“营收”重命名为“付费用户”，按可验证真实数据计算。
+4. 前端刷新与窗口切换改为真实刷新链路，移除假刷新行为。
+
+## T-010 实施记录（2026-03-05）
+1. 已落地改动：
+   - 新增 `src/actions/admin/dashboard-overview.ts`（真实 overview 聚合）。
+   - 更新 `src/app/(dashboard)/admin/page.tsx`（服务端真实数据读取）。
+   - 更新 `src/components/admin/dashboard/v2/AdminDashboardV2.tsx`（真实刷新与 window 切换）。
+2. 已确认口径：
+   - KPI 第二张卡标题为“付费用户”。
+   - 统计来源为真实库聚合，不再展示伪造营收值。
+3. 验证结果：
+   - `pnpm exec tsc --noEmit --incremental false` 通过。
+4. 后续承接：
+   - `T-011` 负责全库表格字段功能/逻辑/冗余梳理，不在 `T-010` 内展开。
+
+## T-011 审计方法（已执行，文档）
+1. 表结构盘点：
+   - 从 `prisma/schema.prisma` 提取 41 个模型及 `@@map` 实际表名。
+2. 运行时引用盘点：
+   - 扫描 `src/**` 的 `prisma.<model>.<op>()` 调用，统计读/写热度与入口文件。
+   - 补充扫描 Supabase 触发器与 `.from(...)` 直接调用，覆盖非 Prisma 链路。
+3. 分级规则：
+   - A 类：核心链路活跃读写，必须保留。
+   - B 类：低频但有明确业务语义，保留观察。
+   - C 类：当前未观测到运行时入口，纳入收敛候选。
+
+## T-011 审计记录（2026-03-05）
+1. 审计基线：
+   - 业务表总量：41。
+   - A 类：22 张；B 类：13 张；C 类：6 张。
+2. 热度摘要（按 `prisma.*` 调用次数）：
+   - 高活跃：`users(50)`、`questions(44)`、`user_attempts(29)`、`error_book(20)`、`source_files(19)`。
+   - 低活跃但有效：`voucher_redemptions(1)`、`user_permission_overrides(2)`、`question_groups(2)`、`subscribers(2)`。
+3. C 类候选（0 运行时调用）：
+   - `chapter_prerequisites`
+   - `contact_submissions`
+   - `knowledge_points`
+   - `question_kp_relations`
+   - `question_tags`
+   - `question_tag_relations`
+4. 结论：
+   - 本轮仅文档审计，不执行 schema/data 变更；
+   - 收敛执行统一进入 `T-012`，并要求双环境观测与回滚脚本。
+
+## T-011 逐表明细（字段数 + 读写热度 + 入口）
+> 说明：`读/写` 统计口径为 `src/**` 非测试代码中的 Prisma 调用次数（读=`find/count/aggregate`，写=`create/update/upsert/delete`）。
+
+### A 类（核心保留）
+| 表名 | 字段数 | 读/写 | Prisma 模型 | 主要入口（样本） |
+|---|---:|---:|---|---|
+| `users` | 58 | 37/13 | `User` | `src/actions/admin/dashboard-overview.ts`, `src/actions/admin/permission-override.ts` |
+| `questions` | 32 | 32/12 | `Question` | `src/actions/content-pipeline/import-service.ts`, `src/actions/content-pipeline/question-service.ts` |
+| `user_attempts` | 11 | 28/1 | `UserAttempt` | `src/actions/admin/user-details.ts`, `src/actions/courses/knowledge.ts` |
+| `source_files` | 14 | 6/13 | `SourceFile` | `src/actions/content-pipeline/import-service.ts` |
+| `error_book` | 8 | 12/8 | `ErrorBook` | `src/actions/admin/user-details.ts`, `src/actions/courses/knowledge.ts` |
+| `subjects` | 9 | 12/1 | `Subject` | `src/actions/community/post.ts`, `src/actions/content-pipeline/import-service.ts` |
+| `chapters` | 19 | 10/1 | `Chapter` | `src/actions/content-pipeline/question-service.ts`, `src/actions/courses/knowledge.ts` |
+| `daily_tasks` | 10 | 7/5 | `DailyTask` | `src/actions/dashboard.ts`, `src/actions/gamification/achievement.ts` |
+| `question_reports` | 12 | 8/3 | `QuestionReport` | `src/actions/admin/dashboard-overview.ts`, `src/actions/content-pipeline/question-service.ts` |
+| `user_feedbacks` | 15 | 8/3 | `UserFeedback` | `src/actions/admin/dashboard-overview.ts`, `src/actions/support/feedback.ts` |
+| `user_progress` | 9 | 8/1 | `UserProgress` | `src/actions/admin/dashboard-overview.ts`, `src/actions/courses/knowledge.ts` |
+| `notifications` | 12 | 6/3 | `Notification` | `src/actions/notification/core.ts`, `src/actions/notification/triggers.ts` |
+| `notification_preferences` | 12 | 4/2 | `NotificationPreference` | `src/actions/notification/core.ts`, `src/actions/notification/preferences.ts` |
+| `security_logs` | 8 | 4/7 | `SecurityLog` | `src/actions/admin/dashboard-overview.ts`, `src/actions/admin/permission-override.ts` |
+| `exam_records` | 14 | 4/2 | `ExamRecord` | `src/actions/practice/data-service.ts`, `src/actions/practice/exam.ts` |
+| `posts` | 15 | 6/3 | `Post` | `src/actions/community/post.ts`, `src/actions/gamification/achievements.ts` |
+| `comments` | 8 | 2/1 | `Comment` | `src/actions/community/post.ts`, `src/actions/gamification/achievements.ts` |
+| `post_likes` | 6 | 1/2 | `PostLike` | `src/actions/community/post.ts` |
+| `referrals` | 19 | 2/1 | `Referral` | `src/actions/billing/referral.ts`, `src/app/(dashboard)/admin/referrals/page.tsx` |
+| `user_settings` | 13 | 2/7 | `UserSettings` | `src/actions/notification/preferences.ts`, `src/actions/user/auth.ts` |
+| `user_permission_overrides` | 10 | 1/1 | `UserPermissionOverride` | `src/actions/admin/permission-override.ts` |
+| `lessons` | 12 | 5/0 | `Lesson` | `src/actions/courses/progress.ts`, `src/actions/courses/subject.ts` |
+
+### B 类（保留观察）
+| 表名 | 字段数 | 读/写 | Prisma 模型 | 主要入口（样本） |
+|---|---:|---:|---|---|
+| `admin_notes` | 9 | 3/4 | `AdminNote` | `src/actions/admin/user-ops.ts` |
+| `impersonation_sessions` | 9 | 3/4 | `ImpersonationSession` | `src/actions/admin/user-details.ts`, `src/actions/admin/user-ops.ts` |
+| `voucher_codes` | 13 | 2/2 | `VoucherCode` | `src/actions/admin/voucher.ts`, `src/actions/billing/checkout.ts` |
+| `leaderboard_entries` | 8 | 3/2 | `LeaderboardEntry` | `src/app/api/cron/cleanup-leaderboard/route.ts`, `src/lib/leaderboard/pg-adapter.ts` |
+| `invite_codes` | 7 | 1/2 | `InviteCode` | `src/actions/user/parent.ts` |
+| `badges` | 8 | 2/1 | `Badge` | `src/actions/gamification/achievements.ts` |
+| `parent_students` | 6 | 2/1 | `ParentStudent` | `src/actions/user/parent.ts` |
+| `subscribers` | 3 | 1/1 | `Subscriber` | `src/actions/marketing/campaign.ts` |
+| `blog_posts` | 13 | 3/0 | `BlogPost` | `src/actions/community/blog.ts`, `src/app/sitemap.ts` |
+| `question_groups` | 19 | 2/0 | `QuestionGroup` | `src/actions/practice/past-papers.ts`, `src/app/(dashboard)/dashboard/practice/past-paper/[groupId]/page.tsx` |
+| `user_badges` | 6 | 2/0 | `UserBadge` | `src/actions/gamification/achievements.ts` |
+| `voucher_redemptions` | 8 | 1/0 | `VoucherRedemption` | `src/actions/billing/checkout.ts` |
+| `content_review_logs` | 11 | 0/3 | `ContentReviewLog` | `src/actions/content-pipeline/question-service.ts` |
+
+### C 类（收敛候选）
+| 表名 | 字段数 | 读/写 | Prisma 模型 | 当前入口 |
+|---|---:|---:|---|---|
+| `chapter_prerequisites` | 5 | 0/0 | `ChapterPrerequisite` | `-` |
+| `contact_submissions` | 7 | 0/0 | `ContactSubmission` | `-` |
+| `knowledge_points` | 11 | 0/0 | `KnowledgePoint` | `-` |
+| `question_kp_relations` | 5 | 0/0 | `KnowledgePointRelation` | `-` |
+| `question_tags` | 9 | 0/0 | `QuestionTag` | `-` |
+| `question_tag_relations` | 5 | 0/0 | `QuestionTagRelation` | `-` |
+
+## T-012 执行门禁（待执行）
+1. 先验证 C 类表是否存在隐藏读写入口（crons、脚本、后台工具、SQL 任务）。
+2. 连续两个发布周期观测为 0 调用后，才可进入下线评审。
+3. 任一候选下线必须提供：
+   - 迁移脚本（up/down）；
+   - 预发回放证据；
+   - 发布后监控指标与告警阈值。
 
 ## 豁免与台账规则
 1. 豁免只允许：明确 smoke/seed 测试数据，或无业务影响的历史不可逆遗留。

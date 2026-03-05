@@ -5,35 +5,26 @@
 
 import type {
   Question,
-  QuestionGroup,
   SourceFile,
-  QuestionTag,
-  KnowledgePoint,
   ContentReviewLog,
   QuestionReport,
   QuestionType,
   ContentStatus,
   ProcessingStatus,
-  TagCategory,
   ReviewAction,
   ReportIssueType,
   ReportStatus,
-  Subject,
 } from '@prisma/client'
 
 // ==================== 重导出 Prisma 类型 ====================
 export type {
   Question,
-  QuestionGroup,
   SourceFile,
-  QuestionTag,
-  KnowledgePoint,
   ContentReviewLog,
   QuestionReport,
   QuestionType,
   ContentStatus,
   ProcessingStatus,
-  TagCategory,
   ReviewAction,
   ReportIssueType,
   ReportStatus,
@@ -108,25 +99,13 @@ export interface QuestionWithRelations extends Question {
       name: string
     }
   } | null
-  group?: QuestionGroup | null
-  tags?: Array<{
-    tag: {
-      id: string
-      name: string
-      category: TagCategory
-    }
-  }>
-  knowledgePoints?: Array<{
-    kp: {
-      id: string
-      code: string
-      name: string
-    }
-  }>
-  sourceFiles?: SourceFile[]
+  subject?: {
+    id: string
+    name: string
+  } | null
+  sourceFile?: SourceFile | null
   _count?: {
     attempts: number
-    errorBook: number
   }
 }
 
@@ -137,13 +116,19 @@ export interface CreateQuestionInput {
   content: string
   type: QuestionType
   difficulty?: number
+  curriculum?: string
+  grade?: number | null
+  subjectId?: string | null
   options?: Record<string, string> | null
-  answer: JsonValue // JSON 类型，根据题型不同格式不同
+  answer: JsonValue
   explanation?: string | null
   chapterId?: string | null
-  groupId?: string | null
-  ocrRawText?: string | null
-  ocrConfidence?: number | null
+  sourceFileId?: string | null
+  source?: string | null
+  tags?: string[]
+  assetUrl?: string | null
+  isPastPaper?: boolean
+  paperId?: string | null
   contentHash?: string | null
   qualityScore?: number | null
   createdBy?: string | null
@@ -156,11 +141,19 @@ export interface UpdateQuestionInput {
   content?: string
   type?: QuestionType
   difficulty?: number
+  curriculum?: string
+  grade?: number | null
+  subjectId?: string | null
   options?: Record<string, string> | null
   answer?: JsonValue
   explanation?: string | null
   chapterId?: string | null
-  groupId?: string | null
+  sourceFileId?: string | null
+  source?: string | null
+  tags?: string[]
+  assetUrl?: string | null
+  isPastPaper?: boolean
+  paperId?: string | null
   qualityScore?: number | null
 }
 
@@ -170,7 +163,6 @@ export interface UpdateQuestionInput {
 export interface BulkCreateQuestionsInput {
   questions: CreateQuestionInput[]
   sourceFileId?: string
-  groupId?: string
   createdBy?: string
 }
 
@@ -181,10 +173,14 @@ export interface QuestionFilter {
   status?: ContentStatus | ContentStatus[]
   type?: QuestionType | QuestionType[]
   difficulty?: number | { min?: number; max?: number }
+  curriculum?: string | string[]
+  grade?: number | { min?: number; max?: number }
   chapterId?: string
   subjectId?: string
-  groupId?: string
-  hasGroup?: boolean
+  sourceFileId?: string
+  source?: string
+  isPastPaper?: boolean
+  paperId?: string
   searchText?: string
   createdBy?: string
   reviewedBy?: string
@@ -200,30 +196,6 @@ export interface QuestionSortOptions {
   order: 'asc' | 'desc'
 }
 
-// ==================== 题组相关类型 ====================
-
-/**
- * 创建题组输入
- */
-export interface CreateQuestionGroupInput {
-  content: string
-  subjectId: string
-  materialUrl?: string | null
-  source?: string | null
-  sourceYear?: number | null
-  sourcePaper?: string | null
-  createdBy?: string | null
-}
-
-/**
- * 带完整关联的题组类型
- */
-export interface QuestionGroupWithRelations extends QuestionGroup {
-  subject?: Subject
-  questions?: Question[]
-  sourceFiles?: SourceFile[]
-}
-
 // ==================== 源文件相关类型 ====================
 
 /**
@@ -232,7 +204,7 @@ export interface QuestionGroupWithRelations extends QuestionGroup {
 export interface CreateSourceFileInput {
   filename: string
   fileUrl: string
-  fileType: 'pdf' | 'image' | 'docx'
+  fileType: 'pdf' | 'image' | 'docx' | 'html'
   fileSize: number
   uploadedBy: string
 }
@@ -241,52 +213,7 @@ export interface CreateSourceFileInput {
  * 带完整关联的源文件类型
  */
 export interface SourceFileWithRelations extends SourceFile {
-  questionGroups?: QuestionGroup[]
   questions?: Question[]
-}
-
-// ==================== 标签相关类型 ====================
-
-/**
- * 创建标签输入
- */
-export interface CreateTagInput {
-  name: string
-  category: TagCategory
-  color?: string | null
-  parentId?: string | null
-}
-
-/**
- * 带层级的标签类型
- */
-export interface TagWithHierarchy extends QuestionTag {
-  parent?: QuestionTag | null
-  children?: QuestionTag[]
-  questionCount?: number
-}
-
-// ==================== 知识点相关类型 ====================
-
-/**
- * 创建知识点输入
- */
-export interface CreateKnowledgePointInput {
-  code: string
-  name: string
-  description?: string | null
-  subjectId: string
-  parentId?: string | null
-}
-
-/**
- * 带层级的知识点类型
- */
-export interface KnowledgePointWithHierarchy extends KnowledgePoint {
-  parent?: KnowledgePoint | null
-  children?: KnowledgePoint[]
-  subject?: Subject
-  questionCount?: number
 }
 
 // ==================== 工具函数类型 ====================

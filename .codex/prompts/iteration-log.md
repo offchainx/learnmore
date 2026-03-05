@@ -33,6 +33,8 @@
 | 2026-03-05 | p0-02 AC-02（T-010~T-012） | 实现并验证 impersonate status 与 impersonation_sessions 一致性 | 完成 status 一致性收敛、单测与本地API/SQL对照，AC-02 三个任务置 done | 抽离会话判定函数 + 接口三重一致性校验 + 临时会话对照脚本 | 云端预发仍受 Vercel Auth required 限制 | 先做 deterministic 单测覆盖状态机，再用临时会话做 API/SQL 黑盒对照 | 推进 AC-03 user/voucher 字段与逻辑核对 |
 | 2026-03-05 | p0-02 AC-03（T-013~T-015） | 完成 user/voucher 字段映射核对、voucher 核销幂等加固与证据回填 | 已新增 voucher_redemptions 唯一约束并改造 webhook 核销并发逻辑；完成本地 SQL/Prisma 对照；tasks/acceptance/release 文档同步收尾 | 先落库约束再改业务逻辑，最后用临时数据脚本验证并清理，证据链完整 | 全量 lint 受历史遗留错误影响，无法作为本轮通过条件 | 采用“定向 tsc + 定向 eslint + 数据库脚本证据”作为 AC-03 固定闭环模板 | 推进 T-006 收尾项（权限矩阵与 admin 回归证据补齐） |
 
+| 2026-03-05 | P0-06练习模块重构与文档同步 | 同步T-016~T-025计划并推进练习数据模型改造 | 已完成文档更新与大部分代码改造，待继续完成编译修复与剩余任务 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

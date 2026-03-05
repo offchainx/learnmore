@@ -124,10 +124,11 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
         createdAt: { gte: minDate }, // C3: Retention filter
       },
     }),
-    prisma.errorBook.count({
+    prisma.userAttempt.count({
       where: {
         userId: user.id,
-        updatedAt: { gte: minDate }, // C3: Retention filter
+        isCorrect: false,
+        createdAt: { gte: minDate }, // C3: Retention filter
       },
     }),
     prisma.userProgress.findMany({
@@ -211,7 +212,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     }))
   }
 
-  // 6. Weakness Sniper（无错题时跳过重查询）
+  // 6. Weakness Sniper（基于 attempts 实时聚合）
   let weaknesses: {
     id: string
     topic: string
@@ -220,13 +221,14 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   }[] = []
 
   if (mistakeCount > 0) {
-    const errors = await prisma.errorBook.findMany({
+    const errors = await prisma.userAttempt.findMany({
       where: {
         userId: user.id,
-        updatedAt: { gte: minDate }, // C3: Retention filter
+        isCorrect: false,
+        createdAt: { gte: minDate }, // C3: Retention filter
       },
-      take: 5,
-      orderBy: { masteryLevel: 'asc' },
+      take: 200,
+      orderBy: { createdAt: 'desc' },
       include: {
         question: {
           include: {
@@ -240,13 +242,28 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
       },
     })
 
-    weaknesses = errors
-      .filter((e) => e.question.chapter !== null)
-      .map((e) => ({
-        id: e.id,
-        topic: e.question.chapter!.title,
-        subject: e.question.chapter!.subject.name,
-        masteryLevel: e.masteryLevel,
+    const chapterMistakes = new Map<string, { id: string; topic: string; subject: string; count: number }>()
+    for (const e of errors) {
+      const chapter = e.question.chapter
+      if (!chapter) continue
+      const existing = chapterMistakes.get(chapter.id) || {
+        id: chapter.id,
+        topic: chapter.title,
+        subject: chapter.subject.name,
+        count: 0,
+      }
+      existing.count += 1
+      chapterMistakes.set(chapter.id, existing)
+    }
+
+    weaknesses = Array.from(chapterMistakes.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+      .map((item) => ({
+        id: item.id,
+        topic: item.topic,
+        subject: item.subject,
+        masteryLevel: Math.max(0, 3 - Math.min(3, item.count)),
       }))
   }
 

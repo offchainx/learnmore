@@ -128,7 +128,7 @@ export async function getUserActivityData(userId: string): Promise<Admin.ActionR
     const correctAttempts = await prisma.userAttempt.count({ where: { userId, isCorrect: true } })
     const accuracy = attemptsCount > 0 ? Math.round((correctAttempts / attemptsCount) * 100) : 0
     
-    const mistakesCount = await prisma.errorBook.count({ where: { userId } })
+    const mistakesCount = await prisma.userAttempt.count({ where: { userId, isCorrect: false } })
     
     // Days Active: derive from DailyTask (LOGIN type) or UserAttempt dates
     // For simplicity, using user.streak or aggregation. Let's use user.streak for now as proxy or count distinct dates in UserAttempt

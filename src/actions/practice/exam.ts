@@ -338,12 +338,6 @@ export async function submitExam(
       data: attemptData
     })
 
-    // 8. 错题加入错题本
-    const wrongAnswers = results.filter(r => !r.isCorrect)
-    if (wrongAnswers.length > 0) {
-      await addToErrorBook(userId, wrongAnswers.map(w => w.questionId))
-    }
-
     await incrementTotalStudyTime(userId, duration)
 
     return {
@@ -450,26 +444,4 @@ function checkAnswer(
   }
 
   return false
-}
-
-/**
- * 将错题加入错题本
- */
-async function addToErrorBook(userId: string, questionIds: string[]): Promise<void> {
-  for (const questionId of questionIds) {
-    await prisma.errorBook.upsert({
-      where: {
-        userId_questionId: { userId, questionId }
-      },
-      create: {
-        userId,
-        questionId,
-        masteryLevel: 0
-      },
-      update: {
-        masteryLevel: 0, // 重置掌握度
-        updatedAt: new Date()
-      }
-    })
-  }
 }

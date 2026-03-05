@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -380,6 +381,9 @@ export default function AdminDashboardV2({
   initialWindow = 'TODAY',
   initialState = 'SUCCESS',
 }: AdminDashboardV2Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [window, setWindow] = useState<AdminDashboardWindow>(initialWindow)
   const [state, setState] = useState<AdminDashboardLoadState>(initialState)
   const [loading, setLoading] = useState(false)
@@ -392,17 +396,27 @@ export default function AdminDashboardV2({
   const visibleAudits = audits.filter((i) => isVisible(i.visibleTo))
   const visibleActions = actions.filter((i) => isVisible(i.visibleTo))
 
+  useEffect(() => {
+    setWindow(initialWindow)
+  }, [initialWindow])
+
+  useEffect(() => {
+    setState(initialState)
+    setLoading(false)
+  }, [initialState, kpis, workQueue, risks, audits, actions, lastUpdated])
+
   const handleRefresh = () => {
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      setState('SUCCESS')
-    }, 500)
+    router.refresh()
   }
 
   const handleWindowChange = (nextWindow: AdminDashboardWindow) => {
     setWindow(nextWindow)
-    handleRefresh()
+    setLoading(true)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('window', nextWindow)
+    const query = params.toString()
+    router.replace(query ? `${pathname}?${query}` : pathname)
   }
 
   if (state === 'LOADING') {

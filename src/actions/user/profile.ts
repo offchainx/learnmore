@@ -37,7 +37,6 @@ export async function getProfile() {
         },
         _count: {
           select: {
-            errorBook: true,
             posts: true,
             leaderboardEntries: true,
           }
@@ -64,7 +63,6 @@ export async function getProfile() {
       settings: null,
       badges: [],
       _count: {
-        errorBook: 0,
         posts: 0,
         leaderboardEntries: 0,
       },

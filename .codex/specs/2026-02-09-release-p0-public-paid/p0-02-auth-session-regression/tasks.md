@@ -7,7 +7,7 @@
 | T-003 | DOC | 新增 user/voucher 表格与字段逻辑核对工作项，并同步四件套文档 | codex | done |  |
 | T-004 | GATE | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
 | T-005 | AC-01 | 实现登录/登出/刷新/跨标签会话一致性与受保护路由行为 | codex | done |  |
-| T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | doing | main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
+| T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | done | main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92, main@609e622 |
 | T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | done | main@932eefb + Playwright 空闲观测证据（2026-03-04） |
 | T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | done | workspace change (2026-03-05): `auth.test.ts` + Playwright 本地流转 + SQL 快照 |
 | T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | done | workspace change (2026-03-05): `pnpm build && pnpm start -p 3001` 生产模式复测（Vercel 预发需认证） |
@@ -24,9 +24,9 @@
 
 | sub-id | scope | description | status (todo/doing/done) | evidence |
 |---|---|---|---|---|
-| T-006.1 | admin/* | 梳理并修复 `/admin/**` 重定向与入口行为（含 `/admin` 管理员总览面板入口） | doing | `/admin` 入口与 admin 子路由收口：main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
-| T-006.2 | dashboard/* | 梳理并修复 `/dashboard/**` 重定向与会话保护行为 | doing | 已下线：`/dashboard/debug/ui-kit`、`/dashboard/knowledge-graph`、`/dashboard/practice/import`、`/dashboard/settings/notifications`、`/course/:subjectId`、`/course/:subjectId/:lessonId`、`/checkout/config`（workspace changes, 2026-03-04） |
-| T-006.3 | auth + middleware | 统一 `/login`、`/register`、`redirectTo` 与 middleware 安全规则 | todo |  |
+| T-006.1 | admin/* | 梳理并修复 `/admin/**` 重定向与入口行为（含 `/admin` 管理员总览面板入口） | done | `/admin` 入口与 admin 子路由收口：main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
+| T-006.2 | dashboard/* | 梳理并修复 `/dashboard/**` 重定向与会话保护行为 | done | 已下线：`/dashboard/debug/ui-kit`、`/dashboard/knowledge-graph`、`/dashboard/practice/import`、`/dashboard/settings/notifications`、`/course/:subjectId`、`/course/:subjectId/:lessonId`、`/checkout/config`（workspace changes, 2026-03-04） |
+| T-006.3 | auth + middleware | 统一 `/login`、`/register`、`redirectTo` 与 middleware 安全规则 | done | `redirectTo` 安全规则与登录回跳已在 AC-01/AC-04 验收矩阵验证通过（2026-03-05） |
 
 ## T-006.1 阶段进展（2026-03-04）
 - [x] `/admin` 从重定向入口改为真实管理员总览面板入口。
@@ -45,7 +45,7 @@
 - [x] `/course/:subjectId` 与 `/course/:subjectId/:lessonId` 下线为 404，课程入口统一收口到 `/dashboard/courses`。
 - [x] `/checkout/config` 下线为 404，支付入口统一从 `/pricing` 直连 Stripe Checkout。
 - [x] 完成 `src/app/**/page.tsx` 全量路由扫描（含保护/无保护）并更新 `受保护路由.md` 基线清单。
-- [ ] 完成 `admin/**` 全量未登录重定向与已登录行为矩阵验证。
+- [x] 完成 `admin/**` 全量未登录重定向与已登录行为矩阵验证。
 
 ## T-006 开发日志（逐步记录）
 1. `/admin` 改为真实管理员总览入口（停止重定向到 `/admin/content/review`）。

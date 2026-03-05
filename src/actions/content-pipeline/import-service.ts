@@ -268,9 +268,9 @@ export async function importFromPDF(
 
         return convertToCreateInput(q, {
           chapterId: input.chapterId,
-          groupId: input.groupId,
-          ocrRawText: undefined, // 单个题目不保存 OCR 原文，源文件中已保存
-          ocrConfidence: avgConfidence,
+          subjectId: input.subjectId,
+          sourceFileId: sourceFile.id,
+          source: input.source,
           qualityScore,
         })
       })
@@ -411,12 +411,10 @@ export async function resumeFailedImport(
     // 获取原始科目 ID（从已关联的题目或使用传入的值）
     const existingQuestion = await prisma.question.findFirst({
       where: {
-        sourceFiles: {
-          some: { id: sourceFile.id },
-        },
+        sourceFileId: sourceFile.id,
       },
       include: {
-        chapter: true,
+        chapter: { select: { subjectId: true } },
       },
     })
 
@@ -781,9 +779,7 @@ export async function deleteImportTask(
     if (options?.deleteQuestions) {
       const result = await prisma.question.deleteMany({
         where: {
-          sourceFiles: {
-            some: { id: sourceFileId },
-          },
+          sourceFileId,
         },
       })
       questionsDeleted = result.count

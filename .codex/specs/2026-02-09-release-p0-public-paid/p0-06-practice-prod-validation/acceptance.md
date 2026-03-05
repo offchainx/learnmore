@@ -1,5 +1,14 @@
 # 验收标准（Acceptance）
 
+## 2026-03-05 新增验收主线（T-016 ~ T-025）
+- `questions` 新字段可写可读，且历史数据完成回填；旧字段删除后主流程无回归。
+- 废弃表删除后编译通过、运行时无 relation 报错。
+- 五模式提交统一口径：均写 `exam_records + user_attempts`，统计一致。
+- 练习侧仅可见 `PUBLISHED` 题目。
+- `error_book` 下线后，Error Wiper/推荐/蜂巢/预测仍可运行并基于 attempts 聚合。
+- `/admin/content/import`、`/admin/content/review`、`/admin/content/statistics` 均连接真实数据。
+- `question_reports`：用户端可提交、管理端可处理、状态与计数可核账。
+
 ## 功能验收（Given / When / Then）
 - 给定：已完成题目域数据库审计
   当：查看审计矩阵与基线快照
@@ -102,3 +111,4 @@
 - [ ] Practice 链路本地验证完成
 - [ ] Practice 链路预发复测完成
 - [ ] 回滚方案可执行并已演练
+- [ ] T-016~T-025 回归矩阵通过并产出最终验收报告

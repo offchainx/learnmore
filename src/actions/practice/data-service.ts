@@ -385,7 +385,9 @@ export async function getRandomQuestions(
   }
 
   // 2. 构建基础查询条件
-  const whereCondition: Prisma.QuestionWhereInput = {}
+  const whereCondition: Prisma.QuestionWhereInput = {
+    status: { in: ['PUBLISHED', 'VERIFIED'] },
+  }
 
   // C1: Apply Tier-based filtering (Business Integration)
   // Starter: 只能做 1-2 星 (Basic)
@@ -414,15 +416,8 @@ export async function getRandomQuestions(
   if (chapterIds && chapterIds.length > 0) {
     whereCondition.chapterId = { in: chapterIds }
   } else if (subjectId) {
-    // 如果没有指定章节但指定了科目，查询该科目下所有章节的题目
-    whereCondition.chapter = {
-      subjectId
-    }
-  }
-
-  // 难度筛选
-  if (difficulty && difficulty.length > 0) {
-    whereCondition.difficulty = { in: difficulty }
+    // 如果没有指定章节但指定了科目，直接按冗余 subjectId 筛选
+    whereCondition.subjectId = subjectId
   }
 
   // 题型筛选

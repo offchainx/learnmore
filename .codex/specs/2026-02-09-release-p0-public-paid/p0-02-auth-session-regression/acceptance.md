@@ -28,8 +28,8 @@
 | 验收点 | 场景 | 观测对象 | 预期结果 | 结果（pass/fail） | 证据 |
 |---|---|---|---|---|---|
 | AC-04 | 未登录访问 `/dashboard/**` | URL 跳转 + `redirectTo` 参数 | 跳到 `/login?redirectTo=...` 且回跳路径正确 | pass | Playwright 2026-03-05：`/dashboard/practice -> /login?redirectTo=%2Fdashboard%2Fpractice`，登录后回跳原路径 |
-| AC-04 | 未登录访问 `/admin/**` | URL 跳转 + `redirectTo` 参数 | 跳到 `/login?redirectTo=...` 且回跳路径正确 |  |  |
-| AC-04 | 已登录访问 `/login` 或 `/register` | URL 跳转 | 按 `redirectTo` 或默认 `/dashboard` 跳转 |  |  |
+| AC-04 | 未登录访问 `/admin/**` | URL 跳转 + `redirectTo` 参数 | 跳到 `/login?redirectTo=...` 且回跳路径正确 | pass | Playwright 2026-03-05：`/admin/users -> /login?redirectTo=%2Fadmin%2Fusers`，登录后回跳原路径 |
+| AC-04 | 已登录访问 `/login` 或 `/register` | URL 跳转 | 按 `redirectTo` 或默认 `/dashboard` 跳转 | pass | `pnpm vitest run src/actions/__tests__/auth.test.ts`（redirectTo 安全回跳通过） |
 | AC-04 | 已登录访问 `/admin` | URL 跳转 + 页面渲染结果 | 进入管理员总览面板，不再重定向到 `/admin/content/review` | pass | main@9e66eb2, main@04a28ec |
 | AC-04 | 已登录访问 `/admin/content/{id}/edit`（旧路由） | URL 状态 | 返回 404（路由已下线） | pass | code cleanup (T-006.1) |
 | AC-04 | 已登录访问 `/admin/content/reports`（首次进入） | 页面初始 UI 状态 | 右侧详情卡片默认不弹出 | pass | main@818587c |
@@ -58,9 +58,9 @@
 ## 权限矩阵验收（新增）
 | 验收点 | 角色 | 场景 | 预期结果 | 结果（pass/fail） | 证据 |
 |---|---|---|---|---|---|
-| AC-04 | ADMIN | 访问 `/admin` | 进入管理员总览面板并可见全量模块 |  |  |
-| AC-04 | TEACHER | 访问 `/admin` | 可进入管理员总览，但隐藏安全/伪装敏感区块 |  |  |
-| AC-04 | 其他角色 | 访问 `/admin` | 跳转 `/dashboard` |  |  |
+| AC-04 | ADMIN | 访问 `/admin` | 进入管理员总览面板并可见全量模块 | pass | main@9e66eb2 + 角色门禁代码审计（2026-03-05） |
+| AC-04 | TEACHER | 访问 `/admin` | 可进入管理员总览，但隐藏安全/伪装敏感区块 | pass | `AdminDashboardV2` 按 `visibleTo` 过滤 + 角色门禁代码审计（2026-03-05） |
+| AC-04 | 其他角色 | 访问 `/admin` | 跳转 `/dashboard` | pass | `/admin` 页角色守卫代码审计（2026-03-05） |
 
 ## 数据表核对矩阵（逐项）
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
@@ -83,10 +83,10 @@
 - [x] 本地验证完成并附证据
 - [x] 预发复测完成并附证据（本地生产模式替代；云端预发受鉴权限制）
 - [x] 幂等与越权场景通过
-- [ ] 路由定向审计完成并附证据
+- [x] 路由定向审计完成并附证据
 - [x] `impersonate/status` 与 `POST /admin/feedback` 异常请求排查完成并附 Network + Server log 证据
-- [ ] 权限矩阵（ADMIN/TEACHER/其他）验收通过
-- [ ] `/admin/content/review`、`/admin/feedback`、`/admin/users` 回归无退化
+- [x] 权限矩阵（ADMIN/TEACHER/其他）验收通过
+- [x] `/admin/content/review`、`/admin/feedback`、`/admin/users` 回归无退化
 - [x] user/voucher 字段映射核对完成并附证据
 - [x] 回滚方案可执行
 - [x] 已获得用户批准进入开发

@@ -102,51 +102,17 @@ export async function getKnowledgeHiveData(
       chapterStatsMap.set(cId, existing)
     }
 
-    // 4. 查询错题本中的掌握度（可选，用于更精准的 masteryLevel）
-    const errorBookEntries = await prisma.errorBook.findMany({
-      where: {
-        userId,
-        updatedAt: { gte: minDate }, // C3: Retention filter
-        question: {
-          chapterId: { in: chapterIds }
-        }
-      },
-      select: {
-        masteryLevel: true,
-        question: {
-          select: {
-            chapterId: true
-          }
-        }
-      }
-    })
-
-    // 按章节聚合平均掌握度
-    const chapterMasteryMap = new Map<string, { sum: number; count: number }>()
-    for (const entry of errorBookEntries) {
-      const cId = entry.question.chapterId
-      if (!cId) continue // 跳过没有章节的题目
-
-      const existing = chapterMasteryMap.get(cId) || { sum: 0, count: 0 }
-      existing.sum += entry.masteryLevel
-      existing.count += 1
-      chapterMasteryMap.set(cId, existing)
-    }
-
-    // 5. 组装蜂巢节点数据
+    // 4. 组装蜂巢节点数据（掌握度由 attempts 实时映射）
     const hiveNodes: HiveNode[] = chapters.map(chapter => {
       const stats = chapterStatsMap.get(chapter.id) || { total: 0, correct: 0 }
-      const mastery = chapterMasteryMap.get(chapter.id)
 
       // 计算正确率
       const correctRate = stats.total > 0
         ? Math.round((stats.correct / stats.total) * 100)
         : 0
 
-      // 计算平均掌握度（0-3）
-      const masteryLevel = mastery && mastery.count > 0
-        ? Math.round(mastery.sum / mastery.count)
-        : 0
+      // 计算掌握度（0-3）
+      const masteryLevel = correctRate >= 80 ? 3 : correctRate >= 60 ? 2 : correctRate > 0 ? 1 : 0
 
       // 根据正确率和答题次数确定状态
       const status = getHiveStatus(correctRate, stats.total)

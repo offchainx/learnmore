@@ -113,16 +113,7 @@ async function main() {
         })
       }
       
-      // Also update ErrorBook for Weak ones
-      if (attemptsCount > 0 && correctCount / attemptsCount < 0.8) {
-        await prisma.errorBook.create({
-          data: {
-            userId: user.id,
-            questionId: question.id,
-            masteryLevel: correctCount / attemptsCount < 0.6 ? 0 : 1
-          }
-        })
-      }
+      // ErrorBook 已下线，薄弱点由 attempts 实时聚合
     }
   }
 

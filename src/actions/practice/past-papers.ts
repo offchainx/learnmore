@@ -1,16 +1,16 @@
-'use server';
+'use server'
 
-import { ContentStatus } from '@prisma/client';
-import prisma from '@/lib/prisma';
+import { ContentStatus } from '@prisma/client'
+import prisma from '@/lib/prisma'
 
 export interface PastPaperItem {
-  id: string;
-  title: string;
-  sourcePaper: string | null;
-  sourceYear: number | null;
-  questionCount: number;
-  status: ContentStatus;
-  updatedAt: string;
+  id: string
+  title: string
+  sourcePaper: string | null
+  sourceYear: number | null
+  questionCount: number
+  status: ContentStatus
+  updatedAt: string
 }
 
 export async function getPastPapersBySubject(
@@ -18,46 +18,55 @@ export async function getPastPapersBySubject(
   limit: number = 12
 ): Promise<{ success: boolean; data?: PastPaperItem[]; error?: string }> {
   try {
-    if (!subjectId) {
-      return { success: false, error: 'Subject ID is required' };
-    }
+    if (!subjectId) return { success: false, error: 'Subject ID is required' }
 
-    const groups = await prisma.questionGroup.findMany({
+    const questions = await prisma.question.findMany({
       where: {
         subjectId,
-        status: {
-          not: ContentStatus.ARCHIVED,
-        },
+        isPastPaper: true,
+        paperId: { not: null },
+        status: { in: [ContentStatus.PUBLISHED, ContentStatus.VERIFIED] },
       },
-      include: {
-        _count: {
-          select: {
-            questions: true,
-          },
-        },
+      select: {
+        paperId: true,
+        source: true,
+        status: true,
+        updatedAt: true,
       },
-      orderBy: [
-        { sourceYear: 'desc' },
-        { updatedAt: 'desc' },
-      ],
-      take: Math.max(1, limit),
-    });
+      orderBy: { updatedAt: 'desc' },
+      take: 500,
+    })
 
-    const data = groups
-      .filter(group => group._count.questions > 0)
-      .map(group => ({
-        id: group.id,
-        title: group.sourcePaper || group.source || group.content.slice(0, 80),
-        sourcePaper: group.sourcePaper,
-        sourceYear: group.sourceYear,
-        questionCount: group._count.questions,
-        status: group.status,
-        updatedAt: group.updatedAt.toISOString(),
-      }));
+    const grouped = new Map<string, PastPaperItem>()
+    for (const q of questions) {
+      if (!q.paperId) continue
+      const existing = grouped.get(q.paperId)
+      if (!existing) {
+        grouped.set(q.paperId, {
+          id: q.paperId,
+          title: q.source || `Past Paper ${q.paperId}`,
+          sourcePaper: q.source,
+          sourceYear: null,
+          questionCount: 1,
+          status: q.status,
+          updatedAt: q.updatedAt.toISOString(),
+        })
+      } else {
+        existing.questionCount += 1
+        if (q.updatedAt > new Date(existing.updatedAt)) {
+          existing.updatedAt = q.updatedAt.toISOString()
+          existing.status = q.status
+        }
+      }
+    }
 
-    return { success: true, data };
+    const data = Array.from(grouped.values())
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, Math.max(1, limit))
+
+    return { success: true, data }
   } catch (error) {
-    console.error('Failed to fetch past papers:', error);
-    return { success: false, error: 'Failed to fetch past papers' };
+    console.error('Failed to fetch past papers:', error)
+    return { success: false, error: 'Failed to fetch past papers' }
   }
 }

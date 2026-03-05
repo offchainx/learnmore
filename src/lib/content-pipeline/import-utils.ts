@@ -106,9 +106,9 @@ export function convertToCreateInput(
   question: AIStructuredQuestion,
   metadata: {
     chapterId?: string | null
-    groupId?: string | null
-    ocrRawText?: string
-    ocrConfidence?: number
+    subjectId?: string | null
+    sourceFileId?: string | null
+    source?: string | null
     qualityScore?: number
   }
 ): CreateQuestionInput {
@@ -120,9 +120,9 @@ export function convertToCreateInput(
     answer: question.answer as CreateQuestionInput['answer'],
     explanation: question.explanation ?? null,
     chapterId: metadata.chapterId ?? null,
-    groupId: metadata.groupId ?? null,
-    ocrRawText: metadata.ocrRawText ?? null,
-    ocrConfidence: metadata.ocrConfidence ?? null,
+    subjectId: metadata.subjectId ?? null,
+    sourceFileId: metadata.sourceFileId ?? null,
+    source: metadata.source ?? null,
     qualityScore: metadata.qualityScore ?? null,
   }
 }

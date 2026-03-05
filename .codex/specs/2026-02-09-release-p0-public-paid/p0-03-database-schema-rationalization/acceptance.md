@@ -147,6 +147,42 @@
 - 环境说明：
   - 本轮未执行数据库落库，仅提交 migration 文件。
 
+## T-010 执行验收标准（开发）
+1. `/admin` 首页 KPI/工单/风险/审计动作不再读取 mock 常量，全部来自服务端真实聚合。
+2. KPI 第二张卡标题为“付费用户”，且指标值可由数据库口径复算。
+3. 页面刷新与窗口切换为真实刷新链路，不存在伪刷新成功状态。
+4. 不影响 `T-009` 已交付的用户域链路（用户列表、权限调控、用户详情）。
+
+## T-010 执行记录（2026-03-05）
+- 代码落地：
+  1. 新增 `src/actions/admin/dashboard-overview.ts` 作为首页真实聚合入口。
+  2. `src/app/(dashboard)/admin/page.tsx` 改为服务端读取 `getAdminDashboardOverview`。
+  3. `src/components/admin/dashboard/v2/AdminDashboardV2.tsx` 改为真实刷新与 window 切换。
+  4. KPI 卡片“营收”已改名为“付费用户”。
+- 本地验证：
+  - 命令：`pnpm exec tsc --noEmit --incremental false`
+  - 结果：通过。
+- 范围说明：
+  - 本轮不新增数据库字段，不执行 schema/data 变更。
+
+## T-011 执行验收标准（文档）
+1. 全量业务表（Prisma 映射表）100% 有“功能语义 + 读写入口 + 分级结论”。
+2. 表级分级必须可复核：A（核心保留）/ B（保留观察）/ C（收敛候选）。
+3. C 类候选必须给出明确名单与后续门禁，不允许直接判定删除。
+4. 本轮不执行任何 schema/data 变更。
+
+## T-011 执行记录（2026-03-05）
+- 审计基线：
+  1. Prisma 业务表共 41 张（含 `public.users`，不含 Supabase 托管 `auth.users` 字段改造）。
+  2. 分级结果：A=22，B=13，C=6。
+- 运行时引用证据（`prisma.*`）：
+  1. 高活跃表：`users(50)`、`questions(44)`、`user_attempts(29)`、`error_book(20)`、`source_files(19)`。
+  2. C 类候选（0 调用）：`chapter_prerequisites`、`contact_submissions`、`knowledge_points`、`question_kp_relations`、`question_tags`、`question_tag_relations`。
+- 结论：
+  - T-011 仅完成“梳理与分级”，不执行下线；
+  - 候选下线动作归入 `T-012`。
+  - 逐表明细矩阵（41 表）已写入 `plan.md` 的 `T-011 逐表明细（字段数 + 读写热度 + 入口）` 章节。
+
 ## T-005 执行场景（Given / When / Then）
 - 给定：新用户走标准注册链路
   当：注册完成并等待可接受延迟
@@ -204,7 +240,9 @@
 - [x] T-007 方案定义完成（字段补齐 + 冗余治理口径）
 - [x] T-008 开发实现完成（链路补齐 + 统一累计）
 - [x] T-009 开发实现完成（用户域前端去 mock + 双表真实接入）
-- [ ] T-010 范围确认（Admin 首页非用户双表 mock）
+- [x] T-010 开发实现完成（Admin 首页非用户双表 mock 去除）
+- [x] T-011 文档审计完成（全表分级与收敛候选）
+- [ ] T-012 范围确认（数据库表收敛执行）
 - [ ] 字段-逻辑映射表完整并附证据
 - [x] 本地验证完成并附测试证据
 - [x] 预发复测完成并附证据

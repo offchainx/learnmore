@@ -1,95 +1,95 @@
 'use server'
 
-import { QuestionReviewData } from '@/types/content-pipeline'
-import { MOCK_REVIEW_QUESTIONS } from '@/__dev__/mock/content-pipeline-data'
 import prisma from '@/lib/prisma'
+import { ContentStatus, QuestionType } from '@prisma/client'
+import { getCurrentUser } from '@/actions/user/auth'
+import type { QuestionReviewData } from '@/types/content-pipeline'
+import {
+  updateQuestion as updateQuestionCore,
+  updateQuestionStatus,
+} from '@/actions/content-pipeline/question-service'
 
-/**
- * 获取单个题目的审核数据
- * @param questionId 题目ID
- * @returns 题目审核数据
- */
-export async function getQuestionForReview(
-  questionId: string
-): Promise<QuestionReviewData | null> {
-  // 先尝试从 Mock 数据获取（用于演示）
-  if (MOCK_REVIEW_QUESTIONS[questionId]) {
-    return MOCK_REVIEW_QUESTIONS[questionId]
+function toDifficultyInfo(difficulty: number): { level: string; label: string } {
+  const map: Record<number, { level: string; label: string }> = {
+    1: { level: 'L1', label: '基础' },
+    2: { level: 'L2', label: '简单' },
+    3: { level: 'L3', label: '中等' },
+    4: { level: 'L4', label: '困难' },
+    5: { level: 'L5', label: '极难' },
   }
+  return map[difficulty] || { level: 'L3', label: '中等' }
+}
 
-  // 从数据库获取真实题目数据
+function parseDifficulty(level: string): number {
+  const n = Number(level.replace('L', '').trim())
+  if (Number.isNaN(n) || n < 1 || n > 5) return 3
+  return n
+}
+
+function toQuestionType(type: string): QuestionType {
+  if (type === 'SINGLE_CHOICE') return QuestionType.SINGLE_CHOICE
+  if (type === 'MULTIPLE_CHOICE') return QuestionType.MULTIPLE_CHOICE
+  if (type === 'FILL_BLANK') return QuestionType.FILL_BLANK
+  if (type === 'ESSAY') return QuestionType.ESSAY
+  if (type === 'TRUE_FALSE') return QuestionType.TRUE_FALSE
+  return QuestionType.SINGLE_CHOICE
+}
+
+async function getReviewerId(): Promise<string> {
+  const user = await getCurrentUser()
+  if (user?.id) return user.id
+  const admin = await prisma.user.findFirst({ where: { role: 'ADMIN' }, select: { id: true } })
+  if (admin?.id) return admin.id
+  const fallback = await prisma.user.findFirst({ select: { id: true } })
+  if (!fallback?.id) throw new Error('No available reviewer')
+  return fallback.id
+}
+
+export async function getQuestionForReview(questionId: string): Promise<QuestionReviewData | null> {
   try {
     const question = await prisma.question.findUnique({
       where: { id: questionId },
       include: {
-        chapter: {
-          include: {
-            subject: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-        knowledgePoints: {
-          include: {
-            kp: true,
-          },
-        },
-        sourceFiles: true,
+        chapter: { include: { subject: true } },
+        subject: true,
+        sourceFile: true,
       },
     })
 
-    if (!question) {
-      return null
-    }
+    if (!question) return null
 
-    // 转换选项格式
     const optionsData = question.options as Record<string, string> | null
     const answerData = question.answer
     const correctAnswers = Array.isArray(answerData)
-      ? answerData
+      ? answerData.map(String)
       : typeof answerData === 'string'
-        ? [answerData]
-        : []
+      ? [answerData]
+      : []
 
     const options: QuestionReviewData['options'] = optionsData
       ? Object.entries(optionsData).map(([key, value]) => ({
           id: key,
-          value: value,
+          value,
           isCorrect: correctAnswers.includes(key),
         }))
       : []
 
-    // 转换难度级别
-    const difficultyMap: Record<number, { level: string; label: string }> = {
-      1: { level: 'L1', label: '基础' },
-      2: { level: 'L2', label: '简单' },
-      3: { level: 'L3', label: '中等' },
-      4: { level: 'L4', label: '困难' },
-      5: { level: 'L5', label: '极难' },
-    }
-    const difficultyInfo = difficultyMap[question.difficulty] || { level: 'L3', label: '中等' }
+    const difficultyInfo = toDifficultyInfo(question.difficulty)
 
-    // 转换为 QuestionReviewData 格式
-    const reviewData: QuestionReviewData = {
+    return {
       id: question.id,
       title: `题目 ${question.id.substring(0, 8)}`,
       stem: question.content,
       options,
-      explanation: {
-        text: question.explanation || '',
-        steps: [],
-      },
+      explanation: { text: question.explanation || '', steps: [] },
       metadata: {
-        subject: question.chapter?.subject?.name || '未分类',
+        subject: question.subject?.name || question.chapter?.subject?.name || '未分类',
         topic: question.chapter?.title || '未分类',
         type: question.type,
         difficulty: difficultyInfo.level,
         difficultyLabel: difficultyInfo.label,
-        points: 5, // 默认分值
-        tags: question.tags.map((t) => t.tag.name),
+        points: 5,
+        tags: question.tags ?? [],
       },
       history: [
         {
@@ -99,89 +99,66 @@ export async function getQuestionForReview(
           color: 'bg-blue-500',
         },
       ],
-      sourceImageUrl: question.sourceFiles?.[0]?.fileUrl,
-      status: question.status, // 添加题目状态
+      sourceImageUrl: question.assetUrl || question.sourceFile?.fileUrl,
+      status: question.status,
     }
-
-    return reviewData
   } catch (error) {
     console.error('获取题目审核数据失败:', error)
     return null
   }
 }
 
-/**
- * 更新题目数据
- * @param questionId 题目ID
- * @param data 更新的题目数据
- */
 export async function updateQuestion(questionId: string, data: QuestionReviewData) {
-  // 模拟网络延迟
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  const options = data.options.reduce<Record<string, string>>((acc, item) => {
+    acc[item.id] = item.value
+    return acc
+  }, {})
 
-  // 在真实环境中，这里会调用 Prisma 更新数据库
-  console.log('[Server Action] 更新题目:', questionId, data)
+  const correctAnswers = data.options.filter((x) => x.isCorrect).map((x) => x.id)
+  const answer: string | string[] = correctAnswers.length <= 1 ? (correctAnswers[0] || '') : correctAnswers
 
-  // 暂时更新内存中的 Mock 数据
-  MOCK_REVIEW_QUESTIONS[questionId] = data
+  const result = await updateQuestionCore(questionId, {
+    content: data.stem,
+    type: toQuestionType(data.metadata.type),
+    difficulty: parseDifficulty(data.metadata.difficulty),
+    options,
+    answer,
+    explanation: data.explanation.text,
+    tags: data.metadata.tags,
+  })
 
-  return { success: true }
+  return { success: result.success, error: result.error }
 }
 
-/**
- * 审核通过题目
- * @param questionId 题目ID
- * @param feedback 审核意见（可选）
- */
 export async function approveQuestion(questionId: string, feedback?: string) {
-  // 模拟网络延迟
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  const reviewerId = await getReviewerId()
+  const verify = await updateQuestionStatus({
+    questionId,
+    newStatus: ContentStatus.VERIFIED,
+    reviewerId,
+    comment: feedback,
+  })
 
-  console.log('[Server Action] 审核通过:', questionId, feedback)
+  if (!verify.success) return { success: false, message: verify.error }
 
-  // 在真实环境中，这里会：
-  // 1. 更新题目状态为 VERIFIED
-  // 2. 记录审核日志到 ContentReviewLog
-  // 3. 可能触发通知给题目创建者
+  const publish = await updateQuestionStatus({
+    questionId,
+    newStatus: ContentStatus.PUBLISHED,
+    reviewerId,
+    comment: feedback,
+  })
 
-  const question = MOCK_REVIEW_QUESTIONS[questionId]
-  if (question) {
-    question.history.unshift({
-      status: '审核通过',
-      date: '刚刚',
-      user: '当前审核员',
-      color: 'bg-green-500',
-    })
-  }
-
-  return { success: true, message: '审核通过成功' }
+  return { success: publish.success, message: publish.success ? '审核通过成功' : publish.error }
 }
 
-/**
- * 审核拒绝题目
- * @param questionId 题目ID
- * @param reason 拒绝原因
- */
 export async function rejectQuestion(questionId: string, reason: string) {
-  // 模拟网络延迟
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  const reviewerId = await getReviewerId()
+  const result = await updateQuestionStatus({
+    questionId,
+    newStatus: ContentStatus.REVIEW_REJECTED,
+    reviewerId,
+    comment: reason,
+  })
 
-  console.log('[Server Action] 审核拒绝:', questionId, reason)
-
-  // 在真实环境中，这里会：
-  // 1. 更新题目状态为 REVIEW_REJECTED
-  // 2. 记录审核日志和拒绝原因
-  // 3. 通知题目创建者
-
-  const question = MOCK_REVIEW_QUESTIONS[questionId]
-  if (question) {
-    question.history.unshift({
-      status: `审核拒绝: ${reason}`,
-      date: '刚刚',
-      user: '当前审核员',
-      color: 'bg-red-500',
-    })
-  }
-
-  return { success: true, message: '已拒绝该题目' }
+  return { success: result.success, message: result.success ? '已拒绝该题目' : result.error }
 }
