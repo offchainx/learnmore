@@ -82,6 +82,18 @@
 4. 本地（Practice）：跑成功路径 + 失败/越权路径，核对写表。
 5. 预发复测：复测同批场景，验证幂等和并发。
 
+## 已执行记录（2026-03-05）
+- `T-012`：完成 `view/id/2430396` 前 10 题抓取，输出文件：`tmp/examcoo/paper_2430396_first10_with_explanations.json`。
+- `T-013`：完成 10 题入库，创建：
+  - `question_group_id=67231a06-9ca6-4bfe-8192-3a7a0697dd40`
+  - `source_file_id=3b80185c-51b7-4424-967e-cabd309e33f2`
+  - `chapter_id=4db8899b-b3be-4892-8fc2-064e17760fc9`
+- `T-014`：10 题状态迁移为 `PUBLISHED`，`content_review_logs` 累计 21 条。
+- `T-015`：完成可见性与交互验证：
+  - `getPastPapersBySubject` 可返回该题组；
+  - `getRandomQuestions` 可拉取到导入且已发布题目；
+  - `startExam + submitExam` 提交链路成功（`examRecordId=e732acbb-58a6-4ca4-8893-93b52398e4c6`）。
+
 ## 风险与回滚
 - 触发回滚：核心路径阻断、题目重复写入、来源不可追溯。
 - 回滚步骤：

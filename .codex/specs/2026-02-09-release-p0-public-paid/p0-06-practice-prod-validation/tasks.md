@@ -13,10 +13,10 @@
 | T-009 | 统一错题本掌握度语义（修复 submitQuiz 与 submitExam 对 masteryLevel 的冲突） | codex | todo |  |
 | T-010 | 抽题发布态约束（仅抽取 VERIFIED/PUBLISHED 题目） | codex | todo |  |
 | T-011 | Weakness Quick Fix 服务端化（UI 改为复用 getWeaknessAnalysis） | codex | todo |  |
-| T-012 | 实现 Examcoo 抓取脚本 MVP（`view -> getpapercontent -> comment/index` 循环抓解析） | codex | done |  |
-| T-013 | 执行“小批量可见”导入（指定试卷先入 2 题，写入 source/question_group/questions，默认 `REVIEW_PENDING`） | codex | done |  |
-| T-014 | 完成 2 题审核发布链路验证（`REVIEW_PENDING -> VERIFIED -> PUBLISHED`） | codex | done |  |
-| T-015 | 验证练习中心可见性（至少 1 条真实题在对应模式可拉取、可作答、可提交） | codex | todo |  |
+| T-012 | 实现 Examcoo 抓取脚本 MVP（`view -> getpapercontent -> comment/index` 循环抓解析） | codex | done | 1562851 |
+| T-013 | 执行“小批量可见”导入（指定试卷入 10 题，写入 source/question_group/questions，默认 `REVIEW_PENDING`） | codex | done | 1562851 |
+| T-014 | 完成 10 题审核发布链路验证（`REVIEW_PENDING -> VERIFIED -> PUBLISHED`） | codex | done | 1562851 |
+| T-015 | 验证练习中心可见性（至少 1 条真实题在对应模式可拉取、可作答、可提交） | codex | done |  |
 | T-016 | 扩量到“每科 100 题”导入（按限速策略执行并记录幂等结果） | codex | todo |  |
 | T-017 | 执行首批导入与幂等审计（优先初三数学 k=60，再扩展初中教育） | codex | todo |  |
 | T-018 | 本地 + 预发双环境验收与收尾（含回滚演练） | codex | todo |  |
@@ -24,4 +24,4 @@
 ## 备注
 - 执行优先级已确认：先修练习链路，再做爬虫录题。
 - 爬虫导入策略已确认：全量入库，但默认 `REVIEW_PENDING`，审核后再进入可练题池。
-- 当前插队执行策略：先完成“小批量可见”（2题可抓取 + 可入库 + 可审核发布 + 练习端可见），再扩量。
+- 当前插队执行策略：先完成“小批量可见”（10题可抓取 + 可入库 + 可审核发布 + 练习端可见），再扩量。

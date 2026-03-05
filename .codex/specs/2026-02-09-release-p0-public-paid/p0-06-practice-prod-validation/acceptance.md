@@ -60,6 +60,22 @@
 | 幂等重跑 | 同一批次重复执行 | 不新增重复题 | `content_hash` 重复数=0 |  |  |
 | 来源追溯 | 任意导入题目 | 可反查 source/paperId/url | SQL 回查 |  |  |
 
+## 小批量可见执行结果（2026-03-05）
+| 子项 | 执行结果 | 证据 |
+|---|---|---|
+| 抓取 10 题（含解析） | pass | `tmp/examcoo/paper_2430396_first10_with_explanations.json` |
+| 入库 10 题（默认 REVIEW_PENDING） | pass | `question_group_id=67231a06-9ca6-4bfe-8192-3a7a0697dd40` |
+| 审核发布（10 题 -> PUBLISHED） | pass | 组内题目状态聚合：`PUBLISHED=10` |
+| 幂等重跑 | pass | 第二次导入结果：`created=0, skippedDuplicate=10` |
+| 来源追溯 | pass | `source_file_id=3b80185c-51b7-4424-967e-cabd309e33f2` -> `file_url=/editor/do/view/id/2430396` |
+
+## T-015 可见性与交互验证（2026-03-05）
+| 验证项 | 执行结果 | 证据 |
+|---|---|---|
+| Past Paper 列表可见 | pass | `getPastPapersBySubject(Mathematics)` 返回 `question_group_id=67231a06-9ca6-4bfe-8192-3a7a0697dd40`，`questionCount=10` |
+| 导入题可被抽题层拉取 | pass | `getRandomQuestions(chapterId=4db8899b-b3be-4892-8fc2-064e17760fc9, difficulty=[3])` 返回 `status=PUBLISHED` 题目 |
+| 可作答并提交成功 | pass | `startExam` 成功创建 `examRecordId=e732acbb-58a6-4ca4-8893-93b52398e4c6`，`submitExam` 返回 `success=true`（`score=100`） |
+
 ## Practice 链路验收矩阵（本地 + 预发都要执行）
 | Action 名称 | 调用入口（页面/按钮/事件） | 输入样例（正常/异常） | 权限校验（未登录/越权） | 预期输出（成功/失败） | 幂等要求 | 日志与错误码 | 结果（pass/fail） | 证据 |
 |---|---|---|---|---|---|---|---|---|
