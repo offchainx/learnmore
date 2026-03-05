@@ -7,6 +7,7 @@
 
 import { redirect } from 'next/navigation'
 import { getProfile } from '@/actions/user/profile'
+import { listAdminUsers } from '@/actions/admin/user-ops'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { UserTable } from '@/components/admin/users/UserTable'
 
@@ -24,11 +25,25 @@ export default async function AdminUsersPage() {
     redirect('/dashboard')
   }
 
+  const initialUsersResult = await listAdminUsers(
+    {
+      search: '',
+      status: 'All',
+      tier: 'All',
+    },
+    {
+      page: 1,
+      pageSize: 20,
+      sortField: 'lastActive',
+      sortDirection: 'desc',
+    },
+  )
+
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="w-full space-y-6">
         <div className="w-full">
-          <UserTable />
+          <UserTable initialData={initialUsersResult.success ? initialUsersResult.data : undefined} />
         </div>
       </div>
     </AdminClientWrapper>

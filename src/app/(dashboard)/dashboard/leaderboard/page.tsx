@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { getProfile } from '@/actions/user/profile'
+import { getLeaderboard, getUserRank } from '@/actions/leaderboard'
 import { redirect } from 'next/navigation'
 import { LeaderboardClientWrapper } from './client-wrapper'
 
@@ -15,5 +16,17 @@ export default async function LeaderboardPage() {
     redirect('/login')
   }
 
-  return <LeaderboardClientWrapper user={profile} />
+  const [entries, myRank] = await Promise.all([
+    getLeaderboard('WEEKLY', 100),
+    getUserRank(profile.id, 'WEEKLY'),
+  ])
+
+  return (
+    <LeaderboardClientWrapper
+      user={profile}
+      initialPeriod="WEEKLY"
+      initialEntries={entries}
+      initialMyRank={myRank?.rank ?? null}
+    />
+  )
 }

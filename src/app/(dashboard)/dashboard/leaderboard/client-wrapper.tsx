@@ -5,12 +5,21 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
 import { useApp } from '@/providers'
 import { User } from '@prisma/client'
+import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 
 interface LeaderboardClientWrapperProps {
   user: User
+  initialPeriod: 'WEEKLY' | 'MONTHLY' | 'ALL_TIME'
+  initialEntries: LeaderboardEntryWithUser[]
+  initialMyRank: number | null
 }
 
-export function LeaderboardClientWrapper({ user }: LeaderboardClientWrapperProps) {
+export function LeaderboardClientWrapper({
+  user,
+  initialPeriod,
+  initialEntries,
+  initialMyRank,
+}: LeaderboardClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -48,6 +57,9 @@ export function LeaderboardClientWrapper({ user }: LeaderboardClientWrapperProps
           username: user.username,
           avatar: user.avatar,
         }}
+        initialPeriod={initialPeriod}
+        initialEntries={initialEntries}
+        initialMyRank={initialMyRank}
       />
     </DashboardLayout>
   )

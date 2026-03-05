@@ -78,6 +78,9 @@
 - [x] PWA 链路下线：移除 Service Worker 注册、安装提示、`sw.js`、`manifest.json`、`offline.html`，消除潜在前端自动更新干扰。
 - [x] `/dashboard/practice` 客户端拉数改造：将多个客户端 Server Action 调用改为 GET API，消除批量 `POST /dashboard/practice` 噪音。
 - [x] `/dashboard/practice` 请求聚合：新增 `GET /api/practice/bootstrap`（首屏一次）与 `GET /api/practice/subject-data`（切科目一次），收敛首屏多接口并发请求。
+- [x] `/dashboard/leaderboard` 请求治理：首屏改服务端注入 + `GET /api/leaderboard/summary`，消除客户端多次 `POST /dashboard/leaderboard`。
+- [x] `/dashboard/community` 请求治理：首屏改服务端注入 + `GET /api/community/feed`，消除客户端多次 `POST /dashboard/community`。
+- [x] `/admin/users` 请求治理：首屏改服务端注入 + `GET /api/admin/users/list`，消除客户端多次 `POST /admin/users`。
 - [x] `/admin/permissions` 去除 `force-dynamic` 强制动态标记，降低无必要重复动态渲染风险。
 - [x] 轮询扫描：除上述两类外，其他 `setInterval` 主要为本地倒计时/动画。
 - [x] 线下观测补证：已完成空闲 1-3 分钟 Network 观测并归档到 release 审计文档（2026-03-04，Playwright）。
@@ -91,8 +94,11 @@
 6. 下线 PWA 运行链路（SW/manifest/install prompt），避免潜在自动刷新干扰。
 7. 将 practice 首页统计读取迁移到 GET API，清除页面路径 Server Action POST 噪音。
 8. 新增 `practice/bootstrap + practice/subject-data` 聚合接口，实现“首屏一次请求 + 切科目一次请求”。
-9. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
-10. 完成 Playwright 空闲态观测补证：`/dashboard`、`/dashboard/practice`、`/admin/permissions` 均未出现非预期周期性请求。
+9. 新增 `leaderboard/summary` 聚合接口，并将排行榜首屏数据改为服务端注入，消除页面路径 POST 噪音。
+10. 新增 `community/feed` 读取接口，并将学员社区首屏数据改为服务端注入，消除页面路径 POST 噪音。
+11. 新增 `admin/users/list` 读取接口，并将用户列表首屏数据改为服务端注入，消除页面路径 POST 噪音。
+12. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
+13. 完成 Playwright 空闲态观测补证：`/dashboard`、`/dashboard/practice`、`/admin/permissions` 均未出现非预期周期性请求。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。

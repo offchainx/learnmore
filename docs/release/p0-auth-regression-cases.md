@@ -174,3 +174,18 @@
 - Given：登录 ADMIN 用户访问 `/admin/permissions`
 - When：页面空闲观察 1-3 分钟
 - Then：不应出现异常高频 `GET /admin/permissions` 请求
+
+### 用例 31：`/dashboard/leaderboard` 首屏不再出现页面路径 POST 噪音
+- Given：登录用户访问 `/dashboard/leaderboard`
+- When：页面首屏加载并空闲观察
+- Then：不应出现多次 `POST /dashboard/leaderboard`；读取应为服务端注入或单次 `GET /api/leaderboard/summary`
+
+### 用例 32：`/dashboard/community` 首屏不再出现页面路径 POST 噪音
+- Given：登录用户访问 `/dashboard/community`
+- When：页面首屏加载并空闲观察
+- Then：不应出现多次 `POST /dashboard/community`；读取应为服务端注入或单次 `GET /api/community/feed`
+
+### 用例 33：`/admin/users` 首屏不再出现页面路径 POST 噪音
+- Given：登录 ADMIN/TEACHER 访问 `/admin/users`
+- When：页面首屏加载并空闲观察
+- Then：不应出现多次 `POST /admin/users`；读取应为服务端注入或单次 `GET /api/admin/users/list`

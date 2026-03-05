@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Target, Zap, MessageCircle } from 'lucide-react'
 import { TierRoadmap } from './components/TierRoadmap'
 import { SeasonBanner } from './components/SeasonBanner'
@@ -9,8 +9,7 @@ import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
 import { DailyQuests } from './components/DailyQuests'
 import { RivalWatch } from './components/RivalWatch'
-import { getLeaderboard, getUserRank } from '@/actions/leaderboard'
-import type { LeaderboardPeriod } from '@prisma/client'
+import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 
 interface LeaderboardViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,6 +19,9 @@ interface LeaderboardViewProps {
     username: string | null
     avatar: string | null
   }
+  initialPeriod?: PeriodKey
+  initialEntries?: LeaderboardEntryWithUser[]
+  initialMyRank?: number | null
 }
 
 const tiers = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Challenger']
@@ -57,25 +59,63 @@ function getStatusByRank(rank: number): 'promotion' | 'demotion' | 'safe' {
   return 'safe'
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const LeaderboardView = ({ t: _t, currentUser }: LeaderboardViewProps) => {
+export const LeaderboardView = ({
+  currentUser,
+  initialPeriod = 'WEEKLY',
+  initialEntries = [],
+  initialMyRank = null,
+}: LeaderboardViewProps) => {
   const [activeTab, setActiveTab] = useState<'global' | 'friends'>('global')
-  const [period, setPeriod] = useState<PeriodKey>('WEEKLY')
-  const [loading, setLoading] = useState(true)
+  const [period, setPeriod] = useState<PeriodKey>(initialPeriod)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [rankedUsers, setRankedUsers] = useState<RankedUser[]>([])
-  const [myRank, setMyRank] = useState<number | null>(null)
+  const [rankedUsers, setRankedUsers] = useState<RankedUser[]>(
+    initialEntries.map((entry) => ({
+      rank: entry.rank,
+      name: entry.user.username || 'Anonymous',
+      xp: entry.score,
+      avatar: entry.user.avatar || `https://i.pravatar.cc/150?u=${entry.user.id}`,
+      trend: 'same',
+      status: getStatusByRank(entry.rank),
+      isMe: entry.user.id === currentUser.id,
+    })),
+  )
+  const [myRank, setMyRank] = useState<number | null>(initialMyRank)
+  const requestKey = useMemo(() => `${period}:100`, [period])
+  const lastLoadedKeyRef = useRef<string>(
+    initialEntries.length > 0 ? `${initialPeriod}:100` : '',
+  )
 
   useEffect(() => {
     let cancelled = false
+    const shouldSkipFetch = requestKey === lastLoadedKeyRef.current
+    if (shouldSkipFetch) {
+      return
+    }
+    lastLoadedKeyRef.current = requestKey
+
     async function loadLeaderboard() {
       setLoading(true)
       setError(null)
       try {
-        const [entries, me] = await Promise.all([
-          getLeaderboard(period as LeaderboardPeriod, 100),
-          getUserRank(currentUser.id, period as LeaderboardPeriod),
-        ])
+        const response = await fetch(
+          `/api/leaderboard/summary?period=${encodeURIComponent(period)}&limit=100`,
+          {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          },
+        )
+        if (!response.ok) {
+          throw new Error(`Failed to load leaderboard: ${response.status}`)
+        }
+        const result = await response.json()
+        if (!result.success || !result.data) {
+          throw new Error(result.error || 'Invalid leaderboard response')
+        }
+
+        const entries = result.data.entries as LeaderboardEntryWithUser[]
+        const me = result.data.myRank as { rank: number; score: number } | null
 
         if (cancelled) return
 
@@ -106,6 +146,7 @@ export const LeaderboardView = ({ t: _t, currentUser }: LeaderboardViewProps) =>
         setRankedUsers(mapped.sort((a, b) => a.rank - b.rank))
       } catch (e) {
         console.error('Failed to load leaderboard:', e)
+        lastLoadedKeyRef.current = ''
         if (!cancelled) {
           setError('Failed to load leaderboard')
           setRankedUsers([])
@@ -120,7 +161,7 @@ export const LeaderboardView = ({ t: _t, currentUser }: LeaderboardViewProps) =>
     return () => {
       cancelled = true
     }
-  }, [currentUser.avatar, currentUser.id, currentUser.username, period])
+  }, [currentUser.avatar, currentUser.id, currentUser.username, requestKey, period])
 
   const topThree = useMemo(() => {
     const top = rankedUsers.slice(0, 3).map((u) => ({

@@ -50,6 +50,9 @@
 | AC-05 | 伪装状态轮询 | `/api/auth/impersonate/status` 请求频率 | 频率与前端轮询设计一致，且无多余触发源 | pass | Playwright 2026-03-04：空闲 180s 无新增轮询（非伪装态仅首次检查） |
 | AC-05 | `/dashboard/practice` 空闲 1-3 分钟 | Network + Server Logs | 不应出现批量 `POST /dashboard/practice` 噪音请求 | pass | Playwright 2026-03-04：未出现 `POST /dashboard/practice` |
 | AC-05 | `/dashboard/practice` 首屏与切科目请求次数 | Network（XHR/Fetch） | 首屏仅 `GET /api/practice/bootstrap` 一次；切换科目仅 `GET /api/practice/subject-data?subjectId=...` 一次 | pass | Playwright 2026-03-04：观测到 `bootstrap` 1 次成功 + 切科目 `subject-data` 1 次 |
+| AC-05 | `/dashboard/leaderboard` 首屏请求次数 | Network + Server Logs | 不应出现多次 `POST /dashboard/leaderboard`；首屏读取改为服务端注入或单次 `GET /api/leaderboard/summary` | pass | 代码审计 2026-03-05：客户端移除 Server Action 调用，改为 GET API |
+| AC-05 | `/dashboard/community` 首屏请求次数 | Network + Server Logs | 不应出现多次 `POST /dashboard/community`；首屏读取改为服务端注入或单次 `GET /api/community/feed` | pass | 代码审计 2026-03-05：客户端移除 Server Action 调用，改为 GET API |
+| AC-05 | `/admin/users` 首屏请求次数 | Network + Server Logs | 不应出现多次 `POST /admin/users`；首屏读取改为服务端注入或单次 `GET /api/admin/users/list` | pass | 代码审计 2026-03-05：客户端移除 Server Action 调用，改为 GET API |
 | AC-05 | 页面空闲且未打开通知下拉 | Network | 不应持续出现 `GET /api/notifications/summary?limit=10` | pass | Playwright 2026-03-04：未打开通知下拉时 180s 内无通知摘要请求 |
 
 ## 权限矩阵验收（新增）

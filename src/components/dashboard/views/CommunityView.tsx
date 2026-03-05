@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import {
   Mic, Flame, Crown, CircleCheck, Sparkles, Bot, Search, Send
 } from 'lucide-react';
 import { useApp } from '@/providers';
-import { getPosts, createPost, toggleLike, PostWithAuthor } from '@/actions/community/post';
+import { createPost, toggleLike, PostWithAuthor } from '@/actions/community/post';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
@@ -17,36 +17,69 @@ import 'katex/dist/katex.min.css';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/components/ui/use-toast';
 
-export const CommunityView = () => {
+interface CommunityViewProps {
+  initialPosts?: PostWithAuthor[]
+  initialTab?: 'latest' | 'popular' | 'unanswered'
+}
+
+export const CommunityView = ({
+  initialPosts = [],
+  initialTab = 'latest',
+}: CommunityViewProps) => {
   const { t } = useApp();
-  const [activeTab, setActiveTab] = useState('latest');
-  const [posts, setPosts] = useState<PostWithAuthor[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'latest' | 'popular' | 'unanswered'>(initialTab);
+  const [posts, setPosts] = useState<PostWithAuthor[]>(initialPosts);
+  const [loading, setLoading] = useState(initialPosts.length === 0);
   const [newPostContent, setNewPostContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const lastLoadedKeyRef = useRef<string>(initialPosts.length > 0 ? `${initialTab}:1:20` : '');
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async (tab: 'latest' | 'popular' | 'unanswered', force = false) => {
+    const requestKey = `${tab}:1:20`;
+    if (!force && lastLoadedKeyRef.current === requestKey) {
+      return;
+    }
+    if (!force) {
+      lastLoadedKeyRef.current = requestKey;
+    }
+
     setLoading(true);
     try {
-      const result = await getPosts({
-        unanswered: activeTab === 'unanswered',
-        // In a real app 'popular' would sort by likes, but getPosts currently sorts by createdAt
-        page: 1,
-        limit: 20
-      });
-      setPosts(result.posts as PostWithAuthor[]);
+      const response = await fetch(
+        `/api/community/feed?tab=${encodeURIComponent(tab)}&page=1&limit=20`,
+        {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to load community feed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (!result.success || !result.data?.posts) {
+        throw new Error(result.error || 'Invalid community feed response');
+      }
+
+      setPosts(result.data.posts as PostWithAuthor[]);
+      if (force) {
+        lastLoadedKeyRef.current = requestKey;
+      }
     } catch (error) {
       console.error("Error fetching posts:", error);
+      if (!force) {
+        lastLoadedKeyRef.current = '';
+      }
       toast({ title: "Error", description: "Failed to load posts.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+    void fetchPosts(activeTab);
+  }, [activeTab, fetchPosts]);
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim() || isSubmitting) return;
@@ -61,7 +94,7 @@ export const CommunityView = () => {
 
       if (result.success) {
         setNewPostContent('');
-        fetchPosts();
+        await fetchPosts(activeTab, true);
         toast({ title: "Success", description: "Post published!" });
       } else {
         toast({ title: "Error", description: result.error, variant: "destructive" });
@@ -90,7 +123,7 @@ export const CommunityView = () => {
     const result = await toggleLike(postId);
     if (!result.success) {
       toast({ title: "Error", description: "Failed to toggle like." });
-      fetchPosts(); // Revert by refetching
+      await fetchPosts(activeTab, true); // Revert by refetching
     }
   };
 
@@ -168,7 +201,7 @@ export const CommunityView = () => {
 
           {/* Filters */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-             {['latest', 'popular', 'unanswered'].map((tab) => (
+             {(['latest', 'popular', 'unanswered'] as const).map((tab) => (
                <button
                  key={tab}
                  onClick={() => setActiveTab(tab)}

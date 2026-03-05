@@ -26,7 +26,7 @@ import {
 import { Admin } from '@/types'
 import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
-import { listAdminUsers, toggleUserStatus } from '@/actions/admin/user-ops'
+import { toggleUserStatus } from '@/actions/admin/user-ops'
 import { toast } from 'sonner'
 
 // --- Helper Components ---
@@ -63,9 +63,10 @@ const IconButton: React.FC<{
 
 interface UserTableProps {
   onUserSelect?: (user: Admin.UserSummary) => void
+  initialData?: Admin.PaginatedResponse<Admin.UserSummary>
 }
 
-export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
+export const UserTable: React.FC<UserTableProps> = ({ onUserSelect, initialData }) => {
   const router = useRouter()
 
   // Filters
@@ -87,7 +88,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
 
   // UI State
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(!initialData)
   
   // Dialog State
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -97,12 +98,14 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
 
   // Data
   const [data, setData] = useState<Admin.PaginatedResponse<Admin.UserSummary>>({
-    data: [],
-    total: 0,
-    page: 1,
-    pageSize: 20,
-    totalPages: 0,
+    data: initialData?.data || [],
+    total: initialData?.total || 0,
+    page: initialData?.page || 1,
+    pageSize: initialData?.pageSize || 20,
+    totalPages: initialData?.totalPages || 0,
   })
+  const initialKey = `search=&status=All&tier=All&page=1&pageSize=20&sortField=lastActive&sortDirection=desc`
+  const lastLoadedQueryKey = React.useRef<string>(initialData ? initialKey : '')
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -116,21 +119,44 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
   }, [activeDropdownId])
 
   const loadUsers = useCallback(async () => {
-    setIsLoading(true)
-    const result = await listAdminUsers(filters, {
-      page: currentPage,
-      pageSize: itemsPerPage,
+    const queryParams = new URLSearchParams({
+      search: filters.search,
+      status: filters.status,
+      tier: filters.tier,
+      page: String(currentPage),
+      pageSize: String(itemsPerPage),
       sortField: sortConfig.key,
       sortDirection: sortConfig.direction,
     })
-
-    if (result.success && result.data) {
-      setData(result.data)
-    } else {
-      toast.error(result.error || '加载用户数据失败')
+    const queryKey = queryParams.toString()
+    if (lastLoadedQueryKey.current === queryKey) {
+      return
     }
+    lastLoadedQueryKey.current = queryKey
 
-    setIsLoading(false)
+    setIsLoading(true)
+    try {
+      const response = await fetch(`/api/admin/users/list?${queryKey}`, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      })
+      if (!response.ok) {
+        throw new Error(`加载用户数据失败: ${response.status}`)
+      }
+      const result = await response.json()
+      if (!result.success || !result.data) {
+        throw new Error(result.error || '加载用户数据失败')
+      }
+
+      setData(result.data as Admin.PaginatedResponse<Admin.UserSummary>)
+    } catch (error) {
+      console.error('[UserTable] loadUsers error:', error)
+      lastLoadedQueryKey.current = ''
+      toast.error(error instanceof Error ? error.message : '加载用户数据失败')
+    } finally {
+      setIsLoading(false)
+    }
   }, [filters, currentPage, itemsPerPage, sortConfig])
 
   // Fetch data when filters/sort/pagination change
@@ -182,7 +208,7 @@ export const UserTable: React.FC<UserTableProps> = ({ onUserSelect }) => {
     setActiveDropdownId(null)
   }
   
-  const handleConfirmAction = async (reason: string, _duration?: string) => {
+  const handleConfirmAction = async (reason: string) => {
     if (!selectedUser) return
 
     setIsActionLoading(true)
