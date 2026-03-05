@@ -426,21 +426,73 @@ async function applyVoucherRedemptionOnFirstPaid(
     };
   }
 
-  await tx.voucherRedemption.create({
-    data: {
-      voucherId: voucher.id,
-      userId: input.userId,
-      stripeSessionId: input.invoiceId,
-      appliedAmount: Math.max(0, Math.trunc(input.discountAmountMinor)),
+  const incrementResult = await tx.voucherCode.updateMany({
+    where: {
+      id: voucher.id,
+      isActive: true,
+      ...(voucher.maxRedemptions !== null
+        ? { redeemedCount: { lt: voucher.maxRedemptions } }
+        : {}),
     },
-  });
-
-  await tx.voucherCode.update({
-    where: { id: voucher.id },
     data: {
       redeemedCount: { increment: 1 },
     },
   });
+
+  if (incrementResult.count === 0) {
+    const existingAfterLimitCheck = await tx.voucherRedemption.findFirst({
+      where: {
+        userId: input.userId,
+        voucherId: voucher.id,
+      },
+      select: { id: true },
+    });
+
+    if (existingAfterLimitCheck) {
+      return {
+        redeemed: false,
+        reason: 'ALREADY_REDEEMED',
+        voucherCode: voucher.code,
+      };
+    }
+
+    return {
+      redeemed: false,
+      reason: 'EXHAUSTED',
+      voucherCode: voucher.code,
+    };
+  }
+
+  try {
+    await tx.voucherRedemption.create({
+      data: {
+        voucherId: voucher.id,
+        userId: input.userId,
+        stripeSessionId: input.invoiceId,
+        appliedAmount: Math.max(0, Math.trunc(input.discountAmountMinor)),
+      },
+    });
+  } catch (error) {
+    await tx.voucherCode.update({
+      where: { id: voucher.id },
+      data: {
+        redeemedCount: { decrement: 1 },
+      },
+    });
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      return {
+        redeemed: false,
+        reason: 'ALREADY_REDEEMED',
+        voucherCode: voucher.code,
+      };
+    }
+
+    throw error;
+  }
 
   return {
     redeemed: true,

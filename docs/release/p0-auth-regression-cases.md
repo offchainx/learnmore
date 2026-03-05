@@ -10,6 +10,7 @@
 | 15-17 | AC-04（权限） | T-006 |
 | 18-26 | AC-04（路由下线） | T-006 |
 | 27-30 | AC-05（请求治理） | T-007 |
+| 34-36 | AC-03（user/voucher） | T-013 / T-014 / T-015 |
 
 ## AC-01 用例
 
@@ -213,3 +214,27 @@
 - Given：登录 ADMIN/TEACHER 访问 `/admin/users`
 - When：页面首屏加载并空闲观察
 - Then：不应出现多次 `POST /admin/users`；读取应为服务端注入或单次 `GET /api/admin/users/list`
+
+## AC-03 字段与幂等用例
+
+### 用例 34：`user_settings` 兜底同步不重复写入
+- Given：同一用户触发连续两次设置 upsert
+- When：查询 `user_settings` 同一 `user_id`
+- Then：仅保留 1 条记录
+
+### 用例 35：`voucher_codes` 字段映射一致
+- Given：创建临时 voucher
+- When：分别通过 Prisma 字段与 SQL 列名查询
+- Then：`isActive/validFrom/validTo/maxRedemptions/redeemedCount` 与 `is_active/valid_from/valid_to/max_redemptions/redeemed_count` 一致
+
+### 用例 36：`voucher_redemptions` 幂等约束生效
+- Given：同一 `voucher_id + user_id` 已存在一条核销记录
+- When：再次写入该组合（不同 `stripe_session_id`）
+- Then：数据库抛出 `P2002`，最终核销记录仍为 1 条
+
+## AC-03 执行记录（2026-03-05）
+- 已落库唯一约束：`voucher_redemptions(voucher_id, user_id)`。
+- 用例 34：pass（本地脚本双次 upsert 后行数为 1）。
+- 用例 35：pass（Prisma 字段值与 SQL 列值一致）。
+- 用例 36：pass（重复写入被 `P2002` 拦截，最终记录数为 1）。
+- 详情证据：`docs/release/p0-user-voucher-field-matrix.md`。

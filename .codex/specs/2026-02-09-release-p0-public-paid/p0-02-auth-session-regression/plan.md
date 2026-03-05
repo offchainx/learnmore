@@ -122,6 +122,19 @@
 10. 已新增 admin users 读取 API：`GET /api/admin/users/list`，并将 `/admin/users` 首屏读取改为服务端注入，消除页面路径 POST 噪音。
 11. 空闲 1~3 分钟 Network 证据已回填 release 审计文档（T-007 闭环完成）。
 
+## T-013 ~ T-015 执行章节（AC-03 user/voucher 字段与幂等核对）
+
+### 当前执行记录（2026-03-05）
+1. `voucher_redemptions` 已新增数据库唯一约束：`@@unique([voucherId, userId])`，用于兜底“同用户同 voucher 不重复核销”。
+2. Stripe webhook 核销逻辑已改造：先进行 `redeemedCount` 原子占位，再写核销记录；遇到唯一冲突 `P2002` 时回滚占位并返回 `ALREADY_REDEEMED`。
+3. 本地 SQL + Prisma 核对已完成：`user_settings` 双次 upsert 仍单行、`voucher_codes` 字段映射一致、`voucher_redemptions` 重复写入被唯一约束拦截。
+4. 证据文档已新增：`docs/release/p0-user-voucher-field-matrix.md`，并同步回填 `acceptance.md` 与 `tasks.md`。
+
+### 回滚策略（AC-03）
+1. 若核销出现异常，先回滚 webhook 逻辑提交，恢复到旧的核销流程。
+2. 若需撤销唯一约束，先执行冲突数据审计与清理，再移除约束，避免回滚失败。
+3. 回滚后执行最小回归：`/pricing` 下单、webhook 重放、`voucher_redemptions` 行数核对。
+
 ## 锁定公共接口/类型（开发契约）
 1. Server Action：`getAdminDashboardData(window: 'today_7d')`
 2. 类型文件：`src/types/admin-dashboard.ts`

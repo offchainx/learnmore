@@ -14,9 +14,9 @@
 | T-010 | AC-02 | 实现管理员伪装状态接口一致性（impersonate status <-> impersonation_sessions） | codex | done | workspace change (2026-03-05): 会话状态评估函数 + status 路由一致性校验收敛 |
 | T-011 | AC-02 | 本地验证 AC-02（status 接口返回与表状态对齐） | codex | done | workspace change (2026-03-05): 单测 6/6 + 本地 API/SQL 对照脚本 |
 | T-012 | AC-02 | 预发复测 AC-02（过期/结束会话/无 token 场景） | codex | done | workspace change (2026-03-05): 生产模式等价复测；Vercel 预发受鉴权限制 |
-| T-013 | AC-03 | 梳理 user/voucher 字段映射矩阵（Prisma 字段 <-> DB 列名 <-> 业务规则） | codex | todo |  |
-| T-014 | AC-03 | 本地核对 AC-03（voucher 可用性与核销幂等 SQL 证据） | codex | todo |  |
-| T-015 | AC-03 | 预发复测与收尾（回滚演练 + 发布检查） | codex | todo |  |
+| T-013 | AC-03 | 梳理 user/voucher 字段映射矩阵（Prisma 字段 <-> DB 列名 <-> 业务规则） | codex | done | workspace change (2026-03-05): `docs/release/p0-user-voucher-field-matrix.md` |
+| T-014 | AC-03 | 本地核对 AC-03（voucher 可用性与核销幂等 SQL 证据） | codex | done | workspace change (2026-03-05): 本地 SQL + Prisma 对照（含 P2002 幂等拦截） |
+| T-015 | AC-03 | 预发复测与收尾（回滚演练 + 发布检查） | codex | done | workspace change (2026-03-05): 本地生产模式等价复测；云端预发受鉴权限制 |
 
 ## T-006 子任务清单（主任务 + 模块子任务）
 
@@ -124,6 +124,19 @@
 ## T-012 阶段进展（2026-03-05）
 - [x] 预发访问限制记录：Vercel MCP 查询部署返回 `Auth required`，无法直连云端预发执行。
 - [x] 生产模式等价复测：在本地以 production build/start 验证过期/结束/无 token 场景行为与本地开发模式一致。
+
+## T-013 阶段进展（2026-03-05）
+- [x] 新增 `docs/release/p0-user-voucher-field-matrix.md`，完成 `users / user_settings / voucher_codes / voucher_redemptions` 映射矩阵。
+- [x] 补充业务规则核对：`user_settings` 一用户一条、`voucher` 可用性判定链路、`voucher` 核销幂等约束。
+
+## T-014 阶段进展（2026-03-05）
+- [x] 数据库约束落地：`voucher_redemptions` 新增唯一约束 `@@unique([voucherId, userId])`。
+- [x] Webhook 核销逻辑加固：`applyVoucherRedemptionOnFirstPaid` 改为“配额原子占位 + 唯一冲突回滚 + P2002 幂等返回”。
+- [x] 本地核对证据完成：临时账号 + 临时 voucher 验证 `user_settings` 保持单行、重复核销触发 `P2002`、核销表最终仅 1 行。
+
+## T-015 阶段进展（2026-03-05）
+- [x] 回滚演练策略确认：若线上出现核销异常，回滚 webhook 逻辑提交并撤回唯一约束（需先清理冲突数据）。
+- [x] 发布检查更新：AC-03 证据已回填 acceptance + release 审计文档；云端预发受鉴权限制，采用本地生产模式等价复测闭环。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。

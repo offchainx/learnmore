@@ -1114,6 +1114,7 @@ model VoucherRedemption {
   voucher VoucherCode @relation(fields: [voucherId], references: [id], onDelete: Cascade)
   user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([voucherId, userId], map: "voucher_redemptions_voucher_user_key")
   @@index([voucherId])
   @@index([userId, createdAt])
   @@map("voucher_redemptions")

@@ -67,17 +67,17 @@
 |---|---|---|---|---|---|---|---|
 | 登录后会话一致性 | users | id、status、sign_in_count、last_sign_in_at | `SELECT id, status, sign_in_count, last_sign_in_at FROM users WHERE email='ac01_20260305160426@learnmore.test';` => `status=ACTIVE, sign_in_count=2` | 同 SQL 重查 => `status=ACTIVE, sign_in_count=3` | 登录增加一次 sign-in 镜像；账号状态保持 ACTIVE | 登出后访问 `/dashboard/practice` 被重定向到 `/login?redirectTo=...` | pass（Playwright + Prisma 快照，2026-03-05） |
 | 伪装状态核对 | impersonation_sessions | ended_at、expires_at、admin_id、target_user_id、token | 临时写入 active 会话：`ended_at IS NULL AND expires_at > now()` | 更新为 `ended_at=now()`、另建 `expires_at < now()` 会话后重复请求 status | active->`true`，ended/expired->`false`；无 token 与 token mismatch 均 `false` | 清理临时会话后数据恢复 | pass（本地 API/SQL 对照，2026-03-05） |
-| 用户同步兜底 | user_settings | user_id、language、theme | SELECT user_id, language, theme FROM user_settings WHERE user_id={{userId}}; | 触发 sync 后再查 | 若不存在则创建且仅一条 | 回滚后无重复行 |  |
-| Voucher 可用性核对 | voucher_codes | code、is_active、valid_from、valid_to、max_redemptions、redeemed_count | SELECT code, is_active, valid_from, valid_to, max_redemptions, redeemed_count FROM voucher_codes WHERE code={{code}}; | 触发下单校验后再查 | 启用状态/有效期/次数上限判定一致 | 回滚后状态恢复 |  |
-| Voucher 核销幂等核对 | voucher_redemptions | voucher_id、user_id、stripe_session_id、applied_amount | SELECT voucher_id, user_id, stripe_session_id, applied_amount FROM voucher_redemptions WHERE user_id={{userId}} ORDER BY created_at DESC LIMIT 5; | 重放同一 webhook 后再查 | 同一 user + voucher + stripe_session 不重复写入 | 回滚后无重复核销行 |  |
+| 用户同步兜底 | user_settings | user_id、language、theme | `SELECT user_id, language, theme FROM user_settings WHERE user_id='aa5bbc20-a5fc-40f7-8891-da0a93bad275';` | 对同一 `user_id` 连续执行两次 upsert 后重查 | `user_settings` 行数保持 `1`，无重复设置行 | 清理临时账号后无残留 | pass（本地脚本，2026-03-05；见 `docs/release/p0-user-voucher-field-matrix.md`） |
+| Voucher 可用性核对 | voucher_codes | code、is_active、valid_from、valid_to、max_redemptions、redeemed_count | `SELECT code, is_active, valid_from, valid_to, max_redemptions, redeemed_count FROM voucher_codes WHERE id='cf70dd87-1208-43a1-9d53-e0bc93b17adf';` | 创建临时券后重查 | Prisma 字段与 DB 列值一致（`is_active=true`、窗口空值、`max_redemptions=3`） | 删除临时 voucher 后状态恢复 | pass（本地脚本，2026-03-05；见 `docs/release/p0-user-voucher-field-matrix.md`） |
+| Voucher 核销幂等核对 | voucher_redemptions | voucher_id、user_id、stripe_session_id、applied_amount | `SELECT voucher_id, user_id, stripe_session_id, applied_amount FROM voucher_redemptions WHERE voucher_id='cf70dd87-1208-43a1-9d53-e0bc93b17adf' AND user_id='aa5bbc20-a5fc-40f7-8891-da0a93bad275';` | 首次写入后再次写同 `voucher_id + user_id` | 第二次写入触发 `P2002`，最终仍仅 `1` 行核销记录 | 清理临时核销数据后无残留 | pass（本地脚本，2026-03-05；见 `docs/release/p0-user-voucher-field-matrix.md`） |
 
 ## User/Voucher 字段映射核对矩阵（新增）
 | 表 | Prisma 字段 | DB 列名 | 预期逻辑 | 核对结果（pass/fail） | 证据 |
 |---|---|---|---|---|---|
-| users | subscriptionTier、subscriptionStatus | subscription_tier、subscription_status | 订阅状态判断口径一致 |  |  |
-| user_settings | userId、language、theme | user_id、language、theme | getCurrentUser 兜底同步不产生重复行 |  |  |
-| voucher_codes | isActive、validFrom、validTo、maxRedemptions、redeemedCount | is_active、valid_from、valid_to、max_redemptions、redeemed_count | 优惠券可用性判定一致 |  |  |
-| voucher_redemptions | voucherId、userId、stripeSessionId、appliedAmount | voucher_id、user_id、stripe_session_id、applied_amount | 首次支付核销具备幂等性 |  |  |
+| users | subscriptionTier、subscriptionStatus | subscription_tier、subscription_status | 订阅状态判断口径一致 | pass | `src/actions/billing/stripe.ts` + `docs/release/p0-user-voucher-field-matrix.md` |
+| user_settings | userId、language、theme | user_id、language、theme | getCurrentUser 兜底同步不产生重复行 | pass | `src/actions/user/auth.ts` + 本地 upsert 双写核对（2026-03-05） |
+| voucher_codes | isActive、validFrom、validTo、maxRedemptions、redeemedCount | is_active、valid_from、valid_to、max_redemptions、redeemed_count | 优惠券可用性判定一致 | pass | `src/actions/billing/checkout.ts` + 本地 SQL 对照（2026-03-05） |
+| voucher_redemptions | voucherId、userId、stripeSessionId、appliedAmount | voucher_id、user_id、stripe_session_id、applied_amount | 首次支付核销具备幂等性 | pass | `src/app/api/webhook/stripe/route.ts` + 唯一约束 + `P2002` 验证（2026-03-05） |
 
 ## 发布检查
 - [x] 本地验证完成并附证据
@@ -87,6 +87,6 @@
 - [x] `impersonate/status` 与 `POST /admin/feedback` 异常请求排查完成并附 Network + Server log 证据
 - [ ] 权限矩阵（ADMIN/TEACHER/其他）验收通过
 - [ ] `/admin/content/review`、`/admin/feedback`、`/admin/users` 回归无退化
-- [ ] user/voucher 字段映射核对完成并附证据
-- [ ] 回滚方案可执行
-- [ ] 已获得用户批准进入开发
+- [x] user/voucher 字段映射核对完成并附证据
+- [x] 回滚方案可执行
+- [x] 已获得用户批准进入开发
