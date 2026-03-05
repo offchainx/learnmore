@@ -157,36 +157,6 @@ async function main() {
       });
     }
 
-    let questionGroup = await prisma.questionGroup.findFirst({
-      where: {
-        subjectId: subject.id,
-        source: sourceTag,
-      },
-      select: { id: true },
-    });
-    if (!questionGroup) {
-      questionGroup = await prisma.questionGroup.create({
-        data: {
-          content: paperTitle,
-          subjectId: subject.id,
-          source: sourceTag,
-          sourcePaper: paperTitle,
-          sourceYear: new Date().getFullYear(),
-          status: ContentStatus.REVIEW_PENDING,
-          createdBy: uploader.id,
-          sourceFiles: { connect: { id: sourceFile.id } },
-        },
-        select: { id: true },
-      });
-    } else {
-      await prisma.questionGroup.update({
-        where: { id: questionGroup.id },
-        data: {
-          sourceFiles: { connect: { id: sourceFile.id } },
-        },
-      });
-    }
-
     let created = 0;
     let skippedDuplicate = 0;
     const details = [];
@@ -211,16 +181,23 @@ async function main() {
       const question = await prisma.question.create({
         data: {
           chapterId: chapter.id,
-          groupId: questionGroup.id,
+          subjectId: subject.id,
+          sourceFileId: sourceFile.id,
           type,
+          curriculum: "UEC",
+          grade: 7,
           difficulty: 3,
           content,
           options: makeOptionsObject(row.options),
           answer,
           explanation: row.explanation || null,
+          assetUrl: null,
+          source: sourceTag,
+          tags: ["examcoo", "imported"],
+          isPastPaper: true,
+          paperId,
           status: ContentStatus.REVIEW_PENDING,
           contentHash,
-          sourceFiles: { connect: { id: sourceFile.id } },
           createdBy: uploader.id,
         },
         select: { id: true },
@@ -239,8 +216,8 @@ async function main() {
           skippedDuplicate,
           subject: subject.name,
           chapterId: chapter.id,
-          questionGroupId: questionGroup.id,
           sourceFileId: sourceFile.id,
+          paperId,
           details,
         },
         null,
@@ -256,4 +233,3 @@ main().catch((err) => {
   console.error(`[ERROR] ${err.message}`);
   process.exit(1);
 });
-
