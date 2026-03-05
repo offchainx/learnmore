@@ -183,12 +183,17 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
         userId: user.id,
         createdAt: { gte: minDate }, // C3: Retention filter
       },
-      include: {
+      select: {
+        isCorrect: true,
         question: {
-          include: {
+          select: {
             chapter: {
-              include: {
-                subject: true,
+              select: {
+                subject: {
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
           },
@@ -229,12 +234,18 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
       },
       take: 200,
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
         question: {
-          include: {
+          select: {
             chapter: {
-              include: {
-                subject: true,
+              select: {
+                id: true,
+                title: true,
+                subject: {
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
           },
@@ -249,7 +260,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
       const existing = chapterMistakes.get(chapter.id) || {
         id: chapter.id,
         topic: chapter.title,
-        subject: chapter.subject.name,
+        subject: chapter.subject?.name ?? '未分类',
         count: 0,
       }
       existing.count += 1

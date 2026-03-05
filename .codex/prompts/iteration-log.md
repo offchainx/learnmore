@@ -39,6 +39,8 @@
 
 | 2026-03-05 | 修复content review筛选崩溃 | 处理question-service PrismaClientValidationError | 已对过滤参数做UUID/枚举/空范围校验，subjectId=all不再报错 | - | - | - | - |
 
+| 2026-03-05 | 修复questions.version运行时错误 | 修复admin review和dashboard的Prisma查询崩溃 | 已改为显式select并过滤非法筛选参数，Prisma不再访问questions.version | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

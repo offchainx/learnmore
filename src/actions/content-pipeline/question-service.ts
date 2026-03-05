@@ -60,12 +60,40 @@ export async function validateStatusTransition(
   }
 }
 
-function includeQuestionRelations() {
+function selectQuestionRelations(): Prisma.QuestionSelect {
   return {
+    id: true,
+    chapterId: true,
+    subjectId: true,
+    sourceFileId: true,
+    type: true,
+    curriculum: true,
+    grade: true,
+    difficulty: true,
+    content: true,
+    options: true,
+    answer: true,
+    explanation: true,
+    assetUrl: true,
+    source: true,
+    tags: true,
+    isPastPaper: true,
+    paperId: true,
+    createdAt: true,
+    updatedAt: true,
+    status: true,
+    contentHash: true,
+    qualityScore: true,
+    reportCount: true,
+    createdBy: true,
+    reviewedBy: true,
+    publishedBy: true,
+    reviewedAt: true,
+    publishedAt: true,
     chapter: { include: { subject: true } },
     subject: true,
     sourceFile: true,
-  } as const
+  }
 }
 
 export async function createQuestion(
@@ -101,7 +129,7 @@ export async function createQuestion(
         status: ContentStatus.DRAFT,
         createdBy: data.createdBy,
       },
-      include: includeQuestionRelations(),
+      select: selectQuestionRelations(),
     })
 
     revalidatePath('/admin/content/review')
@@ -156,7 +184,7 @@ export async function bulkCreateQuestions(
           status: ContentStatus.DRAFT,
           createdBy: input.createdBy ?? q.createdBy,
         },
-        include: includeQuestionRelations(),
+        select: selectQuestionRelations(),
       })
 
       results.push({ index: i, success: true, data: created as QuestionWithRelations })
@@ -213,7 +241,7 @@ export async function updateQuestionStatus(
             publishedAt: new Date(),
           }),
         },
-        include: includeQuestionRelations(),
+        select: selectQuestionRelations(),
       }),
       prisma.contentReviewLog.create({
         data: {
@@ -354,7 +382,7 @@ export async function getQuestionById(
   try {
     const question = await prisma.question.findUnique({
       where: { id },
-      include: includeQuestionRelations(),
+      select: selectQuestionRelations(),
     })
     if (!question) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
     return { success: true, data: question as QuestionWithRelations }
@@ -466,7 +494,7 @@ export async function updateQuestion(
         ...(data.qualityScore !== undefined && { qualityScore: data.qualityScore }),
         ...(contentHash !== current.contentHash && { contentHash }),
       },
-      include: includeQuestionRelations(),
+      select: selectQuestionRelations(),
     })
 
     revalidatePath('/admin/content/review')
@@ -496,7 +524,7 @@ export async function getQuestions(
     prisma.question.count({ where }),
     prisma.question.findMany({
       where,
-      include: includeQuestionRelations(),
+      select: selectQuestionRelations(),
       orderBy: { [sort.field]: sort.order },
       skip,
       take: pageSize,
@@ -658,7 +686,7 @@ export async function resolveReport(
   try {
     const report = await prisma.questionReport.findUnique({
       where: { id: input.reportId },
-      include: { question: true },
+      include: { question: { select: { id: true, reportCount: true } } },
     })
     if (!report) return { success: false, error: '报告不存在', code: 'NOT_FOUND' }
     if (report.status === ReportStatus.RESOLVED || report.status === ReportStatus.REJECTED) {
