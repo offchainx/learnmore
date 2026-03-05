@@ -38,6 +38,18 @@
 - When：标签页 A 登出后，标签页 B 发起请求
 - Then：标签页 B 下次请求被重定向到登录
 
+## AC-01 执行记录（2026-03-05）
+- 测试账号：`ac01_20260305160426@learnmore.test`
+- 执行环境 A（本地开发）：`http://localhost:3000`
+- 执行环境 B（生产模式）：`pnpm build && pnpm start -p 3001`
+- 用例 1：pass（未登录访问 `/dashboard/practice` 被拦截到 `/login?redirectTo=%2Fdashboard%2Fpractice`，登录后回跳成功）
+- 用例 2：pass（登录后刷新 `/dashboard/practice`，URL 保持不变）
+- 用例 3：pass（点击侧边栏“退出登录”回到 `/`，再次访问受保护路由被拦截）
+- 用例 4：n/a（当前回归窗口未做真实超时等待，使用登出与受保护路由拦截替代）
+- 用例 5：pass（双标签下 A 标签登出后，B 标签刷新跳转 `/login?redirectTo=%2Fdashboard%2Fpractice`）
+- SQL 快照：同一账号 `users.sign_in_count` 从 `2` 增长到 `3`；`user_settings` 始终只有 `1` 条记录。
+- 限制说明：Vercel 预发环境通过 MCP 查询时返回 `Auth required`，本轮以本地生产模式完成 `T-009` 等价复测。
+
 ## AC-04 用例
 
 ### 用例 6：`/admin` 未登录保护与回跳

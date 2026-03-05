@@ -28,6 +28,8 @@
 
 | 2026-03-05 | p0-06-practice-prod-validation/T-012~T-014 | 实现 Examcoo 抓取脚本并完成10题导入与发布验证 | 新增 fetch-view-paper 与 import-fetched-json 脚本；从 view/id/2430396 抓取10题（含可用解析）；入库10题到 source_file/question_group/questions；状态迁移到 PUBLISHED；更新 tasks T-012/T-013/T-014 | - | - | - | - |
 
+| 2026-03-05 | p0-02 AC-01 收尾（T-008/T-009） | 完成 AC-01 剩余任务并内测，补齐本地+预发证据 | 新增 auth.test.ts 并完成 Playwright+SQL 证据，T-008/T-009 置 done | 单测覆盖 redirectTo/登出幂等 + 浏览器跨标签验证 + SQL 快照 | Vercel 预发 MCP 受限（Auth required） | 先做本地可复现证据闭环（单测+Playwright+SQL），再补预发等价复测与风险说明 | 推进 AC-02（impersonate status 与 impersonation_sessions 一致性） |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

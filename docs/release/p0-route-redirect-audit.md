@@ -13,7 +13,7 @@
 | `/admin/users` | 已登录（ADMIN） | 正常访问（不退化）且列表主区全宽渲染 | 右侧存在异常留白 | 修复容器全宽约束：`/admin/users/page.tsx` 与 `UserTable` 根节点补 `w-full` | 页面全宽展示，右侧留白消除 | main@5d2fb92 |
 | `/admin/referrals` | 已登录（ADMIN/TEACHER） | 正常访问，且“用户管理”分组保持展开 | 页面可访问但缺统一侧边栏嵌套与分组状态不稳定 | 接入 `AdminClientWrapper` + sidebar 子菜单入口 + 分组展开规则收敛 | 页面与侧边栏行为一致 | main@924c0cf, main@5d2fb92 |
 | `/admin/vouchers` | 已登录（ADMIN） | 正常访问，且“内容管理”分组覆盖该路由 | 页面未使用统一 admin 容器，缺侧边栏嵌套 | 接入 `AdminClientWrapper` 并扩展内容分组匹配到 `/admin/vouchers` | 页面与 admin 其他子页一致 | main@5d2fb92 |
-| `/dashboard/*` | 未登录 | `/login?redirectTo=原路径` |  |  |  |  |
+| `/dashboard/*` | 未登录 | `/login?redirectTo=原路径` | 拦截逻辑存在但未补充回跳证据 | 补充 Playwright 回归（T-008/T-009）验证回跳闭环 | `GET /dashboard/practice` -> `/login?redirectTo=%2Fdashboard%2Fpractice`；登录后回跳原路径 | Playwright 2026-03-05（localhost:3000 + localhost:3001） |
 | `/dashboard/debug/ui-kit` | 任意登录态 | 调试页下线并返回 404 | 调试页可访问 | 路由文件改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
 | `/dashboard/knowledge-graph` | 任意登录态 | 功能页下线并返回 404 | 功能页可访问 | 路由文件改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
 | `/dashboard/practice/import` | 任意登录态 | 功能页下线并返回 404 | 页面可访问并可上传题目 | 路由文件改为显式 `notFound()`（题目录入收口到 `/admin/content/import`） | 直接返回 404 | workspace change (2026-03-04) |
@@ -21,7 +21,7 @@
 | `/course/:subjectId` | 任意登录态 | 课程旧路由下线并返回 404 | 页面可访问（课程壳） | `src/app/course/[subjectId]/layout.tsx` 与 `page.tsx` 改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
 | `/course/:subjectId/:lessonId` | 任意登录态 | 课程旧路由下线并返回 404 | 页面可访问（课时详情） | `src/app/course/[subjectId]/[lessonId]/page.tsx` 改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
 | `/checkout/config` | 任意登录态 | 结账配置页下线并返回 404 | 页面可访问（配置页） | `src/app/(marketing)/checkout/config/page.tsx` 改为显式 `notFound()`，`/pricing` 改为直连 `prepareCheckoutAction` | 直接返回 404 | workspace change (2026-03-04) |
-| `/login` | 已登录 | 按 `redirectTo` 或默认 `/dashboard` |  |  |  |  |
+| `/login` | 已登录 | 按 `redirectTo` 或默认 `/dashboard` | 仅代码级规则，无实测记录 | 新增 `auth.test.ts` 覆盖非法/空 `redirectTo` 回退 | 非法 `redirectTo`（`https://...`、`/login...`、`//...`）统一回退 `/dashboard` | `pnpm vitest run src/actions/__tests__/auth.test.ts` |
 | `/register` | 已登录 | 按 `redirectTo` 或默认 `/dashboard` |  |  |  |  |
 
 ## 备注

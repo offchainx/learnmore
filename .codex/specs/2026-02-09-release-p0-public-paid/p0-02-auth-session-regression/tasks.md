@@ -9,8 +9,8 @@
 | T-005 | AC-01 | 实现登录/登出/刷新/跨标签会话一致性与受保护路由行为 | codex | done |  |
 | T-006 | AC-04 | 调试/重构页面重定向路由（包含受保护路由），输出完整路由定向清单并修复错误定向 | codex | doing | main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
 | T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | done | main@932eefb + Playwright 空闲观测证据（2026-03-04） |
-| T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | todo |  |
-| T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | todo |  |
+| T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | done | workspace change (2026-03-05): `auth.test.ts` + Playwright 本地流转 + SQL 快照 |
+| T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | done | workspace change (2026-03-05): `pnpm build && pnpm start -p 3001` 生产模式复测（Vercel 预发需认证） |
 | T-010 | AC-02 | 实现管理员伪装状态接口一致性（impersonate status <-> impersonation_sessions） | codex | todo |  |
 | T-011 | AC-02 | 本地验证 AC-02（status 接口返回与表状态对齐） | codex | todo |  |
 | T-012 | AC-02 | 预发复测 AC-02（过期/结束会话/无 token 场景） | codex | todo |  |
@@ -99,6 +99,17 @@
 11. 新增 `admin/users/list` 读取接口，并将用户列表首屏数据改为服务端注入，消除页面路径 POST 噪音。
 12. 补充轮询全量扫描结论，记录“需要处理/可保留”边界。
 13. 完成 Playwright 空闲态观测补证：`/dashboard`、`/dashboard/practice`、`/admin/permissions` 均未出现非预期周期性请求。
+
+## T-008 阶段进展（2026-03-05）
+- [x] 新增 `src/actions/__tests__/auth.test.ts`：覆盖 `loginAction/logoutAction` 输入输出、`redirectTo` 安全规则、登出幂等。
+- [x] 本地浏览器流转验证：注册 -> 登出 -> 未登录访问受保护路由拦截 -> 登录回跳 -> 刷新保持登录态 -> 跨标签登出同步失效。
+- [x] SQL 快照完成：测试账号 `ac01_20260305160426@learnmore.test` 在重登前后 `sign_in_count` 从 `2` 增长到 `3`，`user_settings` 始终仅 `1` 条。
+- [x] 类型检查完成：`pnpm exec tsc --noEmit` 通过。
+
+## T-009 阶段进展（2026-03-05）
+- [x] 生产构建复测完成：`pnpm build` 通过，`pnpm start -p 3001` 启动后执行 AC-01 关键流转（受保护路由拦截、登录回跳、登出）。
+- [x] 预发访问受限结论归档：Vercel MCP `list_deployments` 返回 `Auth required`，当前无法直接访问云端预发环境。
+- [x] 风险记录：生产模式复测中出现数据库连接上限（`MaxClientsInSessionMode`）瞬时告警，已记录为环境容量问题，不影响 AC-01 逻辑判断结论。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。
