@@ -15,7 +15,7 @@
 | T-011 | Weakness Quick Fix 服务端化（UI 改为复用 getWeaknessAnalysis） | codex | todo |  |
 | T-012 | 实现 Examcoo 抓取脚本 MVP（`view -> getpapercontent -> comment/index` 循环抓解析） | codex | done |  |
 | T-013 | 执行“小批量可见”导入（指定试卷先入 2 题，写入 source/question_group/questions，默认 `REVIEW_PENDING`） | codex | done |  |
-| T-014 | 完成 2 题审核发布链路验证（`REVIEW_PENDING -> VERIFIED -> PUBLISHED`） | codex | todo |  |
+| T-014 | 完成 2 题审核发布链路验证（`REVIEW_PENDING -> VERIFIED -> PUBLISHED`） | codex | done |  |
 | T-015 | 验证练习中心可见性（至少 1 条真实题在对应模式可拉取、可作答、可提交） | codex | todo |  |
 | T-016 | 扩量到“每科 100 题”导入（按限速策略执行并记录幂等结果） | codex | todo |  |
 | T-017 | 执行首批导入与幂等审计（优先初三数学 k=60，再扩展初中教育） | codex | todo |  |

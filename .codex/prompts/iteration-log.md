@@ -26,6 +26,8 @@
 
 | 2026-03-05 | T-007 请求噪音治理扩展 | 修复leaderboard/community/admin-users进入页面多次POST请求并更新文档 | 新增3个GET读取API并完成首屏服务端注入，消除页面路径多次POST噪音 | - | - | - | - |
 
+| 2026-03-05 | p0-06-practice-prod-validation/T-012~T-014 | 实现 Examcoo 抓取脚本并完成10题导入与发布验证 | 新增 fetch-view-paper 与 import-fetched-json 脚本；从 view/id/2430396 抓取10题（含可用解析）；入库10题到 source_file/question_group/questions；状态迁移到 PUBLISHED；更新 tasks T-012/T-013/T-014 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用
