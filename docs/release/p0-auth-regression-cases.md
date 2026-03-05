@@ -50,6 +50,18 @@
 - SQL 快照：同一账号 `users.sign_in_count` 从 `2` 增长到 `3`；`user_settings` 始终只有 `1` 条记录。
 - 限制说明：Vercel 预发环境通过 MCP 查询时返回 `Auth required`，本轮以本地生产模式完成 `T-009` 等价复测。
 
+## AC-02 执行记录（2026-03-05）
+- 代码改动：`/api/auth/impersonate/status` 接入统一会话判定函数，新增 token/payload/session 三重一致性校验。
+- 单测结果：`pnpm vitest run src/lib/impersonation/__tests__/status.test.ts`（6/6 通过）。
+- 本地 API/SQL 对照：
+  1. active 会话（`ended_at IS NULL && expires_at > now()`）=> `isImpersonating: true`
+  2. ended 会话（`ended_at IS NOT NULL`）=> `isImpersonating: false`
+  3. expired 会话（`expires_at < now()`）=> `isImpersonating: false`
+  4. 无 token => `isImpersonating: false`
+  5. token mismatch（payload 同 sessionId，但 token 与表中 token 不一致）=> `isImpersonating: false`
+- 数据清理：所有临时会话已在脚本末尾删除（无残留测试数据）。
+- 限制说明：云端预发仍受 `Auth required` 约束，本轮以本地生产模式做等价复测。
+
 ## AC-04 用例
 
 ### 用例 6：`/admin` 未登录保护与回跳

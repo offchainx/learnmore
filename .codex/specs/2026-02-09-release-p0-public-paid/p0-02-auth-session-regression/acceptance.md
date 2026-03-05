@@ -22,7 +22,7 @@
 |---|---|---|---|---|---|---|---|---|
 | loginAction | 登录页提交 | 正常：有效账号；异常：错误密码 | 未登录可访问 | 成功重定向；失败返回错误文案 | 重复点击不产生脏状态 | auth login error 日志 | pass | `pnpm vitest run src/actions/__tests__/auth.test.ts`（6/6 通过，含非法 `redirectTo` 回退与错误密码文案） |
 | logoutAction | 顶栏退出 | 正常：已登录；异常：会话已失效 | 未登录调用应安全结束 | 都应回到首页 | 多次调用结果一致 | auth logout error 日志 | pass | `pnpm vitest run src/actions/__tests__/auth.test.ts`（登出成功/失败均重定向 `/`） + Playwright（2026-03-05） |
-| GET /api/auth/impersonate/status | 管理端 banner 轮询 | 正常：有效 token；异常：过期 token | 未授权 token 返回 false | 仅返回状态，不写库 | 查询幂等 | impersonate status 日志 |  |  |
+| GET /api/auth/impersonate/status | 管理端 banner 轮询 | 正常：有效 token；异常：过期/结束/token mismatch | 未授权 token 返回 false | 仅返回状态，不写库 | 查询幂等 | impersonate status 日志 | pass | `pnpm vitest run src/lib/impersonation/__tests__/status.test.ts`（6/6）+ 本地 API/SQL 对照脚本（2026-03-05） |
 
 ## 路由定向与后台请求验收矩阵（新增）
 | 验收点 | 场景 | 观测对象 | 预期结果 | 结果（pass/fail） | 证据 |
@@ -66,7 +66,7 @@
 | 场景 | 相关表 | 关键字段 | 执行前快照（SQL + 摘要） | 执行后快照（SQL + 摘要） | 差异判断 | 回滚验证 | 结果/证据 |
 |---|---|---|---|---|---|---|---|
 | 登录后会话一致性 | users | id、status、sign_in_count、last_sign_in_at | `SELECT id, status, sign_in_count, last_sign_in_at FROM users WHERE email='ac01_20260305160426@learnmore.test';` => `status=ACTIVE, sign_in_count=2` | 同 SQL 重查 => `status=ACTIVE, sign_in_count=3` | 登录增加一次 sign-in 镜像；账号状态保持 ACTIVE | 登出后访问 `/dashboard/practice` 被重定向到 `/login?redirectTo=...` | pass（Playwright + Prisma 快照，2026-03-05） |
-| 伪装状态核对 | impersonation_sessions | ended_at、expires_at | SELECT id, ended_at, expires_at FROM impersonation_sessions WHERE id={{sessionId}}; | 调 status API 后再查 | 返回 JSON 与表状态一致 | 结束伪装后应返回 false |  |
+| 伪装状态核对 | impersonation_sessions | ended_at、expires_at、admin_id、target_user_id、token | 临时写入 active 会话：`ended_at IS NULL AND expires_at > now()` | 更新为 `ended_at=now()`、另建 `expires_at < now()` 会话后重复请求 status | active->`true`，ended/expired->`false`；无 token 与 token mismatch 均 `false` | 清理临时会话后数据恢复 | pass（本地 API/SQL 对照，2026-03-05） |
 | 用户同步兜底 | user_settings | user_id、language、theme | SELECT user_id, language, theme FROM user_settings WHERE user_id={{userId}}; | 触发 sync 后再查 | 若不存在则创建且仅一条 | 回滚后无重复行 |  |
 | Voucher 可用性核对 | voucher_codes | code、is_active、valid_from、valid_to、max_redemptions、redeemed_count | SELECT code, is_active, valid_from, valid_to, max_redemptions, redeemed_count FROM voucher_codes WHERE code={{code}}; | 触发下单校验后再查 | 启用状态/有效期/次数上限判定一致 | 回滚后状态恢复 |  |
 | Voucher 核销幂等核对 | voucher_redemptions | voucher_id、user_id、stripe_session_id、applied_amount | SELECT voucher_id, user_id, stripe_session_id, applied_amount FROM voucher_redemptions WHERE user_id={{userId}} ORDER BY created_at DESC LIMIT 5; | 重放同一 webhook 后再查 | 同一 user + voucher + stripe_session 不重复写入 | 回滚后无重复核销行 |  |

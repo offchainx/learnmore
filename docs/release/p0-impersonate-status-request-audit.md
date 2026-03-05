@@ -25,6 +25,7 @@
 | FIX-007 | `POST /dashboard/leaderboard` | 首屏数据改为服务端注入；客户端改 `GET /api/leaderboard/summary` | `src/app/(dashboard)/dashboard/leaderboard/page.tsx`、`src/components/leaderboard/LeaderboardView.tsx`、`src/app/api/leaderboard/summary/route.ts` | 消除排行榜页面路径 POST 噪音 | done |
 | FIX-008 | `POST /dashboard/community` | 首屏数据改为服务端注入；客户端改 `GET /api/community/feed` | `src/app/(dashboard)/dashboard/community/page.tsx`、`src/components/dashboard/views/CommunityView.tsx`、`src/app/api/community/feed/route.ts` | 消除社区页面路径 POST 噪音 | done |
 | FIX-009 | `POST /admin/users` | 首屏数据改为服务端注入；客户端改 `GET /api/admin/users/list` | `src/app/(dashboard)/admin/users/page.tsx`、`src/components/admin/users/UserTable.tsx`、`src/app/api/admin/users/list/route.ts` | 消除用户列表页面路径 POST 噪音 | done |
+| FIX-010 | `GET /api/auth/impersonate/status` 一致性 | 增加会话记录与 token/payload 一致性校验（`adminId/targetUserId/token`）并抽离统一判定函数 | `src/app/api/auth/impersonate/status/route.ts`、`src/lib/impersonation/status.ts` | 保证接口返回与 `impersonation_sessions` 实际状态一致 | done |
 
 ## 修复后观测
 | request | source_component | trigger_condition | interval/frequency | idle_1m_count | idle_3m_count | result | evidence |
@@ -38,6 +39,7 @@
 | `POST /dashboard/community` | `CommunityView` | 不再由客户端 Server Action 触发 | 0（预期） | 0 | 0 | 已修复 | 代码审计 2026-03-05：客户端改为服务端注入 + `GET /api/community/feed` |
 | `POST /admin/users` | `UserTable` | 不再由客户端 Server Action 触发 | 0（预期） | 0 | 0 | 已修复 | 代码审计 2026-03-05：客户端改为服务端注入 + `GET /api/admin/users/list` |
 | `GET /admin/permissions` 高频 | Admin Permissions 页面 | 取消强制动态后观测 | 0（新增） | 0（新增） | 已收敛 | Playwright 2026-03-04：`/admin/permissions` 空闲 180s 无重复页面请求 |
+| `GET /api/auth/impersonate/status` 一致性 | Status API + `impersonation_sessions` | active/ended/expired/no-token/token-mismatch 对照 | 按场景触发 | - | - | 已通过 | 本地 API/SQL 对照 2026-03-05：active=true，ended/expired/no-token/token-mismatch=false；临时数据已清理 |
 
 ## 结论
 - 是否完成异常请求闭环：`done`

@@ -7,12 +7,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyImpersonationToken, getImpersonationTokenFromCookie } from '@/lib/jwt'
+import { verifyImpersonationToken } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
+import { evaluateImpersonationSessionStatus } from '@/lib/impersonation/status'
 
 export async function GET(request: NextRequest) {
-  const cookieHeader = request.headers.get('cookie')
-  const token = getImpersonationTokenFromCookie(cookieHeader)
+  const token = request.cookies.get('impersonation_token')?.value
 
   if (!token) {
     return NextResponse.json({ isImpersonating: false })
@@ -28,19 +28,26 @@ export async function GET(request: NextRequest) {
   try {
     const session = await prisma.impersonationSession.findUnique({
       where: { id: payload.sessionId },
-      include: {
+      select: {
+        id: true,
+        adminId: true,
+        targetUserId: true,
+        token: true,
+        endedAt: true,
+        expiresAt: true,
         targetUser: {
           select: { email: true },
         },
       },
     })
 
-    if (!session || session.endedAt) {
-      return NextResponse.json({ isImpersonating: false })
-    }
+    const status = evaluateImpersonationSessionStatus({
+      session,
+      payload,
+      token,
+    })
 
-    // 检查是否过期
-    if (new Date() > session.expiresAt) {
+    if (!status.isImpersonating || !session) {
       return NextResponse.json({ isImpersonating: false })
     }
 

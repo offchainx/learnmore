@@ -30,6 +30,8 @@
 
 | 2026-03-05 | p0-02 AC-01 收尾（T-008/T-009） | 完成 AC-01 剩余任务并内测，补齐本地+预发证据 | 新增 auth.test.ts 并完成 Playwright+SQL 证据，T-008/T-009 置 done | 单测覆盖 redirectTo/登出幂等 + 浏览器跨标签验证 + SQL 快照 | Vercel 预发 MCP 受限（Auth required） | 先做本地可复现证据闭环（单测+Playwright+SQL），再补预发等价复测与风险说明 | 推进 AC-02（impersonate status 与 impersonation_sessions 一致性） |
 
+| 2026-03-05 | p0-02 AC-02（T-010~T-012） | 实现并验证 impersonate status 与 impersonation_sessions 一致性 | 完成 status 一致性收敛、单测与本地API/SQL对照，AC-02 三个任务置 done | 抽离会话判定函数 + 接口三重一致性校验 + 临时会话对照脚本 | 云端预发仍受 Vercel Auth required 限制 | 先做 deterministic 单测覆盖状态机，再用临时会话做 API/SQL 黑盒对照 | 推进 AC-03 user/voucher 字段与逻辑核对 |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

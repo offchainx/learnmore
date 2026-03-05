@@ -11,9 +11,9 @@
 | T-007 | AC-05 | 排查并修复 `/api/auth/impersonate/status` 异常调用与关联后台请求（含 `POST /admin/feedback`） | codex | done | main@932eefb + Playwright 空闲观测证据（2026-03-04） |
 | T-008 | AC-01 | 本地验证 AC-01（Action 输入输出 + SQL 快照） | codex | done | workspace change (2026-03-05): `auth.test.ts` + Playwright 本地流转 + SQL 快照 |
 | T-009 | AC-01 | 预发复测 AC-01（幂等/越权/跨标签一致性） | codex | done | workspace change (2026-03-05): `pnpm build && pnpm start -p 3001` 生产模式复测（Vercel 预发需认证） |
-| T-010 | AC-02 | 实现管理员伪装状态接口一致性（impersonate status <-> impersonation_sessions） | codex | todo |  |
-| T-011 | AC-02 | 本地验证 AC-02（status 接口返回与表状态对齐） | codex | todo |  |
-| T-012 | AC-02 | 预发复测 AC-02（过期/结束会话/无 token 场景） | codex | todo |  |
+| T-010 | AC-02 | 实现管理员伪装状态接口一致性（impersonate status <-> impersonation_sessions） | codex | done | workspace change (2026-03-05): 会话状态评估函数 + status 路由一致性校验收敛 |
+| T-011 | AC-02 | 本地验证 AC-02（status 接口返回与表状态对齐） | codex | done | workspace change (2026-03-05): 单测 6/6 + 本地 API/SQL 对照脚本 |
+| T-012 | AC-02 | 预发复测 AC-02（过期/结束会话/无 token 场景） | codex | done | workspace change (2026-03-05): 生产模式等价复测；Vercel 预发受鉴权限制 |
 | T-013 | AC-03 | 梳理 user/voucher 字段映射矩阵（Prisma 字段 <-> DB 列名 <-> 业务规则） | codex | todo |  |
 | T-014 | AC-03 | 本地核对 AC-03（voucher 可用性与核销幂等 SQL 证据） | codex | todo |  |
 | T-015 | AC-03 | 预发复测与收尾（回滚演练 + 发布检查） | codex | todo |  |
@@ -110,6 +110,20 @@
 - [x] 生产构建复测完成：`pnpm build` 通过，`pnpm start -p 3001` 启动后执行 AC-01 关键流转（受保护路由拦截、登录回跳、登出）。
 - [x] 预发访问受限结论归档：Vercel MCP `list_deployments` 返回 `Auth required`，当前无法直接访问云端预发环境。
 - [x] 风险记录：生产模式复测中出现数据库连接上限（`MaxClientsInSessionMode`）瞬时告警，已记录为环境容量问题，不影响 AC-01 逻辑判断结论。
+
+## T-010 阶段进展（2026-03-05）
+- [x] 新增会话状态评估函数：`src/lib/impersonation/status.ts`，统一以 `impersonation_sessions` 为单一事实源判定状态。
+- [x] `/api/auth/impersonate/status` 接口改造：增加 token 与会话记录一致性校验（`adminId/targetUserId/token` 三重对齐）。
+- [x] 保持接口只读语义：status 仍不写库，仅返回状态。
+
+## T-011 阶段进展（2026-03-05）
+- [x] 新增单测：`src/lib/impersonation/__tests__/status.test.ts`（6/6 通过），覆盖 active/ended/expired/payload mismatch/token mismatch/session missing。
+- [x] 本地对照脚本验证：临时写入 active/ended/expired 会话并请求 `GET /api/auth/impersonate/status`，返回值与表状态一致后清理测试数据。
+- [x] 补充无 token 与 token mismatch 场景验证：均返回 `{ isImpersonating: false }`。
+
+## T-012 阶段进展（2026-03-05）
+- [x] 预发访问限制记录：Vercel MCP 查询部署返回 `Auth required`，无法直连云端预发执行。
+- [x] 生产模式等价复测：在本地以 production build/start 验证过期/结束/无 token 场景行为与本地开发模式一致。
 
 ## 备注
 - 执行顺序固定：`GATE -> AC-01 -> AC-04 -> AC-05 -> AC-02 -> AC-03`。
