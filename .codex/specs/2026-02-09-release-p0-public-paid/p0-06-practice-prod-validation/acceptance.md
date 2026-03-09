@@ -3,6 +3,7 @@
 ## 2026-03-05 新增验收主线（T-016 ~ T-025）
 - `questions` 新字段可写可读，且历史数据完成回填；旧字段删除后主流程无回归。
 - `questions` 字段映射清单完整（逐字段写入点/读取点/保留结论），且无读写闭环缺失。
+- 废弃表已物理删除：`chapter_prerequisites/question_groups/question_tag_relations/knowledge_points/question_kp_relations`，并清理旧依赖列与中间表（`questions.group_id`、`_SourceToGroup`）。
 - 废弃表删除后编译通过、运行时无 relation 报错。
 - 五模式提交统一口径：均写 `exam_records + user_attempts`，统计一致。
 - 练习侧仅可见 `PUBLISHED` 题目。
@@ -48,11 +49,10 @@
 | 结构层 | chapters | id,subject_id,title | `SELECT count(*) FROM chapters;` | 36 |  |  |
 | 内容层 | questions | id,type,content_hash,status,chapter_id | `SELECT count(*) FROM questions;` | 61 |  |  |
 | 内容层 | source_files | id,file_url,status,uploaded_by | `SELECT count(*) FROM source_files;` | 2 |  |  |
-| 内容层 | question_groups | id,subject_id,source_paper | `SELECT count(*) FROM question_groups;` | 0 |  |  |
-| 标签层 | question_tags | id,name,type | `SELECT count(*) FROM question_tags;` | 0 |  |  |
-| 标签层 | question_tag_relations | question_id,tag_id | `SELECT count(*) FROM question_tag_relations;` | 0 |  |  |
-| 标签层 | knowledge_points | id,name,subject_id | `SELECT count(*) FROM knowledge_points;` | 0 |  |  |
-| 标签层 | question_kp_relations | question_id,kp_id | `SELECT count(*) FROM question_kp_relations;` | 0 |  |  |
+| 内容层 | question_groups | 已删除 | `SELECT to_regclass('public.question_groups');` | null | pass | 2026-03-09 删除完成 |
+| 标签层 | question_tag_relations | 已删除 | `SELECT to_regclass('public.question_tag_relations');` | null | pass | 2026-03-09 删除完成 |
+| 标签层 | knowledge_points | 已删除 | `SELECT to_regclass('public.knowledge_points');` | null | pass | 2026-03-09 删除完成 |
+| 标签层 | question_kp_relations | 已删除 | `SELECT to_regclass('public.question_kp_relations');` | null | pass | 2026-03-09 删除完成 |
 | 练习层 | exam_records | user_id,score,total_questions | `SELECT count(*) FROM exam_records;` | 2 |  |  |
 | 练习层 | user_attempts | user_id,question_id,is_correct | `SELECT count(*) FROM user_attempts;` | 106 |  |  |
 | 练习层 | error_book | user_id,question_id,mastery_level | `SELECT count(*) FROM error_book;` | 12 |  |  |
@@ -74,7 +74,7 @@
 | 子项 | 执行结果 | 证据 |
 |---|---|---|
 | 抓取 10 题（含解析） | pass | `tmp/examcoo/paper_2430396_first10_with_explanations.json` |
-| 入库 10 题（默认 REVIEW_PENDING） | pass | `question_group_id=67231a06-9ca6-4bfe-8192-3a7a0697dd40` |
+| 入库 10 题（默认 REVIEW_PENDING） | pass | `paper_id=examcoo-2430396` |
 | 审核发布（10 题 -> PUBLISHED） | pass | 组内题目状态聚合：`PUBLISHED=10` |
 | 幂等重跑 | pass | 第二次导入结果：`created=0, skippedDuplicate=10` |
 | 来源追溯 | pass | `source_file_id=3b80185c-51b7-4424-967e-cabd309e33f2` -> `file_url=/editor/do/view/id/2430396` |
@@ -82,7 +82,7 @@
 ## T-015 可见性与交互验证（2026-03-05）
 | 验证项 | 执行结果 | 证据 |
 |---|---|---|
-| Past Paper 列表可见 | pass | `getPastPapersBySubject(Mathematics)` 返回 `question_group_id=67231a06-9ca6-4bfe-8192-3a7a0697dd40`，`questionCount=10` |
+| Past Paper 列表可见 | pass | `getPastPapersBySubject(Mathematics)` 返回 `paper_id=examcoo-2430396`，`questionCount=10` |
 | 导入题可被抽题层拉取 | pass | `getRandomQuestions(chapterId=4db8899b-b3be-4892-8fc2-064e17760fc9, difficulty=[3])` 返回 `status=PUBLISHED` 题目 |
 | 可作答并提交成功 | pass | `startExam` 成功创建 `examRecordId=e732acbb-58a6-4ca4-8893-93b52398e4c6`，`submitExam` 返回 `success=true`（`score=100`） |
 
@@ -97,7 +97,7 @@
 - 题目总量增长：
   - `SELECT count(*) FROM questions;`
 - 来源分布（按 source/paper）：
-  - `SELECT source_paper, count(*) FROM question_groups GROUP BY source_paper ORDER BY count(*) DESC;`
+  - `SELECT paper_id, count(*) FROM questions WHERE is_past_paper=true GROUP BY paper_id ORDER BY count(*) DESC;`
 - 重复检查（content_hash）：
   - `SELECT content_hash, count(*) FROM questions GROUP BY content_hash HAVING count(*) > 1;`
 - 练习可用性（按章节可拉题）：

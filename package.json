@@ -23,8 +23,8 @@
     "db:seed": "dotenv -e .env.local prisma db seed",
     "db:studio": "dotenv -e .env.local prisma studio",
     "test": "vitest",
-    "test:supabase": "TS_NODE_PROJECT='./tsconfig.json' dotenv -e .env.local -- node -r tsconfig-paths/register -r ts-node/register src/lib/__tests__/supabase-connection.test.ts",
-    "test:seed-data": "TS_NODE_PROJECT='./tsconfig.json' dotenv -e .env.local -- node -r tsconfig-paths/register -r ts-node/register prisma/seed.test.ts"
+    "test:supabase": "dotenv -e .env.local -- tsx src/lib/__tests__/supabase-connection.test.ts",
+    "test:seed-data": "dotenv -e .env.local -- tsx prisma/seed.test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

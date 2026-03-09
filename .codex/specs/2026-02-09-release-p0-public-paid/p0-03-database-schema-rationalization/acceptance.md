@@ -272,13 +272,16 @@
   - 应用侧 cookie：`maxAge=3600`（`src/lib/supabase/server.ts` / `src/middleware.ts`）。
   - 平台 token：`password grant expires_in=3600`（临时账号实测，测试账号已删除）。
 - MFA 现状：
-  - `ADMIN` 账号 `verified factor=0`（待上线前补齐策略）。
+  - `ADMIN` 账号 `verified factor=0`（2026-03-09 决策：后置，待应用侧提供 TOTP 绑定入口后补齐）。
 - Storage policy 命名与去重：
   - 语义重复组：`0`。
   - 命名统一迁移已生成：`supabase/migrations/012_normalize_storage_object_policy_names.sql`。
   - 受限项：当前数据库连接角色无法执行 `ALTER POLICY`（需 owner 权限）。
 - `source-files` 评估：
   - 当前上传链路依赖 `getPublicUrl`，MVP 维持 `public`。
+- 后置项记录（2026-03-09）：
+  - 登录/注册/重置密码限流与邮件模板：待自有域名与 SMTP 发信域完成后回补。
+  - 管理员 MFA 绑定：待应用提供 TOTP 绑定入口后回补。
 
 ## T-005 执行场景（Given / When / Then）
 - 给定：新用户走标准注册链路

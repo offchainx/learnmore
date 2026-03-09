@@ -68,10 +68,10 @@ updated_at: 2026-03-05
 ## 题目域表分层（审计范围）
 | 分层 | 数据表 | 角色 |
 |---|---|---|
-| 结构层 | subjects, chapters, chapter_prerequisites | 学科与章节结构 |
-| 内容层 | questions, question_groups, source_files | 题目主体与来源 |
-| 标签层 | question_tags, question_tag_relations, knowledge_points, question_kp_relations | 标签/知识点关联 |
-| 练习日志层 | exam_records, user_attempts, error_book | 作答、判分、错题回写 |
+| 结构层 | subjects, chapters | 学科与章节结构 |
+| 内容层 | questions, source_files | 题目主体与来源 |
+| 标签层 | questions.tags | 题目标签（冗余字段） |
+| 练习日志层 | exam_records, user_attempts | 作答与判分 |
 | 质控层 | content_review_logs, question_reports | 审核流与报错治理 |
 
 ## 2026-03-05 范围更新（任务顺延）
@@ -125,28 +125,30 @@ updated_at: 2026-03-05
 2. 已修复难度筛选逻辑为“权限难度 ∩ 用户筛选难度”的严格交集语义（空交集直接返回空题集，不再兜底覆盖）。
 3. 已在 `question-service` 过滤构建中加入 UUID/枚举/空范围防御，避免非法筛选值触发 Prisma 运行时错误。
 
-## 当前数据库基线（2026-03-05 本地快照）
+## 当前数据库基线（2026-03-09 本地快照）
 | 表 | 当前记录数 |
 |---|---|
 | subjects | 8 |
 | chapters | 37 |
 | questions | 71 |
-| question_groups | 1 |
-| question_tags | 0 |
-| question_tag_relations | 0 |
-| knowledge_points | 0 |
-| question_kp_relations | 0 |
+| chapter_prerequisites | 已删除 |
+| question_groups | 已删除 |
+| question_tag_relations | 已删除 |
+| knowledge_points | 已删除 |
+| question_kp_relations | 已删除 |
 | source_files | 3 |
 | content_review_logs | 21 |
 | question_reports | 0 |
 | exam_records | 3 |
 | user_attempts | 106 |
-| error_book | 12 |
+| error_book | 待 T-022 移除 |
 
-## 已执行进展（2026-03-05）
+## 已执行进展（2026-03-09）
 - 已完成 T-012：基于 `view -> getpapercontent -> comment/index` 的抓取脚本可用，已从 `id=2430396` 成功抓取前 10 题。
-- 已完成 T-013：小批量导入 10 题，写入 `source_files + question_groups + questions`，状态为 `REVIEW_PENDING`。
+- 已完成 T-013：小批量导入 10 题，写入 `source_files + questions`（`paper_id=examcoo-2430396`），状态为 `REVIEW_PENDING`。
 - 已完成 T-014：上述 10 题已完成 `REVIEW_PENDING -> VERIFIED -> PUBLISHED`，并写入审核日志。
+- 已完成 T-017：完成 `public.questions` 字段-逻辑映射清单，并修复难度筛选交集逻辑。
+- 已完成 T-018：已执行迁移 `013_t018_drop_deprecated_question_tables.sql`，删除废弃表与旧依赖列（含 `questions.group_id`、`_SourceToGroup`）。
 
 ## 外部源（Examcoo）初中教育分类映射（首批）
 - 入口：`https://www.examcoo.com/index/detail/mid/1/#s2`

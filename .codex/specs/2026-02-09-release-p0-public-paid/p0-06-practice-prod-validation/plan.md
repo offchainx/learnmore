@@ -158,6 +158,11 @@
   - 已补齐 `public.questions` 全字段“写入点/读取点/保留结论”清单；
   - 已修复难度筛选为“权限难度 ∩ 用户筛选”的严格交集语义；
   - 已确认当前保留字段无读写闭环缺失。
+- `T-018`：完成废弃表与旧依赖清理：
+  - 新增并执行 `supabase/migrations/013_t018_drop_deprecated_question_tables.sql`；
+  - 已删除 `chapter_prerequisites/question_groups/question_tag_relations/knowledge_points/question_kp_relations`；
+  - 已删除旧依赖 `questions.group_id` 与旧关联表 `"_SourceToGroup"`；
+  - Past Paper 路由参数已从 `groupId` 语义切换为 `paperId`。
 
 ## 风险与回滚
 - 触发回滚：核心路径阻断、题目重复写入、来源不可追溯。

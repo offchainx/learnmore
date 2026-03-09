@@ -416,8 +416,8 @@ ORDER BY a.email;
 - [x] 应用侧 server/browser client 已统一使用 Supabase URL + anon key。
 - [x] Supabase Auth 的 Site URL / Redirect URLs 与生产域名核对（2026-03-09 已更新）。
 - [x] Session/JWT TTL 与应用 1h cookie 策略对齐（2026-03-09：`expires_in=3600` + 应用 cookie `maxAge=3600`）。
-- [ ] 登录/注册/重置密码限流与邮件模板配置核对。
-- [ ] 管理员账号 MFA 策略确认（当前 admin 账号 `verified factor=0`，待策略落地）。
+- [ ] 登录/注册/重置密码限流与邮件模板配置核对（后置：待自有域名与 SMTP 发信域完成后执行）。
+- [ ] 管理员账号 MFA 策略确认（后置：待应用提供 TOTP 绑定入口后执行；当前 admin 账号 `verified factor=0`）。
 
 ### D. Storage 配置
 - [x] buckets 快照：
@@ -502,8 +502,10 @@ ORDER BY a.email;
    - 平台侧：通过临时账号 `password grant` 实测 `expires_in=3600`，并已清理测试账号。
 8. Rate limit / 邮件模板（待人工）：
    - `auth/v1/settings` 仅返回有限字段，无法返回限流与模板细项；需控制台确认。
+   - 2026-03-09 决策：该项后置，待域名购买与 SMTP 发信域完成后回补。
 9. MFA（待策略落地）：
    - 当前管理员账号统计：`verified factor = 0`，需按上线门禁补齐。
+   - 2026-03-09 决策：该项后置，待应用侧提供 TOTP 绑定入口后回补。
 10. Storage policy 命名（部分完成）：
    - 已确认 `storage.objects` 无重复语义 policy（`dup_groups=0`）。
    - 命名统一迁移已生成：`supabase/migrations/012_normalize_storage_object_policy_names.sql`。

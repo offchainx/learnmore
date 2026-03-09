@@ -14,6 +14,7 @@ import {
 import { useApp } from '@/providers';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import type { PlatformStats } from '@/actions/marketing/campaign';
+import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 
 // Local translations for Landing Page content
 const localTranslations = {
@@ -299,6 +300,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
   const router = useRouter();
   const { lang, setLang } = useApp();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [resolvedIsLoggedIn, setResolvedIsLoggedIn] = useState(isLoggedIn);
   
   const toggleLang = () => {
     const nextLang = lang === 'ms' ? 'en' : lang === 'en' ? 'zh' : 'ms';
@@ -316,6 +318,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    try {
+      const supabase = createSupabaseClient();
+
+      supabase.auth
+        .getSession()
+        .then(({ data }) => {
+          setResolvedIsLoggedIn(Boolean(data.session?.user));
+        })
+        .catch(() => {
+          setResolvedIsLoggedIn(false);
+        });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setResolvedIsLoggedIn(Boolean(session?.user));
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch {
+      setResolvedIsLoggedIn(false);
+    }
+  }, []);
+
   const testimonialsList = [
     { text: t.testimonials.t1, author: t.testimonials.t1Author, role: t.testimonials.t1Role, img: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=200&auto=format&fit=crop" },
     { text: t.testimonials.t2, author: t.testimonials.t2Author, role: t.testimonials.t2Role, img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop" },
@@ -323,7 +352,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
   ];
 
   const handleCTAClick = () => {
-    if (isLoggedIn) {
+    if (resolvedIsLoggedIn) {
       router.push('/dashboard');
     } else {
       router.push('/register');
@@ -339,7 +368,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500/30 selection:text-blue-100 overflow-x-hidden">
-      <Navbar lang={lang} onToggleLang={toggleLang} isLoggedIn={isLoggedIn} />
+      <Navbar lang={lang} onToggleLang={toggleLang} isLoggedIn={resolvedIsLoggedIn} />
 
       {/* --- 1. Hero Section --- */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">

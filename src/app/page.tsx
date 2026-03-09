@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
 import { getPlatformStats } from '@/actions/marketing/campaign';
 import { LandingPage } from '@/components/marketing/landing-page';
-import { createClient } from '@/lib/supabase/server';
 
-export const dynamic = 'force-dynamic';
+export const preferredRegion = 'sin1';
+export const dynamic = 'force-static';
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'LearnMore AI | Your Personal AI Tutor for Middle School',
@@ -17,18 +18,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  // Fetch stats from database
   const stats = await getPlatformStats();
-
-  // Check auth status using proper server client with full cookie support
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const isLoggedIn = !!user;
 
   return (
     <LandingPage
       stats={stats}
-      isLoggedIn={isLoggedIn}
     />
   );
 }

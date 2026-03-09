@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { z } from 'zod';
+import { unstable_cache } from 'next/cache';
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -78,6 +79,24 @@ export type PlatformStats = {
   questionsSolved: number;
 };
 
+async function queryPlatformStats(): Promise<PlatformStats> {
+  const [userCount, attemptCount] = await Promise.all([
+    prisma.user.count(),
+    prisma.userAttempt.count(),
+  ]);
+
+  return {
+    activeStudents: userCount || 0,
+    questionsSolved: attemptCount || 0,
+  };
+}
+
+const getCachedPlatformStats = unstable_cache(
+  async () => queryPlatformStats(),
+  ['platform-stats:v1'],
+  { revalidate: 300, tags: ['platform-stats'] }
+);
+
 function isPrismaConnectivityError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
 
@@ -96,15 +115,7 @@ function isPrismaConnectivityError(error: unknown): boolean {
 
 export async function getPlatformStats(): Promise<PlatformStats> {
   try {
-    const [userCount, attemptCount] = await Promise.all([
-      prisma.user.count(),
-      prisma.userAttempt.count(),
-    ]);
-
-    return {
-      activeStudents: userCount || 0,
-      questionsSolved: attemptCount || 0,
-    };
+    return await getCachedPlatformStats();
   } catch (error) {
     if (isPrismaConnectivityError(error)) {
       console.warn('[PlatformStats] Database unavailable, fallback to zero stats.');

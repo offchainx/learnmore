@@ -24,8 +24,6 @@ export interface ImportFromPDFInput {
   sourcePaper?: string
   /** 章节 ID (可选，用于直接分类) */
   chapterId?: string
-  /** 题组 ID (可选，用于关联到已有题组) */
-  groupId?: string
 }
 
 /**

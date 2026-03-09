@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'Past Year Paper | LearnMore',
-  description: 'Practice real past-year papers from question groups',
+  description: 'Practice real past-year papers from published questions',
 }
 
 interface PageProps {
   params: Promise<{
-    groupId: string
+    paperId: string
   }>
 }
 
@@ -24,16 +24,13 @@ export default async function PastPaperPage({ params }: PageProps) {
     redirect('/login')
   }
 
-  const { groupId } = await params
+  const { paperId } = await params
 
   const questions = await prisma.question.findMany({
     where: {
-      paperId: groupId,
+      paperId,
       isPastPaper: true,
-      status: { in: [ContentStatus.PUBLISHED, ContentStatus.VERIFIED] },
-    },
-    include: {
-      subject: { select: { name: true } },
+      status: ContentStatus.PUBLISHED,
     },
     orderBy: { createdAt: 'asc' },
   })
@@ -43,8 +40,12 @@ export default async function PastPaperPage({ params }: PageProps) {
   }
 
   const chapterId = questions.find((question) => question.chapterId)?.chapterId
-  const subjectName = questions.find((q) => q.subject?.name)?.subject?.name || 'Subject'
-  const paperTitle = questions[0].source || `Past Paper ${groupId}`
+  const subjectId = questions.find((q) => q.subjectId)?.subjectId
+  const subject = subjectId
+    ? await prisma.subject.findUnique({ where: { id: subjectId }, select: { name: true } })
+    : null
+  const subjectName = subject?.name || 'Subject'
+  const paperTitle = questions[0].source || `Past Paper ${paperId}`
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
@@ -64,7 +65,7 @@ export default async function PastPaperPage({ params }: PageProps) {
           </Button>
         </div>
       ) : (
-        <QuizView chapterId={chapterId || undefined} questions={questions.map(({ subject, ...q }) => q)} />
+        <QuizView chapterId={chapterId || undefined} questions={questions} />
       )}
     </div>
   )
