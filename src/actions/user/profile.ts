@@ -80,14 +80,14 @@ export async function getDashboardProfile() {
   if (!user) return null
 
   try {
-    const profile = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: {
-        settings: true,
-      },
+    const settings = await prisma.userSettings.findUnique({
+      where: { userId: user.id },
     })
 
-    return profile
+    return {
+      ...user,
+      settings,
+    }
   } catch (error) {
     console.warn('[Profile] Falling back to dashboard profile due database schema mismatch:', error)
     return {
@@ -95,6 +95,16 @@ export async function getDashboardProfile() {
       settings: null,
     }
   }
+}
+
+/**
+ * Dashboard 子页面仅需基础用户信息，不需要额外 settings 查询。
+ * 直接复用 getCurrentUser 结果，减少重复数据库访问。
+ */
+export async function getDashboardShellProfile() {
+  const user = await getCurrentUser()
+  if (!user) return null
+  return user
 }
 
 export async function updateProfile(prevState: ProfileFormState, formData: FormData): Promise<ProfileFormState> {

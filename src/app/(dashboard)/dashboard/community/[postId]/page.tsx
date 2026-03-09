@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
-import { getDashboardProfile } from '@/actions/user/profile'
+import { getDashboardShellProfile } from '@/actions/user/profile'
 import { getPostById } from '@/actions/community/post'
 import { CommunityClientWrapper } from '../client-wrapper'
 import { PostDetailClient } from '@/components/community/PostDetailClient'
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
-  const profile = await getDashboardProfile()
+  const profile = await getDashboardShellProfile()
   if (!profile) {
     redirect('/login')
   }

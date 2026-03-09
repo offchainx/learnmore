@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getDashboardProfile } from '@/actions/user/profile'
+import { getDashboardShellProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { CommunityClientWrapper } from './client-wrapper'
 import { CommunityView } from '@/components/dashboard/views/CommunityView'
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CommunityPage() {
-  const profile = await getDashboardProfile()
+  const profile = await getDashboardShellProfile()
 
   if (!profile) {
     redirect('/login')

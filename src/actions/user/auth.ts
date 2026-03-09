@@ -3,9 +3,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
+import { cache } from 'react'
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
+import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
 import { triggerWelcomeNotification } from '../notification/triggers'
 
 function isPrismaConnectivityError(error: unknown): boolean {
@@ -194,6 +198,14 @@ function parseAuthTimestamp(value: string | null | undefined): Date | null {
   if (!value) return null
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+async function getAuthUserFromSupabase(): Promise<SupabaseAuthUser | null> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return user
 }
 
 function getUtmDataFromFormData(formData: FormData): UTMData {
@@ -386,22 +398,28 @@ export async function logoutAction() {
 }
 
 // 获取当前用户
-export async function getCurrentUser() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export const getCurrentUser = cache(async function getCurrentUser() {
+  const incomingHeaders = await headers()
+  const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+  let userId = forwardedUserId
+  let authUser: SupabaseAuthUser | null = null
+  let authLastSignInAt: Date | null = null
+  let authMetadataUtm: UTMData = {}
 
-  if (!user) return null
-
-  const authLastSignInAt = parseAuthTimestamp(user.last_sign_in_at)
-  const authMetadataUtm = getUtmDataFromAuthMetadata(user.user_metadata)
+  // Fast path: middleware 已校验并透传 userId，避免同请求链二次远程鉴权。
+  if (!userId) {
+    authUser = await getAuthUserFromSupabase()
+    if (!authUser) return null
+    userId = authUser.id
+    authLastSignInAt = parseAuthTimestamp(authUser.last_sign_in_at)
+    authMetadataUtm = getUtmDataFromAuthMetadata(authUser.user_metadata)
+  }
 
   // 从 public.users 获取完整用户信息
   let dbUser = null
   try {
     dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
+      where: { id: userId },
       include: {
         permissionOverrides: {
           where: {
@@ -421,7 +439,7 @@ export async function getCurrentUser() {
 
     if (isPrismaSchemaMismatchError(error)) {
       console.warn('[Auth] Database schema mismatch in getCurrentUser; trying fallback query.')
-      const fallbackUser = await getCurrentUserFallbackByRaw(user.id)
+      const fallbackUser = await getCurrentUserFallbackByRaw(userId)
       if (fallbackUser) {
         return fallbackUser
       }
@@ -432,14 +450,27 @@ export async function getCurrentUser() {
   }
 
   // 如果数据库中没有用户记录，自动同步创建
-  if (!dbUser && user.email) {
-    console.warn(`[Auth] User ${user.id} not found in database, auto-syncing...`)
+  if (!dbUser) {
+    if (!authUser) {
+      authUser = await getAuthUserFromSupabase()
+      if (!authUser || authUser.id !== userId) {
+        return null
+      }
+      authLastSignInAt = parseAuthTimestamp(authUser.last_sign_in_at)
+      authMetadataUtm = getUtmDataFromAuthMetadata(authUser.user_metadata)
+    }
+
+    if (!authUser.email) {
+      return null
+    }
+
+    console.warn(`[Auth] User ${userId} not found in database, auto-syncing...`)
     try {
       dbUser = await prisma.user.create({
         data: {
-          id: user.id,
-          email: user.email,
-          username: user.user_metadata?.username || user.email.split('@')[0],
+          id: userId,
+          email: authUser.email,
+          username: authUser.user_metadata?.username || authUser.email.split('@')[0],
           referralCode: generateReferralCode(),
           subscriptionTier: 'STARTER',
           subscriptionStatus: 'CANCELED',
@@ -466,12 +497,12 @@ export async function getCurrentUser() {
       // 同时创建 UserSettings
       await prisma.userSettings.create({
         data: {
-          userId: user.id,
+          userId,
           language: 'zh',
           theme: 'dark',
         },
       })
-      console.warn(`[Auth] User ${user.id} synced successfully with STARTER`)
+      console.warn(`[Auth] User ${userId} synced successfully with STARTER`)
     } catch (e) {
       if (isPrismaConnectivityError(e)) {
         console.warn('[Auth] Database unavailable while auto-sync user.')
@@ -494,11 +525,12 @@ export async function getCurrentUser() {
   // 兜底同步：若 auth.last_sign_in_at 比 public.users 新，补写镜像并累计 sign_in_count
   if (
     dbUser &&
+    authUser &&
     authLastSignInAt &&
     (!dbUser.lastSignInAt || authLastSignInAt > dbUser.lastSignInAt)
   ) {
     void prisma.user.update({
-        where: { id: user.id },
+        where: { id: userId },
         data: {
           lastSignInAt: authLastSignInAt,
           signInCount: { increment: 1 },
@@ -523,7 +555,7 @@ export async function getCurrentUser() {
   }
 
   return dbUser
-}
+})
 
 /**
  * 手动同步 Supabase Auth 用户到 public.users 表

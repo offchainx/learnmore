@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getDashboardProfile } from '@/actions/user/profile'
+import { getDashboardShellProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { CoursesClientWrapper } from './client-wrapper'
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function CoursesPage() {
-  const profile = await getDashboardProfile()
+  const profile = await getDashboardShellProfile()
 
   if (!profile) {
     redirect('/login')

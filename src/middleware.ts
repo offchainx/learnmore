@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
+import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
 
 const JWT_SECRET =
   process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
@@ -9,6 +10,7 @@ const DEFAULT_POST_LOGIN_REDIRECT = '/dashboard'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const requestHeaders = new Headers(request.headers)
 
   const isProtectedRoute =
     pathname.startsWith('/dashboard') || pathname.startsWith('/admin')
@@ -52,11 +54,15 @@ export async function middleware(request: NextRequest) {
     }
   }
   // ── End 伪装检测 ────────────────────────────────────────────
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  const pendingCookieSets: Array<{
+    name: string
+    value: string
+    options?: CookieOptions
+  }> = []
+  const pendingCookieRemoves: Array<{
+    name: string
+    options?: CookieOptions
+  }> = []
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -72,21 +78,18 @@ export async function middleware(request: NextRequest) {
             value,
             ...options,
           })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-
-          // ⭐ 关键：实现1小时滑动窗口机制
-          response.cookies.set({
+          // ⭐ 关键：实现1小时滑动窗口机制（延迟到最终 response 统一写入）
+          pendingCookieSets.push({
             name,
             value,
-            httpOnly: true, // 防止XSS攻击
-            secure: process.env.NODE_ENV === 'production', // 生产环境强制HTTPS
-            sameSite: 'lax', // CSRF防护
-            path: '/', // 全站有效
-            maxAge: 3600, // ⭐ 强制设置：1小时 = 3600秒（滑动窗口核心）
+            options: {
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
+              maxAge: 3600,
+            },
           })
         },
         remove(name: string, options: CookieOptions) {
@@ -95,16 +98,12 @@ export async function middleware(request: NextRequest) {
             value: '',
             ...options,
           })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
+          pendingCookieRemoves.push({
             name,
-            value: '',
-            ...options,
-            maxAge: 0, // 立即过期
+            options: {
+              ...options,
+              maxAge: 0,
+            },
           })
         },
       },
@@ -114,6 +113,25 @@ export async function middleware(request: NextRequest) {
   const { 
     data: { user }, 
   } = await supabase.auth.getUser()
+
+  if (user?.id) {
+    requestHeaders.set(INTERNAL_AUTH_USER_ID_HEADER, user.id)
+  } else {
+    requestHeaders.delete(INTERNAL_AUTH_USER_ID_HEADER)
+  }
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
+
+  pendingCookieSets.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options)
+  })
+  pendingCookieRemoves.forEach(({ name, options }) => {
+    response.cookies.set(name, '', options)
+  })
 
   // 1. Auth Guard: protect dashboard/admin routes
   if (!user && isProtectedRoute) {

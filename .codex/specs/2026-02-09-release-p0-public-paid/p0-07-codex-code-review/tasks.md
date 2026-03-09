@@ -11,7 +11,8 @@
 | T-007 | 本地验证 + 预发复测并回填 acceptance 证据 | codex | done |  |
 | T-008 | 一次性清零 `pnpm lint` 的 errors/warnings（策略收敛） | codex | done |  |
 | T-009 | 排查 Vercel 部署慢响应并落地首页首屏性能优化 | codex | done |  |
-| T-010 | 登录态 Dashboard 性能专项优化（区域固定、接口拆分、首屏轻量化、超时降级） | codex | doing |  |
+| T-010 | 登录态 Dashboard 性能专项优化（区域固定、接口拆分、首屏轻量化、超时降级） | codex | done |  |
+| T-011 | 登录态 Dashboard 二轮提速（鉴权快路径、重复鉴权去重、请求链路减载） | codex | doing |  |
 
 ## 备注
 - 已完成 T-004 ~ T-009 代码与验证闭环，`pnpm lint` 已清零，已落地首页性能优化。
@@ -20,3 +21,9 @@
   2. 将 leaderboard / practice bootstrap 拆为“可缓存部分 + 用户私有部分”，减少重复实时查询。
   3. 将 `getDashboardStats()` 调整为首屏轻量数据路径，重计算从首屏阻塞链路移出。
   4. 前端数据请求增加超时与降级兜底（保留旧数据或展示轻量错误态），避免长时间白屏加载。
+- T-010 执行结果（2026-03-09）：
+  1. 已完成 4 项改造并部署到 `dpl_CXvF7F6yi7gWCdGcuZQzsKXdJ917`。
+  2. 已登录 Sidebar 跳转 `urlChanged` 从约 `5~8s` 降至约 `0.75~0.86s`（`courses/practice/leaderboard/community`）。
+- T-011 目标（2026-03-09）：
+  1. 解决 Dashboard 路由仍有约 `4s+` 响应延迟的问题。
+  2. 优先优化“同一请求链重复远程鉴权”导致的额外耗时。
