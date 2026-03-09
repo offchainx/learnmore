@@ -157,7 +157,9 @@ updated_at: 2026-03-05
 8. `T-010` 处理 Admin 首页非用户双表 mock（已完成）。
 9. `T-011` 数据库表格重点梳理（已完成，文档）。
 10. `T-012` public schema RLS 安全加固（已完成）。
-11. `T-013` 数据库表收敛执行（待执行，需用户确认）。
+11. `T-013` 全表 RLS POLICY 补齐（已完成）。
+12. `T-014` MVP 上线前 Supabase 配置定档（进行中）。
+13. `T-015` 数据库表收敛执行（待执行，需用户确认）。
 
 # T-008 实施结果（开发完成）
 1. 登录镜像链路：
@@ -247,12 +249,12 @@ updated_at: 2026-03-05
 1. 现阶段字段/表能力“够用”，主链路（注册、学习、练习、支付、管理后台）均有稳定数据支撑。
 2. `auth.users` 与 `public.users` 同步链路已在 `T-005/T-008` 闭环，本轮未发现回退迹象。
 3. 冗余风险主要集中在 C 类冷表；当前结论为“候选观察”，不直接删除。
-4. 下一步 `T-013` 只承接“收敛执行”：
+4. 下一步 `T-015` 只承接“收敛执行”：
    - 先做冷表双环境探针与发布窗观测；
    - 再决定下线/归档/保留；
    - 全程要求回滚脚本与验收证据。
 5. 逐表明细证据：
-   - 41 张业务表的字段数、读写热度、入口样本已落入 `plan.md` 的 `T-011 逐表明细` 章节，可直接用于 T-013 下线评审输入。
+   - 41 张业务表的字段数、读写热度、入口样本已落入 `plan.md` 的 `T-011 逐表明细` 章节，可直接用于 T-015 下线评审输入。
 
 # T-012 实施结果（开发完成）
 1. 问题定义：
@@ -266,6 +268,51 @@ updated_at: 2026-03-05
    - `public` schema 表总数：43
    - `RLS enabled`：43
    - `RLS disabled`：0
+
+# T-013 任务定义
+1. 目标：对所有业务表补齐“合理且最小权限”的 RLS POLICY，而不是仅启用 RLS。
+2. 输出：逐表 policy 矩阵（谁可读/写、条件、例外），对应 SQL migration 与回归证据。
+3. 原则：默认拒绝、按需放开、优先 `auth.uid()` 约束、避免匿名宽权限。
+
+# T-013 实施结果（开发完成）
+1. 已落地迁移：
+   - `supabase/migrations/010_add_rls_policies_for_public_tables.sql`
+2. 迁移内容：
+   - 新增 `public.is_admin()` 辅助函数（基于 `public.users.role=ADMIN`）。
+   - 对 public schema 43 张表补齐最小权限 policy：
+     - 自有数据表：`auth.uid() = user_id/author_id/...`
+     - 内容表：`authenticated` 只读
+     - 管理域表：`admin` 读写
+3. 数据库验证（当前环境）：
+   - `public_tables = 43`
+   - `rls_enabled_tables = 43`
+   - `tables_with_policy = 43`
+   - `tables_without_policy = 0`
+
+# T-014 任务定义（进行中）
+1. 目标：在 MVP 上线前完成 Supabase 全配置定档，确保安全与调用配置一致。
+2. 覆盖项：Auth、RLS/POLICY、Storage、API Keys、Webhook、备份与审计、连接限制与监控。
+3. 输出：上线核对清单 + 当前值快照 + 风险豁免项 + 回滚/应急方案。
+
+# T-014 当前快照（2026-03-09 12:27 MYT，进行中）
+1. 自动核验结果（数据库）：
+   - public 表总数 `43`，RLS 启用 `43`，RLS 未启用 `0`。
+   - public 表有 policy `43`，无 policy `0`。
+   - `auth.users` 触发器：`on_auth_user_created`、`on_auth_user_signin_updated`。
+   - 关键函数 `SECURITY DEFINER=true`：`handle_new_user`、`handle_auth_user_signin`、`is_admin`。
+2. 自动核验结果（Storage）：
+   - buckets：`avatars(public)`、`community-posts(public)`、`source-files(public, 50MB, MIME 白名单)`、`videos(private, 50MB, MIME 白名单)`。
+   - `storage.objects` policy 共 `12` 条。
+3. 暴露面与风险观察：
+   - `anon/authenticated` 在 `public` schema 仍保留 43 表 DML grant（Supabase 默认），实际读写依赖 RLS policy 约束。
+   - `pg_graphql` 扩展仍启用，但 `PostgREST` 已限制为仅暴露 `public`（`graphql_public` 不再暴露）。
+   - `.env` 已停止 Git 跟踪，密钥治理进入持续轮换阶段。
+4. 待人工确认项（控制台）：
+   - MFA、邮件模板/限流。
+   - Stripe webhook endpoint/签名密钥/失败告警、生产 Price IDs 映射。
+   - PITR/备份、日志保留、慢查询阈值、值班与应急联系人。
+5. 清单落点：
+   - 详细可勾选清单见 `plan.md` 的 `T-014 上线前配置定档清单（v2）`。
 
 # 开发内容（必须先确认）
 

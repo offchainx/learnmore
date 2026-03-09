@@ -1,5 +1,5 @@
-id: SPEC-20260209-P0-11
-title: P0-11 观测与上线验收
+id: SPEC-20260209-P0-12
+title: P0-12 观测与上线验收
 status: active
 owner: codex
 related_story:

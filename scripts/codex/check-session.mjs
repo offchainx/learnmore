@@ -38,6 +38,13 @@ function main() {
     process.exit(1)
   }
 
+  execSync('pnpm lint:staged', { stdio: 'inherit' })
+
+  const touchesSupabaseMigrations = files.some((file) => file.startsWith('supabase/migrations/'))
+  if (touchesSupabaseMigrations) {
+    execSync('pnpm check:rls-release', { stdio: 'inherit' })
+  }
+
   console.log('codex 校验通过。')
 }
 

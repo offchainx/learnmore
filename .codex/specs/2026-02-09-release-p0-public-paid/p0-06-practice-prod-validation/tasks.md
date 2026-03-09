@@ -18,7 +18,7 @@
 | T-014 | 完成 10 题审核发布链路验证（`REVIEW_PENDING -> VERIFIED -> PUBLISHED`） | codex | done | 1562851 |
 | T-015 | 验证练习中心可见性（至少 1 条真实题在对应模式可拉取、可作答、可提交） | codex | done |  |
 | T-016 | 优化 `public.questions` 结构：新增 `curriculum/grade/subject_id/asset_url/source/tags/is_past_paper/paper_id`，删除 `ocr_* / original_question_id / version`，并补索引 | codex | done |  |
-| T-017 | 核对 `public.questions` 字段与逻辑映射清单，清理无读写闭环字段，修复难度过滤“权限与用户筛选取交集” | codex | todo |  |
+| T-017 | 核对 `public.questions` 字段与逻辑映射清单，清理无读写闭环字段，修复难度过滤“权限与用户筛选取交集” | codex | done |  |
 | T-018 | 删除废弃表与逻辑：`chapter_prerequisites/question_groups/question_tag_relations/knowledge_points/question_kp_relations` | codex | todo |  |
 | T-019 | 打通 `source_files` 与 `/admin/content/import`、`/admin/content/review`、`/admin/content/statistics` 三页真实数据流 | codex | todo |  |
 | T-020 | 落实“录题 -> 审核 -> 用户答题 -> 记录 -> 掌握度展示”端到端闭环，练习侧仅可见 `PUBLISHED` | codex | todo |  |

@@ -26,7 +26,7 @@ updated_at: 2026-02-09
 - 不破坏现有认证与数据模型主路径。
 
 # 范围（In Scope）
-- P0-00 ~ P0-12 任务目录与验收标准。
+- P0-00 ~ P0-13 任务目录与验收标准。
 - 关键代码改造：Leaderboard/Community/Achievement/Billing/UI 导航。
 - 数据库 schema 字段逻辑映射、冗余项收敛与双环境证据化验证。
 - 上线校验清单与回滚预案。

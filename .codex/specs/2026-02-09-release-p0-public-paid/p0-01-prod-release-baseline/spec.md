@@ -9,7 +9,7 @@ updated_at: 2026-03-02
 # 背景
 - P0 发布链路中的子任务，原先聚焦“生产环境与发布基线”。
 - 本轮将 onboarding + 升级 + 支付配置页 + Standard 试用 + Cancel Plan + Referral 首扣结算 + Voucher 规则并入 P0-01，作为唯一实现依据。
-- `p0-10-billing-subscription-loop` 保留历史参考，不再作为实现主文档源。
+- `p0-11-billing-subscription-loop` 保留历史参考，不再作为实现主文档源。
 
 # 目标（Goals）
 - 建立“注册默认 Starter -> Upgrade -> /pricing -> 支付配置页 -> Stripe 试用订阅 -> 首扣后 referral 结算 -> Settings 取消计划”的完整闭环。

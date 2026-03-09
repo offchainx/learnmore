@@ -154,6 +154,10 @@
   - `getPastPapersBySubject` 可返回该题组；
   - `getRandomQuestions` 可拉取到导入且已发布题目；
   - `startExam + submitExam` 提交链路成功（`examRecordId=e732acbb-58a6-4ca4-8893-93b52398e4c6`）。
+- `T-017`：完成 `questions` 字段映射审计与逻辑收口：
+  - 已补齐 `public.questions` 全字段“写入点/读取点/保留结论”清单；
+  - 已修复难度筛选为“权限难度 ∩ 用户筛选”的严格交集语义；
+  - 已确认当前保留字段无读写闭环缺失。
 
 ## 风险与回滚
 - 触发回滚：核心路径阻断、题目重复写入、来源不可追溯。

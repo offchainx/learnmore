@@ -1,5 +1,5 @@
 id: SPEC-20260209-P0-08
-title: P0-08 Community 互动闭环
+title: P0-08 Leaderboard 接真数据
 status: active
 owner: codex
 related_story:
@@ -10,7 +10,7 @@ updated_at: 2026-02-09
 - P0 发布链路中的子任务，需可独立验收与回滚。
 
 # 目标（Goals）
-- 恢复新建与详情页，确保发帖评论点赞完整可用。
+- LeaderboardView 去 mock，接入 getLeaderboard/getUserRank。
 
 # 非目标（Non-Goals）
 - 不扩展到 P1 范围。
@@ -35,19 +35,17 @@ updated_at: 2026-02-09
 # 开发内容（必须先确认）
 
 ## 开发主线
-1. 恢复 Community 新建页与详情页真实流转。
-2. 打通发帖、评论、点赞闭环。
-3. 保证点赞关系表与计数字段一致。
+1. Leaderboard 页面完全去 mock，全部接入真实数据。
+2. 周榜/月榜/总榜切换准确。
+3. 我的排名与榜单分数一致。
 
-## 页面级开发映射
-| 页面/组件 | Action | 数据表 | 关键验收 |
+## 组件级开发映射
+| 组件 | Action | 数据字段 | 数据表 |
 |---|---|---|---|
-| 社区列表 | getPosts | posts, comments, post_likes | 分页与计数正确 |
-| 新建帖子页 | createPost | posts | 创建后可回显 |
-| 帖子详情页 | getPostById | posts, comments, post_likes | 详情数据完整 |
-| 评论提交 | createComment | comments | 评论立即可见 |
-| 点赞切换 | toggleLike | post_likes, posts.likeCount | 状态与计数一致 |
+| LeaderboardList | getLeaderboard | rank, score, user.* | leaderboard_entries, users |
+| My Rank 区块 | getUserRank | rank, score | leaderboard_entries |
+| 周期切换器 | getLeaderboard(period) | period 切换 | leaderboard_entries |
 
 ## 交付判定（DoD）
-- 不再使用占位重定向。
-- 互动动作均可追踪到数据库。
+- 页面无 mock 依赖。
+- 空榜、已上榜、未上榜三类场景正确。

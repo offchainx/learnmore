@@ -40,3 +40,8 @@ docs/personal/
 
 # TypeScript
 tsconfig.tsbuildinfo
+
+# env files
+.env
+.env.*
+!.env.example

@@ -1,5 +1,5 @@
-id: SPEC-20260209-P0-10
-title: P0-10 支付订阅闭环
+id: SPEC-20260209-P0-11
+title: P0-11 支付订阅闭环
 status: active
 owner: codex
 related_story:

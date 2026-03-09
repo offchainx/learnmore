@@ -22,7 +22,9 @@
 8. `T-010` 处理 Admin 首页非用户双表 mock（已完成）。
 9. `T-011` 执行数据库表格重点梳理（已完成，文档）。
 10. `T-012` 执行 public schema RLS 安全加固（已完成）。
-11. `T-013` 执行数据库表收敛（待用户确认）。
+11. `T-013` 执行全表 RLS POLICY 补齐（已完成）。
+12. `T-014` 执行 MVP 上线前 Supabase 配置定档（待用户确认）。
+13. `T-015` 执行数据库表收敛（待用户确认）。
 
 ## Server Action / 接口契约清单
 | Action/接口 | 调用入口 | 输入与校验 | 输出与错误 | 幂等/并发策略 | 审计字段 |
@@ -275,7 +277,7 @@ ORDER BY a.email;
    - `question_tag_relations`
 4. 结论：
    - 本轮仅文档审计，不执行 schema/data 变更；
-   - 收敛执行统一进入 `T-013`，并要求双环境观测与回滚脚本。
+   - 收敛执行统一进入 `T-015`，并要求双环境观测与回滚脚本。
 
 ## T-011 逐表明细（字段数 + 读写热度 + 入口）
 > 说明：`读/写` 统计口径为 `src/**` 非测试代码中的 Prisma 调用次数（读=`find/count/aggregate`，写=`create/update/upsert/delete`）。
@@ -353,7 +355,164 @@ ORDER BY a.email;
    - `rls_enabled_tables = 43`
    - `rls_disabled_tables = 0`
 
-## T-013 执行门禁（待执行）
+## T-013 执行策略（全表 RLS POLICY 补齐）
+1. 逐表确定访问模型：
+   - 公开只读表：仅 `SELECT` 且限定字段暴露策略；
+   - 用户私有表：`auth.uid() = user_id`；
+   - 管理域表：默认不开放给 `anon/authenticated`，由后端高权限通道处理。
+2. policy 设计顺序：
+   - 先补 `SELECT`，再补 `INSERT/UPDATE/DELETE`；
+   - 每补一类 policy 即回归相应页面/Action。
+3. 产出要求：
+   - `policy_matrix.md`（表 -> 操作 -> 角色 -> 条件）；
+   - migration SQL；
+   - 冒烟回归证据与异常清单。
+
+## T-013 执行记录（2026-03-05）
+1. 已新增迁移：
+   - `supabase/migrations/010_add_rls_policies_for_public_tables.sql`
+2. 已落地规则：
+   - `public.is_admin()`：用于 admin 域表访问控制。
+   - 43 张 public 表已补 policy，覆盖自有数据、内容只读、管理域三类模型。
+3. SQL 复核结果（当前环境）：
+   - `public_tables = 43`
+   - `rls_enabled_tables = 43`
+   - `tables_with_policy = 43`
+   - `tables_without_policy = 0`
+
+## T-014 执行策略（MVP 上线前 Supabase 配置定档）
+1. 配置域：
+   - Auth（Provider、Session、Redirect、Email/SMS 模板）
+   - Database（RLS/POLICY、extensions、连接池、备份）
+   - Storage（bucket 可见性、policy）
+   - API/Keys（anon/service key 使用边界）
+   - Integrations（Webhook、第三方密钥）
+2. 定档产物：
+   - 配置快照（当前值、目标值、责任人、生效时间）；
+   - 上线核对 checklist（可逐项打勾）；
+   - 风险豁免与应急回滚说明。
+3. 验收方式：
+   - 逐项核对 + 关键链路实测 + 安全项复扫（Advisor + 手工 SQL）。
+
+## T-014 上线前配置定档清单（v2）
+> 标记说明：`[x]` 已从仓库/数据库核验，`[ ]` 需 Supabase/Stripe 控制台人工确认。
+
+### A. 安全基线
+- [x] public schema 表 `43/43` 已启用 RLS（`rls_disabled_tables=0`）。
+- [x] public schema 表 `43/43` 已有 policy（`tables_without_policy=0`）。
+- [x] 已确认 `anon/authenticated` 保留 43 表 grant，实际访问由 RLS policy 控制。
+- [x] 已生成 policy 签字材料（43 表 policy 矩阵 + 角色/操作汇总）。
+- [x] 完成 policy 业务签字（逐表确认放开范围与产品预期一致，2026-03-09 复核通过）。
+- [x] Data API exposed schema 已最小化：仅保留 `public`（原 `graphql_public` 已移出）。
+- [x] GraphQL 暴露面结论：采用“限制”方案（保留扩展，停止通过 PostgREST 暴露 `graphql_public`）。
+
+### B. 密钥与仓库治理
+- [x] 环境变量已配置：`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY`。
+- [x] 已确认 `.env` 当前仍被 Git 跟踪（`git ls-files .env` 命中），需上线前治理。
+- [x] 已完成 anon/service role key 轮换（应用本地与部署环境已切换新 key）。
+- [x] 已停止跟踪 `.env`（保留 `.env.example`）；历史泄露风险持续按轮换机制治理。
+
+### C. Auth 配置
+- [x] 应用侧 server/browser client 已统一使用 Supabase URL + anon key。
+- [x] Supabase Auth 的 Site URL / Redirect URLs 与生产域名核对（2026-03-09 已更新）。
+- [x] Session/JWT TTL 与应用 1h cookie 策略对齐（2026-03-09：`expires_in=3600` + 应用 cookie `maxAge=3600`）。
+- [ ] 登录/注册/重置密码限流与邮件模板配置核对。
+- [ ] 管理员账号 MFA 策略确认（当前 admin 账号 `verified factor=0`，待策略落地）。
+
+### D. Storage 配置
+- [x] buckets 快照：
+  - `avatars(public)`
+  - `community-posts(public)`
+  - `source-files(public, 50MB, MIME 白名单)`
+  - `videos(private, 50MB, MIME 白名单)`
+- [x] `storage.objects` policy 数量：12。
+- [ ] storage policy 命名规范统一与去重（已生成迁移 `012`，需表 owner 权限执行）。
+- [x] 已完成 `source-files` 可见性评估：当前保持 `public`（MVP），后续如改 private 需同步改造上传/消费链路。
+
+### E. 触发器与函数
+- [x] `auth.users` 触发器启用：
+  - `on_auth_user_created`
+  - `on_auth_user_signin_updated`
+- [x] 关键函数存在且为 `SECURITY DEFINER`：
+  - `handle_new_user`
+  - `handle_auth_user_signin`
+  - `is_admin`
+
+### F. 支付与 Webhook
+- [x] 代码侧已依赖 `STRIPE_WEBHOOK_SECRET` 并在缺失时失败保护。
+- [ ] Stripe Dashboard webhook endpoint、签名密钥、重试策略核对。
+- [ ] 生产价目（Price IDs）与环境变量映射核对。
+- [ ] webhook 失败告警通道（Slack/邮件）确认。
+
+### G. 运维与可恢复
+- [ ] 数据库 PITR/备份保留策略确认。
+- [ ] 连接池阈值、慢查询告警阈值确认。
+- [ ] 日志保留周期与导出路径确认。
+- [ ] 发布回滚手册（RLS/policy/storage/webhook）固化。
+
+### H. 上线门禁
+- [ ] Advisor 安全项复扫归档（时间戳 + 扫描结果）。
+- [ ] 关键链路回归：注册/登录/学习/支付/后台管理。
+- [ ] 值班与应急联系人清单确认。
+
+## T-014 自动核验证据（2026-03-06 08:44 MYT）
+1. 数据库基线：
+   - `public_tables = 43`
+   - `rls_enabled_tables = 43`
+   - `rls_disabled_tables = 0`
+   - `tables_with_policy = 43`
+   - `tables_without_policy = 0`
+2. Storage 快照：
+   - `avatars(public)`
+   - `community-posts(public)`
+   - `source-files(public, 50MB, MIME 白名单)`
+   - `videos(private, 50MB, MIME 白名单)`
+   - `storage.objects` policy 数：`12`
+3. Auth 同步链路基线：
+   - 触发器：`on_auth_user_created`、`on_auth_user_signin_updated`
+   - `SECURITY DEFINER` 函数：`handle_new_user`、`handle_auth_user_signin`、`is_admin`
+4. 暴露面观察：
+   - `anon/authenticated` 在 43 张 public 表均保留 grant；RLS 为最终访问门禁。
+   - 已安装扩展：`pg_graphql`、`pg_stat_statements`、`pgcrypto`、`supabase_vault`、`uuid-ossp`。
+5. 结论：
+   - 自动可核验项已落档；剩余项需 Supabase/Stripe 控制台人工确认后才可将 `T-014` 标记为 done。
+
+## T-014 增量执行记录（2026-03-09）
+1. Vercel MCP 连通：
+   - OAuth 已恢复，`list_teams` 返回 `team_YRmXMkKKh18r8oBfTnxZq2TG`。
+2. 密钥轮换复核：
+   - `.env/.env.local` 均为新 key 形态（`sb_publishable` + `sb_secret`）。
+3. Data API 暴露面收敛：
+   - 已执行：`ALTER ROLE authenticator SET pgrst.db_schemas = 'public';`
+   - 复核：`Accept-Profile: public => 200`；`Accept-Profile: graphql_public => 406`。
+   - 落库文件：`supabase/migrations/011_restrict_postgrest_exposed_schemas.sql`。
+4. GraphQL 暴露面结论：
+   - 代码库未发现 GraphQL 调用入口，当前采用“限制暴露”而非“卸载扩展”。
+5. `.env` 仓库治理：
+   - 已执行 `.env` 停止跟踪，`git ls-files .env .env.local .env.example` 仅保留 `.env.example`。
+6. 仍需人工确认：
+  - Supabase Auth `Site URL / Redirect URLs` 已由控制台人工确认：
+    - `Site URL = https://learnmorev10.vercel.app`
+    - Redirect:
+      - `https://learnmorev10.vercel.app/**`
+      - `https://learnmorev10-git-main-chainvistas-projects.vercel.app/**`
+      - `http://localhost:3000/**`
+7. Session/JWT 核验（已完成）：
+   - 应用侧：`src/lib/supabase/server.ts` 与 `src/middleware.ts` 均强制 `maxAge=3600`。
+   - 平台侧：通过临时账号 `password grant` 实测 `expires_in=3600`，并已清理测试账号。
+8. Rate limit / 邮件模板（待人工）：
+   - `auth/v1/settings` 仅返回有限字段，无法返回限流与模板细项；需控制台确认。
+9. MFA（待策略落地）：
+   - 当前管理员账号统计：`verified factor = 0`，需按上线门禁补齐。
+10. Storage policy 命名（部分完成）：
+   - 已确认 `storage.objects` 无重复语义 policy（`dup_groups=0`）。
+   - 命名统一迁移已生成：`supabase/migrations/012_normalize_storage_object_policy_names.sql`。
+   - 当前连接角色无 `storage.objects` owner 权限（报错：`must be owner of table objects`），需在 Supabase SQL Editor 以 owner 身份执行。
+11. `source-files` 可见性评估（已完成）：
+   - 当前业务链路在 `src/actions/storage.ts` 上传后直接调用 `getPublicUrl`。
+   - 结论：MVP 阶段保持 `public`；若改 private，需新增 signed URL 获取与消费端改造任务。
+
+## T-015 执行门禁（待执行）
 1. 先验证 C 类表是否存在隐藏读写入口（crons、脚本、后台工具、SQL 任务）。
 2. 连续两个发布周期观测为 0 调用后，才可进入下线评审。
 3. 任一候选下线必须提供：

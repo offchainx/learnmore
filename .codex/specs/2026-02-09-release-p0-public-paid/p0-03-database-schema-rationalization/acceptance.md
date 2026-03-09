@@ -180,7 +180,7 @@
   2. C 类候选（0 调用）：`chapter_prerequisites`、`contact_submissions`、`knowledge_points`、`question_kp_relations`、`question_tags`、`question_tag_relations`。
 - 结论：
   - T-011 仅完成“梳理与分级”，不执行下线；
-  - 候选下线动作归入 `T-013`。
+  - 候选下线动作归入 `T-015`。
   - 逐表明细矩阵（41 表）已写入 `plan.md` 的 `T-011 逐表明细（字段数 + 读写热度 + 入口）` 章节。
 
 ## T-012 执行验收标准（开发）
@@ -199,6 +199,86 @@
     - `total_public_tables = 43`
     - `rls_enabled_tables = 43`
     - `rls_disabled_tables = 0`
+
+## T-013 验收标准（全表 RLS POLICY）
+1. 所有业务表都有明确 policy 结论：已配置 / 不开放（并说明原因）。
+2. 核心用户链路表（users/user_settings/user_progress 等）具备最小权限 policy 且回归通过。
+3. 不允许出现“为方便调试”而放开的匿名全表读写策略。
+4. policy 变更有 migration 与回滚脚本。
+
+## T-013 执行记录（2026-03-05）
+- 代码落地：
+  1. 新增 `supabase/migrations/010_add_rls_policies_for_public_tables.sql`。
+  2. 新增 `public.is_admin()` 并完成 43 张 public 表 policy 补齐。
+- SQL 复核：
+  - `public_tables = 43`
+  - `rls_enabled_tables = 43`
+  - `tables_with_policy = 43`
+  - `tables_without_policy = 0`
+- 说明：
+  - 本轮完成“policy 补齐基线”；后续如业务放开范围变化，在 `T-014` 定档中统一调整。
+
+## T-014 验收标准（Supabase 配置定档）
+1. Auth/DB/Storage/API/Webhook 关键配置项均有当前值与目标值记录。
+2. 上线 checklist 完整并可逐项核对。
+3. 安全扫描项（Advisor + SQL）有复查结果与时间戳。
+4. 配置变更责任人与回滚方案明确。
+
+## T-014 执行记录（进行中）
+- 已完成：
+  1. 输出“上线前配置定档清单（v2）”，覆盖 Auth/DB/Storage/API/Webhook/运维。
+  2. 回填当前环境快照（RLS/policy/bucket/trigger/function）。
+  3. 补充暴露面核验（grant 现状、已启用扩展、`.env` 跟踪状态）。
+  4. 补充增量推进（Vercel MCP 连通、Data API 收敛、`.env` 停跟踪、key 轮换复核）。
+- 当前快照（2026-03-06 08:44 MYT）：
+  - `public_tables = 43`
+  - `rls_enabled_tables = 43`
+  - `rls_disabled_tables = 0`
+  - `tables_with_policy = 43`
+  - `tables_without_policy = 0`
+  - buckets：`avatars`、`community-posts`、`source-files`、`videos`
+  - `storage.objects` policy 数：`12`
+  - `auth.users` 触发器：`on_auth_user_created`、`on_auth_user_signin_updated`
+  - `SECURITY DEFINER` 函数：`handle_new_user`、`handle_auth_user_signin`、`is_admin`
+  - grant 现状：`anon/authenticated` 对 43 张 public 表保留授权，最终访问由 RLS policy 约束
+  - 扩展现状：`pg_graphql`、`pg_stat_statements`、`pgcrypto`、`supabase_vault`、`uuid-ossp`
+- 已识别风险：
+  - `.env` 已停止 Git 跟踪；历史泄露风险仍需通过持续轮换与最小暴露策略治理。
+- 待人工确认：
+  - 登录/注册/重置密码限流与邮件模板配置、MFA、Stripe Dashboard webhook、备份/监控策略。
+  - 密钥轮换与 `.env` 清理闭环（含历史泄露风险处理）。
+
+## T-014 增量证据（2026-03-09）
+- Vercel MCP：
+  - `list_teams` 成功返回，确认连接正常。
+- key 轮换复核：
+  - `.env/.env.local` 均为 `sb_publishable` + `sb_secret`。
+- Data API 最小化：
+  - 执行后复核 `Accept-Profile`：
+    - `public => 200`
+    - `graphql_public => 406`
+  - 迁移文件：`supabase/migrations/011_restrict_postgrest_exposed_schemas.sql`。
+- GraphQL 暴露面结论：
+  - 当前项目未发现 GraphQL 调用入口，采用“限制暴露”策略。
+- `.env` 治理：
+  - `git ls-files .env .env.local .env.example` 仅保留 `.env.example`。
+- Auth URL 配置（人工核对）：
+  - `Site URL = https://learnmorev10.vercel.app`
+  - Redirect URLs：
+    - `https://learnmorev10.vercel.app/**`
+    - `https://learnmorev10-git-main-chainvistas-projects.vercel.app/**`
+    - `http://localhost:3000/**`
+- Session/JWT 对齐（自动 + 实测）：
+  - 应用侧 cookie：`maxAge=3600`（`src/lib/supabase/server.ts` / `src/middleware.ts`）。
+  - 平台 token：`password grant expires_in=3600`（临时账号实测，测试账号已删除）。
+- MFA 现状：
+  - `ADMIN` 账号 `verified factor=0`（待上线前补齐策略）。
+- Storage policy 命名与去重：
+  - 语义重复组：`0`。
+  - 命名统一迁移已生成：`supabase/migrations/012_normalize_storage_object_policy_names.sql`。
+  - 受限项：当前数据库连接角色无法执行 `ALTER POLICY`（需 owner 权限）。
+- `source-files` 评估：
+  - 当前上传链路依赖 `getPublicUrl`，MVP 维持 `public`。
 
 ## T-005 执行场景（Given / When / Then）
 - 给定：新用户走标准注册链路
@@ -260,7 +340,9 @@
 - [x] T-010 开发实现完成（Admin 首页非用户双表 mock 去除）
 - [x] T-011 文档审计完成（全表分级与收敛候选）
 - [x] T-012 RLS 安全加固完成并复跑 SQL 基线
-- [ ] T-013 范围确认（数据库表收敛执行）
+- [x] T-013 全表 RLS POLICY 补齐
+- [ ] T-014 Supabase 上线前配置定档
+- [ ] T-015 范围确认（数据库表收敛执行）
 - [ ] 字段-逻辑映射表完整并附证据
 - [x] 本地验证完成并附测试证据
 - [x] 预发复测完成并附证据

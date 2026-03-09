@@ -1,5 +1,5 @@
-id: SPEC-20260209-P0-12
-title: P0-12 上线前专项测试（Referral / Notification）
+id: SPEC-20260209-P0-13
+title: P0-13 上线前专项测试（Referral / Notification）
 status: active
 owner: codex
 related_story: 2026-02-09-release-p0-public-paid
@@ -7,15 +7,15 @@ created_at: 2026-02-09
 updated_at: 2026-02-10
 
 # 归位说明（Relocation）
-- 本次 Referral/Subscription 实现方案已并入 `p0-10-billing-subscription-loop`。
-- `p0-10` 为唯一实现文档源；`p0-12` 仅用于上线前测试执行与证据沉淀。
+- 本次 Referral/Subscription 实现方案已并入 `p0-11-billing-subscription-loop`。
+- `p0-11` 为唯一实现文档源；`p0-13` 仅用于上线前测试执行与证据沉淀。
 
 # 背景
 - P0 进入上线收口阶段，需要一组可持续追加的上线前专项测试项。
 - 现阶段优先验证 referral 与 notification 两条用户关键链路。
 
 # 目标（Goals）
-- 建立 P0-12 专项测试任务并沉淀可复用检查项。
+- 建立 P0-13 专项测试任务并沉淀可复用检查项。
 - 完成 referral 功能上线前可用性与一致性确认。
 - 完成 notification 功能上线前可用性确认。
 

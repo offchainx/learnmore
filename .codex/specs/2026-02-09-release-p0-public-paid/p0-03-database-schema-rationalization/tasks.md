@@ -14,7 +14,9 @@
 | T-010 | Admin 首页（/admin）KPI/工单/风险等非用户双表 mock 数据替换 | codex | done | src/actions/admin/dashboard-overview.ts + src/app/(dashboard)/admin/page.tsx + src/components/admin/dashboard/v2/AdminDashboardV2.tsx |
 | T-011 | 数据库表格重点梳理（全表字段功能/逻辑/冗余评估与收敛建议） | codex | done | spec.md + plan.md + acceptance.md + task-kickoff-checklist.md |
 | T-012 | public schema RLS 安全加固（修复 Advisor 44 issues） | codex | done | supabase/migrations/009_enable_rls_for_public_tables.sql + DB SQL 验证（public 表 RLS disabled=0） |
-| T-013 | 数据库表收敛执行（候选下线验证 + 迁移脚本 + 回滚演练） | codex | todo |  |
+| T-013 | 全表 RLS POLICY 补齐（按业务场景定义最小权限规则） | codex | done | supabase/migrations/010_add_rls_policies_for_public_tables.sql + DB SQL 验证（tables_with_policy=43, tables_without_policy=0） |
+| T-014 | MVP 上线前 Supabase 配置定档（安全/调用/运维） | codex | doing | spec.md + plan.md（T-014 清单 v2 + 自动核验证据 + 2026-03-09 增量） + acceptance.md + task-kickoff-checklist.md + supabase/migrations/011_restrict_postgrest_exposed_schemas.sql + supabase/migrations/012_normalize_storage_object_policy_names.sql + .gitignore |
+| T-015 | 数据库表收敛执行（候选下线验证 + 迁移脚本 + 回滚演练） | codex | todo |  |
 
 ## 备注
 - 当前阶段以文档与验证设计为主，未进入破坏性删除操作。
@@ -28,4 +30,6 @@
   - `T-010` 负责“Admin 首页非用户双表 mock 去除与真实聚合接入”。
   - `T-011` 负责“数据库表格重点梳理与下一轮收敛清单输出”。
   - `T-012` 负责“public schema RLS 安全加固与 Advisor 安全项收口”。
-  - `T-013` 负责“数据库表收敛落地（仅在用户确认后执行）”。
+  - `T-013` 负责“全表 RLS POLICY 设计与落地（最小权限）”。
+  - `T-014` 负责“MVP 上线前 Supabase 所有关键设定定档与核对”。
+  - `T-015` 负责“数据库表收敛落地（仅在用户确认后执行）”。

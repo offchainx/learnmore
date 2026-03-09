@@ -1,5 +1,5 @@
-id: SPEC-20260209-P0-07
-title: P0-07 Leaderboard 接真数据
+id: SPEC-20260209-P0-10
+title: P0-10 Achievement MVP
 status: active
 owner: codex
 related_story:
@@ -10,7 +10,7 @@ updated_at: 2026-02-09
 - P0 发布链路中的子任务，需可独立验收与回滚。
 
 # 目标（Goals）
-- LeaderboardView 去 mock，接入 getLeaderboard/getUserRank。
+- 接入真实徽章与统计，增加自动授予逻辑。
 
 # 非目标（Non-Goals）
 - 不扩展到 P1 范围。
@@ -35,17 +35,16 @@ updated_at: 2026-02-09
 # 开发内容（必须先确认）
 
 ## 开发主线
-1. Leaderboard 页面完全去 mock，全部接入真实数据。
-2. 周榜/月榜/总榜切换准确。
-3. 我的排名与榜单分数一致。
+1. 成就页接入真实统计与徽章状态。
+2. 建立自动授予触发器（Practice/Community/Streak）。
+3. 确保重复触发不重复授予。
 
-## 组件级开发映射
-| 组件 | Action | 数据字段 | 数据表 |
+## 能力级开发映射
+| 能力 | Action | 数据表 | 验收点 |
 |---|---|---|---|
-| LeaderboardList | getLeaderboard | rank, score, user.* | leaderboard_entries, users |
-| My Rank 区块 | getUserRank | rank, score | leaderboard_entries |
-| 周期切换器 | getLeaderboard(period) | period 切换 | leaderboard_entries |
+| 成就概览 | getAchievementOverview | users, user_attempts, posts, comments | 数值与统计一致 |
+| 徽章列表 | listUserBadges | badges, user_badges | 已解锁/未解锁准确 |
+| 自动授予 | awardBadgeIfEligible | user_badges, notifications | 首次授予有效，重复不重复 |
 
 ## 交付判定（DoD）
-- 页面无 mock 依赖。
-- 空榜、已上榜、未上榜三类场景正确。
+- Achievement MVP 可展示、可触发、可防重。

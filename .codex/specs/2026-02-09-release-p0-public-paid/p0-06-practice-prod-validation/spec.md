@@ -88,6 +88,43 @@ updated_at: 2026-03-05
 5. 报错闭环补齐：
    - 增加 `question_reports` 用户前端入口并接通后台处理流程。
 
+## 2026-03-09 T-017 字段-逻辑映射清单（`public.questions`）
+| 字段 | 写入点（主） | 读取点（主） | 结论 |
+|---|---|---|---|
+| `id` | Prisma 自动生成 | 全量查询/关联主键 | 保留 |
+| `chapter_id` | `createQuestion`/`bulkCreateQuestions`/`updateQuestion` | `getRandomQuestions`、review 展示、attempt 关联章节统计 | 保留 |
+| `subject_id` | 导题回填 + create/update | 科目筛选、Past Paper、推荐与统计 | 保留 |
+| `source_file_id` | 导题链路 `bulkCreateQuestions`/脚本导入 | import/review 追溯来源 | 保留 |
+| `type` | create/bulk/update | 判题、抽题题型筛选、review 展示 | 保留 |
+| `curriculum` | create/bulk/update（默认 `UEC`） | 内容筛选（admin review） | 保留 |
+| `grade` | create/bulk/update | 内容筛选（admin review） | 保留 |
+| `difficulty` | create/bulk/update | 抽题、Mock 组卷、review 难度展示 | 保留 |
+| `content` | create/bulk/update | 做题页渲染、review、去重哈希输入 | 保留 |
+| `options` | create/bulk/update | 单/多选渲染与判题 | 保留 |
+| `answer` | create/bulk/update | `submitPracticeSession`/`submitExam` 判题 | 保留 |
+| `explanation` | create/bulk/update | 做题结果页、review 详情 | 保留 |
+| `asset_url` | create/bulk/update | review 题图展示（无图回退 source file） | 保留 |
+| `source` | 导题与手工录题 | Past Paper 标题、来源追踪 | 保留 |
+| `tags` | create/bulk/update | review 元数据展示、后续标签检索 | 保留 |
+| `is_past_paper` | create/bulk/update | Past Paper 模式筛选 | 保留 |
+| `paper_id` | create/bulk/update | Past Paper 分卷聚合与拉题 | 保留 |
+| `status` | `updateQuestionStatus`（审核状态机） | 抽题门禁、review 列表筛选 | 保留 |
+| `content_hash` | create/bulk/update（内容变更时重算） | 导入去重、更新冲突检测 | 保留 |
+| `quality_score` | 导题质量评估/手工更新 | review 列表质量分展示与排序 | 保留 |
+| `report_count` | `reportQuestion` 增减 | 自动复审阈值判断、管理端展示 | 保留 |
+| `created_by` | create/bulk | 审计筛选（`createdBy`） | 保留 |
+| `reviewed_by` | `updateQuestionStatus`、`resolveReport` | 审计筛选（`reviewedBy`） | 保留 |
+| `published_by` | 发布动作写入 | 发布审计追踪 | 保留 |
+| `reviewed_at` | 审核动作写入 | 审计追踪 | 保留 |
+| `published_at` | 发布动作写入 | 审计追踪 | 保留 |
+| `created_at` | DB 默认 | 列表排序、统计窗口 | 保留 |
+| `updated_at` | DB 自动更新 | 列表排序、变更追踪 | 保留 |
+
+### T-017 清理结论
+1. 已确认 `public.questions` 当前保留字段均存在至少一条有效写入链路与读取链路，无“纯写不读/纯读不写”死字段。
+2. 已修复难度筛选逻辑为“权限难度 ∩ 用户筛选难度”的严格交集语义（空交集直接返回空题集，不再兜底覆盖）。
+3. 已在 `question-service` 过滤构建中加入 UUID/枚举/空范围防御，避免非法筛选值触发 Prisma 运行时错误。
+
 ## 当前数据库基线（2026-03-05 本地快照）
 | 表 | 当前记录数 |
 |---|---|

@@ -41,6 +41,8 @@
 
 | 2026-03-05 | 修复questions.version运行时错误 | 修复admin review和dashboard的Prisma查询崩溃 | 已改为显式select并过滤非法筛选参数，Prisma不再访问questions.version | - | - | - | - |
 
+| 2026-03-09 | 提交用户确认的全量已暂存改动 | 按用户要求提交并推送当前全部已暂存变更 | 已执行全量提交流程并准备推送 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

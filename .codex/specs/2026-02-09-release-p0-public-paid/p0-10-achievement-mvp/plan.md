@@ -1,7 +1,7 @@
 # 技术方案（Plan）
 
 ## 概览
-- 子任务：P0-09 Achievement MVP
+- 子任务：P0-10 Achievement MVP
 - 方案摘要：实现 Achievement MVP（真实徽章、真实统计、自动授予），并把防重复授予作为硬性验收。
 - 执行原则：先文档、后开发；未获用户确认前禁止进入实现。
 
