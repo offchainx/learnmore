@@ -49,6 +49,8 @@
 
 | 2026-03-09 | T-011 dashboard 性能二轮优化 | 提交后继续测试，并检查是否可通过 Vercel MCP 获取 Speed Insights | 完成鉴权快路径、请求级缓存与 dashboard 子页查询减载，lint/build 通过，待部署与线上复测 | - | - | - | - |
 
+| 2026-03-09 | T-011 复测与结案 | 提交后继续测试并检查 Vercel MCP Speed Insights 可调用性 | 完成部署与生产复测；MCP 当前 Auth required，CLI OpenAPI 未发现 Speed Insights endpoint | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

@@ -12,7 +12,7 @@
 | T-008 | 一次性清零 `pnpm lint` 的 errors/warnings（策略收敛） | codex | done |  |
 | T-009 | 排查 Vercel 部署慢响应并落地首页首屏性能优化 | codex | done |  |
 | T-010 | 登录态 Dashboard 性能专项优化（区域固定、接口拆分、首屏轻量化、超时降级） | codex | done |  |
-| T-011 | 登录态 Dashboard 二轮提速（鉴权快路径、重复鉴权去重、请求链路减载） | codex | doing |  |
+| T-011 | 登录态 Dashboard 二轮提速（鉴权快路径、重复鉴权去重、请求链路减载） | codex | done | `1bf157d` |
 
 ## 备注
 - 已完成 T-004 ~ T-009 代码与验证闭环，`pnpm lint` 已清零，已落地首页性能优化。
@@ -27,3 +27,12 @@
 - T-011 目标（2026-03-09）：
   1. 解决 Dashboard 路由仍有约 `4s+` 响应延迟的问题。
   2. 优先优化“同一请求链重复远程鉴权”导致的额外耗时。
+- T-011 执行结果（2026-03-09）：
+  1. 已提交 `1bf157d` 并部署 `dpl_4hbqXerqBa4y8JiAPXskt8jwCzwu`（`learnmorev10.vercel.app` 已切流）。
+  2. 已落地改造：
+     - middleware 注入内部鉴权上下文 `x-lm-auth-user-id`；
+     - `getCurrentUser` 增加 header 快路径与请求级缓存，避免同请求链重复远程鉴权；
+     - dashboard 子页面切换到 `getDashboardShellProfile`，减少重复查库。
+  3. 登录态复测（生产）：
+     - 全页 `domcontentloaded`：`/dashboard/courses` 约 `6.0s -> 2.8s`、`/dashboard/practice` 约 `4.6s -> 1.9s`、`/dashboard/leaderboard` 约 `4.7s -> 2.1s`、`/dashboard/community` 约 `4.5s -> 2.1s`；
+     - `/dashboard` 仍约 `10.7s` 级别，仍是主瓶颈。
