@@ -10,6 +10,7 @@ import { XPBreakdown } from './components/XPBreakdown'
 import { DailyQuests } from './components/DailyQuests'
 import { RivalWatch } from './components/RivalWatch'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
+import { fetchWithTimeout, isAbortLikeError } from '@/lib/http/fetch-with-timeout'
 
 interface LeaderboardViewProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,9 +99,10 @@ export const LeaderboardView = ({
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `/api/leaderboard/summary?period=${encodeURIComponent(period)}&limit=100`,
           {
+            timeoutMs: 8000,
             method: 'GET',
             credentials: 'include',
             cache: 'no-store',
@@ -148,9 +150,7 @@ export const LeaderboardView = ({
         console.error('Failed to load leaderboard:', e)
         lastLoadedKeyRef.current = ''
         if (!cancelled) {
-          setError('Failed to load leaderboard')
-          setRankedUsers([])
-          setMyRank(null)
+          setError(isAbortLikeError(e) ? '请求超时，已保留上次排行榜数据' : 'Failed to load leaderboard')
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -223,13 +223,9 @@ export const LeaderboardView = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: The Arena (Leaderboard) - 8 cols (approx 70%) */}
         <div className="lg:col-span-8 space-y-4">
-          {loading ? (
+          {loading && rankedUsers.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-6 text-sm text-slate-500">
               正在加载排行榜...
-            </div>
-          ) : error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30 p-6 text-sm text-red-600 dark:text-red-300">
-              {error}
             </div>
           ) : rankedUsers.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-6 text-sm text-slate-500">
@@ -237,6 +233,11 @@ export const LeaderboardView = ({
             </div>
           ) : (
             <>
+              {error ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4 text-sm text-amber-700 dark:text-amber-300">
+                  {error}
+                </div>
+              ) : null}
               <Podium topThree={topThree} />
               <LeaderboardList
                 listData={listData}

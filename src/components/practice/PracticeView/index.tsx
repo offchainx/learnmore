@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { DbSubject, PracticeSubjectData } from './types';
+import { fetchWithTimeout, isAbortLikeError } from '@/lib/http/fetch-with-timeout';
 
 // Components
 import { SubjectSelector } from './SubjectSelector';
@@ -40,7 +41,8 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
       setIsBootstrapLoading(true);
       setSubjectDataError(null);
       try {
-        const response = await fetch('/api/practice/bootstrap', {
+        const response = await fetchWithTimeout('/api/practice/bootstrap', {
+          timeoutMs: 8000,
           method: 'GET',
           credentials: 'include',
           cache: 'no-store',
@@ -78,7 +80,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
         setSelectedSubjectId('');
         setLoadedSubjectId('');
         setSubjectData(createEmptySubjectData());
-        setSubjectDataError('加载练习中心数据失败');
+        setSubjectDataError(isAbortLikeError(error) ? '请求超时，请稍后重试' : '加载练习中心数据失败');
       } finally {
         if (!cancelled) {
           setIsBootstrapLoading(false);
@@ -113,9 +115,10 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
       setSubjectDataError(null);
       setSubjectData(createEmptySubjectData());
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `/api/practice/subject-data?subjectId=${encodeURIComponent(selectedSubjectId)}`,
           {
+            timeoutMs: 8000,
             method: 'GET',
             credentials: 'include',
             cache: 'no-store',
@@ -142,7 +145,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
         if (cancelled) return;
         console.error('Failed to fetch subject data:', error);
         setSubjectData(createEmptySubjectData());
-        setSubjectDataError('加载科目数据失败');
+        setSubjectDataError(isAbortLikeError(error) ? '请求超时，请稍后重试' : '加载科目数据失败');
       } finally {
         if (!cancelled) {
           setIsSubjectDataLoading(false);

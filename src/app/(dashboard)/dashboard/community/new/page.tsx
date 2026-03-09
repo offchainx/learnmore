@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getProfile } from '@/actions/user/profile'
+import { getDashboardProfile } from '@/actions/user/profile'
 import { CommunityClientWrapper } from '../client-wrapper'
 import { NewPostPageClient } from '@/components/community/NewPostPageClient'
 import { getCategories } from '@/actions/community/post'
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default async function NewPostPage() {
-  const profile = await getProfile()
+  const profile = await getDashboardProfile()
 
   if (!profile) {
     redirect('/login')

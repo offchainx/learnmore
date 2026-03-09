@@ -2,6 +2,7 @@ import { getAllSubjects } from '@/actions/courses/subject'
 import { getSubjectChapters } from '@/actions/practice/data-service'
 import { getPastPapersBySubject } from '@/actions/practice/past-papers'
 import { getExamForecastData, getKnowledgeHiveData } from '@/actions/practice/statistics'
+import { unstable_cache } from 'next/cache'
 
 export interface PracticeSubjectDataPayload {
   chapters: NonNullable<Awaited<ReturnType<typeof getSubjectChapters>>>['chapters']
@@ -13,6 +14,11 @@ export interface PracticeSubjectDataPayload {
 interface SubjectLite {
   id: string
   name: string
+}
+
+interface PracticeSubjectCatalog {
+  subjects: Array<{ id: string; name: string; icon: string | null }>
+  defaultSubjectId: string
 }
 
 function resolveDefaultSubjectId(subjects: SubjectLite[]): string {
@@ -55,7 +61,7 @@ export async function getPracticeSubjectData(
   }
 }
 
-export async function getPracticeBootstrapData(userId: string) {
+async function queryPracticeSubjectCatalog(): Promise<PracticeSubjectCatalog> {
   const subjectsResult = await getAllSubjects()
   if (!subjectsResult.success) {
     throw new Error(subjectsResult.error || 'Failed to load subjects')
@@ -66,13 +72,32 @@ export async function getPracticeBootstrapData(userId: string) {
     : []
 
   const defaultSubjectId = resolveDefaultSubjectId(subjects)
-  const subjectData = defaultSubjectId
-    ? await getPracticeSubjectData(userId, defaultSubjectId)
-    : null
 
   return {
     subjects,
     defaultSubjectId,
+  }
+}
+
+const getCachedPracticeSubjectCatalog = unstable_cache(
+  async () => queryPracticeSubjectCatalog(),
+  ['practice:subject-catalog:v1'],
+  { revalidate: 3600, tags: ['practice-subject-catalog'] },
+)
+
+export async function getPracticeBootstrapData(
+  userId: string,
+  options?: { includeSubjectData?: boolean },
+) {
+  const catalog = await getCachedPracticeSubjectCatalog()
+  const includeSubjectData = options?.includeSubjectData ?? false
+  const subjectData = includeSubjectData && catalog.defaultSubjectId
+    ? await getPracticeSubjectData(userId, catalog.defaultSubjectId)
+    : null
+
+  return {
+    subjects: catalog.subjects,
+    defaultSubjectId: catalog.defaultSubjectId,
     subjectData,
   }
 }

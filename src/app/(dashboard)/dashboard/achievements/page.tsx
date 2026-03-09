@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { getProfile } from '@/actions/user/profile'
+import { getDashboardProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { AchievementsClientWrapper } from './client-wrapper'
 import { getAchievementOverview, listUserBadges } from '@/actions/gamification/achievements'
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AchievementsPage() {
-  const profile = await getProfile()
+  const profile = await getDashboardProfile()
 
   if (!profile) {
     redirect('/login')

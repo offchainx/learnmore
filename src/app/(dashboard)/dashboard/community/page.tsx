@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
-import { getProfile } from '@/actions/user/profile'
-import { getPosts } from '@/actions/community/post'
+import { getDashboardProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { CommunityClientWrapper } from './client-wrapper'
 import { CommunityView } from '@/components/dashboard/views/CommunityView'
@@ -11,24 +10,15 @@ export const metadata: Metadata = {
 }
 
 export default async function CommunityPage() {
-  const profile = await getProfile()
+  const profile = await getDashboardProfile()
 
   if (!profile) {
     redirect('/login')
   }
 
-  const initialFeed = await getPosts({
-    unanswered: false,
-    page: 1,
-    limit: 20,
-  })
-
   return (
     <CommunityClientWrapper user={profile}>
-      <CommunityView
-        initialPosts={initialFeed.posts}
-        initialTab="latest"
-      />
+      <CommunityView initialTab="latest" />
     </CommunityClientWrapper>
   )
 }

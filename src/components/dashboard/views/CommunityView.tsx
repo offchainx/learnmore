@@ -16,6 +16,7 @@ import remarkMath from 'remark-math';
 import 'katex/dist/katex.min.css';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from '@/components/ui/use-toast';
+import { fetchWithTimeout, isAbortLikeError } from '@/lib/http/fetch-with-timeout';
 
 interface CommunityViewProps {
   initialPosts?: PostWithAuthor[]
@@ -45,9 +46,10 @@ export const CommunityView = ({
 
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `/api/community/feed?tab=${encodeURIComponent(tab)}&page=1&limit=20`,
         {
+          timeoutMs: 8000,
           method: 'GET',
           credentials: 'include',
           cache: 'no-store',
@@ -71,7 +73,11 @@ export const CommunityView = ({
       if (!force) {
         lastLoadedKeyRef.current = '';
       }
-      toast({ title: "Error", description: "Failed to load posts.", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: isAbortLikeError(error) ? "请求超时，请稍后重试。" : "Failed to load posts.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

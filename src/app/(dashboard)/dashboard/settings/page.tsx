@@ -1,9 +1,9 @@
-import { getProfile } from '@/actions/user/profile'
+import { getDashboardProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { SettingsClientWrapper } from './client-wrapper'
 
 export default async function SettingsPage() {
-  const profile = await getProfile()
+  const profile = await getDashboardProfile()
 
   if (!profile) {
     redirect('/login')

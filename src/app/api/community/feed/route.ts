@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/actions/user/auth'
 import { getPosts } from '@/actions/community/post'
+import { createClient } from '@/lib/supabase/server'
+
+export const preferredRegion = 'sin1'
 
 function parsePage(raw: string | null): number {
   const value = Number.parseInt(raw || '1', 10)
@@ -16,7 +18,11 @@ function parseLimit(raw: string | null): number {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
@@ -39,7 +45,7 @@ export async function GET(request: NextRequest) {
           ...result,
         },
       },
-      { headers: { 'Cache-Control': 'no-store, max-age=0' } },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=60' } },
     )
   } catch (error) {
     console.error('Error fetching community feed:', error)

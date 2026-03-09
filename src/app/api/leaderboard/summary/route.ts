@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { LeaderboardPeriod } from '@prisma/client'
-import { getCurrentUser } from '@/actions/user/auth'
 import { getLeaderboard, getUserRank } from '@/actions/leaderboard'
+import { createClient } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
+
+export const preferredRegion = 'sin1'
 
 const ALLOWED_PERIODS: LeaderboardPeriod[] = ['WEEKLY', 'MONTHLY', 'ALL_TIME']
 
@@ -18,9 +21,19 @@ function parseLimit(raw: string | null): number {
   return Math.max(1, Math.min(200, value))
 }
 
+const getCachedLeaderboardEntries = unstable_cache(
+  async (period: LeaderboardPeriod, limit: number) => getLeaderboard(period, limit),
+  ['leaderboard:entries:v1'],
+  { revalidate: 30, tags: ['leaderboard-entries'] },
+)
+
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
@@ -29,7 +42,7 @@ export async function GET(request: NextRequest) {
     const limit = parseLimit(request.nextUrl.searchParams.get('limit'))
 
     const [entries, myRank] = await Promise.all([
-      getLeaderboard(period, limit),
+      getCachedLeaderboardEntries(period, limit),
       getUserRank(user.id, period),
     ])
 
@@ -42,7 +55,7 @@ export async function GET(request: NextRequest) {
           myRank,
         },
       },
-      { headers: { 'Cache-Control': 'no-store, max-age=0' } },
+      { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=60' } },
     )
   } catch (error) {
     console.error('Error fetching leaderboard summary:', error)

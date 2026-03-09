@@ -45,6 +45,8 @@
 
 | 2026-03-09 | P0-07 T-007 验证收尾 | 执行 staged 门禁验证、RLS 校验、Practice 定向测试并回填 acceptance | 已完成本地验证；修复 test:supabase 脚本并验证连接通过；准备执行 staged codex:check | - | - | - | - |
 
+| 2026-03-09 | T-010 dashboard 登录态性能优化 | 执行四项优化并验证 | 已完成区域固定、接口拆分、首屏轻量化与超时降级，lint/build 通过 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

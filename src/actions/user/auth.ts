@@ -497,8 +497,7 @@ export async function getCurrentUser() {
     authLastSignInAt &&
     (!dbUser.lastSignInAt || authLastSignInAt > dbUser.lastSignInAt)
   ) {
-    try {
-      dbUser = await prisma.user.update({
+    void prisma.user.update({
         where: { id: user.id },
         data: {
           lastSignInAt: authLastSignInAt,
@@ -515,9 +514,12 @@ export async function getCurrentUser() {
           }
         }
       })
-    } catch (e) {
+      .then((updated) => {
+        dbUser = updated
+      })
+      .catch((e) => {
       console.warn('[Auth] Failed to sync sign-in mirror fields in getCurrentUser:', e)
-    }
+      })
   }
 
   return dbUser
