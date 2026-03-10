@@ -49,10 +49,39 @@ export async function getQuestionForReview(questionId: string): Promise<Question
   try {
     const question = await prisma.question.findUnique({
       where: { id: questionId },
-      include: {
-        chapter: { include: { subject: true } },
-        subject: true,
-        sourceFile: true,
+      select: {
+        id: true,
+        content: true,
+        type: true,
+        options: true,
+        answer: true,
+        explanation: true,
+        difficulty: true,
+        tags: true,
+        status: true,
+        createdAt: true,
+        assetUrl: true,
+        imageUrls: true,
+        sourceFile: {
+          select: {
+            fileUrl: true,
+          },
+        },
+        chapter: {
+          select: {
+            title: true,
+            subject: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        subject: {
+          select: {
+            name: true,
+          },
+        },
       },
     })
 
@@ -73,6 +102,24 @@ export async function getQuestionForReview(questionId: string): Promise<Question
           isCorrect: correctAnswers.includes(key),
         }))
       : []
+
+    const storedImageUrls = Array.isArray(question.imageUrls)
+      ? question.imageUrls.filter((url): url is string => typeof url === 'string' && url.length > 0)
+      : []
+    const stemImageUrls = Array.from(
+      new Set(
+        (question.content.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/gi) || [])
+          .map((item) => item.match(/\((https?:\/\/[^)]+)\)/i)?.[1])
+          .filter((x): x is string => Boolean(x))
+      )
+    )
+    const questionImageUrls = Array.from(
+      new Set([
+        ...storedImageUrls,
+        ...(question.assetUrl ? [question.assetUrl] : []),
+        ...stemImageUrls,
+      ])
+    )
 
     const difficultyInfo = toDifficultyInfo(question.difficulty)
 
@@ -99,6 +146,7 @@ export async function getQuestionForReview(questionId: string): Promise<Question
           color: 'bg-blue-500',
         },
       ],
+      questionImageUrls,
       sourceImageUrl: question.assetUrl || question.sourceFile?.fileUrl,
       status: question.status,
     }

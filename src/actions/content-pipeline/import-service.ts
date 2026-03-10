@@ -10,9 +10,10 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { ProcessingStatus, ContentStatus } from '@prisma/client'
+import { ProcessingStatus, ContentStatus, ReviewAction } from '@prisma/client'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
+import { crawlExamcooViewPaper } from '@/lib/content-pipeline/examcoo-view-import'
 import { bulkCreateQuestions } from './question-service'
 import { getCurrentUser } from '@/actions/user/auth'
 import type {
@@ -25,6 +26,7 @@ import type {
   ServiceResult,
   ImportStage
 } from '@/lib/content-pipeline/types'
+import type { ImportEventCode, StatsData } from '@/types/content-pipeline'
 import type { OCRResult } from '@/lib/content-pipeline'
 import {
   MAX_PAGES,
@@ -34,6 +36,92 @@ import {
   convertToCreateInput,
   calculateQualityScore
 } from '@/lib/content-pipeline/import-utils'
+
+interface ImportFromWebUrlInput {
+  pageUrl: string
+  subjectId: string
+  source?: string
+  chapterId?: string
+  maxQuestions?: number
+}
+
+function buildSourceLabel(input: ImportFromWebUrlInput, fallback: string): string {
+  const base = input.source?.trim()
+  return base || fallback
+}
+
+async function moveImportedQuestionsToReviewPending(questionIds: string[], reviewerId: string): Promise<void> {
+  if (questionIds.length === 0) return
+
+  const now = new Date()
+  await prisma.$transaction([
+    prisma.question.updateMany({
+      where: {
+        id: { in: questionIds },
+        status: ContentStatus.DRAFT,
+      },
+      data: { status: ContentStatus.REVIEW_PENDING },
+    }),
+    prisma.contentReviewLog.createMany({
+      data: questionIds.map((questionId) => ({
+        contentType: 'question',
+        contentId: questionId,
+        action: ReviewAction.SUBMIT_REVIEW,
+        fromStatus: ContentStatus.DRAFT,
+        toStatus: ContentStatus.REVIEW_PENDING,
+        reviewerId,
+        comment: '系统自动提交审核（批量导入）',
+        createdAt: now,
+      })),
+    }),
+  ])
+}
+
+function getSourceFileTypeByUrl(url: string): 'pdf' | 'image' | 'docx' | 'html' {
+  const lower = url.toLowerCase()
+  if (lower.endsWith('.pdf')) return 'pdf'
+  if (lower.endsWith('.docx') || lower.endsWith('.doc')) return 'docx'
+  if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp')) {
+    return 'image'
+  }
+  return 'html'
+}
+
+function deriveImportEvents(input: {
+  sourceStatus: ProcessingStatus
+  questionStatuses: ContentStatus[]
+  hasReportedQuestion: boolean
+}): ImportEventCode[] {
+  const events: ImportEventCode[] = ['IMPORT_TASK_CREATED']
+
+  if (input.sourceStatus === ProcessingStatus.COMPLETED) {
+    events.push('IMPORT_PARSE_DONE')
+  } else if (input.sourceStatus === ProcessingStatus.FAILED) {
+    events.push('IMPORT_PARSE_FAILED')
+  }
+
+  if (input.hasReportedQuestion) {
+    events.push('QUESTION_MARKED_ERROR')
+  }
+
+  if (input.questionStatuses.some((status) => status === ContentStatus.REVIEW_PENDING)) {
+    events.push('REVIEW_SUBMITTED')
+  }
+
+  if (
+    input.questionStatuses.some(
+      (status) => status === ContentStatus.VERIFIED || status === ContentStatus.PUBLISHED
+    )
+  ) {
+    events.push('REVIEW_APPROVED')
+  }
+
+  if (input.questionStatuses.some((status) => status === ContentStatus.REVIEW_REJECTED)) {
+    events.push('REVIEW_REJECTED')
+  }
+
+  return Array.from(new Set(events))
+}
 
 // ==================== 主要导入函数 ====================
 
@@ -126,11 +214,12 @@ export async function importFromPDF(
     }
 
     // 创建源文件记录（使用当前登录用户 ID）
+    const sourceFileType = getSourceFileTypeByUrl(input.pdfUrl)
     const sourceFile = await prisma.sourceFile.create({
       data: {
         filename,
         fileUrl: input.pdfUrl,
-        fileType: 'pdf',
+        fileType: sourceFileType,
         fileSize: 0, // TODO: 获取实际文件大小
         uploadedBy: currentUser.id,
         status: ProcessingStatus.PROCESSING,
@@ -160,16 +249,14 @@ export async function importFromPDF(
       // 处理文件（图片或 PDF）
       let ocrResults: OCRResult[]
       try {
-        const fileExtension = input.pdfUrl.split('.').pop()?.toLowerCase()
-
-        if (fileExtension === 'pdf') {
-          // 暂不支持 PDF
-          throw new Error(
-            'PDF 文件暂不支持直接导入。请先将 PDF 转换为图片（JPG/PNG）后再上传。\n' +
-            '提示：您可以使用截图工具或 PDF 转图片工具进行转换。'
-          )
+        if (sourceFileType === 'pdf') {
+          reportProgress(createProgress('OCR_PROCESSING', 'PDF OCR 处理中...', { stageProgress: 30 }))
+          ocrResults = await ocrService.processPDF(input.pdfUrl, {
+            maxPages: options?.maxPages ?? MAX_PAGES,
+            maxCost: options?.maxOcrCost ?? DEFAULT_MAX_OCR_COST,
+          })
         } else {
-          // 处理图片
+          // 处理单图（JPG/PNG/WEBP）
           reportProgress(createProgress('OCR_PROCESSING', 'OCR 处理中...', { stageProgress: 50 }))
 
           const result = await ocrService.processImage(input.pdfUrl, {
@@ -200,10 +287,9 @@ export async function importFromPDF(
         .join('\n\n---PAGE BREAK---\n\n')
 
       // 计算平均置信度
-      const avgConfidence =
-        ocrResults.length > 0
-          ? ocrResults.reduce((sum, r) => sum + (r.success ? r.confidence : 0), 0) / ocrResults.length
-          : 0
+      void (ocrResults.length > 0
+        ? ocrResults.reduce((sum, r) => sum + (r.success ? r.confidence : 0), 0) / ocrResults.length
+        : 0)
 
       // 计算 OCR 成本
       estimatedCost = ocrResults.reduce((sum, r) => sum + r.estimatedCost, 0)
@@ -293,6 +379,7 @@ export async function importFromPDF(
       const questionIds = bulkResult.results
         .filter((r) => r.success && r.data)
         .map((r) => r.data!.id)
+      await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
 
       // 更新源文件状态
       await prisma.sourceFile.update({
@@ -309,6 +396,7 @@ export async function importFromPDF(
       reportProgress(createProgress('COMPLETED', `导入完成，共 ${questionsCreated} 道题目`))
 
       revalidatePath('/admin/content/review')
+      revalidatePath('/admin/content/import')
 
       return {
         success: true,
@@ -342,6 +430,174 @@ export async function importFromPDF(
     return {
       success: false,
       error: error instanceof Error ? error.message : '导入过程中发生未知错误',
+      code: 'UNKNOWN_ERROR',
+    }
+  }
+}
+
+/**
+ * 从网页链接批量导入（当前支持 Examcoo view 页面）
+ */
+export async function importFromWebUrl(
+  input: ImportFromWebUrlInput
+): Promise<ServiceResult<ImportResult>> {
+  const startTime = Date.now()
+  const pageUrl = input.pageUrl?.trim()
+
+  if (!pageUrl) {
+    return {
+      success: false,
+      error: '网页链接不能为空',
+      code: 'INVALID_PDF',
+    }
+  }
+
+  if (!/^https?:\/\/www\.examcoo\.com\/editor\/do\/view\/id\/\d+/i.test(pageUrl)) {
+    return {
+      success: false,
+      error: '当前仅支持 Examcoo 试卷页面链接（/editor/do/view/id/{id}）',
+      code: 'INVALID_PDF',
+    }
+  }
+
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    return {
+      success: false,
+      error: '用户未登录',
+      code: 'UNAUTHORIZED',
+    }
+  }
+
+  if (!['ADMIN', 'TEACHER'].includes(currentUser.role)) {
+    return {
+      success: false,
+      error: '仅管理员或教师可以执行网页导入',
+      code: 'UNAUTHORIZED',
+    }
+  }
+
+  const subject = await prisma.subject.findUnique({ where: { id: input.subjectId } })
+  if (!subject) {
+    return {
+      success: false,
+      error: `科目不存在: ${input.subjectId}`,
+      code: 'INVALID_PDF',
+    }
+  }
+
+  const existingFile = await prisma.sourceFile.findFirst({
+    where: {
+      fileUrl: pageUrl,
+      status: { in: [ProcessingStatus.COMPLETED, ProcessingStatus.PROCESSING] },
+    },
+  })
+  if (existingFile) {
+    return {
+      success: false,
+      error: '该网页已处理过或正在处理中',
+      code: 'ALREADY_PROCESSED',
+    }
+  }
+
+  let sourceFileId: string | null = null
+
+  try {
+    const sourceFile = await prisma.sourceFile.create({
+      data: {
+        filename: extractFilename(pageUrl) || 'examcoo-view.html',
+        fileUrl: pageUrl,
+        fileType: 'html',
+        fileSize: 0,
+        uploadedBy: currentUser.id,
+        status: ProcessingStatus.PROCESSING,
+        ocrStatus: ProcessingStatus.SKIPPED,
+      },
+      select: { id: true },
+    })
+    sourceFileId = sourceFile.id
+
+    const crawled = await crawlExamcooViewPaper({
+      url: pageUrl,
+      limit: input.maxQuestions,
+    })
+
+    const sourceTag = buildSourceLabel(input, crawled.sourceTag)
+    const questionsToCreate: CreateQuestionInput[] = crawled.questions.map((question) => ({
+      content: question.content,
+      type: question.type,
+      difficulty: 3,
+      curriculum: 'UEC',
+      grade: null,
+      subjectId: input.subjectId,
+      chapterId: input.chapterId ?? null,
+      options: question.options ?? null,
+      answer: question.answer,
+      explanation: question.explanation,
+      sourceFileId,
+      source: sourceTag,
+      tags: ['examcoo', 'web-import'],
+      assetUrl: question.assetUrl,
+      imageUrls: question.imageUrls ?? (question.assetUrl ? [question.assetUrl] : []),
+      isPastPaper: true,
+      paperId: crawled.paperId,
+      qualityScore: null,
+      createdBy: currentUser.id,
+    }))
+
+    const bulkResult = await bulkCreateQuestions({
+      questions: questionsToCreate,
+      sourceFileId,
+      createdBy: currentUser.id,
+    })
+
+    const questionsCreated = bulkResult.results.filter((r) => r.success).length
+    const questionsDuplicated = bulkResult.results.filter(
+      (r) => !r.success && (r.error?.includes('重复') || r.error?.includes('已存在'))
+    ).length
+    const questionsFailed = bulkResult.failed - questionsDuplicated
+    const questionIds = bulkResult.results
+      .filter((r) => r.success && r.data)
+      .map((r) => r.data!.id)
+    await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
+
+    await prisma.sourceFile.update({
+      where: { id: sourceFileId },
+      data: {
+        status: ProcessingStatus.COMPLETED,
+        processedAt: new Date(),
+      },
+    })
+
+    revalidatePath('/admin/content/review')
+    revalidatePath('/admin/content/import')
+
+    return {
+      success: true,
+      data: {
+        success: true,
+        sourceFileId,
+        questionsCreated,
+        questionsDuplicated,
+        questionsFailed,
+        questionIds,
+        ocrDuration: 0,
+        structureDuration: 0,
+        totalDuration: Date.now() - startTime,
+        estimatedCost: 0,
+      },
+    }
+  } catch (error) {
+    if (sourceFileId) {
+      await prisma.sourceFile.update({
+        where: { id: sourceFileId },
+        data: { status: ProcessingStatus.FAILED },
+      })
+    }
+
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '网页导入失败',
       code: 'UNKNOWN_ERROR',
     }
   }
@@ -413,8 +669,10 @@ export async function resumeFailedImport(
       where: {
         sourceFileId: sourceFile.id,
       },
-      include: {
-        chapter: { select: { subjectId: true } },
+      select: {
+        chapter: {
+          select: { subjectId: true },
+        },
       },
     })
 
@@ -543,6 +801,7 @@ async function resumeFromStructuring(
     const questionIds = bulkResult.results
       .filter((r) => r.success && r.data)
       .map((r) => r.data!.id)
+    await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
 
     // 更新源文件状态
     await prisma.sourceFile.update({
@@ -558,6 +817,7 @@ async function resumeFromStructuring(
     reportProgress(createProgress('COMPLETED', `导入完成，共 ${questionsCreated} 道题目`))
 
     revalidatePath('/admin/content/review')
+    revalidatePath('/admin/content/import')
 
     return {
       success: true,
@@ -610,6 +870,14 @@ export async function getImportTasks(options?: {
       questionsCount: number
       createdAt: Date
       processedAt: Date | null
+      subject?: {
+        id: string
+        name: string
+      }
+      source?: string
+      sourceYear?: number
+      curriculum?: string
+      events?: ImportEventCode[]
     }>
     total: number
   }>
@@ -624,6 +892,20 @@ export async function getImportTasks(options?: {
           _count: {
             select: { questions: true },
           },
+          questions: {
+            take: 1,
+            orderBy: { createdAt: 'asc' },
+            select: {
+              source: true,
+              curriculum: true,
+              subject: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
         take: options?.limit ?? 20,
@@ -632,10 +914,52 @@ export async function getImportTasks(options?: {
       prisma.sourceFile.count({ where }),
     ])
 
+    const sourceIds = tasks.map((task) => task.id)
+    const questionRows =
+      sourceIds.length > 0
+        ? await prisma.question.findMany({
+            where: { sourceFileId: { in: sourceIds } },
+            select: {
+              sourceFileId: true,
+              status: true,
+              reportCount: true,
+            },
+          })
+        : []
+
+    const bySource = questionRows.reduce<
+      Record<
+        string,
+        {
+          statuses: ContentStatus[]
+          hasReported: boolean
+        }
+      >
+    >((acc, row) => {
+      const key = row.sourceFileId || ''
+      if (!key) return acc
+      if (!acc[key]) {
+        acc[key] = { statuses: [], hasReported: false }
+      }
+      acc[key].statuses.push(row.status)
+      if ((row.reportCount ?? 0) > 0) {
+        acc[key].hasReported = true
+      }
+      return acc
+    }, {})
+
     return {
       success: true,
       data: {
         tasks: tasks.map((t) => ({
+          ...(t.questions[0]?.subject
+            ? {
+                subject: {
+                  id: t.questions[0].subject.id,
+                  name: t.questions[0].subject.name,
+                },
+              }
+            : {}),
           id: t.id,
           filename: t.filename,
           fileUrl: t.fileUrl,
@@ -644,6 +968,17 @@ export async function getImportTasks(options?: {
           questionsCount: t._count.questions,
           createdAt: t.createdAt,
           processedAt: t.processedAt,
+          source: t.questions[0]?.source ?? undefined,
+          curriculum: t.questions[0]?.curriculum ?? 'UEC',
+          sourceYear:
+            t.questions[0]?.source && /(19|20)\d{2}/.test(t.questions[0].source)
+              ? Number(t.questions[0].source.match(/(19|20)\d{2}/)?.[0])
+              : undefined,
+          events: deriveImportEvents({
+            sourceStatus: t.status,
+            questionStatuses: bySource[t.id]?.statuses ?? [],
+            hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
+          }),
         })),
         total,
       },
@@ -653,6 +988,75 @@ export async function getImportTasks(options?: {
     return {
       success: false,
       error: error instanceof Error ? error.message : '获取失败',
+      code: 'FETCH_FAILED',
+    }
+  }
+}
+
+export async function getImportDashboardStats(): Promise<ServiceResult<StatsData>> {
+  try {
+    const now = new Date()
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+    const [activeBatches, tasksToday, completedTasks, failedTasks, pendingReviewQuestions, importedQuestions7d] =
+      await prisma.$transaction([
+        prisma.sourceFile.count({
+          where: {
+            status: { in: [ProcessingStatus.PENDING, ProcessingStatus.PROCESSING] },
+          },
+        }),
+        prisma.sourceFile.count({
+          where: { createdAt: { gte: dayStart } },
+        }),
+        prisma.sourceFile.count({
+          where: { status: ProcessingStatus.COMPLETED },
+        }),
+        prisma.sourceFile.count({
+          where: { status: ProcessingStatus.FAILED },
+        }),
+        prisma.question.count({
+          where: { status: ContentStatus.REVIEW_PENDING },
+        }),
+        prisma.question.count({
+          where: {
+            sourceFileId: { not: null },
+            createdAt: { gte: sevenDaysAgo },
+          },
+        }),
+      ])
+
+    const storageRows = await prisma.$queryRawUnsafe<Array<{ bytes: string | number | null }>>(
+      `select coalesce(sum(((metadata->>'size')::bigint)),0) as bytes from storage.objects where bucket_id = 'source-files'`
+    )
+
+    const bytesRaw = storageRows[0]?.bytes ?? 0
+    const usedBytes = typeof bytesRaw === 'string' ? Number(bytesRaw) : Number(bytesRaw || 0)
+    const usedMB = Math.round((usedBytes / 1024 / 1024) * 100) / 100
+    const limitMB = Number(process.env.CONTENT_IMPORT_STORAGE_LIMIT_MB || 1024)
+    const successRate = completedTasks + failedTasks > 0
+      ? Math.round((completedTasks / (completedTasks + failedTasks)) * 100)
+      : 0
+
+    return {
+      success: true,
+      data: {
+        tasksToday,
+        completedTasks,
+        failedTasks,
+        successRate,
+        pendingReviewQuestions,
+        importedQuestions7d,
+        activeBatches,
+        storageUsed: usedMB,
+        storageLimit: limitMB,
+      },
+    }
+  } catch (error) {
+    console.error('获取导入看板统计失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取统计失败',
       code: 'FETCH_FAILED',
     }
   }
@@ -791,6 +1195,7 @@ export async function deleteImportTask(
     })
 
     revalidatePath('/admin/content/review')
+    revalidatePath('/admin/content/import')
 
     return {
       success: true,

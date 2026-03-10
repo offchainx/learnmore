@@ -65,6 +65,16 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
     }, 0)
   }
 
+  const stemImageUrls = Array.from(
+    new Set(
+      (data.stem.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/gi) || [])
+        .map((item) => item.match(/\((https?:\/\/[^)]+)\)/i)?.[1])
+        .filter((x): x is string => Boolean(x))
+    )
+  )
+
+  const questionImages = Array.from(new Set([...(data.questionImageUrls || []), ...stemImageUrls]))
+
   return (
     <div className="flex-1 overflow-y-auto p-6 scroll-smooth bg-slate-50 dark:bg-slate-950">
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
@@ -268,6 +278,32 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
             </div>
           )}
         </EditableSection>
+
+        {/* 题目图像 */}
+        <section className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-6">
+          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+            题目图像
+          </h3>
+          {questionImages.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {questionImages.map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-900 hover:border-blue-400 transition-colors"
+                >
+                  <img src={url} alt="题目图像" className="w-full h-44 object-contain bg-slate-50 dark:bg-slate-950" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="h-28 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-sm text-slate-400">
+              当前题目未检测到图像
+            </div>
+          )}
+        </section>
 
         {/* 源材料 */}
         <section className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-6">

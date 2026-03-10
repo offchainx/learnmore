@@ -127,6 +127,7 @@ export interface CreateQuestionInput {
   source?: string | null
   tags?: string[]
   assetUrl?: string | null
+  imageUrls?: string[]
   isPastPaper?: boolean
   paperId?: string | null
   contentHash?: string | null
@@ -152,6 +153,7 @@ export interface UpdateQuestionInput {
   source?: string | null
   tags?: string[]
   assetUrl?: string | null
+  imageUrls?: string[]
   isPastPaper?: boolean
   paperId?: string | null
   qualityScore?: number | null

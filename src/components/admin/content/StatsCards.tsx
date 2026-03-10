@@ -1,6 +1,13 @@
 import React from 'react'
 import { Card } from '@/components/ui/card'
-import { Layers, AlertTriangle, HardDrive, TrendingUp } from 'lucide-react'
+import {
+  CalendarDays,
+  CheckCircle2,
+  ClipboardClock,
+  HardDrive,
+  Loader2,
+  TriangleAlert,
+} from 'lucide-react'
 import { StatsData } from '@/types/content-pipeline'
 
 interface StatsCardsProps {
@@ -8,72 +15,84 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ stats }: StatsCardsProps) {
-  const usagePercent = Math.round((stats.storageUsed / stats.storageLimit) * 100)
+  const usagePercent = stats.storageLimit > 0 ? Math.round((stats.storageUsed / stats.storageLimit) * 100) : 0
+  const remaining = Math.max(0, Math.round((stats.storageLimit - stats.storageUsed) * 100) / 100)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      {/* Active Batches Card */}
-      <Card className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-        <div className="flex justify-between items-start mb-4 relative">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-500/10">
-            <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+    <div className="overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="min-w-max grid grid-flow-col auto-cols-[minmax(220px,1fr)] gap-3">
+        <Card className="p-4 border border-[#24324D] bg-[#151F36] rounded-xl shadow-[0_6px_20px_rgba(0,0,0,0.2)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-[#9FB0C9]">今日新建任务</p>
+              <p className="text-2xl font-bold text-[#E6EDF7] mt-1">{stats.tasksToday}</p>
+            </div>
+            <CalendarDays className="h-4 w-4 text-[#7D8CA6]" />
           </div>
-          <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/10 px-2.5 py-1 rounded-full flex items-center">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            +{stats.activeTrend}%
-          </span>
-        </div>
-        <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight">
-          {stats.activeBatches}
-        </div>
-        <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-          活跃导入批次
-        </div>
-      </Card>
+        </Card>
 
-      {/* Flagged Errors Card */}
-      <Card className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-red-500/30 transition-colors">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-        <div className="flex justify-between items-start mb-4 relative">
-          <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-500/10">
-            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+        <Card className="p-4 border border-[#24324D] bg-[#151F36] rounded-xl shadow-[0_6px_20px_rgba(0,0,0,0.2)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-[#9FB0C9]">进行中任务</p>
+              <p className="text-2xl font-bold text-[#E6EDF7] mt-1">{stats.activeBatches}</p>
+            </div>
+            <Loader2 className="h-4 w-4 text-[#3B82F6]" />
           </div>
-          <span className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-full">
-            需审核
-          </span>
-        </div>
-        <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight">
-          {stats.flaggedErrors}
-        </div>
-        <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-          标记错误的题目
-        </div>
-      </Card>
+        </Card>
 
-      {/* Storage Limit Card */}
-      <Card className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-purple-500/30 transition-colors">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-        <div className="flex justify-between items-start mb-4 relative">
-          <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-500/10">
-            <HardDrive className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+        <Card className="p-4 border border-[#24324D] bg-[#151F36] rounded-xl shadow-[0_6px_20px_rgba(0,0,0,0.2)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-[#9FB0C9]">解析成功率</p>
+              <p className="text-2xl font-bold text-[#E6EDF7] mt-1">{stats.successRate}%</p>
+              <p className="text-xs text-[#7D8CA6] mt-1">
+                成功 {stats.completedTasks} / 失败 {stats.failedTasks}
+              </p>
+            </div>
+            <CheckCircle2 className="h-4 w-4 text-[#22C55E]" />
           </div>
-          <span className="text-xs font-medium text-slate-600 dark:text-slate-400 flex items-center">
-            {stats.storageLimit}MB 限制
-          </span>
-        </div>
+        </Card>
 
-        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2.5 mb-2 mt-2 border border-slate-300 dark:border-slate-700/50">
-          <div
-            className="bg-gradient-to-r from-purple-600 to-indigo-500 h-2.5 rounded-full shadow-[0_0_10px_rgba(147,51,234,0.3)] transition-all duration-1000"
-            style={{ width: `${usagePercent}%` }}
-          />
-        </div>
-        <div className="text-sm text-slate-500 dark:text-slate-400 flex justify-between items-center mt-3">
-          <span className="font-medium">已使用存储</span>
-          <span className="font-bold text-slate-900 dark:text-white">{stats.storageUsed} MB</span>
-        </div>
-      </Card>
+        <Card className="p-4 border border-[#24324D] bg-[#151F36] rounded-xl shadow-[0_6px_20px_rgba(0,0,0,0.2)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-[#9FB0C9]">待审核题目</p>
+              <p className="text-2xl font-bold text-[#E6EDF7] mt-1">{stats.pendingReviewQuestions}</p>
+            </div>
+            <ClipboardClock className="h-4 w-4 text-[#F59E0B]" />
+          </div>
+        </Card>
+
+        <Card className="p-4 border border-[#24324D] bg-[#151F36] rounded-xl shadow-[0_6px_20px_rgba(0,0,0,0.2)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-[#9FB0C9]">近7天导入题量</p>
+              <p className="text-2xl font-bold text-[#E6EDF7] mt-1">{stats.importedQuestions7d}</p>
+            </div>
+            <TriangleAlert className="h-4 w-4 text-[#7D8CA6]" />
+          </div>
+        </Card>
+
+        <Card className="p-4 border border-[#24324D] bg-[#151F36] rounded-xl min-w-[300px] shadow-[0_6px_20px_rgba(0,0,0,0.2)]">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-[#9FB0C9]">
+              <HardDrive className="h-4 w-4 text-[#3B82F6]" />
+              存储使用
+            </div>
+            <div className="text-xs text-[#9FB0C9]">{usagePercent}%</div>
+          </div>
+          <div className="text-xs text-[#7D8CA6] mb-2">
+            已用 {stats.storageUsed} MB / 总量 {stats.storageLimit} MB（剩余 {remaining} MB）
+          </div>
+          <div className="w-full bg-[#0F172A] rounded-full h-2">
+            <div
+              className="bg-[#3B82F6] h-2 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, usagePercent)}%` }}
+            />
+          </div>
+        </Card>
+      </div>
     </div>
   )
 }

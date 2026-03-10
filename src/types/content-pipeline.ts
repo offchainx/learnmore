@@ -13,6 +13,20 @@ import { ProcessingStatus } from '@prisma/client'
 export type BatchStatusUI = 'Processing' | 'Completed' | 'Error' | 'Queued' | 'Pending'
 
 /**
+ * 导入与审核事件码（用于任务进度/日志统一口径）
+ */
+export type ImportEventCode =
+  | 'IMPORT_TASK_CREATED'
+  | 'IMPORT_TASK_DELETED'
+  | 'IMPORT_RETRY'
+  | 'IMPORT_PARSE_DONE'
+  | 'IMPORT_PARSE_FAILED'
+  | 'QUESTION_MARKED_ERROR'
+  | 'REVIEW_SUBMITTED'
+  | 'REVIEW_APPROVED'
+  | 'REVIEW_REJECTED'
+
+/**
  * 批量任务数据（UI展示用）
  */
 export interface BatchData {
@@ -20,12 +34,15 @@ export interface BatchData {
   name: string
   fileCount: number
   subject: string
-  year: number
+  curriculum: string
   progress: number
   status: BatchStatusUI
   statusMessage?: string
   createdAt: Date
   questionsCount: number
+  sourceRemark?: string
+  sourceFileUrl?: string
+  events: ImportEventCode[]
 }
 
 /**
@@ -46,6 +63,8 @@ export interface ImportTask {
   }
   sourceYear?: number
   source?: string
+  curriculum?: string
+  events?: ImportEventCode[]
 }
 
 // ==================== 审核日志相关 ====================
@@ -74,9 +93,13 @@ export interface AuditLogEntry {
  * 统计数据
  */
 export interface StatsData {
+  tasksToday: number
+  completedTasks: number
+  failedTasks: number
+  successRate: number
+  pendingReviewQuestions: number
+  importedQuestions7d: number
   activeBatches: number
-  activeTrend: number
-  flaggedErrors: number
   storageUsed: number
   storageLimit: number
 }
@@ -140,6 +163,7 @@ export interface QuestionReviewData {
   explanation: QuestionExplanation
   metadata: QuestionMetadata
   history: ReviewHistoryEntry[]
+  questionImageUrls?: string[] // 题目中的图片资源（可多张）
   sourceImageUrl?: string // OCR 原始扫描图
   status?: string // 题目状态 (DRAFT, REVIEW_PENDING, VERIFIED, PUBLISHED, etc.)
 }

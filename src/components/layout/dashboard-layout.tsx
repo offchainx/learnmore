@@ -99,9 +99,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     || pathname?.startsWith('/admin/permissions')
     || pathname?.startsWith('/admin/feedback')
     || pathname?.startsWith('/admin/referrals')
+    || pathname?.startsWith('/admin/vouchers')
     || false;
   const isContentAdminRoute = pathname?.startsWith('/admin/content')
-    || pathname?.startsWith('/admin/vouchers')
     || false;
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false);
@@ -147,6 +147,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     { id: 'admin-permissions', icon: ShieldCheck, label: t.sidebar.adminPermissions, href: '/admin/permissions' },
     { id: 'admin-feedback', icon: MessageCircle, label: t.sidebar.adminFeedback, href: '/admin/feedback' },
     { id: 'admin-referrals', icon: Users, label: t.sidebar.adminReferrals, href: '/admin/referrals' },
+    { id: 'admin-vouchers', icon: Ticket, label: 'Voucher 管理', href: '/admin/vouchers' },
   ];
 
   const adminContentSubItems = [
@@ -154,7 +155,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     { id: 'admin-review', icon: CheckSquare, label: t.sidebar.adminReview, href: '/admin/content/review' },
     { id: 'admin-stats', icon: BarChart, label: t.sidebar.adminStats, href: '/admin/content/statistics' },
     { id: 'admin-reports', icon: AlertCircle, label: t.sidebar.adminReports, href: '/admin/content/reports' },
-    { id: 'admin-vouchers', icon: Ticket, label: 'Voucher 管理', href: '/admin/vouchers' },
   ];
 
   return (
@@ -320,9 +320,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                </button>
                
                {/* Contextual Title (Optional, could be added later) */}
-               <h1 className="text-xl font-bold text-slate-900 dark:text-white hidden sm:block capitalize">
-                  {currentView === 'dashboard' ? t.sidebar.dashboard : currentView}
-               </h1>
+               {!pathname?.startsWith('/admin') && (
+                 <h1 className="text-xl font-bold text-slate-900 dark:text-white hidden sm:block capitalize">
+                    {currentView === 'dashboard' ? t.sidebar.dashboard : currentView}
+                 </h1>
+               )}
             </div>
 
             <div className="flex items-center gap-3">

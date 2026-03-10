@@ -31,17 +31,22 @@ export function mapProcessingStatusToBatchStatus(status: ProcessingStatus): Batc
  * 将 ImportTask 转换为 BatchData（用于UI展示）
  */
 export function mapImportTaskToBatchData(task: ImportTask): BatchData {
+  const sourceRemark = task.source?.trim() || task.filename
+
   return {
     id: task.id,
-    name: task.filename,
+    name: sourceRemark,
     fileCount: 1,
     subject: task.subject?.name || '未知科目',
-    year: task.sourceYear || new Date().getFullYear(),
+    curriculum: task.curriculum || 'UEC',
     progress: task.status === 'COMPLETED' ? 100 : task.status === 'PROCESSING' ? 50 : 0,
     status: mapProcessingStatusToBatchStatus(task.status),
     statusMessage: getStatusMessage(task.status),
     createdAt: task.createdAt,
     questionsCount: task.questionsCount,
+    sourceRemark,
+    sourceFileUrl: task.fileUrl,
+    events: task.events ?? ['IMPORT_TASK_CREATED'],
   }
 }
 

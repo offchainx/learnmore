@@ -277,11 +277,29 @@
   - 语义重复组：`0`。
   - 命名统一迁移已生成：`supabase/migrations/012_normalize_storage_object_policy_names.sql`。
   - 受限项：当前数据库连接角色无法执行 `ALTER POLICY`（需 owner 权限）。
+  - 2026-03-09 结论：采用“命名豁免”收口（legacy 命名保留，不影响 policy 语义与访问控制）。
 - `source-files` 评估：
   - 当前上传链路依赖 `getPublicUrl`，MVP 维持 `public`。
+- Stripe（test mode）证据：
+  - webhook destination 事件集与代码处理事件一致（4 项）。
+  - Event delivery 返回 `HTTP 200`，含幂等场景 `DUPLICATE_EVENT`，符合实现预期。
+  - 生产 live endpoint / live 签名密钥 / live price 映射按用户决策后置到最终上线切换阶段。
+- 运维阈值证据（2026-03-09）：
+  - 连接数告警阈值：`80%` 告警，`90%` 紧急告警。
+  - 慢查询阈值：`P95 > 1s`（5 分钟）告警；单条 `>3s` 立即告警。
+  - `pg_stat_activity` 快照：`idle=17`、`active=1`（当前连接压力可接受）。
+- Advisor 复扫证据（2026-03-09 17:27 MYT）：
+  - `Errors=0`、`Warnings=3`、`Info=0`。
+  - 告警项：
+    - `RLS Policy Always True`：`public.contact_submissions`
+    - `RLS Policy Always True`：`public.subscribers`
+    - `Leaked Password Protection Disabled`：`auth`
 - 后置项记录（2026-03-09）：
   - 登录/注册/重置密码限流与邮件模板：待自有域名与 SMTP 发信域完成后回补。
   - 管理员 MFA 绑定：待应用提供 TOTP 绑定入口后回补。
+  - Stripe live 切换（endpoint、签名密钥、live price 映射）：待系统整体收口后统一执行。
+  - PITR/备份：当前 Free 计划不可用，待升级 Pro 后回补。
+  - 发布回滚手册负责人、关键链路回归、值班与应急联系人：按用户决策暂缓。
 
 ## T-005 执行场景（Given / When / Then）
 - 给定：新用户走标准注册链路

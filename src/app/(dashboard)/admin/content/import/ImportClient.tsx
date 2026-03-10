@@ -1,69 +1,167 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Sparkles, History, Plus, HelpCircle, FileText as FileTextIcon, AlertCircle as AlertCircleIcon } from 'lucide-react'
+import { ArrowLeft, History, Plus, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { StatsCards } from '@/components/admin/content/StatsCards'
 import { BatchTable } from '@/components/admin/content/BatchTable'
 import { AuditLogDrawer } from '@/components/admin/content/AuditLogDrawer'
 import { NewBatchImportModal } from '@/components/admin/content/NewBatchImportModal'
-import { MOCK_STATS, MOCK_BATCHES, MOCK_AUDIT_LOGS } from '@/__dev__/mock/content-pipeline-data'
+import { mapImportTaskToBatchData } from '@/lib/content-pipeline/mappers'
+import type { AuditLogEntry, ImportTask, StatsData } from '@/types/content-pipeline'
+import { format } from 'date-fns'
+
+type UiLang = 'zh' | 'en' | 'ms'
+
+interface RawSubject {
+  id: string
+  key: string
+  name: string
+}
+
+const SUBJECT_LABELS: Record<string, Record<UiLang, string>> = {
+  chinese: { zh: '中文', en: 'Chinese', ms: 'Bahasa Cina' },
+  malay: { zh: '马来西亚文', en: 'Malay', ms: 'Bahasa Melayu' },
+  english: { zh: '英文', en: 'English', ms: 'Bahasa Inggeris' },
+  math: { zh: '数学', en: 'Mathematics', ms: 'Matematik' },
+  science: { zh: '科学', en: 'Science', ms: 'Sains' },
+  history: { zh: '历史', en: 'History', ms: 'Sejarah' },
+  geography: { zh: '地理', en: 'Geography', ms: 'Geografi' },
+  other: { zh: '其他', en: 'Other', ms: 'Lain-lain' },
+}
+
+function buildLocalizedSubjects(subjects: RawSubject[], language: UiLang): Array<{ id: string; name: string }> {
+  return subjects.map((subject) => ({
+    id: subject.id,
+    name: SUBJECT_LABELS[subject.key]?.[language] || subject.name,
+  }))
+}
+
+function toDate(value: unknown): Date {
+  return value instanceof Date ? value : new Date(String(value))
+}
 
 interface ImportClientProps {
   userRole: string
-  initialSubjects: any[]
-  initialHistory: any[]
+  userLanguage: UiLang
+  initialSubjects: RawSubject[]
+  initialHistory: ImportTask[]
+  initialStats: StatsData
 }
 
-export function ImportClient({ userRole, initialSubjects, initialHistory }: ImportClientProps) {
+export function ImportClient({ userRole, userLanguage, initialSubjects, initialHistory, initialStats }: ImportClientProps) {
   const router = useRouter()
 
-  // 状态管理
-  const [subjects] = useState<any[]>(initialSubjects)
+  const history = useMemo<ImportTask[]>(
+    () =>
+      (initialHistory || []).map((task) => ({
+        ...task,
+        createdAt: toDate(task.createdAt),
+        processedAt: task.processedAt ? toDate(task.processedAt) : null,
+      })),
+    [initialHistory]
+  )
+
+  const subjects = useMemo(() => buildLocalizedSubjects(initialSubjects || [], userLanguage), [initialSubjects, userLanguage])
+
+  const batches = useMemo(() => history.map(mapImportTaskToBatchData), [history])
+
+  const stats = useMemo<StatsData>(() => initialStats, [initialStats])
+
+  const auditLogs = useMemo<AuditLogEntry[]>(
+    () =>
+      history.slice(0, 20).map((task) => ({
+        id: task.id,
+        user: 'System',
+        avatar: '',
+        action:
+          task.status === 'COMPLETED'
+            ? '完成导入任务'
+            : task.status === 'FAILED'
+              ? '导入任务失败'
+              : task.status === 'PROCESSING'
+                ? '开始处理导入任务'
+                : '创建导入任务',
+        target: task.filename,
+        timestamp: format(task.createdAt, 'yyyy-MM-dd HH:mm:ss'),
+        type:
+          task.status === 'COMPLETED'
+            ? 'success'
+            : task.status === 'FAILED'
+              ? 'error'
+              : task.status === 'PROCESSING'
+                ? 'info'
+                : 'warning',
+      })),
+    [history]
+  )
+
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [isRefreshing, startRefresh] = useTransition()
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      router.refresh()
+    }, 5000)
+
+    return () => clearInterval(timer)
+  }, [router])
 
   const handleImportSuccess = () => {
     // Refresh page or fetch new data
     router.refresh()
   }
 
+  const handleManualRefresh = () => {
+    startRefresh(() => {
+      router.refresh()
+    })
+  }
+
   return (
     <AdminClientWrapper userRole={userRole}>
-      <div className="min-h-screen py-10 px-4">
-        <div className="container mx-auto space-y-8 max-w-7xl">
+      <div className="px-3 py-3 sm:px-4 sm:py-4">
+        <div className="mx-auto max-w-[1440px] rounded-xl border border-[#24324D] bg-[#0B1220] p-3 sm:p-4 space-y-4">
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-xl border border-[#24324D] bg-[#111A2E] px-4 py-4">
+            <div className="flex items-center space-x-3">
               <Link
                 href="/admin/content/review"
-                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#151F36] border border-[#24324D] hover:bg-[#1A2744] transition-colors"
               >
-                <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                <ArrowLeft className="h-4 w-4 text-[#9FB0C9]" />
               </Link>
               <div>
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                  批量导入 <span className="text-blue-600 dark:text-blue-400">AI</span>
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">
-                  上传试卷，开启 AI 自动化题目识别
+                <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7]">批量导入</h1>
+                <p className="text-sm text-[#9FB0C9]">
+                  统一管理 PDF/图像与网页抓取导入任务
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-2xl border border-blue-100 dark:border-blue-900/30">
-                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 fill-blue-600/20" />
-                <span className="text-sm font-bold text-blue-700 dark:text-blue-300">AI Pipeline v1.0</span>
+              <div className="hidden sm:flex items-center gap-2 bg-[#151F36] px-3 py-1.5 rounded-md border border-[#24324D]">
+                <span className="text-xs font-semibold text-[#9FB0C9]">Import Pipeline v1.0</span>
               </div>
               <Button
                 variant="outline"
                 size="sm"
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 border-[#24324D] bg-[#151F36] text-[#E6EDF7] hover:bg-[#1A2744] hover:text-[#E6EDF7]"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                刷新
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setIsAuditDrawerOpen(true)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-[#24324D] bg-[#151F36] text-[#E6EDF7] hover:bg-[#1A2744] hover:text-[#E6EDF7]"
               >
                 <History className="h-4 w-4" />
                 操作日志
@@ -71,7 +169,7 @@ export function ImportClient({ userRole, initialSubjects, initialHistory }: Impo
               <Button
                 size="sm"
                 onClick={() => setIsImportModalOpen(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                className="flex items-center gap-2 bg-[#3B82F6] text-white hover:bg-[#2F6FDD]"
               >
                 <Plus className="h-4 w-4" />
                 批量导入
@@ -80,33 +178,16 @@ export function ImportClient({ userRole, initialSubjects, initialHistory }: Impo
           </div>
 
           {/* Stats Cards */}
-          <StatsCards stats={MOCK_STATS} />
+          <StatsCards stats={stats} />
 
-          {/* Batch Management Table */}
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">批量任务管理</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">查看和管理所有导入批次</p>
+                <h2 className="text-lg font-semibold text-[#E6EDF7]">批量任务管理</h2>
+                <p className="text-sm text-[#9FB0C9]">查看和管理所有导入批次</p>
               </div>
             </div>
-            <BatchTable batches={MOCK_BATCHES} />
-          </div>
-
-          {/* Footer Links */}
-          <div className="mt-8 flex justify-center items-center gap-6 text-xs text-slate-600 dark:text-slate-400 pb-4">
-            <button className="flex items-center hover:text-slate-900 dark:hover:text-slate-200 cursor-pointer transition-colors">
-              <HelpCircle className="h-4 w-4 mr-1" />
-              帮助中心
-            </button>
-            <button className="flex items-center hover:text-slate-900 dark:hover:text-slate-200 cursor-pointer transition-colors">
-              <FileTextIcon className="h-4 w-4 mr-1" />
-              使用文档
-            </button>
-            <button className="flex items-center hover:text-slate-900 dark:hover:text-slate-200 cursor-pointer transition-colors">
-              <AlertCircleIcon className="h-4 w-4 mr-1" />
-              报告问题
-            </button>
+            <BatchTable batches={batches} onDataChanged={handleImportSuccess} />
           </div>
         </div>
       </div>
@@ -115,7 +196,7 @@ export function ImportClient({ userRole, initialSubjects, initialHistory }: Impo
       <AuditLogDrawer
         isOpen={isAuditDrawerOpen}
         onClose={() => setIsAuditDrawerOpen(false)}
-        logs={MOCK_AUDIT_LOGS}
+        logs={auditLogs}
       />
 
       {/* New Batch Import Modal */}

@@ -26,6 +26,121 @@ export async function getAllSubjects() {
   }
 }
 
+const IMPORT_SUBJECT_PRESETS: Array<{
+  key: string
+  canonicalName: string
+  aliases: string[]
+  order: number
+}> = [
+  {
+    key: 'chinese',
+    canonicalName: '中文',
+    aliases: ['中文', '华文', 'chinese', 'mandarin', 'bahasa cina'],
+    order: 10,
+  },
+  {
+    key: 'malay',
+    canonicalName: '马来西亚文',
+    aliases: ['马来西亚文', '马来文', 'malay', 'bahasa melayu', 'melayu'],
+    order: 20,
+  },
+  {
+    key: 'english',
+    canonicalName: '英文',
+    aliases: ['英文', '英语', 'english', 'bahasa inggeris'],
+    order: 30,
+  },
+  {
+    key: 'math',
+    canonicalName: '数学',
+    aliases: ['数学', 'math', 'mathematics', 'matematik'],
+    order: 40,
+  },
+  {
+    key: 'science',
+    canonicalName: '科学',
+    aliases: ['科学', 'science', 'sains'],
+    order: 50,
+  },
+  {
+    key: 'history',
+    canonicalName: '历史',
+    aliases: ['历史', 'history', 'sejarah'],
+    order: 60,
+  },
+  {
+    key: 'geography',
+    canonicalName: '地理',
+    aliases: ['地理', 'geography', 'geografi'],
+    order: 70,
+  },
+  {
+    key: 'other',
+    canonicalName: '其他',
+    aliases: ['其他', 'other', 'lain-lain'],
+    order: 80,
+  },
+]
+
+function normalizeSubjectKey(value: string): string {
+  return value.toLowerCase().replace(/[\s\-_./()]/g, '')
+}
+
+export async function getImportSubjects() {
+  try {
+    const allSubjects = await prisma.subject.findMany({
+      orderBy: { order: 'asc' },
+    })
+
+    const normalized = allSubjects.map((subject) => ({
+      ...subject,
+      normalizedName: normalizeSubjectKey(subject.name),
+    }))
+
+    const resolved: Array<{ id: string; key: string; name: string; order: number }> = []
+
+    for (const preset of IMPORT_SUBJECT_PRESETS) {
+      const found = normalized.find((subject) =>
+        preset.aliases.some((alias) => subject.normalizedName.includes(normalizeSubjectKey(alias)))
+      )
+
+      if (found) {
+        resolved.push({
+          id: found.id,
+          key: preset.key,
+          name: found.name,
+          order: preset.order,
+        })
+        continue
+      }
+
+      const created = await prisma.subject.create({
+        data: {
+          name: preset.canonicalName,
+          order: preset.order,
+        },
+        select: {
+          id: true,
+          name: true,
+          order: true,
+        },
+      })
+
+      resolved.push({
+        id: created.id,
+        key: preset.key,
+        name: created.name,
+        order: created.order,
+      })
+    }
+
+    return { success: true, data: resolved }
+  } catch (error) {
+    console.error('Error fetching import subjects:', error)
+    return { success: false, error: 'Failed to fetch import subjects' }
+  }
+}
+
 export async function getSubjectDetails(subjectId: string) {
   const user = await getCurrentUser();
   

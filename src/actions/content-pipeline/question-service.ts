@@ -75,6 +75,7 @@ function selectQuestionRelations(): Prisma.QuestionSelect {
     answer: true,
     explanation: true,
     assetUrl: true,
+    imageUrls: true,
     source: true,
     tags: true,
     isPastPaper: true,
@@ -101,7 +102,10 @@ export async function createQuestion(
 ): Promise<ServiceResult<QuestionWithRelations>> {
   try {
     const contentHash = await generateContentHash(data.content, data.type, data.answer)
-    const existing = await prisma.question.findUnique({ where: { contentHash } })
+    const existing = await prisma.question.findUnique({
+      where: { contentHash },
+      select: { id: true },
+    })
     if (existing) {
       return { success: false, error: '题目已存在（内容重复）', code: 'DUPLICATE_CONTENT' }
     }
@@ -122,6 +126,7 @@ export async function createQuestion(
         source: data.source ?? null,
         tags: data.tags ?? [],
         assetUrl: data.assetUrl ?? null,
+        imageUrls: data.imageUrls ?? (data.assetUrl ? [data.assetUrl] : []),
         isPastPaper: data.isPastPaper ?? false,
         paperId: data.paperId ?? null,
         contentHash,
@@ -154,7 +159,10 @@ export async function bulkCreateQuestions(
     const q = input.questions[i]
     try {
       const contentHash = await generateContentHash(q.content, q.type, q.answer)
-      const existing = await prisma.question.findUnique({ where: { contentHash } })
+      const existing = await prisma.question.findUnique({
+        where: { contentHash },
+        select: { id: true },
+      })
       if (existing) {
         results.push({ index: i, success: false, error: '题目已存在（内容重复）' })
         failed++
@@ -177,6 +185,7 @@ export async function bulkCreateQuestions(
           source: q.source ?? null,
           tags: q.tags ?? [],
           assetUrl: q.assetUrl ?? null,
+          imageUrls: q.imageUrls ?? (q.assetUrl ? [q.assetUrl] : []),
           isPastPaper: q.isPastPaper ?? false,
           paperId: q.paperId ?? null,
           contentHash,
@@ -213,7 +222,10 @@ export async function updateQuestionStatus(
   input: UpdateStatusInput
 ): Promise<ServiceResult<QuestionWithRelations>> {
   try {
-    const currentQuestion = await prisma.question.findUnique({ where: { id: input.questionId } })
+    const currentQuestion = await prisma.question.findUnique({
+      where: { id: input.questionId },
+      select: { id: true, status: true },
+    })
     if (!currentQuestion) {
       return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
     }
@@ -401,7 +413,10 @@ export async function deleteQuestion(
   options?: { hardDelete?: boolean; comment?: string }
 ): Promise<ServiceResult<{ archived: boolean }>> {
   try {
-    const question = await prisma.question.findUnique({ where: { id } })
+    const question = await prisma.question.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    })
     if (!question) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
     if (question.status === ContentStatus.PUBLISHED && !options?.hardDelete) {
@@ -453,7 +468,16 @@ export async function updateQuestion(
   data: UpdateQuestionInput
 ): Promise<ServiceResult<QuestionWithRelations>> {
   try {
-    const current = await prisma.question.findUnique({ where: { id } })
+    const current = await prisma.question.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        content: true,
+        type: true,
+        answer: true,
+        contentHash: true,
+      },
+    })
     if (!current) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
     let contentHash = current.contentHash
@@ -489,6 +513,11 @@ export async function updateQuestion(
         ...(data.source !== undefined && { source: data.source }),
         ...(data.tags !== undefined && { tags: data.tags }),
         ...(data.assetUrl !== undefined && { assetUrl: data.assetUrl }),
+        ...(data.imageUrls !== undefined
+          ? { imageUrls: data.imageUrls }
+          : data.assetUrl !== undefined
+            ? { imageUrls: data.assetUrl ? [data.assetUrl] : [] }
+            : {}),
         ...(data.isPastPaper !== undefined && { isPastPaper: data.isPastPaper }),
         ...(data.paperId !== undefined && { paperId: data.paperId }),
         ...(data.qualityScore !== undefined && { qualityScore: data.qualityScore }),
@@ -550,7 +579,10 @@ export async function reportQuestion(
   options?: { skipAutoReview?: boolean }
 ): Promise<ServiceResult<{ id: string; triggeredReview?: boolean }>> {
   try {
-    const question = await prisma.question.findUnique({ where: { id: input.questionId } })
+    const question = await prisma.question.findUnique({
+      where: { id: input.questionId },
+      select: { id: true, status: true, reportCount: true },
+    })
     if (!question) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
     const existing = await prisma.questionReport.findFirst({

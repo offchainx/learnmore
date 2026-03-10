@@ -11,7 +11,6 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { QuestionFilter } from "@/lib/content-pipeline/types"
 import { ContentStatus } from "@prisma/client"
 import { AdminClientWrapper } from "@/components/admin/common"
@@ -69,6 +68,12 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
   ])
 
   const questions = questionsResult.data || []
+  const buildTabHref = (tab: string) => {
+    const params = new URLSearchParams()
+    params.set('tab', tab)
+    if (subjectId) params.set('subjectId', subjectId)
+    return `?${params.toString()}`
+  }
   const subjects = (subjectsResult.success && subjectsResult.data) ? subjectsResult.data.map(s => ({
     id: s.id,
     name: s.name,
@@ -99,22 +104,29 @@ export default async function AdminContentPage({ searchParams }: AdminContentPag
           <CardContent className="p-6">
             <div className="flex flex-col space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <Tabs defaultValue={currentTab} className="w-full sm:w-auto">
-                  <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-xl">
-                    <TabsTrigger value="all" asChild className="rounded-lg">
-                      <Link href="?tab=all">全部</Link>
-                    </TabsTrigger>
-                    <TabsTrigger value="pending" asChild className="rounded-lg">
-                      <Link href="?tab=pending">待审核</Link>
-                    </TabsTrigger>
-                    <TabsTrigger value="published" asChild className="rounded-lg">
-                      <Link href="?tab=published">已发布</Link>
-                    </TabsTrigger>
-                    <TabsTrigger value="rejected" asChild className="rounded-lg">
-                      <Link href="?tab=rejected">已驳回</Link>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <div className="inline-flex items-center gap-1 bg-slate-100/60 dark:bg-slate-800/60 p-1 rounded-xl">
+                  {[
+                    { key: 'all', label: '全部' },
+                    { key: 'pending', label: '待审核' },
+                    { key: 'published', label: '已发布' },
+                    { key: 'rejected', label: '已驳回' },
+                  ].map((tab) => {
+                    const isActive = currentTab === tab.key
+                    return (
+                      <Link
+                        key={tab.key}
+                        href={buildTabHref(tab.key)}
+                        className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          isActive
+                            ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        {tab.label}
+                      </Link>
+                    )
+                  })}
+                </div>
 
                 <div className="flex items-center space-x-2">
                   <SubjectFilter subjects={subjects} />

@@ -1,6 +1,6 @@
 # 验收标准（Acceptance）
 
-## 2026-03-05 新增验收主线（T-016 ~ T-025）
+## 2026-03-05 新增验收主线（T-016 ~ T-029）
 - `questions` 新字段可写可读，且历史数据完成回填；旧字段删除后主流程无回归。
 - `questions` 字段映射清单完整（逐字段写入点/读取点/保留结论），且无读写闭环缺失。
 - 废弃表已物理删除：`chapter_prerequisites/question_groups/question_tag_relations/knowledge_points/question_kp_relations`，并清理旧依赖列与中间表（`questions.group_id`、`_SourceToGroup`）。
@@ -8,8 +8,11 @@
 - 五模式提交统一口径：均写 `exam_records + user_attempts`，统计一致。
 - 练习侧仅可见 `PUBLISHED` 题目。
 - `error_book` 下线后，Error Wiper/推荐/蜂巢/预测仍可运行并基于 attempts 聚合。
+- `T-019.1 ~ T-019.6` 全部可验：mock 清理、import/statistics 真数据化、主链路联通、权限错误处理、端到端联调。
 - `/admin/content/import`、`/admin/content/review`、`/admin/content/statistics` 均连接真实数据。
+- `/admin/content/reports` 使用真实 `question_reports` 数据，不再依赖 MOCK。
 - `question_reports`：用户端可提交、管理端可处理、状态与计数可核账。
+- Smart Drill / Chapter Drill 不允许仅前端本地判分，必须落库。
 
 ## 功能验收（Given / When / Then）
 - 给定：已完成题目域数据库审计
@@ -23,13 +26,13 @@
   则：题目成功入库，默认 `REVIEW_PENDING`，来源可追溯，重复执行不产生重复题。
 - 给定：用户完成一组练习提交
   当：调用 `submitQuiz`
-  则：判分结果正确，`exam_records`、`user_attempts`、`error_book` 同步更新。
+  则：判分结果正确，`exam_records`、`user_attempts` 同步更新。
 
 ## 练习中心五模式闭环验收矩阵（先于爬虫导入执行）
 | 模式 | 页面入口 | 核心函数 | 落库要求 | 验收标准 | 结果（pass/fail） | 证据 |
 |---|---|---|---|---|---|---|
-| Smart Drill | `/dashboard/practice/smart-drill` | `getSmartDrillQuestions` + 统一提交动作 | 必须写 `exam_records + user_attempts + error_book` | 提交后可核账到表 |  |  |
-| Error Wiper | `/dashboard/practice/error-wiper` | `getErrorWiperSession` / `updateErrorWiperProgress` | 必须更新 `error_book`，并可追踪练习会话 | 正确/错误更新语义一致 |  |  |
+| Smart Drill | `/dashboard/practice/smart-drill` | `getSmartDrillQuestions` + 统一提交动作 | 必须写 `exam_records + user_attempts` | 提交后可核账到表 |  |  |
+| Error Wiper | `/dashboard/practice/error-wiper` | `getErrorWiperSession` / `updateErrorWiperProgress` | 必须写 `user_attempts`（可选会话汇总写 `exam_records`） | 正确/错误更新语义一致 |  |  |
 | Mock Arena | `/dashboard/practice/mock-arena` | `startExam` / `submitExam` | 必须写 `exam_records + user_attempts` | 提交后可回放结果且防重复交卷 |  |  |
 | Chapter Map | `/dashboard/practice/chapter-drill/[chapterId]` | `getRandomQuestions` + 统一提交动作 | 不允许仅前端本地判题 | 提交后可核账到表 |  |  |
 | Past Year Paper | PracticeView 子入口 | 真题列表查询 + 会话提交动作 | 必须有真实数据源，不允许静态 mock-only | 可完整练习与提交 |  |  |
@@ -55,7 +58,7 @@
 | 标签层 | question_kp_relations | 已删除 | `SELECT to_regclass('public.question_kp_relations');` | null | pass | 2026-03-09 删除完成 |
 | 练习层 | exam_records | user_id,score,total_questions | `SELECT count(*) FROM exam_records;` | 2 |  |  |
 | 练习层 | user_attempts | user_id,question_id,is_correct | `SELECT count(*) FROM user_attempts;` | 106 |  |  |
-| 练习层 | error_book | user_id,question_id,mastery_level | `SELECT count(*) FROM error_book;` | 12 |  |  |
+| 练习层 | error_book | 已删除 | `SELECT to_regclass('public.error_book');` | null | pass | 2026-03-10 删除完成 |
 | 质控层 | content_review_logs | content_type,from_status,to_status | `SELECT count(*) FROM content_review_logs;` | 0 |  |  |
 | 质控层 | question_reports | question_id,issue_type,status | `SELECT count(*) FROM question_reports;` | 0 |  |  |
 
@@ -112,4 +115,4 @@
 - [ ] Practice 链路本地验证完成
 - [ ] Practice 链路预发复测完成
 - [ ] 回滚方案可执行并已演练
-- [ ] T-016~T-025 回归矩阵通过并产出最终验收报告
+- [ ] T-016~T-029 回归矩阵通过并产出最终验收报告

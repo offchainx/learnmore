@@ -93,8 +93,20 @@
 - [x] 已标出需要控制台人工确认的配置项
 - [x] 已完成 Data API 暴露面最小化（`public` only）并复核
 - [x] 已完成 `.env` 停止跟踪并保留 `.env.example`
+- [x] `storage.objects` policy 去重通过（`dup_groups=0`）
+- [x] `storage.objects` 命名采用豁免收口（owner 限制，语义不变）
+- [x] `source-files` 可见性结论确认（MVP 保持 public）
+- [x] Stripe webhook test mode 已联调通过（4 事件 + 200 响应）
+- [ ] Stripe live endpoint / signing secret / live price 映射（后置）
 - [ ] 后置项：登录/注册/重置密码限流与邮件模板（待域名与 SMTP 发信域）
 - [ ] 后置项：管理员 TOTP 绑定（待应用提供 MFA 绑定入口）
+- [ ] 数据库 PITR/备份保留策略确认（后置：待升级 Pro）
+- [x] 连接池阈值与慢查询告警阈值确认（80/90；P95>1s、单条>3s）
+- [ ] 日志保留周期确认（待补）；导出路径=暂不导出
+- [ ] 发布回滚手册固化（RLS/policy/storage/webhook）（暂缓）
+- [x] Advisor 安全项复扫并归档时间戳（2026-03-09 17:27 MYT）
+- [ ] 关键链路回归（注册/登录/学习/支付/后台管理）（暂缓）
+- [ ] 值班与应急联系人清单确认（暂缓）
 
 ## T-015 前置检查项（后续）
 - [ ] 已确认仅执行“收敛候选验证与迁移设计”，不直接删表

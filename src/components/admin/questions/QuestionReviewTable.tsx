@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { 
@@ -47,8 +47,13 @@ export function QuestionReviewTable({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+  const [mounted, setMounted] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Handle row selection
   const toggleSelectAll = () => {
@@ -146,6 +151,21 @@ export function QuestionReviewTable({
     return map[status] || status
   }
 
+  const getQuestionImage = (question: QuestionWithRelations): string | null => {
+    if (question.assetUrl) return question.assetUrl
+    const match = question.content.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/i)
+    return match?.[1] || null
+  }
+
+  if (!mounted) {
+    return (
+      <div className="space-y-4">
+        <div className="h-12 rounded-md border bg-muted/20" aria-hidden="true" />
+        <div className="h-80 rounded-md border bg-muted/20" aria-hidden="true" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* Batch Actions Toolbar */}
@@ -202,6 +222,7 @@ export function QuestionReviewTable({
                   aria-label="Select all"
                 />
               </TableHead>
+              <TableHead className="w-[90px]">题图</TableHead>
               <TableHead className="w-[300px]">题目内容</TableHead>
               <TableHead>题型</TableHead>
               <TableHead>科目/章节</TableHead>
@@ -214,7 +235,7 @@ export function QuestionReviewTable({
           <TableBody>
             {questions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
+                <TableCell colSpan={9} className="h-24 text-center">
                   没有找到相关题目
                 </TableCell>
               </TableRow>
@@ -227,6 +248,19 @@ export function QuestionReviewTable({
                       onCheckedChange={() => toggleSelectRow(question.id)}
                       aria-label="Select row"
                     />
+                  </TableCell>
+                  <TableCell>
+                    {getQuestionImage(question) ? (
+                      <img
+                        src={getQuestionImage(question)!}
+                        alt="题图缩略图"
+                        className="h-12 w-16 object-cover rounded border border-slate-200 dark:border-slate-700"
+                      />
+                    ) : (
+                      <div className="h-12 w-16 rounded border border-dashed border-slate-300 dark:border-slate-700 text-[11px] text-slate-400 flex items-center justify-center">
+                        无图
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="max-w-[300px]">
                     <div className="truncate font-medium text-sm" title={question.content}>
@@ -287,7 +321,7 @@ export function QuestionReviewTable({
           </TableBody>
           <TableFooter>
              <TableRow>
-              <TableCell colSpan={8}>
+              <TableCell colSpan={9}>
                 <div className="flex items-center justify-between w-full">
                   <div className="text-xs text-muted-foreground">
                     第 {page} 页 / 共 {totalPages} 页

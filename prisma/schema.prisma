@@ -316,40 +316,39 @@ model UserProgress {
 
 // ============ 题库模块 ============
 model Question {
-  id           String       @id @default(uuid()) @db.Uuid
-  chapterId    String?      @map("chapter_id") @db.Uuid // 改为可选，支持未分类题目
-  subjectId    String?      @map("subject_id") @db.Uuid
-  sourceFileId String?      @map("source_file_id") @db.Uuid
-  type         QuestionType
-  curriculum   String       @default("UEC")
-  grade        Int?
-  difficulty   Int          @default(3) // 1-5星
-  content      String       @db.Text // 题干(Markdown+LaTeX)
-  options      Json? // 选项 {"A": "...", "B": "..."}
-  answer       Json // 答案 "A" 或 ["A", "C"]
-  explanation  String?      @db.Text // 解析
-  assetUrl     String?      @map("asset_url")
-  source       String?
-  tags         String[]     @default([])
-  isPastPaper  Boolean      @default(false) @map("is_past_paper")
-  paperId      String?      @map("paper_id")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  id          String       @id @default(uuid()) @db.Uuid
+  curriculum  String       @default("UEC")
+  grade       Int?
+  chapterId   String?      @map("chapter_id") @db.Uuid // 改为可选，支持未分类题目
+  subjectId   String?      @map("subject_id") @db.Uuid
+  difficulty  Int          @default(3) // 1-5星
+  type        QuestionType
+  content     String       @db.Text // 题干(Markdown+LaTeX)
+  options     Json? // 选项 {"A": "...", "B": "..."}
+  answer      Json // 答案 "A" 或 ["A", "C"]
+  explanation String?      @db.Text // 解析
 
-  // 状态控制
-  status      ContentStatus @default(DRAFT)
-  contentHash String?       @unique @map("content_hash") // MD5哈希（用于去重）
+  contentHash String? @unique @map("content_hash") // MD5哈希（用于去重）
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.Uuid
+  reviewedAt  DateTime? @map("reviewed_at")
+  reviewedBy  String?   @map("reviewed_by") @db.Uuid
+  publishedAt DateTime? @map("published_at")
+  publishedBy String?   @map("published_by") @db.Uuid
 
-  // 质量评分
   qualityScore Float? @map("quality_score") // 0-100
   reportCount  Int    @default(0) @map("report_count") // 被报错次数
 
-  // 审计字段
-  createdBy   String?   @map("created_by") @db.Uuid
-  reviewedBy  String?   @map("reviewed_by") @db.Uuid
-  publishedBy String?   @map("published_by") @db.Uuid
-  reviewedAt  DateTime? @map("reviewed_at")
-  publishedAt DateTime? @map("published_at")
+  // 状态控制
+  status      ContentStatus @default(DRAFT)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+  sourceFileId String?   @map("source_file_id") @db.Uuid
+  assetUrl     String?   @map("asset_url")
+  imageUrls    String[]  @default([]) @map("image_urls")
+  source       String?
+  tags         String[]  @default([])
+  isPastPaper  Boolean   @default(false) @map("is_past_paper")
+  paperId      String?   @map("paper_id")
 
   // Relations
   chapter    Chapter?         @relation(fields: [chapterId], references: [id], onDelete: SetNull)

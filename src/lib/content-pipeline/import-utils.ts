@@ -112,6 +112,14 @@ export function convertToCreateInput(
     qualityScore?: number
   }
 ): CreateQuestionInput {
+  const imageUrls = Array.from(
+    new Set(
+      (question.content.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/gi) || [])
+        .map((item) => item.match(/\((https?:\/\/[^)]+)\)/i)?.[1])
+        .filter((x): x is string => Boolean(x))
+    )
+  )
+
   return {
     content: question.content,
     type: question.type,
@@ -123,6 +131,8 @@ export function convertToCreateInput(
     subjectId: metadata.subjectId ?? null,
     sourceFileId: metadata.sourceFileId ?? null,
     source: metadata.source ?? null,
+    assetUrl: imageUrls[0] ?? null,
+    imageUrls,
     qualityScore: metadata.qualityScore ?? null,
   }
 }

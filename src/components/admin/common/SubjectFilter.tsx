@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
   Select,
@@ -22,7 +23,12 @@ interface SubjectFilterProps {
 export function SubjectFilter({ subjects }: SubjectFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [mounted, setMounted] = useState(false)
   const currentSubjectId = searchParams.get("subjectId") || "all"
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleValueChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -35,6 +41,10 @@ export function SubjectFilter({ subjects }: SubjectFilterProps) {
     params.delete("page")
     
     router.push(`?${params.toString()}`)
+  }
+
+  if (!mounted) {
+    return <div className="h-10 w-[180px] rounded-md border border-input bg-background" aria-hidden="true" />
   }
 
   return (

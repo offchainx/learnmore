@@ -426,7 +426,7 @@ ORDER BY a.email;
   - `source-files(public, 50MB, MIME 白名单)`
   - `videos(private, 50MB, MIME 白名单)`
 - [x] `storage.objects` policy 数量：12。
-- [ ] storage policy 命名规范统一与去重（已生成迁移 `012`，需表 owner 权限执行）。
+- [x] storage policy 去重通过；命名统一采用豁免（当前为 legacy 命名，不影响权限语义，owner 限制导致无法 `ALTER POLICY RENAME`）。
 - [x] 已完成 `source-files` 可见性评估：当前保持 `public`（MVP），后续如改 private 需同步改造上传/消费链路。
 
 ### E. 触发器与函数
@@ -440,20 +440,20 @@ ORDER BY a.email;
 
 ### F. 支付与 Webhook
 - [x] 代码侧已依赖 `STRIPE_WEBHOOK_SECRET` 并在缺失时失败保护。
-- [ ] Stripe Dashboard webhook endpoint、签名密钥、重试策略核对。
-- [ ] 生产价目（Price IDs）与环境变量映射核对。
-- [ ] webhook 失败告警通道（Slack/邮件）确认。
+- [ ] Stripe Dashboard webhook endpoint、签名密钥、重试策略核对（已完成 test mode 验证；live mode 待全链路收口后执行）。
+- [ ] 生产价目（Price IDs）与环境变量映射核对（test mode 已核对变量名与测试价格，live 值待切换）。
+- [ ] webhook 失败告警通道（Slack/邮件）确认（按用户决策暂缓）。
 
 ### G. 运维与可恢复
-- [ ] 数据库 PITR/备份保留策略确认。
-- [ ] 连接池阈值、慢查询告警阈值确认。
-- [ ] 日志保留周期与导出路径确认。
+- [ ] 数据库 PITR/备份保留策略确认（后置：当前 Free 计划不可用，待升级 Pro）。
+- [x] 连接池阈值、慢查询告警阈值确认（2026-03-09：80%/90%；P95>1s 5分钟；单条>3s 立即）。
+- [ ] 日志保留周期确认（待补）；日志导出路径已确认“暂不导出”。
 - [ ] 发布回滚手册（RLS/policy/storage/webhook）固化。
 
 ### H. 上线门禁
-- [ ] Advisor 安全项复扫归档（时间戳 + 扫描结果）。
-- [ ] 关键链路回归：注册/登录/学习/支付/后台管理。
-- [ ] 值班与应急联系人清单确认。
+- [x] Advisor 安全项复扫归档（2026-03-09 17:27 MYT，Warnings=3）。
+- [ ] 关键链路回归：注册/登录/学习/支付/后台管理（按用户决策暂缓）。
+- [ ] 值班与应急联系人清单确认（按用户决策暂缓）。
 
 ## T-014 自动核验证据（2026-03-06 08:44 MYT）
 1. 数据库基线：
@@ -509,10 +509,71 @@ ORDER BY a.email;
 10. Storage policy 命名（部分完成）：
    - 已确认 `storage.objects` 无重复语义 policy（`dup_groups=0`）。
    - 命名统一迁移已生成：`supabase/migrations/012_normalize_storage_object_policy_names.sql`。
-   - 当前连接角色无 `storage.objects` owner 权限（报错：`must be owner of table objects`），需在 Supabase SQL Editor 以 owner 身份执行。
+   - 当前连接角色无 `storage.objects` owner 权限（报错：`must be owner of table objects`），已采用“命名豁免”收口，不影响权限语义。
 11. `source-files` 可见性评估（已完成）：
    - 当前业务链路在 `src/actions/storage.ts` 上传后直接调用 `getPublicUrl`。
    - 结论：MVP 阶段保持 `public`；若改 private，需新增 signed URL 获取与消费端改造任务。
+12. Stripe（test mode）核对（2026-03-09）：
+   - Destination 已配置 4 个目标事件：`checkout.session.completed`、`invoice.payment_succeeded`、`customer.subscription.updated`、`customer.subscription.deleted`。
+   - Event deliveries 可见 `200` 与 `DUPLICATE_EVENT` 幂等返回，符合当前 webhook 处理逻辑。
+   - 当前 endpoint 使用 preview 域名 + query 参数，生产切换前需统一为正式域名无 query 版本。
+13. Price 映射（test mode）核对（2026-03-09）：
+   - Stripe Product catalog（test mode）存在 `standard/smartplus/premier` 月/年价格。
+   - Vercel 环境变量存在对应 `NEXT_PUBLIC_STRIPE_PRICE_*` 键位（`STANDARD/SMARTPLUS/PREMIER` 月/年）。
+   - 生产 live `price_` 值映射待最终切换阶段执行。
+14. 运维阈值确认（2026-03-09）：
+   - 连接数告警阈值：达到 `max_connections` 的 `80%` 告警，`90%` 紧急告警。
+   - 慢查询告警阈值：`P95 > 1s` 持续 5 分钟告警；单条 `> 3s` 立即告警。
+   - 当前慢查询 Top 样本以 Supabase Dashboard 元数据查询与系统查询为主，未见明确业务 SQL 热点。
+15. 日志策略确认（2026-03-09）：
+   - 导出路径结论：`暂不导出`（先使用控制台检索）。
+   - 保留周期：待后续按计划/套餐能力补齐正式定档。
+16. Advisor 复扫归档（2026-03-09 17:27 MYT）：
+   - 总览：`Errors=0`、`Warnings=3`、`Info=0`。
+   - 警告项：
+     - `RLS Policy Always True` on `public.contact_submissions`
+     - `RLS Policy Always True` on `public.subscribers`
+     - `Leaked Password Protection Disabled` on `auth`
+   - 处理口径：纳入上线风险台账，后续在 Auth/公开写入策略收敛任务中处理。
+17. 后置/暂缓项（2026-03-09）：
+   - PITR/备份：受 Free 计划限制，待升级 Pro 后执行。
+   - 回滚手册负责人、关键链路回归、值班与应急联系人：按用户决策暂缓，后续统一补齐。
+
+## T-014 下一批执行指引（2026-03-09，手工）
+1. 数据库 PITR/备份保留策略确认：
+   - 控制台路径：Supabase `Settings -> Backups`。
+   - 记录项：PITR 是否开启、保留天数、最后成功备份时间、责任人。
+   - 证据：截图 `Backups` 页面（含保留周期与状态）。
+2. 连接池阈值与慢查询告警阈值确认：
+   - 控制台路径：Supabase `Reports/Database`（连接数、慢查询），必要时配合 SQL：
+     - `select * from pg_stat_activity;`
+     - `select * from pg_stat_statements order by total_exec_time desc limit 20;`
+   - 记录项：连接池告警阈值、慢查询阈值（如 `>1s` / `>3s`）与告警接收人。
+   - 证据：连接数趋势截图 + 慢查询榜单截图 + 阈值记录。
+3. 日志保留周期与导出路径确认：
+   - 控制台路径：Supabase `Logs` 与项目外部日志存储（若有）。
+   - 记录项：Auth/DB/API 日志保留天数、导出频率、导出目的地（S3/Drive/内部仓库）。
+   - 证据：日志保留策略截图 + 导出目标配置截图。
+4. 发布回滚手册固化（RLS/policy/storage/webhook）：
+   - 产物：固定文档章节（触发条件、回滚命令、验证 SQL、负责人、预计耗时）。
+   - 最小结构：
+     - RLS/policy 回滚：回滚到上一 migration + 核验 `tables_without_policy=0`。
+     - storage 回滚：恢复 bucket 可见性与 policy 列表。
+     - webhook 回滚：恢复上一 endpoint/secret，验证 `200` 响应。
+5. Advisor 安全项复扫并归档时间戳：
+   - 控制台路径：Supabase `Advisor`。
+   - 记录项：扫描时间（MYT）、issue 数、P0/P1 项清单、豁免项。
+   - 证据：Advisor 总览截图 + issue 列表截图（含时间）。
+6. 关键链路回归（注册/登录/学习/支付/后台管理）：
+   - 场景：
+     - 注册 -> 登录 -> 进入 dashboard；
+     - 学习路径：至少一次练习/进度更新；
+     - 支付路径：test mode checkout + webhook 到账；
+     - 后台管理：`/admin/users` 列表与封禁/解封动作。
+   - 证据：每个链路至少 1 张成功截图 + 关键日志/SQL 快照。
+7. 值班与应急联系人清单确认：
+   - 记录项：值班人、备份人、通知通道、响应 SLA、升级路径。
+   - 证据：清单截图或文档链接（内部）。
 
 ## T-015 执行门禁（待执行）
 1. 先验证 C 类表是否存在隐藏读写入口（crons、脚本、后台工具、SQL 任务）。

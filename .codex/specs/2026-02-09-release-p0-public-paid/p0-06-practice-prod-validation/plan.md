@@ -79,27 +79,57 @@
 3. **T-018 删除废弃表及对应逻辑**  
    实现：直接删表与 Prisma 关系；知识图谱边关系下线；Past Paper 从 `question_groups` 改为 `questions.is_past_paper/paper_id`；标签与知识点改为 `questions.tags`。  
    验收：迁移成功；编译通过；所有引用已清理；无运行时 relation 报错。
-4. **T-019 打通 `source_files` 与三个管理页**  
-   实现：`/admin/content/import` 接真实 `getImportTasks/import`；`/admin/content/review` 改真实 `question-service`；`/admin/content/statistics` 接真实统计接口。  
-   验收：三个页面均展示真实数据库数据并可执行关键操作（导入、审核、查看统计）。
-5. **T-020 录题 -> 审核 -> 答题 -> 记录 -> 掌握度全链路闭环**  
+4. **T-019 打通 `source_files` 与三个管理页（拆分执行）**  
+   实现：拆分为 `T-019.1 ~ T-019.6` 逐项落地，先清理 mock 数据，再完成 import/statistics 真数据化、主链路联通、权限与错误处理、端到端联调。  
+   验收：三页真实数据可用，且“导入 -> 审核 -> 发布 -> 练习 -> 统计”链路可追踪。
+5. **T-019.1 清理历史 mock questions**  
+   实现：按可回滚策略删除历史 mock 题，保留真实导入题。  
+   验收：练习抽题池不再混入 mock 题，删除过程可审计。
+6. **T-019.2 `/admin/content/import` 真数据化**  
+   实现：页面改为真实任务列表与真实导入动作，参数层保留 PDF 与网页 URL 两类入口。  
+   验收：可创建导入任务并在页面看到真实任务状态变化。
+7. **T-019.3 `/admin/content/statistics` 真数据化**  
+   实现：接 `getContentStats`，移除静态常量面板。  
+   验收：统计数据与数据库实时一致。
+8. **T-019.4 `source_files -> questions` 主链路核查**  
+   实现：导入详情、题目列表、删除导入任务等链路全部校验关联一致性。  
+   验收：任意 `source_file_id` 可追溯到题目集合，删除策略行为符合预期。
+9. **T-019.5 错误处理与权限**  
+   实现：补齐未登录、非管理员、参数非法、外部抓取失败、重试失败等分支。  
+   验收：关键错误路径有明确错误码/提示，不出现 silent failure。
+10. **T-019.6 端到端联调**  
+    实现：跑通“录题 -> 审核 -> 发布 -> 用户练习 -> attempts/exam_records -> 统计展示”。  
+    验收：链路全程可核账，关键表新增记录与页面表现一致。
+11. **T-020 录题 -> 审核 -> 答题 -> 记录 -> 掌握度全链路闭环**  
    实现：统一题目可见条件为 `PUBLISHED`；统一提交入口写 `exam_records + user_attempts`；掌握度/预测/薄弱点仅依赖 attempts 聚合。  
    验收：从入库到用户可见再到统计展示可端到端走通，且数据可追踪。
-6. **T-021 统一 `user_attempts` / `exam_records` 关系**  
+12. **T-021 统一 `user_attempts` / `exam_records` 关系**  
    实现：`exam_records`=一次会话汇总；`user_attempts`=逐题明细；所有模式都写这两者；Past Paper 仅做题目标记，不再独立统计通道。  
    验收：任意模式提交后都可在同一统计页体现；同一算法口径下分数与掌握度一致。
-7. **T-022 移除 `error_book`，并入 attempts 实时聚合**  
+13. **T-022 移除 `error_book`，并入 attempts 实时聚合**  
    实现：删除 `error_book` 读写逻辑；Error Wiper 改为按 attempts 计算“薄弱题队列”；推荐与蜂巢 mastery 来源统一为 attempts 聚合。  
    验收：系统无 `error_book` 依赖；错题练习、弱点分析、推荐均可运行且结果合理。
-8. **T-023 Content Review 流程走通**  
+14. **T-023 Content Review 流程走通**  
    实现：审核状态机只保留真实 action；审核动作必须写 `content_review_logs`；发布后才进入练习池；被举报达到阈值自动回到复审。  
    验收：审核页面可完成待审 -> 通过 -> 发布；日志完整；练习侧仅可见已发布题。
-9. **T-024 `question_reports` 前端入口接入**  
+15. **T-024 `question_reports` 前端入口接入**  
    实现：在做题页/结果页加入“题目纠错”入口，调用 `reportQuestion`；管理页接通 `getQuestionReports + resolveReport`。  
    验收：用户可提交纠错；管理员可处理；状态与计数正确变化。
-10. **T-025 练习模块全功能复核**  
+16. **T-025 练习模块全功能复核**  
     实现：覆盖模式切换、抽题、提交、统计、审核、报错、权限配额、去重抽题、发布门禁；执行自动化测试+手工回归清单。  
     验收：通过回归矩阵；关键 API 与 UI 无阻断问题；输出最终验收报告。
+17. **T-026 Smart Drill 落库补齐**  
+    实现：`QuizSession` 从前端本地判分改为调用统一提交服务。  
+    验收：Smart Drill 提交后可在 `exam_records/user_attempts` 核账。
+18. **T-027 Chapter Drill 落库补齐**  
+    实现：移除纯前端判题孤岛，接统一提交；移除 mock fallback。  
+    验收：Chapter Drill 无 mock 兜底，提交后有真实记录。
+19. **T-028 `/admin/content/reports` 真数据化**  
+    实现：替换 MOCK_REPORTS，接 `getQuestionReports/resolveReport`。  
+    验收：管理端可查看并处理真实纠错记录。
+20. **T-029 练习端纠错入口接入**  
+    实现：做题页/结果页接 `reportQuestion`。  
+    验收：用户可提交题目纠错，后台计数与状态同步变化。
 
 ### 测试与验收场景
 1. 数据迁移测试：旧数据回填正确、删表后无外键/查询崩溃。  
@@ -108,6 +138,8 @@
 4. 统计一致性测试：用户答题后蜂巢、弱点、预测在同一时间窗内一致。  
 5. 报错闭环测试：用户报错 -> 后台处理 -> 题目状态与计数变化正确。  
 6. 性能基线测试：百万题规模下抽题查询走索引，不做全量 candidate 拉取。
+7. 管理端真数据化测试：`/admin/content/import`、`/admin/content/statistics`、`/admin/content/reports` 不再依赖 MOCK 常量。  
+8. 模式落库一致性测试：Smart Drill 与 Chapter Drill 不允许仅前端本地判分，提交后必须可在 `exam_records/user_attempts` 核账。
 
 ### 默认假设（已锁定）
 1. “图案”字段按题目主图处理，落地为 `questions.asset_url`。  
@@ -163,6 +195,10 @@
   - 已删除 `chapter_prerequisites/question_groups/question_tag_relations/knowledge_points/question_kp_relations`；
   - 已删除旧依赖 `questions.group_id` 与旧关联表 `"_SourceToGroup"`；
   - Past Paper 路由参数已从 `groupId` 语义切换为 `paperId`。
+- `T-019.1`：已执行 mock questions 清理（仅保留真实导入题），并完成结构迁移补丁：
+  - 新增并执行 `supabase/migrations/014_t0191_cleanup_unused_tables_and_reorder_questions.sql`；
+  - 删除 `public.error_book`、`public."_SourceToQuestion"`；
+  - `questions` 字段顺序按新口径重排（`subject_id` 放在 `chapter_id` 后）。
 
 ## 风险与回滚
 - 触发回滚：核心路径阻断、题目重复写入、来源不可追溯。
