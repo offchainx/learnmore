@@ -568,6 +568,61 @@
     - tab 数量固定，不因页面局部需求动态增减
     - active 状态统一使用主色与轻量指示，不用额外放大或花哨动效
 
+## T-006 实现任务拆分（按单问题执行）
+
+### T-006.1 练习中心命名与组件骨架落地
+- 只做命名与组件语义统一：
+  - `PracticeView` -> `PracticeCenterScreen`
+  - `TrainingModeCards` -> `PracticeModeGrid`
+  - `SubjectSelector` -> `PracticeSubjectBar`
+  - `ChapterMap` -> `ChapterProgressSection`
+  - `PastPapersSection` -> `PastPaperLibrarySection`
+  - `AnalyticsSidebar` -> `PracticeCoachPanel`
+  - `SmartDrillMode` -> `SmartDrillSession`
+  - `ErrorWiperMode` -> `ErrorWiperSession`
+  - `MockArenaSelector` -> `MockArenaSetup`
+  - `DrillInterface` -> `ChapterDrillSession`
+- 不做视觉大改，只修正语义、结构与 import/export。
+
+### T-006.2 练习中心主页面落地
+- 只做 `/dashboard/practice`：
+  - 顶部训练摘要区
+  - `PracticeSubjectBar`
+  - 主栏 / 侧栏重排
+  - 移动端纵向任务流
+- 不碰五种模式内部页面。
+
+### T-006.3 Smart Drill 落地
+- 只做 `/dashboard/practice/smart-drill`
+- 落地启动态摘要、训练 HUD、结果态与答题区节奏。
+
+### T-006.4 Error Wiper 落地
+- 只做 `/dashboard/practice/error-wiper`
+- 落地错因修复实验室结构、进度区、题卡与结束复盘。
+
+### T-006.5 Mock Arena 落地
+- 只做 `/dashboard/practice/mock-arena` 与 `[examId]`
+- 落地配置台、考试状态栏、导航器、交卷确认、结果摘要。
+
+### T-006.6 Chapter Progress / Chapter Drill 落地
+- 只做章节推进板与章节 drill 页面
+- 落地主页面章节区和专注训练页。
+
+### T-006.7 Past Paper Library 落地
+- 只做主页面卷库区与 `past-paper` 页面头部与入口表达。
+
+### T-006.8 PracticeCoachPanel 落地
+- 只做右侧教练板及模式页精简策略
+- 不同时改五种模式内部主内容。
+
+### T-006.9 练习中心视觉统一收口
+- 专做颜色、CTA、空态、加载态、错误态、移动端收尾
+- 不再调整信息架构。
+
+### T-006.10 全局基线实现
+- 才进入 `globals.css`、`ui/*`、`BottomTabBar`、`dashboard-layout`
+- 将练习中心提炼出的规则扩展到全局。
+
 ## 开发改动清单（必填）
 
 ### 开发单元映射

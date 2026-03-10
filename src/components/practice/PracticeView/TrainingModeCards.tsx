@@ -2,11 +2,11 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpen, Eraser, Trophy, Zap } from 'lucide-react';
 
-interface TrainingModeCardsProps {
+interface PracticeModeGridProps {
   selectedSubjectId: string;
 }
 
-export const TrainingModeCards: React.FC<TrainingModeCardsProps> = ({ selectedSubjectId }) => {
+export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({ selectedSubjectId }) => {
   const router = useRouter();
 
   return (

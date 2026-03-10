@@ -13,13 +13,13 @@ const iconMap: Record<string, React.ElementType> = {
   'Laptop': Laptop
 };
 
-interface SubjectSelectorProps {
+interface PracticeSubjectBarProps {
   subjects: DbSubject[];
   selectedSubjectId: string;
   onSelect: (id: string) => void;
 }
 
-export const SubjectSelector: React.FC<SubjectSelectorProps> = ({ subjects, selectedSubjectId, onSelect }) => {
+export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({ subjects, selectedSubjectId, onSelect }) => {
   return (
     <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-2">
       {subjects.map((sub) => {

@@ -9,7 +9,7 @@ import { getProblemHint, explainSolution } from '@/actions/ai/tutor';
 import { Problem, UserStats } from '@/components/practice/chapter-drill/types';
 import { Check, Lightbulb, Loader2, Sparkles } from 'lucide-react';
 
-interface DrillInterfaceProps {
+interface ChapterDrillSessionProps {
   initialProblems: Problem[];
   chapterTitle: string;
   subjectName: string;
@@ -17,13 +17,13 @@ interface DrillInterfaceProps {
   sidebarChapters?: { id: string; title: string; isCompleted: boolean; isLocked: boolean; isActive: boolean; }[];
 }
 
-export default function DrillInterface({ 
+export default function ChapterDrillSession({
   initialProblems, 
   chapterTitle, 
   subjectName, 
   initialStats,
   sidebarChapters = []
-}: DrillInterfaceProps) {
+}: ChapterDrillSessionProps) {
   const router = useRouter();
   const [currentProblemIdx, setCurrentProblemIdx] = useState(0);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);

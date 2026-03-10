@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
-import { PracticeView } from '@/components/practice/PracticeView'
+import { PracticeCenterScreen } from '@/components/practice/PracticeView'
 import { useApp } from '@/providers'
 import { User } from '@prisma/client'
 
@@ -41,7 +41,7 @@ export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <PracticeView t={t} />
+      <PracticeCenterScreen t={t} />
     </DashboardLayout>
   )
 }

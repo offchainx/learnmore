@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getChapterWithStats, getRandomQuestions } from '@/actions/practice/data-service';
 import { getCurrentUser } from '@/actions/user/auth';
-import DrillInterface from '@/components/practice/chapter-drill/DrillInterface';
+import ChapterDrillSession from '@/components/practice/chapter-drill/DrillInterface';
 import { Problem, UserStats } from '@/components/practice/chapter-drill/types';
 import prisma from '@/lib/prisma';
 
@@ -141,7 +141,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
   };
 
   return (
-    <DrillInterface 
+    <ChapterDrillSession
       initialProblems={problems}
       chapterTitle={chapter.title}
       subjectName={subject?.name || 'Subject'}

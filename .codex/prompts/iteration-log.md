@@ -51,6 +51,7 @@
 
 | 2026-03-09 | T-011 复测与结案 | 提交后继续测试并检查 Vercel MCP Speed Insights 可调用性 | 完成部署与生产复测；MCP 当前 Auth required，CLI OpenAPI 未发现 Speed Insights endpoint | - | - | - | - |
 | 2026-03-10 | T-019.6 导入页深色改版与 hydration 稳定性修复 | 参考 Remote 风格输出深色主题并保持功能不变；针对 Radix 组件 hydration mismatch 做 mounted 后渲染门禁 | 完成 ImportClient/StatsCards/BatchTable 深色重构；修复 SubjectFilter/QuestionReviewTable/BatchTable 多次 hydration 报错；tsc 与接口烟测通过 | 先锁定视觉 token 与信息层级，再局部替换样式；对高风险 Radix 交互组件做客户端挂载后渲染 | 仅做样式不足以解决反复 hydration 报错，需额外处理 SSR/CSR 首帧一致性 | 对含 Radix Trigger 的列表/筛选组件统一采用“SSR 占位 + mounted 渲染交互”模板，避免 id 漂移 | 让用户在 import/review 页面实测；若仍复现，再将个别触发器改为 dynamic(ssr:false) |
+| 2026-03-10 | p0-04 T-006.1 练习中心命名与骨架收口 | 按冻结方案统一 Practice 相关组件语义命名，并保持路由 slug 与文件路径稳定 | 完成 PracticeCenterScreen / PracticeSubjectBar / PracticeModeGrid / ChapterProgressSection / PastPaperLibrarySection / PracticeCoachPanel / SmartDrillSession / ErrorWiperSession / MockArenaSetup / ChapterDrillSession 的导出名与引用链修正；定向 ESLint 通过 | 先只改语义层，不夹带视觉重构，降低回归面 | 文件路径仍保留旧名，目录迁移留给后续任务 | 命名统一与视觉改造必须拆开提交，避免问题定位混乱 | 继续推进 T-006.2 主页面训练指挥台布局落地 |
 
 ## 约束
 - 每次会话结束至少追加一条记录

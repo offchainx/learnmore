@@ -4,7 +4,7 @@ import ExamForecast from '@/components/practice/analytics/ExamForecast';
 import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard';
 import type { ChapterWithStats, ExamForecast as ExamForecastType, HiveNode } from '@/lib/practice/types';
 
-interface AnalyticsSidebarProps {
+interface PracticeCoachPanelProps {
   selectedSubjectId: string;
   currentSubjectTitle: string;
   chapters: ChapterWithStats[];
@@ -14,7 +14,7 @@ interface AnalyticsSidebarProps {
   errorMessage: string | null;
 }
 
-export const AnalyticsSidebar: React.FC<AnalyticsSidebarProps> = ({ 
+export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
   selectedSubjectId, 
   currentSubjectTitle,
   chapters,

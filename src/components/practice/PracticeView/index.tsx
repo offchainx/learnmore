@@ -3,13 +3,13 @@ import type { DbSubject, PracticeSubjectData } from './types';
 import { fetchWithTimeout, isAbortLikeError } from '@/lib/http/fetch-with-timeout';
 
 // Components
-import { SubjectSelector } from './SubjectSelector';
-import { TrainingModeCards } from './TrainingModeCards';
-import { ChapterMap } from './ChapterMap';
-import { PastPapersSection } from './PastPapersSection';
-import { AnalyticsSidebar } from './AnalyticsSidebar';
+import { PracticeSubjectBar } from './SubjectSelector';
+import { PracticeModeGrid } from './TrainingModeCards';
+import { ChapterProgressSection } from './ChapterMap';
+import { PastPaperLibrarySection } from './PastPapersSection';
+import { PracticeCoachPanel } from './AnalyticsSidebar';
 
-interface PracticeViewProps {
+interface PracticeCenterScreenProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
 }
@@ -23,7 +23,7 @@ function createEmptySubjectData(): PracticeSubjectData {
   };
 }
 
-export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
+export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({ t }) => {
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [dbSubjects, setDbSubjects] = useState<DbSubject[]>([]);
   const [loadedSubjectId, setLoadedSubjectId] = useState<string>('');
@@ -173,7 +173,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
        </div>
 
        <div className="sticky top-0 z-20 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-sm py-3 -mx-4 px-4 mb-6 border-b border-slate-200 dark:border-slate-800/50">
-          <SubjectSelector 
+          <PracticeSubjectBar
             subjects={dbSubjects}
             selectedSubjectId={selectedSubjectId}
             onSelect={setSelectedSubjectId}
@@ -182,16 +182,16 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
 
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2">
-             <TrainingModeCards selectedSubjectId={selectedSubjectId} />
-             <ChapterMap chapters={subjectData.chapters} isLoading={isLoadingSubjectData} />
-             <PastPapersSection
+             <PracticeModeGrid selectedSubjectId={selectedSubjectId} />
+             <ChapterProgressSection chapters={subjectData.chapters} isLoading={isLoadingSubjectData} />
+             <PastPaperLibrarySection
                selectedSubjectId={selectedSubjectId}
                papers={subjectData.pastPapers}
                isLoading={isLoadingSubjectData}
              />
           </div>
 
-          <AnalyticsSidebar 
+          <PracticeCoachPanel
             selectedSubjectId={selectedSubjectId}
             currentSubjectTitle={currentSubjectTitle}
             chapters={subjectData.chapters}
@@ -205,5 +205,4 @@ export const PracticeView: React.FC<PracticeViewProps> = ({ t }) => {
   );
 };
 
-// Backward compatibility alias
-export { PracticeView as QuestionBankView };
+export { PracticeCenterScreen as QuestionBankView };

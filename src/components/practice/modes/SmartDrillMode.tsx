@@ -10,12 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AlertCircle } from 'lucide-react'
 import QuizSession from '@/components/practice/session/QuizSession'
 
-interface SmartDrillModeProps {
+interface SmartDrillSessionProps {
   userId: string
   subjectId: string
 }
 
-export default function SmartDrillMode({ userId, subjectId }: SmartDrillModeProps) {
+export default function SmartDrillSession({ userId, subjectId }: SmartDrillSessionProps) {
   const router = useRouter()
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)

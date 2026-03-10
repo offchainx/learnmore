@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/actions/user/auth'
 import { getAllSubjects } from '@/actions/courses/subject'
 import { checkWeeklyExamQuota } from '@/actions/practice/quota'
-import MockArenaSelector from './MockArenaSelector'
+import MockArenaSetup from './MockArenaSelector'
 
 export const metadata: Metadata = {
   title: 'Mock Arena | LearnMore',
@@ -33,7 +33,7 @@ export default async function MockArenaPage() {
         </p>
       </div>
 
-      <MockArenaSelector 
+      <MockArenaSetup
         userId={user.id} 
         subjects={subjects} 
         quotaStatus={quotaStatus}

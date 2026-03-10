@@ -2,7 +2,7 @@
 import { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/actions/user/auth"
-import SmartDrillMode from "@/components/practice/modes/SmartDrillMode"
+import SmartDrillSession from "@/components/practice/modes/SmartDrillMode"
 
 export const metadata: Metadata = {
   title: "Smart Drill | LearnMore",
@@ -39,7 +39,7 @@ export default async function SmartDrillPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <SmartDrillMode
+      <SmartDrillSession
         userId={user.id}
         subjectId={subjectId}
       />

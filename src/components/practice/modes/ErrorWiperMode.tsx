@@ -18,7 +18,7 @@ export interface ErrorBookEntry {
   question: Question;
 }
 
-interface ErrorWiperModeProps {
+interface ErrorWiperSessionProps {
   initialSession: ErrorBookEntry[];
   onSessionComplete: (results: { wiped: number; remaining: number }) => void;
   onUpdateProgress: (questionId: string, isCorrect: boolean) => Promise<void>;
@@ -39,7 +39,7 @@ const MasteryDots = ({ level }: { level: number }) => (
   </div>
 );
 
-export const ErrorWiperMode: React.FC<ErrorWiperModeProps> = ({
+export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
   initialSession,
   onSessionComplete,
   onUpdateProgress

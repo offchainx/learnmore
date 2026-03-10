@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { FileText, ChevronRight, Loader2 } from 'lucide-react';
 import type { DbPastPaper } from './types';
 
-interface PastPapersSectionProps {
+interface PastPaperLibrarySectionProps {
   selectedSubjectId: string;
   papers: DbPastPaper[];
   isLoading: boolean;
 }
 
-export const PastPapersSection: React.FC<PastPapersSectionProps> = ({
+export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = ({
   selectedSubjectId,
   papers,
   isLoading,

@@ -1,5 +1,5 @@
 /**
- * AnalyticsSidebar 类型定义
+ * PracticeCoachPanel 类型定义
  */
 
 export interface DbChapter {

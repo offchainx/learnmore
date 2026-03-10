@@ -18,7 +18,7 @@ interface Subject {
   icon?: string | null
 }
 
-interface MockArenaSelectorProps {
+interface MockArenaSetupProps {
   userId: string
   subjects: Subject[]
   quotaStatus: QuotaStatus
@@ -47,7 +47,7 @@ const DIFFICULTY_OPTIONS: { value: ExamDifficulty; label: string; description: s
 
 const QUESTION_COUNT_OPTIONS = [10, 15, 20, 25, 30]
 
-export default function MockArenaSelector({ userId, subjects, quotaStatus }: MockArenaSelectorProps) {
+export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockArenaSetupProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()

@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { ChapterCard } from './ChapterCard';
 import type { DbChapter } from '../types';
 
-interface ChapterMapProps {
+interface ChapterProgressSectionProps {
   chapters: DbChapter[];
   isLoading: boolean;
 }
 
 const CHAPTERS_PER_PAGE = 3;
 
-export const ChapterMap: React.FC<ChapterMapProps> = ({ chapters, isLoading }) => {
+export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({ chapters, isLoading }) => {
   const [chapterPage, setChapterPage] = useState(0);
 
   const handleChapterWheel = (e: React.WheelEvent) => {

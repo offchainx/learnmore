@@ -1,5 +1,5 @@
 import { getErrorWiperSession, updateErrorWiperProgress } from '@/actions/practice/error-book';
-import { ErrorWiperMode, ErrorBookEntry } from '@/components/practice/modes/ErrorWiperMode';
+import { ErrorWiperSession, ErrorBookEntry } from '@/components/practice/modes/ErrorWiperMode';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -73,7 +73,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto max-w-4xl min-h-screen lg:py-8">
-      <ErrorWiperMode
+      <ErrorWiperSession
         initialSession={formattedSession}
         onUpdateProgress={handleUpdateProgress}
         onSessionComplete={handleSessionComplete}
