@@ -27,6 +27,7 @@ export default async function ImportPage() {
   // Fetch import history
   const tasksResult = await getImportTasks({ limit: 10 })
   const tasks = tasksResult.success ? tasksResult.data?.tasks || [] : []
+  const tasksError = tasksResult.success ? null : tasksResult.error || '导入任务查询失败'
 
   // Fetch dashboard stats
   const statsResult = await getImportDashboardStats()
@@ -50,6 +51,7 @@ export default async function ImportPage() {
       userLanguage={userLanguage}
       initialSubjects={subjects}
       initialHistory={tasks}
+      initialTasksError={tasksError}
       initialStats={stats}
     />
   )

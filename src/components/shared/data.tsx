@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, Atom, FlaskConical, Languages } from 'lucide-react';
+import { Calculator, Atom, Languages, Landmark, Globe, BookOpen, Shapes } from 'lucide-react';
 
 // --- Types ---
 export type TabType = 'toc' | 'confidence' | 'notes' | 'bookmarks' | 'highlights';
@@ -66,53 +66,93 @@ export const generateChapters = (subjectId: string): Chapter[] => [
 ];
 
 export const subjectsData: Record<string, Subject> = {
-  math: {
-    id: 'math',
-    title: 'IGCSE Extended Math',
-    subTitle: 'Cambridge International (0580)',
-    icon: Calculator,
-    color: 'bg-blue-600',
-    gradient: 'from-blue-600 to-indigo-600',
-    progress: 12,
-    chapters: generateChapters('math')
+  chinese: {
+    id: 'chinese',
+    title: 'Chinese Language',
+    subTitle: '阅读 / 写作 / 文法',
+    icon: BookOpen,
+    color: 'bg-red-600',
+    gradient: 'from-red-600 to-rose-600',
+    progress: 35,
+    chapters: generateChapters('chinese')
   },
-  physics: {
-    id: 'physics',
-    title: 'IGCSE Physics',
-    subTitle: 'Mechanics & Electricity (0625)',
-    icon: Atom,
-    color: 'bg-purple-600',
-    gradient: 'from-purple-600 to-fuchsia-600',
-    progress: 45,
-    chapters: generateChapters('physics')
-  },
-  chemistry: {
-    id: 'chemistry',
-    title: 'IGCSE Chemistry',
-    subTitle: 'Organic & Inorganic (0620)',
-    icon: FlaskConical,
-    color: 'bg-emerald-600',
-    gradient: 'from-emerald-600 to-teal-600',
-    progress: 28,
-    chapters: generateChapters('chemistry')
+  malay: {
+    id: 'malay',
+    title: 'Malay Language',
+    subTitle: 'Bahasa Melayu 核心能力',
+    icon: Languages,
+    color: 'bg-amber-600',
+    gradient: 'from-amber-600 to-orange-600',
+    progress: 22,
+    chapters: generateChapters('malay')
   },
   english: {
     id: 'english',
-    title: 'English Literature',
-    subTitle: 'Modern Prose & Drama',
+    title: 'English',
+    subTitle: 'Reading & Writing Skills',
     icon: Languages,
-    color: 'bg-pink-600',
-    gradient: 'from-pink-600 to-rose-600',
+    color: 'bg-blue-600',
+    gradient: 'from-blue-600 to-indigo-600',
     progress: 60,
     chapters: generateChapters('english')
-  }
+  },
+  math: {
+    id: 'math',
+    title: 'Mathematics',
+    subTitle: 'Core Concepts & Problem Solving',
+    icon: Calculator,
+    color: 'bg-emerald-600',
+    gradient: 'from-emerald-600 to-teal-600',
+    progress: 12,
+    chapters: generateChapters('math')
+  },
+  science: {
+    id: 'science',
+    title: 'Science',
+    subTitle: 'Physics / Chemistry / Biology',
+    icon: Atom,
+    color: 'bg-cyan-600',
+    gradient: 'from-cyan-600 to-sky-600',
+    progress: 45,
+    chapters: generateChapters('science')
+  },
+  history: {
+    id: 'history',
+    title: 'History',
+    subTitle: 'Timeline & Source Analysis',
+    icon: Landmark,
+    color: 'bg-orange-600',
+    gradient: 'from-orange-600 to-amber-600',
+    progress: 28,
+    chapters: generateChapters('history')
+  },
+  geography: {
+    id: 'geography',
+    title: 'Geography',
+    subTitle: 'Earth Systems & Mapping',
+    icon: Globe,
+    color: 'bg-sky-600',
+    gradient: 'from-sky-600 to-blue-600',
+    progress: 41,
+    chapters: generateChapters('geography')
+  },
+  other: {
+    id: 'other',
+    title: 'Other',
+    subTitle: 'Cross-subject enrichment',
+    icon: Shapes,
+    color: 'bg-slate-600',
+    gradient: 'from-slate-600 to-slate-500',
+    progress: 18,
+    chapters: generateChapters('other')
+  },
 };
 
 export const mockUserContent = [
   { id: 1, type: 'note', subjectId: 'math', chapter: '1.3 Practical Applications', content: 'Key characteristic: Product differentiation is the main difference between this and perfect competition.', date: '2h ago' },
   { id: 2, type: 'bookmark', subjectId: 'math', chapter: '1.3 Practical Applications', content: 'Resume at 04:23', date: '2h ago' },
-  { id: 3, type: 'highlight', subjectId: 'physics', chapter: '1.1 Introduction', content: 'Velocity is a vector quantity, meaning it has both magnitude and direction.', date: '1d ago', color: 'bg-green-200 dark:bg-green-900/40' },
-  { id: 4, type: 'note', subjectId: 'physics', chapter: '1.2 Advanced Theory', content: 'Remember: F = ma only applies when mass is constant.', date: '1d ago' },
+  { id: 3, type: 'highlight', subjectId: 'science', chapter: '1.1 Introduction', content: 'Velocity is a vector quantity, meaning it has both magnitude and direction.', date: '1d ago', color: 'bg-green-200 dark:bg-green-900/40' },
+  { id: 4, type: 'note', subjectId: 'science', chapter: '1.2 Advanced Theory', content: 'Remember: F = ma only applies when mass is constant.', date: '1d ago' },
 ];
 
 // --- Shared Components ---

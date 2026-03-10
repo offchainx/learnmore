@@ -14,6 +14,7 @@ import { CookieConsent } from '@/components/layout/CookieConsent'
 import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
 import type { Lang } from '@/providers/app-provider'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
@@ -95,6 +96,7 @@ export default async function RootLayout({
         <FeedbackWidget />
         <Toaster />
         <Sonner position="top-center" />
+        <SpeedInsights />
       </body>
     </html>
   )

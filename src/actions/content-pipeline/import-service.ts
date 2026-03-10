@@ -218,9 +218,11 @@ export async function importFromPDF(
     const sourceFile = await prisma.sourceFile.create({
       data: {
         filename,
+        sourceNote: input.source?.trim() || null,
         fileUrl: input.pdfUrl,
         fileType: sourceFileType,
         fileSize: 0, // TODO: 获取实际文件大小
+        subjectId: input.subjectId,
         uploadedBy: currentUser.id,
         status: ProcessingStatus.PROCESSING,
         ocrStatus: ProcessingStatus.PENDING,
@@ -279,6 +281,24 @@ export async function importFromPDF(
       }
 
       ocrDuration = Date.now() - ocrStartTime
+
+      const usedMockProvider = ocrResults.some((r) => r.provider === 'mock')
+      const allowMockImport = process.env.OCR_ENABLE_MOCK === 'true'
+      if (usedMockProvider && !allowMockImport) {
+        await prisma.sourceFile.update({
+          where: { id: sourceFile.id },
+          data: {
+            status: ProcessingStatus.FAILED,
+            ocrStatus: ProcessingStatus.FAILED,
+          },
+        })
+
+        return {
+          success: false,
+          error: '检测到 Mock OCR 输出，已阻止入库。请配置真实 OCR（Tesseract/Mathpix/Google Vision）后重试。',
+          code: 'OCR_FAILED',
+        }
+      }
 
       // 合并所有页面的文本
       const fullOcrText = ocrResults
@@ -506,9 +526,11 @@ export async function importFromWebUrl(
     const sourceFile = await prisma.sourceFile.create({
       data: {
         filename: extractFilename(pageUrl) || 'examcoo-view.html',
+        sourceNote: input.source?.trim() || null,
         fileUrl: pageUrl,
         fileType: 'html',
         fileSize: 0,
+        subjectId: input.subjectId,
         uploadedBy: currentUser.id,
         status: ProcessingStatus.PROCESSING,
         ocrStatus: ProcessingStatus.SKIPPED,
@@ -889,6 +911,12 @@ export async function getImportTasks(options?: {
       prisma.sourceFile.findMany({
         where,
         include: {
+          subject: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           _count: {
             select: { questions: true },
           },
@@ -951,44 +979,162 @@ export async function getImportTasks(options?: {
     return {
       success: true,
       data: {
-        tasks: tasks.map((t) => ({
-          ...(t.questions[0]?.subject
-            ? {
-                subject: {
-                  id: t.questions[0].subject.id,
-                  name: t.questions[0].subject.name,
-                },
-              }
-            : {}),
-          id: t.id,
-          filename: t.filename,
-          fileUrl: t.fileUrl,
-          status: t.status,
-          ocrStatus: t.ocrStatus,
-          questionsCount: t._count.questions,
-          createdAt: t.createdAt,
-          processedAt: t.processedAt,
-          source: t.questions[0]?.source ?? undefined,
-          curriculum: t.questions[0]?.curriculum ?? 'UEC',
-          sourceYear:
-            t.questions[0]?.source && /(19|20)\d{2}/.test(t.questions[0].source)
-              ? Number(t.questions[0].source.match(/(19|20)\d{2}/)?.[0])
-              : undefined,
-          events: deriveImportEvents({
-            sourceStatus: t.status,
-            questionStatuses: bySource[t.id]?.statuses ?? [],
-            hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
-          }),
-        })),
+        tasks: tasks.map((t) => {
+          const resolvedSubject = t.subject || t.questions[0]?.subject
+          return {
+            ...(resolvedSubject
+              ? {
+                  subject: {
+                    id: resolvedSubject.id,
+                    name: resolvedSubject.name,
+                  },
+                }
+              : {}),
+            id: t.id,
+            filename: t.filename,
+            fileUrl: t.fileUrl,
+            status: t.status,
+            ocrStatus: t.ocrStatus,
+            questionsCount: t._count.questions,
+            createdAt: t.createdAt,
+            processedAt: t.processedAt,
+            source: t.sourceNote ?? t.questions[0]?.source ?? undefined,
+            curriculum: t.questions[0]?.curriculum ?? 'UEC',
+            sourceYear:
+              t.questions[0]?.source && /(19|20)\d{2}/.test(t.questions[0].source)
+                ? Number(t.questions[0].source.match(/(19|20)\d{2}/)?.[0])
+                : undefined,
+            events: deriveImportEvents({
+              sourceStatus: t.status,
+              questionStatuses: bySource[t.id]?.statuses ?? [],
+              hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
+            }),
+          }
+        }),
         total,
       },
     }
   } catch (error) {
-    console.error('获取导入任务列表失败:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : '获取失败',
-      code: 'FETCH_FAILED',
+    console.error('获取导入任务列表失败，尝试兼容降级查询:', error)
+
+    // 兼容降级：当 schema / migration 暂未同步时，仍尽量返回基础任务列表
+    // 注意：这里不依赖 source_files.subject 关系，改为从关联题目兜底取科目。
+    try {
+      const where = options?.status ? { status: options.status } : {}
+
+      const [tasks, total] = await prisma.$transaction([
+        prisma.sourceFile.findMany({
+          where,
+          select: {
+            id: true,
+            filename: true,
+            sourceNote: true,
+            fileUrl: true,
+            status: true,
+            ocrStatus: true,
+            createdAt: true,
+            processedAt: true,
+            _count: {
+              select: { questions: true },
+            },
+            questions: {
+              take: 1,
+              orderBy: { createdAt: 'asc' },
+              select: {
+                source: true,
+                curriculum: true,
+                subject: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: options?.limit ?? 20,
+          skip: options?.offset ?? 0,
+        }),
+        prisma.sourceFile.count({ where }),
+      ])
+
+      const sourceIds = tasks.map((task) => task.id)
+      const questionRows =
+        sourceIds.length > 0
+          ? await prisma.question.findMany({
+              where: { sourceFileId: { in: sourceIds } },
+              select: {
+                sourceFileId: true,
+                status: true,
+                reportCount: true,
+              },
+            })
+          : []
+
+      const bySource = questionRows.reduce<
+        Record<
+          string,
+          {
+            statuses: ContentStatus[]
+            hasReported: boolean
+          }
+        >
+      >((acc, row) => {
+        const key = row.sourceFileId || ''
+        if (!key) return acc
+        if (!acc[key]) {
+          acc[key] = { statuses: [], hasReported: false }
+        }
+        acc[key].statuses.push(row.status)
+        if ((row.reportCount ?? 0) > 0) {
+          acc[key].hasReported = true
+        }
+        return acc
+      }, {})
+
+      return {
+        success: true,
+        data: {
+          tasks: tasks.map((t) => ({
+            ...(t.questions[0]?.subject
+              ? {
+                  subject: {
+                    id: t.questions[0].subject.id,
+                    name: t.questions[0].subject.name,
+                  },
+                }
+              : {}),
+            id: t.id,
+            filename: t.filename,
+            fileUrl: t.fileUrl,
+            status: t.status,
+            ocrStatus: t.ocrStatus,
+            questionsCount: t._count.questions,
+            createdAt: t.createdAt,
+            processedAt: t.processedAt,
+            source: t.sourceNote ?? t.questions[0]?.source ?? undefined,
+            curriculum: t.questions[0]?.curriculum ?? 'UEC',
+            sourceYear:
+              t.questions[0]?.source && /(19|20)\d{2}/.test(t.questions[0].source)
+                ? Number(t.questions[0].source.match(/(19|20)\d{2}/)?.[0])
+                : undefined,
+            events: deriveImportEvents({
+              sourceStatus: t.status,
+              questionStatuses: bySource[t.id]?.statuses ?? [],
+              hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
+            }),
+          })),
+          total,
+        },
+      }
+    } catch (fallbackError) {
+      console.error('兼容降级查询失败:', fallbackError)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '获取失败',
+        code: 'FETCH_FAILED',
+      }
     }
   }
 }

@@ -2,6 +2,7 @@ import type { ExamForecast, HiveNode } from '@/lib/practice/types';
 
 export interface DbSubject {
   id: string;
+  key: string;
   name: string;
   icon?: string | null;
 }

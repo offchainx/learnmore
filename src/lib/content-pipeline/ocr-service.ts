@@ -32,10 +32,12 @@ import { convertPDFToImages } from './pdf-utils'
  * 生产环境需要配置真实的 OCR 提供商
  */
 const DEFAULT_CONFIG: OCRServiceConfig = {
-  // 开发环境优先使用 Mock，生产环境使用真实提供商
-  providerPriority: process.env.NODE_ENV === 'development'
-    ? ['mock']
-    : ['mathpix', 'google_vision', 'tesseract', 'mock'],
+  // 默认禁用 mock 作为自动导入来源，避免生成演示数据污染题库。
+  // 如需启用 mock，显式设置 OCR_ENABLE_MOCK=true。
+  providerPriority:
+    process.env.OCR_ENABLE_MOCK === 'true'
+      ? ['tesseract', 'mathpix', 'google_vision', 'mock']
+      : ['tesseract', 'mathpix', 'google_vision'],
   minConfidence: 0.85,
   maxPagesPerRequest: 50,
   concurrency: 3,
@@ -396,6 +398,9 @@ export class OCRService {
       'tesseract',
       new TesseractProvider(this.config.providers.tesseract)
     )
+
+    // Mock（开发环境与兜底）
+    providers.set('mock', new MockOCRProvider())
 
     return providers
   }

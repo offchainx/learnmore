@@ -19,6 +19,7 @@ describe('AIStructurer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.ANTHROPIC_API_KEY = 'test-key'
     structurer = new AIStructurer()
   })
 

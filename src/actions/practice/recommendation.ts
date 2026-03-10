@@ -5,12 +5,17 @@ import { Question, Prisma } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
-const SUBJECT_NAME_MAP: Record<string, string> = {
-  math: 'mathematics',
+const SUBJECT_KEY_MAP: Record<string, string> = {
+  math: 'math',
+  mathematics: 'math',
   chinese: 'chinese',
+  mandarin: 'chinese',
+  malay: 'malay',
   english: 'english',
-  physics: 'physics',
-  chemistry: 'chemistry',
+  science: 'science',
+  history: 'history',
+  geography: 'geography',
+  other: 'other',
 }
 
 async function resolveSubjectId(identifier: string): Promise<string | null> {
@@ -19,10 +24,15 @@ async function resolveSubjectId(identifier: string): Promise<string | null> {
     return subject?.id || null
   }
 
-  const mappedName = SUBJECT_NAME_MAP[identifier.toLowerCase()] || identifier
+  const normalized = identifier.toLowerCase()
+  const mappedKey = SUBJECT_KEY_MAP[normalized]
   const subject = await prisma.subject.findFirst({
     where: {
-      OR: [{ id: identifier }, { name: { contains: mappedName, mode: 'insensitive' } }],
+      OR: [
+        { id: identifier },
+        ...(mappedKey ? [{ key: mappedKey }] : []),
+        { name: { contains: identifier, mode: 'insensitive' } },
+      ],
     },
     select: { id: true },
   })

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, History, Plus, RefreshCw } from 'lucide-react'
+import { ArrowLeft, History, Plus, RefreshCw, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { StatsCards } from '@/components/admin/content/StatsCards'
@@ -13,8 +13,8 @@ import { NewBatchImportModal } from '@/components/admin/content/NewBatchImportMo
 import { mapImportTaskToBatchData } from '@/lib/content-pipeline/mappers'
 import type { AuditLogEntry, ImportTask, StatsData } from '@/types/content-pipeline'
 import { format } from 'date-fns'
-
-type UiLang = 'zh' | 'en' | 'ms'
+import { getSubjectLabel, type UiLang } from '@/lib/subjects'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 interface RawSubject {
   id: string
@@ -22,21 +22,10 @@ interface RawSubject {
   name: string
 }
 
-const SUBJECT_LABELS: Record<string, Record<UiLang, string>> = {
-  chinese: { zh: '中文', en: 'Chinese', ms: 'Bahasa Cina' },
-  malay: { zh: '马来西亚文', en: 'Malay', ms: 'Bahasa Melayu' },
-  english: { zh: '英文', en: 'English', ms: 'Bahasa Inggeris' },
-  math: { zh: '数学', en: 'Mathematics', ms: 'Matematik' },
-  science: { zh: '科学', en: 'Science', ms: 'Sains' },
-  history: { zh: '历史', en: 'History', ms: 'Sejarah' },
-  geography: { zh: '地理', en: 'Geography', ms: 'Geografi' },
-  other: { zh: '其他', en: 'Other', ms: 'Lain-lain' },
-}
-
 function buildLocalizedSubjects(subjects: RawSubject[], language: UiLang): Array<{ id: string; name: string }> {
   return subjects.map((subject) => ({
     id: subject.id,
-    name: SUBJECT_LABELS[subject.key]?.[language] || subject.name,
+    name: getSubjectLabel(subject.key, language, subject.name),
   }))
 }
 
@@ -49,10 +38,18 @@ interface ImportClientProps {
   userLanguage: UiLang
   initialSubjects: RawSubject[]
   initialHistory: ImportTask[]
+  initialTasksError?: string | null
   initialStats: StatsData
 }
 
-export function ImportClient({ userRole, userLanguage, initialSubjects, initialHistory, initialStats }: ImportClientProps) {
+export function ImportClient({
+  userRole,
+  userLanguage,
+  initialSubjects,
+  initialHistory,
+  initialTasksError,
+  initialStats,
+}: ImportClientProps) {
   const router = useRouter()
 
   const history = useMemo<ImportTask[]>(
@@ -179,6 +176,17 @@ export function ImportClient({ userRole, userLanguage, initialSubjects, initialH
 
           {/* Stats Cards */}
           <StatsCards stats={stats} />
+
+          {initialTasksError ? (
+            <Alert variant="destructive" className="border-[#7F1D1D] bg-[#2A1118] text-[#FECACA]">
+              <AlertTriangle className="h-4 w-4 text-[#F87171]" />
+              <AlertTitle>导入任务列表加载失败</AlertTitle>
+              <AlertDescription className="text-[#FCA5A5]">
+                {initialTasksError}
+                <span className="ml-1">可先点击右上角“刷新”重试；任务原始记录仍在数据库 `source_files` 表。</span>
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
           <div>
             <div className="mb-2 flex items-center justify-between">

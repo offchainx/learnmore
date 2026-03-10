@@ -2,12 +2,16 @@ import Anthropic from '@anthropic-ai/sdk'
 import { AIStructuredQuestion, AIStructureResult } from './types'
 
 export class AIStructurer {
-  private client: Anthropic
+  private client: Anthropic | null
+  private readonly apiKey: string | null
 
   constructor() {
-    this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY || 'dummy_key', // Fallback for environments without env var
-    })
+    this.apiKey = process.env.ANTHROPIC_API_KEY?.trim() || null
+    this.client = this.apiKey
+      ? new Anthropic({
+          apiKey: this.apiKey,
+        })
+      : null
   }
 
   /**
@@ -17,6 +21,14 @@ export class AIStructurer {
     ocrText: string,
     context: { subjectId?: string; source?: string } = {}
   ): Promise<AIStructureResult> {
+    if (!this.client) {
+      return {
+        success: false,
+        error: '未配置 ANTHROPIC_API_KEY，已停止自动结构化（避免生成模拟题）',
+        processedAt: new Date(),
+      }
+    }
+
     try {
       const prompt = this.buildPrompt(ocrText, context)
 
@@ -43,11 +55,18 @@ export class AIStructurer {
         processedAt: new Date(),
         tokenUsage: response.usage?.output_tokens
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('AI Structuring failed:', error)
+
+      const err = error as {
+        status?: number
+        error?: { message?: string; type?: string }
+        message?: string
+      }
+
       return {
         success: false,
-        error: error.message || 'Unknown error during AI structuring',
+        error: this.toReadableError(err),
         processedAt: new Date()
       }
     }
@@ -111,5 +130,19 @@ Example structure:
       console.error('Failed to parse AI response:', text)
       throw new Error('Failed to parse AI JSON output')
     }
+  }
+
+  private toReadableError(error: {
+    status?: number
+    error?: { message?: string; type?: string }
+    message?: string
+  }): string {
+    if (error?.status === 401 || error?.error?.type === 'authentication_error') {
+      return 'AI 结构化失败：Anthropic API Key 无效或未配置（401）'
+    }
+    if (error?.status === 429) {
+      return 'AI 结构化失败：请求过于频繁，请稍后重试（429）'
+    }
+    return error?.error?.message || error?.message || 'Unknown error during AI structuring'
   }
 }

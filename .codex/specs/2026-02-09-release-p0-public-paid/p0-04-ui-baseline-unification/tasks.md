@@ -23,9 +23,9 @@
 | T-005.4 | 壳层与导航规则冻结：BottomTabBar 与 dashboard-layout 路由映射、激活态一致 | codex | done |  |
 | T-006 | 开发实现（门禁项，等待用户批准） | codex | doing |  |
 | T-006.1 | 练习中心命名与组件骨架落地：首批 rename、import/export 修正、语义统一 | codex | done | 2026-03-10：完成组件导出名、props 名与页面引用链统一，保留现有 URL slug 与文件路径稳定性。 |
-| T-006.2 | 练习中心主页面落地：训练指挥台布局、PracticeSubjectBar、主副栏与移动端任务流 | codex | todo |  |
-| T-006.3 | Smart Drill 落地：启动态摘要、训练 HUD、答题节奏、结果态 | codex | todo |  |
-| T-006.4 | Error Wiper 落地：错因修复实验室风格、进度区、当前题卡、结束复盘 | codex | todo |  |
+| T-006.2 | 练习中心主页面落地：训练指挥台布局、PracticeSubjectBar、主副栏与移动端任务流 | codex | todo | 用户要求暂缓，先优先完成 Practice 各模式内容/功能闭环。 |
+| T-006.3 | Smart Drill 落地：启动态摘要、训练 HUD、答题节奏、结果态 | codex | done | 2026-03-10：新增启动页、训练 HUD、结果摘要，并接通 submitPracticeSession 保存 Smart Drill 会话结果。 |
+| T-006.4 | Error Wiper 落地：错因修复实验室风格、进度区、当前题卡、结束复盘 | codex | done | 2026-03-10：改为 Setup -> Active -> Summary 三段式，复用 QuestionCard 支持多题型，并补齐修复摘要与返回入口。 |
 | T-006.5 | Mock Arena 落地：考试配置台、考试状态栏、导航器、交卷确认、成绩摘要 | codex | todo |  |
 | T-006.6 | Chapter Progress / Chapter Drill 落地：主页面推进板与专注训练页 | codex | todo |  |
 | T-006.7 | Past Paper Library 落地：卷库区、试卷入口信息、状态动作与详情页头部 | codex | todo |  |

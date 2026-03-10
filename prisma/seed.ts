@@ -32,14 +32,14 @@ export async function seedDatabase() {
 
   // 1. Subjects & Content
   const subjectsToCreate = [
-    { name: 'Mathematics', icon: 'Calculator', order: 1 },
-    { name: 'Physics', icon: 'Atom', order: 2 },
-    { name: 'Chemistry', icon: 'FlaskConical', order: 3 },
-    { name: 'Biology', icon: 'Dna', order: 4 },
-    { name: 'English', icon: 'BookOpen', order: 5 },
-    { name: 'History', icon: 'Landmark', order: 6 },
-    { name: 'Geography', icon: 'Globe', order: 7 },
-    { name: 'Computer Science', icon: 'Laptop', order: 8 },
+    { key: 'chinese', name: '中文', icon: 'BookOpen', order: 10 },
+    { key: 'malay', name: '马来西亚文', icon: 'Languages', order: 20 },
+    { key: 'english', name: '英文', icon: 'Languages', order: 30 },
+    { key: 'math', name: '数学', icon: 'Calculator', order: 40 },
+    { key: 'science', name: '科学', icon: 'Atom', order: 50 },
+    { key: 'history', name: '历史', icon: 'Landmark', order: 60 },
+    { key: 'geography', name: '地理', icon: 'Globe', order: 70 },
+    { key: 'other', name: '其他', icon: 'Shapes', order: 80 },
   ];
 
   const createdSubjects = [];

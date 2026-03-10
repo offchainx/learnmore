@@ -210,6 +210,7 @@ model UserBadge {
 // ============ 课程模块 ============
 model Subject {
   id    String  @id @default(uuid()) @db.Uuid
+  key   String  @unique // chinese, malay, english, math, science, history, geography, other
   name  String  @unique // 数学, 物理, 化学...
   icon  String?
   order Int     @default(0)
@@ -218,6 +219,7 @@ model Subject {
   posts       Post[]
   examRecords ExamRecord[] // 🆕 练习记录关联 (Story-043)
   questions   Question[]
+  sourceFiles SourceFile[]
 
   @@map("subjects")
 }
@@ -672,9 +674,11 @@ enum ReportStatus {
 model SourceFile {
   id       String @id @default(uuid()) @db.Uuid
   filename String
+  sourceNote String? @map("source_note")
   fileUrl  String @map("file_url") // Supabase Storage URL
   fileType String @map("file_type") // "pdf" | "image" | "docx"
   fileSize Int    @map("file_size") // bytes
+  subjectId String? @map("subject_id") @db.Uuid
 
   // 处理状态
   status     ProcessingStatus @default(PENDING)
@@ -683,6 +687,7 @@ model SourceFile {
 
   // 关联
   questions Question[]
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
 
   // 审计
   uploadedBy  String    @map("uploaded_by") @db.Uuid
@@ -692,6 +697,7 @@ model SourceFile {
 
   @@index([uploadedBy])
   @@index([status])
+  @@index([subjectId])
   @@map("source_files")
 }
 

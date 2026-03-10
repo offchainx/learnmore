@@ -9,9 +9,12 @@ import {
 } from 'lucide-react';
 import { subjectsData, mockUserContent, Section, SubTabType } from '@/components/shared/data';
 import { LessonPlayer } from './LessonPlayer';
+import { useApp } from '@/providers';
+import { getSubjectLabel } from '@/lib/subjects';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const CoursesView = ({ t }: { t: any }) => {
+  const { lang } = useApp();
   const [activeLesson, setActiveLesson] = useState<Section & { chapterTitle: string } | null>(null);
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('math');
   const [activeViewMode, setActiveViewMode] = useState<'curriculum' | 'review' | 'notebook'>('curriculum');
@@ -52,6 +55,7 @@ export const CoursesView = ({ t }: { t: any }) => {
       <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mb-6 pr-12">
         {Object.values(subjectsData).map((sub) => {
           const isActive = selectedSubjectId === sub.id;
+          const localizedName = getSubjectLabel(sub.id, lang, sub.title);
           return (
             <button
               key={sub.id}
@@ -63,7 +67,7 @@ export const CoursesView = ({ t }: { t: any }) => {
               }`}
             >
               <sub.icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
-              <span className="text-sm font-bold">{sub.title}</span>
+              <span className="text-sm font-bold">{localizedName}</span>
             </button>
           );
         })}
@@ -375,7 +379,7 @@ export const CoursesView = ({ t }: { t: any }) => {
               <div className="relative z-10 flex justify-between items-start">
                  <div>
                     <span className="inline-block px-2 py-1 rounded bg-white/20 text-xs font-bold mb-2">
-                       {selectedSubjectId.charAt(0).toUpperCase() + selectedSubjectId.slice(1)}
+                       {getSubjectLabel(selectedSubjectId, lang, selectedSubjectId)}
                     </span>
                     <h3 className="text-2xl font-bold mb-1">{currentSubject.title}</h3>
                     <p className="text-white/80 text-sm">{currentSubject.subTitle}</p>

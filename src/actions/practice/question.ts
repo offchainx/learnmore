@@ -38,14 +38,18 @@ export async function createQuestion(data: CreateQuestionInput) {
   if (!chapter) {
     // Try to find a subject first
     let subject = await prisma.subject.findFirst({
-      where: { name: 'General' }
+      where: { key: 'other' }
     })
     
     if (!subject) {
         subject = await prisma.subject.upsert({
-            where: { name: 'General' },
-            update: {},
-            create: { name: 'General', order: 999 }
+            where: { key: 'other' },
+            update: {
+              name: '其他',
+              order: 80,
+              icon: 'Shapes',
+            },
+            create: { key: 'other', name: '其他', order: 80, icon: 'Shapes' }
         })
     }
     

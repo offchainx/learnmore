@@ -29,7 +29,7 @@ async function main() {
     {
       title: '牛顿第二定律的应用困惑',
       content: '在处理斜面问题时，受力分析总是出错，特别是摩擦力的方向。求大神指点！',
-      subjectName: '物理',
+      subjectName: '科学',
       authorIndex: 0, // Same author
       likes: 5,
       comments: 1
@@ -37,7 +37,7 @@ async function main() {
     {
       title: '化学方程式配平技巧',
       content: '氧化还原反应的配平总是配不平，有什么万能公式吗？',
-      subjectName: '化学',
+      subjectName: '科学',
       authorIndex: 0, 
       likes: 8,
       comments: 0
@@ -53,7 +53,7 @@ async function main() {
     {
       title: '文言文实词积累',
       content: '常见的文言文实词有哪些？求整理好的文档。',
-      subjectName: '语文',
+      subjectName: '中文',
       authorIndex: 0,
       likes: 2,
       comments: 0

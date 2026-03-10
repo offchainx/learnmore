@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { DbSubject, PracticeSubjectData } from './types';
 import { fetchWithTimeout, isAbortLikeError } from '@/lib/http/fetch-with-timeout';
+import { useApp } from '@/providers';
+import { getSubjectLabel, resolveSubjectKeyFromName, SUBJECT_DEFINITIONS } from '@/lib/subjects';
 
 // Components
 import { PracticeSubjectBar } from './SubjectSelector';
@@ -23,7 +25,23 @@ function createEmptySubjectData(): PracticeSubjectData {
   };
 }
 
+function normalizeClientSubjects(subjects: DbSubject[]): DbSubject[] {
+  const byKey = new Map<string, DbSubject>()
+
+  for (const subject of subjects) {
+    const resolvedKey = subject.key || resolveSubjectKeyFromName(subject.name)
+    if (!resolvedKey) continue
+    if (byKey.has(resolvedKey)) continue
+    byKey.set(resolvedKey, { ...subject, key: resolvedKey })
+  }
+
+  return SUBJECT_DEFINITIONS
+    .map((definition) => byKey.get(definition.key))
+    .filter((subject): subject is DbSubject => Boolean(subject))
+}
+
 export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({ t }) => {
+  const { lang } = useApp();
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
   const [dbSubjects, setDbSubjects] = useState<DbSubject[]>([]);
   const [loadedSubjectId, setLoadedSubjectId] = useState<string>('');
@@ -61,14 +79,18 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({ t })
         if (cancelled) return;
 
         const subjects = Array.isArray(result.data.subjects) ? (result.data.subjects as DbSubject[]) : [];
+        const normalizedSubjects = normalizeClientSubjects(subjects);
         const defaultSubjectId = typeof result.data.defaultSubjectId === 'string' ? result.data.defaultSubjectId : '';
+        const safeDefaultSubjectId = normalizedSubjects.some((subject) => subject.id === defaultSubjectId)
+          ? defaultSubjectId
+          : normalizedSubjects[0]?.id || '';
         const bootstrapSubjectData = result.data.subjectData as PracticeSubjectData | null;
 
-        setDbSubjects(subjects);
-        setSelectedSubjectId(defaultSubjectId);
-        if (defaultSubjectId && bootstrapSubjectData) {
+        setDbSubjects(normalizedSubjects);
+        setSelectedSubjectId(safeDefaultSubjectId);
+        if (safeDefaultSubjectId && bootstrapSubjectData && safeDefaultSubjectId === defaultSubjectId) {
           setSubjectData(bootstrapSubjectData);
-          setLoadedSubjectId(defaultSubjectId);
+          setLoadedSubjectId(safeDefaultSubjectId);
         } else {
           setSubjectData(createEmptySubjectData());
           setLoadedSubjectId('');
@@ -162,7 +184,9 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({ t })
 
   // Derived current subject info
   const currentDbSubject = dbSubjects.find(s => s.id === selectedSubjectId);
-  const currentSubjectTitle = currentDbSubject ? currentDbSubject.name : 'Loading...';
+  const currentSubjectTitle = currentDbSubject
+    ? getSubjectLabel(currentDbSubject.key || resolveSubjectKeyFromName(currentDbSubject.name), lang, currentDbSubject.name)
+    : 'Practice Center';
   const isLoadingSubjectData = isBootstrapLoading || isSubjectDataLoading;
 
   return (

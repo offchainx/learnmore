@@ -111,8 +111,6 @@ export function NewBatchImportModal({
   const { toast } = useToast()
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [importProgress, setImportProgress] = useState(0)
-  const [importStatus, setImportStatus] = useState<string>('')
 
   const form = useForm<ImportFormValues>({
     resolver: zodResolver(importSchema),
@@ -136,8 +134,6 @@ export function NewBatchImportModal({
       maxQuestions: '',
     })
     setFile(null)
-    setImportProgress(0)
-    setImportStatus('')
     setIsUploading(false)
   }
 
@@ -168,6 +164,7 @@ export function NewBatchImportModal({
 
     try {
       if (values.importMethod === 'WEB_URL') {
+        setIsUploading(true)
         const payload = {
           pageUrl: values.pageUrl!.trim(),
           subjectId: values.subjectId,
@@ -209,56 +206,60 @@ export function NewBatchImportModal({
       }
 
       setIsUploading(true)
-      setImportProgress(10)
-      setImportStatus('正在上传文件...')
-      const formData = new FormData()
-      formData.append('file', file as File)
-
-      const uploadRes = await uploadSourceFile(formData)
-      if (!uploadRes.success || !uploadRes.url) {
-        throw new Error(uploadRes.error || '文件上传失败')
-      }
-
-      setImportProgress(30)
-      setImportStatus('解析中...')
-
-      const progressInterval = setInterval(() => {
-        setImportProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return 90
-          }
-          return prev + 2
-        })
-      }, 1000)
-
-      const importRes = await importFromPDF({
-        pdfUrl: uploadRes.url,
+      const selectedFile = file as File
+      const payload = {
         subjectId: values.subjectId,
         source: values.source,
-      })
-
-      clearInterval(progressInterval)
-
-      if (!importRes.success || !importRes.data) {
-        throw new Error(importRes.error || '导入失败')
       }
 
-      setImportProgress(100)
-      setImportStatus('成功！')
+      // 文件导入点击后也直接返回任务列表，进度统一在批量任务管理中查看
+      onClose()
+      resetState()
+      onImportSuccess?.()
       toast({
-        title: '导入完成',
-        description: `成功 ${importRes.data.questionsCreated} 题，重复 ${importRes.data.questionsDuplicated} 题，失败 ${importRes.data.questionsFailed} 题。`,
+        title: '任务已提交',
+        description: '请在批量任务管理查看导入进度和状态。',
       })
 
-      setTimeout(() => {
-        onClose()
-        onImportSuccess?.()
-        resetState()
-      }, 1500)
+      void (async () => {
+        try {
+          const formData = new FormData()
+          formData.append('file', selectedFile)
+
+          const uploadRes = await uploadSourceFile(formData)
+          if (!uploadRes.success || !uploadRes.url) {
+            throw new Error(uploadRes.error || '文件上传失败')
+          }
+
+          const importRes = await importFromPDF({
+            pdfUrl: uploadRes.url,
+            subjectId: payload.subjectId,
+            source: payload.source,
+          })
+
+          if (!importRes.success || !importRes.data) {
+            throw new Error(importRes.error || '导入失败')
+          }
+
+          toast({
+            title: '导入完成',
+            description: `成功 ${importRes.data.questionsCreated} 题，重复 ${importRes.data.questionsDuplicated} 题，失败 ${importRes.data.questionsFailed} 题。`,
+          })
+        } catch (error) {
+          const message = error instanceof Error ? error.message : '未知错误'
+          toast({
+            variant: 'destructive',
+            title: '导入失败',
+            description: message,
+          })
+        } finally {
+          onImportSuccess?.()
+        }
+      })()
+
+      return
     } catch (error) {
       const message = error instanceof Error ? error.message : '未知错误'
-      setImportStatus(`失败: ${message}`)
       toast({
         variant: 'destructive',
         title: '导入失败',
@@ -446,24 +447,6 @@ export function NewBatchImportModal({
                   </div>
                 )}
 
-                {isUploading && importMethod === 'FILE_UPLOAD' && (
-                  <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        {importStatus}
-                      </span>
-                      <span className="text-blue-600 dark:text-blue-400 font-bold">{importProgress}%</span>
-                    </div>
-                    <div className="h-2 bg-blue-100 dark:bg-blue-900/50 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500 rounded-full"
-                        style={{ width: `${importProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
                 <div className="flex items-center justify-end gap-3 pt-4">
                   <Button variant="ghost" type="button" onClick={onClose} disabled={isUploading}>
                     取消
@@ -475,7 +458,7 @@ export function NewBatchImportModal({
                     {isUploading ? (
                       <span className="flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        正在导入...
+                        提交任务中...
                       </span>
                     ) : (
                       '开始导入'

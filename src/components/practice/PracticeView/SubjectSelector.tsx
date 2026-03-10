@@ -1,35 +1,57 @@
-import React from 'react';
-import { Calculator, Atom, FlaskConical, Languages, Dna, Landmark, Globe, Laptop, BookOpen } from 'lucide-react';
-import type { DbSubject } from './types';
+import React from 'react'
+import {
+  Atom,
+  BookOpen,
+  Calculator,
+  Dna,
+  FlaskConical,
+  Globe,
+  Landmark,
+  Languages,
+  Laptop,
+  Shapes,
+} from 'lucide-react'
+import type { DbSubject } from './types'
+import { useApp } from '@/providers'
+import { getSubjectLabel, resolveSubjectKeyFromName } from '@/lib/subjects'
 
 const iconMap: Record<string, React.ElementType> = {
-  'Calculator': Calculator,
-  'Atom': Atom,
-  'FlaskConical': FlaskConical,
-  'Dna': Dna,
-  'BookOpen': Languages,
-  'Landmark': Landmark,
-  'Globe': Globe,
-  'Laptop': Laptop
-};
-
-interface PracticeSubjectBarProps {
-  subjects: DbSubject[];
-  selectedSubjectId: string;
-  onSelect: (id: string) => void;
+  Calculator,
+  Atom,
+  FlaskConical,
+  Dna,
+  BookOpen: Languages,
+  Landmark,
+  Globe,
+  Laptop,
+  Shapes,
 }
 
-export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({ subjects, selectedSubjectId, onSelect }) => {
+interface PracticeSubjectBarProps {
+  subjects: DbSubject[]
+  selectedSubjectId: string
+  onSelect: (id: string) => void
+}
+
+export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({
+  subjects,
+  selectedSubjectId,
+  onSelect,
+}) => {
+  const { lang } = useApp()
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-2">
-      {subjects.map((sub) => {
-        const Icon = iconMap[sub.icon as string] || BookOpen;
-        const isActive = selectedSubjectId === sub.id;
+      {subjects.map((subject) => {
+        const subjectKey = subject.key || resolveSubjectKeyFromName(subject.name) || 'other'
+        const label = getSubjectLabel(subjectKey, lang, subject.name)
+        const Icon = iconMap[subject.icon as string] || BookOpen
+        const isActive = selectedSubjectId === subject.id
 
         return (
           <button
-            key={sub.id}
-            onClick={() => onSelect(sub.id)}
+            key={subject.id}
+            onClick={() => onSelect(subject.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all border whitespace-nowrap ${
               isActive
                 ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-transparent shadow-md transform scale-105'
@@ -37,10 +59,10 @@ export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({ subjects
             }`}
           >
             <Icon className={`w-4 h-4 ${isActive ? 'text-white dark:text-black' : ''}`} />
-            <span className="text-sm font-bold">{sub.name.split(' ')[0]}</span>
+            <span className="text-sm font-bold">{label}</span>
           </button>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}

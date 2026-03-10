@@ -3,7 +3,7 @@ import { ErrorWiperSession, ErrorBookEntry } from '@/components/practice/modes/E
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Brain, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Brain, Eraser } from 'lucide-react';
 import { QuestionType } from '@/components/business/question';
 
 export const metadata = {
@@ -73,6 +73,21 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto max-w-4xl min-h-screen lg:py-8">
+      <div className="mb-8">
+        <div className="text-[11px] font-black uppercase tracking-[0.24em] text-rose-600 dark:text-rose-300">Practice Mode</div>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:text-rose-300">
+            <Eraser className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Error Wiper</h1>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              错因修复模式。每道题需要连续答对 3 次，才算真正从错题簿里擦除。
+            </p>
+          </div>
+        </div>
+      </div>
+
       <ErrorWiperSession
         initialSession={formattedSession}
         onUpdateProgress={handleUpdateProgress}

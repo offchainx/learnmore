@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/actions/user/auth';
 import { LessonType, UserRole } from '@prisma/client';
 import { hasPermission } from '@/lib/permissions';
+import { SUBJECT_DEFINITIONS, SUBJECT_KEYS, resolveSubjectKeyFromName } from '@/lib/subjects';
 
 export interface CourseTreeData {
   id: string;
@@ -14,127 +15,132 @@ export interface CourseTreeData {
   children?: CourseTreeData[];
 }
 
-export async function getAllSubjects() {
-  try {
-    const subjects = await prisma.subject.findMany({
-      orderBy: { order: 'asc' },
-    });
-    return { success: true, data: subjects };
-  } catch (error) {
-    console.error('Error fetching subjects:', error);
-    return { success: false, error: 'Failed to fetch subjects' };
-  }
+const SUBJECT_SELECT = {
+  id: true,
+  key: true,
+  name: true,
+  icon: true,
+  order: true,
+} as const
+
+type SubjectRecord = {
+  id: string
+  key: string
+  name: string
+  icon: string | null
+  order: number
 }
 
-const IMPORT_SUBJECT_PRESETS: Array<{
-  key: string
-  canonicalName: string
-  aliases: string[]
-  order: number
-}> = [
-  {
-    key: 'chinese',
-    canonicalName: '中文',
-    aliases: ['中文', '华文', 'chinese', 'mandarin', 'bahasa cina'],
-    order: 10,
-  },
-  {
-    key: 'malay',
-    canonicalName: '马来西亚文',
-    aliases: ['马来西亚文', '马来文', 'malay', 'bahasa melayu', 'melayu'],
-    order: 20,
-  },
-  {
-    key: 'english',
-    canonicalName: '英文',
-    aliases: ['英文', '英语', 'english', 'bahasa inggeris'],
-    order: 30,
-  },
-  {
-    key: 'math',
-    canonicalName: '数学',
-    aliases: ['数学', 'math', 'mathematics', 'matematik'],
-    order: 40,
-  },
-  {
-    key: 'science',
-    canonicalName: '科学',
-    aliases: ['科学', 'science', 'sains'],
-    order: 50,
-  },
-  {
-    key: 'history',
-    canonicalName: '历史',
-    aliases: ['历史', 'history', 'sejarah'],
-    order: 60,
-  },
-  {
-    key: 'geography',
-    canonicalName: '地理',
-    aliases: ['地理', 'geography', 'geografi'],
-    order: 70,
-  },
-  {
-    key: 'other',
-    canonicalName: '其他',
-    aliases: ['其他', 'other', 'lain-lain'],
-    order: 80,
-  },
-]
+async function fetchCoreSubjects(): Promise<SubjectRecord[]> {
+  return prisma.subject.findMany({
+    where: { key: { in: [...SUBJECT_KEYS] } },
+    select: SUBJECT_SELECT,
+    orderBy: { order: 'asc' },
+  })
+}
 
-function normalizeSubjectKey(value: string): string {
-  return value.toLowerCase().replace(/[\s\-_./()]/g, '')
+async function ensureCoreSubjects(): Promise<SubjectRecord[]> {
+  const allSubjects = await prisma.subject.findMany({
+    select: SUBJECT_SELECT,
+    orderBy: [{ order: 'asc' }, { name: 'asc' }],
+  })
+
+  const usedIds = new Set<string>()
+  const byKey = new Map<string, SubjectRecord>()
+  for (const subject of allSubjects) {
+    if (subject.key && SUBJECT_KEYS.includes(subject.key as (typeof SUBJECT_KEYS)[number])) {
+      byKey.set(subject.key, subject)
+      usedIds.add(subject.id)
+    }
+  }
+
+  for (const definition of SUBJECT_DEFINITIONS) {
+    if (byKey.has(definition.key)) {
+      const current = byKey.get(definition.key)!
+      const shouldUpdate =
+        current.order !== definition.order ||
+        !current.icon
+
+      if (shouldUpdate) {
+        const updated = await prisma.subject.update({
+          where: { id: current.id },
+          data: {
+            order: definition.order,
+            icon: current.icon || definition.icon,
+          },
+          select: SUBJECT_SELECT,
+        })
+        byKey.set(definition.key, updated)
+      }
+      continue
+    }
+
+    const matchedLegacy = allSubjects.find((subject) => {
+      if (usedIds.has(subject.id)) return false
+      return resolveSubjectKeyFromName(subject.name) === definition.key
+    })
+
+    if (matchedLegacy) {
+      const updated = await prisma.subject.update({
+        where: { id: matchedLegacy.id },
+        data: {
+          key: definition.key,
+          order: definition.order,
+          icon: matchedLegacy.icon || definition.icon,
+        },
+        select: SUBJECT_SELECT,
+      })
+      usedIds.add(updated.id)
+      byKey.set(definition.key, updated)
+      continue
+    }
+
+    const created = await prisma.subject.create({
+      data: {
+        key: definition.key,
+        name: definition.canonicalName,
+        icon: definition.icon,
+        order: definition.order,
+      },
+      select: SUBJECT_SELECT,
+    })
+    usedIds.add(created.id)
+    byKey.set(definition.key, created)
+  }
+
+  return SUBJECT_DEFINITIONS
+    .map((definition) => byKey.get(definition.key))
+    .filter((subject): subject is SubjectRecord => Boolean(subject))
+}
+
+export async function getAllSubjects() {
+  try {
+    let subjects = await fetchCoreSubjects()
+    if (subjects.length !== SUBJECT_KEYS.length) {
+      subjects = await ensureCoreSubjects()
+    }
+    return { success: true, data: subjects }
+  } catch (error) {
+    console.error('Error fetching subjects:', error)
+    return { success: false, error: 'Failed to fetch subjects' }
+  }
 }
 
 export async function getImportSubjects() {
   try {
-    const allSubjects = await prisma.subject.findMany({
-      orderBy: { order: 'asc' },
-    })
-
-    const normalized = allSubjects.map((subject) => ({
-      ...subject,
-      normalizedName: normalizeSubjectKey(subject.name),
-    }))
-
-    const resolved: Array<{ id: string; key: string; name: string; order: number }> = []
-
-    for (const preset of IMPORT_SUBJECT_PRESETS) {
-      const found = normalized.find((subject) =>
-        preset.aliases.some((alias) => subject.normalizedName.includes(normalizeSubjectKey(alias)))
-      )
-
-      if (found) {
-        resolved.push({
-          id: found.id,
-          key: preset.key,
-          name: found.name,
-          order: preset.order,
-        })
-        continue
-      }
-
-      const created = await prisma.subject.create({
-        data: {
-          name: preset.canonicalName,
-          order: preset.order,
-        },
-        select: {
-          id: true,
-          name: true,
-          order: true,
-        },
-      })
-
-      resolved.push({
-        id: created.id,
-        key: preset.key,
-        name: created.name,
-        order: created.order,
-      })
+    let subjects = await fetchCoreSubjects()
+    if (subjects.length !== SUBJECT_KEYS.length) {
+      subjects = await ensureCoreSubjects()
     }
-
-    return { success: true, data: resolved }
+    return {
+      success: true,
+      data: subjects.map((subject) => ({
+        id: subject.id,
+        key: subject.key,
+        name: subject.name,
+        order: subject.order,
+      })),
+    }
   } catch (error) {
     console.error('Error fetching import subjects:', error)
     return { success: false, error: 'Failed to fetch import subjects' }
