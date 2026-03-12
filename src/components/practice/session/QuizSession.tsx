@@ -5,10 +5,11 @@ import { PracticeMode, Question, QuestionType } from '@prisma/client'
 import { submitPracticeSession } from '@/actions/practice/session'
 import { QuestionCard } from '@/components/business/question'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, ArrowRight, Flag, Loader2, RotateCcw, Target } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ArrowLeft, ArrowRight, Flag, Loader2, Target, type LucideIcon } from 'lucide-react'
+import { PracticeHeader } from '@/components/practice/modes/shared/PracticeHeader'
+import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel'
+import type { PracticeModeTheme } from '@/components/practice/modes/shared/theme'
 
 interface QuizSessionProps {
   questions: Question[]
@@ -18,6 +19,12 @@ interface QuizSessionProps {
   subjectId?: string | null
   sessionLabel?: string
   sessionSubtitle?: string
+  theme?: PracticeModeTheme
+  headerIcon?: LucideIcon
+  resultTitle?: string
+  resultSubtitle?: string
+  exitLabel?: string
+  persistSession?: boolean
   onExit: () => void
   onRestart?: () => void
 }
@@ -30,6 +37,12 @@ export default function QuizSession({
   subjectId = null,
   sessionLabel = 'Practice Session',
   sessionSubtitle = 'Focus on one question at a time.',
+  theme = 'slate',
+  headerIcon = Target,
+  resultTitle = '训练完成',
+  resultSubtitle = '本轮训练已结束，下面是这组题的结果摘要。',
+  exitLabel = '退出本轮训练',
+  persistSession = true,
   onExit,
   onRestart,
 }: QuizSessionProps) {
@@ -103,6 +116,17 @@ export default function QuizSession({
   const finishSession = async () => {
     if (isSubmitting) return
 
+    if (!persistSession) {
+      const localScore = calculateScore()
+      setSavedScore(localScore)
+      setSavedCorrectCount(correctCount)
+      setSavedTotalQuestions(totalQuestions)
+      setSavedSession(false)
+      setSubmitError('当前为 Mock 预览模式，本轮结果不会写入正式训练记录。')
+      setIsFinished(true)
+      return
+    }
+
     const duration = Math.max(1, Math.round((Date.now() - startedAt) / 1000))
     const answers = questions.map(question => ({
       questionId: question.id,
@@ -158,69 +182,24 @@ export default function QuizSession({
         : '建议继续 Smart Drill 或切回章节练习，先把薄弱题型收口。'
 
     return (
-      <Card className="mx-auto max-w-3xl rounded-[28px] border-slate-200/80 shadow-lg dark:border-slate-800">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <Flag className="h-10 w-10 text-primary" />
-          </div>
-          <CardTitle className="text-3xl font-bold">Smart Drill Complete</CardTitle>
-          <p className="text-muted-foreground">本轮训练已结束，下面是这组题的结果摘要。</p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-end justify-center gap-2">
-            <span className="text-6xl font-extrabold text-primary">{score}</span>
-            <span className="mb-2 text-xl text-muted-foreground">/ 100</span>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Correct</div>
-              <div className="mt-2 text-2xl font-black text-emerald-500">{finalCorrectCount}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Incorrect</div>
-              <div className="mt-2 text-2xl font-black text-rose-500">{incorrectCount}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Saved</div>
-              <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{savedSession ? 'Yes' : 'Local'}</div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-            <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Coach Note</div>
-            <p className="mt-3 text-sm leading-6 text-slate-700 dark:text-slate-300">{recommendation}</p>
-            {submitError ? (
-              <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">{submitError}</p>
-            ) : null}
-          </div>
-
-          <div className="grid grid-cols-5 gap-2">
-            {questions.map((q, idx) => (
-              <div
-                key={q.id}
-                className={cn(
-                  'aspect-square flex items-center justify-center rounded-md border text-sm font-bold',
-                  results[q.id]
-                    ? 'border-green-200 bg-green-100 text-green-700'
-                    : results[q.id] === false
-                      ? 'border-red-200 bg-red-100 text-red-700'
-                      : 'bg-gray-100 text-gray-400',
-                )}
-              >
-                {idx + 1}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col justify-center gap-3 sm:flex-row">
-          <Button variant="outline" onClick={onRestart ?? onExit}>
-            <RotateCcw className="mr-2 h-4 w-4" />
-            再来一轮
-          </Button>
-          <Button onClick={onExit}>返回练习中心</Button>
-        </CardFooter>
-      </Card>
+      <PracticeResultPanel
+        title={resultTitle}
+        subtitle={resultSubtitle}
+        score={score}
+        theme={theme}
+        stats={[
+          { label: '正确', value: finalCorrectCount, toneClassName: 'text-emerald-300' },
+          { label: '错误', value: incorrectCount, toneClassName: 'text-rose-300' },
+          { label: '结果保存', value: savedSession ? '已保存' : '仅本地' },
+        ]}
+        recommendation={recommendation}
+        note={submitError}
+        questionStates={questions.map((q) => Boolean(results[q.id]))}
+        primaryActionLabel="返回练习中心"
+        primaryAction={onExit}
+        secondaryActionLabel="再来一轮"
+        secondaryAction={onRestart ?? onExit}
+      />
     )
   }
 
@@ -232,33 +211,21 @@ export default function QuizSession({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <Card className="rounded-[28px] border-slate-200/80 bg-white/95 dark:border-slate-800 dark:bg-slate-950/80">
-        <CardContent className="p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="text-[11px] font-black uppercase tracking-[0.24em] text-cyan-600 dark:text-cyan-300">{sessionLabel}</div>
-              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">
-                Question {currentIndex + 1} / {totalQuestions}
-              </div>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{sessionSubtitle}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:min-w-[260px]">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Accuracy</div>
-                <div className="mt-2 text-xl font-black text-slate-950 dark:text-white">{liveAccuracy}%</div>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Correct</div>
-                <div className="mt-2 text-xl font-black text-slate-950 dark:text-white">{correctCount}</div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Progress value={progress} className="h-2.5" />
-            <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">{progressLabel}</div>
-          </div>
-        </CardContent>
-      </Card>
+      <PracticeHeader
+        compact
+        theme={theme}
+        icon={headerIcon}
+        badge={sessionLabel}
+        title={`${sessionLabel} · 第 ${currentIndex + 1} 题`}
+        description={sessionSubtitle}
+        stats={[
+          { label: '进度', value: `${currentIndex + 1} / ${totalQuestions}`, icon: Flag },
+          { label: '正确率', value: `${liveAccuracy}%`, icon: headerIcon },
+        ]}
+      >
+        <Progress value={progress} className="h-2.5" />
+        <div className="mt-2 text-sm text-slate-300">{progressLabel}</div>
+      </PracticeHeader>
 
       <QuestionCard
         question={formattedQuestion}
@@ -272,7 +239,7 @@ export default function QuizSession({
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="ghost" className="justify-start px-0 text-slate-500 hover:text-slate-900 dark:hover:text-white" onClick={onExit}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          退出本轮训练
+          {exitLabel}
         </Button>
         {!isChecked ? (
           <Button onClick={checkAnswer} disabled={!hasAnswered} size="lg">

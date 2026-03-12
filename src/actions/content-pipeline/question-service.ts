@@ -2,7 +2,13 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { ContentStatus, Prisma, QuestionType, ReportStatus, ReviewAction } from '@prisma/client'
+import {
+  ContentStatus,
+  Prisma,
+  QuestionType,
+  ReportStatus,
+  ReviewAction,
+} from '@prisma/client'
 import { createHash } from 'crypto'
 import type {
   BulkCreateQuestionsInput,
@@ -29,7 +35,11 @@ export async function generateContentHash(
   type: QuestionType,
   answer: Prisma.InputJsonValue | JsonValue
 ): Promise<string> {
-  const normalized = [content.trim().toLowerCase(), type, JSON.stringify(answer)].join('|')
+  const normalized = [
+    content.trim().toLowerCase(),
+    type,
+    JSON.stringify(answer),
+  ].join('|')
   return createHash('md5').update(normalized).digest('hex')
 }
 
@@ -101,13 +111,21 @@ export async function createQuestion(
   data: CreateQuestionInput
 ): Promise<ServiceResult<QuestionWithRelations>> {
   try {
-    const contentHash = await generateContentHash(data.content, data.type, data.answer)
+    const contentHash = await generateContentHash(
+      data.content,
+      data.type,
+      data.answer
+    )
     const existing = await prisma.question.findUnique({
       where: { contentHash },
       select: { id: true },
     })
     if (existing) {
-      return { success: false, error: '题目已存在（内容重复）', code: 'DUPLICATE_CONTENT' }
+      return {
+        success: false,
+        error: '题目已存在（内容重复）',
+        code: 'DUPLICATE_CONTENT',
+      }
     }
 
     const question = await prisma.question.create({
@@ -164,7 +182,11 @@ export async function bulkCreateQuestions(
         select: { id: true },
       })
       if (existing) {
-        results.push({ index: i, success: false, error: '题目已存在（内容重复）' })
+        results.push({
+          index: i,
+          success: false,
+          error: '题目已存在（内容重复）',
+        })
         failed++
         continue
       }
@@ -196,7 +218,11 @@ export async function bulkCreateQuestions(
         select: selectQuestionRelations(),
       })
 
-      results.push({ index: i, success: true, data: created as QuestionWithRelations })
+      results.push({
+        index: i,
+        success: true,
+        data: created as QuestionWithRelations,
+      })
       succeeded++
     } catch (error) {
       results.push({
@@ -230,16 +256,27 @@ export async function updateQuestionStatus(
       return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
     }
 
-    const transition = await validateStatusTransition(currentQuestion.status, input.newStatus)
+    const transition = await validateStatusTransition(
+      currentQuestion.status,
+      input.newStatus
+    )
     if (!transition.valid) {
-      return { success: false, error: transition.error, code: 'INVALID_TRANSITION' }
+      return {
+        success: false,
+        error: transition.error,
+        code: 'INVALID_TRANSITION',
+      }
     }
 
     let action: ReviewAction = ReviewAction.SUBMIT_REVIEW
-    if (input.newStatus === ContentStatus.VERIFIED) action = ReviewAction.APPROVE
-    else if (input.newStatus === ContentStatus.REVIEW_REJECTED) action = ReviewAction.REJECT
-    else if (input.newStatus === ContentStatus.PUBLISHED) action = ReviewAction.PUBLISH
-    else if (input.newStatus === ContentStatus.ARCHIVED) action = ReviewAction.ARCHIVE
+    if (input.newStatus === ContentStatus.VERIFIED)
+      action = ReviewAction.APPROVE
+    else if (input.newStatus === ContentStatus.REVIEW_REJECTED)
+      action = ReviewAction.REJECT
+    else if (input.newStatus === ContentStatus.PUBLISHED)
+      action = ReviewAction.PUBLISH
+    else if (input.newStatus === ContentStatus.ARCHIVED)
+      action = ReviewAction.ARCHIVE
 
     const [updatedQuestion] = await prisma.$transaction([
       prisma.question.update({
@@ -304,16 +341,25 @@ export async function bulkUpdateQuestionStatus(
     }
   }
 
-  return { success: failed === 0, total: input.questionIds.length, succeeded, failed, results }
+  return {
+    success: failed === 0,
+    total: input.questionIds.length,
+    succeeded,
+    failed,
+    results,
+  }
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function isUuid(value: string | undefined | null): value is string {
   return !!value && UUID_RE.test(value.trim())
 }
 
-function toValidStatusList(status: QuestionFilter['status']): ContentStatus[] | undefined {
+function toValidStatusList(
+  status: QuestionFilter['status']
+): ContentStatus[] | undefined {
   if (!status) return undefined
   const allStatuses = new Set(Object.values(ContentStatus))
   const list = (Array.isArray(status) ? status : [status]).filter(
@@ -322,7 +368,9 @@ function toValidStatusList(status: QuestionFilter['status']): ContentStatus[] | 
   return list.length > 0 ? list : undefined
 }
 
-function toValidTypeList(type: QuestionFilter['type']): QuestionType[] | undefined {
+function toValidTypeList(
+  type: QuestionFilter['type']
+): QuestionType[] | undefined {
   if (!type) return undefined
   const allTypes = new Set(Object.values(QuestionType))
   const list = (Array.isArray(type) ? type : [type]).filter(
@@ -335,22 +383,34 @@ function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
   const where: Prisma.QuestionWhereInput = {}
 
   const statusList = toValidStatusList(filter.status)
-  if (statusList) where.status = statusList.length === 1 ? statusList[0] : { in: statusList }
+  if (statusList)
+    where.status = statusList.length === 1 ? statusList[0] : { in: statusList }
 
   const typeList = toValidTypeList(filter.type)
-  if (typeList) where.type = typeList.length === 1 ? typeList[0] : { in: typeList }
+  if (typeList)
+    where.type = typeList.length === 1 ? typeList[0] : { in: typeList }
 
   if (filter.difficulty) {
-    if (typeof filter.difficulty === 'number') where.difficulty = filter.difficulty
-    else if (filter.difficulty.min !== undefined || filter.difficulty.max !== undefined) {
+    if (typeof filter.difficulty === 'number')
+      where.difficulty = filter.difficulty
+    else if (
+      filter.difficulty.min !== undefined ||
+      filter.difficulty.max !== undefined
+    ) {
       where.difficulty = {
-        ...(filter.difficulty.min !== undefined && { gte: filter.difficulty.min }),
-        ...(filter.difficulty.max !== undefined && { lte: filter.difficulty.max }),
+        ...(filter.difficulty.min !== undefined && {
+          gte: filter.difficulty.min,
+        }),
+        ...(filter.difficulty.max !== undefined && {
+          lte: filter.difficulty.max,
+        }),
       }
     }
   }
   if (filter.curriculum) {
-    where.curriculum = Array.isArray(filter.curriculum) ? { in: filter.curriculum } : filter.curriculum
+    where.curriculum = Array.isArray(filter.curriculum)
+      ? { in: filter.curriculum }
+      : filter.curriculum
   }
   if (filter.grade) {
     if (typeof filter.grade === 'number') where.grade = filter.grade
@@ -367,7 +427,8 @@ function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
   if (filter.source) where.source = filter.source
   if (filter.isPastPaper !== undefined) where.isPastPaper = filter.isPastPaper
   if (filter.paperId) where.paperId = filter.paperId
-  if (filter.searchText) where.content = { contains: filter.searchText, mode: 'insensitive' }
+  if (filter.searchText)
+    where.content = { contains: filter.searchText, mode: 'insensitive' }
   if (isUuid(filter.createdBy)) where.createdBy = filter.createdBy
   if (isUuid(filter.reviewedBy)) where.reviewedBy = filter.reviewedBy
   if (filter.createdAfter || filter.createdBefore) {
@@ -384,7 +445,10 @@ export async function getPendingReviewQuestions(
   filter: QuestionFilter = {},
   sort: QuestionSortOptions = { field: 'createdAt', order: 'desc' }
 ): Promise<PaginatedResult<QuestionWithRelations>> {
-  const nextFilter: QuestionFilter = { ...filter, status: ContentStatus.REVIEW_PENDING }
+  const nextFilter: QuestionFilter = {
+    ...filter,
+    status: ContentStatus.REVIEW_PENDING,
+  }
   return getQuestions(params, nextFilter, sort)
 }
 
@@ -396,7 +460,8 @@ export async function getQuestionById(
       where: { id },
       select: selectQuestionRelations(),
     })
-    if (!question) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
+    if (!question)
+      return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
     return { success: true, data: question as QuestionWithRelations }
   } catch (error) {
     return {
@@ -417,7 +482,8 @@ export async function deleteQuestion(
       where: { id },
       select: { id: true, status: true },
     })
-    if (!question) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
+    if (!question)
+      return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
     if (question.status === ContentStatus.PUBLISHED && !options?.hardDelete) {
       return {
@@ -434,7 +500,10 @@ export async function deleteQuestion(
     }
 
     await prisma.$transaction([
-      prisma.question.update({ where: { id }, data: { status: ContentStatus.ARCHIVED } }),
+      prisma.question.update({
+        where: { id },
+        data: { status: ContentStatus.ARCHIVED },
+      }),
       ...(operatorId
         ? [
             prisma.contentReviewLog.create({
@@ -478,7 +547,8 @@ export async function updateQuestion(
         contentHash: true,
       },
     })
-    if (!current) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
+    if (!current)
+      return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
     let contentHash = current.contentHash
     if (data.content || data.type || data.answer) {
@@ -492,7 +562,11 @@ export async function updateQuestion(
         where: { contentHash, id: { not: id } },
       })
       if (duplicate) {
-        return { success: false, error: '更新后的内容与其他题目重复', code: 'DUPLICATE_CONTENT' }
+        return {
+          success: false,
+          error: '更新后的内容与其他题目重复',
+          code: 'DUPLICATE_CONTENT',
+        }
       }
     }
 
@@ -505,11 +579,19 @@ export async function updateQuestion(
         ...(data.curriculum !== undefined && { curriculum: data.curriculum }),
         ...(data.grade !== undefined && { grade: data.grade }),
         ...(data.subjectId !== undefined && { subjectId: data.subjectId }),
-        ...(data.options !== undefined && { options: data.options ?? Prisma.JsonNull }),
-        ...(data.answer !== undefined && { answer: data.answer as Prisma.InputJsonValue }),
-        ...(data.explanation !== undefined && { explanation: data.explanation }),
+        ...(data.options !== undefined && {
+          options: data.options ?? Prisma.JsonNull,
+        }),
+        ...(data.answer !== undefined && {
+          answer: data.answer as Prisma.InputJsonValue,
+        }),
+        ...(data.explanation !== undefined && {
+          explanation: data.explanation,
+        }),
         ...(data.chapterId !== undefined && { chapterId: data.chapterId }),
-        ...(data.sourceFileId !== undefined && { sourceFileId: data.sourceFileId }),
+        ...(data.sourceFileId !== undefined && {
+          sourceFileId: data.sourceFileId,
+        }),
         ...(data.source !== undefined && { source: data.source }),
         ...(data.tags !== undefined && { tags: data.tags }),
         ...(data.assetUrl !== undefined && { assetUrl: data.assetUrl }),
@@ -518,9 +600,13 @@ export async function updateQuestion(
           : data.assetUrl !== undefined
             ? { imageUrls: data.assetUrl ? [data.assetUrl] : [] }
             : {}),
-        ...(data.isPastPaper !== undefined && { isPastPaper: data.isPastPaper }),
+        ...(data.isPastPaper !== undefined && {
+          isPastPaper: data.isPastPaper,
+        }),
         ...(data.paperId !== undefined && { paperId: data.paperId }),
-        ...(data.qualityScore !== undefined && { qualityScore: data.qualityScore }),
+        ...(data.qualityScore !== undefined && {
+          qualityScore: data.qualityScore,
+        }),
         ...(contentHash !== current.contentHash && { contentHash }),
       },
       select: selectQuestionRelations(),
@@ -583,7 +669,8 @@ export async function reportQuestion(
       where: { id: input.questionId },
       select: { id: true, status: true, reportCount: true },
     })
-    if (!question) return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
+    if (!question)
+      return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
     const existing = await prisma.questionReport.findFirst({
       where: {
@@ -595,7 +682,11 @@ export async function reportQuestion(
     })
 
     if (existing) {
-      return { success: false, error: '您已报告过该问题，请等待处理', code: 'DUPLICATE_REPORT' }
+      return {
+        success: false,
+        error: '您已报告过该问题，请等待处理',
+        code: 'DUPLICATE_REPORT',
+      }
     }
 
     const [report, updatedQuestion] = await prisma.$transaction([
@@ -670,9 +761,14 @@ export async function getQuestionReports(
 
   if (filter.questionId) where.questionId = filter.questionId
   if (filter.reportedBy) where.reportedBy = filter.reportedBy
-  if (filter.status) where.status = Array.isArray(filter.status) ? { in: filter.status } : filter.status
+  if (filter.status)
+    where.status = Array.isArray(filter.status)
+      ? { in: filter.status }
+      : filter.status
   if (filter.issueType) {
-    where.issueType = Array.isArray(filter.issueType) ? { in: filter.issueType } : filter.issueType
+    where.issueType = Array.isArray(filter.issueType)
+      ? { in: filter.issueType }
+      : filter.issueType
   }
   if (filter.createdAfter || filter.createdBefore) {
     where.createdAt = {
@@ -694,7 +790,7 @@ export async function getQuestionReports(
 
   const totalPages = Math.ceil(total / pageSize)
   return {
-    data: data.map(r => ({
+    data: data.map((r) => ({
       id: r.id,
       questionId: r.questionId,
       issueType: r.issueType,
@@ -720,12 +816,23 @@ export async function resolveReport(
       where: { id: input.reportId },
       include: { question: { select: { id: true, reportCount: true } } },
     })
-    if (!report) return { success: false, error: '报告不存在', code: 'NOT_FOUND' }
-    if (report.status === ReportStatus.RESOLVED || report.status === ReportStatus.REJECTED) {
-      return { success: false, error: '该报告已被处理', code: 'ALREADY_RESOLVED' }
+    if (!report)
+      return { success: false, error: '报告不存在', code: 'NOT_FOUND' }
+    if (
+      report.status === ReportStatus.RESOLVED ||
+      report.status === ReportStatus.REJECTED
+    ) {
+      return {
+        success: false,
+        error: '该报告已被处理',
+        code: 'ALREADY_RESOLVED',
+      }
     }
 
-    if (input.status === ReportStatus.REJECTED && report.question.reportCount > 0) {
+    if (
+      input.status === ReportStatus.REJECTED &&
+      report.question.reportCount > 0
+    ) {
       await prisma.$transaction([
         prisma.questionReport.update({
           where: { id: input.reportId },
@@ -792,10 +899,18 @@ export async function bulkResolveReports(
     }
   }
 
-  return { success: failed === 0, total: reportIds.length, succeeded, failed, results }
+  return {
+    success: failed === 0,
+    total: reportIds.length,
+    succeeded,
+    failed,
+    results,
+  }
 }
 
-export async function getContentStats(): Promise<
+export async function getContentStats(
+  timeRange: '7d' | '30d' | 'all' = '7d'
+): Promise<
   ServiceResult<{
     totalQuestions: number
     byStatus: Record<ContentStatus, number>
@@ -805,15 +920,57 @@ export async function getContentStats(): Promise<
   }>
 > {
   try {
-    const [totalQuestions, statusCounts, typeCounts, pendingReports, recentlyAdded] = await Promise.all([
-      prisma.question.count(),
-      prisma.question.groupBy({ by: ['status'], _count: true }),
-      prisma.question.groupBy({ by: ['type'], _count: true }),
-      prisma.questionReport.count({ where: { status: 'PENDING' } }),
+    const now = Date.now()
+    const rangeStart =
+      timeRange === 'all'
+        ? undefined
+        : new Date(now - (timeRange === '30d' ? 30 : 7) * 24 * 60 * 60 * 1000)
+
+    const questionWhere = rangeStart
+      ? {
+          createdAt: { gte: rangeStart },
+        }
+      : undefined
+
+    const reportWhere = rangeStart
+      ? {
+          status: 'PENDING' as const,
+          createdAt: { gte: rangeStart },
+        }
+      : {
+          status: 'PENDING' as const,
+        }
+
+    const recentlyAddedWhere =
+      timeRange === 'all'
+        ? undefined
+        : {
+            createdAt: { gte: rangeStart! },
+          }
+
+    const [
+      totalQuestions,
+      statusCounts,
+      typeCounts,
+      pendingReports,
+      recentlyAdded,
+    ] = await Promise.all([
       prisma.question.count({
-        where: {
-          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-        },
+        where: questionWhere,
+      }),
+      prisma.question.groupBy({
+        by: ['status'],
+        where: questionWhere,
+        _count: true,
+      }),
+      prisma.question.groupBy({
+        by: ['type'],
+        where: questionWhere,
+        _count: true,
+      }),
+      prisma.questionReport.count({ where: reportWhere }),
+      prisma.question.count({
+        where: recentlyAddedWhere,
       }),
     ])
 

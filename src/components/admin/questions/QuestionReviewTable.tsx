@@ -1,48 +1,52 @@
 'use client'
 
-import { useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
   TableRow,
-  TableFooter
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge, BadgeProps } from "@/components/ui/badge"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, CheckCircle, XCircle, ArrowUpCircle, FileText, Edit, ClipboardCheck } from "lucide-react"
-import { DifficultyBadge } from "../common/DifficultyBadge"
-import { QualityScoreBadge } from "../common/QualityScoreBadge"
-import { QuestionWithRelations } from "@/lib/content-pipeline/types"
-import { ContentStatus } from "@prisma/client"
-import { bulkUpdateQuestionStatus } from "@/actions/content-pipeline/question-service"
-import { useToast } from "@/components/ui/use-toast"
+  TableFooter,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge, BadgeProps } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  MoreHorizontal,
+  CheckCircle,
+  XCircle,
+  ArrowUpCircle,
+  ClipboardCheck,
+} from 'lucide-react'
+import { DifficultyBadge } from '../common/DifficultyBadge'
+import { QualityScoreBadge } from '../common/QualityScoreBadge'
+import { QuestionWithRelations } from '@/lib/content-pipeline/types'
+import { ContentStatus } from '@prisma/client'
+import { bulkUpdateQuestionStatus } from '@/actions/content-pipeline/question-service'
+import { useToast } from '@/components/ui/use-toast'
 
 interface QuestionReviewTableProps {
   questions: QuestionWithRelations[]
-  total: number
   page: number
   totalPages: number
 }
 
-export function QuestionReviewTable({ 
-  questions, 
-  total, 
-  page, 
-  totalPages 
+export function QuestionReviewTable({
+  questions,
+  page,
+  totalPages,
 }: QuestionReviewTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -60,13 +64,13 @@ export function QuestionReviewTable({
     if (selectedIds.length === questions.length) {
       setSelectedIds([])
     } else {
-      setSelectedIds(questions.map(q => q.id))
+      setSelectedIds(questions.map((q) => q.id))
     }
   }
 
   const toggleSelectRow = (id: string) => {
     if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter(itemId => itemId !== id))
+      setSelectedIds(selectedIds.filter((itemId) => itemId !== id))
     } else {
       setSelectedIds([...selectedIds, id])
     }
@@ -80,37 +84,37 @@ export function QuestionReviewTable({
     try {
       // In a real app, we should get the current user ID
       // For now using a placeholder or assuming the action handles it safely if missing
-      // The action expects reviewerId. 
+      // The action expects reviewerId.
       // Since this is a client component, we might need to pass it or have the action handle it via session.
-      // Looking at the action, it takes reviewerId. 
+      // Looking at the action, it takes reviewerId.
       // We'll pass a placeholder 'ADMIN' for now, but ideally this comes from session context.
-      
+
       const result = await bulkUpdateQuestionStatus({
         questionIds: selectedIds,
         newStatus,
-        reviewerId: "ADMIN", // TODO: Replace with actual user ID
-        comment: "Bulk update via Admin Interface"
+        reviewerId: 'ADMIN', // TODO: Replace with actual user ID
+        comment: 'Bulk update via Admin Interface',
       })
 
       if (result.success) {
         toast({
-          title: "操作成功",
+          title: '操作成功',
           description: `已成功更新 ${result.succeeded} 个题目的状态`,
         })
         setSelectedIds([])
         router.refresh()
       } else {
         toast({
-          variant: "destructive",
-          title: "操作失败",
+          variant: 'destructive',
+          title: '操作失败',
           description: `更新失败: ${result.failed} 个错误`,
         })
       }
     } catch {
       toast({
-        variant: "destructive",
-        title: "错误",
-        description: "发生未知错误",
+        variant: 'destructive',
+        title: '错误',
+        description: '发生未知错误',
       })
     } finally {
       setIsUpdating(false)
@@ -120,33 +124,40 @@ export function QuestionReviewTable({
   // Pagination helpers
   const goToPage = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString())
-    params.set("page", newPage.toString())
+    params.set('page', newPage.toString())
     router.push(`?${params.toString()}`)
   }
 
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
     switch (status) {
-      case 'DRAFT': return 'secondary'
-      case 'REVIEW_PENDING': return 'warning'
-      case 'VERIFIED': return 'primary'
-      case 'PUBLISHED': return 'success'
-      case 'REVIEW_REJECTED': return 'destructive'
-      case 'ARCHIVED': return 'neutral'
-      default: return 'outline'
+      case 'DRAFT':
+        return 'secondary'
+      case 'REVIEW_PENDING':
+        return 'warning'
+      case 'VERIFIED':
+        return 'primary'
+      case 'PUBLISHED':
+        return 'success'
+      case 'REVIEW_REJECTED':
+        return 'destructive'
+      case 'ARCHIVED':
+        return 'neutral'
+      default:
+        return 'outline'
     }
   }
 
   const getStatusLabel = (status: string) => {
     const map: Record<string, string> = {
-      'DRAFT': '草稿',
-      'OCR_PROCESSING': 'OCR处理中',
-      'OCR_COMPLETED': 'OCR完成',
-      'STRUCTURING': '结构化中',
-      'REVIEW_PENDING': '待审核',
-      'REVIEW_REJECTED': '已驳回',
-      'VERIFIED': '已校对',
-      'PUBLISHED': '已发布',
-      'ARCHIVED': '已归档'
+      DRAFT: '草稿',
+      OCR_PROCESSING: 'OCR处理中',
+      OCR_COMPLETED: 'OCR完成',
+      STRUCTURING: '结构化中',
+      REVIEW_PENDING: '待审核',
+      REVIEW_REJECTED: '已驳回',
+      VERIFIED: '已校对',
+      PUBLISHED: '已发布',
+      ARCHIVED: '已归档',
     }
     return map[status] || status
   }
@@ -160,8 +171,14 @@ export function QuestionReviewTable({
   if (!mounted) {
     return (
       <div className="space-y-4">
-        <div className="h-12 rounded-md border bg-muted/20" aria-hidden="true" />
-        <div className="h-80 rounded-md border bg-muted/20" aria-hidden="true" />
+        <div
+          className="h-12 rounded-md border bg-muted/20"
+          aria-hidden="true"
+        />
+        <div
+          className="h-80 rounded-md border bg-muted/20"
+          aria-hidden="true"
+        />
       </div>
     )
   }
@@ -169,40 +186,41 @@ export function QuestionReviewTable({
   return (
     <div className="space-y-4">
       {/* Batch Actions Toolbar */}
-      <div className="flex items-center justify-between bg-muted/30 p-2 rounded-md border">
-        <div className="text-sm text-muted-foreground ml-2">
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#24324D] bg-[#101A2E]/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="ml-1 text-sm text-[#9FB0C9]">
           {selectedIds.length > 0 ? (
-            <span>已选择 {selectedIds.length} 项</span>
+            <span>已选择 {selectedIds.length} 项，支持批量审核</span>
           ) : (
-            <span>共 {total} 个题目</span>
+            <span>勾选题目后可批量通过、驳回或发布</span>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button 
-            size="sm" 
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('VERIFIED')}
-            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+            className="border-[#1F6F4A] bg-[#0F221B] text-[#7FE0AF] hover:bg-[#163226] hover:text-[#A7F3D0]"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             通过
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="border-[#6D2432] bg-[#241118] text-[#FDA4AF] hover:bg-[#33151D] hover:text-[#FECDD3]"
           >
             <XCircle className="mr-2 h-4 w-4" />
             驳回
           </Button>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('PUBLISHED')}
+            className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
           >
             <ArrowUpCircle className="mr-2 h-4 w-4" />
             发布
@@ -211,39 +229,51 @@ export function QuestionReviewTable({
       </div>
 
       {/* Table */}
-      <div className="border rounded-md">
+      <div className="overflow-hidden rounded-[24px] border border-[#24324D] bg-[#0D1628]">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">
-                <Checkbox 
-                  checked={questions.length > 0 && selectedIds.length === questions.length}
+            <TableRow className="border-b border-[#1B2840] bg-[#0F1A2F] hover:bg-[#0F1A2F]">
+              <TableHead className="h-12 w-[50px] text-[#7F93B2]">
+                <Checkbox
+                  checked={
+                    questions.length > 0 &&
+                    selectedIds.length === questions.length
+                  }
                   onCheckedChange={toggleSelectAll}
                   aria-label="Select all"
                 />
               </TableHead>
-              <TableHead className="w-[90px]">题图</TableHead>
-              <TableHead className="w-[300px]">题目内容</TableHead>
-              <TableHead>题型</TableHead>
-              <TableHead>科目/章节</TableHead>
-              <TableHead>难度</TableHead>
-              <TableHead>质量分</TableHead>
-              <TableHead>状态</TableHead>
-              <TableHead className="text-right">操作</TableHead>
+              <TableHead className="w-[90px] text-[#7F93B2]">题图</TableHead>
+              <TableHead className="w-[300px] text-[#7F93B2]">
+                题目内容
+              </TableHead>
+              <TableHead className="text-[#7F93B2]">题型</TableHead>
+              <TableHead className="text-[#7F93B2]">科目/章节</TableHead>
+              <TableHead className="text-[#7F93B2]">难度</TableHead>
+              <TableHead className="text-[#7F93B2]">质量分</TableHead>
+              <TableHead className="text-[#7F93B2]">状态</TableHead>
+              <TableHead className="text-right text-[#7F93B2]">操作</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="[&_tr:last-child]:border-b-0">
             {questions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
+              <TableRow className="border-b border-[#16233A] hover:bg-transparent">
+                <TableCell
+                  colSpan={9}
+                  className="h-24 text-center text-[#7F93B2]"
+                >
                   没有找到相关题目
                 </TableCell>
               </TableRow>
             ) : (
               questions.map((question) => (
-                <TableRow key={question.id} data-state={selectedIds.includes(question.id) && "selected"}>
+                <TableRow
+                  key={question.id}
+                  data-state={selectedIds.includes(question.id) && 'selected'}
+                  className="border-b border-[#16233A] text-[#E6EDF7] hover:bg-[#111C31] data-[state=selected]:bg-[#13203A]"
+                >
                   <TableCell>
-                    <Checkbox 
+                    <Checkbox
                       checked={selectedIds.includes(question.id)}
                       onCheckedChange={() => toggleSelectRow(question.id)}
                       aria-label="Select row"
@@ -254,30 +284,41 @@ export function QuestionReviewTable({
                       <img
                         src={getQuestionImage(question)!}
                         alt="题图缩略图"
-                        className="h-12 w-16 object-cover rounded border border-slate-200 dark:border-slate-700"
+                        className="h-12 w-16 rounded border border-[#24324D] object-cover"
                       />
                     ) : (
-                      <div className="h-12 w-16 rounded border border-dashed border-slate-300 dark:border-slate-700 text-[11px] text-slate-400 flex items-center justify-center">
+                      <div className="flex h-12 w-16 items-center justify-center rounded border border-dashed border-[#2A3A57] text-[11px] text-[#60738F]">
                         无图
                       </div>
                     )}
                   </TableCell>
                   <TableCell className="max-w-[300px]">
-                    <div className="truncate font-medium text-sm" title={question.content}>
+                    <div
+                      className="truncate text-sm font-medium text-[#E6EDF7]"
+                      title={question.content}
+                    >
                       {question.content.substring(0, 50)}...
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="mt-1 text-xs text-[#7F93B2]">
                       ID: {question.id.substring(0, 8)}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{question.type}</Badge>
+                    <Badge
+                      variant="outline"
+                      className="border-[#314667] bg-[#121D33] text-[#C7D5EA]"
+                    >
+                      {question.type}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm">
+                    <div className="text-sm text-[#D6E7FF]">
                       {question.chapter?.subject?.name || '-'}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[150px]" title={question.chapter?.title}>
+                    <div
+                      className="max-w-[150px] truncate text-xs text-[#7F93B2]"
+                      title={question.chapter?.title}
+                    >
                       {question.chapter?.title || '-'}
                     </div>
                   </TableCell>
@@ -295,19 +336,29 @@ export function QuestionReviewTable({
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 rounded-full p-0 text-[#AFC3DE] hover:bg-[#18253E] hover:text-white"
+                        >
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>操作</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(question.id)}>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            navigator.clipboard.writeText(question.id)
+                          }
+                        >
                           复制ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/admin/content/review/${question.id}`} className="flex items-center cursor-pointer">
+                          <Link
+                            href={`/admin/content/review/${question.id}`}
+                            className="flex cursor-pointer items-center"
+                          >
                             <ClipboardCheck className="mr-2 h-4 w-4" />
                             查看题目/审核
                           </Link>
@@ -319,11 +370,11 @@ export function QuestionReviewTable({
               ))
             )}
           </TableBody>
-          <TableFooter>
-             <TableRow>
+          <TableFooter className="border-t border-[#1B2840] bg-[#0F1A2F]/80 text-[#C7D5EA]">
+            <TableRow className="border-b-0 hover:bg-transparent">
               <TableCell colSpan={9}>
-                <div className="flex items-center justify-between w-full">
-                  <div className="text-xs text-muted-foreground">
+                <div className="flex w-full items-center justify-between">
+                  <div className="text-xs text-[#7F93B2]">
                     第 {page} 页 / 共 {totalPages} 页
                   </div>
                   <div className="flex gap-2">
@@ -332,6 +383,7 @@ export function QuestionReviewTable({
                       size="sm"
                       onClick={() => goToPage(page - 1)}
                       disabled={page <= 1}
+                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
                     >
                       上一页
                     </Button>
@@ -340,6 +392,7 @@ export function QuestionReviewTable({
                       size="sm"
                       onClick={() => goToPage(page + 1)}
                       disabled={page >= totalPages}
+                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
                     >
                       下一页
                     </Button>

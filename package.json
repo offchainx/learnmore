@@ -16,6 +16,7 @@
     "codex:close": "node scripts/codex/close-session.mjs",
     "codex:check": "node scripts/codex/check-session.mjs",
     "codex:install-hooks": "node scripts/codex/install-hooks.mjs",
+    "ui:analyze": "node /Users/victorsim/.codex/skills/gemini-ui-frontend/scripts/analyze_ui.mjs",
     "postinstall": "prisma generate",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "prisma:generate": "dotenv -e .env.local pnpm prisma generate",

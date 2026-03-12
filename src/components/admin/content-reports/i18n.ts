@@ -4,24 +4,36 @@ type ReportsI18nBundle = {
   header: {
     title: string
     description: string
-    export: string
-    searchPlaceholder: string
-    filter: string
-    sort: string
+    badge: string
+    range7d: string
+    range30d: string
+    rangeAll: string
   }
   stats: {
-    pendingReports: string
-    sinceYesterday: string
-    resolvedToday: string
-    resolutionRate: string
+    openQueue: string
+    openQueueHint: string
+    resolvedInRange: string
+    resolvedInRangeHint: string
     avgResolutionTime: string
+    avgResolutionHint: string
+    answerWrong: string
+    answerWrongHint: string
     hours: string
-    fromLastWeek: string
+  }
+  filters: {
+    queueTitle: string
+    queueDescription: string
+    searchPlaceholder: string
+    issueAll: string
+    issueLabel: string
+    resultSummary: string
+    empty: string
   }
   table: {
     reporter: string
     issueType: string
     questionPreview: string
+    subject: string
     status: string
     actions: string
     inReview: string
@@ -57,25 +69,40 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
   en: {
     header: {
       title: 'User Reports Management',
-      description: 'Review, track, and resolve content issues reported by students.',
-      export: 'Export',
-      searchPlaceholder: 'Search reports by ID, content or user...',
-      filter: 'Filter',
-      sort: 'Sort',
+      description:
+        'Review, track, and resolve content issues reported by students.',
+      badge: 'Report Console',
+      range7d: '7 Days',
+      range30d: '30 Days',
+      rangeAll: 'All Time',
     },
     stats: {
-      pendingReports: 'Pending Reports',
-      sinceYesterday: '+4 since yesterday',
-      resolvedToday: 'Resolved Today',
-      resolutionRate: '94% resolution rate',
+      openQueue: 'Open Reports',
+      openQueueHint: 'Pending and in-review items',
+      resolvedInRange: 'Resolved',
+      resolvedInRangeHint: 'Closed within current range',
       avgResolutionTime: 'Avg. Resolution Time',
+      avgResolutionHint: 'Based on resolved items',
+      answerWrong: 'Answer Wrong',
+      answerWrongHint: 'Most critical learning impact',
       hours: 'hrs',
-      fromLastWeek: '-15min from last week',
+    },
+    filters: {
+      queueTitle: 'Report Queue',
+      queueDescription:
+        'Triage student reports, review evidence, and route fixes without leaving the workbench.',
+      searchPlaceholder:
+        'Search by report ID, question content, subject or reporter...',
+      issueAll: 'All Issues',
+      issueLabel: 'Issue Type',
+      resultSummary: 'results',
+      empty: 'No reports matched the current filters.',
     },
     table: {
       reporter: 'Reporter',
       issueType: 'Issue Type',
       questionPreview: 'Question Preview',
+      subject: 'Subject',
       status: 'Status',
       actions: 'Actions',
       inReview: 'In Review',
@@ -110,24 +137,37 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
     header: {
       title: '用户报错管理',
       description: '审核、跟踪并处理学员上报的内容问题。',
-      export: '导出',
-      searchPlaceholder: '按报错 ID、题目内容或用户搜索...',
-      filter: '筛选',
-      sort: '排序',
+      badge: 'Report Console',
+      range7d: '7 Days',
+      range30d: '30 Days',
+      rangeAll: 'All Time',
     },
     stats: {
-      pendingReports: '待处理报错',
-      sinceYesterday: '较昨日 +4',
-      resolvedToday: '今日已处理',
-      resolutionRate: '处理率 94%',
+      openQueue: '待处理报错',
+      openQueueHint: '待处理与处理中总量',
+      resolvedInRange: '已解决',
+      resolvedInRangeHint: '当前时间范围内关闭',
       avgResolutionTime: '平均处理时长',
+      avgResolutionHint: '按已解决报错计算',
+      answerWrong: '答案错误',
+      answerWrongHint: '优先影响学习结果',
       hours: '小时',
-      fromLastWeek: '较上周 -15 分钟',
+    },
+    filters: {
+      queueTitle: '报错队列',
+      queueDescription:
+        '集中处理学员上报问题，快速判断是否需要修题、复审或直接关闭。',
+      searchPlaceholder: '按报错 ID、题目内容、科目或上报人搜索...',
+      issueAll: '全部问题',
+      issueLabel: '问题类型',
+      resultSummary: '条结果',
+      empty: '当前筛选条件下没有匹配的报错。',
     },
     table: {
       reporter: '上报人',
       issueType: '问题类型',
       questionPreview: '题目预览',
+      subject: '科目',
       status: '状态',
       actions: '操作',
       inReview: '处理中',
@@ -161,25 +201,40 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
   ms: {
     header: {
       title: 'Pengurusan Laporan Pengguna',
-      description: 'Semak, jejak dan selesaikan isu kandungan yang dilaporkan pelajar.',
-      export: 'Eksport',
-      searchPlaceholder: 'Cari laporan mengikut ID, kandungan atau pengguna...',
-      filter: 'Tapis',
-      sort: 'Susun',
+      description:
+        'Semak, jejak dan selesaikan isu kandungan yang dilaporkan pelajar.',
+      badge: 'Report Console',
+      range7d: '7 Days',
+      range30d: '30 Days',
+      rangeAll: 'All Time',
     },
     stats: {
-      pendingReports: 'Laporan Tertunggak',
-      sinceYesterday: '+4 sejak semalam',
-      resolvedToday: 'Selesai Hari Ini',
-      resolutionRate: 'Kadar selesai 94%',
+      openQueue: 'Laporan Terbuka',
+      openQueueHint: 'Tertunggak dan sedang disemak',
+      resolvedInRange: 'Selesai',
+      resolvedInRangeHint: 'Ditutup dalam julat semasa',
       avgResolutionTime: 'Purata Masa Selesai',
+      avgResolutionHint: 'Berdasarkan laporan selesai',
+      answerWrong: 'Jawapan Salah',
+      answerWrongHint: 'Paling memberi kesan kepada pembelajaran',
       hours: 'jam',
-      fromLastWeek: '-15 minit dari minggu lepas',
+    },
+    filters: {
+      queueTitle: 'Barisan Laporan',
+      queueDescription:
+        'Semak isu yang dilaporkan pelajar dan tentukan sama ada perlu dibaiki, disemak semula atau ditutup terus.',
+      searchPlaceholder:
+        'Cari ikut ID laporan, kandungan soalan, subjek atau pelapor...',
+      issueAll: 'Semua Isu',
+      issueLabel: 'Jenis Isu',
+      resultSummary: 'hasil',
+      empty: 'Tiada laporan yang sepadan dengan penapis semasa.',
     },
     table: {
       reporter: 'Pelapor',
       issueType: 'Jenis Isu',
       questionPreview: 'Pratonton Soalan',
+      subject: 'Subjek',
       status: 'Status',
       actions: 'Tindakan',
       inReview: 'Dalam Semakan',

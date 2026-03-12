@@ -41,7 +41,7 @@ export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({
   const { lang } = useApp()
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide mb-2">
+    <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
       {subjects.map((subject) => {
         const subjectKey = subject.key || resolveSubjectKeyFromName(subject.name) || 'other'
         const label = getSubjectLabel(subjectKey, lang, subject.name)
@@ -52,13 +52,13 @@ export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({
           <button
             key={subject.id}
             onClick={() => onSelect(subject.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all border whitespace-nowrap ${
+            className={`flex min-h-[42px] items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 transition-all duration-300 ${
               isActive
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-transparent shadow-md transform scale-105'
-                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700'
+                ? 'scale-[1.02] border-transparent bg-slate-900 text-white shadow-[0_12px_26px_rgba(15,23,42,0.18)] dark:bg-white dark:text-black'
+                : 'border-slate-200/80 bg-white/92 text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-slate-300 hover:bg-white hover:text-slate-700 dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700'
             }`}
           >
-            <Icon className={`w-4 h-4 ${isActive ? 'text-white dark:text-black' : ''}`} />
+            <Icon className={`h-4 w-4 ${isActive ? 'text-white dark:text-black' : 'text-slate-400 dark:text-slate-500'}`} />
             <span className="text-sm font-bold">{label}</span>
           </button>
         )

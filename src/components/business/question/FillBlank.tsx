@@ -26,9 +26,9 @@ export const FillBlank: React.FC<FillBlankProps> = ({
 
   return (
     <div className="space-y-3">
-      <Label htmlFor="fill-blank-answer">Your Answer</Label>
+      <Label htmlFor={`fill-blank-answer-${question.id}`}>Your Answer</Label>
       <Input
-        id="fill-blank-answer"
+        id={`fill-blank-answer-${question.id}`}
         value={value || ''}
         onChange={(e) => onChange?.(e.target.value)}
         disabled={disabled}

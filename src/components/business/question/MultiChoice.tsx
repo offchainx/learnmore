@@ -34,6 +34,7 @@ export const MultiChoice: React.FC<MultiChoiceProps> = ({
   return (
     <div className="grid gap-3">
       {Object.entries(question.options).map(([key, label]) => {
+        const optionId = `question-${question.id}-option-${key}`;
         const isSelected = value.includes(key);
         // Assuming question.answer is string[] for Multi Choice, or we need to parse it if it comes as string (should be handled by parent or types)
         // In types.ts: answer?: string | string[] | null;
@@ -69,13 +70,13 @@ export const MultiChoice: React.FC<MultiChoiceProps> = ({
             }}
           >
             <Checkbox 
-                id={`option-${key}`} 
+                id={optionId} 
                 checked={isSelected} 
                 onCheckedChange={(c) => handleCheckedChange(c as boolean, key)}
                 disabled={disabled}
                 className="mt-1"
             />
-            <Label htmlFor={`option-${key}`} className="flex-1 cursor-pointer font-normal pointer-events-none">
+            <Label htmlFor={optionId} className="flex-1 cursor-pointer font-normal pointer-events-none">
                <div className="flex gap-2">
                  <span className="font-semibold min-w-[1.2rem]">{key}.</span>
                  <QuestionContent content={label} className="prose-none m-0 p-0 leading-normal" />

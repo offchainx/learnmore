@@ -11,6 +11,8 @@ interface WeaknessCardProps {
 
 export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
   const router = useRouter();
+  const cardClassName =
+    'rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-5 text-white shadow-[0_20px_48px_rgba(2,8,23,0.3)]';
 
   // 筛选薄弱点逻辑：
   // 1. 至少答题 5 次
@@ -22,45 +24,43 @@ export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
     .slice(0, 3); // Top 3
 
   if (weaknesses.length === 0) {
-    // 如果没有明显的薄弱点，可以不显示，或者显示一个"做得好"的状态
-    // 这里为了 UI 布局稳定，显示一个占位或者"暂无薄弱点"
     return (
-      <Card className="p-5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50 rounded-3xl">
-        <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-           <AlertOctagon className="w-4 h-4 text-green-500" /> Weakness Quick Fix
+      <Card className={cardClassName}>
+        <h3 className="mb-4 flex items-center gap-2 font-bold text-white">
+           <AlertOctagon className="w-4 h-4 text-green-500" /> 薄弱点快修
         </h3>
-        <div className="text-center py-4 text-slate-500 text-sm">
-          No weakness detected yet. Keep practicing!
+        <div className="py-4 text-center text-sm text-slate-400">
+          当前没有明显薄弱点，继续保持练习节奏。
         </div>
       </Card>
     );
   }
 
   return (
-     <Card className="p-5 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50 rounded-3xl">
-        <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-           <AlertOctagon className="w-4 h-4 text-red-500" /> Weakness Quick Fix
+     <Card className={cardClassName}>
+        <h3 className="mb-4 flex items-center gap-2 font-bold text-white">
+           <AlertOctagon className="w-4 h-4 text-red-500" /> 薄弱点快修
         </h3>
         <div className="space-y-3">
            {weaknesses.map((chapter) => (
               <div 
                 key={chapter.id} 
-                className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer"
+                className="group flex cursor-pointer items-center justify-between rounded-2xl border border-white/8 bg-white/5 p-3 transition-all hover:border-red-500/20 hover:bg-white/8"
                 onClick={() => router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)}
               >
                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-red-500 transition-colors truncate">
+                    <div className="truncate text-sm font-bold text-white transition-colors group-hover:text-red-200">
                       {chapter.title}
                     </div>
-                    <div className="text-[10px] text-red-500 font-bold uppercase">
-                      {chapter.stats.masteryLevel}% Proficiency
+                    <div className="mt-1 text-[10px] font-bold uppercase text-red-300">
+                      掌握度 {chapter.stats.masteryLevel}%
                     </div>
                  </div>
                  <Button 
                     size="sm" 
-                    className="h-7 px-3 text-[10px] font-black uppercase bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-transparent hover:bg-red-600 hover:text-white rounded-lg transition-all shrink-0"
+                    className="h-8 shrink-0 rounded-xl border border-red-500/20 bg-red-500/10 px-3 text-[10px] font-black uppercase text-red-200 transition-all hover:bg-red-500 hover:text-white"
                  >
-                    Fix <Play className="w-2.5 h-2.5 ml-1 fill-current" />
+                    去补强 <Play className="w-2.5 h-2.5 ml-1 fill-current" />
                  </Button>
               </div>
            ))}

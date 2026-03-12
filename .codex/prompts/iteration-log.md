@@ -55,6 +55,8 @@
 
 | 2026-03-10 | 提交当前全部改动并推送，补发生产部署验证 Speed Insights | 在保留当前工作区全部改动的前提下，完成提交、推送、生产部署与 Speed Insights 采集排查 | 已定位 preview 已接入 Speed Insights、production 尚未吃到代码；当前补齐 iteration log 后继续执行全量提交与推送 | 先用 vercel curl 对比 preview/production 页面源码，确认是否实际包含 SpeedInsights 组件 | 直接 commit 被 codex hook 拦截，原因是未更新 iteration log | 提交前先检查仓库 hooks 和 codex 日志门禁，再一次性补齐提交上下文 | 完成 commit/push，等待 production redeploy 后重新核对页面源码与 Speed Insights 面板 |
 
+| 2026-03-12 | 练习中心首页重构、Smart Drill 模式壳子统一、弹窗 preview 与连续滚动作答改造，并同步整理 admin/content 相关在工作区中的既有改动后准备统一提交 | 先更新 tasks，再抽共享 Practice 组件；Smart Drill 入口改弹窗，训练页改连续滚动；提交前必须补 iteration log 并走 codex:close | 完成练习中心视觉收口、Smart Drill 统一壳子、mock 预览、首页弹窗 preview 与连续作答；已满足 codex 提交门禁前置要求 | 先锁定共用壳子和结果组件，再局部替换 Smart Drill；将 preview 放回首页弹窗能明显减轻空页面感；连续作答前先修复表单 id 冲突避免多题同页异常 | 直接 git commit 会被 codex hook 拦截；全仓 tsc 仍受 admin/content-reports 既有类型问题影响，不能作为本轮新增问题判断依据 | 当任务涉及页面流改造时，先对齐入口形态、会话容器、结果页壳子，再做具体模式；提交前先检查仓库是否要求 codex:close / iteration-log，避免被 hook 中断 | 重新执行 git commit 与 git push；若推送成功，再继续下一批 Practice 模式重构或根据用户反馈微调 Smart Drill |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

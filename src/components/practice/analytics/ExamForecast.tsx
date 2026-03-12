@@ -20,6 +20,9 @@ interface ExamForecastProps {
   className?: string
 }
 
+const cardShellClassName =
+  'overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 text-white shadow-[0_20px_48px_rgba(2,8,23,0.3)]'
+
 /**
  * Sparkline 迷你图表组件
  * 显示近7天每日正确率的柱状图
@@ -53,8 +56,8 @@ const Sparkline = memo(function Sparkline({
               />
             </TooltipTrigger>
             <TooltipContent side="top">
-              <p className="font-bold">Day {7 - i}</p>
-              <p className="text-xs text-muted-foreground">Accuracy: {Math.round(value)}%</p>
+              <p className="font-bold">近第 {7 - i} 天</p>
+              <p className="text-xs text-muted-foreground">正确率：{Math.round(value)}%</p>
             </TooltipContent>
           </Tooltip>
         )
@@ -76,17 +79,17 @@ const TrendIndicator = memo(function TrendIndicator({
   const config: Record<TrendDirection, { icon: typeof TrendingUp; text: string; color: string }> = {
     UP: {
       icon: TrendingUp,
-      text: '+1 Grade',
+      text: '升 1 档',
       color: 'text-green-400'
     },
     DOWN: {
       icon: TrendingDown,
-      text: '-1 Grade',
+      text: '降 1 档',
       color: 'text-red-400'
     },
     STABLE: {
       icon: Minus,
-      text: 'Stable',
+      text: '持平',
       color: 'text-slate-400'
     }
   }
@@ -102,7 +105,7 @@ const TrendIndicator = memo(function TrendIndicator({
         </div>
       </TooltipTrigger>
       <TooltipContent side="right">
-        <p>Current vs. Previous 7 Days</p>
+        <p>当前 7 天对比前 7 天表现</p>
       </TooltipContent>
     </Tooltip>
   )
@@ -117,16 +120,16 @@ const ConfidenceBar = memo(function ConfidenceBar({
   confidence: number
 }) {
   const getConfidenceLabel = (value: number) => {
-    if (value >= 80) return 'High'
-    if (value >= 50) return 'Medium'
-    return 'Low'
+    if (value >= 80) return '高'
+    if (value >= 50) return '中'
+    return '低'
   }
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="flex items-center gap-2 text-xs text-slate-500 cursor-help">
-          <span>Confidence:</span>
+          <span>预测可信度</span>
           <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
             <div
               className={cn(
@@ -142,7 +145,7 @@ const ConfidenceBar = memo(function ConfidenceBar({
         </div>
       </TooltipTrigger>
       <TooltipContent side="bottom">
-        <p>Reliability based on question volume & recency</p>
+        <p>根据答题量与最近活跃度估算可信度</p>
       </TooltipContent>
     </Tooltip>
   )
@@ -156,7 +159,7 @@ function ExamForecastSkeleton() {
   const skeletonHeights = [45, 60, 35, 70, 55, 80, 50]
 
   return (
-    <Card className="p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white overflow-hidden relative">
+    <Card className={`${cardShellClassName} relative p-0`}>
       <div className="p-5 relative z-10">
         <Skeleton className="h-4 w-24 bg-slate-700 mb-4" />
         <div className="flex items-end gap-3 mb-4">
@@ -195,7 +198,7 @@ function ExamForecastInner({
 
   if (error) {
     return (
-      <Card className={cn("p-5 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white", className)}>
+      <Card className={cn(cardShellClassName, "p-5", className)}>
         <div className="text-center text-slate-400 py-4">
           {error}
         </div>
@@ -205,7 +208,7 @@ function ExamForecastInner({
 
   if (!forecast) {
     return (
-      <Card className={cn("p-5 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white", className)}>
+      <Card className={cn(cardShellClassName, "p-5", className)}>
         <div className="text-center text-slate-400 py-4">
           暂无预测数据
         </div>
@@ -216,10 +219,10 @@ function ExamForecastInner({
   // 数据不足的情况
   if (forecast.grade === 'N/A') {
     return (
-      <Card className={cn("p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white overflow-hidden relative", className)}>
+      <Card className={cn(cardShellClassName, "relative p-0", className)}>
         <div className="p-5 relative z-10">
           <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <TrendingUp className="w-4 h-4 text-blue-500" /> Exam Forecast
+            <TrendingUp className="w-4 h-4 text-blue-500" /> 考试预测
           </div>
           <div className="text-center py-6">
             <div className="text-2xl font-bold text-slate-500 mb-2">--</div>
@@ -232,7 +235,7 @@ function ExamForecastInner({
           </div>
         </div>
         <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
-          <span className="text-xs text-slate-500">Start practicing to see your forecast</span>
+          <span className="text-xs text-slate-500">继续练习后，这里会显示更准确的预测</span>
         </div>
       </Card>
     )
@@ -240,11 +243,11 @@ function ExamForecastInner({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <Card className={cn("p-0 bg-gradient-to-br from-slate-900 to-slate-950 border-slate-800 text-white overflow-hidden relative", className)}>
+      <Card className={cn(cardShellClassName, "relative p-0", className)}>
         <div className="p-5 relative z-10">
           {/* Header */}
           <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <TrendingUp className="w-4 h-4 text-blue-500" /> Exam Forecast
+            <TrendingUp className="w-4 h-4 text-blue-500" /> 考试预测
           </div>
 
           {/* Grade Display */}
@@ -255,11 +258,11 @@ function ExamForecastInner({
               </TooltipTrigger>
               <TooltipContent side="right">
                 <div className="text-xs">
-                  <p className="font-bold mb-1">Score Calculation:</p>
+                  <p className="font-bold mb-1">预测构成：</p>
                   <ul className="list-disc pl-3 space-y-0.5">
-                    <li>Accuracy: 60%</li>
-                    <li>Completion: 30%</li>
-                    <li>Streak: 10%</li>
+                    <li>正确率：60%</li>
+                    <li>完成度：30%</li>
+                    <li>近期待状态：10%</li>
                   </ul>
                 </div>
               </TooltipContent>
@@ -278,7 +281,7 @@ function ExamForecastInner({
         {/* Footer */}
         <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
           <span className="text-xs text-slate-400">
-            Predicted for <strong>Finals (Nov)</strong>
+            预计当前可达到 <strong>{forecast.score} 分左右</strong>
           </span>
         </div>
 

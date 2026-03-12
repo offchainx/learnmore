@@ -30,6 +30,7 @@ export const SingleChoice: React.FC<SingleChoiceProps> = ({
       className="gap-3"
     >
       {Object.entries(question.options).map(([key, label]) => {
+        const optionId = `question-${question.id}-option-${key}`;
         const isSelected = value === key;
         // Check correctness if showResult is on.
         // Assuming question.answer is a string for Single Choice.
@@ -52,8 +53,8 @@ export const SingleChoice: React.FC<SingleChoiceProps> = ({
 
         return (
           <div key={key} className={itemClassName} onClick={() => !disabled && onChange?.(key)}>
-            <RadioGroupItem value={key} id={`option-${key}`} className="mt-1" />
-            <Label htmlFor={`option-${key}`} className="flex-1 cursor-pointer font-normal pointer-events-none">
+            <RadioGroupItem value={key} id={optionId} className="mt-1" />
+            <Label htmlFor={optionId} className="flex-1 cursor-pointer font-normal pointer-events-none">
                <div className="flex gap-2">
                  <span className="font-semibold min-w-[1.2rem]">{key}.</span>
                  <QuestionContent content={label} className="prose-none m-0 p-0 leading-normal" />

@@ -1,135 +1,233 @@
-"use client"
+'use client'
 
-import React from 'react';
-import { Report, ReportStatus, IssueType } from './types';
-import { Eye, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
-import { useApp } from '@/providers';
-import { getReportsI18n } from './i18n';
+import React from 'react'
+import { ChevronLeft, ChevronRight, Eye, Hash } from 'lucide-react'
+import { useApp } from '@/providers'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { getReportsI18n } from './i18n'
+import { IssueType, Report, ReportStatus } from './types'
 
 interface ReportsTableProps {
-  reports: Report[];
-  onSelectReport: (report: Report) => void;
+  reports: Report[]
+  totalCount: number
+  onSelectReport: (report: Report) => void
 }
 
-export const ReportsTable: React.FC<ReportsTableProps> = ({ reports, onSelectReport }) => {
-  const { lang } = useApp();
-  const text = getReportsI18n(lang);
+export const ReportsTable: React.FC<ReportsTableProps> = ({
+  reports,
+  totalCount,
+  onSelectReport,
+}) => {
+  const { lang } = useApp()
+  const text = getReportsI18n(lang)
 
-  const getStatusColor = (status: ReportStatus) => {
-    switch (status) {
-      case ReportStatus.IN_REVIEW: return 'text-yellow-600 dark:text-yellow-400';
-      case ReportStatus.PENDING: return 'text-red-600 dark:text-red-400';
-      case ReportStatus.RESOLVED: return 'text-green-600 dark:text-green-400';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getStatusIndicator = (status: ReportStatus) => {
+  const getStatusBadge = (status: ReportStatus) => {
     switch (status) {
       case ReportStatus.IN_REVIEW:
         return (
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
-          </span>
-        );
+          <Badge className="border-[#5C4520] bg-[#3B2A10] text-[#FBBF24]">
+            {text.table.inReview}
+          </Badge>
+        )
       case ReportStatus.PENDING:
-        return <span className="h-2 w-2 rounded-full bg-red-500"></span>;
+        return (
+          <Badge className="border-[#6D2432] bg-[#241118] text-[#FDA4AF]">
+            {text.table.pending}
+          </Badge>
+        )
       case ReportStatus.RESOLVED:
-        return <span className="h-2 w-2 rounded-full bg-green-500"></span>;
+        return (
+          <Badge className="border-[#244B37] bg-[#123125] text-[#7FE0AF]">
+            {text.table.resolved}
+          </Badge>
+        )
     }
-  };
+  }
 
   const getIssueBadge = (type: IssueType) => {
-    const baseClasses = "px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border";
-    const issueText = text.issueType[type];
     switch (type) {
       case IssueType.ANSWER_WRONG:
-        return <span className={`${baseClasses} bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border-red-200 dark:border-red-500/20`}>{issueText}</span>;
+        return (
+          <Badge className="border-[#6D2432] bg-[#241118] text-[#FDA4AF]">
+            {text.issueType[type]}
+          </Badge>
+        )
       case IssueType.TYPO_ERROR:
-        return <span className={`${baseClasses} bg-orange-100 dark:bg-orange-500/10 text-orange-800 dark:text-orange-400 border-orange-200 dark:border-orange-500/20`}>{issueText}</span>;
+        return (
+          <Badge className="border-[#5C4520] bg-[#3B2A10] text-[#FBBF24]">
+            {text.issueType[type]}
+          </Badge>
+        )
       case IssueType.IMAGE_MISSING:
-        return <span className={`${baseClasses} bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 border-blue-200 dark:border-blue-500/20`}>{issueText}</span>;
+        return (
+          <Badge className="border-[#2B4470] bg-[#18335E] text-[#93C5FD]">
+            {text.issueType[type]}
+          </Badge>
+        )
     }
-  };
+  }
 
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden shadow-xl border-t-0">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{text.table.reporter}</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{text.table.issueType}</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[35%]">{text.table.questionPreview}</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{text.table.status}</th>
-              <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">{text.table.actions}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-white/5 text-sm">
-            {reports.map((report) => (
-              <tr key={report.id} className="glass-row transition-colors group cursor-pointer" onClick={() => onSelectReport(report)}>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <div className="relative">
-                      {report.user.avatar ? (
-                         <img className="h-10 w-10 rounded-full object-cover border-2 border-white dark:border-white/10 shadow-sm" src={report.user.avatar} alt={report.user.name} />
-                      ) : (
-                         <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold border-2 border-white dark:border-white/10 shadow-sm">
-                             {report.user.name.split(' ').map(n => n[0]).join('')}
-                         </div>
-                      )}
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-[#151a23] ${report.status === ReportStatus.RESOLVED ? 'bg-gray-400' : 'bg-green-500'}`}></div>
-                    </div>
-                    <div className="ml-4">
-                      <div className="font-medium text-gray-900 dark:text-white">{report.user.name}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{report.timestamp}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {getIssueBadge(report.issueType)}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-gray-900 dark:text-gray-300 font-medium truncate max-w-xs">{report.question.text}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1 flex items-center gap-1">
-                    <Hash size={10} />
-                    {report.question.id} • {report.question.subject}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusIndicator(report.status)}
-                    <span className={`text-xs font-medium ${getStatusColor(report.status)}`}>
-                        {report.status === ReportStatus.IN_REVIEW ? text.table.inReview : report.status === ReportStatus.PENDING ? text.table.pending : text.table.resolved}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                    <button className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors" title={text.table.viewDetails} onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}>
-                      <Eye size={20} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between rounded-2xl border border-[#24324D] bg-[#101A2E]/80 px-4 py-3">
+        <div className="text-sm text-[#9FB0C9]">
+          {reports.length} / {totalCount} {text.filters.resultSummary}
+        </div>
       </div>
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between bg-gray-50/50 dark:bg-black/20">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {text.table.showing} <span className="font-medium text-gray-900 dark:text-white">1</span> {text.table.to} <span className="font-medium text-gray-900 dark:text-white">4</span> {text.table.of} <span className="font-medium text-gray-900 dark:text-white">24</span> {text.table.results}
-        </div>
-        <div className="flex gap-2">
-          <button className="p-2 rounded-lg border border-gray-200 dark:border-white/10 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            <ChevronLeft size={16} />
-          </button>
-          <button className="p-2 rounded-lg border border-gray-200 dark:border-white/10 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-white/5 transition-colors">
-            <ChevronRight size={16} />
-          </button>
-        </div>
+
+      <div className="overflow-hidden rounded-[24px] border border-[#24324D] bg-[#0D1628]">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-[#1B2840] bg-[#0F1A2F] hover:bg-[#0F1A2F]">
+              <TableHead className="text-[#7F93B2]">
+                {text.table.reporter}
+              </TableHead>
+              <TableHead className="text-[#7F93B2]">
+                {text.table.issueType}
+              </TableHead>
+              <TableHead className="text-[#7F93B2]">
+                {text.table.questionPreview}
+              </TableHead>
+              <TableHead className="text-[#7F93B2]">
+                {text.table.subject}
+              </TableHead>
+              <TableHead className="text-[#7F93B2]">
+                {text.table.status}
+              </TableHead>
+              <TableHead className="text-right text-[#7F93B2]">
+                {text.table.actions}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody className="[&_tr:last-child]:border-b-0">
+            {reports.length === 0 ? (
+              <TableRow className="border-b border-[#16233A] hover:bg-transparent">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-[#7F93B2]"
+                >
+                  {text.filters.empty}
+                </TableCell>
+              </TableRow>
+            ) : (
+              reports.map((report) => (
+                <TableRow
+                  key={report.id}
+                  className="cursor-pointer border-b border-[#16233A] text-[#E6EDF7] hover:bg-[#111C31]"
+                  onClick={() => onSelectReport(report)}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      {report.user.avatar ? (
+                        <img
+                          src={report.user.avatar}
+                          alt={report.user.name}
+                          className="h-10 w-10 rounded-full border border-[#24324D] object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 text-sm font-bold text-white">
+                          {report.user.name
+                            .split(' ')
+                            .map((name) => name[0])
+                            .join('')}
+                        </div>
+                      )}
+
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium text-[#E6EDF7]">
+                          {report.user.name}
+                        </div>
+                        <div className="mt-1 text-xs text-[#7F93B2]">
+                          {report.timestamp}
+                        </div>
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>{getIssueBadge(report.issueType)}</TableCell>
+
+                  <TableCell className="max-w-[360px]">
+                    <div
+                      className="truncate text-sm font-medium text-[#E6EDF7]"
+                      title={report.question.text}
+                    >
+                      {report.question.text}
+                    </div>
+                    <div className="mt-1 flex items-center gap-1 text-xs text-[#7F93B2]">
+                      <Hash className="h-3 w-3" />
+                      {report.question.id}
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="text-sm text-[#D6E7FF]">
+                      {report.question.subject}
+                    </div>
+                  </TableCell>
+
+                  <TableCell>{getStatusBadge(report.status)}</TableCell>
+
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      className="h-8 w-8 rounded-full p-0 text-[#AFC3DE] hover:bg-[#18253E] hover:text-white"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onSelectReport(report)
+                      }}
+                    >
+                      <span className="sr-only">{text.table.viewDetails}</span>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+
+          <TableFooter className="border-t border-[#1B2840] bg-[#0F1A2F]/80 text-[#C7D5EA]">
+            <TableRow className="border-b-0 hover:bg-transparent">
+              <TableCell colSpan={6}>
+                <div className="flex w-full items-center justify-between">
+                  <div className="text-xs text-[#7F93B2]">
+                    {text.table.showing} 1 {text.table.to} {reports.length}{' '}
+                    {text.table.of} {totalCount} {text.table.results}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={reports.length === 0}
+                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
       </div>
     </div>
-  );
-};
+  )
+}
