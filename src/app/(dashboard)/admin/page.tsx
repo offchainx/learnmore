@@ -6,9 +6,7 @@ import type {
   AdminDashboardRole,
   AdminDashboardWindow,
 } from '@/types/admin-dashboard'
-import {
-  getAdminDashboardOverview,
-} from '@/actions/admin/dashboard-overview'
+import { getAdminDashboardOverview } from '@/actions/admin/dashboard-overview'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,8 +34,11 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
 
   const resolvedSearchParams = (await searchParams) || {}
   const rawWindowParam = resolvedSearchParams.window
-  const rawWindow = Array.isArray(rawWindowParam) ? rawWindowParam[0] : rawWindowParam
-  const initialWindow: AdminDashboardWindow = normalizeDashboardWindow(rawWindow)
+  const rawWindow = Array.isArray(rawWindowParam)
+    ? rawWindowParam[0]
+    : rawWindowParam
+  const initialWindow: AdminDashboardWindow =
+    normalizeDashboardWindow(rawWindow)
 
   const overview = await getAdminDashboardOverview(initialWindow)
 
@@ -49,7 +50,6 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
         workQueue={overview.workQueue}
         risks={overview.risks}
         audits={overview.audits}
-        actions={overview.actions}
         lastUpdated={overview.lastUpdated}
         initialWindow={overview.window}
         initialState="SUCCESS"
