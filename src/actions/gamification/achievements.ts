@@ -60,20 +60,23 @@ export async function ensureDefaultBadges() {
   })
 }
 
-export async function getAchievementOverview(inputUserId?: string): Promise<AchievementOverview | null> {
+export async function getAchievementOverview(
+  inputUserId?: string
+): Promise<AchievementOverview | null> {
   const userId = await resolveUserId(inputUserId)
   if (!userId) return null
 
-  const [user, totalAttempts, correctAttempts, posts, comments] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { streak: true, totalStudyTime: true, xp: true },
-    }),
-    prisma.userAttempt.count({ where: { userId } }),
-    prisma.userAttempt.count({ where: { userId, isCorrect: true } }),
-    prisma.post.count({ where: { authorId: userId } }),
-    prisma.comment.count({ where: { authorId: userId } }),
-  ])
+  const [user, totalAttempts, correctAttempts, posts, comments] =
+    await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { streak: true, totalStudyTime: true, xp: true },
+      }),
+      prisma.userAttempt.count({ where: { userId } }),
+      prisma.userAttempt.count({ where: { userId, isCorrect: true } }),
+      prisma.post.count({ where: { authorId: userId } }),
+      prisma.comment.count({ where: { authorId: userId } }),
+    ])
 
   if (!user) return null
 
@@ -83,7 +86,11 @@ export async function getAchievementOverview(inputUserId?: string): Promise<Achi
   return {
     streak: user.streak,
     questions: totalAttempts,
-    accuracy: totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0,
+    correctAnswers: correctAttempts,
+    accuracy:
+      totalAttempts > 0
+        ? Math.round((correctAttempts / totalAttempts) * 100)
+        : 0,
     hours: (user.totalStudyTime / 3600).toFixed(1),
     level,
     xp: user.xp,
@@ -93,7 +100,9 @@ export async function getAchievementOverview(inputUserId?: string): Promise<Achi
   }
 }
 
-export async function listUserBadges(inputUserId?: string): Promise<BadgeWithUnlockStatus[]> {
+export async function listUserBadges(
+  inputUserId?: string
+): Promise<BadgeWithUnlockStatus[]> {
   const userId = await resolveUserId(inputUserId)
   if (!userId) return []
 
@@ -109,7 +118,9 @@ export async function listUserBadges(inputUserId?: string): Promise<BadgeWithUnl
     }),
   ])
 
-  const userBadgeMap = new Map(userBadges.map((item) => [item.badgeId, item.awardedAt]))
+  const userBadgeMap = new Map(
+    userBadges.map((item) => [item.badgeId, item.awardedAt])
+  )
 
   return badges.map((badge) => ({
     id: badge.id,
@@ -123,23 +134,27 @@ export async function listUserBadges(inputUserId?: string): Promise<BadgeWithUnl
   }))
 }
 
-export async function awardBadgeIfEligible(userId: string, trigger: 'PRACTICE' | 'COMMUNITY' | 'STREAK') {
+export async function awardBadgeIfEligible(
+  userId: string,
+  trigger: 'PRACTICE' | 'COMMUNITY' | 'STREAK'
+) {
   if (!userId) {
     return { awardedCodes: [] as string[] }
   }
 
   await ensureDefaultBadges()
 
-  const [user, totalAttempts, correctAttempts, postCount, commentCount] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { streak: true },
-    }),
-    prisma.userAttempt.count({ where: { userId } }),
-    prisma.userAttempt.count({ where: { userId, isCorrect: true } }),
-    prisma.post.count({ where: { authorId: userId } }),
-    prisma.comment.count({ where: { authorId: userId } }),
-  ])
+  const [user, totalAttempts, correctAttempts, postCount, commentCount] =
+    await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { streak: true },
+      }),
+      prisma.userAttempt.count({ where: { userId } }),
+      prisma.userAttempt.count({ where: { userId, isCorrect: true } }),
+      prisma.post.count({ where: { authorId: userId } }),
+      prisma.comment.count({ where: { authorId: userId } }),
+    ])
 
   if (!user) {
     return { awardedCodes: [] as string[] }

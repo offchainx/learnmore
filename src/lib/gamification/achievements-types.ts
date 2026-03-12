@@ -1,6 +1,7 @@
 export interface AchievementOverview {
   streak: number
   questions: number
+  correctAnswers: number
   accuracy: number
   hours: string
   level: number

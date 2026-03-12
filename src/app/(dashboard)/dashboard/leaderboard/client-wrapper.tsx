@@ -6,12 +6,18 @@ import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
 import { useApp } from '@/providers'
 import { User } from '@prisma/client'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
+import type {
+  AchievementOverview,
+  BadgeWithUnlockStatus,
+} from '@/lib/gamification/achievements-types'
 
 interface LeaderboardClientWrapperProps {
   user: User
   initialPeriod: 'WEEKLY' | 'MONTHLY' | 'ALL_TIME'
   initialEntries: LeaderboardEntryWithUser[]
   initialMyRank: number | null
+  overview: AchievementOverview | null
+  badges: BadgeWithUnlockStatus[]
 }
 
 export function LeaderboardClientWrapper({
@@ -19,6 +25,8 @@ export function LeaderboardClientWrapper({
   initialPeriod,
   initialEntries,
   initialMyRank,
+  overview,
+  badges,
 }: LeaderboardClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
@@ -26,16 +34,16 @@ export function LeaderboardClientWrapper({
   const handleNavigate = (view: string) => {
     // Map view names to routes
     const routes: Record<string, string> = {
-      'dashboard': '/dashboard',
-      'courses': '/dashboard/courses',
-      'questionBank': '/dashboard/practice',
-      'leaderboard': '/dashboard/leaderboard',
-      'community': '/dashboard/community',
-      'settings': '/dashboard/settings',
-      'achievements': '/dashboard/achievements',
-      'knowledgeGraph': '/dashboard/knowledge-graph',
-      'admin': '/admin',
-      'parent': '/dashboard'
+      dashboard: '/dashboard',
+      courses: '/dashboard/courses',
+      questionBank: '/dashboard/practice',
+      leaderboard: '/dashboard/leaderboard',
+      community: '/dashboard/community',
+      settings: '/dashboard/settings',
+      achievements: '/dashboard/achievements',
+      knowledgeGraph: '/dashboard/knowledge-graph',
+      admin: '/admin',
+      parent: '/dashboard',
     }
 
     const route = routes[view] || '/dashboard'
@@ -47,6 +55,7 @@ export function LeaderboardClientWrapper({
       currentView="leaderboard"
       onNavigate={handleNavigate}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
@@ -60,6 +69,8 @@ export function LeaderboardClientWrapper({
         initialPeriod={initialPeriod}
         initialEntries={initialEntries}
         initialMyRank={initialMyRank}
+        overview={overview}
+        badges={badges}
       />
     </DashboardLayout>
   )
