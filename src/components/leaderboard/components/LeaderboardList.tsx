@@ -1,13 +1,15 @@
 import {
-  ChevronUp,
   ChevronDown,
+  ChevronUp,
+  Crown,
+  Filter,
   Minus,
   Sword,
-  ChevronsUp,
-  AlertTriangle,
-  Filter,
+  TriangleAlert,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+type PeriodKey = 'WEEKLY' | 'MONTHLY' | 'ALL_TIME'
 
 interface LeaderboardUser {
   rank: number
@@ -21,167 +23,256 @@ interface LeaderboardUser {
 }
 
 interface LeaderboardListProps {
-  listData: LeaderboardUser[]
+  title: string
+  rankLabel: string
+  studentLabel: string
+  xpLabel: string
+  filterLabel: string
+  globalLabel: string
+  friendsLabel: string
+  emptyLabel: string
+  loadingLabel: string
+  safeZoneLabel: string
+  promotionZoneLabel: string
+  demotionRiskLabel: string
+  youBadge: string
+  rivalBadge: string
+  meFooterLabel: string
+  meGapText: (gap: number, rank: number) => string
+  meFallbackText: string
   activeTab: 'global' | 'friends'
   onTabChange: (tab: 'global' | 'friends') => void
+  period: PeriodKey
+  onPeriodChange: (period: PeriodKey) => void
+  periodLabels: Record<PeriodKey, string>
+  listData: LeaderboardUser[]
+  loading?: boolean
   myGapToPrevious?: number | null
 }
 
 export function LeaderboardList({
-  listData,
+  title,
+  rankLabel,
+  studentLabel,
+  xpLabel,
+  filterLabel,
+  globalLabel,
+  friendsLabel,
+  emptyLabel,
+  loadingLabel,
+  safeZoneLabel,
+  promotionZoneLabel,
+  demotionRiskLabel,
+  youBadge,
+  rivalBadge,
+  meFooterLabel,
+  meGapText,
+  meFallbackText,
   activeTab,
   onTabChange,
+  period,
+  onPeriodChange,
+  periodLabels,
+  listData,
+  loading = false,
   myGapToPrevious = null,
 }: LeaderboardListProps) {
-  const currentUser = listData.find((u) => u.isMe)
+  const currentUser = listData.find((user) => user.isMe)
 
   return (
-    <div className="space-y-4">
-      {/* Controls */}
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex rounded-xl border border-slate-800 bg-slate-900 p-1">
-          <button
-            onClick={() => onTabChange('global')}
-            className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${activeTab === 'global' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
-          >
-            全站
-          </button>
-          <button
-            onClick={() => onTabChange('friends')}
-            className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${activeTab === 'friends' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-white'}`}
-          >
-            同学
-          </button>
+    <div className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-[30px] border border-[#21395f] bg-[#07111f] shadow-[0_18px_70px_rgba(3,10,28,0.3)]">
+      <div className="border-white/8 flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <div className="border-white/8 flex rounded-full border bg-white/[0.04] p-1">
+            <button
+              onClick={() => onTabChange('global')}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === 'global'
+                  ? 'bg-white text-slate-950'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {globalLabel}
+            </button>
+            <button
+              onClick={() => onTabChange('friends')}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                activeTab === 'friends'
+                  ? 'bg-white text-slate-950'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {friendsLabel}
+            </button>
+          </div>
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-slate-400 hover:text-white"
-        >
-          <Filter className="mr-2 h-4 w-4" /> 筛选
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <div className="border-white/8 flex rounded-full border bg-white/[0.04] p-1">
+            {(Object.keys(periodLabels) as PeriodKey[]).map((value) => (
+              <button
+                key={value}
+                onClick={() => onPeriodChange(value)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  period === value
+                    ? 'bg-blue-500 text-white shadow-[0_8px_20px_rgba(59,130,246,0.28)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {periodLabels[value]}
+              </button>
+            ))}
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="rounded-full px-3 text-slate-400 hover:bg-white/5 hover:text-white"
+          >
+            <Filter className="mr-1.5 h-4 w-4" />
+            {filterLabel}
+          </Button>
+        </div>
       </div>
 
-      {/* The List Container */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl">
-        {/* Header */}
-        <div className="sticky top-0 z-10 grid grid-cols-12 gap-4 border-b border-slate-800 bg-slate-950/50 p-4 text-xs font-bold uppercase tracking-wider text-slate-500 backdrop-blur-md">
-          <div className="col-span-2 text-center">Rank</div>
-          <div className="col-span-7">Student</div>
-          <div className="col-span-3 text-right">XP</div>
-        </div>
+      <div className="border-white/8 grid grid-cols-[80px_minmax(0,1fr)_120px] items-center gap-3 border-b px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+        <div className="text-center">{rankLabel}</div>
+        <div>{studentLabel}</div>
+        <div className="text-right">{xpLabel}</div>
+      </div>
 
-        {/* Rows */}
-        <div className="h-[600px] overflow-y-auto">
-          {listData.map((user, i) => {
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {loading ? (
+          <div className="space-y-2 px-5 py-4">
+            <div className="pb-2 text-sm text-slate-400">{loadingLabel}</div>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="border-white/6 grid grid-cols-[80px_minmax(0,1fr)_120px] items-center gap-3 rounded-2xl border bg-white/[0.02] px-4 py-3"
+              >
+                <div className="bg-white/6 h-10 w-10 rounded-2xl" />
+                <div className="space-y-2">
+                  <div className="bg-white/6 h-4 w-40 rounded-full" />
+                  <div className="h-3 w-28 rounded-full bg-white/5" />
+                </div>
+                <div className="bg-white/6 ml-auto h-4 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : listData.length === 0 ? (
+          <div className="px-5 py-8 text-sm text-slate-400">{emptyLabel}</div>
+        ) : (
+          listData.map((user) => {
             const isPromotion = user.status === 'promotion'
             const isDemotion = user.status === 'demotion'
+            const isTopThree = user.rank <= 3
 
             return (
               <div
-                key={i}
-                className={`relative grid grid-cols-12 items-center gap-4 border-b border-slate-800/50 p-4 transition-all duration-200 last:border-0 ${user.isMe ? 'bg-blue-500/10 hover:bg-blue-500/20' : 'hover:bg-slate-800/50'} ${isPromotion ? 'bg-emerald-500/5' : ''} ${isDemotion ? 'bg-red-500/5' : ''} `}
+                key={`${user.rank}-${user.name}`}
+                className={`border-white/6 grid grid-cols-[80px_minmax(0,1fr)_120px] items-center gap-3 border-b px-5 py-3 transition-colors last:border-0 ${
+                  user.isMe ? 'bg-blue-500/10' : 'hover:bg-white/[0.03]'
+                }`}
               >
-                {/* Zone Indicators */}
-                {isPromotion && (
-                  <div className="absolute bottom-0 left-0 top-0 w-1 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                )}
-                {isDemotion && (
-                  <div className="absolute bottom-0 left-0 top-0 w-1 bg-red-500"></div>
-                )}
-
-                <div className="col-span-2 flex flex-col items-center justify-center">
-                  <span
-                    className={`text-base font-bold ${user.isMe ? 'text-blue-400' : 'text-slate-300'}`}
-                  >
-                    {user.rank}
-                  </span>
+                <div className="flex flex-col items-center justify-center">
                   <div
-                    className={`flex items-center text-[10px] font-bold ${user.trend === 'up' ? 'text-emerald-500' : user.trend === 'down' ? 'text-red-500' : 'text-slate-600'}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-2xl border text-sm font-semibold ${
+                      isTopThree
+                        ? 'border-amber-300/30 bg-amber-400/10 text-amber-100'
+                        : user.isMe
+                          ? 'border-blue-400/30 bg-blue-500/10 text-blue-100'
+                          : 'border-white/8 bg-white/[0.03] text-slate-200'
+                    }`}
                   >
-                    {user.trend === 'up' && <ChevronUp className="h-3 w-3" />}
-                    {user.trend === 'down' && (
-                      <ChevronDown className="h-3 w-3" />
-                    )}
-                    {user.trend === 'same' && <Minus className="h-3 w-3" />}
+                    {isTopThree ? <Crown className="h-4 w-4" /> : user.rank}
+                  </div>
+                  <div className="mt-1 flex h-3 items-center text-[10px] font-semibold">
+                    {user.trend === 'up' ? (
+                      <ChevronUp className="h-3 w-3 text-emerald-400" />
+                    ) : null}
+                    {user.trend === 'down' ? (
+                      <ChevronDown className="h-3 w-3 text-red-400" />
+                    ) : null}
+                    {user.trend === 'same' ? (
+                      <Minus className="h-3 w-3 text-slate-600" />
+                    ) : null}
                   </div>
                 </div>
 
-                <div className="col-span-7 flex items-center gap-3">
-                  <img
-                    src={user.avatar}
-                    className={`h-9 w-9 rounded-full border object-cover ${user.isMe ? 'border-blue-500' : 'border-slate-700'}`}
-                    alt={user.name}
-                  />
-                  <div className="min-w-0">
-                    <div
-                      className={`flex items-center gap-2 truncate text-sm font-bold ${user.isMe ? 'text-white' : 'text-slate-300'}`}
-                    >
-                      {user.name}
-                      {user.isMe && (
-                        <span className="rounded bg-blue-600 px-1.5 text-[9px] font-normal text-white">
-                          YOU
-                        </span>
-                      )}
-                      {user.isRival && (
-                        <span className="flex items-center gap-1 rounded border border-red-800 bg-red-900/50 px-1.5 text-[9px] font-normal text-red-400">
-                          <Sword className="h-2 w-2" /> 追赶目标
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      {isPromotion && (
-                        <span className="flex items-center gap-0.5 text-emerald-500">
-                          <ChevronsUp className="h-3 w-3" /> 晋级区
-                        </span>
-                      )}
-                      {isDemotion && (
-                        <span className="flex items-center gap-0.5 text-red-500">
-                          <AlertTriangle className="h-3 w-3" /> 降级风险
-                        </span>
-                      )}
-                      {!isPromotion && !isDemotion && <span>稳定区</span>}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className={`h-10 w-10 rounded-2xl border object-cover ${
+                        user.isMe ? 'border-blue-400/40' : 'border-white/8'
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="truncate text-sm font-semibold text-white">
+                          {user.name}
+                        </div>
+                        {user.isMe ? (
+                          <span className="bg-blue-500/18 rounded-full px-2 py-0.5 text-[10px] font-medium text-blue-100">
+                            {youBadge}
+                          </span>
+                        ) : null}
+                        {user.isRival ? (
+                          <span className="bg-red-500/8 flex shrink-0 items-center gap-1 rounded-full border border-red-400/20 px-2 py-0.5 text-[10px] font-medium text-red-100">
+                            <Sword className="h-3 w-3" />
+                            {rivalBadge}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400">
+                        {isPromotion ? (
+                          <span className="text-emerald-400">
+                            {promotionZoneLabel}
+                          </span>
+                        ) : null}
+                        {isDemotion ? (
+                          <span className="flex items-center gap-1 text-red-400">
+                            <TriangleAlert className="h-3 w-3" />
+                            {demotionRiskLabel}
+                          </span>
+                        ) : null}
+                        {!isPromotion && !isDemotion ? (
+                          <span>{safeZoneLabel}</span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="col-span-3 text-right font-mono font-bold text-slate-300">
+                <div className="text-right text-sm font-semibold text-slate-100">
                   {user.xp.toLocaleString()}
                 </div>
               </div>
             )
-          })}
-        </div>
-
-        {/* Sticky User Footer */}
-        {currentUser && (
-          <div className="sticky bottom-0 z-20 border-t-2 border-blue-500 bg-slate-900 p-3 shadow-2xl">
-            <div className="grid grid-cols-12 items-center gap-4">
-              <div className="col-span-2 text-center text-lg font-bold text-white">
-                {currentUser.rank}
-              </div>
-              <div className="col-span-7 flex items-center gap-3">
-                <img
-                  src={currentUser.avatar}
-                  className="h-10 w-10 rounded-full border-2 border-blue-400"
-                  alt="Me"
-                />
-                <div>
-                  <div className="text-sm font-bold text-white">你</div>
-                  <div className="text-xs font-medium text-blue-400">
-                    {myGapToPrevious && currentUser.rank > 1
-                      ? `还差 ${myGapToPrevious} XP 追上第 ${currentUser.rank - 1} 名`
-                      : '继续完成挑战，保持当前势头'}
-                  </div>
-                </div>
-              </div>
-              <div className="col-span-3 text-right font-mono text-lg font-bold text-white">
-                {currentUser.xp.toLocaleString()}
-              </div>
-            </div>
-          </div>
+          })
         )}
       </div>
+
+      {currentUser && !loading ? (
+        <div className="bg-blue-500/8 border-t border-blue-400/20 px-5 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-white">
+                #{currentUser.rank} · {meFooterLabel}
+              </div>
+              <div className="text-blue-100/72 mt-1 truncate text-xs">
+                {myGapToPrevious && currentUser.rank > 1
+                  ? meGapText(myGapToPrevious, currentUser.rank)
+                  : meFallbackText}
+              </div>
+            </div>
+            <div className="text-sm font-semibold text-white">
+              {currentUser.xp.toLocaleString()}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

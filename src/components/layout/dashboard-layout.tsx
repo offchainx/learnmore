@@ -9,7 +9,6 @@ import {
   MessageCircle,
   Settings,
   LogOut,
-  Trophy,
   ChevronRight,
   ShieldCheck,
   Upload,
@@ -18,12 +17,12 @@ import {
   ChevronDown,
   Users,
   Rocket,
-  Ticket,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import { logoutAction } from '@/actions/user/auth'
 import { TrialBanner } from './TrialBanner'
 import { NotificationBell } from '../notification/NotificationBell'
+import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
 
 interface SidebarItemProps {
   icon: React.ElementType
@@ -108,6 +107,7 @@ interface DashboardLayoutProps {
   currentView: string
   onNavigate: (view: string) => void
   userRole?: string
+  userXp?: number | null
   subscriptionTier?: string | null
   subscriptionEnd?: Date | string | null
 }
@@ -117,6 +117,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   currentView,
   onNavigate,
   userRole,
+  userXp,
   subscriptionTier,
   subscriptionEnd,
 }) => {
@@ -125,7 +126,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const pathname = usePathname()
   const isUserAdminRoute =
     pathname?.startsWith('/admin/users') ||
-    pathname?.startsWith('/admin/permissions') ||
     pathname?.startsWith('/admin/feedback') ||
     pathname?.startsWith('/admin/referrals') ||
     pathname?.startsWith('/admin/vouchers') ||
@@ -150,6 +150,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isParent = userRole === 'PARENT'
   const isAdmin = userRole === 'ADMIN' || userRole === 'TEACHER'
   const effectiveTier = (subscriptionTier || 'STARTER').toUpperCase()
+  const resolvedXp = userXp ?? 0
+  const resolvedLevel = calculateLevel(resolvedXp)
+  const resolvedNextLevelXp = calculateNextLevelXp(resolvedLevel)
+  const levelProgress = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round((resolvedXp / Math.max(1, resolvedNextLevelXp)) * 100)
+    )
+  )
   const tierLabelMap: Record<string, string> = {
     STARTER: 'Starter',
     STANDARD: 'Standard',
@@ -169,7 +179,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         { id: 'dashboard', icon: LayoutDashboard, label: t.sidebar.dashboard },
         { id: 'courses', icon: BookOpen, label: t.sidebar.courses },
         { id: 'questionBank', icon: PenTool, label: t.sidebar.practice },
-        { id: 'leaderboard', icon: Trophy, label: t.sidebar.leaderboard },
         { id: 'community', icon: MessageCircle, label: t.sidebar.community },
       ]
 
@@ -179,12 +188,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       icon: Users,
       label: t.sidebar.adminUsers,
       href: '/admin/users',
-    },
-    {
-      id: 'admin-permissions',
-      icon: ShieldCheck,
-      label: t.sidebar.adminPermissions,
-      href: '/admin/permissions',
     },
     {
       id: 'admin-feedback',
@@ -197,12 +200,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       icon: Users,
       label: t.sidebar.adminReferrals,
       href: '/admin/referrals',
-    },
-    {
-      id: 'admin-vouchers',
-      icon: Ticket,
-      label: 'Voucher 管理',
-      href: '/admin/vouchers',
     },
   ]
 
@@ -376,24 +373,32 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {!isParent && (
             <div
               onClick={() => {
-                onNavigate('achievements')
+                onNavigate('leaderboard')
                 setSidebarOpen(false)
               }}
-              className="group relative mt-8 shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-4 shadow-lg transition-all hover:border-blue-500/50"
+              className={`group relative mt-8 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 shadow-lg transition-all ${
+                currentView === 'leaderboard' ||
+                pathname?.startsWith('/dashboard/leaderboard')
+                  ? 'border-blue-500/60 from-blue-950 to-slate-900 shadow-[0_18px_50px_rgba(37,99,235,0.24)]'
+                  : 'border-slate-700/50 from-slate-800 to-slate-900 hover:border-blue-500/50'
+              }`}
             >
               <div className="relative z-10">
                 <div className="mb-1 flex items-center justify-between">
                   <h4 className="text-sm font-bold text-white">
-                    {t.dashboard.level} 12
+                    {t.dashboard.level} {resolvedLevel}
                   </h4>
                   <ChevronRight className="h-3 w-3 text-slate-400 transition-colors group-hover:text-white" />
                 </div>
                 <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
-                  <span>1,250 XP</span>
-                  <span>/ 2,000</span>
+                  <span>{resolvedXp.toLocaleString()} XP</span>
+                  <span>/ {resolvedNextLevelXp.toLocaleString()}</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700/50">
-                  <div className="h-1.5 w-[65%] rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                  <div
+                    className="h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                    style={{ width: `${Math.max(4, levelProgress)}%` }}
+                  />
                 </div>
               </div>
             </div>
@@ -460,11 +465,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
         ) : (
           <div
-            className={`${
-              isAnyAdminRoute
-                ? 'mb-2 flex lg:mb-3'
-                : 'mb-6 flex items-center lg:mb-8'
-            }`}
+            className={
+              isAnyAdminRoute ? 'mb-2 flex lg:mb-3' : 'mb-2 flex items-center'
+            }
           >
             <div className="flex items-center gap-4">
               {/* Mobile Menu Trigger */}
@@ -488,14 +491,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   <line x1="4" x2="20" y1="18" y2="18" />
                 </svg>
               </button>
-
-              {!isAnyAdminRoute && (
-                <h1 className="hidden text-xl font-bold capitalize text-slate-900 dark:text-white sm:block">
-                  {currentView === 'dashboard'
-                    ? t.sidebar.dashboard
-                    : currentView}
-                </h1>
-              )}
             </div>
           </div>
         )}
