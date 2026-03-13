@@ -45,15 +45,15 @@
 | T-006.19 | 课程学习基线对齐 | codex | done | 2026-03-13：完成 `/dashboard/courses` 基线对齐与第二轮视觉收口，统一深色舱体 header、科目切换条、课程总览卡、课程/复习/笔记三态内容区与右侧建议栏；收回高饱和 hero、改为蓝青玻璃主基线，并接入各学科 hero 主题图与统一 pills 交互。 |
 | T-006.20 | 学员社区基线对齐 | codex | done | 2026-03-13：完成 `/dashboard/community` 论坛式列表重构，统一 3/1 主次栏比例、顶部筛选栏、帖子卡片信息架构、右侧板块导航与发布帖子页表单壳层；后续继续向 Dashboard 深蓝舱体视觉语言收口，统一社区卡片背景/透明度，并将发帖页正文以上字段改成双列布局；保留原有社区链路与反馈 FAB，收藏/已关注先按现有数据层做展示占位。 |
 | T-006.21 | 设定页面基线对齐 | codex | todo |  |
-| T-006.22 | 调整 sidebar | codex | todo |  |
-| T-006.23 | 统一所有页面视觉语言：字体/字号/留白基线收口 | codex | todo |  |
+| T-006.22 | 调整 sidebar | codex | done | 2026-03-13：完成 sidebar 第一轮结构重排，收口为主导航 / 管理 / 轻量 Upgrade / 底部账户区四段式；下移 admin 区、弱化 Upgrade 卡、将等级卡并入账户区，并补齐 icon 彩色 hover 与设置齿轮微动。 |
+| T-006.23 | 统一所有页面视觉语言：字体/字号/留白基线收口 | codex | doing |  |
 | T-006.24 | 全局基线实现批次：token -> 基础组件 -> 空态模板 -> 壳层导航 | codex | todo |  |
-| T-009 | 本地验证（Action + SQL 快照） | codex | todo |  |
-| T-009.1 | 本地 UI 回归：主路径、空态、加载态、移动端、导航一致性 | codex | todo |  |
-| T-009.2 | 本地读链路验证：不新增非预期写入、不破坏现有 API 读取行为 | codex | todo |  |
-| T-010 | 预发复测与收尾 | codex | todo |  |
-| T-010.1 | 预发视觉复测：页面一致性、五种模式风格统一、壳层不退化 | codex | todo |  |
-| T-010.2 | 预发行为复测：练习中心主路径与 Dashboard/Leaderboard/Community 基线统一 | codex | todo |  |
+| T-007 | 本地验证（Action + SQL 快照） | codex | todo |  |
+| T-007.1 | 本地 UI 回归：主路径、空态、加载态、移动端、导航一致性 | codex | todo |  |
+| T-007.2 | 本地读链路验证：不新增非预期写入、不破坏现有 API 读取行为 | codex | todo |  |
+| T-008 | 预发复测与收尾 | codex | todo |  |
+| T-008.1 | 预发视觉复测：页面一致性、五种模式风格统一、壳层不退化 | codex | todo |  |
+| T-008.2 | 预发行为复测：练习中心主路径与 Dashboard/Leaderboard/Community 基线统一 | codex | todo |  |
 
 ## 备注
 

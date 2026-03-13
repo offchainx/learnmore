@@ -32,6 +32,22 @@ interface SidebarItemProps {
   indent?: boolean
 }
 
+function getSidebarIconHoverClass(Icon: React.ElementType) {
+  if (Icon === LayoutDashboard) return 'group-hover:text-sky-400'
+  if (Icon === BookOpen) return 'group-hover:text-cyan-300'
+  if (Icon === PenTool) return 'group-hover:text-emerald-300'
+  if (Icon === MessageCircle) return 'group-hover:text-violet-300'
+  if (Icon === Settings) return 'group-hover:text-amber-300'
+  if (Icon === LogOut) return 'group-hover:text-rose-300'
+  if (Icon === Users) return 'group-hover:text-teal-300'
+  if (Icon === ShieldCheck) return 'group-hover:text-fuchsia-300'
+  if (Icon === Upload) return 'group-hover:text-sky-300'
+  if (Icon === CheckSquare) return 'group-hover:text-emerald-300'
+  if (Icon === AlertCircle) return 'group-hover:text-red-300'
+  if (Icon === Rocket) return 'group-hover:text-indigo-300'
+  return 'group-hover:text-cyan-300'
+}
+
 const SidebarItem = ({
   icon: Icon,
   label,
@@ -52,11 +68,27 @@ const SidebarItem = ({
     )}
     <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
       <Icon
-        className={`h-full w-full ${active ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-300'}`}
+        className={`h-full w-full transition-all duration-200 ${
+          active
+            ? 'text-blue-600 dark:text-blue-400'
+            : `text-slate-500 group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
+        } ${
+          Icon === Settings
+            ? 'group-hover:rotate-12'
+            : Icon === LogOut
+              ? 'group-hover:translate-x-0.5'
+              : 'group-hover:-translate-y-0.5'
+        }`}
       />
     </div>
     <span className="relative z-10">{label}</span>
   </button>
+)
+
+const SectionLabel = ({ label }: { label: string }) => (
+  <div className="px-2 pb-1 pt-3 text-[11px] font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-500">
+    {label}
+  </div>
 )
 
 interface SidebarSectionProps {
@@ -90,7 +122,11 @@ const SidebarSection = ({
       )}
       <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
         <Icon
-          className={`h-full w-full ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-slate-300'}`}
+          className={`h-full w-full transition-all duration-200 ${
+            isActive
+              ? 'text-blue-600 dark:text-blue-400'
+              : `text-slate-500 group-hover:-translate-y-0.5 group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
+          }`}
         />
       </div>
       <span className="relative z-10 flex-1 text-left">{label}</span>
@@ -121,7 +157,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   subscriptionTier,
   subscriptionEnd,
 }) => {
-  const { t } = useApp()
+  const { t, lang } = useApp()
   const router = useRouter()
   const pathname = usePathname()
   const isUserAdminRoute =
@@ -167,11 +203,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     PREMIER: 'Premier',
   }
   const tierLabel = tierLabelMap[effectiveTier] || 'Starter'
+  const copy = (zh: string, en: string, ms?: string) => {
+    if (lang === 'zh') return zh
+    if (lang === 'ms') return ms ?? en
+    return en
+  }
 
   // Check if any admin route is active
   const isAdminDashboardActive = pathname === '/admin'
   const isUserAdminActive = isUserAdminRoute
   const isContentAdminActive = isContentAdminRoute
+  const isSettingsActive =
+    currentView === 'settings' || pathname?.startsWith('/dashboard/settings')
 
   const menuItems = isParent
     ? [{ id: 'parent', icon: LayoutDashboard, label: t.sidebar.dashboard }]
@@ -264,50 +307,26 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Nav Items - Scrollable Area */}
-        <div className="h-[calc(100vh-5rem)] space-y-1 overflow-y-auto px-4 pb-40 pt-4">
-          {menuItems.map((item) => (
-            <SidebarItem
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              active={currentView === item.id}
-              onClick={() => {
-                onNavigate(item.id)
-                setSidebarOpen(false)
-              }}
-            />
-          ))}
-
-          {!isParent && (
-            <button
-              onClick={() => {
-                router.push('/pricing')
-                setSidebarOpen(false)
-              }}
-              className="mt-4 w-full rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 px-4 py-4 text-left transition-all hover:border-blue-400"
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20">
-                  <Rocket className="h-4 w-4 text-blue-300" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">
-                    Upgrade
-                  </div>
-                  <div className="mt-0.5 text-xs text-slate-300">
-                    升级套餐，解锁更多功能
-                  </div>
-                </div>
-              </div>
-            </button>
-          )}
+        <div className="h-[calc(100vh-5rem)] overflow-y-auto px-4 pb-56 pt-4">
+          <div className="space-y-1">
+            {menuItems.map((item) => (
+              <SidebarItem
+                key={item.id}
+                icon={item.icon}
+                label={item.label}
+                active={currentView === item.id}
+                onClick={() => {
+                  onNavigate(item.id)
+                  setSidebarOpen(false)
+                }}
+              />
+            ))}
+          </div>
 
           {/* Admin Section - Only for ADMIN and TEACHER */}
           {isAdmin && (
-            <>
-              <div className="mb-3 mt-6 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">
-                Administration
-              </div>
+            <div className="mt-5 space-y-1 border-t border-slate-200/70 pt-3 dark:border-slate-800/80">
+              <SectionLabel label={copy('管理', 'Admin', 'Admin')} />
 
               <SidebarItem
                 icon={LayoutDashboard}
@@ -366,17 +385,51 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   />
                 ))}
               </SidebarSection>
-            </>
+            </div>
           )}
 
-          {/* Achievement Card - Only for students */}
+          {!isParent && (
+            <div className="mt-5 border-t border-slate-200/70 pt-3 dark:border-slate-800/80">
+              <button
+                onClick={() => {
+                  router.push('/pricing')
+                  setSidebarOpen(false)
+                }}
+                className="group w-full rounded-2xl border border-blue-500/20 bg-[linear-gradient(135deg,rgba(20,35,63,0.96),rgba(24,36,72,0.92))] px-4 py-3.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-blue-400/35"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/14 text-blue-300">
+                    <Rocket className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-white">
+                      {copy('升级套餐', 'Upgrade', 'Naik taraf')}
+                    </div>
+                    <div className="mt-0.5 text-xs text-slate-400">
+                      {copy(
+                        '解锁更多训练与 AI 功能',
+                        'Unlock more AI and training tools',
+                        'Buka lebih banyak alat AI dan latihan'
+                      )}
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-500 transition-colors group-hover:text-white" />
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Section - ABSOLUTELY POSITIONED */}
+        <div className="absolute bottom-0 left-0 z-20 w-full border-t border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+          <SectionLabel label={copy('账户', 'Account', 'Akaun')} />
           {!isParent && (
             <div
               onClick={() => {
                 onNavigate('leaderboard')
                 setSidebarOpen(false)
               }}
-              className={`group relative mt-8 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 shadow-lg transition-all ${
+              className={`group mb-3 mt-1 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 shadow-lg transition-all ${
                 currentView === 'leaderboard' ||
                 pathname?.startsWith('/dashboard/leaderboard')
                   ? 'border-blue-500/60 from-blue-950 to-slate-900 shadow-[0_18px_50px_rgba(37,99,235,0.24)]'
@@ -403,14 +456,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Bottom Section - ABSOLUTELY POSITIONED */}
-        <div className="absolute bottom-0 left-0 z-20 w-full space-y-1 border-t border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+          <div className="space-y-1">
           <SidebarItem
             icon={Settings}
             label={t.sidebar.settings}
-            active={currentView === 'settings'}
+            active={isSettingsActive}
             onClick={() => {
               router.push('/dashboard/settings')
               setSidebarOpen(false)
@@ -421,6 +471,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             label={t.sidebar.logout}
             onClick={handleLogout}
           />
+          </div>
         </div>
       </aside>
 
