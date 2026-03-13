@@ -38,6 +38,7 @@ export function CoursesClientWrapper({ user }: CoursesClientWrapperProps) {
       currentView="courses"
       onNavigate={handleNavigate}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >

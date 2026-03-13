@@ -38,6 +38,7 @@ export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
       currentView="questionBank"
       onNavigate={handleNavigate}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >

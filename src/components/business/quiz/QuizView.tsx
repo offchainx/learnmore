@@ -1,197 +1,173 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Question, QuestionType } from '@prisma/client';
-import { submitQuiz, QuizSubmissionResult } from '@/actions/practice/quiz';
-import { Loader2, CircleCheck, CircleX } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import React, { useMemo, useState } from 'react';
+import { PracticeMode, Question as PrismaQuestion, QuestionType } from '@prisma/client';
+import { useRouter } from 'next/navigation';
+import { submitPracticeSession } from '@/actions/practice/session';
+import type { Question } from '@/components/business/question';
+import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel';
+import type { PracticeModeTheme } from '@/components/practice/modes/shared/theme';
+import UnifiedPracticeWorkspace, {
+  type UnifiedPracticeQuestion,
+} from '@/components/practice/session/UnifiedPracticeWorkspace';
 
 interface QuizViewProps {
+  userId: string;
+  title: string;
+  modeLabel: string;
+  subtitle: string;
+  mode: PracticeMode;
+  questions: PrismaQuestion[];
   chapterId?: string;
-  questions: Question[];
+  subjectId?: string;
+  submitLabel?: string;
+  refreshLabel?: string;
+  exitLabel?: string;
+  resultTitle?: string;
+  resultSubtitle?: string;
+  recommendation?: string;
+  theme?: PracticeModeTheme;
+  timeLimitSeconds?: number | null;
+  rightPanelNote?: string;
   onComplete?: () => void;
 }
 
-export function QuizView({ chapterId, questions, onComplete }: QuizViewProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+function formatQuestion(question: PrismaQuestion): Question {
+  return {
+    id: question.id,
+    type: question.type as QuestionType,
+    content: question.content,
+    options: question.options as Record<string, string> | null,
+    answer: question.answer as string | string[] | null,
+    explanation: question.explanation || null,
+  };
+}
+
+export function QuizView({
+  userId,
+  title,
+  modeLabel,
+  subtitle,
+  mode,
+  questions,
+  chapterId,
+  subjectId,
+  submitLabel = '提交试卷',
+  refreshLabel = '刷新题目',
+  exitLabel = '退出练习',
+  resultTitle = '练习完成',
+  resultSubtitle = '下面是这一轮练习的结果摘要。',
+  recommendation = '先看错题分布，再决定是继续加练还是回到练习中心切换模式。',
+  theme = 'amber',
+  timeLimitSeconds = null,
+  rightPanelNote,
+  onComplete,
+}: QuizViewProps) {
+  const router = useRouter();
+  const reloadPage = () => window.location.reload();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<QuizSubmissionResult | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [result, setResult] = useState<{
+    score: number;
+    correctCount: number;
+    totalQuestions: number;
+    results: Record<string, boolean>;
+  } | null>(null);
 
-  const handleSingleChoiceChange = (qId: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [qId]: value }));
-  };
+  const workspaceQuestions = useMemo<UnifiedPracticeQuestion[]>(
+    () =>
+      questions.map((question) => ({
+        id: question.id,
+        question: formatQuestion(question),
+        difficulty: question.difficulty,
+        meta: question.chapterId ? `章节线索：${question.chapterId}` : '按顺序完成整组题目后统一交卷',
+      })),
+    [questions],
+  );
 
-  const handleMultipleChoiceChange = (qId: string, value: string, checked: boolean) => {
-    setAnswers((prev) => {
-      const current = (prev[qId] as string[]) || [];
-      if (checked) {
-        return { ...prev, [qId]: [...current, value] };
-      } else {
-        return { ...prev, [qId]: current.filter((v) => v !== value) };
-      }
-    });
-  };
+  const handleSubmit = async ({
+    answers,
+    duration,
+  }: {
+    answers: Record<string, string | string[]>;
+    duration: number;
+  }) => {
+    if (isSubmitting) return;
 
-  const handleInputChange = (qId: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [qId]: value }));
-  };
-
-  const handleSubmit = async () => {
     setIsSubmitting(true);
-    try {
-      const formattedAnswers = Object.entries(answers).map(([questionId, userAnswer]) => ({
-        questionId,
-        userAnswer,
-      }));
+    setSubmitError(null);
 
-      const res = await submitQuiz({
-        ...(chapterId ? { chapterId } : {}),
-        answers: formattedAnswers,
-        duration: 60, // Placeholder duration
+    const submitResult = await submitPracticeSession({
+      userId,
+      mode,
+      chapterId: chapterId ?? null,
+      subjectId: subjectId ?? null,
+      title,
+      duration,
+      answers: questions.map((question) => ({
+        questionId: question.id,
+        userAnswer: answers[question.id] ?? null,
+      })),
+    });
+
+    if (submitResult.success) {
+      setResult({
+        score: Math.round(submitResult.score ?? 0),
+        correctCount: submitResult.correctCount ?? 0,
+        totalQuestions: submitResult.totalQuestions ?? questions.length,
+        results: submitResult.results ?? {},
       });
-
-      setResult(res);
-      if (res.success && onComplete) {
-        onComplete();
-      }
-    } catch (error) {
-      console.error('Quiz submission failed:', error);
-    } finally {
-      setIsSubmitting(false);
+      onComplete?.();
+    } else {
+      setSubmitError(submitResult.error || '提交失败，请稍后再试。');
     }
+
+    setIsSubmitting(false);
   };
 
   if (questions.length === 0) {
-    return <div className="p-8 text-center text-muted-foreground">No questions available for this quiz.</div>;
+    return <div className="rounded-3xl border border-dashed border-slate-200 p-8 text-center text-muted-foreground dark:border-slate-800">当前没有可用题目。</div>;
   }
 
   if (result) {
     return (
-      <div className="space-y-8">
-        <Card className="border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/20">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center text-emerald-600 dark:text-emerald-400">
-              Quiz Completed!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-2">
-            <div className="text-5xl font-bold">{Math.round(result.score || 0)}%</div>
-            <p className="text-muted-foreground">
-              You answered {result.correctCount} out of {result.totalQuestions} correctly.
-            </p>
-          </CardContent>
-          <CardFooter className="justify-center">
-            <Button onClick={() => setResult(null)} variant="outline">Review Answers</Button>
-          </CardFooter>
-        </Card>
-
-        <div className="space-y-6">
-          {questions.map((q, index) => {
-            const isCorrect = result.results?.[q.id];
-            return (
-              <Card key={q.id} className={`border-l-4 ${isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'}`}>
-                <CardHeader>
-                  <CardTitle className="flex items-start gap-2 text-base">
-                    <span className="font-mono text-muted-foreground">Q{index + 1}.</span>
-                    <div className="flex-1">
-                      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                        {q.content}
-                      </ReactMarkdown>
-                    </div>
-                    {isCorrect ? <CircleCheck className="text-emerald-500 w-5 h-5 shrink-0" /> : <CircleX className="text-red-500 w-5 h-5 shrink-0" />}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Show User Answer vs Correct Answer could go here */}
-                  {!isCorrect && q.explanation && (
-                    <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
-                      <p className="font-semibold mb-1">Explanation:</p>
-                      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                        {q.explanation}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
+      <PracticeResultPanel
+        title={resultTitle}
+        subtitle={resultSubtitle}
+        score={result.score}
+        theme={theme}
+        stats={[
+          { label: '题目总数', value: result.totalQuestions, toneClassName: 'text-slate-100' },
+          { label: '正确', value: result.correctCount, toneClassName: 'text-emerald-300' },
+          { label: '错误', value: Math.max(0, result.totalQuestions - result.correctCount), toneClassName: 'text-rose-300' },
+          { label: '正确率', value: `${result.score}%`, toneClassName: 'text-cyan-200' },
+        ]}
+        recommendation={recommendation}
+        note={submitError}
+        questionStates={questions.map((question) => Boolean(result.results[question.id]))}
+        primaryActionLabel="返回练习中心"
+        primaryAction={() => router.push('/dashboard/practice')}
+        secondaryActionLabel="再做一轮"
+        secondaryAction={reloadPage}
+      />
     );
   }
 
   return (
-    <div className="space-y-8">
-      {questions.map((q, index) => {
-        const options = q.options as Record<string, string> | null;
-        
-        return (
-          <Card key={q.id}>
-            <CardHeader>
-              <CardTitle className="flex items-start gap-2 text-base">
-                <span className="font-mono text-muted-foreground">Q{index + 1}.</span>
-                <div className="flex-1 prose dark:prose-invert">
-                  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                    {q.content}
-                  </ReactMarkdown>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {q.type === QuestionType.SINGLE_CHOICE && options && (
-                <RadioGroup onValueChange={(val) => handleSingleChoiceChange(q.id, val)} value={answers[q.id] as string}>
-                  {Object.entries(options).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-accent transition-colors">
-                      <RadioGroupItem value={key} id={`${q.id}-${key}`} />
-                      <Label htmlFor={`${q.id}-${key}`} className="flex-1 cursor-pointer">{key}. {value}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              )}
-
-              {q.type === QuestionType.MULTIPLE_CHOICE && options && (
-                <div className="space-y-2">
-                   {Object.entries(options).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-accent transition-colors">
-                      <Checkbox 
-                        id={`${q.id}-${key}`} 
-                        checked={(answers[q.id] as string[] || []).includes(key)}
-                        onCheckedChange={(checked) => handleMultipleChoiceChange(q.id, key, checked as boolean)}
-                      />
-                      <Label htmlFor={`${q.id}-${key}`} className="flex-1 cursor-pointer">{key}. {value}</Label>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {(q.type === QuestionType.FILL_BLANK || q.type === QuestionType.ESSAY) && (
-                <Input 
-                  placeholder="Type your answer here..." 
-                  value={answers[q.id] as string || ''}
-                  onChange={(e) => handleInputChange(q.id, e.target.value)}
-                />
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
-
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleSubmit} disabled={isSubmitting} size="lg" className="w-full md:w-auto">
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Submit Answers
-        </Button>
-      </div>
-    </div>
+    <UnifiedPracticeWorkspace
+      title={title}
+      modeLabel={modeLabel}
+      subtitle={subtitle}
+      questions={workspaceQuestions}
+      onSubmit={handleSubmit}
+      onRefresh={reloadPage}
+      onExit={() => router.push('/dashboard/practice')}
+      submitLabel={submitLabel}
+      refreshLabel={refreshLabel}
+      exitLabel={exitLabel}
+      isSubmitting={isSubmitting}
+      timeLimitSeconds={timeLimitSeconds}
+      rightPanelNote={rightPanelNote}
+    />
   );
 }

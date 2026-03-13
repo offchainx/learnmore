@@ -13,8 +13,8 @@ interface PostDetailPageProps {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "Post Detail",
-  };
+    title: 'Post Detail',
+  }
 }
 
 export default async function PostDetailPage({ params }: PostDetailPageProps) {
@@ -29,10 +29,17 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
   if (!post) {
     return (
       <CommunityClientWrapper user={profile}>
-        <Card className="p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900">
-          <h2 className="text-lg font-semibold mb-2">帖子不存在或已删除</h2>
-          <p className="text-sm text-slate-500 mb-4">请返回社区列表查看其他内容。</p>
-          <Link href="/dashboard/community" className="text-sm text-blue-600 hover:underline">
+        <Card className="rounded-[30px] border border-[#203964] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.14),_transparent_52%),linear-gradient(180deg,_#07152d_0%,_#071121_100%)] p-6 text-white shadow-[0_20px_70px_rgba(3,10,28,0.25)]">
+          <h2 className="mb-2 text-xl font-semibold text-white">
+            帖子不存在或已删除
+          </h2>
+          <p className="text-blue-100/64 mb-4 text-sm leading-6">
+            这条讨论可能已被移除，或者你访问的链接已经失效。
+          </p>
+          <Link
+            href="/dashboard/community"
+            className="text-sm font-medium text-sky-200 hover:text-white"
+          >
             返回社区
           </Link>
         </Card>

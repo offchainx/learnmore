@@ -16,7 +16,7 @@ interface KnowledgeHiveProps {
 }
 
 const cardClassName =
-  'overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] text-white shadow-[0_20px_48px_rgba(2,8,23,0.3)]'
+  'overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] text-white shadow-[0_18px_40px_rgba(2,8,23,0.28)]'
 
 /**
  * 蜂巢节点组件
@@ -62,7 +62,7 @@ const HiveCell = memo(function HiveCell({
         aria-label={`${node.chapterTitle} - ${statusLabels[node.status]}`}
       >
         <Hexagon
-          className="w-12 h-12 sm:w-14 sm:h-14"
+          className="h-9 w-9 sm:h-10 sm:w-10"
           fill="currentColor"
           strokeWidth={1.5}
         />
@@ -124,8 +124,8 @@ const HiveRow = memo(function HiveRow({
   return (
     <div
       className={cn(
-        'flex justify-center gap-1 sm:gap-2',
-        offset && 'ml-6 sm:ml-7'
+        'flex justify-center gap-1',
+        offset && 'ml-4 sm:ml-5'
       )}
     >
       {nodes.map((node) => (
@@ -177,8 +177,8 @@ function KnowledgeHiveInner({
   if (loading) {
     return (
       <Card className={cardClassName}>
-        <CardHeader>
-          <CardTitle className="text-lg text-white">知识蜂巢</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base text-white">知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center gap-2">
@@ -187,11 +187,11 @@ function KnowledgeHiveInner({
                 key={row}
                 className={cn(
                   'flex gap-2',
-                  row % 2 === 1 && 'ml-7'
+                  row % 2 === 1 && 'ml-5'
                 )}
               >
                 {Array.from({ length: row % 2 === 0 ? 5 : 4 }).map((_, i) => (
-                  <Skeleton key={i} className="w-12 h-12 rounded bg-slate-700 sm:h-14 sm:w-14" />
+                  <Skeleton key={i} className="h-9 w-9 rounded bg-slate-700 sm:h-10 sm:w-10" />
                 ))}
               </div>
             ))}
@@ -204,8 +204,8 @@ function KnowledgeHiveInner({
   if (error) {
     return (
       <Card className={cardClassName}>
-        <CardHeader>
-          <CardTitle className="text-lg text-white">知识蜂巢</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base text-white">知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="py-4 text-center text-slate-400">
@@ -219,8 +219,8 @@ function KnowledgeHiveInner({
   if (nodes.length === 0) {
     return (
       <Card className={cardClassName}>
-        <CardHeader>
-          <CardTitle className="text-lg text-white">知识蜂巢</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base text-white">知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="py-4 text-center text-slate-400">
@@ -245,38 +245,38 @@ function KnowledgeHiveInner({
   return (
     <Card className={cardClassName}>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-lg">
+        <CardTitle className="flex items-center justify-between text-base">
           <span>知识蜂巢</span>
           {subjectName && (
-            <span className="text-sm font-normal text-slate-400">
+            <span className="text-xs font-normal text-slate-400">
               {subjectName}
             </span>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         {/* 图例 */}
-        <div className="mb-4 flex flex-wrap justify-center gap-2 text-xs">
-          <div className="flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2.5 py-1 text-green-200">
+        <div className="mb-3 flex flex-wrap justify-center gap-1.5 text-[10px]">
+          <div className="flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-green-200">
             <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
             <span>掌握良好 ({stats.strong})</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 text-yellow-100">
+          <div className="flex items-center gap-1 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-yellow-100">
             <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
             <span>有待加强 ({stats.fair})</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-red-100">
+          <div className="flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-red-100">
             <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
             <span>需要练习 ({stats.weak})</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-slate-500/20 bg-slate-500/10 px-2.5 py-1 text-slate-200">
+          <div className="flex items-center gap-1 rounded-full border border-slate-500/20 bg-slate-500/10 px-2 py-0.5 text-slate-200">
             <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
             <span>未开始 ({stats.locked})</span>
           </div>
         </div>
 
         {/* 蜂巢网格 */}
-        <div className="flex flex-col items-center gap-1 py-2">
+        <div className="flex flex-col items-center gap-1 py-1">
           {rows.map((rowNodes, rowIndex) => (
             <HiveRow
               key={rowIndex}
@@ -288,7 +288,7 @@ function KnowledgeHiveInner({
         </div>
 
         {/* 底部提示 */}
-        <p className="mt-4 text-center text-xs text-slate-400">
+        <p className="mt-3 text-center text-[11px] text-slate-400">
           点击六边形可进入对应章节练习
         </p>
       </CardContent>

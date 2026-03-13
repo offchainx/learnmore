@@ -7,7 +7,7 @@
 
 import { redirect } from 'next/navigation'
 import { getProfile } from '@/actions/user/profile'
-import { listAdminUsers } from '@/actions/admin/user-ops'
+import { getAdminUserOverview, listAdminUsers } from '@/actions/admin/user-ops'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { UserTable } from '@/components/admin/users/UserTable'
 
@@ -25,25 +25,38 @@ export default async function AdminUsersPage() {
     redirect('/dashboard')
   }
 
-  const initialUsersResult = await listAdminUsers(
-    {
-      search: '',
-      status: 'All',
-      tier: 'All',
-    },
-    {
-      page: 1,
-      pageSize: 20,
-      sortField: 'lastActive',
-      sortDirection: 'desc',
-    },
-  )
+  const [initialUsersResult, initialOverviewResult] = await Promise.all([
+    listAdminUsers(
+      {
+        search: '',
+        status: 'All',
+        tier: 'All',
+      },
+      {
+        page: 1,
+        pageSize: 20,
+        sortField: 'lastActive',
+        sortDirection: 'desc',
+      }
+    ),
+    getAdminUserOverview('30D'),
+  ])
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
-      <div className="w-full space-y-6">
-        <div className="w-full">
-          <UserTable initialData={initialUsersResult.success ? initialUsersResult.data : undefined} />
+      <div className="px-3 py-2 sm:px-4 sm:py-3">
+        <div className="mx-auto w-full max-w-[1820px] rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3">
+          <UserTable
+            initialData={
+              initialUsersResult.success ? initialUsersResult.data : undefined
+            }
+            initialOverview={
+              initialOverviewResult.success
+                ? initialOverviewResult.data
+                : undefined
+            }
+            canOverridePermissions={profile.role === 'ADMIN'}
+          />
         </div>
       </div>
     </AdminClientWrapper>

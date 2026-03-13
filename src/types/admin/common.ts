@@ -28,6 +28,24 @@ export interface PaginatedResponse<T> {
   totalPages: number
 }
 
+export type UserOverviewWindow = '7D' | '30D' | 'ALL'
+
+export interface UserOverviewMetric {
+  id: string
+  title: string
+  value: string
+  caption: string
+  meta: string
+  trend: number | null
+  trendLabel: string
+}
+
+export interface UserOverview {
+  window: UserOverviewWindow
+  metrics: UserOverviewMetric[]
+  lastUpdated: string
+}
+
 // Server Action 响应
 export interface ActionResult<T = void> {
   success: boolean

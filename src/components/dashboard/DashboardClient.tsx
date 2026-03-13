@@ -1,90 +1,114 @@
-"use client";
+'use client'
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { useApp } from '@/providers';
-import { DashboardData } from '@/actions/dashboard';
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import { useApp } from '@/providers'
+import { DashboardData } from '@/actions/dashboard'
 
 // Import Views
-import { DashboardHome } from './DashboardHome';
-import { CommunityView } from './views/CommunityView';
-import { CoursesView } from '@/components/courses/CoursesView';
-import { PracticeCenterScreen } from '@/components/practice/PracticeView';
-import { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
-import { SettingsView } from './views/SettingsView';
-import { AchievementsView } from '@/components/achievements/AchievementsView';
-import { ParentDashboardView } from './views/ParentDashboardView';
-import { KnowledgeGraphView } from './views/KnowledgeGraphView';
-import { User, UserSettings } from '@prisma/client';
+import { DashboardHome } from './DashboardHome'
+import { CommunityView } from './views/CommunityView'
+import { CoursesView } from '@/components/courses/CoursesView'
+import { PracticeCenterScreen } from '@/components/practice/PracticeView'
+import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
+import { SettingsView } from './views/SettingsView'
+import { AchievementsView } from '@/components/achievements/AchievementsView'
+import { ParentDashboardView } from './views/ParentDashboardView'
+import { KnowledgeGraphView } from './views/KnowledgeGraphView'
+import { User, UserSettings } from '@prisma/client'
 
 // --- Local Types ---
-type View = 'dashboard' | 'courses' | 'questionBank' | 'leaderboard' | 'community' | 'settings' | 'achievements' | 'parent' | 'knowledgeGraph' | 'admin';
+type View =
+  | 'dashboard'
+  | 'courses'
+  | 'questionBank'
+  | 'leaderboard'
+  | 'community'
+  | 'settings'
+  | 'achievements'
+  | 'parent'
+  | 'knowledgeGraph'
+  | 'admin'
 
-type UserProfile = User & { settings: UserSettings | null };
+type UserProfile = User & { settings: UserSettings | null }
 
 interface DashboardClientProps {
-  user: UserProfile;
-  initialData: DashboardData;
+  user: UserProfile
+  initialData: DashboardData
 }
 
 export function DashboardClient({ user, initialData }: DashboardClientProps) {
-  const router = useRouter();
-  const { t: appT } = useApp();
+  const router = useRouter()
+  const { t: appT } = useApp()
   // Automatically switch to parent view if user is a parent
-  const [currentView, setCurrentView] = useState<View>(user.role === 'PARENT' ? 'parent' : 'dashboard');
+  const [currentView, setCurrentView] = useState<View>(
+    user.role === 'PARENT' ? 'parent' : 'dashboard'
+  )
 
   const handleViewChange = (view: string) => {
     // For Settings, Community, Leaderboard, Courses, Practice, Achievements, KnowledgeGraph, and Admin, use real routes
     if (view === 'settings') {
-      router.push('/dashboard/settings');
-      return;
+      router.push('/dashboard/settings')
+      return
     }
     if (view === 'community') {
-      router.push('/dashboard/community');
-      return;
+      router.push('/dashboard/community')
+      return
     }
     if (view === 'leaderboard') {
-      router.push('/dashboard/leaderboard');
-      return;
+      router.push('/dashboard/leaderboard')
+      return
     }
     if (view === 'courses') {
-      router.push('/dashboard/courses');
-      return;
+      router.push('/dashboard/courses')
+      return
     }
     if (view === 'questionBank') {
-      router.push('/dashboard/practice');
-      return;
+      router.push('/dashboard/practice')
+      return
     }
     if (view === 'achievements') {
-      router.push('/dashboard/achievements');
-      return;
+      router.push('/dashboard/achievements')
+      return
     }
     if (view === 'knowledgeGraph') {
-      router.push('/dashboard/knowledge-graph');
-      return;
+      router.push('/dashboard/knowledge-graph')
+      return
     }
     if (view === 'admin') {
-      router.push('/admin');
-      return;
+      router.push('/admin')
+      return
     }
     // For other views, still use useState (for now)
-    setCurrentView(view as View);
-  };
+    setCurrentView(view as View)
+  }
 
   const renderContent = () => {
     // Parent should only see ParentDashboard or Settings
     if (user.role === 'PARENT') {
-      switch(currentView) {
-        case 'settings': return <SettingsView user={user} />;
-        default: return <ParentDashboardView />;
+      switch (currentView) {
+        case 'settings':
+          return <SettingsView user={user} />
+        default:
+          return <ParentDashboardView />
       }
     }
 
-    switch(currentView) {
-      case 'dashboard': return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
-      case 'courses': return <CoursesView t={appT} />;
-      case 'questionBank': return <PracticeCenterScreen t={appT} />;
+    switch (currentView) {
+      case 'dashboard':
+        return (
+          <DashboardHome
+            navigate={router.push}
+            onViewChange={handleViewChange}
+            initialData={initialData}
+            user={user}
+          />
+        )
+      case 'courses':
+        return <CoursesView t={appT} />
+      case 'questionBank':
+        return <PracticeCenterScreen t={appT} />
       case 'leaderboard':
         return (
           <LeaderboardView
@@ -94,10 +118,14 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
               username: user.username,
               avatar: user.avatar,
             }}
+            overview={null}
+            badges={[]}
           />
-        );
-      case 'community': return <CommunityView />;
-      case 'settings': return <SettingsView user={user} />;
+        )
+      case 'community':
+        return <CommunityView />
+      case 'settings':
+        return <SettingsView user={user} />
       case 'achievements':
         return (
           <AchievementsView
@@ -108,21 +136,31 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
             overview={null}
             badges={[]}
           />
-        );
-      case 'knowledgeGraph': return <KnowledgeGraphView />;
-      default: return <DashboardHome navigate={router.push} onViewChange={handleViewChange} initialData={initialData} user={user} />;
+        )
+      case 'knowledgeGraph':
+        return <KnowledgeGraphView />
+      default:
+        return (
+          <DashboardHome
+            navigate={router.push}
+            onViewChange={handleViewChange}
+            initialData={initialData}
+            user={user}
+          />
+        )
     }
-  };
+  }
 
   return (
     <DashboardLayout
       currentView={currentView}
       onNavigate={handleViewChange}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-       {renderContent()}
+      {renderContent()}
     </DashboardLayout>
-  );
-};
+  )
+}

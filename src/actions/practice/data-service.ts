@@ -20,6 +20,10 @@ import { QUOTA_CONFIGS } from '@/lib/practice/types'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
 // ============ A2.1: 查询章节 + 掌握度 ============
 
 /**
@@ -33,6 +37,10 @@ export async function getChapterWithStats(
   chapterId: string,
   userId: string
 ): Promise<ChapterWithStats | null> {
+  if (!isUuid(chapterId)) {
+    return null
+  }
+
   // 1. 获取用户等级和数据保留期 (C3)
   const user = await prisma.user.findUnique({
     where: { id: userId },

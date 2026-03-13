@@ -36,6 +36,7 @@ export function CommunityClientWrapper({ children, user }: CommunityClientWrappe
       currentView="community"
       onNavigate={handleNavigate}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >

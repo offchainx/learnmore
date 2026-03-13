@@ -39,6 +39,7 @@ export function SettingsClientWrapper({ user, userRole }: SettingsClientWrapperP
       currentView="settings"
       onNavigate={handleNavigate}
       userRole={userRole}
+      userXp={user?.xp}
       subscriptionTier={user?.subscriptionTier}
       subscriptionEnd={user?.subscriptionEnd}
     >

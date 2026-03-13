@@ -36,6 +36,7 @@ export function KnowledgeGraphClientWrapper({ user }: KnowledgeGraphClientWrappe
       currentView="knowledgeGraph"
       onNavigate={handleNavigate}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >

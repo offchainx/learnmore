@@ -9,9 +9,10 @@ interface ChapterCardProps {
   chapter: DbChapter;
   absoluteIndex: number;
   isPreview?: boolean;
+  onPreview?: (chapter: DbChapter) => void;
 }
 
-export const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, absoluteIndex, isPreview = false }) => {
+export const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, absoluteIndex, isPreview = false, onPreview }) => {
   const router = useRouter();
   const mastery = chapter.stats.masteryLevel;
   const stars = mastery >= 80 ? 3 : mastery >= 50 ? 2 : mastery > 0 ? 1 : 0;
@@ -60,6 +61,10 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({ chapter, absoluteIndex
       <Button
           onClick={() => {
             if (!isPreview) {
+              if (onPreview) {
+                onPreview(chapter);
+                return;
+              }
               router.push(`/dashboard/practice/chapter-drill/${chapter.id}`);
             }
           }}

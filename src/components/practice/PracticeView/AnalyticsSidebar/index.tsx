@@ -73,6 +73,22 @@ const PREVIEW_WEAKNESSES: ChapterWithStats[] = [
       monthlyCorrectRate: 53,
     },
   },
+  {
+    id: 'preview-w4',
+    title: '计算稳定性',
+    subjectId: 'preview',
+    parentId: null,
+    order: 4,
+    stats: {
+      totalAttempts: 11,
+      correctCount: 6,
+      masteryLevel: 59,
+      questionCount: 30,
+      recentAttempts: 5,
+      recentCorrectRate: 58,
+      monthlyCorrectRate: 59,
+    },
+  },
 ];
 
 interface PracticeCoachPanelProps {
@@ -96,11 +112,14 @@ export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
 }) => {
   const showPreviewState = !isLoading && !errorMessage;
   const resolvedKnowledgeHive = knowledgeHive.length > 0 ? knowledgeHive : showPreviewState ? PREVIEW_HIVE_NODES : [];
-  const resolvedExamForecast = examForecast ?? (showPreviewState ? PREVIEW_FORECAST : null);
+  const shouldUsePreviewForecast =
+    showPreviewState &&
+    (!examForecast || examForecast.grade === 'N/A' || examForecast.sparklineData.length === 0);
+  const resolvedExamForecast = shouldUsePreviewForecast ? PREVIEW_FORECAST : examForecast;
   const resolvedChapters = chapters.length > 0 ? chapters : showPreviewState ? PREVIEW_WEAKNESSES : [];
 
   return (
-    <div className="space-y-3 xl:sticky xl:top-2.5">
+    <div className="space-y-2.5 xl:sticky xl:top-2.5">
       <KnowledgeHive
         subjectName={currentSubjectTitle || undefined}
         nodes={resolvedKnowledgeHive}

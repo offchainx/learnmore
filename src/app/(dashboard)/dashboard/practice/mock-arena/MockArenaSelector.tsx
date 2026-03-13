@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -56,6 +56,8 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
   const [difficulty, setDifficulty] = useState<ExamDifficulty>('MEDIUM')
   const [questionCount, setQuestionCount] = useState(20)
   const [error, setError] = useState<string | null>(null)
+  const autoStart = searchParams.get('autostart') === '1'
+  const autoStartedRef = useRef(false)
 
   // Calculate estimated time (1.5 min per question)
   const estimatedMinutes = Math.ceil(questionCount * 1.5)
@@ -94,6 +96,33 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
         setError(result.error || 'Failed to start exam')
       }
     })
+  }
+
+  useEffect(() => {
+    if (!autoStart || !subjectId || isPending || autoStartedRef.current) return
+    autoStartedRef.current = true
+    handleStartExam()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, subjectId])
+
+  if (autoStart && subjectId && !error) {
+    return (
+      <div className="flex min-h-[55vh] items-center justify-center">
+        <Card className="w-full max-w-2xl rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/80">
+          <CardContent className="flex flex-col items-center gap-4 px-8 py-12 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-300">
+              <Loader2 className="h-7 w-7 animate-spin" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">正在生成 Mock Arena 试卷</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                这一步会直接进入统一答题页，不再展示中间配置页面。
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

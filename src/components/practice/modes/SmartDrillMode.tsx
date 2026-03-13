@@ -315,7 +315,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
                 </div>
                 <div className="flex items-center justify-between">
                   <span>推荐节奏</span>
-                  <span className="font-bold text-white">{previewMode ? '完整走一轮，查看结果页反馈' : '单轮完成后再决定是否加练'}</span>
+                  <span className="font-bold text-white">{previewMode ? '统一答题页完整走一轮' : '整组完成后一次性交卷'}</span>
                 </div>
               </div>
             </div>
@@ -356,7 +356,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
             <CardContent className="p-5">
               <div className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Feedback Rhythm</div>
               <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                {previewMode ? '预览时也能完整走做题流程，方便直接看训练中头部和结果页的质感。' : '每题即时判定，做完一轮统一回看表现，避免在中途被过多数据打断。'}
+                {previewMode ? '预览时也能完整走做题流程，方便直接看统一答题页、右侧状态栏和结果页的质感。' : '整组题会全部铺开，用户可以顺着往下做，最后一次性交卷，避免频繁切页。'}
               </p>
             </CardContent>
           </Card>
@@ -377,7 +377,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
   }
 
   return (
-    <PracticeModeShell maxWidthClassName="max-w-4xl">
+    <PracticeModeShell maxWidthClassName="max-w-[1680px]">
       <SmartDrillContinuousSession
         key={`${subjectId}-${sessionVersion}-${previewMode ? 'preview' : 'live'}`}
         questions={questions}

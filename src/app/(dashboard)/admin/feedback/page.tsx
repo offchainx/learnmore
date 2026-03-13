@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getProfile } from '@/actions/user/profile'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { FeedbackList } from '@/components/admin/feedback/FeedbackList'
-import { getFeedbackList } from '@/actions/support/ticket'
+import { getFeedbackList, getFeedbackOverview } from '@/actions/support/ticket'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,18 +18,25 @@ export default async function AdminFeedbackPage() {
     redirect('/dashboard')
   }
 
-  // 预取初始数据
-  const initialData = await getFeedbackList({ limit: 10 })
+  const [initialData, initialOverview] = await Promise.all([
+    getFeedbackList({ limit: 20 }),
+    getFeedbackOverview('30D'),
+  ])
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">反馈收件箱</h1>
-          <p className="text-slate-400 mt-1">管理并回复用户反馈和错误报告。</p>
+      <div className="px-3 py-2 sm:px-4 sm:py-3">
+        <div className="mx-auto w-full max-w-[1820px] rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3">
+          <FeedbackList
+            initialData={
+              initialData.success && initialData.data ? initialData.data : []
+            }
+            totalCount={initialData.success ? initialData.total || 0 : 0}
+            initialOverview={
+              initialOverview.success ? initialOverview.data : undefined
+            }
+          />
         </div>
-        
-        <FeedbackList initialData={(initialData.success && initialData.data) ? initialData.data : []} totalCount={initialData.success ? (initialData.total || 0) : 0} />
       </div>
     </AdminClientWrapper>
   )

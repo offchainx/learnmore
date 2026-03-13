@@ -1,14 +1,97 @@
 import { redirect } from 'next/navigation';
-import { getChapterWithStats, getRandomQuestions } from '@/actions/practice/data-service';
+import { ContentStatus, Question, QuestionType } from '@prisma/client';
 import { getCurrentUser } from '@/actions/user/auth';
-import ChapterDrillSession from '@/components/practice/chapter-drill/DrillInterface';
-import { Problem, UserStats } from '@/components/practice/chapter-drill/types';
+import { getChapterWithStats, getRandomQuestions } from '@/actions/practice/data-service';
+import { QuizView } from '@/components/business/quiz/QuizView';
 import prisma from '@/lib/prisma';
+import type { ChapterWithStats } from '@/lib/practice/types';
 
 interface PageProps {
   params: Promise<{
     chapterId: string;
   }>;
+}
+
+const PREVIEW_CHAPTER_TITLES: Record<string, string> = {
+  'preview-w1': '应用题拆解',
+  'preview-w2': '多步骤推理',
+  'preview-w3': '高频易错点',
+  'preview-w4': '计算稳定性',
+  'preview-1': '基础概念',
+  'preview-2': '题型辨析',
+  'preview-3': '应用理解',
+  'preview-4': '综合推理',
+  'preview-5': '审题速度',
+  'preview-6': '易错修复',
+  'preview-7': '进阶变式',
+  'preview-8': '限时稳定',
+  'preview-9': '冲刺专题',
+};
+
+function isPreviewChapterId(chapterId: string) {
+  return chapterId.startsWith('preview-');
+}
+
+function buildPreviewChapter(chapterId: string): ChapterWithStats {
+  const title = PREVIEW_CHAPTER_TITLES[chapterId] ?? '章节预览';
+
+  return {
+    id: chapterId,
+    title,
+    subjectId: 'preview',
+    parentId: null,
+    order: 0,
+    stats: {
+      totalAttempts: 8,
+      correctCount: 4,
+      masteryLevel: 56,
+      questionCount: 12,
+      recentAttempts: 4,
+      recentCorrectRate: 58,
+      monthlyCorrectRate: 61,
+    },
+  };
+}
+
+function createMockQuestion(
+  chapterId: string,
+  subjectId: string,
+  overrides: Partial<Question> & Pick<Question, 'id' | 'content' | 'type' | 'answer'>,
+): Question {
+  const { id, type, content, answer, ...rest } = overrides;
+
+  return {
+    id,
+    curriculum: 'UEC',
+    grade: 8,
+    chapterId,
+    subjectId,
+    difficulty: 3,
+    type,
+    content,
+    options: null,
+    answer,
+    explanation: overrides.explanation ?? '这是一条用于章节地图答题页预览的 mock 解析。',
+    contentHash: null,
+    createdAt: new Date('2026-03-12T00:00:00.000Z'),
+    createdBy: null,
+    reviewedAt: new Date('2026-03-12T00:00:00.000Z'),
+    reviewedBy: null,
+    publishedAt: new Date('2026-03-12T00:00:00.000Z'),
+    publishedBy: null,
+    qualityScore: 90,
+    reportCount: 0,
+    status: ContentStatus.PUBLISHED,
+    updatedAt: new Date('2026-03-12T00:00:00.000Z'),
+    sourceFileId: null,
+    assetUrl: null,
+    imageUrls: [],
+    source: 'Chapter Map Mock Preview',
+    tags: ['chapter-map', 'mock-preview'],
+    isPastPaper: false,
+    paperId: null,
+    ...rest,
+  };
 }
 
 export default async function ChapterDrillPage({ params }: PageProps) {
@@ -19,134 +102,90 @@ export default async function ChapterDrillPage({ params }: PageProps) {
     redirect('/login');
   }
 
-  // 1. Fetch Chapter Details
-  const chapter = await getChapterWithStats(chapterId, user.id);
-  
+  const previewChapter = isPreviewChapterId(chapterId) ? buildPreviewChapter(chapterId) : null;
+  const chapter = previewChapter ?? (await getChapterWithStats(chapterId, user.id));
+
   if (!chapter) {
     redirect('/dashboard/practice');
   }
 
-  const subject = await prisma.subject.findUnique({
-    where: { id: chapter.subjectId },
-    select: { name: true }
-  });
+  const [subject, questions] = previewChapter
+    ? await Promise.all([
+        Promise.resolve({ name: '练习预览' }),
+        Promise.resolve<Question[]>([]),
+      ])
+    : await Promise.all([
+        prisma.subject.findUnique({
+          where: { id: chapter.subjectId },
+          select: { name: true },
+        }),
+        getRandomQuestions({
+          chapterIds: [chapterId],
+          limit: 20,
+          userId: user.id,
+        }),
+      ]);
 
-  // 1.5 Fetch Sibling Chapters for Sidebar
-  const siblingChapters = await prisma.chapter.findMany({
-    where: { subjectId: chapter.subjectId },
-    orderBy: { order: 'asc' },
-    select: { id: true, title: true }
-  });
-
-  const sidebarChapters = siblingChapters.map(ch => ({
-    id: ch.id,
-    title: ch.title,
-    isCompleted: false, // Todo: fetch real progress
-    isLocked: false,
-    isActive: ch.id === chapterId
-  }));
-
-  // 2. Fetch Questions (Real Data)
-  const questions = await getRandomQuestions({
-    chapterIds: [chapterId],
-    limit: 20, 
-    userId: user.id
-  });
-
-  // 2.5 FALLBACK: If no questions in DB, provide mock questions for UI testing
-  const useMockFallback = questions.length === 0;
-  
-  const mockProblems: Problem[] = [
-    {
-      id: "mock-1",
-      type: "MULTIPLE_CHOICE",
-      level: 3,
-      question: "Find the value of x for the following quadratic equation:",
-      equation: "2x² − 5x + 3 = 0",
-      options: { a: "x = 1, x = 1.5", b: "x = -1, x = -1.5", c: "x = 1, x = -1.5", d: "No real solutions" },
-      parsedOptions: ["x = 1, x = 1.5", "x = -1, x = -1.5", "x = 1, x = -1.5", "No real solutions"],
-      answer: "a",
-      explanation: "Using the quadratic formula $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.",
-      correctIndex: 0
-    },
-    {
-      id: "mock-2",
-      type: "MULTIPLE_CHOICE",
-      level: 2,
-      question: "Solve for x in the following equation:",
-      equation: "x² - 4x + 4 = 0",
-      options: { a: "x = 2", b: "x = -2", c: "x = 0, x = 4", d: "No real solutions" },
-      parsedOptions: ["x = 2", "x = -2", "x = 0, x = 4", "No real solutions"],
-      answer: "a",
-      explanation: "This is a perfect square: $(x - 2)^2 = 0$, so $x = 2$.",
-      correctIndex: 0
-    },
-    {
-      id: "mock-3",
-      type: "MULTIPLE_CHOICE",
-      level: 4,
-      question: "What is the discriminant of the quadratic equation:",
-      equation: "3x² + 2x + 5 = 0",
-      options: { a: "64", b: "-56", c: "4", d: "0" },
-      parsedOptions: ["64", "-56", "4", "0"],
-      answer: "b",
-      explanation: "The discriminant $D = b^2 - 4ac = 2^2 - 4(3)(5) = 4 - 60 = -56$.",
-      correctIndex: 1
-    }
+  const publishedQuestions = questions.filter((question) => question.status === ContentStatus.PUBLISHED);
+  const fallbackQuestions: Question[] = [
+    createMockQuestion(chapterId, chapter.subjectId, {
+      id: `${chapterId}-mock-1`,
+      type: QuestionType.SINGLE_CHOICE,
+      content: `【${chapter.title}】若 \\(3x + 5 = 20\\)，则 \\(x\\) 的值是？`,
+      options: { A: '3', B: '4', C: '5', D: '6' },
+      answer: 'C',
+      difficulty: 2,
+    }),
+    createMockQuestion(chapterId, chapter.subjectId, {
+      id: `${chapterId}-mock-2`,
+      type: QuestionType.MULTIPLE_CHOICE,
+      content: `【${chapter.title}】下列哪些选项属于本章节常见考点？`,
+      options: { A: '基础概念辨析', B: '核心公式应用', C: '跨题型变式', D: '无关记忆题' },
+      answer: ['A', 'B', 'C'],
+      difficulty: 3,
+    }),
+    createMockQuestion(chapterId, chapter.subjectId, {
+      id: `${chapterId}-mock-3`,
+      type: QuestionType.FILL_BLANK,
+      content: `【${chapter.title}】请填写：本轮章节练习用于预览统一答题页的 ______ 内容。`,
+      answer: 'mock',
+      difficulty: 1,
+    }),
   ];
-
-  // 3. Transform to Problem type
-  const problems: Problem[] = useMockFallback ? mockProblems : questions.map(q => {
-    let parsedOptions: string[] = [];
-    if (q.options && typeof q.options === 'object') {
-        if (Array.isArray(q.options)) {
-            parsedOptions = q.options as string[];
-        } else {
-            const keys = Object.keys(q.options).sort();
-            parsedOptions = keys.map(k => (q.options as Record<string, string>)[k]);
-        }
-    }
-
-    let correctIndex = 0;
-    if (typeof q.answer === 'string') {
-        const charCode = q.answer.toLowerCase().charCodeAt(0);
-        if (charCode >= 97) { 
-            correctIndex = charCode - 97;
-        } else if (!isNaN(parseInt(q.answer))) {
-            correctIndex = parseInt(q.answer);
-        }
-    }
-
-    return {
-      id: q.id,
-      type: q.type,
-      level: q.difficulty,
-      question: q.content,
-      equation: null,
-      options: q.options as Record<string, string>,
-      parsedOptions,
-      answer: q.answer as string,
-      explanation: q.explanation,
-      correctIndex
-    };
-  });
-
-  // 4. Initial Stats
-  const stats: UserStats = {
-    mastery: chapter.stats.masteryLevel,
-    sessionTime: "00:00", // Will be client side timer
-    streak: user.streak,
-    currentProblemIndex: chapter.stats.correctCount, // Roughly
-    totalProblems: chapter.stats.questionCount || 20
-  };
+  const displayQuestions = publishedQuestions.length > 0 ? publishedQuestions : fallbackQuestions;
 
   return (
-    <ChapterDrillSession
-      initialProblems={problems}
-      chapterTitle={chapter.title}
-      subjectName={subject?.name || 'Subject'}
-      initialStats={stats}
-      sidebarChapters={sidebarChapters}
-    />
+    <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
+      <QuizView
+        userId={user.id}
+        title={chapter.title}
+        modeLabel="Chapter Map"
+        subtitle={`${subject?.name || '当前科目'} · 当前章节定向练习，整组完成后一次性交卷。`}
+        mode="CHAPTER_DRILL"
+        chapterId={chapterId}
+        subjectId={chapter.subjectId}
+        questions={displayQuestions}
+        submitLabel="提交章节练习"
+        refreshLabel="换一组题"
+        exitLabel="退出章节练习"
+        resultTitle="章节练习完成"
+        resultSubtitle="当前章节这一轮已经完成，下面是本轮结果摘要。"
+        recommendation={
+          previewChapter
+            ? '这是薄弱点快修/知识蜂巢的 mock 章节预览，主要用于确认进入章节练习后的统一答题流程。'
+            : chapter.stats.masteryLevel < 70
+            ? '这一章还需要继续加练，建议提交后再刷一轮，或回到练习中心查看其他薄弱章节。'
+            : '这一章整体表现已经稳定，可以回到练习中心切到 Smart Drill 或历年真题继续。'
+        }
+        theme="amber"
+        rightPanelNote={
+          previewChapter
+            ? '当前入口来自右侧分析卡片，这里先用 mock 题承接预览章节，避免 preview id 进入真实 Prisma 查询。'
+            : publishedQuestions.length > 0
+            ? '章节地图更适合定向补弱。建议先完整做完这一章的整组题，再回看章节正确率和题型波动。'
+            : '当前章节暂时没有真实题目，这里先用 mock 题帮你确认跳转和统一答题页逻辑。'
+        }
+      />
+    </div>
   );
 }

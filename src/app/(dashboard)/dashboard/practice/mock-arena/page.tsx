@@ -10,8 +10,16 @@ export const metadata: Metadata = {
   description: 'Simulate real exam conditions with timed practice tests',
 }
 
-export default async function MockArenaPage() {
+interface PageProps {
+  searchParams: Promise<{
+    autostart?: string
+  }>
+}
+
+export default async function MockArenaPage({ searchParams }: PageProps) {
   const user = await getCurrentUser()
+  const resolvedSearchParams = await searchParams
+  const autoStart = resolvedSearchParams.autostart === '1'
 
   if (!user) {
     redirect('/login')
@@ -23,6 +31,18 @@ export default async function MockArenaPage() {
   ])
 
   const subjects = subjectsResult.success ? subjectsResult.data || [] : []
+
+  if (autoStart) {
+    return (
+      <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
+        <MockArenaSetup
+          userId={user.id}
+          subjects={subjects}
+          quotaStatus={quotaStatus}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">

@@ -24,8 +24,10 @@ export interface UserSummary {
   name: string
   email: string
   avatarColor: string
+  role: string
   status: UserStatus
   tier: SubscriptionTier
+  subscriptionEnd: string | null
   lastActive: string // ISO Date
   lastActiveLabel: string // 相对时间，如 "2h ago"
   grade: string

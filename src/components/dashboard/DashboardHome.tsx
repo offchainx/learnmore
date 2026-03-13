@@ -1,249 +1,566 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DailyInspiration } from './Widgets';
 import { DailyMissions } from './DailyMissions';
 import {
-  Target, Clock, PenTool, AlertTriangle, Star, Trophy,
-  Flame, Activity, ChevronRight, Play, Brain, ArrowUpRight, Zap
+  Activity,
+  ArrowUpRight,
+  BookOpenCheck,
+  Layers3,
+  Play,
+  Trophy,
 } from 'lucide-react';
 import { useApp } from '@/providers';
-import { DashboardData } from '@/actions/dashboard';
-import { User, UserSettings } from '@prisma/client';
+import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard';
+import { PracticeMode, User, UserSettings } from '@prisma/client';
+
+const surfaceClassName =
+  'rounded-[28px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.96),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]';
+
+const ACTIVITY_PER_PAGE = 4;
+const SUBJECTS_PER_PAGE = 4;
+
+function languageCopy(lang: string, zh: string, en: string, ms?: string) {
+  if (lang.startsWith('zh')) return zh;
+  if (lang.startsWith('ms')) return ms ?? en;
+  return en;
+}
+
+function formatDuration(seconds: number | null, copy: (zh: string, en: string) => string) {
+  if (!seconds || seconds <= 0) return copy('未记录', 'Not tracked');
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  return copy(`${minutes} 分钟`, `${minutes} min`);
+}
+
+function formatRelativeDate(date: Date, copy: (zh: string, en: string) => string) {
+  const diffHours = Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60));
+  if (diffHours < 1) return copy('刚刚', 'Just now');
+  if (diffHours < 24) return copy(`${diffHours} 小时前`, `${diffHours}h ago`);
+  const diffDays = Math.floor(diffHours / 24);
+  return copy(`${diffDays} 天前`, `${diffDays}d ago`);
+}
+
+function practiceModeLabel(mode: PracticeMode, copy: (zh: string, en: string) => string) {
+  switch (mode) {
+    case 'SMART_DRILL':
+      return copy('Smart Drill', 'Smart Drill');
+    case 'ERROR_WIPER':
+      return copy('Error Wiper', 'Error Wiper');
+    case 'MOCK_EXAM':
+      return copy('Mock Arena', 'Mock Arena');
+    case 'CHAPTER_DRILL':
+      return copy('章节训练', 'Chapter Drill');
+    case 'PAST_PAPER':
+      return copy('历年真题', 'Past Paper');
+    default:
+      return copy('练习记录', 'Practice');
+  }
+}
+
+function EmptyPanelState({
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  description: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
+  return (
+    <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.03] px-5 py-7 text-center">
+      <div className="text-sm font-bold text-white">{title}</div>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">{description}</p>
+      <Button
+        onClick={onAction}
+        className="mt-5 rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-950 hover:bg-slate-100"
+      >
+        {actionLabel}
+      </Button>
+    </div>
+  );
+}
+
+function PageDots({ totalPages, page, countLabel }: { totalPages: number; page: number; countLabel: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex gap-1">
+        {Array.from({ length: totalPages }).map((_, index) => (
+          <span
+            key={index}
+            className={`h-1.5 rounded-full transition-all ${index === page ? 'w-4 bg-white' : 'w-1.5 bg-white/20'}`}
+          />
+        ))}
+      </div>
+      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-300">
+        {countLabel}
+      </span>
+    </div>
+  );
+}
+
+function OverviewCard({
+  label,
+  value,
+  subLabel,
+}: {
+  label: string;
+  value: string;
+  subLabel: string;
+}) {
+  return (
+    <div className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3">
+      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
+        {label}
+      </div>
+      <div className="mt-2 text-[24px] font-black tracking-tight text-white">{value}</div>
+      <div className="mt-1 text-[11px] text-slate-400">{subLabel}</div>
+    </div>
+  );
+}
 
 export const DashboardHome = ({
   navigate,
   initialData,
-  user
+  user,
 }: {
-  navigate: (path: string) => void,
-  onViewChange?: (view: string) => void,
-  initialData: DashboardData | null,
-  user: User & { settings: UserSettings | null }
+  navigate: (path: string) => void;
+  onViewChange?: (view: string) => void;
+  initialData: DashboardData | null;
+  user: User & { settings: UserSettings | null };
 }) => {
   const { t, lang } = useApp();
+  const copy = (zh: string, en: string, ms?: string) => languageCopy(lang, zh, en, ms);
+  const [overviewWindow, setOverviewWindow] = useState<DashboardOverviewWindow>('7D');
+  const [activityPage, setActivityPage] = useState(0);
+  const [subjectPage, setSubjectPage] = useState(0);
 
-  // Use real data or fallback to defaults
   const stats = initialData?.stats || {
-    studyTime: "0.0",
+    studyTime: '0.0',
     questions: 0,
     accuracy: 0,
     mistakes: 0,
     streak: 0,
     level: 1,
     xp: 0,
-    nextLevelXp: 1000
+    nextLevelXp: 1000,
   };
 
-  const weaknesses = initialData?.weaknesses || [];
+  const overviewByWindow =
+    initialData?.overviewByWindow || {
+      '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+      '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+    };
+
   const recentActivity = initialData?.recentActivity || [];
   const subjectStrengths = initialData?.subjectStrengths || [];
+  const recentPractice = initialData?.recentPractice || [];
+  const dailyTasks = initialData?.dailyTasks || [];
+
+  const activeOverview = overviewByWindow[overviewWindow];
+
+  const totalActivityPages = Math.max(1, Math.ceil(recentActivity.length / ACTIVITY_PER_PAGE));
+  const visibleActivity = useMemo(
+    () => recentActivity.slice(activityPage * ACTIVITY_PER_PAGE, (activityPage + 1) * ACTIVITY_PER_PAGE),
+    [activityPage, recentActivity],
+  );
+
+  const totalSubjectPages = Math.max(1, Math.ceil(subjectStrengths.length / SUBJECTS_PER_PAGE));
+  const visibleSubjects = useMemo(
+    () => subjectStrengths.slice(subjectPage * SUBJECTS_PER_PAGE, (subjectPage + 1) * SUBJECTS_PER_PAGE),
+    [subjectPage, subjectStrengths],
+  );
+
+  useEffect(() => {
+    setActivityPage(0);
+  }, [recentActivity.length]);
+
+  useEffect(() => {
+    setSubjectPage(0);
+  }, [subjectStrengths.length]);
+
+  const handleActivityWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (totalActivityPages <= 1) return;
+    event.preventDefault();
+    const direction = event.deltaY > 0 ? 1 : -1;
+    setActivityPage((prev) => Math.max(0, Math.min(totalActivityPages - 1, prev + direction)));
+  };
+
+  const handleSubjectWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (totalSubjectPages <= 1) return;
+    event.preventDefault();
+    const direction = event.deltaY > 0 ? 1 : -1;
+    setSubjectPage((prev) => Math.max(0, Math.min(totalSubjectPages - 1, prev + direction)));
+  };
+
+  const overviewCards = [
+    {
+      label: copy('学习时长', 'Study Time'),
+      value: `${activeOverview.studyTime}h`,
+      subLabel: copy('本周期累计投入', 'Logged in selected window'),
+    },
+    {
+      label: copy('完成题数', 'Questions'),
+      value: String(activeOverview.questions),
+      subLabel: copy('本周期作答总量', 'Answered in selected window'),
+    },
+    {
+      label: copy('正确率', 'Accuracy'),
+      value: `${activeOverview.accuracy}%`,
+      subLabel: copy('本周期平均表现', 'Average in selected window'),
+    },
+    {
+      label: copy('活跃天数', 'Active Days'),
+      value: String(activeOverview.activeDays),
+      subLabel: copy('登录或练习的天数', 'Days with activity'),
+    },
+  ];
 
   return (
-    <div className="space-y-8 animate-fade-in-up pb-10">
-      
-      {/* --- Row 1: Core Drive (Status & Inspiration) --- */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Card: Today's Mission (~70% Width on LG) */}
-        <DailyMissions tasks={initialData?.dailyTasks || []} user={user} />
+    <div className="animate-fade-in-up pb-4 xl:flex xl:h-[calc(100vh-1rem)] xl:flex-col xl:overflow-hidden">
+      <section className="grid gap-3 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)]">
+        <div className="space-y-3 xl:min-h-0 xl:overflow-hidden">
+          <div className="relative overflow-hidden rounded-[30px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_18px_44px_rgba(2,8,23,0.32)] sm:px-5 sm:py-4">
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
+            <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
 
-        {/* Side Card: Daily Inspiration (~30% Width on LG) */}
-        <div className="lg:col-span-1 h-full">
-           <DailyInspiration 
-             lang={lang} 
-             t={t} 
-             welcomeTitle={t.dashboard?.dailyVibe || "Daily Vibe"} 
-             welcomeSub="Stay motivated." 
-             className="h-full min-h-[340px]" 
-           />
+            <div className="relative flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8EA4C7]">
+                  {copy('个人成长总览', 'Growth Overview')}
+                </div>
+                <h1 className="mt-2 text-[26px] font-bold tracking-tight text-[#E6EDF7] sm:text-[28px]">
+                  {copy('仪表盘', 'Dashboard')}
+                </h1>
+                <p className="mt-1 max-w-3xl text-[12px] leading-5 text-[#B2C3DA] sm:text-[13px]">
+                  {copy(
+                    '集中查看最近学习节奏、今日任务、课程恢复点和整体学科稳定度。',
+                    'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.',
+                  )}
+                </p>
+              </div>
+
+              <div className="inline-flex shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-1">
+                {(['7D', '30D'] as DashboardOverviewWindow[]).map((windowKey) => (
+                  <button
+                    key={windowKey}
+                    type="button"
+                    onClick={() => setOverviewWindow(windowKey)}
+                    className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] transition-all ${
+                      overviewWindow === windowKey
+                        ? 'bg-white text-slate-950'
+                        : 'text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    {windowKey === '7D' ? copy('7天', '7D') : copy('30天', '30D')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <section className="relative mt-4 grid grid-cols-2 gap-3 2xl:grid-cols-4">
+              {overviewCards.map((card) => (
+                <OverviewCard
+                  key={card.label}
+                  label={card.label}
+                  value={card.value}
+                  subLabel={card.subLabel}
+                />
+              ))}
+            </section>
+          </div>
+
+          <DailyMissions tasks={dailyTasks} user={user} />
+
+          <section className="grid gap-3 lg:grid-cols-2 xl:min-h-0">
+            <Card className={`${surfaceClassName} min-h-0 p-5 sm:p-5`}>
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                    <BookOpenCheck className="h-5 w-5 text-indigo-300" />
+                    {t.dashboard?.learningPath || copy('学习路径', 'Learning Path')}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    {copy('默认展示 4 条，滚动滑鼠滚轮可一次切换下一组课程恢复点。', 'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.')}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <PageDots
+                    totalPages={totalActivityPages}
+                    page={activityPage}
+                    countLabel={copy(`${recentActivity.length} 条`, `${recentActivity.length} items`)}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-2xl border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:text-white"
+                    onClick={() => navigate('/dashboard/courses')}
+                  >
+                    {copy('课程中心', 'Courses')}
+                  </Button>
+                </div>
+              </div>
+
+              {recentActivity.length > 0 ? (
+                <div className="space-y-3" onWheel={handleActivityWheel}>
+                  {visibleActivity.map((item, index) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigate('/dashboard/courses')}
+                      className="group flex w-full items-center gap-4 rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition-all hover:border-cyan-400/25 hover:bg-white/[0.07] animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
+                      style={{ animationDelay: `${index * 45}ms` }}
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
+                        <Play className="h-4 w-4 fill-current" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                          {item.subject}
+                        </div>
+                        <div className="mt-1 truncate text-sm font-bold text-white">{item.title}</div>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+                          <div className="h-full rounded-full bg-cyan-400" style={{ width: `${Math.max(6, item.progress)}%` }} />
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-black text-white">{item.progress}%</div>
+                        <div className="mt-1 text-xs text-slate-400">{copy('继续', 'Resume')}</div>
+                      </div>
+                    </button>
+                  ))}
+                  {visibleActivity.length < ACTIVITY_PER_PAGE &&
+                    Array.from({ length: ACTIVITY_PER_PAGE - visibleActivity.length }).map((_, index) => (
+                      <div
+                        key={`activity-empty-${index}`}
+                        className="flex h-[84px] items-center justify-center rounded-[22px] border border-dashed border-white/8 bg-white/[0.03]"
+                      >
+                        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                          {copy('已到列表底部', 'End of list')}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <EmptyPanelState
+                  title={copy('还没有最近学习记录', 'No recent learning path')}
+                  description={copy(
+                    '你完成第一段课程后，这里会出现最近进度和下一步建议。',
+                    'Complete your first course step and your recent activity will show up here.',
+                  )}
+                  actionLabel={copy('开始课程', 'Start Learning')}
+                  onAction={() => navigate('/dashboard/courses')}
+                />
+              )}
+            </Card>
+
+            <Card className={`${surfaceClassName} min-h-0 p-5 sm:p-5`}>
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                    <Activity className="h-5 w-5 text-cyan-300" />
+                    {t.dashboard?.subjectProgress || copy('学科进度', 'Subject Progress')}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    {copy('默认展示 4 条，滚动滑鼠滚轮可一次切换下一组学科状态。', 'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.')}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <PageDots
+                    totalPages={totalSubjectPages}
+                    page={subjectPage}
+                    countLabel={copy(`${subjectStrengths.length} 科`, `${subjectStrengths.length} items`)}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-2xl border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:text-white"
+                    onClick={() => navigate('/dashboard/practice')}
+                  >
+                    {copy('去练习', 'Go Practice')}
+                  </Button>
+                </div>
+              </div>
+
+              {subjectStrengths.length > 0 ? (
+                <div className="space-y-3" onWheel={handleSubjectWheel}>
+                  {visibleSubjects.map((sub, index) => (
+                    <div
+                      key={sub.subject}
+                      className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
+                      style={{ animationDelay: `${index * 45}ms` }}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-bold text-white">{sub.subject}</div>
+                          <div className="mt-1 text-xs text-slate-400">{copy('当前科目稳定度', 'Current subject confidence')}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-lg font-black ${sub.accuracy >= 80 ? 'text-emerald-300' : 'text-cyan-200'}`}>
+                            {sub.accuracy}%
+                          </div>
+                          <div className="text-[11px] font-medium text-slate-400">
+                            {sub.accuracy >= 80 ? copy('稳定', 'Stable') : copy('待提升', 'Needs work')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className={`h-full rounded-full ${sub.accuracy >= 80 ? 'bg-emerald-400' : 'bg-cyan-400'}`}
+                          style={{ width: `${Math.max(4, sub.accuracy)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {visibleSubjects.length < SUBJECTS_PER_PAGE &&
+                    Array.from({ length: SUBJECTS_PER_PAGE - visibleSubjects.length }).map((_, index) => (
+                      <div
+                        key={`subject-empty-${index}`}
+                        className="flex h-[84px] items-center justify-center rounded-[22px] border border-dashed border-white/8 bg-white/[0.03]"
+                      >
+                        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                          {copy('已到列表底部', 'End of list')}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <EmptyPanelState
+                  title={copy('还没有学科进度数据', 'No subject progress yet')}
+                  description={copy(
+                    '先开始一次练习，系统才会逐步建立你的学科稳定度和进度分布。',
+                    'Start practicing to build your subject progress and performance profile.',
+                  )}
+                  actionLabel={copy('开始练习', 'Start Practicing')}
+                  onAction={() => navigate('/dashboard/practice')}
+                />
+              )}
+            </Card>
+          </section>
+        </div>
+
+        <div className="space-y-3 xl:min-h-0 xl:overflow-hidden">
+          <Card className="overflow-hidden rounded-[30px] border border-[#31466D] bg-[radial-gradient(circle_at_top_right,rgba(148,163,184,0.2),transparent_28%),linear-gradient(145deg,#1A2740_0%,#101C31_58%,#0A1426_100%)] p-5 text-white shadow-[0_24px_70px_rgba(4,10,28,0.38)] sm:p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-bold">
+                  <Trophy className="h-5 w-5 text-amber-300" />
+                  {t.dashboard?.rank || copy('年级排名', 'Rank')}
+                </h3>
+                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-300">
+                  {copy('当前赛季表现', 'Current season standing')}
+                </p>
+              </div>
+              <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100">
+                {copy('保持冲击力', 'Momentum')}
+              </div>
+            </div>
+
+            <div className="mt-4 text-center">
+              <div className="text-[36px] font-black tracking-tight text-cyan-100">Top 15%</div>
+              <div className="mt-2 text-sm font-medium text-slate-200">
+                {copy('超过多数同年级学生', 'Ahead of most students in your grade')}
+              </div>
+            </div>
+
+            <div className="mt-3.5 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.08] px-4 py-3">
+                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-300">
+                  {copy('平均正确率', 'Average')}
+                </div>
+                <div className="mt-2 text-lg font-black text-white">68%</div>
+              </div>
+              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
+                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200">
+                  {copy('你的表现', 'You')}
+                </div>
+                <div className="mt-2 text-lg font-black text-white">{stats.accuracy}%</div>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => navigate('/dashboard/leaderboard')}
+              className="mt-3.5 w-full rounded-2xl border border-white/10 bg-white/10 py-3 text-sm font-bold text-white hover:bg-white/15"
+            >
+              {copy('查看排行榜', 'View Leaderboard')}
+              <ArrowUpRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Card>
+
+          <Card className={`${surfaceClassName} min-h-0 flex-1 p-5 sm:p-5`}>
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                  <Layers3 className="h-5 w-5 text-cyan-300" />
+                  {copy('最近练习回顾', 'Recent Practice')}
+                </h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  {copy('回看最近几次训练结果，决定接下来最值得做的一步。', 'Review recent training results and decide the next best move.')}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-2xl border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:text-white"
+                onClick={() => navigate('/dashboard/practice')}
+              >
+                {copy('练习中心', 'Practice')}
+              </Button>
+            </div>
+
+            {recentPractice.length > 0 ? (
+              <div className="custom-scrollbar max-h-[332px] space-y-3 overflow-y-auto pr-1">
+                {recentPractice.map((record) => (
+                  <button
+                    key={record.id}
+                    type="button"
+                    onClick={() => navigate('/dashboard/practice')}
+                    className="group flex w-full items-center justify-between gap-4 rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition-all hover:border-cyan-400/25 hover:bg-white/[0.07]"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                        {practiceModeLabel(record.mode, copy)}
+                      </div>
+                      <div className="mt-1 truncate text-sm font-bold text-white">{record.title}</div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {record.subject} · {formatRelativeDate(record.createdAt, copy)}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-lg font-black text-cyan-100">{record.score}%</div>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {record.correctCount}/{record.totalQuestions} · {formatDuration(record.duration, copy)}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <EmptyPanelState
+                title={copy('还没有练习记录', 'No recent practice yet')}
+                description={copy(
+                  '完成第一轮练习后，这里会告诉你最近一次训练效果和接下来最值得做的动作。',
+                  'Complete your first practice round and this panel will summarize your latest performance.',
+                )}
+                actionLabel={copy('开始练习', 'Start Practice')}
+                onAction={() => navigate('/dashboard/practice')}
+              />
+            )}
+          </Card>
+
+          <DailyInspiration
+            lang={lang}
+            t={t}
+            welcomeTitle={t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
+            welcomeSub={copy('当你不确定下一步做什么时，先让一句话帮你回到节奏。', 'When you are unsure what to do next, let one line pull you back into rhythm.')}
+            className="min-h-[212px]"
+          />
         </div>
       </section>
-
-      {/* --- Row 2: Data Dashboard (The Stats) --- */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-         {/* Group A: Effort (Warm Colors) */}
-         <Card className="p-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
-            <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
-               {[
-                  { label: t.dashboard?.studyTime || "Study Time", val: `${stats.studyTime}h`, icon: Clock, color: "text-orange-500", sub: "Total" },
-                  { label: t.dashboard?.streak || "Streak", val: `${stats.streak} Days`, icon: Flame, color: "text-red-500", sub: "Keep it up!" },
-                  { label: t.dashboard?.level || "Level", val: `${stats.level}`, icon: Star, color: "text-yellow-500", sub: `${stats.xp} XP` },
-               ].map((s, i) => (
-                  <div key={i} className="p-4 flex flex-col items-center text-center group cursor-default">
-                     <s.icon className={`w-5 h-5 mb-2 ${s.color} group-hover:scale-110 transition-transform`} />
-                     <div className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{s.val}</div>
-                     <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{s.label}</div>
-                     <div className="text-[10px] text-slate-400 mt-1">{s.sub}</div>
-                  </div>
-               ))}
-            </div>
-         </Card>
-         
-         {/* Group B: Performance (Cool Colors) */}
-         <Card className="p-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
-            <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-700/50">
-               {[
-                  { label: t.dashboard?.questions || "Questions", val: `${stats.questions}`, icon: PenTool, color: "text-blue-500", sub: "Total" },
-                  { label: t.dashboard?.accuracy || "Accuracy", val: `${stats.accuracy}%`, icon: Target, color: "text-emerald-500", sub: "Average" },
-                  { label: t.dashboard?.mistakes || "Mistakes", val: `${stats.mistakes}`, icon: AlertTriangle, color: "text-purple-500", sub: "Pending fix" },
-               ].map((s, i) => (
-                  <div key={i} className="p-4 flex flex-col items-center text-center group cursor-default">
-                     <s.icon className={`w-5 h-5 mb-2 ${s.color} group-hover:scale-110 transition-transform`} />
-                     <div className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{s.val}</div>
-                     <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">{s.label}</div>
-                     <div className="text-[10px] text-slate-400 mt-1">{s.sub}</div>
-                  </div>
-               ))}
-            </div>
-         </Card>
-      </section>
-
-      {/* --- Row 3: Positioning & Context (Process vs. Outcome) --- */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         
-         {/* Left Column: Subject Progress (~65% Width) */}
-         <Card className="lg:col-span-2 p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
-            <div className="flex justify-between items-end mb-6">
-               <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                     <Activity className="w-5 h-5 text-indigo-500" /> {t.dashboard?.subjectProgress || "Subject Progress"}
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">Real-time tracking of your accuracy</p>
-               </div>
-               <Button variant="ghost" size="sm" onClick={() => navigate && navigate('/subjects')}>{t.common?.viewAll || "View All"}</Button>
-            </div>
-            
-            <div className="space-y-6">
-               {subjectStrengths.length > 0 ? subjectStrengths.map((sub, i) => (
-                  <div key={i} className="flex items-center gap-4 group">
-                     <div className="w-24 font-bold text-sm text-slate-700 dark:text-slate-300">{sub.subject}</div>
-                     <div className="flex-1">
-                        <div className="flex justify-between text-xs mb-1.5">
-                           <span className="text-slate-400">Accuracy</span>
-                           <span className={`font-bold ${sub.accuracy >= 80 ? 'text-emerald-500' : 'text-blue-500'}`}>{sub.accuracy}%</span>
-                        </div>
-                        <div className="w-full bg-slate-100 dark:bg-slate-700/50 h-2.5 rounded-full overflow-hidden">
-                           <div className={`h-full rounded-full ${sub.accuracy >= 80 ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${sub.accuracy}%` }}></div>
-                        </div>
-                     </div>
-                     
-                     <button 
-                        className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500 dark:hover:text-white transition-all shadow-sm hover:shadow-md hover:scale-105" 
-                        title="View Subject"
-                        onClick={() => navigate('/subjects')}
-                     >
-                        <Zap className="w-4 h-4 fill-current" />
-                     </button>
-                  </div>
-               )) : (
-                   <p className="text-sm text-muted-foreground text-center py-4">Start practicing to see subject progress!</p>
-               )}
-            </div>
-         </Card>
-
-         {/* Right Column: Rank & Positioning (~35% Width) */}
-         <Card className="lg:col-span-1 p-6 bg-gradient-to-br from-indigo-900 to-purple-900 text-white border-none flex flex-col justify-between relative overflow-hidden shadow-lg">
-            {/* Ambient Glow */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px] pointer-events-none"></div>
-            
-            <div>
-               <h3 className="text-lg font-bold flex items-center gap-2 mb-1">
-                  <Trophy className="w-5 h-5 text-yellow-400" /> {t.dashboard?.rank || "Rank"}
-               </h3>
-               <p className="text-indigo-200 text-xs">Diamond League • Season 4</p>
-            </div>
-
-            <div className="my-8 text-center relative z-10">
-               <div className="inline-block relative">
-                  <div className="text-5xl font-bold text-white drop-shadow-lg">Top 15%</div>
-                  <div className="text-sm text-indigo-300 mt-1 font-medium">Percentile Rank</div>
-               </div>
-               <div className="mt-6 flex justify-center gap-2 text-xs">
-                  <span className="bg-white/10 px-2 py-1 rounded">Avg: 68%</span>
-                  <span className="bg-green-500/20 text-green-300 px-2 py-1 rounded border border-green-500/30">You: {stats.accuracy}%</span>
-               </div>
-            </div>
-
-            <Button fullWidth variant="glow" className="bg-white/10 hover:bg-white/20 border-white/20 shadow-none">
-               View Leaderboard <ArrowUpRight className="w-4 h-4 ml-2" />
-            </Button>
-         </Card>
-      </section>
-
-      {/* --- Row 4: Deep Dive & Actions --- */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         {/* Left: My Learning Path */}
-         <Card className="p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-               <Brain className="w-5 h-5 text-blue-500" /> {t.dashboard?.learningPath || "Learning Path"}
-            </h3>
-            
-            {/* Continue Learning Item */}
-            {recentActivity.length > 0 ? (
-                recentActivity.map((item, i) => (
-                    <div key={i} onClick={() => navigate('/dashboard/courses')} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 cursor-pointer hover:border-blue-500/30 transition-colors group mb-4">
-                        <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
-                            <Play className="w-6 h-6 fill-current" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="text-xs text-slate-500 uppercase font-bold mb-1">Resume: {item.subject}</div>
-                            <div className="font-bold text-slate-900 dark:text-white">{item.title}</div>
-                            <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2">
-                                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${item.progress}%` }}></div>
-                            </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                    </div>
-                ))
-            ) : (
-                <div className="text-sm text-muted-foreground p-4">No recent activity. Start a course!</div>
-            )}
-            
-            {/* Up Next List */}
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">{t.dashboard?.upNext || "Up Next"}</div>
-               <Button variant="ghost" size="sm" onClick={() => navigate('/subjects')} className="text-xs">Find new courses</Button>
-            </div>
-         </Card>
-
-         {/* Right: Weakness Sniper (The Inventory) */}
-         <Card className="p-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/50">
-            <div className="flex justify-between items-center mb-4">
-               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" /> {t.dashboard?.weaknessSniper || "Weakness Sniper"}
-               </h3>
-               <span className="text-xs bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-2 py-1 rounded-full font-bold">{weaknesses.length} Active</span>
-            </div>
-            
-            <div className="space-y-3">
-               {weaknesses.length > 0 ? weaknesses.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-red-100 dark:border-red-900/20 bg-red-50/50 dark:bg-red-900/5 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors cursor-pointer group">
-                     <div>
-                        <div className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors line-clamp-1">{item.topic}</div>
-                        <div className="text-xs text-slate-500">{item.subject}</div>
-                     </div>
-                     <div className="flex items-center gap-3">
-                        <span className="text-red-500 font-bold text-sm">Lvl {item.masteryLevel}</span>
-                        {/* Refinement 4: Solid Filled Fix Button */}
-                        {/* Removed: Error Book feature */}
-                        {/* <Button
-                            size="sm"
-                            onClick={() => navigate('/error-book')}
-                            className="h-7 px-4 text-xs bg-red-500 text-white border-transparent hover:bg-red-600 shadow-md shadow-red-500/20 transition-all transform hover:scale-105"
-                        >
-                           {t.dashboard?.fix || "Fix"}
-                        </Button> */}
-                     </div>
-                  </div>
-               )) : (
-                   <p className="text-sm text-muted-foreground text-center py-4">Great job! No weaknesses detected.</p>
-               )}
-            </div>
-            {/* Removed: Error Book feature */}
-            {/* <Button variant="ghost" fullWidth onClick={() => navigate('/error-book')} className="mt-4 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white">{t.common?.viewAll || "View All"}</Button> */}
-         </Card>
-      </section>
-
     </div>
   );
 };

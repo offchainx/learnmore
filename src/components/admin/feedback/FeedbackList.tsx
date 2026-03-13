@@ -1,45 +1,53 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { FeedbackStatus, FeedbackCategory } from '@/types/feedback';
+import React, { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { format } from 'date-fns'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { format } from 'date-fns';
-import Link from 'next/link';
-import { 
-  MessageSquare, 
-  Filter, 
-  ChevronRight, 
-  Search,
-  CheckCircle2,
-  Clock,
   AlertCircle,
-  Inbox
-} from 'lucide-react';
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock3,
+  Filter,
+  Inbox,
+  Loader2,
+  MessageSquare,
+  Search,
+  Sparkles,
+} from 'lucide-react'
+import { FeedbackCategory, FeedbackStatus } from '@/types/feedback'
+import { toast } from 'sonner'
 
-const statusColors: Record<FeedbackStatus, string> = {
-  PENDING: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-  IN_PROGRESS: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  RESOLVED: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-  REJECTED: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
-  CLOSED: 'bg-slate-500/10 text-slate-500 border-slate-500/20',
-};
+const statusStyles: Record<
+  FeedbackStatus,
+  { label: string; className: string; icon?: React.ReactNode }
+> = {
+  PENDING: {
+    label: '待处理',
+    className: 'border-[#5C4520] bg-[#3B2A10] text-[#FBBF24]',
+    icon: <AlertCircle className="h-3 w-3" />,
+  },
+  IN_PROGRESS: {
+    label: '处理中',
+    className: 'border-[#2B4470] bg-[#18335E] text-[#60A5FA]',
+  },
+  RESOLVED: {
+    label: '已解决',
+    className: 'border-[#244B37] bg-[#123125] text-[#4ADE80]',
+    icon: <CheckCircle2 className="h-3 w-3" />,
+  },
+  REJECTED: {
+    label: '已拒绝',
+    className: 'border-[#5C2B33] bg-[#31151D] text-[#F87171]',
+  },
+  CLOSED: {
+    label: '已关闭',
+    className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+  },
+}
 
 const categoryLabels: Record<FeedbackCategory, string> = {
   BUG: 'Bug',
@@ -48,149 +56,598 @@ const categoryLabels: Record<FeedbackCategory, string> = {
   BILLING: '账单',
   CONTENT_ISSUE: '内容错误',
   OTHER: '其他',
-};
-
-interface FeedbackListProps {
-  initialData: any[];
-  totalCount: number;
 }
 
-export function FeedbackList({ initialData, totalCount }: FeedbackListProps) {
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+type FeedbackOverviewWindow = '7D' | '30D' | 'ALL'
 
-  // 统计逻辑
-  const stats = {
-    pending: initialData.filter(i => i.status === 'PENDING').length,
-    resolved: initialData.filter(i => i.status === 'RESOLVED').length,
-    total: totalCount
-  };
+type FeedbackListItem = {
+  id: string
+  title: string
+  content: string
+  email: string
+  category: FeedbackCategory
+  status: FeedbackStatus
+  createdAt: string
+  user?: {
+    username?: string | null
+    email?: string | null
+  } | null
+}
+
+type FeedbackOverviewMetric = {
+  id: string
+  title: string
+  value: string
+  caption: string
+  meta: string
+  trend: number | null
+  trendLabel: string
+}
+
+type FeedbackOverview = {
+  window: FeedbackOverviewWindow
+  metrics: FeedbackOverviewMetric[]
+  lastUpdated: string
+}
+
+interface FeedbackListProps {
+  initialData: FeedbackListItem[]
+  totalCount: number
+  initialOverview?: FeedbackOverview
+}
+
+export function FeedbackList({
+  initialData,
+  totalCount,
+  initialOverview,
+}: FeedbackListProps) {
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'ALL' | FeedbackStatus>(
+    'ALL'
+  )
+  const [categoryFilter, setCategoryFilter] = useState<
+    'ALL' | FeedbackCategory
+  >('ALL')
+  const [overviewWindow, setOverviewWindow] = useState<FeedbackOverviewWindow>(
+    initialOverview?.window || '30D'
+  )
+  const [items, setItems] = useState(initialData)
+  const [currentTotal, setCurrentTotal] = useState(totalCount)
+  const [overview, setOverview] = useState<FeedbackOverview | null>(
+    initialOverview || null
+  )
+  const [isListLoading, setIsListLoading] = useState(false)
+  const [isOverviewLoading, setIsOverviewLoading] = useState(!initialOverview)
+  const initialQueryKey = 'search=&status=ALL&category=ALL&limit=20&offset=0'
+  const lastLoadedListKey = React.useRef<string>(
+    initialData.length > 0 || totalCount >= 0 ? initialQueryKey : ''
+  )
+  const lastLoadedOverviewWindow = React.useRef<FeedbackOverviewWindow | ''>(
+    initialOverview?.window || ''
+  )
+
+  const loadFeedbackList = useCallback(async () => {
+    const queryParams = new URLSearchParams({
+      search,
+      status: statusFilter,
+      category: categoryFilter,
+      limit: '20',
+      offset: '0',
+    })
+    const queryKey = queryParams.toString()
+
+    if (lastLoadedListKey.current === queryKey) {
+      return
+    }
+
+    lastLoadedListKey.current = queryKey
+    setIsListLoading(true)
+
+    try {
+      const response = await fetch(`/api/admin/feedback/list?${queryKey}`, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        throw new Error(`加载反馈列表失败: ${response.status}`)
+      }
+
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || '加载反馈列表失败')
+      }
+
+      setItems(result.data || [])
+      setCurrentTotal(result.total || 0)
+    } catch (error) {
+      console.error('[FeedbackList] loadFeedbackList error:', error)
+      lastLoadedListKey.current = ''
+      toast.error(error instanceof Error ? error.message : '加载反馈列表失败')
+    } finally {
+      setIsListLoading(false)
+    }
+  }, [categoryFilter, search, statusFilter])
+
+  const loadOverview = useCallback(async () => {
+    if (lastLoadedOverviewWindow.current === overviewWindow) {
+      return
+    }
+
+    lastLoadedOverviewWindow.current = overviewWindow
+    setIsOverviewLoading(true)
+
+    try {
+      const response = await fetch(
+        `/api/admin/feedback/overview?window=${overviewWindow}`,
+        {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`加载反馈概览失败: ${response.status}`)
+      }
+
+      const result = await response.json()
+      if (!result.success || !result.data) {
+        throw new Error(result.error || '加载反馈概览失败')
+      }
+
+      setOverview(result.data as FeedbackOverview)
+    } catch (error) {
+      console.error('[FeedbackList] loadOverview error:', error)
+      lastLoadedOverviewWindow.current = ''
+      toast.error(error instanceof Error ? error.message : '加载反馈概览失败')
+    } finally {
+      setIsOverviewLoading(false)
+    }
+  }, [overviewWindow])
+
+  useEffect(() => {
+    void loadFeedbackList()
+  }, [loadFeedbackList])
+
+  useEffect(() => {
+    void loadOverview()
+  }, [loadOverview])
+
+  const hasFilters =
+    search.trim() !== '' || statusFilter !== 'ALL' || categoryFilter !== 'ALL'
+
+  const resetFilters = () => {
+    setSearch('')
+    setStatusFilter('ALL')
+    setCategoryFilter('ALL')
+    lastLoadedListKey.current = ''
+  }
+
+  const overviewCards = (overview?.metrics || []).map((metric) => {
+    if (metric.id === 'total') {
+      return {
+        ...metric,
+        key: metric.id,
+        icon: Inbox,
+        iconClassName: 'text-[#60A5FA]',
+        iconBgClassName: 'bg-[#18335E]',
+        glowClassName: 'bg-[#2563EB]/20',
+        borderClassName: 'border-[#2B4470]',
+      }
+    }
+
+    if (metric.id === 'pending') {
+      return {
+        ...metric,
+        key: metric.id,
+        icon: Clock3,
+        iconClassName: 'text-[#FBBF24]',
+        iconBgClassName: 'bg-[#3B2A10]',
+        glowClassName: 'bg-[#F59E0B]/20',
+        borderClassName: 'border-[#5C4520]',
+      }
+    }
+
+    if (metric.id === 'progress') {
+      return {
+        ...metric,
+        key: metric.id,
+        icon: Filter,
+        iconClassName: 'text-[#C4B5FD]',
+        iconBgClassName: 'bg-[#2A1F4A]',
+        glowClassName: 'bg-[#8B5CF6]/20',
+        borderClassName: 'border-[#47306C]',
+      }
+    }
+
+    return {
+      ...metric,
+      key: metric.id,
+      icon: CheckCircle2,
+      iconClassName: 'text-[#4ADE80]',
+      iconBgClassName: 'bg-[#123125]',
+      glowClassName: 'bg-[#22C55E]/20',
+      borderClassName: 'border-[#244B37]',
+    }
+  })
+
+  const windowOptions: Array<{
+    key: FeedbackOverviewWindow
+    label: string
+  }> = [
+    { key: '7D', label: '7 Days' },
+    { key: '30D', label: '30 Days' },
+    { key: 'ALL', label: 'All Time' },
+  ]
+
+  const getTrendDisplay = (trend: number | null) => {
+    if (trend === null) {
+      return {
+        text: '累计',
+        icon: null,
+        className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+      }
+    }
+
+    if (trend === 0) {
+      return {
+        text: '0%',
+        icon: null,
+        className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+      }
+    }
+
+    const positive = trend > 0
+
+    return {
+      text: `${positive ? '+' : ''}${trend}%`,
+      icon: positive ? ArrowUp : ArrowDown,
+      className: positive
+        ? 'border-[#244B37] bg-[#123125] text-[#86EFAC]'
+        : 'border-[#5C2B33] bg-[#31151D] text-[#FCA5A5]',
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      {/* 统计概览 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-          <CardContent className="pt-6 flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
-              <Inbox className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-400">总反馈量</p>
-              <h3 className="text-2xl font-bold text-white">{stats.total}</h3>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-          <CardContent className="pt-6 flex items-center gap-4">
-            <div className="p-3 bg-amber-500/10 rounded-xl text-amber-400">
-              <Clock className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-400">待处理</p>
-              <h3 className="text-2xl font-bold text-white">{stats.pending}</h3>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-          <CardContent className="pt-6 flex items-center gap-4">
-            <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
-              <CheckCircle2 className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-400">已解决</p>
-              <h3 className="text-2xl font-bold text-white">{stats.resolved}</h3>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-3 text-[#E6EDF7]">
+      <section className="relative overflow-hidden rounded-[28px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
+        <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
 
-      {/* 列表容器 */}
-      <div className="bg-[#0f172a] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/30">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <input 
-              placeholder="搜索反馈内容..." 
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            />
+        <div className="relative flex min-w-0 flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7] sm:text-[30px]">
+              反馈中心
+            </h1>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#274066] bg-[#10203C] px-2.5 py-1 text-[11px] font-medium text-[#D6E7FF]">
+              <Sparkles className="h-3 w-3 text-[#60A5FA]" />
+              Inbox Console
+            </div>
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Filter className="h-4 w-4 text-slate-500" />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[140px] bg-slate-950 border-slate-800 text-white">
-                <SelectValue placeholder="所有状态" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800 text-white">
-                <SelectItem value="ALL">所有状态</SelectItem>
-                <SelectItem value="PENDING">待处理</SelectItem>
-                <SelectItem value="IN_PROGRESS">处理中</SelectItem>
-                <SelectItem value="RESOLVED">已解决</SelectItem>
-              </SelectContent>
-            </Select>
+          <p className="max-w-3xl text-sm text-[#B2C3DA]">
+            集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。
+          </p>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-[#E6EDF7]">反馈概览</h2>
+            <p className="text-sm text-[#8FA4C2]">
+              以时间范围为基准查看反馈体量、待办压力与处理闭环效率。
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 md:justify-end">
+            <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+              {windowOptions.map((option) => {
+                const isActive = option.key === overviewWindow
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setOverviewWindow(option.key)}
+                    className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                      isActive
+                        ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
+                        : 'text-[#8FA4C2] hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {overview?.lastUpdated ? (
+              <span className="font-mono text-xs text-[#9FB0C9]">
+                更新于{' '}
+                {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
+              </span>
+            ) : null}
           </div>
         </div>
 
-        <Table>
-          <TableHeader className="bg-slate-900/50">
-            <TableRow className="border-slate-800 hover:bg-transparent">
-              <TableHead className="text-slate-400 font-medium py-4">用户信息</TableHead>
-              <TableHead className="text-slate-400 font-medium">分类</TableHead>
-              <TableHead className="text-slate-400 font-medium">反馈标题</TableHead>
-              <TableHead className="text-slate-400 font-medium">状态</TableHead>
-              <TableHead className="text-slate-400 font-medium">提交时间</TableHead>
-              <TableHead className="text-right text-slate-400 font-medium pr-6">操作</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {initialData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-64 text-center">
-                  <div className="flex flex-col items-center justify-center text-slate-500 gap-2">
-                    <MessageSquare className="h-10 w-10 opacity-10" />
-                    <p>暂无反馈记录</p>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {overviewCards.map((card) => {
+            const Icon = card.icon
+            const trend = getTrendDisplay(card.trend)
+            const TrendIcon = trend.icon
+            return (
+              <div
+                key={card.key}
+                className={`relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)] ${card.borderClassName}`}
+              >
+                <div
+                  className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
+                />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-70" />
+
+                <div className="relative flex h-full items-start justify-between gap-4">
+                  <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
+                        {card.title}
+                      </p>
+                      <div className="flex items-end gap-2">
+                        <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
+                          {card.value}
+                        </p>
+                        <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                          {card.caption}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] text-[#8EA3C0]">
+                        {card.trendLabel}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium ${trend.className}`}
+                      >
+                        {TrendIcon ? <TrendIcon className="h-3 w-3" /> : null}
+                        {trend.text}
+                      </span>
+                    </div>
+
+                    <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                      {card.meta}
+                    </p>
                   </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              initialData.map((item) => (
-                <TableRow key={item.id} className="border-slate-800 hover:bg-slate-800/20 transition-all group">
-                  <TableCell className="py-4">
-                    <div className="flex flex-col">
-                      <span className="text-white font-medium">{item.user?.username || '匿名用户'}</span>
-                      <span className="text-xs text-slate-500">{item.email}</span>
+
+                  <div
+                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 ${card.iconBgClassName}`}
+                  >
+                    <Icon className={`h-5 w-5 ${card.iconClassName}`} />
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {isOverviewLoading ? (
+          <p className="text-xs text-[#8FA4C2]">正在刷新反馈概览...</p>
+        ) : null}
+      </section>
+
+      <div className="bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
+        <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-3">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold text-[#F4F7FB]">
+                反馈队列
+              </h2>
+              <p className="text-sm text-[#8FA4C2]">
+                按状态、分类和关键词筛选反馈，进入详情页继续处理与回复。
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="group relative w-full md:w-80">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="搜索标题、内容、邮箱或用户名..."
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value)
+                      lastLoadedListKey.current = ''
+                    }}
+                    className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-10 pr-4 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                  />
+                </div>
+
+                <div className="flex flex-row gap-3 overflow-x-auto pb-1 md:pb-0">
+                  <div className="relative min-w-[150px]">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => {
+                        setStatusFilter(
+                          e.target.value as 'ALL' | FeedbackStatus
+                        )
+                        lastLoadedListKey.current = ''
+                      }}
+                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                    >
+                      <option value="ALL">状态: 全部</option>
+                      {Object.entries(statusStyles).map(([value, config]) => (
+                        <option key={value} value={value}>
+                          {config.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                      size={16}
+                    />
+                  </div>
+
+                  <div className="relative min-w-[150px]">
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => {
+                        setCategoryFilter(
+                          e.target.value as 'ALL' | FeedbackCategory
+                        )
+                        lastLoadedListKey.current = ''
+                      }}
+                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                    >
+                      <option value="ALL">分类: 全部</option>
+                      {Object.entries(categoryLabels).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                      size={16}
+                    />
+                  </div>
+                </div>
+
+                {hasFilters ? (
+                  <button
+                    onClick={resetFilters}
+                    className="text-sm text-[#8FA4C2] transition-colors hover:text-white"
+                  >
+                    重置筛选
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+                <span className="text-sm text-[#8FA4C2]">
+                  当前命中{' '}
+                  <span className="font-semibold text-[#F4F7FB]">
+                    {currentTotal}
+                  </span>{' '}
+                  条反馈
+                </span>
+                <span className="text-xs text-[#6F86A8]">展示最近 20 条</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1040px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-[#1B2840] bg-[#101A2D]">
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  用户信息
+                </th>
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  分类
+                </th>
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  反馈内容
+                </th>
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  状态
+                </th>
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  提交时间
+                </th>
+                <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1B2840]">
+              {isListLoading ? (
+                <tr>
+                  <td colSpan={6} className="h-48">
+                    <div className="flex flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+                      <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
+                      <p className="text-sm">加载反馈列表...</p>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-normal border-slate-700 bg-slate-800/30 text-slate-300">
-                      {categoryLabels[item.category as FeedbackCategory]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-[240px]">
-                    <p className="text-slate-200 truncate font-medium">{item.title}</p>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">{item.content}</p>
-                  </TableCell>
-                  <TableCell>
-                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[item.status as FeedbackStatus]}`}>
-                      {item.status === 'PENDING' && <AlertCircle className="mr-1 h-3 w-3" />}
-                      {item.status}
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="h-56">
+                    <div className="flex flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+                      <MessageSquare className="h-10 w-10 opacity-30" />
+                      <div className="space-y-1 text-center">
+                        <p className="text-sm font-medium text-[#D5E0F0]">
+                          当前筛选下暂无反馈
+                        </p>
+                        <p className="text-xs text-[#6F86A8]">
+                          可以尝试切换状态、分类或清空关键词后重试。
+                        </p>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-slate-400 text-xs">
-                    {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}
-                  </TableCell>
-                  <TableCell className="text-right pr-6">
-                    <Link href={`/admin/feedback/${item.id}`}>
-                      <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">
-                        处理 <ChevronRight className="ml-1 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </td>
+                </tr>
+              ) : (
+                items.map((item) => {
+                  const status = statusStyles[item.status]
+                  return (
+                    <tr
+                      key={item.id}
+                      className="group transition-colors hover:bg-[#131F35]"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-[#F4F7FB]">
+                            {item.user?.username || '匿名用户'}
+                          </span>
+                          <span className="font-mono text-xs text-[#8FA4C2]">
+                            {item.email}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center rounded-full border border-[#24324D] bg-[#151F36] px-2.5 py-1 text-xs text-[#D5E0F0]">
+                          {categoryLabels[item.category]}
+                        </span>
+                      </td>
+                      <td className="max-w-[420px] px-6 py-4">
+                        <p className="truncate text-sm font-medium text-[#F4F7FB]">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-[#8FA4C2]">
+                          {item.content}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}
+                        >
+                          {status.icon}
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-[#8FA4C2]">
+                        {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link href={`/admin/feedback/${item.id}`}>
+                          <button className="inline-flex items-center gap-1 rounded-xl border border-[#24324D] bg-[#151F36] px-3 py-2 text-sm text-[#E6EDF7] transition-colors hover:bg-[#1A2744]">
+                            处理
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  );
+  )
 }

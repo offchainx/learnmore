@@ -1,40 +1,21 @@
 'use client'
 
-import { useState, useEffect, useCallback, useTransition, useMemo } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { Question as PrismaQuestion, QuestionType as PrismaQuestionType } from '@prisma/client'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { QuestionCard } from '@/components/business/question'
-import CountdownTimer from '@/components/practice/session/CountdownTimer'
-import { submitExam, type UserAnswerSubmission, type ExamResult } from '@/actions/practice/exam'
-import { cn } from '@/lib/utils'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Flag,
-  Send,
-  Loader2,
-  AlertTriangle
-} from 'lucide-react'
-import type { Question as QuestionType } from '@/components/business/question'
-import type { Question as PrismaQuestion } from '@prisma/client'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-
-import ResultSummary from '@/components/practice/session/ResultSummary'
+import { submitExam, type ExamResult, type UserAnswerSubmission } from '@/actions/practice/exam'
+import type { Question } from '@/components/business/question'
+import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel'
+import UnifiedPracticeWorkspace, {
+  type UnifiedPracticeQuestion,
+} from '@/components/practice/session/UnifiedPracticeWorkspace'
 import { TierKey } from '@/lib/permissions/types'
 
 interface ExamData {
   questions: PrismaQuestion[]
-  timeLimit: number // seconds
+  timeLimit: number
   startTime: number
 }
 
@@ -44,330 +25,147 @@ interface MockArenaExamProps {
   userTier?: TierKey
 }
 
-export default function MockArenaExam({ examId, userId, userTier }: MockArenaExamProps) {
+function formatQuestion(question: PrismaQuestion): Question {
+  return {
+    id: question.id,
+    type: question.type as PrismaQuestionType,
+    content: question.content,
+    options: question.options as Record<string, string> | null,
+    answer: null,
+    explanation: null,
+  }
+}
+
+export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
   const router = useRouter()
+  const reloadPage = () => window.location.reload()
   const [isPending, startTransition] = useTransition()
-
-  // Exam state
   const [examData, setExamData] = useState<ExamData | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({})
-  const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set())
-  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  // Result state
   const [result, setResult] = useState<ExamResult | null>(null)
-  const [showSubmitDialog, setShowSubmitDialog] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Load exam data from sessionStorage
   useEffect(() => {
-    const loadExamData = () => {
-      const stored = sessionStorage.getItem(`exam_${examId}`)
-      if (stored) {
-        try {
-          const data = JSON.parse(stored) as ExamData
-          setExamData(data)
-        } catch {
-          setError('Failed to load exam data')
-        }
-      } else {
-        setError('Exam session not found. Please start a new exam.')
-      }
+    const stored = sessionStorage.getItem(`exam_${examId}`)
+
+    if (!stored) {
+      setError('考试会话不存在，请返回 Mock Arena 重新开始。')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const parsed = JSON.parse(stored) as ExamData
+      setExamData(parsed)
+    } catch {
+      setError('考试数据读取失败，请返回 Mock Arena 重新开始。')
+    } finally {
       setIsLoading(false)
     }
-    loadExamData()
   }, [examId])
 
   const questions = useMemo(() => examData?.questions || [], [examData])
-  const currentQuestion = questions[currentIndex]
-  const totalQuestions = questions.length
-
-  // Calculate remaining time
-  const getRemainingTime = useCallback(() => {
-    if (!examData) return 0
+  const remainingTime = useMemo(() => {
+    if (!examData) return null
     const elapsed = Math.floor((Date.now() - examData.startTime) / 1000)
     return Math.max(0, examData.timeLimit - elapsed)
   }, [examData])
+  const workspaceQuestions = useMemo<UnifiedPracticeQuestion[]>(
+    () =>
+      questions.map((question, index) => ({
+        id: question.id,
+        question: formatQuestion(question),
+        difficulty: question.difficulty,
+        meta: `模拟卷第 ${index + 1} 题`,
+      })),
+    [questions],
+  )
 
-  // Format question for QuestionCard
-  const formatQuestion = (q: PrismaQuestion): QuestionType => ({
-    id: q.id,
-    type: q.type as QuestionType['type'],
-    content: q.content,
-    options: q.options as Record<string, string> | null,
-    answer: null, // Don't show answer during exam
-    explanation: null
-  })
-
-  // Handle answer change
-  const handleAnswerChange = (val: string | string[]) => {
-    if (!currentQuestion) return
-    setUserAnswers(prev => ({
-      ...prev,
-      [currentQuestion.id]: val
-    }))
-  }
-
-  // Toggle mark for review
-  const toggleMarkForReview = () => {
-    if (!currentQuestion) return
-    setMarkedForReview(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(currentQuestion.id)) {
-        newSet.delete(currentQuestion.id)
-      } else {
-        newSet.add(currentQuestion.id)
-      }
-      return newSet
-    })
-  }
-
-  // Navigation
-  const goToQuestion = (index: number) => {
-    if (index >= 0 && index < totalQuestions) {
-      setCurrentIndex(index)
-    }
-  }
-
-  // Submit exam
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = async ({
+    answers,
+    duration,
+  }: {
+    answers: Record<string, string | string[]>
+    duration: number
+  }) => {
     if (!examData) return
 
     startTransition(async () => {
-      const duration = Math.floor((Date.now() - examData.startTime) / 1000)
-      const answers: UserAnswerSubmission[] = questions.map(q => ({
-        questionId: q.id,
-        userAnswer: userAnswers[q.id] || ''
+      const payload: UserAnswerSubmission[] = questions.map((question) => ({
+        questionId: question.id,
+        userAnswer: answers[question.id] || '',
       }))
 
-      const submitResult = await submitExam(examId, userId, answers, duration)
+      const submitResult = await submitExam(examId, userId, payload, duration)
 
       if (submitResult.success && submitResult.result) {
-        // Clear sessionStorage
         sessionStorage.removeItem(`exam_${examId}`)
         setResult(submitResult.result)
       } else {
-        setError(submitResult.error || 'Failed to submit exam')
+        setError(submitResult.error || '考试提交失败，请稍后重试。')
       }
     })
-  }, [examData, questions, userAnswers, examId, userId])
+  }
 
-  // Auto-submit when time is up
-  const handleTimeUp = useCallback(() => {
-    handleSubmit()
-  }, [handleSubmit])
-
-  // Count answered and unanswered
-  const answeredCount = Object.keys(userAnswers).filter(k => {
-    const ans = userAnswers[k]
-    return ans && (Array.isArray(ans) ? ans.length > 0 : ans !== '')
-  }).length
-
-  // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
-  // Error state
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
-        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
-        <h2 className="text-xl font-bold mb-2">Exam Error</h2>
-        <p className="text-muted-foreground mb-4">{error}</p>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
+        <AlertTriangle className="mb-4 h-12 w-12 text-destructive" />
+        <h2 className="mb-2 text-xl font-bold">考试加载失败</h2>
+        <p className="mb-4 text-muted-foreground">{error}</p>
         <Button onClick={() => router.push('/dashboard/practice/mock-arena')}>
-          Back to Mock Arena
+          返回 Mock Arena
         </Button>
       </div>
     )
   }
 
-  // Result view
   if (result) {
     return (
-      <ResultSummary 
-        result={result} 
-        questions={questions}
-        onRetry={() => router.push('/dashboard/practice/mock-arena')}
-        backLink="/dashboard/practice"
-        userTier={userTier}
+      <PracticeResultPanel
+        title="Mock Arena 完成"
+        subtitle="这一场模拟考试已经完成，下面是整卷结果摘要。"
+        score={Math.round(result.score)}
+        theme="indigo"
+        stats={[
+          { label: '题目总数', value: result.totalQuestions, toneClassName: 'text-indigo-200' },
+          { label: '正确', value: result.correctCount, toneClassName: 'text-emerald-300' },
+          { label: '错误', value: Math.max(0, result.totalQuestions - result.correctCount), toneClassName: 'text-rose-300' },
+          { label: '用时', value: `${Math.max(1, Math.round(result.duration / 60))} 分钟` },
+        ]}
+        recommendation="先看整卷稳定性和时间分配，如果中段波动较大，建议回到 Smart Drill 或 Error Wiper 做针对性补强。"
+        questionStates={result.questions.map((question) => question.isCorrect)}
+        primaryActionLabel="返回练习中心"
+        primaryAction={() => router.push('/dashboard/practice')}
+        secondaryActionLabel="再开一场"
+        secondaryAction={() => router.push('/dashboard/practice/mock-arena')}
       />
     )
   }
 
-  // Exam in progress view
   return (
-    <div className="min-h-screen bg-background">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <CountdownTimer
-              duration={getRemainingTime()}
-              onTimeUp={handleTimeUp}
-            />
-            <Badge variant="outline">
-              {answeredCount} / {totalQuestions} answered
-            </Badge>
-          </div>
-
-          <Button
-            variant="destructive"
-            onClick={() => setShowSubmitDialog(true)}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="mr-2 h-4 w-4" />
-            )}
-            Submit Exam
-          </Button>
-        </div>
-
-        {/* Progress Bar */}
-        <Progress value={((currentIndex + 1) / totalQuestions) * 100} className="h-1" />
-      </div>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Question Card */}
-          <div className="lg:col-span-3 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                Question {currentIndex + 1} of {totalQuestions}
-              </span>
-              <Button
-                variant={markedForReview.has(currentQuestion?.id) ? "default" : "outline"}
-                size="sm"
-                onClick={toggleMarkForReview}
-              >
-                <Flag className="mr-2 h-4 w-4" />
-                {markedForReview.has(currentQuestion?.id) ? 'Marked' : 'Mark for Review'}
-              </Button>
-            </div>
-
-            {currentQuestion && (
-              <QuestionCard
-                question={formatQuestion(currentQuestion)}
-                userAnswer={userAnswers[currentQuestion.id]}
-                onAnswerChange={handleAnswerChange}
-                showResult={false}
-                readOnly={false}
-                className="min-h-[400px]"
-              />
-            )}
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => goToQuestion(currentIndex - 1)}
-                disabled={currentIndex === 0}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Previous
-              </Button>
-              <Button
-                onClick={() => goToQuestion(currentIndex + 1)}
-                disabled={currentIndex === totalQuestions - 1}
-              >
-                Next
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Question Navigator */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Question Navigator</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-5 gap-2">
-                  {questions.map((q, idx) => {
-                    const isAnswered = userAnswers[q.id] && (
-                      Array.isArray(userAnswers[q.id])
-                        ? (userAnswers[q.id] as string[]).length > 0
-                        : userAnswers[q.id] !== ''
-                    )
-                    const isMarked = markedForReview.has(q.id)
-                    const isCurrent = idx === currentIndex
-
-                    return (
-                      <button
-                        key={q.id}
-                        onClick={() => goToQuestion(idx)}
-                        className={cn(
-                          "aspect-square flex items-center justify-center rounded-md text-xs font-bold border transition-all",
-                          isCurrent && "ring-2 ring-primary",
-                          isMarked && "bg-yellow-100 border-yellow-400 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-                          isAnswered && !isMarked && "bg-green-100 border-green-200 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                          !isAnswered && !isMarked && "bg-muted hover:bg-muted/80"
-                        )}
-                      >
-                        {idx + 1}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                <div className="mt-4 space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-green-100 border border-green-200 dark:bg-green-900/30" />
-                    <span>Answered</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-yellow-100 border border-yellow-400 dark:bg-yellow-900/30" />
-                    <span>Marked for Review</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-muted border" />
-                    <span>Not Answered</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-
-      {/* Submit Confirmation Dialog */}
-      <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Submit Exam?</DialogTitle>
-            <DialogDescription>
-              You have answered {answeredCount} out of {totalQuestions} questions.
-              {totalQuestions - answeredCount > 0 && (
-                <span className="block text-orange-600 mt-2">
-                  Warning: {totalQuestions - answeredCount} question(s) are unanswered!
-                </span>
-              )}
-              {markedForReview.size > 0 && (
-                <span className="block text-yellow-600 mt-1">
-                  You have {markedForReview.size} question(s) marked for review.
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSubmitDialog(false)}>
-              Continue Exam
-            </Button>
-            <Button onClick={() => handleSubmit()}>
-              Submit Now
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <UnifiedPracticeWorkspace
+      title="Mock Arena"
+      modeLabel="Mock Arena"
+      subtitle="保持考试节奏，整卷完成后统一交卷。作答过程中不会展示正确答案。"
+      questions={workspaceQuestions}
+      onSubmit={handleSubmit}
+      onRefresh={reloadPage}
+      onExit={() => router.push('/dashboard/practice')}
+      submitLabel="提交模拟卷"
+      refreshLabel="刷新页面"
+      exitLabel="退出模拟考场"
+      isSubmitting={isPending}
+      timeLimitSeconds={remainingTime}
+      rightPanelNote="Mock Arena 更强调考试氛围。建议在规定时间内整卷完成，再统一查看整卷结果和节奏表现。"
+    />
   )
 }

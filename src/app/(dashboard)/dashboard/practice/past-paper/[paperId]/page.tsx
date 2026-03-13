@@ -48,25 +48,34 @@ export default async function PastPaperPage({ params }: PageProps) {
   const paperTitle = questions[0].source || `Past Paper ${paperId}`
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{paperTitle}</h1>
-        <p className="text-muted-foreground mt-2">
-          {subjectName}
-          {` • ${questions.length} Questions`}
-        </p>
-      </div>
-
+    <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
       {questions.length === 0 ? (
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-6 bg-slate-50 dark:bg-slate-900 space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-300">This past paper has no available questions yet.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-300">当前这套真题还没有可用题目。</p>
           <Button asChild variant="outline">
-            <Link href="/dashboard/practice">Back to Practice Center</Link>
+            <Link href="/dashboard/practice">返回练习中心</Link>
           </Button>
         </div>
       ) : (
-        <QuizView chapterId={chapterId || undefined} questions={questions} />
+        <QuizView
+          userId={user.id}
+          title={paperTitle}
+          modeLabel="Past Year Paper"
+          subtitle={`${subjectName} · 整套真题统一作答，完成后一次性交卷。`}
+          mode="PAST_PAPER"
+          chapterId={chapterId || undefined}
+          subjectId={subjectId || undefined}
+          questions={questions}
+          submitLabel="提交真题"
+          refreshLabel="重载真题"
+          exitLabel="退出真题"
+          resultTitle="真题练习完成"
+          resultSubtitle="这一套真题已经完成，下面是整卷结果摘要。"
+          recommendation="先看整卷错题分布，再决定是否回到章节地图补薄弱章节。"
+          theme="indigo"
+          rightPanelNote="历年真题更适合按整套卷完成，先做完整卷再回看结果，会更接近真实考试体验。"
+        />
       )}
     </div>
-  )
+  );
 }

@@ -57,5 +57,8 @@ export namespace Admin {
   export type SortConfig = Common.SortConfig
   export type PaginationParams = Common.PaginationParams
   export type PaginatedResponse<T> = Common.PaginatedResponse<T>
+  export type UserOverviewWindow = Common.UserOverviewWindow
+  export type UserOverviewMetric = Common.UserOverviewMetric
+  export type UserOverview = Common.UserOverview
   export type ActionResult<T = void> = Common.ActionResult<T>
 }

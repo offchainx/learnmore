@@ -12,6 +12,8 @@ interface PracticeModeGridProps {
   weakChapterCount: number;
   strongestSignal: string;
   onOpenSmartDrillPreview?: () => void;
+  onOpenErrorWiperPreview?: () => void;
+  onOpenMockArenaPreview?: () => void;
 }
 
 interface PrimaryModeCardProps {
@@ -60,10 +62,10 @@ function PrimaryModeCard({
           onDeactivate();
         }
       }}
-      className={`group relative min-h-[256px] overflow-hidden rounded-[30px] border text-white transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ${
+      className={`group relative min-h-[188px] overflow-hidden rounded-[28px] border text-white transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ${
         active
-          ? 'z-10 -translate-y-1.5 scale-[1.02] border-white/20 shadow-[0_34px_72px_rgba(2,8,23,0.52)]'
-          : 'border-white/10 shadow-[0_16px_34px_rgba(2,8,23,0.24)] hover:-translate-y-0.5 hover:border-white/14'
+          ? 'z-10 -translate-y-1 scale-[1.015] border-white/20 shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
+          : 'border-white/10 shadow-[0_14px_28px_rgba(2,8,23,0.22)] hover:-translate-y-0.5 hover:border-white/14'
       } ${disabled ? 'opacity-60' : 'cursor-pointer'} ${visualClassName}`}
     >
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.44)_55%,rgba(2,6,23,0.86)_100%)]" />
@@ -71,38 +73,38 @@ function PrimaryModeCard({
         <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-3xl" />
       </div>
-      <div className="absolute inset-[1px] rounded-[29px] border border-white/6" />
+      <div className="absolute inset-[1px] rounded-[27px] border border-white/6" />
 
-      <div className="relative flex h-full flex-col justify-between p-6">
+      <div className="relative flex h-full flex-col justify-between p-4">
         <div>
           <div className="flex items-start justify-between gap-4">
-            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm transition-all duration-500 ${active ? 'scale-105 bg-white/14 shadow-[0_14px_30px_rgba(15,23,42,0.18)]' : ''}`}>
-              <Icon className="h-5 w-5" />
+            <div className={`flex h-9 w-9 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm transition-all duration-500 ${active ? 'scale-105 bg-white/14 shadow-[0_12px_22px_rgba(15,23,42,0.16)]' : ''}`}>
+              <Icon className="h-4 w-4" />
             </div>
             <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-slate-200">
               {modeLabel}
             </span>
           </div>
 
-          <div className="mt-9">
-            <h3 className="text-[32px] font-black leading-none tracking-tight">{title}</h3>
-            <p className="mt-3 text-sm font-semibold text-slate-100/90">{subtitle}</p>
-            <p className={`mt-3 max-w-[34ch] text-[13px] leading-6 text-slate-300 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
+          <div className="mt-5">
+            <h3 className="text-[26px] font-black leading-none tracking-tight">{title}</h3>
+            <p className="mt-1.5 text-[12px] font-semibold text-slate-100/90">{subtitle}</p>
+            <p className={`mt-2 max-w-[30ch] text-[11px] leading-[18px] text-slate-300 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}>
               {description}
             </p>
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-3">
           <div className={`transition-all duration-500 ${active ? 'opacity-0' : 'opacity-100'}`}>
             <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-200 backdrop-blur-sm">
               {compactMeta}
             </span>
           </div>
 
-          <div className={`mt-4 flex items-center gap-3 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0 pointer-events-none'}`}>
+          <div className={`mt-2.5 flex items-center gap-3 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`}>
             <Button
-              className="h-11 rounded-2xl bg-white px-4 text-slate-950 shadow-[0_12px_24px_rgba(255,255,255,0.12)] hover:bg-slate-100"
+              className="h-9 rounded-2xl bg-white px-4 text-slate-950 shadow-[0_10px_20px_rgba(255,255,255,0.12)] hover:bg-slate-100"
               onClick={(event) => {
                 event.stopPropagation();
                 if (!disabled) {
@@ -129,6 +131,8 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
   weakChapterCount,
   strongestSignal,
   onOpenSmartDrillPreview,
+  onOpenErrorWiperPreview,
+  onOpenMockArenaPreview,
 }) => {
   const router = useRouter();
   const { lang } = useApp();
@@ -237,7 +241,13 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       modeLabel: 'Recovery',
       visualClassName:
         'bg-[radial-gradient(circle_at_top_left,_rgba(251,113,133,0.18),_transparent_25%),linear-gradient(135deg,_#2A1E2A,_#10182B_60%,_#09111F)]',
-      onStart: () => router.push(`/dashboard/practice/error-wiper?subjectId=${selectedSubjectId}`),
+      onStart: () => {
+        if (onOpenErrorWiperPreview) {
+          onOpenErrorWiperPreview();
+          return;
+        }
+        router.push(`/dashboard/practice/error-wiper?subjectId=${selectedSubjectId}`);
+      },
     },
     {
       ...copy.mock,
@@ -245,22 +255,30 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       modeLabel: 'Exam',
       visualClassName:
         'bg-[radial-gradient(circle_at_top_left,_rgba(129,140,248,0.2),_transparent_28%),linear-gradient(135deg,_#2B2959,_#121C39_60%,_#0A1326)]',
-      onStart: () => router.push(`/dashboard/practice/mock-arena?subjectId=${selectedSubjectId}`),
+      onStart: () => {
+        if (onOpenMockArenaPreview) {
+          onOpenMockArenaPreview();
+          return;
+        }
+        router.push(`/dashboard/practice/mock-arena?subjectId=${selectedSubjectId}`);
+      },
     },
   ];
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-600 dark:bg-slate-900 dark:text-slate-300 w-fit">
-        <TimerReset className="h-3.5 w-3.5" />
-        {copy.badge}
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-[22px] font-black tracking-tight text-slate-950 dark:text-white">{copy.heading}</h3>
+        <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+          <TimerReset className="h-3 w-3" />
+          {copy.badge}
+        </div>
       </div>
       <div>
-        <h3 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">{copy.heading}</h3>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">{copy.subheading}</p>
+        <p className="max-w-2xl text-[13px] leading-5 text-slate-600 dark:text-slate-300">{copy.subheading}</p>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-3 xl:grid-cols-3">
         {modes.map((mode, index) => (
           <PrimaryModeCard
             key={mode.title}

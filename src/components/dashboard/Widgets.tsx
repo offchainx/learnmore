@@ -105,6 +105,7 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [quote, setQuote] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const copy = (zh: string, en: string) => (lang.startsWith('zh') ? zh : en);
 
   const getQuote = React.useCallback(() => {
     const quotesList = MOTIVATIONAL_QUOTES[lang as keyof typeof MOTIVATIONAL_QUOTES] || MOTIVATIONAL_QUOTES.en;
@@ -176,31 +177,33 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
   }, [lang, generateInspiration, getQuote]);
 
   return (
-    <div className={`relative w-full rounded-3xl overflow-hidden shadow-2xl group animate-fade-in-up border border-slate-200 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-800 ${className || 'h-56 sm:h-64'}`}>
+    <div className={`group relative w-full overflow-hidden rounded-[28px] border border-[#24324D] bg-[#08111F] shadow-[0_18px_48px_rgba(2,8,23,0.28)] ${className || 'h-56 sm:h-64'}`}>
       {imageUrl ? (
         <img src={imageUrl} alt="Daily Inspiration" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 animate-pulse"></div>
+        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-cyan-500 to-slate-900"></div>
       )}
-      <div className="absolute inset-0 bg-black/10 mix-blend-multiply"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/20 to-transparent"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
-      <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
+      <div className="absolute inset-0 bg-black/25 mix-blend-multiply"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/10 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/55 to-transparent"></div>
+      <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-5">
         <div>
-           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight drop-shadow-lg">{welcomeTitle}</h1>
-           <p className="text-white/90 mt-1 text-sm font-medium drop-shadow-md max-w-lg">{welcomeSub}</p>
+           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100 backdrop-blur-md">
+             <Sparkles className="h-3 w-3 text-cyan-200" />
+             {t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
+           </div>
+           <h1 className="mt-3 text-lg font-semibold tracking-tight text-white/95 drop-shadow-md sm:text-[20px]">{welcomeTitle}</h1>
+           <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-white/78 drop-shadow-sm sm:text-[13px]">{welcomeSub}</p>
         </div>
-        <div className="flex justify-between items-end gap-4">
+        <div className="flex items-end justify-between gap-4">
           <div className="max-w-3xl">
-             <div className="flex items-center gap-2 mb-1 text-yellow-300 font-bold text-[10px] sm:text-xs uppercase tracking-widest drop-shadow-md">
-                <Sparkles className="w-3 h-3 text-yellow-300 fill-yellow-300" />
-                {t.dashboard?.dailyVibe || 'Daily Vibe'}
-             </div>
-             <p className="text-base sm:text-lg font-medium text-white leading-relaxed italic drop-shadow-lg line-clamp-2">&quot;{quote}&quot;</p>
+             <p className="text-sm italic leading-6 text-white/90 drop-shadow-md sm:text-[15px]">
+               &quot;{quote}&quot;
+             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={generateInspiration} disabled={loading} className="text-white/80 hover:text-white hover:bg-white/20 shrink-0 border border-white/20 backdrop-blur-sm">
-             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-             {loading ? (t.common?.loading || 'Loading...') : (t.common?.search || 'Regenerate')}
+          <Button variant="ghost" size="sm" onClick={generateInspiration} disabled={loading} className="shrink-0 rounded-2xl border border-white/15 bg-white/10 px-3 text-[11px] font-semibold text-white/85 backdrop-blur-sm hover:bg-white/15 hover:text-white">
+             <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+             {loading ? (t.common?.loading || copy('加载中', 'Loading...')) : copy('换一张', 'Refresh')}
           </Button>
         </div>
       </div>

@@ -42,6 +42,7 @@ export function AchievementsClientWrapper({ user, overview, badges }: Achievemen
       currentView="achievements"
       onNavigate={handleNavigate}
       userRole={user.role}
+      userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >

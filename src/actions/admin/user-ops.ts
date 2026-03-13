@@ -12,6 +12,7 @@ import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
 import { Admin } from '@/types'
+import { SecurityAction, SubscriptionTier } from '@prisma/client'
 
 const AVATAR_COLOR_PALETTE = [
   'bg-red-500',
@@ -42,19 +43,25 @@ function buildAvatarColor(seed: string): string {
   return AVATAR_COLOR_PALETTE[index]
 }
 
-function mapDbStatusToAdmin(status: 'ACTIVE' | 'BANNED' | 'PAUSED'): Admin.UserStatus {
+function mapDbStatusToAdmin(
+  status: 'ACTIVE' | 'BANNED' | 'PAUSED'
+): Admin.UserStatus {
   if (status === 'BANNED') return Admin.UserStatus.BANNED
   if (status === 'PAUSED') return Admin.UserStatus.PAUSED
   return Admin.UserStatus.ACTIVE
 }
 
-function mapAdminStatusToDb(status: Admin.UserStatus): 'ACTIVE' | 'BANNED' | 'PAUSED' {
+function mapAdminStatusToDb(
+  status: Admin.UserStatus
+): 'ACTIVE' | 'BANNED' | 'PAUSED' {
   if (status === Admin.UserStatus.BANNED) return 'BANNED'
   if (status === Admin.UserStatus.PAUSED) return 'PAUSED'
   return 'ACTIVE'
 }
 
-function mapDbTierToAdmin(tier: 'STARTER' | 'STANDARD' | 'SMART_PLUS' | 'PREMIER' | null): Admin.SubscriptionTier {
+function mapDbTierToAdmin(
+  tier: 'STARTER' | 'STANDARD' | 'SMART_PLUS' | 'PREMIER' | null
+): Admin.SubscriptionTier {
   if (tier === 'PREMIER') return Admin.SubscriptionTier.PREMIER
   if (tier === 'SMART_PLUS') return Admin.SubscriptionTier.SMART_PLUS
   if (tier === 'STANDARD') return Admin.SubscriptionTier.STANDARD
@@ -68,6 +75,15 @@ function mapAdminTierToDb(
   if (tier === Admin.SubscriptionTier.SMART_PLUS) return 'SMART_PLUS'
   if (tier === Admin.SubscriptionTier.STANDARD) return 'STANDARD'
   return 'STARTER'
+}
+
+const USER_OVERVIEW_WINDOW_CONFIG: Record<
+  Admin.UserOverviewWindow,
+  { days: number | null; label: string }
+> = {
+  '7D': { days: 7, label: '7 Days' },
+  '30D': { days: 30, label: '30 Days' },
+  ALL: { days: null, label: 'All Time' },
 }
 
 // ============ 权限检查 ============
@@ -116,7 +132,11 @@ export async function listAdminUsers(
         { school: { contains: search, mode: 'insensitive' } },
       ]
 
-      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search)) {
+      if (
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          search
+        )
+      ) {
         orConditions.push({ id: search })
       }
 
@@ -124,14 +144,21 @@ export async function listAdminUsers(
     }
 
     if (filters.status !== 'All') {
-      andConditions.push({ status: mapAdminStatusToDb(filters.status as Admin.UserStatus) })
+      andConditions.push({
+        status: mapAdminStatusToDb(filters.status as Admin.UserStatus),
+      })
     }
 
     if (filters.tier !== 'All') {
-      andConditions.push({ subscriptionTier: mapAdminTierToDb(filters.tier as Admin.SubscriptionTier) })
+      andConditions.push({
+        subscriptionTier: mapAdminTierToDb(
+          filters.tier as Admin.SubscriptionTier
+        ),
+      })
     }
 
-    const where: any = andConditions.length > 0 ? { AND: andConditions } : undefined
+    const where: any =
+      andConditions.length > 0 ? { AND: andConditions } : undefined
 
     const direction = pagination.sortDirection === 'asc' ? 'asc' : 'desc'
     const orderBy: any = (() => {
@@ -164,8 +191,10 @@ export async function listAdminUsers(
           id: true,
           email: true,
           username: true,
+          role: true,
           status: true,
           subscriptionTier: true,
+          subscriptionEnd: true,
           lastSignInAt: true,
           grade: true,
           school: true,
@@ -181,8 +210,10 @@ export async function listAdminUsers(
         name: user.username || user.email.split('@')[0],
         email: user.email,
         avatarColor: buildAvatarColor(`${user.id}:${user.email}`),
+        role: user.role,
         status: mapDbStatusToAdmin(user.status),
         tier: mapDbTierToAdmin(user.subscriptionTier),
+        subscriptionEnd: user.subscriptionEnd?.toISOString() || null,
         lastActive: lastActiveDate.toISOString(),
         lastActiveLabel: formatRelativeTime(lastActiveDate),
         grade: user.grade ? `${user.grade}年级` : '未设置',
@@ -202,13 +233,236 @@ export async function listAdminUsers(
     }
   } catch (error) {
     console.error('[listAdminUsers] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '获取用户列表失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取用户列表失败',
+    }
+  }
+}
+
+export async function getAdminUserOverview(
+  window: Admin.UserOverviewWindow
+): Promise<Admin.ActionResult<Admin.UserOverview>> {
+  try {
+    await requireAdminOrTeacher()
+
+    const safeWindow = USER_OVERVIEW_WINDOW_CONFIG[window] ? window : '30D'
+    const config = USER_OVERVIEW_WINDOW_CONFIG[safeWindow]
+    const now = new Date()
+
+    const [
+      totalUsers,
+      standardUsers,
+      smartPlusUsers,
+      premierUsers,
+      bannedUsers,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({
+        where: { subscriptionTier: SubscriptionTier.STANDARD },
+      }),
+      prisma.user.count({
+        where: { subscriptionTier: SubscriptionTier.SMART_PLUS },
+      }),
+      prisma.user.count({
+        where: { subscriptionTier: SubscriptionTier.PREMIER },
+      }),
+      prisma.user.count({ where: { status: 'BANNED' } }),
+    ])
+
+    let metrics: Admin.UserOverviewMetric[]
+
+    if (config.days === null) {
+      metrics = [
+        {
+          id: 'total',
+          title: '总用户',
+          value: formatNumber(totalUsers),
+          caption: '全站累计',
+          meta: '当前系统中的累计注册用户规模',
+          trend: null,
+          trendLabel: '累计视角',
+        },
+        {
+          id: 'standard',
+          title: 'Standard 用户',
+          value: formatNumber(standardUsers),
+          caption: '当前订阅',
+          meta: '当前处于 Standard 档位的用户总数',
+          trend: null,
+          trendLabel: '累计视角',
+        },
+        {
+          id: 'smart-plus',
+          title: 'Smart+ 用户',
+          value: formatNumber(smartPlusUsers),
+          caption: '当前订阅',
+          meta: '当前处于 Smart+ 档位的用户总数',
+          trend: null,
+          trendLabel: '累计视角',
+        },
+        {
+          id: 'premier',
+          title: 'Premier 用户',
+          value: formatNumber(premierUsers),
+          caption: '当前订阅',
+          meta: '当前处于 Premier 档位的用户总数',
+          trend: null,
+          trendLabel: '累计视角',
+        },
+        {
+          id: 'banned',
+          title: '封禁用户',
+          value: formatNumber(bannedUsers),
+          caption: '当前状态',
+          meta: '当前仍处于封禁状态的账号数量',
+          trend: null,
+          trendLabel: '累计视角',
+        },
+      ]
+    } else {
+      const currentStart = subtractDays(now, config.days)
+      const previousStart = subtractDays(currentStart, config.days)
+
+      const [
+        totalCurrent,
+        totalPrevious,
+        standardCurrent,
+        standardPrevious,
+        smartPlusCurrent,
+        smartPlusPrevious,
+        premierCurrent,
+        premierPrevious,
+        bannedCurrent,
+        bannedPrevious,
+      ] = await Promise.all([
+        prisma.user.count({
+          where: { createdAt: { gte: currentStart, lt: now } },
+        }),
+        prisma.user.count({
+          where: { createdAt: { gte: previousStart, lt: currentStart } },
+        }),
+        prisma.user.count({
+          where: {
+            subscriptionTier: SubscriptionTier.STANDARD,
+            subscriptionStart: { gte: currentStart, lt: now },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            subscriptionTier: SubscriptionTier.STANDARD,
+            subscriptionStart: { gte: previousStart, lt: currentStart },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            subscriptionTier: SubscriptionTier.SMART_PLUS,
+            subscriptionStart: { gte: currentStart, lt: now },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            subscriptionTier: SubscriptionTier.SMART_PLUS,
+            subscriptionStart: { gte: previousStart, lt: currentStart },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            subscriptionTier: SubscriptionTier.PREMIER,
+            subscriptionStart: { gte: currentStart, lt: now },
+          },
+        }),
+        prisma.user.count({
+          where: {
+            subscriptionTier: SubscriptionTier.PREMIER,
+            subscriptionStart: { gte: previousStart, lt: currentStart },
+          },
+        }),
+        prisma.securityLog.count({
+          where: {
+            action: SecurityAction.USER_BANNED,
+            createdAt: { gte: currentStart, lt: now },
+          },
+        }),
+        prisma.securityLog.count({
+          where: {
+            action: SecurityAction.USER_BANNED,
+            createdAt: { gte: previousStart, lt: currentStart },
+          },
+        }),
+      ])
+
+      metrics = [
+        {
+          id: 'total',
+          title: '总用户',
+          value: formatNumber(totalUsers),
+          caption: config.label,
+          meta: `${config.label} 新增 ${formatNumber(totalCurrent)} 位，上一周期 ${formatNumber(totalPrevious)} 位`,
+          trend: calcTrend(totalCurrent, totalPrevious),
+          trendLabel: '较上窗口新增',
+        },
+        {
+          id: 'standard',
+          title: 'Standard 用户',
+          value: formatNumber(standardUsers),
+          caption: config.label,
+          meta: `${config.label} 新增 ${formatNumber(standardCurrent)} 位，上一周期 ${formatNumber(standardPrevious)} 位`,
+          trend: calcTrend(standardCurrent, standardPrevious),
+          trendLabel: '较上窗口新增',
+        },
+        {
+          id: 'smart-plus',
+          title: 'Smart+ 用户',
+          value: formatNumber(smartPlusUsers),
+          caption: config.label,
+          meta: `${config.label} 新增 ${formatNumber(smartPlusCurrent)} 位，上一周期 ${formatNumber(smartPlusPrevious)} 位`,
+          trend: calcTrend(smartPlusCurrent, smartPlusPrevious),
+          trendLabel: '较上窗口新增',
+        },
+        {
+          id: 'premier',
+          title: 'Premier 用户',
+          value: formatNumber(premierUsers),
+          caption: config.label,
+          meta: `${config.label} 新增 ${formatNumber(premierCurrent)} 位，上一周期 ${formatNumber(premierPrevious)} 位`,
+          trend: calcTrend(premierCurrent, premierPrevious),
+          trendLabel: '较上窗口新增',
+        },
+        {
+          id: 'banned',
+          title: '封禁用户',
+          value: formatNumber(bannedUsers),
+          caption: config.label,
+          meta: `${config.label} 新增封禁 ${formatNumber(bannedCurrent)} 次，上一周期 ${formatNumber(bannedPrevious)} 次`,
+          trend: calcTrend(bannedCurrent, bannedPrevious),
+          trendLabel: '较上窗口封禁',
+        },
+      ]
+    }
+
+    return {
+      success: true,
+      data: {
+        window: safeWindow,
+        metrics,
+        lastUpdated: now.toISOString(),
+      },
+    }
+  } catch (error) {
+    console.error('[getAdminUserOverview] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取用户概览失败',
+    }
   }
 }
 
 // ============ 获取用户详情 ============
 
-export async function getUserDetail(userId: string): Promise<Admin.ActionResult<Admin.UserDetail>> {
+export async function getUserDetail(
+  userId: string
+): Promise<Admin.ActionResult<Admin.UserDetail>> {
   try {
     await requireAdmin()
 
@@ -246,15 +500,16 @@ export async function getUserDetail(userId: string): Promise<Admin.ActionResult<
       deletedAt: n.deletedAt?.toISOString() || null,
     }))
 
-    const recentSecurityLogs: Admin.SecurityLogEntry[] = dbUser.securityLogs.map((l) => ({
-      id: l.id,
-      userId: l.userId,
-      action: l.action as Admin.SecurityAction,
-      ipAddress: l.ipAddress,
-      userAgent: l.userAgent,
-      metadata: l.metadata as Record<string, unknown> | null,
-      createdAt: l.createdAt.toISOString(),
-    }))
+    const recentSecurityLogs: Admin.SecurityLogEntry[] =
+      dbUser.securityLogs.map((l) => ({
+        id: l.id,
+        userId: l.userId,
+        action: l.action as Admin.SecurityAction,
+        ipAddress: l.ipAddress,
+        userAgent: l.userAgent,
+        metadata: l.metadata as Record<string, unknown> | null,
+        createdAt: l.createdAt.toISOString(),
+      }))
 
     const activeSession = dbUser.impersonationSessions[0]
     const lastActiveDate = dbUser.lastSignInAt || dbUser.createdAt
@@ -295,7 +550,11 @@ export async function getUserDetail(userId: string): Promise<Admin.ActionResult<
             startedAt: activeSession.startedAt.toISOString(),
             expiresAt: activeSession.expiresAt.toISOString(),
             endedAt: activeSession.endedAt?.toISOString() || null,
-            endReason: activeSession.endReason as 'MANUAL_LOGOUT' | 'TOKEN_EXPIRED' | 'ADMIN_REVOKED' | null,
+            endReason: activeSession.endReason as
+              | 'MANUAL_LOGOUT'
+              | 'TOKEN_EXPIRED'
+              | 'ADMIN_REVOKED'
+              | null,
           }
         : null,
     }
@@ -303,7 +562,10 @@ export async function getUserDetail(userId: string): Promise<Admin.ActionResult<
     return { success: true, data: userDetail }
   } catch (error) {
     console.error('[getAdmin.UserDetail] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '获取用户详情失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取用户详情失败',
+    }
   }
 }
 
@@ -349,13 +611,19 @@ export async function toggleUserStatus(
     return { success: true }
   } catch (error) {
     console.error('[toggleAdmin.UserStatus] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '操作失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '操作失败',
+    }
   }
 }
 
 // ============ Admin Note 系统 ============
 
-export async function addAdminNote(userId: string, content: string): Promise<Admin.ActionResult<Admin.AdminNote>> {
+export async function addAdminNote(
+  userId: string,
+  content: string
+): Promise<Admin.ActionResult<Admin.AdminNote>> {
   try {
     const admin = await requireAdmin()
 
@@ -399,11 +667,16 @@ export async function addAdminNote(userId: string, content: string): Promise<Adm
     }
   } catch (error) {
     console.error('[addAdmin.AdminNote] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '添加备注失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '添加备注失败',
+    }
   }
 }
 
-export async function softDeleteAdminNote(noteId: string): Promise<Admin.ActionResult> {
+export async function softDeleteAdminNote(
+  noteId: string
+): Promise<Admin.ActionResult> {
   try {
     const admin = await requireAdmin()
 
@@ -434,11 +707,16 @@ export async function softDeleteAdminNote(noteId: string): Promise<Admin.ActionR
     return { success: true }
   } catch (error) {
     console.error('[softDeleteAdmin.AdminNote] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '删除备注失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '删除备注失败',
+    }
   }
 }
 
-export async function restoreAdminNote(noteId: string): Promise<Admin.ActionResult> {
+export async function restoreAdminNote(
+  noteId: string
+): Promise<Admin.ActionResult> {
   try {
     const admin = await requireAdmin()
 
@@ -469,11 +747,16 @@ export async function restoreAdminNote(noteId: string): Promise<Admin.ActionResu
     return { success: true }
   } catch (error) {
     console.error('[restoreAdmin.AdminNote] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '恢复备注失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '恢复备注失败',
+    }
   }
 }
 
-export async function toggleNotePin(noteId: string): Promise<Admin.ActionResult> {
+export async function toggleNotePin(
+  noteId: string
+): Promise<Admin.ActionResult> {
   try {
     await requireAdmin()
 
@@ -491,7 +774,10 @@ export async function toggleNotePin(noteId: string): Promise<Admin.ActionResult>
     return { success: true }
   } catch (error) {
     console.error('[toggleNotePin] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '操作失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '操作失败',
+    }
   }
 }
 
@@ -509,7 +795,9 @@ export async function impersonateUser(
     }
 
     // 检查目标用户是否存在
-    const targetUser = await prisma.user.findUnique({ where: { id: targetUserId } })
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+    })
     if (!targetUser) {
       return { success: false, error: '目标用户不存在' }
     }
@@ -574,7 +862,10 @@ export async function impersonateUser(
     }
   } catch (error) {
     console.error('[impersonateUser] Error:', error)
-    return { success: false, error: error instanceof Error ? error.message : '伪装登录失败' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '伪装登录失败',
+    }
   }
 }
 
@@ -592,4 +883,21 @@ function formatRelativeTime(date: Date): string {
   if (hours < 24) return `${hours}小时前`
   if (days < 7) return `${days}天前`
   return date.toLocaleDateString('zh-CN')
+}
+
+function subtractDays(base: Date, days: number): Date {
+  return new Date(base.getTime() - days * 24 * 60 * 60 * 1000)
+}
+
+function calcTrend(current: number, previous: number): number {
+  if (previous === 0) {
+    if (current === 0) return 0
+    return 100
+  }
+
+  return Number((((current - previous) / previous) * 100).toFixed(1))
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('zh-CN').format(value)
 }

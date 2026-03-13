@@ -21,7 +21,7 @@ interface ExamForecastProps {
 }
 
 const cardShellClassName =
-  'overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 text-white shadow-[0_20px_48px_rgba(2,8,23,0.3)]'
+  'overflow-hidden rounded-[26px] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 text-white shadow-[0_18px_40px_rgba(2,8,23,0.28)]'
 
 /**
  * Sparkline 迷你图表组件
@@ -160,7 +160,7 @@ function ExamForecastSkeleton() {
 
   return (
     <Card className={`${cardShellClassName} relative p-0`}>
-      <div className="p-5 relative z-10">
+      <div className="relative z-10 p-4">
         <Skeleton className="h-4 w-24 bg-slate-700 mb-4" />
         <div className="flex items-end gap-3 mb-4">
           <Skeleton className="h-10 w-12 bg-slate-700" />
@@ -176,7 +176,7 @@ function ExamForecastSkeleton() {
           ))}
         </div>
       </div>
-      <Skeleton className="h-10 w-full bg-slate-800" />
+      <Skeleton className="h-8 w-full bg-slate-800" />
     </Card>
   )
 }
@@ -198,7 +198,7 @@ function ExamForecastInner({
 
   if (error) {
     return (
-      <Card className={cn(cardShellClassName, "p-5", className)}>
+      <Card className={cn(cardShellClassName, "p-4", className)}>
         <div className="text-center text-slate-400 py-4">
           {error}
         </div>
@@ -208,8 +208,8 @@ function ExamForecastInner({
 
   if (!forecast) {
     return (
-      <Card className={cn(cardShellClassName, "p-5", className)}>
-        <div className="text-center text-slate-400 py-4">
+      <Card className={cn(cardShellClassName, "p-4", className)}>
+        <div className="py-4 text-center text-slate-400">
           暂无预测数据
         </div>
       </Card>
@@ -220,41 +220,46 @@ function ExamForecastInner({
   if (forecast.grade === 'N/A') {
     return (
       <Card className={cn(cardShellClassName, "relative p-0", className)}>
-        <div className="p-5 relative z-10">
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+        <div className="relative z-10 p-4">
+          <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
             <TrendingUp className="w-4 h-4 text-blue-500" /> 考试预测
           </div>
-          <div className="text-center py-6">
+          <div className="py-4 text-center">
             <div className="text-2xl font-bold text-slate-500 mb-2">--</div>
             <p className="text-sm text-slate-500">
               需要更多练习数据才能生成预测
             </p>
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="mt-1 text-xs text-slate-600">
               继续练习，答题记录会帮助我们更准确地预测
             </p>
           </div>
         </div>
-        <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
-          <span className="text-xs text-slate-500">继续练习后，这里会显示更准确的预测</span>
+        <div className="relative z-10 border-t border-slate-800 bg-slate-800/50 p-2.5 text-center">
+          <span className="text-[11px] text-slate-500">继续练习后，这里会显示更准确的预测</span>
         </div>
       </Card>
     )
   }
 
+  const trendCopy: Record<TrendDirection, string> = {
+    UP: '较上次稳步上升',
+    DOWN: '近期表现有回落',
+    STABLE: '整体保持稳定',
+  }
+
   return (
     <TooltipProvider delayDuration={200}>
       <Card className={cn(cardShellClassName, "relative p-0", className)}>
-        <div className="p-5 relative z-10">
+        <div className="relative z-10 p-4">
           {/* Header */}
-          <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
             <TrendingUp className="w-4 h-4 text-blue-500" /> 考试预测
           </div>
 
-          {/* Grade Display */}
-          <div className="flex items-end gap-3 mb-4">
+          <div className="grid grid-cols-[auto_1fr] items-end gap-x-3 gap-y-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="text-4xl font-bold text-white cursor-help">{forecast.grade}</div>
+                <div className="cursor-help text-4xl font-bold text-white">{forecast.grade}</div>
               </TooltipTrigger>
               <TooltipContent side="right">
                 <div className="text-xs">
@@ -268,19 +273,34 @@ function ExamForecastInner({
               </TooltipContent>
             </Tooltip>
             
-            <TrendIndicator trend={forecast.trend} className="mb-1" />
+            <div className="space-y-1 pb-1">
+              <TrendIndicator trend={forecast.trend} />
+              <div className="text-[12px] text-slate-400">预测分数约 {forecast.score} 分</div>
+            </div>
           </div>
 
-          {/* Sparkline Chart */}
-          <Sparkline data={forecast.sparklineData} className="opacity-80 mb-3" />
+          <div className="mt-3 rounded-2xl border border-white/8 bg-white/5 p-3">
+            <div className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              <span>近期趋势</span>
+              <span>{trendCopy[forecast.trend]}</span>
+            </div>
+            <Sparkline data={forecast.sparklineData} className="mb-2 opacity-80" />
+            <ConfidenceBar confidence={forecast.confidence} />
+          </div>
 
-          {/* Confidence Bar */}
-          <ConfidenceBar confidence={forecast.confidence} />
+          <div className="mt-3 grid gap-2">
+            <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/8 px-3 py-2 text-[12px] leading-5 text-emerald-100">
+              预测等级基于最近练习正确率、完成度和连续活跃表现综合生成。
+            </div>
+            <div className="rounded-2xl border border-white/8 bg-white/5 px-3 py-2 text-[12px] leading-5 text-slate-300">
+              建议继续完成 Smart Drill 和 Mock Arena，考试预测会更快收敛。
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-800/50 p-3 text-center border-t border-slate-800 relative z-10">
-          <span className="text-xs text-slate-400">
+        <div className="relative z-10 border-t border-slate-800 bg-slate-800/50 p-2.5 text-center">
+          <span className="text-[11px] text-slate-400">
             预计当前可达到 <strong>{forecast.score} 分左右</strong>
           </span>
         </div>
