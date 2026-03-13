@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   Award,
   Brain,
@@ -52,16 +53,46 @@ export const AchievementsView = ({ user, overview, badges }: AchievementsViewPro
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in-up">
-      <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
+      <PageHeroShell
+        className="px-4 py-3 sm:px-5 sm:py-3.5"
+        eyebrow={
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/78">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            Achievement Vault
+          </div>
+        }
+        title="成就中心"
+        subtitle={`查看 ${user.username || 'Student'} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`}
+        actions={
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/72">
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            已解锁 {unlockedCount}/{badges.length}
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <img
             src={user.avatar || 'https://i.pravatar.cc/160?u=achievement-user'}
             alt="avatar"
-            className="w-16 h-16 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+            className="h-16 w-16 rounded-full border border-white/10 object-cover"
           />
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{user.username || 'Student'}</h2>
-            <p className="text-sm text-slate-500">成就完成度 {completionRate}% · 已解锁 {unlockedCount}/{badges.length}</p>
+            <div className="text-2xl font-bold text-white">{user.username || 'Student'}</div>
+            <p className="mt-1 text-sm text-blue-100/68">
+              成就完成度 {completionRate}% · 已解锁 {unlockedCount}/{badges.length}
+            </p>
+          </div>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] font-semibold text-blue-50">
+            <Award className="h-4 w-4 text-amber-300" /> Achievement MVP
+          </div>
+        </div>
+      </PageHeroShell>
+
+      <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">成长摘要</h2>
+            <p className="mt-1 text-sm text-slate-500">从连胜、题量、正确率和学习时长看本阶段表现。</p>
           </div>
           <Badge variant="secondary" className="w-fit">
             <Award className="w-3.5 h-3.5 mr-1" /> Achievement MVP

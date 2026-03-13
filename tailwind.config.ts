@@ -42,6 +42,47 @@ const config = {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        page: {
+          DEFAULT: 'hsl(var(--page-bg))',
+          elevated: 'hsl(var(--page-bg-elevated))',
+        },
+        surface: {
+          DEFAULT: 'hsl(var(--surface-default))',
+          muted: 'hsl(var(--surface-muted))',
+          subtle: 'hsl(var(--surface-subtle))',
+          selected: 'hsl(var(--surface-selected))',
+          inverse: 'hsl(var(--surface-inverse))',
+        },
+        text: {
+          primary: 'hsl(var(--text-primary))',
+          secondary: 'hsl(var(--text-secondary))',
+          tertiary: 'hsl(var(--text-tertiary))',
+          disabled: 'hsl(var(--text-disabled))',
+          inverse: 'hsl(var(--text-inverse))',
+        },
+        borderTone: {
+          subtle: 'hsl(var(--border-subtle))',
+          DEFAULT: 'hsl(var(--border-default))',
+          strong: 'hsl(var(--border-strong))',
+        },
+        state: {
+          success: {
+            bg: 'hsl(var(--state-success-bg))',
+            fg: 'hsl(var(--state-success-fg))',
+          },
+          warning: {
+            bg: 'hsl(var(--state-warning-bg))',
+            fg: 'hsl(var(--state-warning-fg))',
+          },
+          danger: {
+            bg: 'hsl(var(--state-danger-bg))',
+            fg: 'hsl(var(--state-danger-fg))',
+          },
+          info: {
+            bg: 'hsl(var(--state-info-bg))',
+            fg: 'hsl(var(--state-info-fg))',
+          },
+        },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
@@ -108,6 +149,9 @@ const config = {
         },
       },
       boxShadow: {
+        surface: 'var(--shadow-surface-sm)',
+        'surface-md': 'var(--shadow-surface-md)',
+        'surface-lg': 'var(--shadow-surface-lg)',
         "glow-red": "0 0 20px -5px rgba(239, 68, 68, 0.4)",
         "glow-green": "0 0 20px -5px rgba(34, 197, 94, 0.4)",
         "glow-blue": "0 0 20px -5px rgba(59, 130, 246, 0.4)",

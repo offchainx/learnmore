@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    color-scheme: light;
+
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -29,6 +31,40 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Global light theme contract */
+    --page-bg: 220 23% 97%;
+    --page-bg-elevated: 220 20% 99%;
+    --surface-default: 0 0% 100%;
+    --surface-muted: 220 33% 98%;
+    --surface-subtle: 220 24% 95%;
+    --surface-selected: 217 91% 96%;
+    --surface-inverse: 222 47% 11%;
+
+    --text-primary: 222 47% 11%;
+    --text-secondary: 215 16% 34%;
+    --text-tertiary: 215 14% 48%;
+    --text-disabled: 215 14% 65%;
+    --text-inverse: 210 40% 98%;
+
+    --border-subtle: 220 20% 93%;
+    --border-default: 220 16% 88%;
+    --border-strong: 215 20% 65%;
+
+    --focus-ring: 221 83% 53%;
+    --shadow-color: 220 40% 2%;
+    --shadow-surface-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
+    --shadow-surface-md: 0 18px 40px rgba(15, 23, 42, 0.1);
+    --shadow-surface-lg: 0 24px 64px rgba(15, 23, 42, 0.14);
+
+    --state-success-bg: 151 81% 96%;
+    --state-success-fg: 160 84% 20%;
+    --state-warning-bg: 48 100% 96%;
+    --state-warning-fg: 31 92% 33%;
+    --state-danger-bg: 0 86% 97%;
+    --state-danger-fg: 0 74% 42%;
+    --state-info-bg: 214 100% 97%;
+    --state-info-fg: 221 83% 53%;
 
     /* Safe Area Insets for iOS notch/island support */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
@@ -61,6 +97,41 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    color-scheme: dark;
+
+    --page-bg: 222 47% 7%;
+    --page-bg-elevated: 222 42% 9%;
+    --surface-default: 222 39% 11%;
+    --surface-muted: 223 32% 14%;
+    --surface-subtle: 223 27% 18%;
+    --surface-selected: 221 39% 20%;
+    --surface-inverse: 210 40% 98%;
+
+    --text-primary: 210 40% 98%;
+    --text-secondary: 217 19% 74%;
+    --text-tertiary: 215 15% 61%;
+    --text-disabled: 215 13% 45%;
+    --text-inverse: 222 47% 11%;
+
+    --border-subtle: 222 24% 18%;
+    --border-default: 217 19% 22%;
+    --border-strong: 215 14% 38%;
+
+    --focus-ring: 217 91% 60%;
+    --shadow-color: 222 80% 2%;
+    --shadow-surface-sm: 0 10px 24px rgba(2, 6, 23, 0.28);
+    --shadow-surface-md: 0 20px 48px rgba(2, 6, 23, 0.42);
+    --shadow-surface-lg: 0 30px 72px rgba(2, 6, 23, 0.54);
+
+    --state-success-bg: 160 84% 12%;
+    --state-success-fg: 152 76% 80%;
+    --state-warning-bg: 30 70% 14%;
+    --state-warning-fg: 48 96% 80%;
+    --state-danger-bg: 0 63% 15%;
+    --state-danger-fg: 0 93% 82%;
+    --state-info-bg: 221 55% 16%;
+    --state-info-fg: 213 97% 87%;
   }
 }
 
@@ -68,8 +139,13 @@
   * {
     @apply border-border;
   }
+  html {
+    background-color: hsl(var(--page-bg));
+  }
   body {
     @apply bg-background text-foreground;
+    background-color: hsl(var(--page-bg));
+    color: hsl(var(--text-primary));
   }
 }
 
@@ -141,6 +217,17 @@ html:not(.dark) .drawer-glass {
   background: rgba(21, 25, 33, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+}
+
+.surface-card {
+  background-color: hsl(var(--surface-default));
+  border: 1px solid hsl(var(--border-default));
+  box-shadow: var(--shadow-surface-sm);
+}
+
+.surface-muted {
+  background-color: hsl(var(--surface-muted));
+  border: 1px solid hsl(var(--border-subtle));
 }
 
 .custom-scrollbar::-webkit-scrollbar {

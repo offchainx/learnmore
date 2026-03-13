@@ -1,12 +1,20 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, MessageCircle, Target, Trophy, Zap } from 'lucide-react'
+import {
+  BookOpen,
+  MessageCircle,
+  Target,
+  Trophy,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { useApp } from '@/providers'
 import { TierRoadmap } from './components/TierRoadmap'
 import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
 import { FocusPanel } from './components/FocusPanel'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 import {
   fetchWithTimeout,
@@ -46,6 +54,18 @@ interface RankedUser {
   isRival?: boolean
 }
 
+interface FocusChallenge {
+  title: string
+  subtitle: string
+  xp: number
+  progress: number
+  total: number
+  href: string
+  cta: string
+  icon: LucideIcon
+  color: string
+}
+
 function mapEntriesToRankedUsers(
   entries: LeaderboardEntryWithUser[],
   currentUserId: string
@@ -66,6 +86,8 @@ const copyByLang = {
     tierTitle: '当前段位',
     tiers: ['青铜', '白银', '黄金', '铂金', '钻石', '王者'],
     title: '排行榜',
+    heroBadge: 'Competitive Ladder',
+    heroSubtitle: '查看当前段位、追赶目标与成长进度，决定下一轮最值得做的动作。',
     rankLabel: '排名',
     studentLabel: '学员',
     xpLabel: '经验值',
@@ -146,6 +168,9 @@ const copyByLang = {
     tierTitle: 'Current Tier',
     tiers: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Challenger'],
     title: 'Leaderboard',
+    heroBadge: 'Competitive Ladder',
+    heroSubtitle:
+      'Review your current tier, rival target, and growth signals before the next push.',
     rankLabel: 'Rank',
     studentLabel: 'Student',
     xpLabel: 'XP',
@@ -229,6 +254,9 @@ const copyByLang = {
     tierTitle: 'Tier Semasa',
     tiers: ['Gangsa', 'Perak', 'Emas', 'Platinum', 'Berlian', 'Juara'],
     title: 'Carta Kedudukan',
+    heroBadge: 'Competitive Ladder',
+    heroSubtitle:
+      'Lihat tier semasa, sasaran kejar dan kemajuan pertumbuhan sebelum pusingan seterusnya.',
     rankLabel: 'Rank',
     studentLabel: 'Pelajar',
     xpLabel: 'XP',
@@ -614,7 +642,7 @@ export const LeaderboardView = ({
     const levelBaseXp = (overview.level - 1) * 1000
     const xpToNextLevel = Math.max(overview.nextLevelXp - overview.xp, 0)
 
-    const goals = [
+    const goals: FocusChallenge[] = [
       {
         title:
           lang === 'zh'
@@ -694,8 +722,26 @@ export const LeaderboardView = ({
   return (
     <div className="relative mx-auto max-w-[1500px] animate-fade-in-up lg:h-[calc(100vh-7.5rem)]">
       <div className="flex h-full min-h-0 flex-col gap-4">
+        <PageHeroShell
+          className="px-4 py-3 sm:px-5 sm:py-3.5"
+          eyebrow={
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/78">
+              <span className="h-2 w-2 rounded-full bg-amber-400" />
+              {copy.heroBadge}
+            </div>
+          }
+          title={copy.title}
+          subtitle={copy.heroSubtitle}
+          actions={
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/72">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              {myRank ? copy.myRank(myRank) : copy.unranked}
+            </div>
+          }
+        />
+
         <TierRoadmap
-          tiers={copy.tiers}
+          tiers={[...copy.tiers]}
           currentTierIndex={currentTierIndex}
           title={copy.tierTitle}
           currentTierLabel={copy.tiers[currentTierIndex] || copy.tiers[0]}
@@ -774,7 +820,7 @@ export const LeaderboardView = ({
               challengeLabel={copy.challengeLabel}
               rivalLabel={copy.rivalLabel}
               challengeBadge={copy.challengeBadge}
-              challenges={growthSummary?.goals ?? copy.defaultGoals}
+              challenges={growthSummary?.goals ?? [...copy.defaultGoals]}
               rival={rivalTarget}
               rivalEmptyDescription={copy.rivalEmpty}
               rivalEmptyCta={copy.rivalEmptyCta}

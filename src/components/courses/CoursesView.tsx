@@ -30,6 +30,7 @@ import { subjectsData, mockUserContent, Section, SubTabType } from '@/components
 import { LessonPlayer } from './LessonPlayer';
 import { useApp } from '@/providers';
 import { getSubjectLabel } from '@/lib/subjects';
+import { PageHeroShell } from '@/components/shared/PageHeroShell';
 
 const shellClassName =
   'rounded-[28px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.96),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]';
@@ -594,27 +595,19 @@ export const CoursesView = ({ t }: { t: any }) => {
         </div>
       ) : null}
 
-      <div className="mx-auto w-full max-w-[1820px] space-y-3">
-        <div className="relative overflow-hidden rounded-[26px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-3 shadow-[0_18px_44px_rgba(2,8,23,0.32)] sm:px-5 sm:py-3.5">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-          <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
+      <div className="mx-auto w-full max-w-[1820px] rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2 sm:p-2.5">
+        <div className="space-y-3">
+          <PageHeroShell
+            title={copy('课程学习', 'Course Learning')}
+            subtitle={copy(
+              '继续你的课程推进、进入复习模式，或回看当前科目的笔记与高亮。',
+              'Continue your course progress, switch into review mode, or revisit your notebook for the current subject.',
+            )}
+          />
 
-          <div className="relative min-w-0">
-            <h1 className="text-[26px] font-bold tracking-tight text-[#E6EDF7] sm:text-[28px]">
-              {copy('课程学习', 'Course Learning')}
-            </h1>
-            <p className="mt-1 max-w-3xl text-[12px] leading-5 text-[#B2C3DA] sm:text-[13px]">
-              {copy(
-                '继续你的课程推进、进入复习模式，或回看当前科目的笔记与高亮。',
-                'Continue your course progress, switch into review mode, or revisit your notebook for the current subject.',
-              )}
-            </p>
-          </div>
-        </div>
+          {renderSubjectSelector()}
 
-        {renderSubjectSelector()}
-
-        <section className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)]">
+          <section className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)]">
           <div className="space-y-3">
             <Card className={`${shellClassName} overflow-hidden p-0`}>
               <div className="relative px-5 py-5">
@@ -826,7 +819,8 @@ export const CoursesView = ({ t }: { t: any }) => {
               </Card>
             )}
           </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );

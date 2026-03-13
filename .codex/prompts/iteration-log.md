@@ -70,6 +70,8 @@
 | 2026-03-13 | T-006.22 sidebar adjustment and handoff to T-006.23 | 重排 dashboard sidebar 信息架构，收口为主导航、管理、轻量 Upgrade、底部账户区四段式，并根据反馈补充 icon 彩色 hover、设置齿轮微动；同步更新 tasks 状态。 | 完成 sidebar 第一轮结构重排与交互收口：下移 admin、弱化 Upgrade、等级卡并入账户区、统一设置激活态，并加入 icon 彩色 hover 与齿轮微动；tasks.md 已更新为 T-006.22 done、T-006.23 doing。 | - | - | - | - |
 | 2026-03-13 | T-006.21 设置页单页工作台改造与锚点滚动收口 | 将设置页从 tab 切换改成单页 section 工作台，统一 Dashboard 深蓝舱体风格，并将左 rail 与右侧 section 拆成固定导航 + 独立滚动区；同时修复 ReferralSection 的 hydration mismatch。 | 完成设置页 header/套餐胶囊/左 rail/五大 section 的单页工作台改造；右侧 section 改为独立滚动容器，按 section 标题锚点定位；修复 referral 链接 SSR/CSR 不一致导致的 hydration 报错；定向 prettier 与 eslint 通过。 | 先把 settings 改成单页 section，再把左 rail 与右侧内容彻底分开，比继续修 sticky + 主容器滚动的 offset 更稳定；最后用大底部缓冲解决最后一个 section 无法滚到位的问题。 | 共享主滚动容器 + sticky rail 会不断受到 hero、main padding 和 section 外框高度影响，导致视觉基线始终漂移；直接在渲染期使用 window.location 也会触发 hydration mismatch。 | 当页面需要“固定目录 + 内容锚点跳转”时，优先拆成“左 rail 固定 + 右侧独立滚动容器 + section 标题锚点”的结构；SSR 页面里凡是链接或 origin 依赖，默认用稳定占位文案渲染，客户端交互时再补绝对地址。 | 提交并推送设置页相关改动；后续若继续微调，只调整右侧滚动安全区和锚点 offset，不再回到共享滚动结构。 |
 
+| 2026-03-13 | T-006.23.1 页面级标题壳子统一，并补课程学习/学员社区外层页面壳包裹范围 | 先抽统一 PageHeroShell，再把 Dashboard/Courses/Practice/Community/Settings/Leaderboard/Achievements/KnowledgeGraph 顶部接入；随后按反馈把 Courses 和 Community 改成与练习中心一致的整页外层壳结构，Community Hub 移到标题右侧。 | 完成统一标题壳子组件接入主要页面；修复 Settings/Community/Leaderboard 相关类型与兼容问题；课程学习和学员社区的外层壳已包住整段主体，社区标题胶囊移至标题右侧。 | - | - | - | - |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用

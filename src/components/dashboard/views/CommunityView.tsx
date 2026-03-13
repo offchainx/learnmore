@@ -35,12 +35,13 @@ import {
   fetchWithTimeout,
   isAbortLikeError,
 } from '@/lib/http/fetch-with-timeout'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
 
 type SubjectOption = Awaited<ReturnType<typeof getCategories>>[number]
 
 interface CommunityViewProps {
   initialPosts?: PostWithAuthor[]
-  subjects: SubjectOption[]
+  subjects?: SubjectOption[]
 }
 
 type FeedPost = PostWithAuthor & {
@@ -187,7 +188,7 @@ function comparePosts(a: FeedPost, b: FeedPost, sortMode: SortMode) {
 
 export function CommunityView({
   initialPosts = [],
-  subjects,
+  subjects = [],
 }: CommunityViewProps) {
   const { t, lang } = useApp()
   const [posts, setPosts] = useState<FeedPost[]>(() =>
@@ -695,52 +696,49 @@ export function CommunityView({
   }
 
   return (
-    <div className="animate-fade-in-up space-y-6 pb-12">
-      <Card
-        className={`${surfaceClassName} overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-6`}
-      >
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/80">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              {copy.badge}
+    <div className="animate-fade-in-up pb-12">
+      <div className="space-y-6 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2 sm:p-2.5">
+        <PageHeroShell
+          className={`${surfaceClassName} rounded-[30px] bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-6`}
+          title={
+            <div className="flex flex-wrap items-center gap-3">
+              <span>{t.community.title}</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/80">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                {copy.badge}
+              </div>
             </div>
-            <div>
-              <h1 className="text-[28px] font-semibold tracking-tight text-white">
-                {t.community.title}
-              </h1>
-              <p className="text-blue-100/68 mt-2 max-w-2xl text-sm leading-6">
-                {t.community.sub}
-              </p>
+          }
+          subtitle={t.community.sub}
+          titleClassName="font-semibold text-white"
+          subtitleClassName="max-w-2xl text-sm leading-6 text-blue-100/68 mt-2"
+          actions={
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="relative min-w-0 sm:w-[320px]">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-100/40" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={copy.searchPlaceholder}
+                  className="placeholder:text-blue-100/38 h-11 w-full rounded-full border border-white/10 bg-white/[0.05] pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/35"
+                />
+              </div>
+              <Button
+                asChild
+                variant="glow"
+                className="h-11 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-none hover:bg-slate-100"
+              >
+                <Link href="/dashboard/community/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  {copy.publish}
+                </Link>
+              </Button>
             </div>
-          </div>
+          }
+        />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative min-w-0 sm:w-[320px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-100/40" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={copy.searchPlaceholder}
-                className="placeholder:text-blue-100/38 h-11 w-full rounded-full border border-white/10 bg-white/[0.05] pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/35"
-              />
-            </div>
-            <Button
-              asChild
-              variant="glow"
-              className="h-11 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-none hover:bg-slate-100"
-            >
-              <Link href="/dashboard/community/new">
-                <Plus className="mr-2 h-4 w-4" />
-                {copy.publish}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)]">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)]">
         <div className="space-y-4">
           <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -1118,6 +1116,7 @@ export function CommunityView({
               ))}
             </div>
           </Card>
+        </div>
         </div>
       </div>
     </div>

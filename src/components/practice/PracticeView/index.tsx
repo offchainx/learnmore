@@ -13,6 +13,7 @@ import {
   PracticeModePreviewDialog,
   type PracticeModePreviewConfig,
 } from './PracticeModePreviewDialog';
+import { PageHeroShell } from '@/components/shared/PageHeroShell';
 
 interface PracticeCenterScreenProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -403,19 +404,11 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({ t })
       />
 
       <div className="mx-auto w-full max-w-[1820px] space-y-2 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2 sm:p-2.5">
-        <div className="relative overflow-hidden rounded-[26px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-2.5 shadow-[0_18px_44px_rgba(2,8,23,0.32)] sm:px-5 sm:py-3">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-          <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-          <div className="relative min-w-0">
-            <h1 className="text-[26px] font-bold tracking-tight text-[#E6EDF7] sm:text-[28px]">
-              {headerCopy.title}
-            </h1>
-            <p className="mt-1 max-w-3xl text-[12px] leading-5 text-[#B2C3DA] sm:text-[13px]">
-              {headerCopy.subtitle}
-            </p>
-          </div>
-        </div>
+        <PageHeroShell
+          className="px-4 py-2.5 sm:px-5 sm:py-3"
+          title={headerCopy.title}
+          subtitle={headerCopy.subtitle}
+        />
 
         <div ref={subjectSentinelRef} className="h-px" />
         <div

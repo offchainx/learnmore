@@ -16,6 +16,7 @@ import {
 import { useApp } from '@/providers';
 import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard';
 import { PracticeMode, User, UserSettings } from '@prisma/client';
+import { PageHeroShell } from '@/components/shared/PageHeroShell';
 
 const surfaceClassName =
   'rounded-[28px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.96),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]';
@@ -224,26 +225,19 @@ export const DashboardHome = ({
     <div className="animate-fade-in-up pb-4 xl:flex xl:h-[calc(100vh-1rem)] xl:flex-col xl:overflow-hidden">
       <section className="grid gap-3 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)]">
         <div className="space-y-3 xl:min-h-0 xl:overflow-hidden">
-          <div className="relative overflow-hidden rounded-[30px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_18px_44px_rgba(2,8,23,0.32)] sm:px-5 sm:py-4">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-            <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-            <div className="relative flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8EA4C7]">
-                  {copy('个人成长总览', 'Growth Overview')}
-                </div>
-                <h1 className="mt-2 text-[26px] font-bold tracking-tight text-[#E6EDF7] sm:text-[28px]">
-                  {copy('仪表盘', 'Dashboard')}
-                </h1>
-                <p className="mt-1 max-w-3xl text-[12px] leading-5 text-[#B2C3DA] sm:text-[13px]">
-                  {copy(
-                    '集中查看最近学习节奏、今日任务、课程恢复点和整体学科稳定度。',
-                    'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.',
-                  )}
-                </p>
+          <PageHeroShell
+            className="rounded-[30px] px-4 py-4 sm:px-5 sm:py-4"
+            eyebrow={
+              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8EA4C7]">
+                {copy('个人成长总览', 'Growth Overview')}
               </div>
-
+            }
+            title={copy('仪表盘', 'Dashboard')}
+            subtitle={copy(
+              '集中查看最近学习节奏、今日任务、课程恢复点和整体学科稳定度。',
+              'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.',
+            )}
+            actions={
               <div className="inline-flex shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-1">
                 {(['7D', '30D'] as DashboardOverviewWindow[]).map((windowKey) => (
                   <button
@@ -260,9 +254,9 @@ export const DashboardHome = ({
                   </button>
                 ))}
               </div>
-            </div>
-
-            <section className="relative mt-4 grid grid-cols-2 gap-3 2xl:grid-cols-4">
+            }
+          >
+            <section className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
               {overviewCards.map((card) => (
                 <OverviewCard
                   key={card.label}
@@ -272,7 +266,7 @@ export const DashboardHome = ({
                 />
               ))}
             </section>
-          </div>
+          </PageHeroShell>
 
           <DailyMissions tasks={dailyTasks} user={user} />
 

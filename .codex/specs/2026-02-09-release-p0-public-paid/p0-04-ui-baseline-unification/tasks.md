@@ -44,15 +44,21 @@
 | T-006.18 | 仪表盘基线对齐 | codex | done | 2026-03-12：完成 `/dashboard` 首页基线对齐，统一深色舱体 header、8/4 工作台布局、统计卡、任务区、排名卡、空态与 CTA 语义；保留年级排名冲击力但弱化过强紫色。 |
 | T-006.19 | 课程学习基线对齐 | codex | done | 2026-03-13：完成 `/dashboard/courses` 基线对齐与第二轮视觉收口，统一深色舱体 header、科目切换条、课程总览卡、课程/复习/笔记三态内容区与右侧建议栏；收回高饱和 hero、改为蓝青玻璃主基线，并接入各学科 hero 主题图与统一 pills 交互。 |
 | T-006.20 | 学员社区基线对齐 | codex | done | 2026-03-13：完成 `/dashboard/community` 论坛式列表重构，统一 3/1 主次栏比例、顶部筛选栏、帖子卡片信息架构、右侧板块导航与发布帖子页表单壳层；后续继续向 Dashboard 深蓝舱体视觉语言收口，统一社区卡片背景/透明度，并将发帖页正文以上字段改成双列布局；保留原有社区链路与反馈 FAB，收藏/已关注先按现有数据层做展示占位。 |
-| T-006.21 | 设定页面基线对齐 | codex | todo |  |
+| T-006.21 | 设定页面基线对齐 | codex | done | 2026-03-13：完成 `/dashboard/settings` 单页工作台改造，统一 Dashboard 深蓝舱体 header、左侧 rail 与五大 section；将设置页从 tab 切换改成单页锚点导航，拆分为左 rail 固定 + 右侧 section 独立滚动；补齐套餐视觉分层、滚动定位、安全区与 ReferralSection hydration 修复。 |
 | T-006.22 | 调整 sidebar | codex | done | 2026-03-13：完成 sidebar 第一轮结构重排，收口为主导航 / 管理 / 轻量 Upgrade / 底部账户区四段式；下移 admin 区、弱化 Upgrade 卡、将等级卡并入账户区，并补齐 icon 彩色 hover 与设置齿轮微动。 |
 | T-006.23 | 统一所有页面视觉语言：字体/字号/留白基线收口 | codex | doing |  |
-| T-006.23.1 | 页面级标题壳子统一：统一主页面 hero/header 的 eyebrow、H1、sub copy、容器 padding、标题区与主体内容的垂直间距 | codex | todo |  |
+| T-006.23.1 | 页面级标题壳子统一：统一主页面 hero/header 的 eyebrow、H1、sub copy、容器 padding、标题区与主体内容的垂直间距 | codex | done |  |
 | T-006.23.2 | 文本层级统一：统一页面标题、模块标题、卡片标题、说明文字、辅助文字的字号/字重/行高/字距基线 | codex | todo |  |
 | T-006.23.3 | 间距系统统一：统一页面 section 间距、卡片内边距、列表项高度与行间距，收口为固定 spacing 档位 | codex | todo |  |
 | T-006.23.4 | 状态与交互语言统一：统一主次按钮、tab、hover、active、分页点、空态 CTA、滚轮分页提示的视觉规则 | codex | todo |  |
 | T-006.23.5 | 右栏与辅助模块统一：统一右栏卡片标题区、说明文字密度、CTA 位置、空态模板，并消除与主区重复的信息块 | codex | todo |  |
-| T-006.24 | 设定页补齐：浅色主题与语言设定两个问题 | codex | todo |  |
+| T-006.24 | 设定页补齐：浅色主题与语言设定两个问题 | codex | doing |  |
+| T-006.24.1 | 浅色主题 token 合同：补齐 page / surface / text / border / shadow / state 语义层，建立浅色模式基础令牌映射 | codex | done | 2026-03-13：在 `globals.css` 与 `tailwind.config.ts` 补齐浅/深两套 page/surface/text/border/shadow/state 语义 token，并将根 `ThemeProvider` 默认主题切为 `system`、启用系统主题跟随。 |
+| T-006.24.2 | 全局壳层与导航适配浅色主题：sidebar、topbar、page shell、hero 容器的浅色层级与选中态规则统一 | codex | todo |  |
+| T-006.24.3 | 基础交互件适配浅色主题：button、input、textarea、select、switch、radio、chip、segmented control 的浅色状态补齐 | codex | todo |  |
+| T-006.24.4 | 数据型组件适配浅色主题：KPI 卡、表格、筛选工具栏、状态 badge、空态模板在浅色模式下统一 | codex | todo |  |
+| T-006.24.5 | 页面例外项收口：Dashboard / 课程 / 练习中心 / 社区 / 定价 / 排行榜 / 成就中心 / 设置页的浅色特例逐页收口 | codex | todo |  |
+| T-006.24.6 | 浅色主题回归矩阵：hover / focus / active / disabled / empty / loading / selected 状态逐项验证 | codex | todo |  |
 | T-006.25 | 全局基线实现批次：token -> 基础组件 -> 空态模板 -> 壳层导航 | codex | todo |  |
 | T-007 | 本地验证（Action + SQL 快照） | codex | todo |  |
 | T-007.1 | 本地 UI 回归：主路径、空态、加载态、移动端、导航一致性 | codex | todo |  |

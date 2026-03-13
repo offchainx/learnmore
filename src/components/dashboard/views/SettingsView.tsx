@@ -24,6 +24,7 @@ import {
 import { cancelSubscriptionAction } from '@/actions/billing/stripe'
 import { toast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   Bell,
   Bot,
@@ -1109,30 +1110,27 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     tierToneMap[normalizedTier as keyof typeof tierToneMap] ||
     tierToneMap.STARTER
   const TierIcon = tierTone.icon
+  const tierLabel =
+    tierLabelMap[normalizedTier as keyof typeof tierLabelMap] || normalizedTier
+  const statusLabel =
+    statusLabelMap[normalizedStatus as keyof typeof statusLabelMap] ||
+    normalizedStatus
 
   return (
     <div className="animate-fade-in-up space-y-6 pb-12">
-      <Card
-        className={`${surfaceClassName} overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-4`}
-      >
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-[28px] font-semibold tracking-tight text-white">
-                {copy.heroTitle}
-              </h1>
-              <div className="text-blue-100/78 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                {copy.heroBadge}
-              </div>
-            </div>
-            <div>
-              <p className="text-blue-100/64 max-w-3xl text-sm leading-6">
-                {copy.heroSub}
-              </p>
-            </div>
+      <PageHeroShell
+        className={`${surfaceClassName} bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-4`}
+        eyebrow={
+          <div className="text-blue-100/78 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            {copy.heroBadge}
           </div>
-
+        }
+        title={copy.heroTitle}
+        subtitle={copy.heroSub}
+        titleClassName="font-semibold text-white"
+        subtitleClassName="text-sm leading-6 text-blue-100/64"
+        actions={
           <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
             <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
               <div className="text-blue-100/38 text-[11px] font-medium uppercase tracking-[0.18em]">
@@ -1156,15 +1154,15 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                 )}
               >
                 <TierIcon className={cn('h-3.5 w-3.5', tierTone.accent)} />
-                {tierLabelMap[normalizedTier] || normalizedTier}
+                {tierLabel}
               </div>
               <div className="text-blue-100/54 mt-1 text-[13px]">
-                {statusLabelMap[normalizedStatus] || normalizedStatus}
+                {statusLabel}
               </div>
             </div>
           </div>
-        </div>
-      </Card>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6 xl:h-[calc(100vh-14.5rem)] xl:grid-cols-[260px_minmax(0,1fr)] xl:overflow-hidden">
         <div className="space-y-4 xl:self-start">
@@ -1733,7 +1731,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
             title={t.settings.tabs.subscription}
             description={copy.subscriptionDesc}
             icon={CreditCard}
-            badge={statusLabelMap[normalizedStatus] || normalizedStatus}
+            badge={statusLabel}
             sectionRef={(node) => {
               sectionRefs.current.subscription = node
             }}
@@ -1748,10 +1746,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                     {copy.currentPlan}
                   </div>
                   <div className="mt-3 text-[22px] font-semibold text-white">
-                    {tierLabelMap[normalizedTier] || normalizedTier}
+                    {tierLabel}
                   </div>
                   <div className="text-blue-100/52 mt-1 text-sm">
-                    {statusLabelMap[normalizedStatus] || normalizedStatus}
+                    {statusLabel}
                   </div>
                 </div>
 

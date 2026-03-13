@@ -22,6 +22,7 @@ import { getCategories } from '@/actions/community/post'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   BookOpen, Target, ChevronRight,
   Layers, Zap, Loader2
@@ -156,21 +157,32 @@ export const KnowledgeGraphView = () => {
 
   return (
     <div className="h-[calc(100vh-180px)] flex flex-col gap-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-3 text-slate-900 dark:text-white">
-            Knowledge Navigator
-            <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 px-2 py-0.5 text-[10px]">v2.0</Badge>
-          </h2>
-          <p className="text-slate-500 text-sm mt-1">Strategic learning paths powered by academic dependencies</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={loadData} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            <Layers className="w-4 h-4 mr-2" /> Refresh
+      <PageHeroShell
+        className="px-4 py-3 sm:px-5 sm:py-3.5"
+        eyebrow={
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/78">
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            Knowledge Graph
+          </div>
+        }
+        title={
+          <div className="flex items-center gap-3">
+            <span>Knowledge Navigator</span>
+            <Badge className="border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-500">v2.0</Badge>
+          </div>
+        }
+        subtitle="Strategic learning paths powered by academic dependencies."
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadData}
+            className="border-white/10 bg-white/[0.04] text-blue-50 hover:bg-white/[0.08] hover:text-white"
+          >
+            <Layers className="mr-2 h-4 w-4" /> Refresh
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex-1 flex gap-6 overflow-hidden">
         {/* Left: Filters */}
@@ -301,4 +313,3 @@ export const KnowledgeGraphView = () => {
     </div>
   )
 }
-
