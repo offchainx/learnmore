@@ -5,26 +5,26 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
+  Bookmark,
   Bot,
+  ChevronDown,
   CircleCheck,
   Crown,
   Flame,
   Hash,
   Heart,
-  ImageIcon,
   MessageSquare,
   Mic,
   Plus,
   Search,
-  Send,
   Share2,
   Sparkles,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import {
-  createPost,
-  toggleLike,
+  getCategories,
   PostWithAuthor,
+  toggleLike,
 } from '@/actions/community/post'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
@@ -36,9 +36,11 @@ import {
   isAbortLikeError,
 } from '@/lib/http/fetch-with-timeout'
 
+type SubjectOption = Awaited<ReturnType<typeof getCategories>>[number]
+
 interface CommunityViewProps {
   initialPosts?: PostWithAuthor[]
-  initialTab?: 'latest' | 'popular' | 'unanswered'
+  subjects: SubjectOption[]
 }
 
 type FeedPost = PostWithAuthor & {
@@ -48,7 +50,18 @@ type FeedPost = PostWithAuthor & {
     comments: number
     likes?: number
   }
+  shareCount: number
+  bookmarkCount: number
 }
+
+type ScopeFilter = 'all' | 'following' | 'by-date'
+type SortMode = 'recent-replies' | 'recent-posts' | 'most-comments'
+
+const surfaceClassName =
+  'rounded-[28px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
+
+const insetCardClassName =
+  'rounded-[22px] border border-white/8 bg-white/[0.03] text-white'
 
 function normalizePosts(posts: PostWithAuthor[]): FeedPost[] {
   return posts.map((post) => {
@@ -61,17 +74,22 @@ function normalizePosts(posts: PostWithAuthor[]): FeedPost[] {
       }
     }
 
+    const likeCount =
+      typeof rawPost.likeCount === 'number'
+        ? rawPost.likeCount
+        : (rawPost._count?.likes ?? 0)
+    const commentCount = post._count.comments
+
     return {
       ...post,
-      likeCount:
-        typeof rawPost.likeCount === 'number'
-          ? rawPost.likeCount
-          : (rawPost._count?.likes ?? 0),
+      likeCount,
       userLiked: Boolean(rawPost.userLiked),
       _count: {
-        comments: post._count.comments,
+        comments: commentCount,
         likes: rawPost._count?.likes ?? 0,
       },
+      shareCount: Math.max(0, Math.round((likeCount + commentCount) / 2)),
+      bookmarkCount: Math.max(0, Math.round(likeCount * 0.6)),
     }
   })
 }
@@ -122,121 +140,209 @@ function formatRelativeTime(
   return `${count}mo ago`
 }
 
+function groupLabel(dateValue: Date | string, lang: 'en' | 'zh' | 'ms') {
+  const timestamp = new Date(dateValue).getTime()
+  const diffMs = Date.now() - timestamp
+  const day = 24 * 60 * 60 * 1000
+  if (diffMs < day) {
+    if (lang === 'zh') return '今天'
+    if (lang === 'ms') return 'Hari ini'
+    return 'Today'
+  }
+  if (diffMs < 2 * day) {
+    if (lang === 'zh') return '昨天'
+    if (lang === 'ms') return 'Semalam'
+    return 'Yesterday'
+  }
+  if (diffMs < 7 * day) {
+    if (lang === 'zh') return '本周'
+    if (lang === 'ms') return 'Minggu ini'
+    return 'This Week'
+  }
+  if (lang === 'zh') return '更早'
+  if (lang === 'ms') return 'Terdahulu'
+  return 'Earlier'
+}
+
+function comparePosts(a: FeedPost, b: FeedPost, sortMode: SortMode) {
+  const aCreated = new Date(a.createdAt).getTime()
+  const bCreated = new Date(b.createdAt).getTime()
+
+  if (sortMode === 'most-comments') {
+    if (b._count.comments !== a._count.comments) {
+      return b._count.comments - a._count.comments
+    }
+    return bCreated - aCreated
+  }
+
+  if (sortMode === 'recent-replies') {
+    if (b._count.comments !== a._count.comments) {
+      return b._count.comments - a._count.comments
+    }
+    return bCreated - aCreated
+  }
+
+  return bCreated - aCreated
+}
+
 export function CommunityView({
   initialPosts = [],
-  initialTab = 'latest',
+  subjects,
 }: CommunityViewProps) {
   const { t, lang } = useApp()
-  const [activeTab, setActiveTab] = useState<
-    'latest' | 'popular' | 'unanswered'
-  >(initialTab)
   const [posts, setPosts] = useState<FeedPost[]>(() =>
     normalizePosts(initialPosts)
   )
   const [loading, setLoading] = useState(initialPosts.length === 0)
-  const [newPostContent, setNewPostContent] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const lastLoadedKeyRef = useRef<string>(
-    initialPosts.length > 0 ? `${initialTab}:1:20` : ''
+  const [searchQuery, setSearchQuery] = useState('')
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>('all')
+  const [sortMode, setSortMode] = useState<SortMode>('recent-posts')
+  const [activeBoardId, setActiveBoardId] = useState<string | 'all'>('all')
+  const lastLoadedKeyRef = useRef<string>(initialPosts.length > 0 ? 'feed' : '')
+
+  const followedBoardIds = useMemo(
+    () =>
+      subjects.slice(0, Math.min(3, subjects.length)).map((item) => item.id),
+    [subjects]
   )
 
   const copy = useMemo(() => {
     if (lang === 'zh') {
       return {
-        badge: 'Study Circle',
-        searchPlaceholder: '搜索帖子、标签或讨论主题',
+        badge: 'Community Hub',
+        searchPlaceholder: '搜索帖子、板块或标签',
         publish: '发布帖子',
-        quickPostLabel: '快速发帖',
-        quickPostHint:
-          '把问题、思路或刚解开的题目发到社区里，方便同学继续接力。',
-        photo: '图片',
-        topic: '话题',
-        aiSuggestion: 'AI 推荐：#错题求助',
-        feedTitle: '讨论动态',
-        feedSub: '最新讨论、热门回复和待解答提问都在这里收口。',
+        all: '所有',
+        following: '已关注',
+        byDate: '按日期查看',
+        sort: '排序方式',
+        recentReplies: '最近回复',
+        recentPosts: '最近发帖',
+        mostComments: '最多评论',
+        loadFailed: '加载失败，请稍后重试。',
         loading: '正在加载社区动态...',
-        postFailed: '加载失败，请稍后重试。',
-        postSuccess: '帖子已发布',
-        quickPostFallback: '新的社区提问',
+        noPosts: '当前筛选下还没有帖子。',
+        noFollowingPosts: '你关注的板块里还没有新帖子。',
+        roomsTitle: '实时自习室',
+        roomsSub: '在线学习房，点击即可加入同步讨论。',
+        liveNow: '在线中',
+        online: '在线',
+        boardsTitle: '全部内容',
+        boardsSub: '按板块切换帖子流，快速查看对应内容。',
+        boardGroupA: '公共版块',
+        boardGroupB: '课程专区',
+        boardAll: '全部内容',
+        boardFollowing: '已关注板块',
+        boardUnanswered: '待解答',
+        contributorsTitle: '活跃贡献者',
+        contributorsSub: '最近发帖和回答最活跃的同学。',
+        hotTopicsTitle: '热门话题',
+        hotTopicsSub: '继续追踪最近最热的标签。',
+        viewLeaderboard: '查看排行榜',
+        share: '分享',
+        comments: '评论',
+        bookmarks: '收藏',
+        boardLabel: '板块',
+        original: '独家原创',
         questionTag: '提问',
         solvedTag: '已解决',
         achievementTag: '成就',
-        aiHint: '还没有同学回复，先向 AI 助手要一个提示。',
-        noPosts: '当前筛选下还没有帖子，换个标签看看。',
-        liveRoomsSub: '加入同频学习房，边自习边交流。',
-        liveNow: '在线中',
-        online: '在线',
-        topContributorsSub: '最近解答最多、最愿意接力帮助别人的同学。',
-        solvedCount: '已解答',
-        viewLeaderboard: '查看排行榜',
-        hotTopicsSub: '最近讨论最热的标签，点开可继续追踪。',
+        aiHint: 'AI 助手',
+        shareCountNote: '收藏和分享暂按当前帖子互动热度展示。',
       }
     }
 
     if (lang === 'ms') {
       return {
-        badge: 'Study Circle',
-        searchPlaceholder: 'Cari siaran, tag atau topik',
+        badge: 'Community Hub',
+        searchPlaceholder: 'Cari siaran, papan atau tag',
         publish: 'Siarkan',
-        quickPostLabel: 'Siaran pantas',
-        quickPostHint:
-          'Kongsi soalan, idea atau penemuan anda supaya komuniti boleh sambung membantu.',
-        photo: 'Imej',
-        topic: 'Topik',
-        aiSuggestion: 'Cadangan AI: #soalan-silap',
-        feedTitle: 'Aliran komuniti',
-        feedSub:
-          'Perbincangan terkini, balasan popular dan soalan belum dijawab dikumpulkan di sini.',
-        loading: 'Memuatkan aliran komuniti...',
-        postFailed: 'Gagal memuatkan siaran. Cuba lagi sebentar lagi.',
-        postSuccess: 'Siaran berjaya diterbitkan',
-        quickPostFallback: 'Soalan komuniti baharu',
+        all: 'Semua',
+        following: 'Diikuti',
+        byDate: 'Ikut tarikh',
+        sort: 'Susun',
+        recentReplies: 'Balasan terkini',
+        recentPosts: 'Siaran terkini',
+        mostComments: 'Komen terbanyak',
+        loadFailed: 'Gagal memuatkan siaran.',
+        loading: 'Memuatkan komuniti...',
+        noPosts: 'Belum ada siaran untuk penapis ini.',
+        noFollowingPosts:
+          'Belum ada siaran baharu dalam papan yang anda ikuti.',
+        roomsTitle: 'Bilik belajar langsung',
+        roomsSub: 'Sertai bilik belajar serentak dan berbincang bersama.',
+        liveNow: 'Sedang live',
+        online: 'dalam talian',
+        boardsTitle: 'Semua kandungan',
+        boardsSub:
+          'Tukar aliran mengikut papan untuk melihat kandungan yang berkaitan.',
+        boardGroupA: 'Papan awam',
+        boardGroupB: 'Zon kursus',
+        boardAll: 'Semua kandungan',
+        boardFollowing: 'Papan diikuti',
+        boardUnanswered: 'Belum dijawab',
+        contributorsTitle: 'Penyumbang aktif',
+        contributorsSub:
+          'Pelajar paling aktif memuat naik dan menjawab baru-baru ini.',
+        hotTopicsTitle: 'Topik hangat',
+        hotTopicsSub: 'Jejak tag yang sedang mendapat perhatian.',
+        viewLeaderboard: 'Lihat carta',
+        share: 'Kongsi',
+        comments: 'Komen',
+        bookmarks: 'Simpan',
+        boardLabel: 'Papan',
+        original: 'Asal',
         questionTag: 'Soalan',
         solvedTag: 'Selesai',
         achievementTag: 'Pencapaian',
-        aiHint: 'Belum ada balasan. Cuba minta petunjuk daripada AI dahulu.',
-        noPosts: 'Belum ada siaran untuk penapis ini.',
-        liveRoomsSub: 'Sertai bilik belajar langsung dan bincang bersama.',
-        liveNow: 'Sedang live',
-        online: 'dalam talian',
-        topContributorsSub:
-          'Pelajar yang paling aktif menjawab dan membantu minggu ini.',
-        solvedCount: 'diselesaikan',
-        viewLeaderboard: 'Lihat carta',
-        hotTopicsSub: 'Tag yang paling hangat dibincangkan sekarang.',
+        aiHint: 'AI',
+        shareCountNote:
+          'Jumlah simpan dan kongsi kini dipaparkan sebagai ringkasan interaksi.',
       }
     }
 
     return {
-      badge: 'Study Circle',
-      searchPlaceholder: 'Search posts, tags or discussion topics',
+      badge: 'Community Hub',
+      searchPlaceholder: 'Search posts, boards or tags',
       publish: 'New Post',
-      quickPostLabel: 'Quick post',
-      quickPostHint:
-        'Share a question, idea or solved problem so the community can keep the thread moving.',
-      photo: 'Photo',
-      topic: 'Topic',
-      aiSuggestion: 'AI pick: #mistake-help',
-      feedTitle: 'Community feed',
-      feedSub:
-        'Latest discussions, popular replies and unanswered questions in one stream.',
+      all: 'All',
+      following: 'Following',
+      byDate: 'By date',
+      sort: 'Sort',
+      recentReplies: 'Recent replies',
+      recentPosts: 'Recent posts',
+      mostComments: 'Most comments',
+      loadFailed: 'Failed to load posts.',
       loading: 'Loading community feed...',
-      postFailed: 'Failed to load posts. Please try again later.',
-      postSuccess: 'Post published',
-      quickPostFallback: 'New community question',
+      noPosts: 'No posts found for this filter.',
+      noFollowingPosts: 'No new posts in the boards you follow yet.',
+      roomsTitle: 'Live study rooms',
+      roomsSub: 'Join an active room and discuss while studying together.',
+      liveNow: 'Live',
+      online: 'online',
+      boardsTitle: 'All content',
+      boardsSub: 'Switch by board to view the matching stream quickly.',
+      boardGroupA: 'Public boards',
+      boardGroupB: 'Course boards',
+      boardAll: 'All content',
+      boardFollowing: 'Following',
+      boardUnanswered: 'Unanswered',
+      contributorsTitle: 'Active contributors',
+      contributorsSub: 'Students who post and answer the most recently.',
+      hotTopicsTitle: 'Hot topics',
+      hotTopicsSub: 'Track the tags getting the most traction.',
+      viewLeaderboard: 'View leaderboard',
+      share: 'Share',
+      comments: 'Comments',
+      bookmarks: 'Bookmarks',
+      boardLabel: 'Board',
+      original: 'Original',
       questionTag: 'Question',
       solvedTag: 'Solved',
       achievementTag: 'Achievement',
-      aiHint: 'No replies yet. Ask AI for a quick hint first.',
-      noPosts: 'No posts found for this filter.',
-      liveRoomsSub: 'Join focused rooms and study together in real time.',
-      liveNow: 'Live',
-      online: 'online',
-      topContributorsSub:
-        'Students who answered the most and kept the discussion moving.',
-      solvedCount: 'solved',
-      viewLeaderboard: 'View leaderboard',
-      hotTopicsSub: 'Topics getting the most traction right now.',
+      aiHint: 'AI',
+      shareCountNote:
+        'Bookmark and share counts are currently shown as interaction placeholders.',
     }
   }, [lang])
 
@@ -261,32 +367,32 @@ export function CommunityView({
       {
         name:
           lang === 'zh'
-            ? '高效刷题房'
+            ? '刷题冲刺房'
             : lang === 'ms'
               ? 'Bilik latihan fokus'
               : 'Focused Drill Room',
         topic:
           lang === 'zh'
-            ? '练习冲刺'
+            ? '模拟练习'
             : lang === 'ms'
-              ? 'Lonjakan latihan'
-              : 'Practice sprint',
+              ? 'Latihan simulasi'
+              : 'Mock practice',
         users: 34,
         avatars: [5, 6, 7],
       },
       {
         name:
           lang === 'zh'
-            ? '物理考前答疑'
+            ? '物理答疑台'
             : lang === 'ms'
-              ? 'Fizik sebelum peperiksaan'
-              : 'Exam Prep Physics',
+              ? 'Sudut soal jawab fizik'
+              : 'Physics Q&A Room',
         topic:
           lang === 'zh'
-            ? '力学与图像'
+            ? '力学图像'
             : lang === 'ms'
-              ? 'Mekanik & graf'
-              : 'Mechanics & graphs',
+              ? 'Graf mekanik'
+              : 'Mechanics graphs',
         users: 8,
         avatars: [8, 9],
       },
@@ -344,9 +450,39 @@ export function CommunityView({
     []
   )
 
+  const boardGroups = useMemo(() => {
+    const firstChunk = subjects.slice(0, Math.ceil(subjects.length / 2))
+    const secondChunk = subjects.slice(Math.ceil(subjects.length / 2))
+
+    return [
+      {
+        title: copy.boardGroupA,
+        items: [
+          { id: 'all', name: copy.boardAll },
+          { id: 'following', name: copy.boardFollowing },
+          { id: 'unanswered', name: copy.boardUnanswered },
+        ],
+      },
+      {
+        title: copy.boardGroupB,
+        items: [...firstChunk, ...secondChunk].map((item) => ({
+          id: item.id,
+          name: item.name,
+        })),
+      },
+    ]
+  }, [
+    copy.boardAll,
+    copy.boardFollowing,
+    copy.boardGroupA,
+    copy.boardGroupB,
+    copy.boardUnanswered,
+    subjects,
+  ])
+
   const fetchPosts = useCallback(
-    async (tab: 'latest' | 'popular' | 'unanswered', force = false) => {
-      const requestKey = `${tab}:1:20`
+    async (force = false) => {
+      const requestKey = 'feed'
       if (!force && lastLoadedKeyRef.current === requestKey) {
         return
       }
@@ -357,7 +493,7 @@ export function CommunityView({
       setLoading(true)
       try {
         const response = await fetchWithTimeout(
-          `/api/community/feed?tab=${encodeURIComponent(tab)}&page=1&limit=20`,
+          '/api/community/feed?page=1&limit=20',
           {
             timeoutMs: 8000,
             method: 'GET',
@@ -397,84 +533,29 @@ export function CommunityView({
               : lang === 'ms'
                 ? 'Permintaan tamat masa. Cuba lagi sebentar lagi.'
                 : 'Request timed out. Please try again.'
-            : copy.postFailed,
+            : copy.loadFailed,
           variant: 'destructive',
         })
       } finally {
         setLoading(false)
       }
     },
-    [copy.postFailed, lang]
+    [copy.loadFailed, lang]
   )
 
   useEffect(() => {
-    void fetchPosts(activeTab)
-  }, [activeTab, fetchPosts])
-
-  async function handleCreatePost() {
-    if (!newPostContent.trim() || isSubmitting) return
-
-    setIsSubmitting(true)
-    try {
-      const result = await createPost({
-        title:
-          newPostContent.split('\n')[0].substring(0, 100) ||
-          copy.quickPostFallback,
-        content: newPostContent,
-        category: 'Question',
-      })
-
-      if (result.success) {
-        setNewPostContent('')
-        await fetchPosts(activeTab, true)
-        toast({
-          title:
-            lang === 'zh'
-              ? '发布成功'
-              : lang === 'ms'
-                ? 'Berjaya diterbitkan'
-                : 'Published',
-          description: copy.postSuccess,
-        })
-      } else {
-        toast({
-          title:
-            lang === 'zh'
-              ? '发布失败'
-              : lang === 'ms'
-                ? 'Gagal diterbitkan'
-                : 'Publish failed',
-          description: result.error,
-          variant: 'destructive',
-        })
-      }
-    } catch (error) {
-      console.error('Error creating post:', error)
-      toast({
-        title:
-          lang === 'zh'
-            ? '发布失败'
-            : lang === 'ms'
-              ? 'Gagal diterbitkan'
-              : 'Publish failed',
-        description: copy.postFailed,
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+    void fetchPosts()
+  }, [fetchPosts])
 
   async function handleLike(postId: string) {
     setPosts((prev) =>
       prev.map((post) => {
         if (post.id !== postId) return post
-
-        const optimisticLiked = !post.userLiked
+        const nextLiked = !post.userLiked
         return {
           ...post,
-          userLiked: optimisticLiked,
-          likeCount: optimisticLiked
+          userLiked: nextLiked,
+          likeCount: nextLiked
             ? post.likeCount + 1
             : Math.max(0, post.likeCount - 1),
         }
@@ -498,9 +579,84 @@ export function CommunityView({
               : 'Failed to like the post.',
         variant: 'destructive',
       })
-      await fetchPosts(activeTab, true)
+      await fetchPosts(true)
     }
   }
+
+  const visiblePosts = useMemo(() => {
+    const loweredQuery = searchQuery.trim().toLowerCase()
+
+    const filtered = posts.filter((post) => {
+      if (
+        scopeFilter === 'following' &&
+        !followedBoardIds.includes(post.subjectId || '')
+      ) {
+        return false
+      }
+
+      if (
+        activeBoardId === 'following' &&
+        !followedBoardIds.includes(post.subjectId || '')
+      ) {
+        return false
+      }
+
+      if (activeBoardId === 'unanswered' && post.isSolved) {
+        return false
+      }
+
+      if (
+        activeBoardId !== 'all' &&
+        activeBoardId !== 'following' &&
+        activeBoardId !== 'unanswered' &&
+        post.subjectId !== activeBoardId
+      ) {
+        return false
+      }
+
+      if (!loweredQuery) return true
+
+      const haystack = [
+        post.title,
+        post.content,
+        post.author.username || '',
+        post.subject?.name || '',
+        post.tags.join(' '),
+      ]
+        .join(' ')
+        .toLowerCase()
+
+      return haystack.includes(loweredQuery)
+    })
+
+    return [...filtered].sort((a, b) => comparePosts(a, b, sortMode))
+  }, [
+    activeBoardId,
+    followedBoardIds,
+    posts,
+    scopeFilter,
+    searchQuery,
+    sortMode,
+  ])
+
+  const groupedPosts = useMemo(() => {
+    if (scopeFilter !== 'by-date') {
+      return [{ label: '', items: visiblePosts }]
+    }
+
+    const groups = new Map<string, FeedPost[]>()
+    visiblePosts.forEach((post) => {
+      const label = groupLabel(post.createdAt, lang)
+      const bucket = groups.get(label) || []
+      bucket.push(post)
+      groups.set(label, bucket)
+    })
+
+    return Array.from(groups.entries()).map(([label, items]) => ({
+      label,
+      items,
+    }))
+  }, [lang, scopeFilter, visiblePosts])
 
   function renderCategory(post: FeedPost) {
     if (post.category === 'Question') {
@@ -531,12 +687,18 @@ export function CommunityView({
       )
     }
 
-    return null
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-blue-100/60">
+        {copy.original}
+      </span>
+    )
   }
 
   return (
     <div className="animate-fade-in-up space-y-6 pb-12">
-      <Card className="overflow-hidden rounded-[30px] border border-[#203964] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.15),_transparent_52%),linear-gradient(180deg,_#07152d_0%,_#071121_100%)] p-6 text-white shadow-[0_20px_70px_rgba(3,10,28,0.25)]">
+      <Card
+        className={`${surfaceClassName} overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-6`}
+      >
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/80">
@@ -554,10 +716,12 @@ export function CommunityView({
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative min-w-0 sm:w-[280px]">
+            <div className="relative min-w-0 sm:w-[320px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-100/40" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder={copy.searchPlaceholder}
                 className="placeholder:text-blue-100/38 h-11 w-full rounded-full border border-white/10 bg-white/[0.05] pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/35"
               />
@@ -576,244 +740,213 @@ export function CommunityView({
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)]">
         <div className="space-y-4">
-          <Card className="rounded-[28px] border border-[#203964] bg-[#07152a] p-5 text-white shadow-[0_14px_40px_rgba(4,10,24,0.22)]">
-            <div className="flex items-start gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-sm font-semibold text-slate-950">
-                LM
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-3">
-                  <div className="text-sm font-semibold text-white">
-                    {copy.quickPostLabel}
-                  </div>
-                  <div className="text-blue-100/58 mt-1 text-[13px] leading-6">
-                    {copy.quickPostHint}
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <textarea
-                    value={newPostContent}
-                    onChange={(event) => setNewPostContent(event.target.value)}
-                    placeholder={t.community.createPost}
-                    className="border-white/8 min-h-[92px] w-full rounded-[22px] border bg-white/[0.04] px-4 py-3 pr-14 text-sm leading-6 text-white placeholder:text-blue-100/35 focus:outline-none focus:ring-2 focus:ring-sky-400/30"
-                  />
-                  {newPostContent.length > 0 ? (
-                    <Button
-                      size="sm"
-                      onClick={handleCreatePost}
-                      disabled={isSubmitting}
-                      className="absolute bottom-3 right-3 h-9 w-9 rounded-full bg-white p-0 text-slate-950 hover:bg-slate-100"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  ) : null}
-                </div>
-
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="border-white/8 text-blue-100/68 h-8 rounded-full border bg-white/[0.03] px-3 text-[12px] hover:bg-white/[0.08] hover:text-white"
-                    >
-                      <ImageIcon className="mr-1.5 h-3.5 w-3.5 text-emerald-300" />
-                      {copy.photo}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="border-white/8 text-blue-100/68 h-8 rounded-full border bg-white/[0.03] px-3 text-[12px] hover:bg-white/[0.08] hover:text-white"
-                    >
-                      <Hash className="mr-1.5 h-3.5 w-3.5 text-sky-300" />
-                      {copy.topic}
-                    </Button>
-                  </div>
-
-                  <div className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[11px] font-medium text-sky-100/80">
-                    {copy.aiSuggestion}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="rounded-[26px] border border-[#203964] bg-[#07152a] px-4 py-3 text-white shadow-[0_12px_36px_rgba(4,10,24,0.2)]">
+          <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="text-sm font-semibold text-white">
-                  {copy.feedTitle}
-                </div>
-                <div className="text-blue-100/56 mt-1 text-[13px]">
-                  {copy.feedSub}
-                </div>
-              </div>
-
-              <div className="border-white/8 inline-flex rounded-full border bg-white/[0.04] p-1">
-                {(['latest', 'popular', 'unanswered'] as const).map((tab) => (
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { key: 'all' as ScopeFilter, label: copy.all },
+                  { key: 'following' as ScopeFilter, label: copy.following },
+                  { key: 'by-date' as ScopeFilter, label: copy.byDate },
+                ].map((item) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    key={item.key}
+                    onClick={() => setScopeFilter(item.key)}
                     className={`rounded-full px-4 py-2 text-[13px] font-medium transition-all ${
-                      activeTab === tab
+                      scopeFilter === item.key
                         ? 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(255,255,255,0.12)]'
-                        : 'text-blue-100/56 hover:text-white'
+                        : 'border-white/8 text-blue-100/58 border bg-white/[0.03] hover:bg-white/[0.05] hover:text-white'
                     }`}
                   >
-                    {t.community.tabs[tab]}
+                    {item.label}
                   </button>
                 ))}
               </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-blue-100/48 text-[12px]">
+                  {copy.sort}
+                </span>
+                <div className="relative">
+                  <select
+                    value={sortMode}
+                    onChange={(event) =>
+                      setSortMode(event.target.value as SortMode)
+                    }
+                    className="h-10 rounded-full border border-white/10 bg-white/[0.03] px-4 pr-9 text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-sky-400/30"
+                  >
+                    <option value="recent-replies">{copy.recentReplies}</option>
+                    <option value="recent-posts">{copy.recentPosts}</option>
+                    <option value="most-comments">{copy.mostComments}</option>
+                  </select>
+                  <ChevronDown className="text-blue-100/46 pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                </div>
+              </div>
             </div>
           </Card>
 
-          <div className="space-y-3">
-            {loading ? (
-              <Card className="text-blue-100/56 rounded-[28px] border border-[#203964] bg-[#07152a] px-5 py-10 text-center text-sm">
-                {copy.loading}
-              </Card>
-            ) : null}
+          <div className="text-blue-100/38 text-[11px]">
+            {copy.shareCountNote}
+          </div>
 
-            {!loading
-              ? posts.map((post) => (
-                  <Card
-                    key={post.id}
-                    className="hover:border-sky-400/24 rounded-[28px] border border-[#203964] bg-[#07152a] px-5 py-4 text-white shadow-[0_12px_36px_rgba(4,10,24,0.18)] transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <img
-                          src={
-                            post.author.avatar ||
-                            `https://i.pravatar.cc/150?u=${post.authorId}`
-                          }
-                          alt={post.author.username || 'User'}
-                          className="h-11 w-11 rounded-2xl border border-white/10 object-cover"
-                        />
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="truncate text-[14px] font-semibold text-white">
-                              {post.author.username || 'Anonymous'}
-                            </span>
-                            <span className="border-white/8 rounded-full border bg-white/[0.04] px-2 py-0.5 text-[10px] font-medium text-blue-100/60">
-                              {post.author.role}
-                            </span>
-                            {post.subject?.name ? (
-                              <span className="text-sky-200/72 text-[11px]">
-                                #{post.subject.name}
+          {loading ? (
+            <Card
+              className={`${surfaceClassName} text-blue-100/56 rounded-[28px] px-5 py-10 text-center text-sm`}
+            >
+              {copy.loading}
+            </Card>
+          ) : null}
+
+          {!loading && visiblePosts.length === 0 ? (
+            <Card className="text-blue-100/56 rounded-[28px] border border-dashed border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.92),rgba(5,11,20,0.96))] px-5 py-12 text-center shadow-[0_18px_48px_rgba(2,8,23,0.22)]">
+              <Bot className="mx-auto mb-4 h-10 w-10 opacity-40" />
+              <div className="text-sm">
+                {scopeFilter === 'following'
+                  ? copy.noFollowingPosts
+                  : copy.noPosts}
+              </div>
+            </Card>
+          ) : null}
+
+          {!loading
+            ? groupedPosts.map((group) => (
+                <div key={group.label || 'all'} className="space-y-3">
+                  {group.label ? (
+                    <div className="text-blue-100/52 px-1 text-[12px] font-medium">
+                      {group.label}
+                    </div>
+                  ) : null}
+
+                  {group.items.map((post) => (
+                    <Card
+                      key={post.id}
+                      className={`${surfaceClassName} hover:border-sky-400/24 rounded-[28px] px-5 py-4 transition-colors`}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <img
+                            src={
+                              post.author.avatar ||
+                              `https://i.pravatar.cc/150?u=${post.authorId}`
+                            }
+                            alt={post.author.username || 'User'}
+                            className="h-11 w-11 rounded-2xl border border-white/10 object-cover"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="truncate text-[15px] font-semibold text-white">
+                                {post.author.username || 'Anonymous'}
                               </span>
-                            ) : null}
+                              {renderCategory(post)}
+                            </div>
+                            <div className="text-blue-100/46 mt-1 flex flex-wrap items-center gap-2 text-[12px]">
+                              <span>
+                                {copy.boardLabel}：
+                                {post.subject?.name || copy.boardAll}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {formatRelativeTime(post.createdAt, lang)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-blue-100/42 mt-1 text-[12px]">
-                            {formatRelativeTime(post.createdAt, lang)}
-                          </div>
+                        </div>
+
+                        <div className="text-blue-100/42 shrink-0 text-[12px]">
+                          {formatRelativeTime(post.createdAt, lang)}
                         </div>
                       </div>
 
-                      <div className="shrink-0">{renderCategory(post)}</div>
-                    </div>
-
-                    <div className="mt-4">
-                      <Link
-                        href={`/dashboard/community/${post.id}`}
-                        className="block text-[18px] font-semibold leading-7 text-white hover:text-sky-200"
-                      >
-                        {post.title}
-                      </Link>
-                      <div className="text-blue-100/72 prose-p:text-blue-100/72 prose-li:text-blue-100/72 prose prose-sm mt-2 max-w-none text-[14px] leading-7 dark:prose-invert prose-headings:text-white prose-strong:text-white prose-code:text-sky-200">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkMath]}
-                          rehypePlugins={[rehypeKatex]}
+                      <div className="mt-4">
+                        <Link
+                          href={`/dashboard/community/${post.id}`}
+                          className="block text-[22px] font-semibold leading-8 text-white hover:text-sky-200"
                         >
-                          {post.content}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-
-                    {post.category === 'Question' && !post.isSolved ? (
-                      <div className="border-sky-400/18 mt-4 flex flex-col gap-3 rounded-[20px] border bg-sky-400/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-sky-100/82 flex items-center gap-2 text-[12px]">
-                          <Sparkles className="h-4 w-4 text-sky-300" />
-                          <span>{copy.aiHint}</span>
+                          {post.title}
+                        </Link>
+                        <div className="text-blue-100/72 prose-p:text-blue-100/72 prose-li:text-blue-100/72 prose prose-sm mt-2 max-w-none text-[14px] leading-7 dark:prose-invert prose-headings:text-white prose-strong:text-white prose-code:text-sky-200">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkMath]}
+                            rehypePlugins={[rehypeKatex]}
+                          >
+                            {post.content}
+                          </ReactMarkdown>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 rounded-full border-sky-300/20 bg-white/5 px-3 text-[12px] text-sky-100 hover:bg-white/10"
-                        >
-                          {t.community.askAI}
-                        </Button>
                       </div>
-                    ) : null}
 
-                    {post.tags.length > 0 ? (
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {post.tags.slice(0, 4).map((tag) => (
+                        <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] font-medium text-sky-100">
+                          {post.subject?.name || copy.boardAll}
+                        </span>
+                        {post.tags.map((tag) => (
                           <span
                             key={tag}
-                            className="border-white/8 text-blue-100/58 rounded-full border bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium"
+                            className="border-white/8 text-blue-100/58 rounded-full border bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium"
                           >
                             #{tag}
                           </span>
                         ))}
                       </div>
-                    ) : null}
 
-                    <div className="border-white/8 text-blue-100/52 mt-4 flex items-center gap-5 border-t pt-3 text-[13px]">
-                      <button
-                        onClick={() => handleLike(post.id)}
-                        className={`inline-flex items-center gap-2 transition-colors ${
-                          post.userLiked ? 'text-rose-300' : 'hover:text-white'
-                        }`}
-                      >
-                        <Heart
-                          className={`h-4 w-4 ${post.userLiked ? 'fill-current' : ''}`}
-                        />
-                        {post.likeCount}
-                      </button>
+                      <div className="border-white/8 text-blue-100/52 mt-4 flex flex-wrap items-center gap-5 border-t pt-3 text-[13px]">
+                        <button
+                          onClick={() => handleLike(post.id)}
+                          className={`inline-flex items-center gap-2 transition-colors ${
+                            post.userLiked
+                              ? 'text-rose-300'
+                              : 'hover:text-white'
+                          }`}
+                        >
+                          <Heart
+                            className={`h-4 w-4 ${post.userLiked ? 'fill-current' : ''}`}
+                          />
+                          {post.likeCount}
+                        </button>
 
-                      <Link
-                        href={`/dashboard/community/${post.id}`}
-                        className="inline-flex items-center gap-2 hover:text-white"
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        {post._count.comments}
-                      </Link>
+                        <Link
+                          href={`/dashboard/community/${post.id}`}
+                          className="inline-flex items-center gap-2 hover:text-white"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          {post._count.comments}
+                        </Link>
 
-                      <button className="ml-auto inline-flex items-center gap-2 hover:text-white">
-                        <Share2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </Card>
-                ))
-              : null}
+                        <button className="inline-flex items-center gap-2 hover:text-white">
+                          <Bookmark className="h-4 w-4" />
+                          {post.bookmarkCount}
+                        </button>
 
-            {!loading && posts.length === 0 ? (
-              <Card className="text-blue-100/56 rounded-[28px] border border-dashed border-[#203964] bg-[#07152a] px-5 py-12 text-center">
-                <Bot className="mx-auto mb-4 h-10 w-10 opacity-40" />
-                <div className="text-sm">{copy.noPosts}</div>
-              </Card>
-            ) : null}
-          </div>
+                        <button className="inline-flex items-center gap-2 hover:text-white">
+                          <Share2 className="h-4 w-4" />
+                          {post.shareCount}
+                        </button>
+
+                        <button className="text-blue-100/42 ml-auto inline-flex items-center gap-2 text-[12px] hover:text-white">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {copy.aiHint}
+                        </button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              ))
+            : null}
         </div>
 
         <div className="space-y-4">
-          <Card className="rounded-[28px] border border-[#203964] bg-[#07152a] p-5 text-white shadow-[0_12px_36px_rgba(4,10,24,0.18)]">
+          <Card className={`${surfaceClassName} p-5`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
                   <Mic className="h-4 w-4 text-emerald-300" />
-                  {t.community.liveRooms}
+                  {copy.roomsTitle}
                 </div>
                 <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
-                  {copy.liveRoomsSub}
+                  {copy.roomsSub}
                 </div>
               </div>
-              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-medium text-emerald-200">
+              <span className="bg-emerald-400/12 rounded-full border border-emerald-400/30 px-2.5 py-1 text-[10px] font-medium text-emerald-200">
                 {copy.liveNow}
               </span>
             </div>
@@ -822,7 +955,7 @@ export function CommunityView({
               {rooms.map((room) => (
                 <div
                   key={room.name}
-                  className="border-white/8 flex items-center justify-between gap-3 rounded-[20px] border bg-white/[0.03] px-3.5 py-3"
+                  className={`${insetCardClassName} flex items-center justify-between gap-3 px-3.5 py-3`}
                 >
                   <div className="min-w-0">
                     <div className="truncate text-[14px] font-semibold text-white">
@@ -849,7 +982,7 @@ export function CommunityView({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 rounded-full border-white/10 bg-white/5 px-3 text-[12px] text-blue-50 hover:bg-white/10"
+                    className="h-9 rounded-full border-white/10 bg-white/5 px-4 text-[12px] text-blue-50 hover:bg-white/10"
                   >
                     {t.community.join}
                   </Button>
@@ -858,14 +991,63 @@ export function CommunityView({
             </div>
           </Card>
 
-          <Card className="rounded-[28px] border border-[#203964] bg-[#07152a] p-5 text-white shadow-[0_12px_36px_rgba(4,10,24,0.18)]">
+          <Card className={`${surfaceClassName} p-5`}>
+            <div>
+              <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
+                <Hash className="h-4 w-4 text-sky-300" />
+                {copy.boardsTitle}
+              </div>
+              <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
+                {copy.boardsSub}
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              {boardGroups.map((group) => (
+                <div key={group.title}>
+                  <div className="text-blue-100/48 mb-2 text-[12px] font-medium">
+                    {group.title}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {group.items.map((item) => {
+                      const isActive =
+                        (item.id === 'all' && activeBoardId === 'all') ||
+                        (item.id === 'following' &&
+                          activeBoardId === 'following') ||
+                        (item.id === 'unanswered' &&
+                          activeBoardId === 'unanswered') ||
+                        activeBoardId === item.id
+
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() =>
+                            setActiveBoardId(item.id as string | 'all')
+                          }
+                          className={`min-h-11 rounded-2xl border px-3 py-2 text-left text-[12px] font-medium transition-colors ${
+                            isActive
+                              ? 'bg-sky-400/12 border-sky-400/30 text-sky-100'
+                              : 'border-white/8 bg-white/[0.03] text-blue-100/60 hover:bg-white/[0.05] hover:text-white'
+                          }`}
+                        >
+                          {item.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className={`${surfaceClassName} p-5`}>
             <div>
               <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
                 <Crown className="h-4 w-4 text-amber-300" />
-                {t.community.topContributors}
+                {copy.contributorsTitle}
               </div>
               <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
-                {copy.topContributorsSub}
+                {copy.contributorsSub}
               </div>
             </div>
 
@@ -873,7 +1055,7 @@ export function CommunityView({
               {contributors.map((user, index) => (
                 <div
                   key={user.name}
-                  className="border-white/8 flex items-center gap-3 rounded-[20px] border bg-white/[0.03] px-3.5 py-3"
+                  className={`${insetCardClassName} flex items-center gap-3 px-3.5 py-3`}
                 >
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-semibold ${
@@ -896,7 +1078,7 @@ export function CommunityView({
                       {user.name}
                     </div>
                     <div className="mt-1 truncate text-[11px] text-blue-100/50">
-                      {user.solved} {copy.solvedCount} • {user.badge}
+                      {user.solved} • {user.badge}
                     </div>
                   </div>
                 </div>
@@ -912,11 +1094,11 @@ export function CommunityView({
             </Button>
           </Card>
 
-          <Card className="rounded-[28px] border border-[#203964] bg-[#07152a] p-5 text-white shadow-[0_12px_36px_rgba(4,10,24,0.18)]">
+          <Card className={`${surfaceClassName} p-5`}>
             <div>
               <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
                 <Flame className="h-4 w-4 text-orange-300" />
-                {t.community.hotTopics}
+                {copy.hotTopicsTitle}
               </div>
               <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
                 {copy.hotTopicsSub}
@@ -925,13 +1107,14 @@ export function CommunityView({
 
             <div className="mt-4 flex flex-wrap gap-2">
               {topics.map((topic) => (
-                <span
+                <button
                   key={topic.tag}
-                  className="border-white/8 text-blue-100/68 rounded-full border bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium"
+                  onClick={() => setSearchQuery(topic.tag)}
+                  className="border-white/8 text-blue-100/68 rounded-full border bg-white/[0.03] px-3 py-1.5 text-[12px] font-medium hover:bg-white/[0.05] hover:text-white"
                 >
                   #{topic.tag}
                   <span className="text-blue-100/38 ml-1">{topic.count}</span>
-                </span>
+                </button>
               ))}
             </div>
           </Card>

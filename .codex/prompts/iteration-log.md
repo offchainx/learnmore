@@ -63,6 +63,8 @@
 
 | 2026-03-13 | 用户要求将当前项目全部改动提交并推送到 origin/main，过程中触发仓库 codex 门禁 | 在执行全量 git commit/push 前，先检查仓库 hooks 与 codex 提交要求；若有代码改动门禁，优先补齐 iteration log，再重新执行完整提交流程 | 已定位 pre-commit 会校验 .codex/prompts/iteration-log.md；补齐本次日志后继续执行全量提交与推送 | 先执行 git status/branch/remote 检查，再根据 hook 报错反查 scripts/codex/check-session.mjs 与 close-session.mjs，能快速定位阻塞点并用项目内脚本补齐要求 | 直接 git commit 会被 pre-commit 拦截，无法在未补 iteration log 的情况下完成推送 | 当用户要求直接提交或推送当前工作区时，先检查仓库是否存在 commit hooks、codex:check 或 iteration-log 类门禁；若存在，先用仓库内脚本补齐会话日志，再执行 git add/commit/push，避免在提交阶段被打断 | 重新暂存 .codex/prompts/iteration-log.md，执行 git commit，并将本地 main 上未推送提交全部推送到 origin/main |
 
+| 2026-03-13 | T-006.20 二轮收口：社区页向 Dashboard 视觉靠拢、发帖页改双列表单 | 对照 Dashboard 深蓝舱体样式继续收口学员社区主页与发帖页，统一卡片背景/透明度，并把正文以上字段改成左右排布以便首屏看完。 | 已完成社区主页主卡、帖子流与右栏模块的深蓝渐变舱体统一；发帖页正文以上字段改成双列卡片布局；定向 prettier 与 eslint 通过，准备提交并推送。 | 先统一 surface 与 inset card 层级，再重排发帖页字段，比只调局部 class 更稳定，也更接近 Dashboard 的视觉语言。 | 工作区存在 CoursesView、public/images 与 ui-analysis 等无关改动，提交时必须只选社区相关文件。 | 当同一产品线页面需要统一气质时，优先对齐 surface、透明度、边框和输入壳层，再处理信息排布；表单类页面优先双列收口首屏。 | 提交并推送本轮社区相关文件，然后继续推进 T-006.21 设定页面基线对齐。 |
+
 ## 约束
 - 每次会话结束至少追加一条记录
 - `improved_prompt` 必须可直接复用
