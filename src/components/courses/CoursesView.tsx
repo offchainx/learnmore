@@ -45,12 +45,14 @@ const courseHeroThemes: Record<
     accentClass: string;
     statBorderClass: string;
     patternSvg: string;
+    patternImage?: string;
   }
 > = {
   chinese: {
     accentClass:
       'from-cyan-500/18 via-sky-400/10 to-blue-500/12',
     statBorderClass: 'border-cyan-400/12',
+    patternImage: '/images/course-themes/chinese-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.08' stroke-width='8' stroke-linecap='round'><path d='M45 70c28-18 56-24 92-18'/><path d='M76 48c16 22 24 42 24 74'/><path d='M145 56c18 24 22 46 18 72'/><path d='M202 78c32-18 68-24 112-12'/><path d='M230 48c20 24 28 48 30 86'/><path d='M294 42c14 16 24 38 30 68'/></g><g fill='white' fill-opacity='.045'><circle cx='78' cy='158' r='16'/><rect x='194' y='142' width='44' height='44' rx='8'/><circle cx='320' cy='152' r='18'/></g></svg>",
   },
@@ -58,6 +60,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-cyan-500/14 via-teal-400/10 to-emerald-400/10',
     statBorderClass: 'border-teal-300/12',
+    patternImage: '/images/course-themes/malay-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='6'><path d='M46 150c42-54 84-54 126 0'/><path d='M196 150c36-44 74-44 110 0'/><path d='M84 118c16-16 34-24 54-24'/><path d='M238 112c14-12 30-18 48-18'/></g><g fill='white' fill-opacity='.05'><circle cx='72' cy='72' r='18'/><circle cx='284' cy='74' r='24'/><rect x='168' y='54' width='34' height='34' rx='8'/></g></svg>",
   },
@@ -65,6 +68,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-sky-500/16 via-indigo-400/10 to-cyan-400/10',
     statBorderClass: 'border-sky-300/12',
+    patternImage: '/images/course-themes/english-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.08' stroke-width='6'><path d='M66 152 96 60l30 92'/><path d='M78 118h36'/><path d='M164 154V66h56'/><path d='M164 110h42'/><path d='M164 154h58'/><path d='M274 154V66h54'/><path d='M274 110h40'/></g><g fill='white' fill-opacity='.045'><circle cx='324' cy='62' r='14'/><circle cx='232' cy='154' r='12'/></g></svg>",
   },
@@ -72,6 +76,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-cyan-500/14 via-emerald-400/10 to-sky-500/10',
     statBorderClass: 'border-emerald-300/12',
+    patternImage: '/images/course-themes/math-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='4'><path d='M48 170 102 74l54 96'/><circle cx='218' cy='112' r='44'/><path d='M156 112h124'/><path d='M218 50v124'/><path d='M292 166c18-18 34-70 54-102'/></g><g fill='white' fill-opacity='.045'><circle cx='82' cy='56' r='12'/><rect x='316' y='46' width='26' height='26' rx='6'/></g></svg>",
   },
@@ -79,6 +84,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-cyan-500/16 via-sky-400/10 to-teal-400/10',
     statBorderClass: 'border-cyan-300/12',
+    patternImage: '/images/course-themes/science-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='4'><circle cx='90' cy='92' r='22'/><circle cx='152' cy='78' r='16'/><circle cx='146' cy='136' r='14'/><path d='M110 86 138 80'/><path d='M106 102 134 128'/><circle cx='276' cy='108' r='38'/><path d='M238 108h76'/><path d='M276 70v76'/><ellipse cx='276' cy='108' rx='18' ry='38'/></g><g fill='white' fill-opacity='.045'><circle cx='328' cy='58' r='10'/><circle cx='338' cy='154' r='14'/></g></svg>",
   },
@@ -86,6 +92,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-cyan-500/12 via-amber-300/8 to-sky-500/10',
     statBorderClass: 'border-amber-200/12',
+    patternImage: '/images/course-themes/history-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='5'><path d='M54 162h116'/><path d='M72 162V78'/><path d='M96 162V66'/><path d='M122 162V84'/><path d='M146 162V72'/><path d='M60 76h102'/><path d='M222 64v96'/><path d='M250 64v96'/><path d='M278 64v96'/><path d='M210 92h80'/><path d='M210 130h80'/></g><g fill='white' fill-opacity='.045'><rect x='318' y='54' width='34' height='34' rx='8'/><circle cx='334' cy='150' r='16'/></g></svg>",
   },
@@ -93,6 +100,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-cyan-500/16 via-sky-400/12 to-blue-500/10',
     statBorderClass: 'border-sky-300/12',
+    patternImage: '/images/course-themes/geography-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='4'><ellipse cx='118' cy='108' rx='56' ry='36'/><path d='M62 108h112'/><path d='M118 72v72'/><path d='M82 82c12 18 12 54 0 72'/><path d='M154 82c-12 18-12 54 0 72'/><path d='M226 152c24-18 42-56 82-80'/><path d='M236 78c24 22 42 18 82 4'/></g><g fill='white' fill-opacity='.045'><circle cx='298' cy='140' r='18'/></g></svg>",
   },
@@ -100,6 +108,7 @@ const courseHeroThemes: Record<
     accentClass:
       'from-cyan-500/14 via-slate-300/8 to-blue-500/10',
     statBorderClass: 'border-slate-300/12',
+    patternImage: '/images/course-themes/other-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.07' stroke-width='4'><rect x='70' y='72' width='58' height='58' rx='14'/><rect x='146' y='58' width='82' height='82' rx='18'/><circle cx='302' cy='98' r='34'/><path d='M76 154h246'/></g></svg>",
   },
@@ -613,10 +622,26 @@ export const CoursesView = ({ t }: { t: any }) => {
                 <div className={`absolute inset-0 bg-gradient-to-r ${currentHeroTheme.accentClass}`} />
                 <div className="absolute -right-6 -top-8 h-36 w-36 rounded-full bg-cyan-400/10 blur-3xl" />
                 <div className="absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-sky-500/8 blur-3xl" />
+                {currentHeroTheme.patternImage ? (
+                  <div
+                    className="pointer-events-none absolute inset-0 hidden xl:block"
+                    style={{
+                      backgroundImage: [
+                        'linear-gradient(90deg, rgba(7,16,31,0.94) 0%, rgba(7,16,31,0.90) 28%, rgba(7,16,31,0.72) 46%, rgba(7,16,31,0.36) 66%, rgba(7,16,31,0.28) 100%)',
+                        'linear-gradient(180deg, rgba(7,16,31,0.12) 0%, rgba(7,16,31,0.04) 55%, rgba(7,16,31,0.18) 100%)',
+                        `url(${currentHeroTheme.patternImage})`,
+                      ].join(','),
+                      backgroundSize: 'cover, cover, cover',
+                      backgroundPosition: 'center, center, center',
+                      backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
+                      opacity: '0.78',
+                    }}
+                  />
+                ) : null}
                 <div
                   className="pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] bg-right-center bg-no-repeat xl:block"
                   style={{
-                    backgroundImage: svgToDataUri(currentHeroTheme.patternSvg),
+                    backgroundImage: currentHeroTheme.patternImage ? 'none' : svgToDataUri(currentHeroTheme.patternSvg),
                     backgroundSize: 'min(420px, 92%) auto',
                   }}
                 />
