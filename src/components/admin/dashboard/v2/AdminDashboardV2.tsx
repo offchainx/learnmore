@@ -26,6 +26,9 @@ import {
   Ticket,
   Users,
 } from 'lucide-react'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import { pageBadgeClass } from '@/components/shared/pageSurfaces'
 import type {
   AdminDashboardAuditItem,
   AdminDashboardLoadState,
@@ -328,33 +331,23 @@ function EmptySlots({
 
 function Header({ window }: { window: AdminDashboardWindow }) {
   return (
-    <section className="relative overflow-hidden rounded-[28px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
-      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-      <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-      <div className="relative flex min-w-0 flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="min-w-0">
-            <div className="mb-1.5 flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7] sm:text-[30px]">
-                管理总览
-              </h1>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#274066] bg-[#10203C] px-2.5 py-1 text-[11px] font-medium text-[#D6E7FF]">
-                <ShieldAlert className="h-3 w-3 text-[#60A5FA]" />
-                Command Center
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#24324D] bg-[#151F36] px-3 py-1.5 text-[11px] font-medium text-[#9FB0C9]">
-                <Calendar className="h-3.5 w-3.5 text-[#60A5FA]" />
-                {getScopeLabel(window)}
-              </div>
-            </div>
-            <p className="max-w-3xl text-sm text-[#B2C3DA]">
-              聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。
-            </p>
-          </div>
+    <PageHeroShell
+      className="px-4 py-4 sm:px-5 sm:py-4.5"
+      eyebrow={
+        <div className={pageBadgeClass}>
+          <ShieldAlert className="h-3 w-3 text-[#60A5FA]" />
+          Command Center
         </div>
-      </div>
-    </section>
+      }
+      title="管理总览"
+      subtitle="聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。"
+      actions={
+        <div className={pageBadgeClass}>
+          <Calendar className="h-3.5 w-3.5 text-[#60A5FA]" />
+          {getScopeLabel(window)}
+        </div>
+      }
+    />
   )
 }
 
@@ -376,12 +369,11 @@ function KpiRow({
   return (
     <section className="space-y-2.5">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-[#E6EDF7]">管理概览</h2>
-          <p className="text-sm text-[#8FA4C2]">
-            保留后台当下最关键的业务体量、推进效率和处理压力指标。
-          </p>
-        </div>
+        <SectionBlockHeader
+          title="管理概览"
+          description="保留后台当下最关键的业务体量、推进效率和处理压力指标。"
+          className="flex-1"
+        />
 
         <div className="flex flex-wrap items-center gap-3 md:justify-end">
           <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
@@ -521,17 +513,16 @@ function PriorityQueue({ items }: { items: AdminDashboardWorkItem[] }) {
     <section className={sectionClassName}>
       <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#F59E0B]" />
-              <h3 className="text-lg font-semibold text-[#F4F7FB]">
-                今日必须处理
-              </h3>
-            </div>
-            <p className="text-sm text-[#8FA4C2]">
-              按处理时限优先，先处理已超时和即将超时的事项。
-            </p>
-          </div>
+          <SectionBlockHeader
+            title={
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-[#F59E0B]" />
+                <span>今日必须处理</span>
+              </div>
+            }
+            description="按处理时限优先，先处理已超时和即将超时的事项。"
+            className="flex-1"
+          />
           <PageMeta
             totalPages={totalPages}
             page={page}
@@ -637,27 +628,26 @@ function RiskPanel({ items }: { items: AdminDashboardRiskItem[] }) {
         )}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <ShieldAlert
+          <SectionBlockHeader
+            title={
+              <div
                 className={cn(
-                  'h-4 w-4',
-                  hasRisk ? 'text-[#F87171]' : 'text-[#4ADE80]'
-                )}
-              />
-              <h3
-                className={cn(
-                  'text-lg font-semibold',
+                  'flex items-center gap-2',
                   hasRisk ? 'text-[#FCA5A5]' : 'text-[#E6EDF7]'
                 )}
               >
-                最近告警
-              </h3>
-            </div>
-            <p className="text-sm text-[#8FA4C2]">
-              仅展示安全、权限与敏感操作相关的风险信号。
-            </p>
-          </div>
+                <ShieldAlert
+                  className={cn(
+                    'h-4 w-4',
+                    hasRisk ? 'text-[#F87171]' : 'text-[#4ADE80]'
+                  )}
+                />
+                <span>最近告警</span>
+              </div>
+            }
+            description="仅展示安全、权限与敏感操作相关的风险信号。"
+            className="flex-1"
+          />
           <PageMeta
             totalPages={totalPages}
             page={page}
@@ -757,14 +747,11 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
     <section className={sectionClassName}>
       <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-[#F4F7FB]">
-              最近操作审计
-            </h3>
-            <p className="text-sm text-[#8FA4C2]">
-              默认展示最近 5 条，滚动列表切页查看更早记录。
-            </p>
-          </div>
+          <SectionBlockHeader
+            title="最近操作审计"
+            description="默认展示最近 5 条，滚动列表切页查看更早记录。"
+            className="flex-1"
+          />
           <div className="flex items-center gap-3">
             <PageMeta
               totalPages={totalPages}

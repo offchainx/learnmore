@@ -2,6 +2,16 @@ import Link from 'next/link'
 import { ArrowUpRight, Flame, LucideIcon, Sword } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import {
+  pageBadgeClass,
+  pageEmptyStateClass,
+  pageInsetClass,
+  pagePanelStrongClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageSoftInsetClass,
+} from '@/components/shared/pageSurfaces'
 
 interface ChallengeItem {
   title: string
@@ -51,33 +61,37 @@ export function FocusPanel({
   rivalLeadText,
 }: FocusPanelProps) {
   return (
-    <Card className="rounded-[28px] border border-[#203964] bg-[#07152a] p-4 text-white shadow-[0_16px_60px_rgba(4,10,24,0.3)]">
+    <Card className={cn(pagePanelStrongClass, 'rounded-[28px] p-4')}>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="border-white/8 flex rounded-full border bg-white/[0.04] p-1">
+        <div className={cn(pageSoftInsetClass, 'flex rounded-full p-1')}>
           <button
+            type="button"
             onClick={() => onTabChange('challenge')}
-            className={`rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors ${
+            className={cn(
+              'rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
               activeTab === 'challenge'
-                ? 'bg-white text-slate-950'
-                : 'text-slate-400 hover:text-white'
-            }`}
+                ? pagePillActiveClass
+                : pagePillInactiveClass
+            )}
           >
             {challengeLabel}
           </button>
           <button
+            type="button"
             onClick={() => onTabChange('rival')}
-            className={`rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors ${
+            className={cn(
+              'rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
               activeTab === 'rival'
-                ? 'bg-white text-slate-950'
-                : 'text-slate-400 hover:text-white'
-            }`}
+                ? pagePillActiveClass
+                : pagePillInactiveClass
+            )}
           >
             {rivalLabel}
           </button>
         </div>
 
         {activeTab === 'challenge' ? (
-          <span className="text-blue-100/64 truncate rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-medium">
+          <span className={pageBadgeClass}>
             {challengeBadge}
           </span>
         ) : null}
@@ -95,7 +109,7 @@ export function FocusPanel({
             return (
               <div
                 key={`${challenge.title}-${challenge.href}`}
-                className="border-white/8 rounded-[22px] border bg-white/[0.03] px-4 py-3"
+                className={cn(pageInsetClass, 'px-4 py-3')}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -104,34 +118,34 @@ export function FocusPanel({
                     <ChallengeIcon className="h-4.5 w-4.5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[15px] font-semibold leading-none">
+                    <div className="truncate text-[15px] font-semibold leading-none text-text-primary dark:text-white">
                       {challenge.title}
                     </div>
-                    <div className="text-blue-100/66 mt-1 truncate text-[13px]">
+                    <div className="mt-1 truncate text-[13px] text-text-secondary dark:text-text-secondary">
                       {challenge.subtitle}
                     </div>
-                    <div className="mt-1 text-[13px] font-medium text-sky-300">
+                    <div className="mt-1 text-[13px] font-medium text-sky-600 dark:text-sky-300">
                       +{challenge.xp} XP
                     </div>
                   </div>
                   <Button
                     asChild
                     size="sm"
-                    variant="outline"
-                    className="h-9 shrink-0 border-slate-700 bg-black/30 px-4 text-[13px] text-slate-100 hover:bg-slate-900 hover:text-white"
+                    variant="secondary"
+                    className="h-9 shrink-0 px-4 text-[13px]"
                   >
                     <Link href={challenge.href}>{challenge.cta}</Link>
                   </Button>
                 </div>
 
                 <div className="mt-3 flex items-center gap-3">
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-800">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-borderTone/50 dark:bg-surface-selected">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-sky-400 to-blue-500"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
-                  <div className="text-blue-100/56 w-16 text-right text-[12px]">
+                  <div className="w-16 text-right text-[12px] text-text-secondary dark:text-text-secondary">
                     {challenge.progress}/{challenge.total}
                   </div>
                 </div>
@@ -140,13 +154,13 @@ export function FocusPanel({
           })}
         </div>
       ) : rival ? (
-        <div className="border-white/8 rounded-[22px] border bg-white/[0.03] px-4 py-4">
+        <div className={cn(pageInsetClass, 'px-4 py-4')}>
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-[15px] font-semibold">
+            <div className="flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white">
               <Sword className="h-5 w-5 text-red-400" />
               {rivalLabel}
             </div>
-            <span className="bg-red-500/8 rounded-full border border-red-400/20 px-2.5 py-1 text-[10px] font-medium text-red-200/80">
+            <span className="rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[10px] font-medium text-red-700 dark:border-red-400/20 dark:bg-red-500/8 dark:text-red-200/80">
               #{rival.rank}
             </span>
           </div>
@@ -158,13 +172,13 @@ export function FocusPanel({
               className="h-12 w-12 rounded-2xl border border-red-400/30 object-cover"
             />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-semibold">
+              <div className="truncate text-[15px] font-semibold text-text-primary dark:text-white">
                 {rival.name}
               </div>
-              <div className="text-blue-100/66 mt-1 truncate text-[13px]">
+              <div className="mt-1 truncate text-[13px] text-text-secondary dark:text-text-secondary">
                 {rivalLeadText(rival.xpGap)}
               </div>
-              <div className="mt-1 truncate text-[12px] text-blue-300">
+              <div className="mt-1 truncate text-[12px] text-sky-600 dark:text-sky-300">
                 {rival.hint}
               </div>
             </div>
@@ -174,7 +188,7 @@ export function FocusPanel({
             asChild
             size="sm"
             variant="outline"
-            className="bg-red-500/6 hover:bg-red-500/12 mt-4 border-red-500/30 text-red-100 hover:text-white"
+            className="mt-4 border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-500/30 dark:bg-red-500/6 dark:text-red-100 dark:hover:bg-red-500/12 dark:hover:text-white"
           >
             <Link href={rival.href}>
               {rival.cta}
@@ -183,19 +197,19 @@ export function FocusPanel({
           </Button>
         </div>
       ) : (
-        <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.02] px-4 py-4">
-          <div className="flex items-center gap-2 text-[15px] font-semibold text-white/90">
+        <div className={cn(pageEmptyStateClass, 'px-4 py-4 text-left')}>
+          <div className="flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white/90">
             <Sword className="h-5 w-5 text-red-400" />
             {rivalLabel}
           </div>
-          <p className="text-blue-100/68 mt-3 text-[13px] leading-6">
+          <p className="mt-3 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
             {rivalEmptyDescription}
           </p>
           <Button
             asChild
             size="sm"
-            variant="outline"
-            className="mt-4 border-slate-700 bg-black/30 text-slate-100 hover:bg-slate-900 hover:text-white"
+            variant="secondary"
+            className="mt-4"
           >
             <Link href="/dashboard/practice">{rivalEmptyCta}</Link>
           </Button>

@@ -23,11 +23,29 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import {
+  pageBadgeClass,
+  pageEmptyStateClass,
+  pagePanelClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageShellFrameClass,
+  pageSoftInsetClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageCardTitleClass,
+  pageKickerClass,
+  pageMetaTextClass,
+  pageSectionDescriptionClass,
+  pageSectionTitleClass,
+} from '@/components/shared/pageTypography'
 import {
   BookOpen, Target, ChevronRight,
   Layers, Zap, Loader2
 } from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
+import { cn } from '@/lib/utils'
 
 // --- Dagre Layout Setup ---
 const dagreGraph = new dagre.graphlib.Graph()
@@ -156,22 +174,23 @@ export const KnowledgeGraphView = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-180px)] flex flex-col gap-6 animate-fade-in">
+    <div className="animate-fade-in">
+      <div className={`flex h-[calc(100vh-180px)] flex-col gap-6 ${pageShellFrameClass}`}>
       <PageHeroShell
         className="px-4 py-3 sm:px-5 sm:py-3.5"
         eyebrow={
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/78">
+          <div className={pageBadgeClass}>
             <span className="h-2 w-2 rounded-full bg-cyan-400" />
             Knowledge Graph
           </div>
         }
         title={
           <div className="flex items-center gap-3">
-            <span>Knowledge Navigator</span>
+            <span>知识图谱</span>
             <Badge className="border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] text-blue-500">v2.0</Badge>
           </div>
         }
-        subtitle="Strategic learning paths powered by academic dependencies."
+        subtitle="按知识依赖关系查看掌握进度、节点连接与下一步建议。"
         actions={
           <Button
             variant="outline"
@@ -187,20 +206,28 @@ export const KnowledgeGraphView = () => {
       <div className="flex-1 flex gap-6 overflow-hidden">
         {/* Left: Filters */}
         <div className="w-64 flex flex-col gap-4">
-          <Card className="p-4 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-            <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-blue-500" /> Subjects
-            </h3>
+          <Card className={cn(pagePanelClass, 'p-4')}>
+            <SectionBlockHeader
+              title={
+                <span className={cn(pageCardTitleClass, 'flex items-center gap-2 text-text-primary dark:text-white')}>
+                  <BookOpen className="w-4 h-4 text-blue-500" />
+                  Subjects
+                </span>
+              }
+              description="切换科目后重新计算当前知识网络与推荐路径。"
+              className="mb-4 gap-2"
+            />
             <div className="space-y-1 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
               {subjects.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setSelectedSubjectId(s.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  className={cn(
+                    'w-full rounded-full px-3 py-2 text-left text-xs font-semibold transition-colors',
                     selectedSubjectId === s.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                      ? pagePillActiveClass
+                      : pagePillInactiveClass
+                  )}
                 >
                   {s.name}
                 </button>
@@ -208,13 +235,13 @@ export const KnowledgeGraphView = () => {
             </div>
           </Card>
 
-          <Card className="p-4 bg-slate-900 border-transparent text-white overflow-hidden relative">
+          <Card className={cn(pagePanelClass, 'relative overflow-hidden p-4')}>
              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2 flex items-center gap-2">
                    <Target className="w-4 h-4 text-yellow-500" />
-                   <span className="text-xs font-bold uppercase tracking-wider">Mission</span>
+                   <span className={pageKickerClass}>Mission</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className={pageMetaTextClass}>
                    Complete prerequisite nodes to unlock advanced concepts. 
                 </p>
              </div>
@@ -223,7 +250,7 @@ export const KnowledgeGraphView = () => {
         </div>
 
         {/* Center: Graph Canvas */}
-        <Card className="flex-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 relative overflow-hidden shadow-2xl">
+        <Card className={cn(pagePanelClass, 'relative flex-1 overflow-hidden p-0 shadow-2xl dark:bg-slate-950')}>
           {loading ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/40 backdrop-blur-md z-20">
               <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
@@ -260,15 +287,18 @@ export const KnowledgeGraphView = () => {
         {/* Right: Info Sidebar */}
         <div className="w-80 flex flex-col gap-6 animate-in fade-in duration-500">
           {selectedNode ? (
-            <Card className="p-6 border-blue-500/30 bg-gradient-to-br from-indigo-500/5 to-transparent shadow-xl">
-              <Badge className="mb-3 bg-blue-500/10 text-blue-500 border-blue-500/20 uppercase text-[10px] tracking-widest">{selectedNode.data.subject as string}</Badge>
-              <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white leading-tight">{selectedNode.data.label as string}</h3>
+            <Card className={cn(pagePanelClass, 'border-blue-500/20 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.1),transparent_30%),linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] p-6 shadow-xl dark:bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.1),transparent_30%),linear-gradient(180deg,rgba(10,18,32,0.96),rgba(5,11,20,0.98))]')}>
+              <Badge className="mb-3 border-blue-500/20 bg-blue-500/10 text-blue-500 uppercase text-[10px] tracking-widest">{selectedNode.data.subject as string}</Badge>
+              <h3 className={cn(pageSectionTitleClass, 'mb-2 leading-tight text-text-primary dark:text-white')}>{selectedNode.data.label as string}</h3>
+              <p className={pageSectionDescriptionClass}>
+                Inspect mastery, dependent modules, and exercise volume before launching the next chapter.
+              </p>
               
-              <div className="space-y-6 mt-8">
+              <div className="mt-8 space-y-6">
                 <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="text-slate-500 font-bold uppercase tracking-tighter">Mastery Progress</span>
-                    <span className="font-bold text-blue-500">{selectedNode.data.mastery as number}%</span>
+                  <div className="mb-2 flex justify-between">
+                    <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Mastery Progress</span>
+                    <span className="text-[18px] font-semibold tracking-tight text-blue-500">{selectedNode.data.mastery as number}%</span>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden shadow-inner">
                     <div 
@@ -279,36 +309,37 @@ export const KnowledgeGraphView = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 shadow-sm text-center">
-                    <div className="text-[10px] text-slate-500 uppercase font-black mb-1">Modules</div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white">{(selectedNode.data.stats as { lessons?: number }).lessons || 0}</div>
+                  <div className={cn(pageSoftInsetClass, 'p-4 text-center')}>
+                    <div className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Modules</div>
+                    <div className="text-[18px] font-semibold tracking-tight text-slate-900 dark:text-white">{(selectedNode.data.stats as { lessons?: number }).lessons || 0}</div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 shadow-sm text-center">
-                    <div className="text-[10px] text-slate-500 uppercase font-black mb-1">Exercises</div>
-                    <div className="text-2xl font-black text-slate-900 dark:text-white">{(selectedNode.data.stats as { questions?: number }).questions || 0}</div>
+                  <div className={cn(pageSoftInsetClass, 'p-4 text-center')}>
+                    <div className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Exercises</div>
+                    <div className="text-[18px] font-semibold tracking-tight text-slate-900 dark:text-white">{(selectedNode.data.stats as { questions?: number }).questions || 0}</div>
                   </div>
                 </div>
 
                 <div className="pt-4 space-y-3">
-                   <Button fullWidth className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 py-6 rounded-2xl font-bold">
+                   <Button fullWidth className="rounded-2xl bg-blue-600 py-6 font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500">
                      Launch Chapter <ChevronRight className="w-4 h-4 ml-2" />
                    </Button>
-                   <Button fullWidth variant="ghost" className="text-slate-500 text-xs py-2 hover:bg-transparent hover:text-slate-400">
+                   <Button fullWidth variant="ghost" className="py-2 text-xs text-slate-500 hover:bg-transparent hover:text-slate-400">
                      Explore Prerequisites
                    </Button>
                 </div>
               </div>
             </Card>
           ) : (
-            <Card className="flex-1 border-dashed border-slate-200 dark:border-slate-800 bg-transparent flex flex-col items-center justify-center p-8 text-center">
+            <Card className={cn(pageEmptyStateClass, 'flex flex-1 flex-col items-center justify-center p-8 text-center')}>
               <div className="w-16 h-16 bg-slate-100 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4">
                 <Target className="w-8 h-8 text-slate-400 opacity-20" />
               </div>
-              <h4 className="text-slate-400 font-bold mb-1">Intelligence Layer</h4>
-              <p className="text-[11px] text-slate-500 leading-relaxed">Select any knowledge node to inspect detailed analytics and resources</p>
+              <h4 className="mb-1 text-[15px] font-semibold text-slate-500 dark:text-slate-300">Intelligence Layer</h4>
+              <p className="text-[12px] leading-5 text-slate-500 dark:text-slate-400">Select any knowledge node to inspect detailed analytics and resources</p>
             </Card>
           )}
         </div>
+      </div>
       </div>
     </div>
   )

@@ -33,19 +33,19 @@ interface SidebarItemProps {
 }
 
 function getSidebarIconHoverClass(Icon: React.ElementType) {
-  if (Icon === LayoutDashboard) return 'group-hover:text-sky-400'
-  if (Icon === BookOpen) return 'group-hover:text-cyan-300'
-  if (Icon === PenTool) return 'group-hover:text-emerald-300'
-  if (Icon === MessageCircle) return 'group-hover:text-violet-300'
-  if (Icon === Settings) return 'group-hover:text-amber-300'
-  if (Icon === LogOut) return 'group-hover:text-rose-300'
-  if (Icon === Users) return 'group-hover:text-teal-300'
-  if (Icon === ShieldCheck) return 'group-hover:text-fuchsia-300'
-  if (Icon === Upload) return 'group-hover:text-sky-300'
-  if (Icon === CheckSquare) return 'group-hover:text-emerald-300'
-  if (Icon === AlertCircle) return 'group-hover:text-red-300'
-  if (Icon === Rocket) return 'group-hover:text-indigo-300'
-  return 'group-hover:text-cyan-300'
+  if (Icon === LayoutDashboard) return 'group-hover:text-sky-600 dark:group-hover:text-sky-400'
+  if (Icon === BookOpen) return 'group-hover:text-cyan-600 dark:group-hover:text-cyan-300'
+  if (Icon === PenTool) return 'group-hover:text-emerald-600 dark:group-hover:text-emerald-300'
+  if (Icon === MessageCircle) return 'group-hover:text-violet-600 dark:group-hover:text-violet-300'
+  if (Icon === Settings) return 'group-hover:text-amber-600 dark:group-hover:text-amber-300'
+  if (Icon === LogOut) return 'group-hover:text-rose-600 dark:group-hover:text-rose-300'
+  if (Icon === Users) return 'group-hover:text-teal-600 dark:group-hover:text-teal-300'
+  if (Icon === ShieldCheck) return 'group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-300'
+  if (Icon === Upload) return 'group-hover:text-sky-600 dark:group-hover:text-sky-300'
+  if (Icon === CheckSquare) return 'group-hover:text-emerald-600 dark:group-hover:text-emerald-300'
+  if (Icon === AlertCircle) return 'group-hover:text-red-600 dark:group-hover:text-red-300'
+  if (Icon === Rocket) return 'group-hover:text-indigo-600 dark:group-hover:text-indigo-300'
+  return 'group-hover:text-cyan-600 dark:group-hover:text-cyan-300'
 }
 
 const SidebarItem = ({
@@ -59,19 +59,19 @@ const SidebarItem = ({
     onClick={onClick}
     className={`flex w-full items-center ${indent ? 'pl-8 pr-4' : 'px-4'} group relative overflow-hidden rounded-2xl py-3 text-sm font-medium transition-all duration-200 ${
       active
-        ? 'bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-white'
-        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white'
+        ? 'bg-surface-selected text-sky-700 shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-slate-800 dark:text-white'
+        : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white'
     }`}
   >
     {active && (
-      <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/50 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+      <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-sky-100/70 to-transparent dark:from-blue-600/10 dark:to-transparent" />
     )}
     <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
       <Icon
         className={`h-full w-full transition-all duration-200 ${
           active
-            ? 'text-blue-600 dark:text-blue-400'
-            : `text-slate-500 group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
+            ? 'text-sky-700 dark:text-blue-400'
+            : `text-text-tertiary group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
         } ${
           Icon === Settings
             ? 'group-hover:rotate-12'
@@ -86,7 +86,7 @@ const SidebarItem = ({
 )
 
 const SectionLabel = ({ label }: { label: string }) => (
-  <div className="px-2 pb-1 pt-3 text-[11px] font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-500">
+  <div className="px-2 pb-1 pt-3 text-[11px] font-semibold tracking-[0.08em] text-text-tertiary dark:text-slate-500">
     {label}
   </div>
 )
@@ -113,19 +113,19 @@ const SidebarSection = ({
       onClick={onToggle}
       className={`group relative flex w-full items-center overflow-hidden rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
         isActive
-          ? 'bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-white'
-          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white'
+          ? 'bg-surface-selected text-sky-700 shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-slate-800 dark:text-white'
+          : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white'
       }`}
     >
       {isActive && (
-        <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/50 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+        <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-sky-100/70 to-transparent dark:from-blue-600/10 dark:to-transparent" />
       )}
       <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
         <Icon
           className={`h-full w-full transition-all duration-200 ${
             isActive
-              ? 'text-blue-600 dark:text-blue-400'
-              : `text-slate-500 group-hover:-translate-y-0.5 group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
+              ? 'text-sky-700 dark:text-blue-400'
+              : `text-text-tertiary group-hover:-translate-y-0.5 group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
           }`}
         />
       </div>
@@ -268,9 +268,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
+    <div className="dashboard-shell flex h-screen overflow-hidden font-sans text-text-primary transition-colors duration-300 dark:text-white">
       <div className="pointer-events-none fixed right-4 top-4 z-[70] hidden lg:block xl:right-6">
-        <div className="pointer-events-auto rounded-2xl border border-slate-200/70 bg-white/80 p-1.5 shadow-[0_14px_36px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/80">
+        <div className="pointer-events-auto rounded-2xl border border-borderTone bg-surface p-1.5 shadow-surface-md backdrop-blur-xl dark:border-borderTone dark:bg-surface dark:shadow-none">
           <NotificationBell />
         </div>
       </div>
@@ -285,9 +285,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-full w-72 transform border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 ease-out dark:border-slate-800 dark:bg-slate-900 lg:relative lg:block lg:translate-x-0 lg:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 h-full w-72 transform border-r transition-transform duration-300 ease-out lg:relative lg:block lg:translate-x-0 lg:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
-        <div className="flex h-20 flex-shrink-0 items-center border-b border-slate-100 px-6 dark:border-slate-800">
+        <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
           <div
             className="flex cursor-pointer items-center gap-3"
             onClick={() => onNavigate(isParent ? 'parent' : 'dashboard')}
@@ -296,10 +296,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <BookOpen className="h-4 w-4 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+              <span className="text-lg font-bold tracking-tight text-text-primary dark:text-text-primary">
                 LearnMore
               </span>
-              <span className="w-fit rounded-full border border-blue-500/20 bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:text-blue-300">
+              <span className="w-fit rounded-full border border-blue-500/20 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
                 {tierLabel}
               </span>
             </div>
@@ -325,7 +325,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
           {/* Admin Section - Only for ADMIN and TEACHER */}
           {isAdmin && (
-            <div className="mt-5 space-y-1 border-t border-slate-200/70 pt-3 dark:border-slate-800/80">
+            <div className="mt-5 space-y-1 border-t border-borderTone/70 pt-3 dark:border-borderTone/70">
               <SectionLabel label={copy('管理', 'Admin', 'Admin')} />
 
               <SidebarItem
@@ -389,23 +389,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           )}
 
           {!isParent && (
-            <div className="mt-5 border-t border-slate-200/70 pt-3 dark:border-slate-800/80">
+            <div className="mt-5 border-t border-borderTone/70 pt-3 dark:border-borderTone/70">
               <button
                 onClick={() => {
                   router.push('/pricing')
                   setSidebarOpen(false)
                 }}
-                className="group w-full rounded-2xl border border-blue-500/20 bg-[linear-gradient(135deg,rgba(20,35,63,0.96),rgba(24,36,72,0.92))] px-4 py-3.5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all hover:border-blue-400/35"
+                className="group w-full rounded-2xl border border-borderTone bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] px-4 py-3.5 text-left shadow-surface transition-all hover:border-blue-300/60 dark:border-borderTone dark:bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] dark:hover:border-blue-400/35"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/14 text-blue-300">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-state-info-bg text-state-info-fg dark:bg-state-info-bg dark:text-state-info-fg">
                     <Rocket className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-white">
+                    <div className="text-sm font-semibold text-text-primary dark:text-text-primary">
                       {copy('升级套餐', 'Upgrade', 'Naik taraf')}
                     </div>
-                    <div className="mt-0.5 text-xs text-slate-400">
+                    <div className="mt-0.5 text-xs text-text-secondary dark:text-text-secondary">
                       {copy(
                         '解锁更多训练与 AI 功能',
                         'Unlock more AI and training tools',
@@ -413,7 +413,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       )}
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-500 transition-colors group-hover:text-white" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white" />
                 </div>
               </button>
             </div>
@@ -421,7 +421,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Bottom Section - ABSOLUTELY POSITIONED */}
-        <div className="absolute bottom-0 left-0 z-20 w-full border-t border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="absolute bottom-0 left-0 z-20 w-full border-t border-borderTone/70 bg-page p-4 dark:border-borderTone/70 dark:bg-page">
           <SectionLabel label={copy('账户', 'Account', 'Akaun')} />
           {!isParent && (
             <div
@@ -432,22 +432,22 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               className={`group mb-3 mt-1 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 shadow-lg transition-all ${
                 currentView === 'leaderboard' ||
                 pathname?.startsWith('/dashboard/leaderboard')
-                  ? 'border-blue-500/60 from-blue-950 to-slate-900 shadow-[0_18px_50px_rgba(37,99,235,0.24)]'
-                  : 'border-slate-700/50 from-slate-800 to-slate-900 hover:border-blue-500/50'
+                  ? 'border-blue-400/60 from-white to-blue-50 shadow-surface-md dark:from-surface-selected dark:to-surface-subtle dark:shadow-[0_18px_50px_rgba(37,99,235,0.24)]'
+                  : 'border-borderTone from-surface to-surface-muted shadow-surface hover:border-blue-300/70 dark:border-borderTone dark:from-surface dark:to-surface-subtle dark:shadow-none dark:hover:border-blue-500/50'
               }`}
             >
               <div className="relative z-10">
                 <div className="mb-1 flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-white">
+                  <h4 className="text-sm font-bold text-text-primary dark:text-text-primary">
                     {t.dashboard.level} {resolvedLevel}
                   </h4>
-                  <ChevronRight className="h-3 w-3 text-slate-400 transition-colors group-hover:text-white" />
+                  <ChevronRight className="h-3 w-3 text-text-tertiary transition-colors group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white" />
                 </div>
-                <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+                <div className="mb-2 flex items-center justify-between text-xs text-text-secondary dark:text-text-secondary">
                   <span>{resolvedXp.toLocaleString()} XP</span>
                   <span>/ {resolvedNextLevelXp.toLocaleString()}</span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700/50">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-subtle dark:bg-surface-subtle">
                   <div
                     className="h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                     style={{ width: `${Math.max(4, levelProgress)}%` }}
@@ -495,7 +495,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <div className="mb-2 flex items-center justify-between lg:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 transition-all hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800"
+                className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-blue-600 dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -524,7 +524,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               {/* Mobile Menu Trigger */}
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-500 transition-all hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800 lg:hidden"
+                className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-blue-600 dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none lg:hidden"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

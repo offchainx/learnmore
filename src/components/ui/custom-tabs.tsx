@@ -18,17 +18,17 @@ export const CustomTabs: React.FC<TabsProps> = ({ items, activeId, onChange, cla
   
   if (variant === 'cards') {
     return (
-      <div className={`flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl ${className}`}>
+      <div className={`flex rounded-2xl border border-borderTone bg-surface-subtle p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] dark:bg-surface-subtle dark:shadow-none ${className}`}>
         {items.map((item) => {
           const isActive = activeId === item.id;
           return (
             <button
               key={item.id}
               onClick={() => onChange(item.id)}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 relative ${
+              className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${
                 isActive 
-                  ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' 
-                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  ? 'border border-blue-200 bg-surface-selected text-sky-700 shadow-surface dark:border-borderTone dark:bg-surface dark:text-white' 
+                  : 'text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'
               }`}
             >
               {item.icon && <item.icon className="w-4 h-4" />}
@@ -52,8 +52,8 @@ export const CustomTabs: React.FC<TabsProps> = ({ items, activeId, onChange, cla
             className={`
               relative px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 border
               ${isActive 
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-black border-transparent shadow-lg' 
-                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}
+                ? 'bg-surface-selected text-sky-700 border-blue-200 shadow-surface dark:bg-surface dark:text-white dark:border-borderTone' 
+                : 'bg-surface text-text-secondary border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:bg-surface-subtle dark:text-text-secondary dark:border-borderTone dark:hover:bg-surface-selected'}
             `}
           >
             {item.icon && <item.icon className="w-3.5 h-3.5" />}

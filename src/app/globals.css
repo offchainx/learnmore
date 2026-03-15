@@ -12,8 +12,8 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
@@ -33,29 +33,29 @@
     --radius: 0.5rem;
 
     /* Global light theme contract */
-    --page-bg: 220 23% 97%;
-    --page-bg-elevated: 220 20% 99%;
+    --page-bg: 215 32% 96%;
+    --page-bg-elevated: 210 36% 98%;
     --surface-default: 0 0% 100%;
-    --surface-muted: 220 33% 98%;
-    --surface-subtle: 220 24% 95%;
-    --surface-selected: 217 91% 96%;
+    --surface-muted: 214 36% 97%;
+    --surface-subtle: 216 28% 94%;
+    --surface-selected: 214 100% 95%;
     --surface-inverse: 222 47% 11%;
 
     --text-primary: 222 47% 11%;
-    --text-secondary: 215 16% 34%;
-    --text-tertiary: 215 14% 48%;
+    --text-secondary: 216 21% 27%;
+    --text-tertiary: 215 16% 40%;
     --text-disabled: 215 14% 65%;
     --text-inverse: 210 40% 98%;
 
-    --border-subtle: 220 20% 93%;
-    --border-default: 220 16% 88%;
-    --border-strong: 215 20% 65%;
+    --border-subtle: 216 22% 90%;
+    --border-default: 216 18% 84%;
+    --border-strong: 215 18% 62%;
 
     --focus-ring: 221 83% 53%;
     --shadow-color: 220 40% 2%;
-    --shadow-surface-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
-    --shadow-surface-md: 0 18px 40px rgba(15, 23, 42, 0.1);
-    --shadow-surface-lg: 0 24px 64px rgba(15, 23, 42, 0.14);
+    --shadow-surface-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
+    --shadow-surface-md: 0 20px 48px rgba(15, 23, 42, 0.09);
+    --shadow-surface-lg: 0 28px 72px rgba(15, 23, 42, 0.12);
 
     --state-success-bg: 151 81% 96%;
     --state-success-fg: 160 84% 20%;
@@ -79,8 +79,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
@@ -228,6 +228,51 @@ html:not(.dark) .drawer-glass {
 .surface-muted {
   background-color: hsl(var(--surface-muted));
   border: 1px solid hsl(var(--border-subtle));
+}
+
+.dashboard-shell {
+  background-color: hsl(var(--page-bg));
+  color: hsl(var(--text-primary));
+}
+
+.dashboard-sidebar-shell {
+  background-image: linear-gradient(
+    180deg,
+    hsl(var(--surface-default)) 0%,
+    hsl(var(--surface-muted)) 100%
+  );
+  border-color: hsl(var(--border-subtle));
+  box-shadow: var(--shadow-surface-md);
+}
+
+.dark .dashboard-sidebar-shell {
+  background-image: linear-gradient(
+    180deg,
+    hsl(var(--surface-default)) 0%,
+    hsl(var(--page-bg-elevated)) 100%
+  );
+  box-shadow: none;
+}
+
+.page-hero-shell {
+  border: 1px solid hsl(var(--border-default));
+  background-image:
+    radial-gradient(circle at top right, hsl(var(--state-info-bg)) 0%, transparent 34%),
+    linear-gradient(
+      180deg,
+      hsl(var(--page-bg-elevated)) 0%,
+      hsl(var(--surface-default)) 52%,
+      hsl(var(--surface-muted)) 100%
+    );
+  box-shadow: var(--shadow-surface-md);
+}
+
+.dark .page-hero-shell {
+  border-color: #24324d;
+  background-image:
+    radial-gradient(circle at top right, rgba(41, 98, 190, 0.18) 0%, transparent 34%),
+    linear-gradient(135deg, #111a2e 0%, #0f1a2f 55%, #0b1220 100%);
+  box-shadow: 0 18px 44px rgba(2, 8, 23, 0.32);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

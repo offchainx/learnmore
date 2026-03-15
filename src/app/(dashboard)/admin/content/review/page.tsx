@@ -11,15 +11,16 @@ import { SubjectFilter } from '@/components/admin/common'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card'
 import { QuestionFilter } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import { pageBadgeClass } from '@/components/shared/pageSurfaces'
 import {
   AlertCircle,
   ClipboardCheck,
@@ -199,36 +200,25 @@ export default async function AdminContentPage({
     <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="px-3 py-2 sm:px-4 sm:py-3">
         <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3">
-          <section className="relative overflow-hidden rounded-[28px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-            <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-            <div className="relative flex min-w-0 flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7] sm:text-[30px]">
-                  内容管理
-                </h1>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#274066] bg-[#10203C] px-2.5 py-1 text-[11px] font-medium text-[#D6E7FF]">
-                  <ClipboardCheck className="h-3 w-3 text-[#60A5FA]" />
-                  Review Console
-                </div>
+          <PageHeroShell
+            className="px-4 py-4 sm:px-5 sm:py-4.5"
+            eyebrow={
+              <div className={pageBadgeClass}>
+                <ClipboardCheck className="h-3 w-3 text-[#60A5FA]" />
+                Review Console
               </div>
-              <p className="max-w-3xl text-sm text-[#B2C3DA]">
-                审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。
-              </p>
-            </div>
-          </section>
+            }
+            title="内容管理"
+            subtitle="审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。"
+          />
 
           <section className="space-y-3">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-[#E6EDF7]">
-                  审核概览
-                </h2>
-                <p className="text-sm text-[#8FA4C2]">
-                  聚焦审核积压、驳回回流、用户报错与当前时间范围内的入库量。
-                </p>
-              </div>
+              <SectionBlockHeader
+                title="审核概览"
+                description="聚焦审核积压、驳回回流、用户报错与当前时间范围内的入库量。"
+                className="flex-1"
+              />
 
               <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
                 {[
@@ -302,14 +292,10 @@ export default async function AdminContentPage({
           <Card className="bg-[#0F172A]/96 overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
             <CardHeader className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-2xl font-semibold text-[#F4F7FB]">
-                    题目列表
-                  </CardTitle>
-                  <CardDescription className="text-sm text-[#8FA4C2]">
-                    统一处理题目审核、发布与驳回动作，优先消化批量导入待审核项。
-                  </CardDescription>
-                </div>
+                <SectionBlockHeader
+                  title="题目列表"
+                  description="统一处理题目审核、发布与驳回动作，优先消化批量导入待审核项。"
+                />
 
                 <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                   <div className="flex items-center gap-2">

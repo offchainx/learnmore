@@ -20,6 +20,9 @@ import {
 } from 'lucide-react'
 import { FeedbackCategory, FeedbackStatus } from '@/types/feedback'
 import { toast } from 'sonner'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import { pageBadgeClass } from '@/components/shared/pageSurfaces'
 
 const statusStyles: Record<
   FeedbackStatus,
@@ -312,34 +315,25 @@ export function FeedbackList({
 
   return (
     <div className="space-y-3 text-[#E6EDF7]">
-      <section className="relative overflow-hidden rounded-[28px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-        <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-        <div className="relative flex min-w-0 flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7] sm:text-[30px]">
-              反馈中心
-            </h1>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#274066] bg-[#10203C] px-2.5 py-1 text-[11px] font-medium text-[#D6E7FF]">
-              <Sparkles className="h-3 w-3 text-[#60A5FA]" />
-              Inbox Console
-            </div>
+      <PageHeroShell
+        className="px-4 py-4 sm:px-5 sm:py-4.5"
+        eyebrow={
+          <div className={pageBadgeClass}>
+            <Sparkles className="h-3 w-3 text-[#60A5FA]" />
+            Inbox Console
           </div>
-          <p className="max-w-3xl text-sm text-[#B2C3DA]">
-            集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。
-          </p>
-        </div>
-      </section>
+        }
+        title="反馈中心"
+        subtitle="集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。"
+      />
 
       <section className="space-y-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-[#E6EDF7]">反馈概览</h2>
-            <p className="text-sm text-[#8FA4C2]">
-              以时间范围为基准查看反馈体量、待办压力与处理闭环效率。
-            </p>
-          </div>
+          <SectionBlockHeader
+            title="反馈概览"
+            description="以时间范围为基准查看反馈体量、待办压力与处理闭环效率。"
+            className="flex-1"
+          />
 
           <div className="flex flex-wrap items-center gap-3 md:justify-end">
             <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
@@ -438,14 +432,10 @@ export function FeedbackList({
       <div className="bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
         <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-3">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-semibold text-[#F4F7FB]">
-                反馈队列
-              </h2>
-              <p className="text-sm text-[#8FA4C2]">
-                按状态、分类和关键词筛选反馈，进入详情页继续处理与回复。
-              </p>
-            </div>
+            <SectionBlockHeader
+              title="反馈队列"
+              description="按状态、分类和关键词筛选反馈，进入详情页继续处理与回复。"
+            />
 
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
