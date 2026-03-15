@@ -1,17 +1,24 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ChevronRight, FileText, Loader2 } from 'lucide-react';
-import type { DbPastPaper } from './types';
+import React, { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { ChevronRight, FileText, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  pageCardTitleClass,
+  pageHeroEyebrowClass,
+  pageKickerMutedClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
+import type { DbPastPaper } from './types'
 
 interface PastPaperLibrarySectionProps {
-  selectedSubjectId: string;
-  papers: DbPastPaper[];
-  isLoading: boolean;
-  onPreviewPaper?: (paper: DbPastPaper) => void;
+  selectedSubjectId: string
+  papers: DbPastPaper[]
+  isLoading: boolean
+  onPreviewPaper?: (paper: DbPastPaper) => void
 }
 
-const PAPERS_PER_PAGE = 4;
+const PAPERS_PER_PAGE = 4
 const MOCK_PAPERS: DbPastPaper[] = [
   {
     id: 'mock-paper-1',
@@ -58,49 +65,62 @@ const MOCK_PAPERS: DbPastPaper[] = [
     status: 'PREVIEW',
     updatedAt: new Date().toISOString(),
   },
-];
+]
 
-export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = ({
-  selectedSubjectId,
-  papers,
-  isLoading,
-  onPreviewPaper,
-}) => {
-  const router = useRouter();
-  const hasMockPreview = !isLoading && papers.length === 0;
-  const displayPapers = hasMockPreview ? MOCK_PAPERS : papers;
-  const [page, setPage] = useState(0);
+export const PastPaperLibrarySection: React.FC<
+  PastPaperLibrarySectionProps
+> = ({ selectedSubjectId, papers, isLoading, onPreviewPaper }) => {
+  const router = useRouter()
+  const hasMockPreview = !isLoading && papers.length === 0
+  const displayPapers = hasMockPreview ? MOCK_PAPERS : papers
+  const [page, setPage] = useState(0)
 
-  const totalPages = Math.max(1, Math.ceil(displayPapers.length / PAPERS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(displayPapers.length / PAPERS_PER_PAGE)
+  )
   const visiblePapers = useMemo(
-    () => displayPapers.slice(page * PAPERS_PER_PAGE, (page + 1) * PAPERS_PER_PAGE),
-    [displayPapers, page],
-  );
+    () =>
+      displayPapers.slice(page * PAPERS_PER_PAGE, (page + 1) * PAPERS_PER_PAGE),
+    [displayPapers, page]
+  )
 
   useEffect(() => {
-    setPage(0);
-  }, [displayPapers.length]);
+    setPage(0)
+  }, [displayPapers.length])
 
   const handleStart = (paperId: string) => {
-    router.push(`/dashboard/practice/past-paper/${paperId}?subjectId=${selectedSubjectId}`);
-  };
+    router.push(
+      `/dashboard/practice/past-paper/${paperId}?subjectId=${selectedSubjectId}`
+    )
+  }
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (totalPages <= 1) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? 1 : -1;
-    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)));
-  };
+    if (totalPages <= 1) return
+    event.preventDefault()
+    const direction = event.deltaY > 0 ? 1 : -1
+    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)))
+  }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
+          <div
+            className={cn(
+              pageHeroEyebrowClass,
+              'inline-flex items-center gap-2 rounded-full bg-sky-100 px-3 py-1 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300'
+            )}
+          >
             <FileText className="h-3.5 w-3.5" />
             历年真题
           </div>
-          <p className="mt-2 max-w-xl text-[13px] leading-5 text-slate-600 dark:text-slate-300">
+          <p
+            className={cn(
+              pageMetaTextClass,
+              'mt-2 max-w-xl text-slate-600 dark:text-slate-300'
+            )}
+          >
             默认展示 4 条，滚动滑鼠滚轮可一次切换下一组真题。
           </p>
         </div>
@@ -113,7 +133,12 @@ export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = (
               />
             ))}
           </div>
-          <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+          <div
+            className={cn(
+              pageHeroEyebrowClass,
+              'rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+            )}
+          >
             {displayPapers.length} 套试卷
           </div>
         </div>
@@ -136,10 +161,10 @@ export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = (
                 onClick={() => {
                   if (!hasMockPreview) {
                     if (onPreviewPaper) {
-                      onPreviewPaper(paper);
-                      return;
+                      onPreviewPaper(paper)
+                      return
                     }
-                    handleStart(paper.id);
+                    handleStart(paper.id)
                   }
                 }}
               >
@@ -148,14 +173,23 @@ export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = (
                     <FileText className="h-3.5 w-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-bold text-slate-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-300">
+                    <div
+                      className={cn(
+                        pageCardTitleClass,
+                        'truncate text-slate-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-300'
+                      )}
+                    >
                       {paper.title}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                    <div
+                      className={cn(
+                        pageMetaTextClass,
+                        'text-slate-500 dark:text-slate-400'
+                      )}
+                    >
                       {paper.sourceYear ? `${paper.sourceYear} · ` : ''}
                       {paper.sourcePaper ? `${paper.sourcePaper} · ` : ''}
-                      {paper.questionCount} 题
-                      {hasMockPreview ? ' · 预览' : ''}
+                      {paper.questionCount} 题{hasMockPreview ? ' · 预览' : ''}
                     </div>
                   </div>
                 </div>
@@ -164,30 +198,32 @@ export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = (
                   variant={hasMockPreview ? 'outline' : 'ghost'}
                   className="text-slate-400 group-hover:text-blue-500"
                   onClick={(event) => {
-                    event.stopPropagation();
+                    event.stopPropagation()
                     if (!hasMockPreview) {
                       if (onPreviewPaper) {
-                        onPreviewPaper(paper);
-                        return;
+                        onPreviewPaper(paper)
+                        return
                       }
-                      handleStart(paper.id);
+                      handleStart(paper.id)
                     }
                   }}
                 >
                   {hasMockPreview ? '预览' : '开始'}
-                  {!hasMockPreview ? <ChevronRight className="ml-1 h-4 w-4" /> : null}
+                  {!hasMockPreview ? (
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  ) : null}
                 </Button>
               </div>
             ))}
             {visiblePapers.length < PAPERS_PER_PAGE &&
-              Array.from({ length: PAPERS_PER_PAGE - visiblePapers.length }).map((_, index) => (
+              Array.from({
+                length: PAPERS_PER_PAGE - visiblePapers.length,
+              }).map((_, index) => (
                 <div
                   key={`empty-${index}`}
                   className="flex h-[70px] items-center justify-center rounded-[22px] border border-dashed border-slate-200/80 bg-slate-50/35 dark:border-slate-800/60 dark:bg-slate-900/20"
                 >
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-300 dark:text-slate-700">
-                    已到列表底部
-                  </span>
+                  <span className={pageKickerMutedClass}>已到列表底部</span>
                 </div>
               ))}
           </div>
@@ -200,5 +236,5 @@ export const PastPaperLibrarySection: React.FC<PastPaperLibrarySectionProps> = (
         ) : null}
       </div>
     </div>
-  );
-};
+  )
+}

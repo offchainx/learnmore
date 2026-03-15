@@ -15,6 +15,15 @@ import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
 import { FocusPanel } from './components/FocusPanel'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import {
+  pageMetaTextClass,
+  pageSectionDescriptionClass,
+} from '@/components/shared/pageTypography'
+import {
+  pageBadgeClass,
+  pageHeroShellClass,
+  pageShellFrameClass,
+} from '@/components/shared/pageSurfaces'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 import {
   fetchWithTimeout,
@@ -87,7 +96,8 @@ const copyByLang = {
     tiers: ['青铜', '白银', '黄金', '铂金', '钻石', '王者'],
     title: '排行榜',
     heroBadge: 'Competitive Ladder',
-    heroSubtitle: '查看当前段位、追赶目标与成长进度，决定下一轮最值得做的动作。',
+    heroSubtitle:
+      '查看当前段位、追赶目标与成长进度，决定下一轮最值得做的动作。',
     rankLabel: '排名',
     studentLabel: '学员',
     xpLabel: '经验值',
@@ -720,112 +730,117 @@ export const LeaderboardView = ({
   )
 
   return (
-    <div className="relative mx-auto max-w-[1500px] animate-fade-in-up lg:h-[calc(100vh-7.5rem)]">
-      <div className="flex h-full min-h-0 flex-col gap-4">
-        <PageHeroShell
-          className="px-4 py-3 sm:px-5 sm:py-3.5"
-          eyebrow={
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/78">
-              <span className="h-2 w-2 rounded-full bg-amber-400" />
-              {copy.heroBadge}
-            </div>
-          }
-          title={copy.title}
-          subtitle={copy.heroSubtitle}
-          actions={
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/72">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              {myRank ? copy.myRank(myRank) : copy.unranked}
-            </div>
-          }
-        />
-
-        <TierRoadmap
-          tiers={[...copy.tiers]}
-          currentTierIndex={currentTierIndex}
-          title={copy.tierTitle}
-          currentTierLabel={copy.tiers[currentTierIndex] || copy.tiers[0]}
-          standingLabel={myRank ? copy.myRank(myRank) : copy.unranked}
-          promotionLabel={copy.promotionLabel(myGapToPrevious)}
-        />
-
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_360px]">
-          <div className="min-h-0">
-            {error ? (
-              <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
-                {error}
+    <div className="animate-fade-in-up">
+      <div
+        className={`relative mx-auto max-w-[1500px] ${pageShellFrameClass} lg:h-[calc(100vh-7.5rem)]`}
+      >
+        <div className="flex h-full min-h-0 flex-col gap-4">
+          <PageHeroShell
+            className={pageHeroShellClass}
+            eyebrow={
+              <div className={pageBadgeClass}>
+                <span className="h-2 w-2 rounded-full bg-amber-400" />
+                {copy.heroBadge}
               </div>
-            ) : null}
+            }
+            title={copy.title}
+            subtitle={copy.heroSubtitle}
+            subtitleClassName={pageSectionDescriptionClass}
+            actions={
+              <div className={`${pageBadgeClass} ${pageMetaTextClass}`}>
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                {copy.globalLabel} · {copy.periods[period]}
+              </div>
+            }
+          />
 
-            <LeaderboardList
-              title={copy.title}
-              rankLabel={copy.rankLabel}
-              studentLabel={copy.studentLabel}
-              xpLabel={copy.xpLabel}
-              filterLabel={copy.filterLabel}
-              globalLabel={copy.globalLabel}
-              friendsLabel={copy.friendsLabel}
-              emptyLabel={copy.emptyLeaderboard}
-              loadingLabel={copy.loadingLeaderboard}
-              safeZoneLabel={copy.safeZone}
-              promotionZoneLabel={copy.promotionZone}
-              demotionRiskLabel={copy.demotionRisk}
-              youBadge={copy.youBadge}
-              rivalBadge={copy.rivalBadge}
-              meFooterLabel={copy.meFooter}
-              meGapText={copy.meGapText}
-              meFallbackText={copy.meFallback}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              period={period}
-              onPeriodChange={setPeriod}
-              periodLabels={copy.periods}
-              listData={listData}
-              loading={loading && listData.length === 0}
-              myGapToPrevious={myGapToPrevious}
-            />
-          </div>
+          <TierRoadmap
+            tiers={[...copy.tiers]}
+            currentTierIndex={currentTierIndex}
+            title={copy.tierTitle}
+            currentTierLabel={copy.tiers[currentTierIndex] || copy.tiers[0]}
+            standingLabel={myRank ? copy.myRank(myRank) : copy.unranked}
+            promotionLabel={copy.promotionLabel(myGapToPrevious)}
+          />
 
-          <div className="flex min-h-0 flex-col gap-4">
-            {overview && growthSummary ? (
-              <XPBreakdown
-                level={overview.level}
-                xp={overview.xp}
-                nextLevelXp={overview.nextLevelXp}
-                levelProgress={growthSummary.levelProgress}
-                unlockedCount={growthSummary.unlockedCount}
-                totalBadges={badges.length}
-                streak={overview.streak}
-                accuracy={overview.accuracy}
-                recentBadgeName={growthSummary.recentBadgeName}
-                nextBadgeName={growthSummary.nextBadgeName}
-                title={copy.growthTitle}
-                levelLabel={copy.levelLabel}
-                xpLabel={copy.xpText}
-                streakLabel={copy.streakLabel}
-                accuracyLabel={copy.accuracyLabel}
-                unlockedLabel={copy.unlockedLabel}
-                nextFocusLabel={copy.nextFocusLabel}
-                recentUnlockLabel={copy.recentUnlockLabel}
-                viewAllLabel={copy.viewAllLabel}
-                nextLevelText={copy.nextLevelText}
-                fallbackFocusText={copy.fallbackFocusText}
-                fallbackRecentText={copy.fallbackRecentText}
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_360px]">
+            <div className="min-h-0">
+              {error ? (
+                <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                  {error}
+                </div>
+              ) : null}
+
+              <LeaderboardList
+                title={copy.title}
+                rankLabel={copy.rankLabel}
+                studentLabel={copy.studentLabel}
+                xpLabel={copy.xpLabel}
+                filterLabel={copy.filterLabel}
+                globalLabel={copy.globalLabel}
+                friendsLabel={copy.friendsLabel}
+                emptyLabel={copy.emptyLeaderboard}
+                loadingLabel={copy.loadingLeaderboard}
+                safeZoneLabel={copy.safeZone}
+                promotionZoneLabel={copy.promotionZone}
+                demotionRiskLabel={copy.demotionRisk}
+                youBadge={copy.youBadge}
+                rivalBadge={copy.rivalBadge}
+                meFooterLabel={copy.meFooter}
+                meGapText={copy.meGapText}
+                meFallbackText={copy.meFallback}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                period={period}
+                onPeriodChange={setPeriod}
+                periodLabels={copy.periods}
+                listData={listData}
+                loading={loading && listData.length === 0}
+                myGapToPrevious={myGapToPrevious}
               />
-            ) : null}
+            </div>
 
-            <FocusPanel
-              activeTab={focusTab}
-              onTabChange={setFocusTab}
-              challengeLabel={copy.challengeLabel}
-              rivalLabel={copy.rivalLabel}
-              challengeBadge={copy.challengeBadge}
-              challenges={growthSummary?.goals ?? [...copy.defaultGoals]}
-              rival={rivalTarget}
-              rivalEmptyDescription={copy.rivalEmpty}
-              rivalEmptyCta={copy.rivalEmptyCta}
-              rivalLeadText={copy.rivalLeadText}
-            />
+            <div className="flex min-h-0 flex-col gap-4">
+              {overview && growthSummary ? (
+                <XPBreakdown
+                  level={overview.level}
+                  xp={overview.xp}
+                  nextLevelXp={overview.nextLevelXp}
+                  levelProgress={growthSummary.levelProgress}
+                  unlockedCount={growthSummary.unlockedCount}
+                  totalBadges={badges.length}
+                  streak={overview.streak}
+                  accuracy={overview.accuracy}
+                  recentBadgeName={growthSummary.recentBadgeName}
+                  nextBadgeName={growthSummary.nextBadgeName}
+                  title={copy.growthTitle}
+                  levelLabel={copy.levelLabel}
+                  xpLabel={copy.xpText}
+                  streakLabel={copy.streakLabel}
+                  accuracyLabel={copy.accuracyLabel}
+                  unlockedLabel={copy.unlockedLabel}
+                  nextFocusLabel={copy.nextFocusLabel}
+                  recentUnlockLabel={copy.recentUnlockLabel}
+                  viewAllLabel={copy.viewAllLabel}
+                  nextLevelText={copy.nextLevelText}
+                  fallbackFocusText={copy.fallbackFocusText}
+                  fallbackRecentText={copy.fallbackRecentText}
+                />
+              ) : null}
+
+              <FocusPanel
+                activeTab={focusTab}
+                onTabChange={setFocusTab}
+                challengeLabel={copy.challengeLabel}
+                rivalLabel={copy.rivalLabel}
+                challengeBadge={copy.challengeBadge}
+                challenges={growthSummary?.goals ?? [...copy.defaultGoals]}
+                rival={rivalTarget}
+                rivalEmptyDescription={copy.rivalEmpty}
+                rivalEmptyCta={copy.rivalEmptyCta}
+                rivalLeadText={copy.rivalLeadText}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,5 +1,9 @@
 import * as React from 'react'
 
+import {
+  pageHeroSubtitleClass,
+  pageHeroTitleClass,
+} from '@/components/shared/pageTypography'
 import { cn } from '@/lib/utils'
 
 interface PageHeroShellProps {
@@ -28,12 +32,21 @@ export function PageHeroShell({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-[26px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-3 shadow-[0_18px_44px_rgba(2,8,23,0.32)] sm:px-5 sm:py-3.5',
+        'page-hero-shell relative overflow-hidden rounded-[26px] px-4 py-3 sm:px-5 sm:py-3.5',
         className
       )}
     >
-      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-      <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
+      <div
+        className="absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl"
+        style={{ backgroundColor: 'hsl(var(--state-info-bg))', opacity: 0.8 }}
+      />
+      <div
+        className="absolute bottom-0 left-16 h-24 w-24 rounded-full blur-3xl"
+        style={{
+          backgroundColor: 'hsl(var(--state-success-bg))',
+          opacity: 0.7,
+        }}
+      />
 
       <div
         className={cn(
@@ -45,7 +58,7 @@ export function PageHeroShell({
           {eyebrow ? <div>{eyebrow}</div> : null}
           <h1
             className={cn(
-              'text-[26px] font-bold tracking-tight text-[#E6EDF7] sm:text-[28px]',
+              pageHeroTitleClass,
               eyebrow ? 'mt-2' : '',
               titleClassName
             )}
@@ -53,12 +66,7 @@ export function PageHeroShell({
             {title}
           </h1>
           {subtitle ? (
-            <p
-              className={cn(
-                'mt-1 max-w-3xl text-[12px] leading-5 text-[#B2C3DA] sm:text-[13px]',
-                subtitleClassName
-              )}
-            >
+            <p className={cn(pageHeroSubtitleClass, subtitleClassName)}>
               {subtitle}
             </p>
           ) : null}

@@ -36,6 +36,24 @@ import {
   isAbortLikeError,
 } from '@/lib/http/fetch-with-timeout'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import {
+  pageCardTitleClass,
+  pageMetaTextClass,
+  pageSectionDescriptionClass,
+  pageSectionTitleClass,
+} from '@/components/shared/pageTypography'
+import {
+  pageBadgeClass,
+  pageBadgeMutedClass,
+  pageEmptyStateClass,
+  pageHeroShellClass,
+  pageInputClass,
+  pageInsetClass,
+  pagePanelClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageShellFrameClass,
+} from '@/components/shared/pageSurfaces'
 
 type SubjectOption = Awaited<ReturnType<typeof getCategories>>[number]
 
@@ -58,11 +76,9 @@ type FeedPost = PostWithAuthor & {
 type ScopeFilter = 'all' | 'following' | 'by-date'
 type SortMode = 'recent-replies' | 'recent-posts' | 'most-comments'
 
-const surfaceClassName =
-  'rounded-[28px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
+const surfaceClassName = pagePanelClass
 
-const insetCardClassName =
-  'rounded-[22px] border border-white/8 bg-white/[0.03] text-white'
+const insetCardClassName = pageInsetClass
 
 function normalizePosts(posts: PostWithAuthor[]): FeedPost[] {
   return posts.map((post) => {
@@ -665,8 +681,8 @@ export function CommunityView({
         <span
           className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
             post.isSolved
-              ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
-              : 'border-sky-400/30 bg-sky-400/10 text-sky-100'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200'
+              : 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-400/30 dark:bg-sky-400/10 dark:text-sky-100'
           }`}
         >
           {post.isSolved ? (
@@ -681,53 +697,49 @@ export function CommunityView({
 
     if (post.category === 'Achievement') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-100">
+        <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
           <Crown className="h-3.5 w-3.5" />
           {copy.achievementTag}
         </span>
       )
     }
 
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-blue-100/60">
-        {copy.original}
-      </span>
-    )
+    return <span className={pageBadgeMutedClass}>{copy.original}</span>
   }
 
   return (
     <div className="animate-fade-in-up pb-12">
-      <div className="space-y-6 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2 sm:p-2.5">
+      <div className={`space-y-6 ${pageShellFrameClass} sm:p-2.5`}>
         <PageHeroShell
-          className={`${surfaceClassName} rounded-[30px] bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-6`}
+          className={`${surfaceClassName} ${pageHeroShellClass}`}
           title={
             <div className="flex flex-wrap items-center gap-3">
               <span>{t.community.title}</span>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/80">
+              <div className={pageBadgeClass}>
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
                 {copy.badge}
               </div>
             </div>
           }
           subtitle={t.community.sub}
-          titleClassName="font-semibold text-white"
-          subtitleClassName="max-w-2xl text-sm leading-6 text-blue-100/68 mt-2"
+          titleClassName="font-semibold"
+          subtitleClassName="mt-2 max-w-2xl text-sm leading-6 text-text-secondary dark:text-text-secondary"
           actions={
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative min-w-0 sm:w-[320px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-100/40" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary dark:text-text-tertiary" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={copy.searchPlaceholder}
-                  className="placeholder:text-blue-100/38 h-11 w-full rounded-full border border-white/10 bg-white/[0.05] pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/35"
+                  className={`${pageInputClass} pl-10 pr-4`}
                 />
               </div>
               <Button
                 asChild
                 variant="glow"
-                className="h-11 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-none hover:bg-slate-100"
+                className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
               >
                 <Link href="/dashboard/community/new">
                   <Plus className="mr-2 h-4 w-4" />
@@ -739,384 +751,418 @@ export function CommunityView({
         />
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)]">
-        <div className="space-y-4">
-          <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
-                {[
-                  { key: 'all' as ScopeFilter, label: copy.all },
-                  { key: 'following' as ScopeFilter, label: copy.following },
-                  { key: 'by-date' as ScopeFilter, label: copy.byDate },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => setScopeFilter(item.key)}
-                    className={`rounded-full px-4 py-2 text-[13px] font-medium transition-all ${
-                      scopeFilter === item.key
-                        ? 'bg-white text-slate-950 shadow-[0_8px_20px_rgba(255,255,255,0.12)]'
-                        : 'border-white/8 text-blue-100/58 border bg-white/[0.03] hover:bg-white/[0.05] hover:text-white'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-4">
+            <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { key: 'all' as ScopeFilter, label: copy.all },
+                    { key: 'following' as ScopeFilter, label: copy.following },
+                    { key: 'by-date' as ScopeFilter, label: copy.byDate },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => setScopeFilter(item.key)}
+                      className={`rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                        scopeFilter === item.key
+                          ? pagePillActiveClass
+                          : pagePillInactiveClass
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-blue-100/48 text-[12px]">
-                  {copy.sort}
-                </span>
-                <div className="relative">
-                  <select
-                    value={sortMode}
-                    onChange={(event) =>
-                      setSortMode(event.target.value as SortMode)
-                    }
-                    className="h-10 rounded-full border border-white/10 bg-white/[0.03] px-4 pr-9 text-[13px] text-white focus:outline-none focus:ring-2 focus:ring-sky-400/30"
-                  >
-                    <option value="recent-replies">{copy.recentReplies}</option>
-                    <option value="recent-posts">{copy.recentPosts}</option>
-                    <option value="most-comments">{copy.mostComments}</option>
-                  </select>
-                  <ChevronDown className="text-blue-100/46 pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] text-text-tertiary dark:text-text-tertiary">
+                    {copy.sort}
+                  </span>
+                  <div className="relative">
+                    <select
+                      value={sortMode}
+                      onChange={(event) =>
+                        setSortMode(event.target.value as SortMode)
+                      }
+                      className="h-10 rounded-full border border-borderTone bg-surface px-4 pr-9 text-[13px] text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/15 dark:border-borderTone dark:bg-surface-subtle dark:text-white dark:focus:ring-sky-400/30"
+                    >
+                      <option value="recent-replies">
+                        {copy.recentReplies}
+                      </option>
+                      <option value="recent-posts">{copy.recentPosts}</option>
+                      <option value="most-comments">{copy.mostComments}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary dark:text-text-tertiary" />
+                  </div>
                 </div>
               </div>
+            </Card>
+
+            <div className="text-[11px] text-text-tertiary dark:text-text-tertiary">
+              {copy.shareCountNote}
             </div>
-          </Card>
 
-          <div className="text-blue-100/38 text-[11px]">
-            {copy.shareCountNote}
-          </div>
+            {loading ? (
+              <Card
+                className={`${surfaceClassName} rounded-[28px] px-5 py-10 text-center text-sm text-text-secondary dark:text-text-secondary`}
+              >
+                {copy.loading}
+              </Card>
+            ) : null}
 
-          {loading ? (
-            <Card
-              className={`${surfaceClassName} text-blue-100/56 rounded-[28px] px-5 py-10 text-center text-sm`}
-            >
-              {copy.loading}
-            </Card>
-          ) : null}
+            {!loading && visiblePosts.length === 0 ? (
+              <Card
+                className={`${pageEmptyStateClass} rounded-[28px] px-5 py-12 text-center text-text-secondary dark:text-text-secondary`}
+              >
+                <Bot className="mx-auto mb-4 h-10 w-10 opacity-40" />
+                <div className="text-sm">
+                  {scopeFilter === 'following'
+                    ? copy.noFollowingPosts
+                    : copy.noPosts}
+                </div>
+              </Card>
+            ) : null}
 
-          {!loading && visiblePosts.length === 0 ? (
-            <Card className="text-blue-100/56 rounded-[28px] border border-dashed border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.92),rgba(5,11,20,0.96))] px-5 py-12 text-center shadow-[0_18px_48px_rgba(2,8,23,0.22)]">
-              <Bot className="mx-auto mb-4 h-10 w-10 opacity-40" />
-              <div className="text-sm">
-                {scopeFilter === 'following'
-                  ? copy.noFollowingPosts
-                  : copy.noPosts}
-              </div>
-            </Card>
-          ) : null}
+            {!loading
+              ? groupedPosts.map((group) => (
+                  <div key={group.label || 'all'} className="space-y-3">
+                    {group.label ? (
+                      <div className="px-1 text-[12px] font-medium text-text-tertiary dark:text-text-tertiary">
+                        {group.label}
+                      </div>
+                    ) : null}
 
-          {!loading
-            ? groupedPosts.map((group) => (
-                <div key={group.label || 'all'} className="space-y-3">
-                  {group.label ? (
-                    <div className="text-blue-100/52 px-1 text-[12px] font-medium">
-                      {group.label}
-                    </div>
-                  ) : null}
-
-                  {group.items.map((post) => (
-                    <Card
-                      key={post.id}
-                      className={`${surfaceClassName} hover:border-sky-400/24 rounded-[28px] px-5 py-4 transition-colors`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <img
-                            src={
-                              post.author.avatar ||
-                              `https://i.pravatar.cc/150?u=${post.authorId}`
-                            }
-                            alt={post.author.username || 'User'}
-                            className="h-11 w-11 rounded-2xl border border-white/10 object-cover"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="truncate text-[15px] font-semibold text-white">
-                                {post.author.username || 'Anonymous'}
-                              </span>
-                              {renderCategory(post)}
+                    {group.items.map((post) => (
+                      <Card
+                        key={post.id}
+                        className={`${surfaceClassName} dark:hover:border-sky-400/24 rounded-[28px] px-5 py-4 transition-colors hover:border-blue-300/70`}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <img
+                              src={
+                                post.author.avatar ||
+                                `https://i.pravatar.cc/150?u=${post.authorId}`
+                              }
+                              alt={post.author.username || 'User'}
+                              className="h-11 w-11 rounded-2xl border border-borderTone object-cover dark:border-borderTone"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={`truncate ${pageCardTitleClass}`}
+                                >
+                                  {post.author.username || 'Anonymous'}
+                                </span>
+                                {renderCategory(post)}
+                              </div>
+                              <div
+                                className={`mt-1 flex flex-wrap items-center gap-2 text-text-tertiary dark:text-text-tertiary ${pageMetaTextClass}`}
+                              >
+                                <span>
+                                  {copy.boardLabel}：
+                                  {post.subject?.name || copy.boardAll}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {formatRelativeTime(post.createdAt, lang)}
+                                </span>
+                              </div>
                             </div>
-                            <div className="text-blue-100/46 mt-1 flex flex-wrap items-center gap-2 text-[12px]">
-                              <span>
-                                {copy.boardLabel}：
-                                {post.subject?.name || copy.boardAll}
-                              </span>
-                              <span>•</span>
-                              <span>
-                                {formatRelativeTime(post.createdAt, lang)}
-                              </span>
-                            </div>
+                          </div>
+
+                          <div
+                            className={`shrink-0 text-text-tertiary dark:text-text-tertiary ${pageMetaTextClass}`}
+                          >
+                            {formatRelativeTime(post.createdAt, lang)}
                           </div>
                         </div>
 
-                        <div className="text-blue-100/42 shrink-0 text-[12px]">
-                          {formatRelativeTime(post.createdAt, lang)}
-                        </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <Link
-                          href={`/dashboard/community/${post.id}`}
-                          className="block text-[22px] font-semibold leading-8 text-white hover:text-sky-200"
-                        >
-                          {post.title}
-                        </Link>
-                        <div className="text-blue-100/72 prose-p:text-blue-100/72 prose-li:text-blue-100/72 prose prose-sm mt-2 max-w-none text-[14px] leading-7 dark:prose-invert prose-headings:text-white prose-strong:text-white prose-code:text-sky-200">
-                          <ReactMarkdown
-                            remarkPlugins={[remarkMath]}
-                            rehypePlugins={[rehypeKatex]}
+                        <div className="mt-4">
+                          <Link
+                            href={`/dashboard/community/${post.id}`}
+                            className="block text-[21px] font-semibold leading-8 text-text-primary hover:text-sky-600 dark:text-text-primary dark:hover:text-sky-200"
                           >
-                            {post.content}
-                          </ReactMarkdown>
+                            {post.title}
+                          </Link>
+                          <div className="prose prose-sm mt-2 max-w-none text-[14px] leading-7 text-text-secondary dark:prose-invert prose-headings:text-text-primary prose-p:text-text-secondary prose-strong:text-text-primary prose-code:text-sky-600 prose-li:text-text-secondary dark:text-text-secondary dark:prose-headings:text-text-primary dark:prose-p:text-text-secondary dark:prose-strong:text-text-primary dark:prose-code:text-sky-200 dark:prose-li:text-text-secondary">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                            >
+                              {post.content}
+                            </ReactMarkdown>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[11px] font-medium text-sky-100">
-                          {post.subject?.name || copy.boardAll}
-                        </span>
-                        {post.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="border-white/8 text-blue-100/58 rounded-full border bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium"
-                          >
-                            #{tag}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
+                            {post.subject?.name || copy.boardAll}
                           </span>
-                        ))}
-                      </div>
+                          {post.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full border border-borderTone bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
 
-                      <div className="border-white/8 text-blue-100/52 mt-4 flex flex-wrap items-center gap-5 border-t pt-3 text-[13px]">
-                        <button
-                          onClick={() => handleLike(post.id)}
-                          className={`inline-flex items-center gap-2 transition-colors ${
-                            post.userLiked
-                              ? 'text-rose-300'
-                              : 'hover:text-white'
-                          }`}
-                        >
-                          <Heart
-                            className={`h-4 w-4 ${post.userLiked ? 'fill-current' : ''}`}
-                          />
-                          {post.likeCount}
-                        </button>
+                        <div className="mt-4 flex flex-wrap items-center gap-5 border-t border-borderTone pt-3 text-[13px] text-text-secondary dark:border-borderTone dark:text-text-secondary">
+                          <button
+                            onClick={() => handleLike(post.id)}
+                            className={`inline-flex items-center gap-2 transition-colors ${
+                              post.userLiked
+                                ? 'text-rose-300'
+                                : 'hover:text-text-primary dark:hover:text-white'
+                            }`}
+                          >
+                            <Heart
+                              className={`h-4 w-4 ${post.userLiked ? 'fill-current' : ''}`}
+                            />
+                            {post.likeCount}
+                          </button>
 
-                        <Link
-                          href={`/dashboard/community/${post.id}`}
-                          className="inline-flex items-center gap-2 hover:text-white"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                          {post._count.comments}
-                        </Link>
+                          <Link
+                            href={`/dashboard/community/${post.id}`}
+                            className="inline-flex items-center gap-2 hover:text-text-primary dark:hover:text-white"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                            {post._count.comments}
+                          </Link>
 
-                        <button className="inline-flex items-center gap-2 hover:text-white">
-                          <Bookmark className="h-4 w-4" />
-                          {post.bookmarkCount}
-                        </button>
+                          <button className="inline-flex items-center gap-2 hover:text-text-primary dark:hover:text-white">
+                            <Bookmark className="h-4 w-4" />
+                            {post.bookmarkCount}
+                          </button>
 
-                        <button className="inline-flex items-center gap-2 hover:text-white">
-                          <Share2 className="h-4 w-4" />
-                          {post.shareCount}
-                        </button>
+                          <button className="inline-flex items-center gap-2 hover:text-text-primary dark:hover:text-white">
+                            <Share2 className="h-4 w-4" />
+                            {post.shareCount}
+                          </button>
 
-                        <button className="text-blue-100/42 ml-auto inline-flex items-center gap-2 text-[12px] hover:text-white">
-                          <Sparkles className="h-3.5 w-3.5" />
-                          {copy.aiHint}
-                        </button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              ))
-            : null}
-        </div>
-
-        <div className="space-y-4">
-          <Card className={`${surfaceClassName} p-5`}>
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
-                  <Mic className="h-4 w-4 text-emerald-300" />
-                  {copy.roomsTitle}
-                </div>
-                <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
-                  {copy.roomsSub}
-                </div>
-              </div>
-              <span className="bg-emerald-400/12 rounded-full border border-emerald-400/30 px-2.5 py-1 text-[10px] font-medium text-emerald-200">
-                {copy.liveNow}
-              </span>
-            </div>
-
-            <div className="mt-4 space-y-2.5">
-              {rooms.map((room) => (
-                <div
-                  key={room.name}
-                  className={`${insetCardClassName} flex items-center justify-between gap-3 px-3.5 py-3`}
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-[14px] font-semibold text-white">
-                      {room.name}
-                    </div>
-                    <div className="mt-1 flex items-center gap-2 text-[11px] text-blue-100/50">
-                      <div className="flex -space-x-2">
-                        {room.avatars.map((avatar, index) => (
-                          <img
-                            key={`${room.name}-${index}`}
-                            src={`https://i.pravatar.cc/150?img=${avatar + 10}`}
-                            alt="User"
-                            className="h-5 w-5 rounded-full border border-[#07152a] object-cover"
-                          />
-                        ))}
-                      </div>
-                      <span>
-                        {room.users} {copy.online}
-                      </span>
-                      <span className="text-blue-200/32">•</span>
-                      <span>{room.topic}</span>
-                    </div>
+                          <button className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-tertiary hover:text-text-primary dark:text-text-tertiary dark:hover:text-white">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {copy.aiHint}
+                          </button>
+                        </div>
+                      </Card>
+                    ))}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-9 rounded-full border-white/10 bg-white/5 px-4 text-[12px] text-blue-50 hover:bg-white/10"
-                  >
-                    {t.community.join}
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </Card>
+                ))
+              : null}
+          </div>
 
-          <Card className={`${surfaceClassName} p-5`}>
-            <div>
-              <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
-                <Hash className="h-4 w-4 text-sky-300" />
-                {copy.boardsTitle}
-              </div>
-              <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
-                {copy.boardsSub}
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-4">
-              {boardGroups.map((group) => (
-                <div key={group.title}>
-                  <div className="text-blue-100/48 mb-2 text-[12px] font-medium">
-                    {group.title}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {group.items.map((item) => {
-                      const isActive =
-                        (item.id === 'all' && activeBoardId === 'all') ||
-                        (item.id === 'following' &&
-                          activeBoardId === 'following') ||
-                        (item.id === 'unanswered' &&
-                          activeBoardId === 'unanswered') ||
-                        activeBoardId === item.id
-
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() =>
-                            setActiveBoardId(item.id as string | 'all')
-                          }
-                          className={`min-h-11 rounded-2xl border px-3 py-2 text-left text-[12px] font-medium transition-colors ${
-                            isActive
-                              ? 'bg-sky-400/12 border-sky-400/30 text-sky-100'
-                              : 'border-white/8 bg-white/[0.03] text-blue-100/60 hover:bg-white/[0.05] hover:text-white'
-                          }`}
-                        >
-                          {item.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card className={`${surfaceClassName} p-5`}>
-            <div>
-              <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
-                <Crown className="h-4 w-4 text-amber-300" />
-                {copy.contributorsTitle}
-              </div>
-              <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
-                {copy.contributorsSub}
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {contributors.map((user, index) => (
-                <div
-                  key={user.name}
-                  className={`${insetCardClassName} flex items-center gap-3 px-3.5 py-3`}
-                >
+          <div className="space-y-4">
+            <Card className={`${surfaceClassName} p-5`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-semibold ${
-                      index === 0
-                        ? 'bg-amber-300/18 text-amber-100'
-                        : index === 1
-                          ? 'bg-slate-300/16 text-slate-100'
-                          : 'bg-orange-300/16 text-orange-100'
-                    }`}
+                    className={`flex items-center gap-2 ${pageCardTitleClass}`}
                   >
-                    {user.rank}
+                    <Mic className="h-4 w-4 text-emerald-300" />
+                    {copy.roomsTitle}
                   </div>
-                  <img
-                    src={`https://i.pravatar.cc/150?img=${index + 20}`}
-                    alt={user.name}
-                    className="h-9 w-9 rounded-2xl border border-white/10 object-cover"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[14px] font-semibold text-white">
-                      {user.name}
-                    </div>
-                    <div className="mt-1 truncate text-[11px] text-blue-100/50">
-                      {user.solved} • {user.badge}
-                    </div>
+                  <div
+                    className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
+                  >
+                    {copy.roomsSub}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <Button
-              asChild
-              variant="outline"
-              className="mt-4 h-9 w-full rounded-full border-white/10 bg-white/5 text-sm text-blue-50 hover:bg-white/10"
-            >
-              <Link href="/dashboard/leaderboard">{copy.viewLeaderboard}</Link>
-            </Button>
-          </Card>
-
-          <Card className={`${surfaceClassName} p-5`}>
-            <div>
-              <div className="flex items-center gap-2 text-[15px] font-semibold text-white">
-                <Flame className="h-4 w-4 text-orange-300" />
-                {copy.hotTopicsTitle}
+                <span className="dark:bg-emerald-400/12 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-medium text-emerald-700 dark:border-emerald-400/30 dark:text-emerald-200">
+                  {copy.liveNow}
+                </span>
               </div>
-              <div className="text-blue-100/56 mt-1 text-[12px] leading-6">
-                {copy.hotTopicsSub}
-              </div>
-            </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {topics.map((topic) => (
-                <button
-                  key={topic.tag}
-                  onClick={() => setSearchQuery(topic.tag)}
-                  className="border-white/8 text-blue-100/68 rounded-full border bg-white/[0.03] px-3 py-1.5 text-[12px] font-medium hover:bg-white/[0.05] hover:text-white"
+              <div className="mt-4 space-y-2.5">
+                {rooms.map((room) => (
+                  <div
+                    key={room.name}
+                    className={`${insetCardClassName} flex items-center justify-between gap-3 px-3.5 py-3`}
+                  >
+                    <div className="min-w-0">
+                      <div className={`truncate ${pageCardTitleClass}`}>
+                        {room.name}
+                      </div>
+                      <div
+                        className={`mt-1 flex items-center gap-2 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
+                      >
+                        <div className="flex -space-x-2">
+                          {room.avatars.map((avatar, index) => (
+                            <img
+                              key={`${room.name}-${index}`}
+                              src={`https://i.pravatar.cc/150?img=${avatar + 10}`}
+                              alt="User"
+                              className="h-5 w-5 rounded-full border border-borderTone object-cover dark:border-borderTone"
+                            />
+                          ))}
+                        </div>
+                        <span>
+                          {room.users} {copy.online}
+                        </span>
+                        <span className="text-blue-200/32">•</span>
+                        <span>{room.topic}</span>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-9 rounded-full px-4 text-[12px]"
+                    >
+                      {t.community.join}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className={`${surfaceClassName} p-5`}>
+              <div>
+                <div
+                  className={`flex items-center gap-2 ${pageCardTitleClass}`}
                 >
-                  #{topic.tag}
-                  <span className="text-blue-100/38 ml-1">{topic.count}</span>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
+                  <Hash className="h-4 w-4 text-sky-300" />
+                  {copy.boardsTitle}
+                </div>
+                <div
+                  className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
+                >
+                  {copy.boardsSub}
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                {boardGroups.map((group) => (
+                  <div key={group.title}>
+                    <div className="mb-2 text-[12px] font-medium text-text-tertiary dark:text-text-tertiary">
+                      {group.title}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {group.items.map((item) => {
+                        const isActive =
+                          (item.id === 'all' && activeBoardId === 'all') ||
+                          (item.id === 'following' &&
+                            activeBoardId === 'following') ||
+                          (item.id === 'unanswered' &&
+                            activeBoardId === 'unanswered') ||
+                          activeBoardId === item.id
+
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() =>
+                              setActiveBoardId(item.id as string | 'all')
+                            }
+                            className={`min-h-11 rounded-2xl border px-3 py-2 text-left text-[12px] font-medium transition-colors ${
+                              isActive
+                                ? 'dark:bg-sky-400/12 border-blue-200 bg-surface-selected text-sky-700 dark:border-sky-400/30 dark:text-sky-100'
+                                : 'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'
+                            }`}
+                          >
+                            {item.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className={`${surfaceClassName} p-5`}>
+              <div>
+                <div
+                  className={`flex items-center gap-2 ${pageCardTitleClass}`}
+                >
+                  <Crown className="h-4 w-4 text-amber-300" />
+                  {copy.contributorsTitle}
+                </div>
+                <div
+                  className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
+                >
+                  {copy.contributorsSub}
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {contributors.map((user, index) => (
+                  <div
+                    key={user.name}
+                    className={`${insetCardClassName} flex items-center gap-3 px-3.5 py-3`}
+                  >
+                    <div
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-semibold ${
+                        index === 0
+                          ? 'bg-amber-300/18 text-amber-100'
+                          : index === 1
+                            ? 'dark:bg-slate-300/16 bg-slate-200 text-slate-700 dark:text-slate-100'
+                            : 'bg-orange-300/16 text-orange-100'
+                      }`}
+                    >
+                      {user.rank}
+                    </div>
+                    <img
+                      src={`https://i.pravatar.cc/150?img=${index + 20}`}
+                      alt={user.name}
+                      className="h-9 w-9 rounded-2xl border border-borderTone object-cover dark:border-borderTone"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className={`truncate ${pageCardTitleClass}`}>
+                        {user.name}
+                      </div>
+                      <div
+                        className={`mt-1 truncate text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
+                      >
+                        {user.solved} • {user.badge}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                asChild
+                variant="outline"
+                className="mt-4 h-9 w-full rounded-full text-sm"
+              >
+                <Link href="/dashboard/leaderboard">
+                  {copy.viewLeaderboard}
+                </Link>
+              </Button>
+            </Card>
+
+            <Card className={`${surfaceClassName} p-5`}>
+              <div>
+                <div
+                  className={`flex items-center gap-2 ${pageCardTitleClass}`}
+                >
+                  <Flame className="h-4 w-4 text-orange-300" />
+                  {copy.hotTopicsTitle}
+                </div>
+                <div
+                  className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
+                >
+                  {copy.hotTopicsSub}
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {topics.map((topic) => (
+                  <button
+                    key={topic.tag}
+                    onClick={() => setSearchQuery(topic.tag)}
+                    className="rounded-full border border-borderTone bg-surface px-3 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white"
+                  >
+                    #{topic.tag}
+                    <span className="ml-1 text-text-tertiary dark:text-text-tertiary">
+                      {topic.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

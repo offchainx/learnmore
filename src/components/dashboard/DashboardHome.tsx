@@ -1,10 +1,10 @@
-'use client';
+'use client'
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { DailyInspiration } from './Widgets';
-import { DailyMissions } from './DailyMissions';
+import React, { useEffect, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { DailyInspiration } from './Widgets'
+import { DailyMissions } from './DailyMissions'
 import {
   Activity,
   ArrowUpRight,
@@ -12,52 +12,80 @@ import {
   Layers3,
   Play,
   Trophy,
-} from 'lucide-react';
-import { useApp } from '@/providers';
-import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard';
-import { PracticeMode, User, UserSettings } from '@prisma/client';
-import { PageHeroShell } from '@/components/shared/PageHeroShell';
+} from 'lucide-react'
+import { useApp } from '@/providers'
+import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard'
+import { PracticeMode, User, UserSettings } from '@prisma/client'
+import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import {
+  pageCardTitleClass,
+  pageKickerClass,
+  pageKickerMutedClass,
+  pageMetaTextClass,
+  pageNumericValueClass,
+  pageNumericValueCompactClass,
+  pageSectionDescriptionClass,
+  pageSectionTitleClass,
+} from '@/components/shared/pageTypography'
+import {
+  pageBadgeClass,
+  pageEmptyStateClass,
+  pageHeroShellClass,
+  pageInsetClass,
+  pagePanelClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageSoftInsetClass,
+} from '@/components/shared/pageSurfaces'
 
-const surfaceClassName =
-  'rounded-[28px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.96),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]';
-
-const ACTIVITY_PER_PAGE = 4;
-const SUBJECTS_PER_PAGE = 4;
+const ACTIVITY_PER_PAGE = 4
+const SUBJECTS_PER_PAGE = 4
 
 function languageCopy(lang: string, zh: string, en: string, ms?: string) {
-  if (lang.startsWith('zh')) return zh;
-  if (lang.startsWith('ms')) return ms ?? en;
-  return en;
+  if (lang.startsWith('zh')) return zh
+  if (lang.startsWith('ms')) return ms ?? en
+  return en
 }
 
-function formatDuration(seconds: number | null, copy: (zh: string, en: string) => string) {
-  if (!seconds || seconds <= 0) return copy('未记录', 'Not tracked');
-  const minutes = Math.max(1, Math.round(seconds / 60));
-  return copy(`${minutes} 分钟`, `${minutes} min`);
+function formatDuration(
+  seconds: number | null,
+  copy: (zh: string, en: string) => string
+) {
+  if (!seconds || seconds <= 0) return copy('未记录', 'Not tracked')
+  const minutes = Math.max(1, Math.round(seconds / 60))
+  return copy(`${minutes} 分钟`, `${minutes} min`)
 }
 
-function formatRelativeDate(date: Date, copy: (zh: string, en: string) => string) {
-  const diffHours = Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60));
-  if (diffHours < 1) return copy('刚刚', 'Just now');
-  if (diffHours < 24) return copy(`${diffHours} 小时前`, `${diffHours}h ago`);
-  const diffDays = Math.floor(diffHours / 24);
-  return copy(`${diffDays} 天前`, `${diffDays}d ago`);
+function formatRelativeDate(
+  date: Date,
+  copy: (zh: string, en: string) => string
+) {
+  const diffHours = Math.floor(
+    (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60)
+  )
+  if (diffHours < 1) return copy('刚刚', 'Just now')
+  if (diffHours < 24) return copy(`${diffHours} 小时前`, `${diffHours}h ago`)
+  const diffDays = Math.floor(diffHours / 24)
+  return copy(`${diffDays} 天前`, `${diffDays}d ago`)
 }
 
-function practiceModeLabel(mode: PracticeMode, copy: (zh: string, en: string) => string) {
+function practiceModeLabel(
+  mode: PracticeMode,
+  copy: (zh: string, en: string) => string
+) {
   switch (mode) {
     case 'SMART_DRILL':
-      return copy('Smart Drill', 'Smart Drill');
+      return copy('Smart Drill', 'Smart Drill')
     case 'ERROR_WIPER':
-      return copy('Error Wiper', 'Error Wiper');
+      return copy('Error Wiper', 'Error Wiper')
     case 'MOCK_EXAM':
-      return copy('Mock Arena', 'Mock Arena');
+      return copy('Mock Arena', 'Mock Arena')
     case 'CHAPTER_DRILL':
-      return copy('章节训练', 'Chapter Drill');
+      return copy('章节训练', 'Chapter Drill')
     case 'PAST_PAPER':
-      return copy('历年真题', 'Past Paper');
+      return copy('历年真题', 'Past Paper')
     default:
-      return copy('练习记录', 'Practice');
+      return copy('练习记录', 'Practice')
   }
 }
 
@@ -67,41 +95,51 @@ function EmptyPanelState({
   actionLabel,
   onAction,
 }: {
-  title: string;
-  description: string;
-  actionLabel: string;
-  onAction: () => void;
+  title: string
+  description: string
+  actionLabel: string
+  onAction: () => void
 }) {
   return (
-    <div className="rounded-[22px] border border-dashed border-white/10 bg-white/[0.03] px-5 py-7 text-center">
-      <div className="text-sm font-bold text-white">{title}</div>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">{description}</p>
+    <div className={pageEmptyStateClass}>
+      <div className="text-sm font-bold text-text-primary dark:text-white">
+        {title}
+      </div>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-secondary dark:text-slate-400">
+        {description}
+      </p>
       <Button
         onClick={onAction}
-        className="mt-5 rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-950 hover:bg-slate-100"
+        className="mt-5 rounded-2xl px-4 py-2 text-sm font-bold"
       >
         {actionLabel}
       </Button>
     </div>
-  );
+  )
 }
 
-function PageDots({ totalPages, page, countLabel }: { totalPages: number; page: number; countLabel: string }) {
+function PageDots({
+  totalPages,
+  page,
+  countLabel,
+}: {
+  totalPages: number
+  page: number
+  countLabel: string
+}) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex gap-1">
         {Array.from({ length: totalPages }).map((_, index) => (
           <span
             key={index}
-            className={`h-1.5 rounded-full transition-all ${index === page ? 'w-4 bg-white' : 'w-1.5 bg-white/20'}`}
+            className={`h-1.5 rounded-full transition-all ${index === page ? 'w-4 bg-blue-500 dark:bg-white' : 'w-1.5 bg-slate-300 dark:bg-white/20'}`}
           />
         ))}
       </div>
-      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-300">
-        {countLabel}
-      </span>
+      <span className={pageBadgeClass}>{countLabel}</span>
     </div>
-  );
+  )
 }
 
 function OverviewCard({
@@ -109,19 +147,17 @@ function OverviewCard({
   value,
   subLabel,
 }: {
-  label: string;
-  value: string;
-  subLabel: string;
+  label: string
+  value: string
+  subLabel: string
 }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/[0.05] px-4 py-3">
-      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-        {label}
-      </div>
-      <div className="mt-2 text-[24px] font-black tracking-tight text-white">{value}</div>
-      <div className="mt-1 text-[11px] text-slate-400">{subLabel}</div>
+    <div className={`${pageSoftInsetClass} px-4 py-3`}>
+      <div className={pageKickerClass}>{label}</div>
+      <div className={pageNumericValueClass}>{value}</div>
+      <div className={`mt-1 ${pageMetaTextClass}`}>{subLabel}</div>
     </div>
-  );
+  )
 }
 
 export const DashboardHome = ({
@@ -129,16 +165,18 @@ export const DashboardHome = ({
   initialData,
   user,
 }: {
-  navigate: (path: string) => void;
-  onViewChange?: (view: string) => void;
-  initialData: DashboardData | null;
-  user: User & { settings: UserSettings | null };
+  navigate: (path: string) => void
+  onViewChange?: (view: string) => void
+  initialData: DashboardData | null
+  user: User & { settings: UserSettings | null }
 }) => {
-  const { t, lang } = useApp();
-  const copy = (zh: string, en: string, ms?: string) => languageCopy(lang, zh, en, ms);
-  const [overviewWindow, setOverviewWindow] = useState<DashboardOverviewWindow>('7D');
-  const [activityPage, setActivityPage] = useState(0);
-  const [subjectPage, setSubjectPage] = useState(0);
+  const { t, lang } = useApp()
+  const copy = (zh: string, en: string, ms?: string) =>
+    languageCopy(lang, zh, en, ms)
+  const [overviewWindow, setOverviewWindow] =
+    useState<DashboardOverviewWindow>('7D')
+  const [activityPage, setActivityPage] = useState(0)
+  const [subjectPage, setSubjectPage] = useState(0)
 
   const stats = initialData?.stats || {
     studyTime: '0.0',
@@ -149,54 +187,71 @@ export const DashboardHome = ({
     level: 1,
     xp: 0,
     nextLevelXp: 1000,
-  };
+  }
 
-  const overviewByWindow =
-    initialData?.overviewByWindow || {
-      '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-      '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-    };
+  const overviewByWindow = initialData?.overviewByWindow || {
+    '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+    '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+  }
 
-  const recentActivity = initialData?.recentActivity || [];
-  const subjectStrengths = initialData?.subjectStrengths || [];
-  const recentPractice = initialData?.recentPractice || [];
-  const dailyTasks = initialData?.dailyTasks || [];
+  const recentActivity = initialData?.recentActivity || []
+  const subjectStrengths = initialData?.subjectStrengths || []
+  const recentPractice = initialData?.recentPractice || []
+  const dailyTasks = initialData?.dailyTasks || []
 
-  const activeOverview = overviewByWindow[overviewWindow];
+  const activeOverview = overviewByWindow[overviewWindow]
 
-  const totalActivityPages = Math.max(1, Math.ceil(recentActivity.length / ACTIVITY_PER_PAGE));
+  const totalActivityPages = Math.max(
+    1,
+    Math.ceil(recentActivity.length / ACTIVITY_PER_PAGE)
+  )
   const visibleActivity = useMemo(
-    () => recentActivity.slice(activityPage * ACTIVITY_PER_PAGE, (activityPage + 1) * ACTIVITY_PER_PAGE),
-    [activityPage, recentActivity],
-  );
+    () =>
+      recentActivity.slice(
+        activityPage * ACTIVITY_PER_PAGE,
+        (activityPage + 1) * ACTIVITY_PER_PAGE
+      ),
+    [activityPage, recentActivity]
+  )
 
-  const totalSubjectPages = Math.max(1, Math.ceil(subjectStrengths.length / SUBJECTS_PER_PAGE));
+  const totalSubjectPages = Math.max(
+    1,
+    Math.ceil(subjectStrengths.length / SUBJECTS_PER_PAGE)
+  )
   const visibleSubjects = useMemo(
-    () => subjectStrengths.slice(subjectPage * SUBJECTS_PER_PAGE, (subjectPage + 1) * SUBJECTS_PER_PAGE),
-    [subjectPage, subjectStrengths],
-  );
+    () =>
+      subjectStrengths.slice(
+        subjectPage * SUBJECTS_PER_PAGE,
+        (subjectPage + 1) * SUBJECTS_PER_PAGE
+      ),
+    [subjectPage, subjectStrengths]
+  )
 
   useEffect(() => {
-    setActivityPage(0);
-  }, [recentActivity.length]);
+    setActivityPage(0)
+  }, [recentActivity.length])
 
   useEffect(() => {
-    setSubjectPage(0);
-  }, [subjectStrengths.length]);
+    setSubjectPage(0)
+  }, [subjectStrengths.length])
 
   const handleActivityWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (totalActivityPages <= 1) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? 1 : -1;
-    setActivityPage((prev) => Math.max(0, Math.min(totalActivityPages - 1, prev + direction)));
-  };
+    if (totalActivityPages <= 1) return
+    event.preventDefault()
+    const direction = event.deltaY > 0 ? 1 : -1
+    setActivityPage((prev) =>
+      Math.max(0, Math.min(totalActivityPages - 1, prev + direction))
+    )
+  }
 
   const handleSubjectWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (totalSubjectPages <= 1) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? 1 : -1;
-    setSubjectPage((prev) => Math.max(0, Math.min(totalSubjectPages - 1, prev + direction)));
-  };
+    if (totalSubjectPages <= 1) return
+    event.preventDefault()
+    const direction = event.deltaY > 0 ? 1 : -1
+    setSubjectPage((prev) =>
+      Math.max(0, Math.min(totalSubjectPages - 1, prev + direction))
+    )
+  }
 
   const overviewCards = [
     {
@@ -219,40 +274,45 @@ export const DashboardHome = ({
       value: String(activeOverview.activeDays),
       subLabel: copy('登录或练习的天数', 'Days with activity'),
     },
-  ];
+  ]
 
   return (
     <div className="animate-fade-in-up pb-4 xl:flex xl:h-[calc(100vh-1rem)] xl:flex-col xl:overflow-hidden">
       <section className="grid gap-3 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)]">
         <div className="space-y-3 xl:min-h-0 xl:overflow-hidden">
           <PageHeroShell
-            className="rounded-[30px] px-4 py-4 sm:px-5 sm:py-4"
+            className={pageHeroShellClass}
             eyebrow={
-              <div className="text-[11px] font-black uppercase tracking-[0.18em] text-[#8EA4C7]">
+              <div className={pageBadgeClass}>
+                <span className="h-2 w-2 rounded-full bg-cyan-400" />
                 {copy('个人成长总览', 'Growth Overview')}
               </div>
             }
             title={copy('仪表盘', 'Dashboard')}
             subtitle={copy(
               '集中查看最近学习节奏、今日任务、课程恢复点和整体学科稳定度。',
-              'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.',
+              'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.'
             )}
             actions={
-              <div className="inline-flex shrink-0 rounded-full border border-white/10 bg-white/[0.05] p-1">
-                {(['7D', '30D'] as DashboardOverviewWindow[]).map((windowKey) => (
-                  <button
-                    key={windowKey}
-                    type="button"
-                    onClick={() => setOverviewWindow(windowKey)}
-                    className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] transition-all ${
-                      overviewWindow === windowKey
-                        ? 'bg-white text-slate-950'
-                        : 'text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    {windowKey === '7D' ? copy('7天', '7D') : copy('30天', '30D')}
-                  </button>
-                ))}
+              <div className="inline-flex shrink-0 rounded-full border border-borderTone bg-surface-subtle p-1 dark:border-borderTone dark:bg-surface-subtle">
+                {(['7D', '30D'] as DashboardOverviewWindow[]).map(
+                  (windowKey) => (
+                    <button
+                      key={windowKey}
+                      type="button"
+                      onClick={() => setOverviewWindow(windowKey)}
+                      className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] transition-all ${
+                        overviewWindow === windowKey
+                          ? pagePillActiveClass
+                          : pagePillInactiveClass
+                      }`}
+                    >
+                      {windowKey === '7D'
+                        ? copy('7天', '7D')
+                        : copy('30天', '30D')}
+                    </button>
+                  )
+                )}
               </div>
             }
           >
@@ -271,27 +331,36 @@ export const DashboardHome = ({
           <DailyMissions tasks={dailyTasks} user={user} />
 
           <section className="grid gap-3 lg:grid-cols-2 xl:min-h-0">
-            <Card className={`${surfaceClassName} min-h-0 p-5 sm:p-5`}>
+            <Card className={`${pagePanelClass} min-h-0 p-5 sm:p-5`}>
               <div className="mb-4 flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                  <h3
+                    className={`flex items-center gap-2 ${pageSectionTitleClass}`}
+                  >
                     <BookOpenCheck className="h-5 w-5 text-indigo-300" />
-                    {t.dashboard?.learningPath || copy('学习路径', 'Learning Path')}
+                    {t.dashboard?.learningPath ||
+                      copy('学习路径', 'Learning Path')}
                   </h3>
-                  <p className="mt-1 text-sm text-slate-400">
-                    {copy('默认展示 4 条，滚动滑鼠滚轮可一次切换下一组课程恢复点。', 'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.')}
+                  <p className={pageSectionDescriptionClass}>
+                    {copy(
+                      '默认展示 4 条，滚动滑鼠滚轮可一次切换下一组课程恢复点。',
+                      'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.'
+                    )}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <PageDots
                     totalPages={totalActivityPages}
                     page={activityPage}
-                    countLabel={copy(`${recentActivity.length} 条`, `${recentActivity.length} items`)}
+                    countLabel={copy(
+                      `${recentActivity.length} 条`,
+                      `${recentActivity.length} items`
+                    )}
                   />
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-2xl border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:text-white"
+                    className="rounded-2xl"
                     onClick={() => navigate('/dashboard/courses')}
                   >
                     {copy('课程中心', 'Courses')}
@@ -306,34 +375,45 @@ export const DashboardHome = ({
                       key={item.id}
                       type="button"
                       onClick={() => navigate('/dashboard/courses')}
-                      className="group flex w-full items-center gap-4 rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition-all hover:border-cyan-400/25 hover:bg-white/[0.07] animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
+                      className="group flex w-full items-center gap-4 rounded-[22px] border border-borderTone bg-surface px-4 py-4 text-left shadow-surface transition-all duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both hover:-translate-y-0.5 hover:border-blue-300/60 hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-cyan-400/25 dark:hover:bg-surface-selected"
                       style={{ animationDelay: `${index * 45}ms` }}
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-200">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
                         <Play className="h-4 w-4 fill-current" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                        <div className={`truncate ${pageKickerClass}`}>
                           {item.subject}
                         </div>
-                        <div className="mt-1 truncate text-sm font-bold text-white">{item.title}</div>
-                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                          <div className="h-full rounded-full bg-cyan-400" style={{ width: `${Math.max(6, item.progress)}%` }} />
+                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>
+                          {item.title}
+                        </div>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-surface-subtle">
+                          <div
+                            className="h-full rounded-full bg-cyan-400"
+                            style={{ width: `${Math.max(6, item.progress)}%` }}
+                          />
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-black text-white">{item.progress}%</div>
-                        <div className="mt-1 text-xs text-slate-400">{copy('继续', 'Resume')}</div>
+                        <div className={pageNumericValueCompactClass}>
+                          {item.progress}%
+                        </div>
+                        <div className={`mt-1 ${pageMetaTextClass}`}>
+                          {copy('继续', 'Resume')}
+                        </div>
                       </div>
                     </button>
                   ))}
                   {visibleActivity.length < ACTIVITY_PER_PAGE &&
-                    Array.from({ length: ACTIVITY_PER_PAGE - visibleActivity.length }).map((_, index) => (
+                    Array.from({
+                      length: ACTIVITY_PER_PAGE - visibleActivity.length,
+                    }).map((_, index) => (
                       <div
                         key={`activity-empty-${index}`}
-                        className="flex h-[84px] items-center justify-center rounded-[22px] border border-dashed border-white/8 bg-white/[0.03]"
+                        className="flex h-[84px] items-center justify-center rounded-[22px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle"
                       >
-                        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                        <span className={pageKickerMutedClass}>
                           {copy('已到列表底部', 'End of list')}
                         </span>
                       </div>
@@ -344,7 +424,7 @@ export const DashboardHome = ({
                   title={copy('还没有最近学习记录', 'No recent learning path')}
                   description={copy(
                     '你完成第一段课程后，这里会出现最近进度和下一步建议。',
-                    'Complete your first course step and your recent activity will show up here.',
+                    'Complete your first course step and your recent activity will show up here.'
                   )}
                   actionLabel={copy('开始课程', 'Start Learning')}
                   onAction={() => navigate('/dashboard/courses')}
@@ -352,27 +432,36 @@ export const DashboardHome = ({
               )}
             </Card>
 
-            <Card className={`${surfaceClassName} min-h-0 p-5 sm:p-5`}>
+            <Card className={`${pagePanelClass} min-h-0 p-5 sm:p-5`}>
               <div className="mb-4 flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                  <h3
+                    className={`flex items-center gap-2 ${pageSectionTitleClass}`}
+                  >
                     <Activity className="h-5 w-5 text-cyan-300" />
-                    {t.dashboard?.subjectProgress || copy('学科进度', 'Subject Progress')}
+                    {t.dashboard?.subjectProgress ||
+                      copy('学科进度', 'Subject Progress')}
                   </h3>
-                  <p className="mt-1 text-sm text-slate-400">
-                    {copy('默认展示 4 条，滚动滑鼠滚轮可一次切换下一组学科状态。', 'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.')}
+                  <p className={pageSectionDescriptionClass}>
+                    {copy(
+                      '默认展示 4 条，滚动滑鼠滚轮可一次切换下一组学科状态。',
+                      'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.'
+                    )}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <PageDots
                     totalPages={totalSubjectPages}
                     page={subjectPage}
-                    countLabel={copy(`${subjectStrengths.length} 科`, `${subjectStrengths.length} items`)}
+                    countLabel={copy(
+                      `${subjectStrengths.length} 科`,
+                      `${subjectStrengths.length} items`
+                    )}
                   />
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-2xl border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:text-white"
+                    className="rounded-2xl"
                     onClick={() => navigate('/dashboard/practice')}
                   >
                     {copy('去练习', 'Go Practice')}
@@ -385,24 +474,35 @@ export const DashboardHome = ({
                   {visibleSubjects.map((sub, index) => (
                     <div
                       key={sub.subject}
-                      className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
+                      className="rounded-[22px] border border-borderTone bg-surface px-4 py-4 shadow-surface duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both dark:border-borderTone dark:bg-surface-subtle"
                       style={{ animationDelay: `${index * 45}ms` }}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-bold text-white">{sub.subject}</div>
-                          <div className="mt-1 text-xs text-slate-400">{copy('当前科目稳定度', 'Current subject confidence')}</div>
+                          <div className={`truncate ${pageCardTitleClass}`}>
+                            {sub.subject}
+                          </div>
+                          <div className={`mt-1 ${pageMetaTextClass}`}>
+                            {copy(
+                              '当前科目稳定度',
+                              'Current subject confidence'
+                            )}
+                          </div>
                         </div>
                         <div className="text-right">
-                          <div className={`text-lg font-black ${sub.accuracy >= 80 ? 'text-emerald-300' : 'text-cyan-200'}`}>
+                          <div
+                            className={`${pageNumericValueCompactClass} ${sub.accuracy >= 80 ? 'text-emerald-700 dark:text-emerald-300' : 'text-cyan-700 dark:text-cyan-200'}`}
+                          >
                             {sub.accuracy}%
                           </div>
-                          <div className="text-[11px] font-medium text-slate-400">
-                            {sub.accuracy >= 80 ? copy('稳定', 'Stable') : copy('待提升', 'Needs work')}
+                          <div className={pageMetaTextClass}>
+                            {sub.accuracy >= 80
+                              ? copy('稳定', 'Stable')
+                              : copy('待提升', 'Needs work')}
                           </div>
                         </div>
                       </div>
-                      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10">
+                      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-surface-subtle">
                         <div
                           className={`h-full rounded-full ${sub.accuracy >= 80 ? 'bg-emerald-400' : 'bg-cyan-400'}`}
                           style={{ width: `${Math.max(4, sub.accuracy)}%` }}
@@ -411,12 +511,14 @@ export const DashboardHome = ({
                     </div>
                   ))}
                   {visibleSubjects.length < SUBJECTS_PER_PAGE &&
-                    Array.from({ length: SUBJECTS_PER_PAGE - visibleSubjects.length }).map((_, index) => (
+                    Array.from({
+                      length: SUBJECTS_PER_PAGE - visibleSubjects.length,
+                    }).map((_, index) => (
                       <div
                         key={`subject-empty-${index}`}
-                        className="flex h-[84px] items-center justify-center rounded-[22px] border border-dashed border-white/8 bg-white/[0.03]"
+                        className="flex h-[84px] items-center justify-center rounded-[22px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle"
                       >
-                        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+                        <span className={pageKickerMutedClass}>
                           {copy('已到列表底部', 'End of list')}
                         </span>
                       </div>
@@ -427,7 +529,7 @@ export const DashboardHome = ({
                   title={copy('还没有学科进度数据', 'No subject progress yet')}
                   description={copy(
                     '先开始一次练习，系统才会逐步建立你的学科稳定度和进度分布。',
-                    'Start practicing to build your subject progress and performance profile.',
+                    'Start practicing to build your subject progress and performance profile.'
                   )}
                   actionLabel={copy('开始练习', 'Start Practicing')}
                   onAction={() => navigate('/dashboard/practice')}
@@ -438,68 +540,84 @@ export const DashboardHome = ({
         </div>
 
         <div className="space-y-3 xl:min-h-0 xl:overflow-hidden">
-          <Card className="overflow-hidden rounded-[30px] border border-[#31466D] bg-[radial-gradient(circle_at_top_right,rgba(148,163,184,0.2),transparent_28%),linear-gradient(145deg,#1A2740_0%,#101C31_58%,#0A1426_100%)] p-5 text-white shadow-[0_24px_70px_rgba(4,10,28,0.38)] sm:p-5">
+          <Card
+            className={`${pagePanelClass} overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_30%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] p-5 dark:bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_28%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] dark:text-white dark:shadow-[0_24px_70px_rgba(4,10,28,0.38)] sm:p-5`}
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="flex items-center gap-2 text-lg font-bold">
+                <h3
+                  className={`flex items-center gap-2 ${pageSectionTitleClass}`}
+                >
                   <Trophy className="h-5 w-5 text-amber-300" />
                   {t.dashboard?.rank || copy('年级排名', 'Rank')}
                 </h3>
-                <p className="mt-1 text-xs uppercase tracking-[0.14em] text-slate-300">
+                <p className={`${pageKickerMutedClass} mt-1`}>
                   {copy('当前赛季表现', 'Current season standing')}
                 </p>
               </div>
-              <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100">
+              <div className={pageBadgeClass}>
                 {copy('保持冲击力', 'Momentum')}
               </div>
             </div>
 
             <div className="mt-4 text-center">
-              <div className="text-[36px] font-black tracking-tight text-cyan-100">Top 15%</div>
-              <div className="mt-2 text-sm font-medium text-slate-200">
-                {copy('超过多数同年级学生', 'Ahead of most students in your grade')}
+              <div className="text-[34px] font-semibold tracking-tight text-sky-700 dark:text-cyan-100">
+                Top 15%
+              </div>
+              <div className="mt-2 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
+                {copy(
+                  '超过多数同年级学生',
+                  'Ahead of most students in your grade'
+                )}
               </div>
             </div>
 
             <div className="mt-3.5 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.08] px-4 py-3">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-300">
+              <div className={`${pageInsetClass} px-4 py-3`}>
+                <div className={pageKickerClass}>
                   {copy('平均正确率', 'Average')}
                 </div>
-                <div className="mt-2 text-lg font-black text-white">68%</div>
+                <div className={pageNumericValueCompactClass}>68%</div>
               </div>
-              <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
-                <div className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-400/20 dark:bg-emerald-400/10">
+                <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
                   {copy('你的表现', 'You')}
                 </div>
-                <div className="mt-2 text-lg font-black text-white">{stats.accuracy}%</div>
+                <div className={pageNumericValueCompactClass}>
+                  {stats.accuracy}%
+                </div>
               </div>
             </div>
 
             <Button
               onClick={() => navigate('/dashboard/leaderboard')}
-              className="mt-3.5 w-full rounded-2xl border border-white/10 bg-white/10 py-3 text-sm font-bold text-white hover:bg-white/15"
+              className="mt-3.5 w-full rounded-2xl py-3 text-sm font-bold"
             >
               {copy('查看排行榜', 'View Leaderboard')}
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Button>
           </Card>
 
-          <Card className={`${surfaceClassName} min-h-0 flex-1 p-5 sm:p-5`}>
+          <Card className={`${pagePanelClass} min-h-0 flex-1 p-5 sm:p-5`}>
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <h3 className="flex items-center gap-2 text-lg font-bold text-white">
+                <h3
+                  className={`flex items-center gap-2 ${pageSectionTitleClass}`}
+                >
                   <Layers3 className="h-5 w-5 text-cyan-300" />
                   {copy('最近练习回顾', 'Recent Practice')}
                 </h3>
-                <p className="mt-1 text-sm text-slate-400">
-                  {copy('回看最近几次训练结果，决定接下来最值得做的一步。', 'Review recent training results and decide the next best move.')}
+                <p className={pageSectionDescriptionClass}>
+                  {copy(
+                    '回看最近几次训练结果，决定接下来最值得做的一步。',
+                    'Review recent training results and decide the next best move.'
+                  )}
                 </p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-2xl border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:text-white"
+                className="rounded-2xl"
                 onClick={() => navigate('/dashboard/practice')}
               >
                 {copy('练习中心', 'Practice')}
@@ -513,21 +631,27 @@ export const DashboardHome = ({
                     key={record.id}
                     type="button"
                     onClick={() => navigate('/dashboard/practice')}
-                    className="group flex w-full items-center justify-between gap-4 rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4 text-left transition-all hover:border-cyan-400/25 hover:bg-white/[0.07]"
+                    className="group flex w-full items-center justify-between gap-4 rounded-[22px] border border-borderTone bg-surface px-4 py-4 text-left shadow-surface transition-all hover:-translate-y-0.5 hover:border-blue-300/60 hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-cyan-400/25 dark:hover:bg-surface-selected"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                      <div className={pageKickerClass}>
                         {practiceModeLabel(record.mode, copy)}
                       </div>
-                      <div className="mt-1 truncate text-sm font-bold text-white">{record.title}</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        {record.subject} · {formatRelativeDate(record.createdAt, copy)}
+                      <div className={`mt-1 truncate ${pageCardTitleClass}`}>
+                        {record.title}
+                      </div>
+                      <div className={`mt-1 ${pageMetaTextClass}`}>
+                        {record.subject} ·{' '}
+                        {formatRelativeDate(record.createdAt, copy)}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="text-lg font-black text-cyan-100">{record.score}%</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        {record.correctCount}/{record.totalQuestions} · {formatDuration(record.duration, copy)}
+                      <div className="text-[18px] font-semibold tracking-tight text-sky-700 dark:text-cyan-100">
+                        {record.score}%
+                      </div>
+                      <div className={`mt-1 ${pageMetaTextClass}`}>
+                        {record.correctCount}/{record.totalQuestions} ·{' '}
+                        {formatDuration(record.duration, copy)}
                       </div>
                     </div>
                   </button>
@@ -538,7 +662,7 @@ export const DashboardHome = ({
                 title={copy('还没有练习记录', 'No recent practice yet')}
                 description={copy(
                   '完成第一轮练习后，这里会告诉你最近一次训练效果和接下来最值得做的动作。',
-                  'Complete your first practice round and this panel will summarize your latest performance.',
+                  'Complete your first practice round and this panel will summarize your latest performance.'
                 )}
                 actionLabel={copy('开始练习', 'Start Practice')}
                 onAction={() => navigate('/dashboard/practice')}
@@ -549,12 +673,17 @@ export const DashboardHome = ({
           <DailyInspiration
             lang={lang}
             t={t}
-            welcomeTitle={t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
-            welcomeSub={copy('当你不确定下一步做什么时，先让一句话帮你回到节奏。', 'When you are unsure what to do next, let one line pull you back into rhythm.')}
+            welcomeTitle={
+              t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')
+            }
+            welcomeSub={copy(
+              '当你不确定下一步做什么时，先让一句话帮你回到节奏。',
+              'When you are unsure what to do next, let one line pull you back into rhythm.'
+            )}
             className="min-h-[212px]"
           />
         </div>
       </section>
     </div>
-  );
-};
+  )
+}

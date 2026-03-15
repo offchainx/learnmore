@@ -1,15 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Compass } from 'lucide-react';
-import { ChapterCard } from './ChapterCard';
-import type { DbChapter } from '../types';
+import React, { useEffect, useMemo, useState } from 'react'
+import { Compass } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  pageHeroEyebrowClass,
+  pageKickerMutedClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
+import { ChapterCard } from './ChapterCard'
+import type { DbChapter } from '../types'
 
 interface ChapterProgressSectionProps {
-  chapters: DbChapter[];
-  isLoading: boolean;
-  onPreviewChapter?: (chapter: DbChapter) => void;
+  chapters: DbChapter[]
+  isLoading: boolean
+  onPreviewChapter?: (chapter: DbChapter) => void
 }
 
-const CHAPTERS_PER_PAGE = 4;
+const CHAPTERS_PER_PAGE = 4
 const MOCK_CHAPTERS: DbChapter[] = [
   {
     id: 'mock-ch-1',
@@ -91,39 +97,60 @@ const MOCK_CHAPTERS: DbChapter[] = [
       monthlyCorrectRate: 57,
     },
   },
-];
+]
 
-export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({ chapters, isLoading, onPreviewChapter }) => {
-  const hasMockPreview = !isLoading && chapters.length === 0;
-  const displayChapters = hasMockPreview ? MOCK_CHAPTERS : chapters;
-  const [page, setPage] = useState(0);
+export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({
+  chapters,
+  isLoading,
+  onPreviewChapter,
+}) => {
+  const hasMockPreview = !isLoading && chapters.length === 0
+  const displayChapters = hasMockPreview ? MOCK_CHAPTERS : chapters
+  const [page, setPage] = useState(0)
 
-  const totalPages = Math.max(1, Math.ceil(displayChapters.length / CHAPTERS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(displayChapters.length / CHAPTERS_PER_PAGE)
+  )
   const visibleChapters = useMemo(
-    () => displayChapters.slice(page * CHAPTERS_PER_PAGE, (page + 1) * CHAPTERS_PER_PAGE),
-    [displayChapters, page],
-  );
+    () =>
+      displayChapters.slice(
+        page * CHAPTERS_PER_PAGE,
+        (page + 1) * CHAPTERS_PER_PAGE
+      ),
+    [displayChapters, page]
+  )
 
   useEffect(() => {
-    setPage(0);
-  }, [displayChapters.length]);
+    setPage(0)
+  }, [displayChapters.length])
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (totalPages <= 1) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? 1 : -1;
-    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)));
-  };
+    if (totalPages <= 1) return
+    event.preventDefault()
+    const direction = event.deltaY > 0 ? 1 : -1
+    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)))
+  }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+          <div
+            className={cn(
+              pageHeroEyebrowClass,
+              'inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+            )}
+          >
             <Compass className="h-3.5 w-3.5" />
             章节地图
           </div>
-          <p className="mt-2 max-w-xl text-[13px] leading-5 text-slate-600 dark:text-slate-300">
+          <p
+            className={cn(
+              pageMetaTextClass,
+              'mt-2 max-w-xl text-slate-600 dark:text-slate-300'
+            )}
+          >
             默认展示 4 条，滚动滑鼠滚轮可一次切换下一组章节。
           </p>
         </div>
@@ -137,7 +164,12 @@ export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({ 
               />
             ))}
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+          <span
+            className={cn(
+              pageHeroEyebrowClass,
+              'rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+            )}
+          >
             {displayChapters.length} 个章节
           </span>
         </div>
@@ -146,7 +178,10 @@ export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({ 
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-[76px] animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/40" />
+            <div
+              key={i}
+              className="h-[76px] animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/40"
+            />
           ))}
         </div>
       ) : (
@@ -161,7 +196,7 @@ export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({ 
             {visibleChapters.map((chapter, index) => (
               <div
                 key={chapter.id}
-                className="animate-in fade-in slide-in-from-right-4 duration-300 fill-mode-both"
+                className="duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <ChapterCard
@@ -173,19 +208,19 @@ export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({ 
               </div>
             ))}
             {visibleChapters.length < CHAPTERS_PER_PAGE &&
-              Array.from({ length: CHAPTERS_PER_PAGE - visibleChapters.length }).map((_, index) => (
+              Array.from({
+                length: CHAPTERS_PER_PAGE - visibleChapters.length,
+              }).map((_, index) => (
                 <div
                   key={`empty-${index}`}
                   className="flex h-[76px] items-center justify-center rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/35 dark:border-slate-800/60 dark:bg-slate-900/20"
                 >
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-300 dark:text-slate-700">
-                    已到列表底部
-                  </span>
+                  <span className={pageKickerMutedClass}>已到列表底部</span>
                 </div>
               ))}
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}

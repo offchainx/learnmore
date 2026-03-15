@@ -4,6 +4,24 @@ import React, { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import {
+  pageCardTitleClass,
+  pageDisplayTitleClass,
+  pageMetaTextClass,
+  pageNumericValueCompactClass,
+  pageSectionDescriptionClass,
+} from '@/components/shared/pageTypography'
+import {
+  pageBadgeClass,
+  pageEmptyStateClass,
+  pageHeroShellClass,
+  pagePanelClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageShellFrameClass,
+  pageSoftInsetClass,
+} from '@/components/shared/pageSurfaces'
 import {
   Award,
   Brain,
@@ -15,6 +33,7 @@ import {
   Trophy,
   Lock,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type {
   AchievementOverview,
   BadgeWithUnlockStatus,
@@ -39,7 +58,11 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Star,
 }
 
-export const AchievementsView = ({ user, overview, badges }: AchievementsViewProps) => {
+export const AchievementsView = ({
+  user,
+  overview,
+  badges,
+}: AchievementsViewProps) => {
   const [tab, setTab] = useState<'all' | 'unlocked' | 'locked'>('all')
 
   const filteredBadges = useMemo(() => {
@@ -49,128 +72,195 @@ export const AchievementsView = ({ user, overview, badges }: AchievementsViewPro
   }, [badges, tab])
 
   const unlockedCount = badges.filter((b) => b.unlocked).length
-  const completionRate = badges.length > 0 ? Math.round((unlockedCount / badges.length) * 100) : 0
+  const completionRate =
+    badges.length > 0 ? Math.round((unlockedCount / badges.length) * 100) : 0
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in-up">
-      <PageHeroShell
-        className="px-4 py-3 sm:px-5 sm:py-3.5"
-        eyebrow={
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/78">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
-            Achievement Vault
+    <div className="animate-fade-in-up pb-12">
+      <div className={`space-y-6 ${pageShellFrameClass} sm:p-2.5`}>
+        <PageHeroShell
+          className={pageHeroShellClass}
+          eyebrow={
+            <div className={pageBadgeClass}>
+              <span className="h-2 w-2 rounded-full bg-amber-400" />
+              Achievement Vault
+            </div>
+          }
+          title="成就中心"
+          subtitle={`查看 ${user.username || 'Student'} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`}
+          actions={
+            <div className={pageBadgeClass}>
+              <span className="h-2 w-2 rounded-full bg-cyan-400" />
+              已解锁 {unlockedCount}/{badges.length}
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <img
+              src={
+                user.avatar || 'https://i.pravatar.cc/160?u=achievement-user'
+              }
+              alt="avatar"
+              className="h-16 w-16 rounded-full border border-borderTone object-cover dark:border-borderTone"
+            />
+            <div className="flex-1">
+              <div className={pageDisplayTitleClass}>
+                {user.username || 'Student'}
+              </div>
+              <p className={`mt-1 ${pageSectionDescriptionClass}`}>
+                成就完成度 {completionRate}% · 已解锁 {unlockedCount}/
+                {badges.length}
+              </p>
+            </div>
+            <div
+              className={`${pageBadgeClass} w-fit px-3 py-1.5 text-[12px] font-semibold`}
+            >
+              <Award className="h-4 w-4 text-amber-300" /> Achievement MVP
+            </div>
           </div>
-        }
-        title="成就中心"
-        subtitle={`查看 ${user.username || 'Student'} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`}
-        actions={
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-blue-100/72">
-            <span className="h-2 w-2 rounded-full bg-cyan-400" />
-            已解锁 {unlockedCount}/{badges.length}
+        </PageHeroShell>
+
+        <Card className={cn(pagePanelClass, 'p-6')}>
+          <div className="flex items-center justify-between gap-3">
+            <SectionBlockHeader
+              title="成长摘要"
+              description="从连胜、题量、正确率和学习时长看本阶段表现。"
+              className="flex-1 gap-2"
+            />
+            <Badge variant="secondary" className="w-fit">
+              <Award className="mr-1 h-3.5 w-3.5" /> Achievement MVP
+            </Badge>
           </div>
-        }
-      >
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <img
-            src={user.avatar || 'https://i.pravatar.cc/160?u=achievement-user'}
-            alt="avatar"
-            className="h-16 w-16 rounded-full border border-white/10 object-cover"
-          />
-          <div className="flex-1">
-            <div className="text-2xl font-bold text-white">{user.username || 'Student'}</div>
-            <p className="mt-1 text-sm text-blue-100/68">
-              成就完成度 {completionRate}% · 已解锁 {unlockedCount}/{badges.length}
-            </p>
-          </div>
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] font-semibold text-blue-50">
-            <Award className="h-4 w-4 text-amber-300" /> Achievement MVP
-          </div>
+        </Card>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            {
+              label: '连胜',
+              value: `${overview?.streak ?? 0} 天`,
+              icon: Flame,
+            },
+            {
+              label: '练习题数',
+              value: `${overview?.questions ?? 0}`,
+              icon: Brain,
+            },
+            {
+              label: '正确率',
+              value: `${overview?.accuracy ?? 0}%`,
+              icon: Target,
+            },
+            {
+              label: '学习时长',
+              value: `${overview?.hours ?? '0.0'} h`,
+              icon: Clock,
+            },
+          ].map((item) => (
+            <Card key={item.label} className={cn(pagePanelClass, 'p-4')}>
+              <item.icon className="mb-2 h-5 w-5 text-blue-500" />
+              <div className={pageNumericValueCompactClass}>{item.value}</div>
+              <div className={`mt-1 ${pageMetaTextClass}`}>{item.label}</div>
+            </Card>
+          ))}
         </div>
-      </PageHeroShell>
 
-      <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">成长摘要</h2>
-            <p className="mt-1 text-sm text-slate-500">从连胜、题量、正确率和学习时长看本阶段表现。</p>
-          </div>
-          <Badge variant="secondary" className="w-fit">
-            <Award className="w-3.5 h-3.5 mr-1" /> Achievement MVP
-          </Badge>
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: '连胜', value: `${overview?.streak ?? 0} 天`, icon: Flame },
-          { label: '练习题数', value: `${overview?.questions ?? 0}`, icon: Brain },
-          { label: '正确率', value: `${overview?.accuracy ?? 0}%`, icon: Target },
-          { label: '学习时长', value: `${overview?.hours ?? '0.0'} h`, icon: Clock },
-        ].map((item) => (
-          <Card key={item.label} className="p-4 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900">
-            <item.icon className="w-5 h-5 text-blue-500 mb-2" />
-            <div className="text-xl font-bold text-slate-900 dark:text-white">{item.value}</div>
-            <div className="text-xs text-slate-500 mt-1">{item.label}</div>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="p-6 border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">徽章墙</h3>
-          <div className="flex items-center gap-2">
-            {(['all', 'unlocked', 'locked'] as const).map((value) => (
-              <button
-                key={value}
-                onClick={() => setTab(value)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
-                  tab === value
-                    ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-black'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700'
-                }`}
-              >
-                {value === 'all' ? '全部' : value === 'unlocked' ? '已解锁' : '未解锁'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {filteredBadges.length === 0 ? (
-          <div className="text-sm text-slate-500">暂无符合条件的徽章。</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredBadges.map((badge) => {
-              const Icon = ICON_MAP[badge.icon] || Award
-              return (
-                <div
-                  key={badge.id}
-                  className={`rounded-xl border p-4 transition-colors ${
-                    badge.unlocked
-                      ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-800 dark:bg-emerald-900/10'
-                      : 'border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-900/40'
-                  }`}
+        <Card className={cn(pagePanelClass, 'p-6')}>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <SectionBlockHeader
+              title="徽章墙"
+              description="按已解锁和未解锁状态查看当前阶段最值得冲刺的徽章。"
+              className="flex-1 gap-2"
+            />
+            <div className="flex items-center gap-2">
+              {(['all', 'unlocked', 'locked'] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTab(value)}
+                  className={cn(
+                    'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
+                    tab === value ? pagePillActiveClass : pagePillInactiveClass
+                  )}
                 >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                      {badge.unlocked ? (
-                        <Icon className="w-5 h-5 text-emerald-500" />
-                      ) : (
-                        <Lock className="w-5 h-5 text-slate-400" />
-                      )}
-                    </div>
-                    <Badge variant={badge.unlocked ? 'default' : 'secondary'}>
-                      {badge.unlocked ? '已解锁' : '未解锁'}
-                    </Badge>
-                  </div>
-                  <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{badge.name}</h4>
-                  <p className="text-xs text-slate-500 mt-1">{badge.description}</p>
-                  {badge.condition ? <p className="text-xs text-slate-400 mt-2">条件：{badge.condition}</p> : null}
-                </div>
-              )
-            })}
+                  {value === 'all'
+                    ? '全部'
+                    : value === 'unlocked'
+                      ? '已解锁'
+                      : '未解锁'}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-      </Card>
+
+          {filteredBadges.length === 0 ? (
+            <div
+              className={cn(
+                pageEmptyStateClass,
+                'text-sm text-text-secondary dark:text-text-secondary'
+              )}
+            >
+              暂无符合条件的徽章。
+            </div>
+          ) : (
+            <div
+              className={cn(
+                'grid gap-4',
+                filteredBadges.length === 1 && 'max-w-[420px] grid-cols-1',
+                filteredBadges.length === 2 &&
+                  'max-w-[860px] grid-cols-1 sm:grid-cols-2',
+                filteredBadges.length >= 3 &&
+                  'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+              )}
+            >
+              {filteredBadges.map((badge) => {
+                const Icon = ICON_MAP[badge.icon] || Award
+                return (
+                  <div
+                    key={badge.id}
+                    className={cn(
+                      'rounded-[22px] p-4 transition-colors',
+                      badge.unlocked
+                        ? 'dark:bg-emerald-900/12 border border-emerald-200 bg-emerald-50/70 dark:border-emerald-800'
+                        : 'border border-slate-200 bg-slate-100/80 text-text-secondary dark:border-slate-700 dark:bg-surface-subtle dark:text-text-secondary'
+                    )}
+                  >
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div
+                        className={cn(
+                          'flex h-10 w-10 items-center justify-center rounded-full border',
+                          badge.unlocked
+                            ? 'border-emerald-200 bg-white/90 dark:border-emerald-700 dark:bg-surface'
+                            : 'border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-surface-subtle'
+                        )}
+                      >
+                        {badge.unlocked ? (
+                          <Icon className="h-5 w-5 text-emerald-500" />
+                        ) : (
+                          <Lock className="h-5 w-5 text-slate-500 dark:text-text-tertiary" />
+                        )}
+                      </div>
+                      <Badge variant={badge.unlocked ? 'success' : 'neutral'}>
+                        {badge.unlocked ? '已解锁' : '未解锁'}
+                      </Badge>
+                    </div>
+                    <h4 className={pageCardTitleClass}>{badge.name}</h4>
+                    <p className={`mt-1 ${pageMetaTextClass}`}>
+                      {badge.description}
+                    </p>
+                    {badge.condition ? (
+                      <p
+                        className={`mt-2 ${pageMetaTextClass} text-text-tertiary dark:text-text-tertiary`}
+                      >
+                        条件：{badge.condition}
+                      </p>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

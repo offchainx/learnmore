@@ -26,6 +26,26 @@ import { toast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
+  pageCardTitleClass,
+  pageKickerClass,
+  pageMetaTextClass,
+  pageNumericValueClass,
+  pageSectionDescriptionClass,
+  pageSectionTitleClass,
+} from '@/components/shared/pageTypography'
+import {
+  pageBadgeClass,
+  pageHeroShellClass,
+  pageInputClass,
+  pageInsetClass,
+  pagePanelClass,
+  pagePanelStrongClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageShellFrameClass,
+  pageSoftInsetClass,
+} from '@/components/shared/pageSurfaces'
+import {
   Bell,
   Bot,
   Brain,
@@ -144,14 +164,26 @@ const NOTIFICATION_MATRIX: NotificationMatrixRow[] = [
   },
 ]
 
-const surfaceClassName =
-  'rounded-[30px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] text-white shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
+const surfaceClassName = pagePanelClass
 
-const insetCardClassName =
-  'rounded-[24px] border border-white/8 bg-white/[0.03] text-white'
+const insetCardClassName = pageInsetClass
 
-const inputClassName =
-  'h-12 w-full rounded-2xl border border-white/8 bg-white/[0.04] px-4 text-sm text-white placeholder:text-blue-100/34 focus:outline-none focus:ring-2 focus:ring-sky-400/30'
+const inputClassName = `${pageInputClass} h-12 rounded-2xl px-4`
+
+const choiceActiveClass =
+  'border-blue-200 bg-surface-selected text-sky-700 shadow-surface dark:border-sky-400/28 dark:bg-sky-400/12 dark:text-white'
+
+const choiceIdleClass =
+  'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'
+
+const choiceButtonClass =
+  'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]'
+
+const subtleButtonClass =
+  'h-11 rounded-full border border-borderTone bg-surface-subtle px-4 text-text-primary hover:bg-surface-selected hover:text-sky-700 dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:hover:bg-surface-selected'
+
+const dataBlockClass =
+  'rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3 text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-white'
 
 const initialState = { error: undefined, success: undefined }
 
@@ -240,24 +272,22 @@ function SettingsSection({
     >
       <div
         ref={headerRef}
-        className="border-white/8 flex flex-col gap-4 border-b pb-5 lg:flex-row lg:items-start lg:justify-between"
+        className="flex flex-col gap-4 border-b border-borderTone pb-5 dark:border-borderTone lg:flex-row lg:items-start lg:justify-between"
       >
         <div className="space-y-3">
-          <div className="text-blue-100/76 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium">
-            <Icon className="h-3.5 w-3.5 text-sky-300" />
+          <div className={pageBadgeClass}>
+            <Icon className="h-3.5 w-3.5 text-sky-600 dark:text-sky-300" />
             {title}
           </div>
           <div>
-            <h2 className="text-[24px] font-semibold tracking-tight text-white">
-              {title}
-            </h2>
-            <p className="text-blue-100/62 mt-2 max-w-3xl text-sm leading-6">
+            <h2 className={pageSectionTitleClass}>{title}</h2>
+            <p className={`mt-2 max-w-3xl ${pageSectionDescriptionClass}`}>
               {description}
             </p>
           </div>
         </div>
         {badge ? (
-          <div className="inline-flex items-center rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[11px] font-medium text-sky-100">
+          <div className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-medium text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
             {badge}
           </div>
         ) : null}
@@ -358,14 +388,14 @@ function ReferralSection({
   return (
     <div className={`${surfaceClassName} p-5`}>
       <div className="flex items-start gap-3">
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-400/20 dark:bg-emerald-400/10">
           <Gift className="h-5 w-5 text-emerald-300" />
         </div>
         <div>
-          <div className="text-[18px] font-semibold text-white">
+          <div className="text-[18px] font-semibold text-text-primary dark:text-white">
             {copy.title}
           </div>
-          <div className="text-blue-100/56 mt-1 text-sm leading-6">
+          <div className="mt-1 text-sm leading-6 text-text-secondary dark:text-text-secondary">
             {copy.desc}
           </div>
         </div>
@@ -373,17 +403,19 @@ function ReferralSection({
 
       <div className="mt-5 grid gap-4 xl:grid-cols-2">
         <div className={`${insetCardClassName} p-4`}>
-          <div className="text-blue-100/42 mb-2 text-[12px] font-medium uppercase tracking-[0.18em]">
+          <div className="mb-2 text-[12px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
             {copy.code}
           </div>
           <div className="flex items-center gap-3">
-            <div className="border-white/8 min-w-0 flex-1 rounded-2xl border bg-white/[0.03] px-4 py-3 text-center font-mono text-lg tracking-[0.3em] text-white">
+            <div
+              className={`${dataBlockClass} min-w-0 flex-1 text-center font-mono text-lg tracking-[0.3em]`}
+            >
               {user.referralCode || copy.empty}
             </div>
             <Button
               type="button"
               variant="outline"
-              className="h-11 rounded-full border-white/10 bg-white/5 px-4 text-blue-50 hover:bg-white/10"
+              className={subtleButtonClass}
               onClick={handleCopyCode}
               disabled={!user.referralCode}
             >
@@ -393,17 +425,19 @@ function ReferralSection({
         </div>
 
         <div className={`${insetCardClassName} p-4`}>
-          <div className="text-blue-100/42 mb-2 text-[12px] font-medium uppercase tracking-[0.18em]">
+          <div className="mb-2 text-[12px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
             {copy.link}
           </div>
           <div className="flex items-center gap-3">
-            <div className="border-white/8 text-blue-50/78 min-w-0 flex-1 truncate rounded-2xl border bg-white/[0.03] px-4 py-3 text-sm">
+            <div
+              className={`${dataBlockClass} min-w-0 flex-1 truncate text-sm`}
+            >
               {referralPath}
             </div>
             <Button
               type="button"
               variant="outline"
-              className="h-11 rounded-full border-white/10 bg-white/5 px-4 text-blue-50 hover:bg-white/10"
+              className={subtleButtonClass}
               onClick={handleCopyLink}
             >
               {copiedLink ? copy.copied : copy.copyLink}
@@ -413,11 +447,11 @@ function ReferralSection({
       </div>
 
       <div className={`${insetCardClassName} mt-4 p-4`}>
-        <div className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-white">
+        <div className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white">
           <Users className="h-4 w-4 text-sky-300" />
           {copy.reward}
         </div>
-        <ul className="text-blue-100/62 space-y-2 text-sm leading-6">
+        <ul className="space-y-2 text-sm leading-6 text-text-secondary dark:text-text-secondary">
           {[copy.rule1, copy.rule2, copy.rule3, copy.rule4].map((item) => (
             <li key={item} className="flex gap-2">
               <span className="mt-2 h-1.5 w-1.5 rounded-full bg-sky-300" />
@@ -1117,722 +1151,723 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     normalizedStatus
 
   return (
-    <div className="animate-fade-in-up space-y-6 pb-12">
-      <PageHeroShell
-        className={`${surfaceClassName} bg-[radial-gradient(circle_at_top,_rgba(41,98,190,0.12),_transparent_50%),linear-gradient(180deg,rgba(10,18,32,0.95),rgba(5,11,20,0.98))] p-4`}
-        eyebrow={
-          <div className="text-blue-100/78 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            {copy.heroBadge}
-          </div>
-        }
-        title={copy.heroTitle}
-        subtitle={copy.heroSub}
-        titleClassName="font-semibold text-white"
-        subtitleClassName="text-sm leading-6 text-blue-100/64"
-        actions={
-          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
-            <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
-              <div className="text-blue-100/38 text-[11px] font-medium uppercase tracking-[0.18em]">
-                {copy.accountSummary}
-              </div>
-              <div className="mt-2 text-[16px] font-semibold text-white">
-                {user?.username || user?.email || 'User'}
-              </div>
-              <div className="text-blue-100/54 mt-1 text-[13px]">
-                {user?.email}
-              </div>
+    <div className="animate-fade-in-up pb-12">
+      <div className={`space-y-6 ${pageShellFrameClass} sm:p-2.5`}>
+        <PageHeroShell
+          className={`${pagePanelStrongClass} ${pageHeroShellClass}`}
+          eyebrow={
+            <div className={pageBadgeClass}>
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              {copy.heroBadge}
             </div>
-            <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
-              <div className="text-blue-100/38 text-[11px] font-medium uppercase tracking-[0.18em]">
-                {copy.currentPlan}
+          }
+          title={copy.heroTitle}
+          subtitle={copy.heroSub}
+          titleClassName="font-semibold"
+          subtitleClassName="text-[13px] leading-6 text-text-secondary dark:text-text-secondary"
+          actions={
+            <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
+              <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
+                <div className={pageKickerClass}>{copy.accountSummary}</div>
+                <div className={pageCardTitleClass}>
+                  {user?.username || user?.email || 'User'}
+                </div>
+                <div className={pageMetaTextClass}>{user?.email}</div>
               </div>
-              <div
-                className={cn(
-                  'mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-semibold',
-                  tierTone.capsule
-                )}
-              >
-                <TierIcon className={cn('h-3.5 w-3.5', tierTone.accent)} />
-                {tierLabel}
-              </div>
-              <div className="text-blue-100/54 mt-1 text-[13px]">
-                {statusLabel}
-              </div>
-            </div>
-          </div>
-        }
-      />
-
-      <div className="grid grid-cols-1 gap-6 xl:h-[calc(100vh-14.5rem)] xl:grid-cols-[260px_minmax(0,1fr)] xl:overflow-hidden">
-        <div className="space-y-4 xl:self-start">
-          <Card className={`${surfaceClassName} p-4`}>
-            <div className="space-y-2">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleScrollToSection(item.id)}
+              <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
+                <div className={pageKickerClass}>{copy.currentPlan}</div>
+                <div
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-[22px] border px-4 py-3 text-left transition-colors',
-                    activeSection === item.id
-                      ? 'border-sky-400/28 bg-sky-400/12 text-white'
-                      : 'border-white/8 text-blue-100/62 bg-white/[0.03] hover:bg-white/[0.05] hover:text-white'
+                    'mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-semibold',
+                    tierTone.capsule
                   )}
                 >
-                  <div
+                  <TierIcon className={cn('h-3.5 w-3.5', tierTone.accent)} />
+                  {tierLabel}
+                </div>
+                <div className={pageMetaTextClass}>{statusLabel}</div>
+              </div>
+            </div>
+          }
+        />
+
+        <div className="grid grid-cols-1 gap-6 xl:h-[calc(100vh-14.5rem)] xl:grid-cols-[260px_minmax(0,1fr)] xl:overflow-hidden">
+          <div className="space-y-4 xl:self-start">
+            <Card className={`${surfaceClassName} p-4`}>
+              <div className="space-y-2">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleScrollToSection(item.id)}
                     className={cn(
-                      'rounded-2xl border p-2',
+                      'flex w-full items-center gap-3 rounded-[22px] border px-4 py-3 text-left transition-colors',
                       activeSection === item.id
-                        ? 'border-sky-400/24 bg-sky-400/12 text-sky-100'
-                        : 'border-white/8 text-blue-100/56 bg-white/[0.03]'
+                        ? choiceActiveClass
+                        : choiceIdleClass
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">
-                      {item.label}
+                    <div
+                      className={cn(
+                        'rounded-2xl border p-2',
+                        activeSection === item.id
+                          ? 'dark:border-sky-400/24 dark:bg-sky-400/12 border-blue-200 bg-surface-selected text-sky-700 dark:text-sky-100'
+                          : 'border-borderTone bg-surface text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary'
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
                     </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 shrink-0 opacity-60" />
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">
+                        {item.label}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 opacity-60" />
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
 
-        <div
-          ref={scrollContainerRef}
-          className="space-y-6 xl:h-full xl:overflow-y-auto xl:pb-[42rem] xl:pr-2 xl:pt-7"
-        >
-          <SettingsSection
-            id="profile"
-            title={t.settings.tabs.profile}
-            description={copy.profileDesc}
-            icon={User}
-            badge={copy.instantApplied}
-            sectionRef={(node) => {
-              sectionRefs.current.profile = node
-            }}
-            headerRef={(node) => {
-              sectionHeaderRefs.current.profile = node
-            }}
+          <div
+            ref={scrollContainerRef}
+            className="space-y-6 xl:h-full xl:overflow-y-auto xl:pb-[42rem] xl:pr-2 xl:pt-7"
           >
-            <form action={profileAction} className="space-y-5">
-              <input type="hidden" name="language" value={lang} />
-              <input
-                type="hidden"
-                name="theme"
-                value={theme === 'system' ? 'system' : theme}
-              />
-              <input
-                type="checkbox"
-                name="notificationDaily"
-                checked={notifPrefs.inAppStudy}
-                readOnly
-                className="hidden"
-              />
-              <input
-                type="checkbox"
-                name="notificationWeekly"
-                checked={notifPrefs.emailWeekly}
-                readOnly
-                className="hidden"
-              />
+            <SettingsSection
+              id="profile"
+              title={t.settings.tabs.profile}
+              description={copy.profileDesc}
+              icon={User}
+              sectionRef={(node) => {
+                sectionRefs.current.profile = node
+              }}
+              headerRef={(node) => {
+                sectionHeaderRefs.current.profile = node
+              }}
+            >
+              <form action={profileAction} className="space-y-5">
+                <input type="hidden" name="language" value={lang} />
+                <input
+                  type="hidden"
+                  name="theme"
+                  value={theme === 'system' ? 'system' : theme}
+                />
+                <input
+                  type="checkbox"
+                  name="notificationDaily"
+                  checked={notifPrefs.inAppStudy}
+                  readOnly
+                  className="hidden"
+                />
+                <input
+                  type="checkbox"
+                  name="notificationWeekly"
+                  checked={notifPrefs.emailWeekly}
+                  readOnly
+                  className="hidden"
+                />
 
-              {profileState.success ? (
-                <div className="rounded-[20px] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
-                  {copy.profileSuccess}
-                </div>
-              ) : null}
-              {profileState.error ? (
-                <div className="rounded-[20px] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-                  {profileState.error}
-                </div>
-              ) : null}
-
-              <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-                <div className={`${insetCardClassName} p-5`}>
-                  <div className="mb-4 text-[15px] font-semibold text-white">
-                    {copy.avatarLabel}
+                {profileState.success ? (
+                  <div className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
+                    {copy.profileSuccess}
                   </div>
-                  <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="relative">
-                      <img
-                        src={
-                          user?.avatar ||
-                          'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop'
-                        }
-                        alt="Avatar"
-                        className="h-28 w-28 rounded-full border border-white/10 object-cover"
+                ) : null}
+                {profileState.error ? (
+                  <div className="rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-100">
+                    {profileState.error}
+                  </div>
+                ) : null}
+
+                <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+                  <div className={`${insetCardClassName} p-5`}>
+                    <div className={`mb-4 ${pageCardTitleClass}`}>
+                      {copy.avatarLabel}
+                    </div>
+                    <div className="flex flex-col items-center gap-4 text-center">
+                      <div className="relative">
+                        <img
+                          src={
+                            user?.avatar ||
+                            'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop'
+                          }
+                          alt="Avatar"
+                          className="h-28 w-28 rounded-full border border-borderTone object-cover dark:border-borderTone"
+                        />
+                        <div className="bg-slate-950/18 dark:bg-slate-950/24 absolute inset-0 flex items-center justify-center rounded-full">
+                          <Camera className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                      <div className={pageSectionDescriptionClass}>
+                        {copy.avatarHint}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <div
+                      className={`${insetCardClassName} grid gap-4 p-5 md:grid-cols-2`}
+                    >
+                      <Input
+                        label={t.settings.profile.displayName}
+                        name="username"
+                        defaultValue={user?.username || ''}
+                        className="bg-surface-subtle dark:bg-surface-subtle"
                       />
-                      <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20">
-                        <Camera className="h-6 w-6 text-white" />
-                      </div>
+                      <Input
+                        label={copy.gradeLabel}
+                        name="grade"
+                        type="number"
+                        min="7"
+                        max="9"
+                        defaultValue={user?.grade?.toString() || ''}
+                        className="bg-surface-subtle dark:bg-surface-subtle"
+                      />
+                      <Input
+                        label={copy.emailLabel}
+                        defaultValue={user?.email || ''}
+                        disabled
+                        className="bg-surface-subtle text-text-tertiary dark:bg-surface-subtle md:col-span-2"
+                      />
                     </div>
-                    <div className="text-blue-100/56 text-sm leading-6">
-                      {copy.avatarHint}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="grid gap-4">
-                  <div
-                    className={`${insetCardClassName} grid gap-4 p-5 md:grid-cols-2`}
-                  >
-                    <Input
-                      label={t.settings.profile.displayName}
-                      name="username"
-                      defaultValue={user?.username || ''}
-                      className="bg-white/[0.03]"
-                    />
-                    <Input
-                      label={copy.gradeLabel}
-                      name="grade"
-                      type="number"
-                      min="7"
-                      max="9"
-                      defaultValue={user?.grade?.toString() || ''}
-                      className="bg-white/[0.03]"
-                    />
-                    <Input
-                      label={copy.emailLabel}
-                      defaultValue={user?.email || ''}
-                      disabled
-                      className="bg-white/[0.02] opacity-75 md:col-span-2"
-                    />
-                  </div>
-
-                  <div
-                    className={`${insetCardClassName} grid gap-4 p-5 md:grid-cols-2`}
-                  >
-                    <div>
-                      <div className="mb-3 text-[15px] font-semibold text-white">
-                        {copy.language}
-                      </div>
-                      <div className="space-y-2">
-                        {[
-                          { id: 'en', label: 'English', icon: 'EN' },
-                          { id: 'zh', label: '中文', icon: '中' },
-                          { id: 'ms', label: 'Bahasa Melayu', icon: 'BM' },
-                        ].map((option) => (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() =>
-                              setLang(option.id as 'en' | 'zh' | 'ms')
-                            }
-                            className={cn(
-                              'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm transition-colors',
-                              lang === option.id
-                                ? 'border-sky-400/28 bg-sky-400/12 text-white'
-                                : 'border-white/8 text-blue-100/62 bg-white/[0.03] hover:bg-white/[0.05] hover:text-white'
-                            )}
-                          >
-                            <span className="flex items-center gap-3">
-                              <span className="border-white/8 rounded-xl border bg-white/[0.03] px-2 py-1 text-[11px] font-semibold">
-                                {option.icon}
+                    <div
+                      className={`${insetCardClassName} grid gap-4 p-5 md:grid-cols-2`}
+                    >
+                      <div>
+                        <div className={`mb-3 ${pageCardTitleClass}`}>
+                          {copy.language}
+                        </div>
+                        <div className="space-y-2">
+                          {[
+                            { id: 'en', label: 'English', icon: 'EN' },
+                            { id: 'zh', label: '中文', icon: '中' },
+                            { id: 'ms', label: 'Bahasa Melayu', icon: 'BM' },
+                          ].map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() =>
+                                setLang(option.id as 'en' | 'zh' | 'ms')
+                              }
+                              aria-pressed={lang === option.id}
+                              className={cn(
+                                choiceButtonClass,
+                                lang === option.id
+                                  ? choiceActiveClass
+                                  : choiceIdleClass
+                              )}
+                            >
+                              <span className="flex items-center gap-3">
+                                <span className="rounded-xl border border-borderTone bg-surface-subtle px-2 py-1 text-[11px] font-semibold dark:border-borderTone dark:bg-surface-subtle">
+                                  {option.icon}
+                                </span>
+                                {option.label}
                               </span>
-                              {option.label}
-                            </span>
-                            {lang === option.id ? (
-                              <CircleCheck className="h-4 w-4 text-sky-200" />
-                            ) : null}
-                          </button>
-                        ))}
+                              {lang === option.id ? (
+                                <CircleCheck className="h-4 w-4 text-sky-500 dark:text-sky-200" />
+                              ) : null}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <div className="mb-3 text-[15px] font-semibold text-white">
-                        {copy.appearance}
-                      </div>
-                      <div className="space-y-2">
-                        {[
-                          { id: 'light', label: copy.lightMode, icon: Sun },
-                          { id: 'dark', label: copy.darkMode, icon: Moon },
-                          { id: 'system', label: copy.systemMode, icon: Globe },
-                        ].map((option) => (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => {
-                              if (
-                                option.id === 'system' &&
-                                theme !== 'light' &&
-                                theme !== 'dark'
-                              ) {
-                                return
-                              }
+                      <div>
+                        <div className={`mb-3 ${pageCardTitleClass}`}>
+                          {copy.appearance}
+                        </div>
+                        <div className="space-y-2">
+                          {[
+                            { id: 'light', label: copy.lightMode, icon: Sun },
+                            { id: 'dark', label: copy.darkMode, icon: Moon },
+                            {
+                              id: 'system',
+                              label: copy.systemMode,
+                              icon: Globe,
+                            },
+                          ].map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => {
+                                if (
+                                  option.id === 'system' &&
+                                  theme !== 'light' &&
+                                  theme !== 'dark'
+                                ) {
+                                  return
+                                }
 
-                              if (option.id === 'system') {
-                                toggleTheme()
-                                return
-                              }
+                                if (option.id === 'system') {
+                                  toggleTheme()
+                                  return
+                                }
 
-                              if (
-                                (option.id === 'dark' && theme !== 'dark') ||
-                                (option.id === 'light' && theme !== 'light')
-                              ) {
-                                toggleTheme()
-                              }
-                            }}
-                            className={cn(
-                              'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm transition-colors',
-                              (option.id === 'dark' && theme === 'dark') ||
+                                if (
+                                  (option.id === 'dark' && theme !== 'dark') ||
+                                  (option.id === 'light' && theme !== 'light')
+                                ) {
+                                  toggleTheme()
+                                }
+                              }}
+                              className={cn(
+                                choiceButtonClass,
+                                (option.id === 'dark' && theme === 'dark') ||
+                                  (option.id === 'light' &&
+                                    theme === 'light') ||
+                                  (option.id === 'system' &&
+                                    theme !== 'dark' &&
+                                    theme !== 'light')
+                                  ? choiceActiveClass
+                                  : choiceIdleClass
+                              )}
+                              aria-pressed={
+                                (option.id === 'dark' && theme === 'dark') ||
                                 (option.id === 'light' && theme === 'light') ||
                                 (option.id === 'system' &&
                                   theme !== 'dark' &&
                                   theme !== 'light')
-                                ? 'border-sky-400/28 bg-sky-400/12 text-white'
-                                : 'border-white/8 text-blue-100/62 bg-white/[0.03] hover:bg-white/[0.05] hover:text-white'
-                            )}
-                          >
-                            <span className="flex items-center gap-3">
-                              <option.icon className="h-4 w-4 text-sky-300" />
-                              {option.label}
-                            </span>
-                          </button>
-                        ))}
+                              }
+                            >
+                              <span className="flex items-center gap-3">
+                                <option.icon className="h-4 w-4 text-sky-600 dark:text-sky-300" />
+                                {option.label}
+                              </span>
+                              {(option.id === 'dark' && theme === 'dark') ||
+                              (option.id === 'light' && theme === 'light') ||
+                              (option.id === 'system' &&
+                                theme !== 'dark' &&
+                                theme !== 'light') ? (
+                                <CircleCheck className="h-4 w-4 text-sky-500 dark:text-sky-200" />
+                              ) : null}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-end pt-2">
-                <SectionSubmitButton
-                  idleLabel={copy.profileSave}
-                  pendingLabel={copy.profileSaving}
+                <div className="flex items-center justify-end pt-2">
+                  <SectionSubmitButton
+                    idleLabel={copy.profileSave}
+                    pendingLabel={copy.profileSaving}
+                  />
+                </div>
+              </form>
+            </SettingsSection>
+
+            <SettingsSection
+              id="ai-config"
+              title={t.settings.tabs.aiConfig}
+              description={copy.aiDesc}
+              icon={Brain}
+              badge={`${copy.tutorCurrent} · ${
+                tutorCards.find((item) => item.id === selectedTutor)?.label
+              }`}
+              sectionRef={(node) => {
+                sectionRefs.current['ai-config'] = node
+              }}
+              headerRef={(node) => {
+                sectionHeaderRefs.current['ai-config'] = node
+              }}
+            >
+              <form action={aiConfigAction} className="space-y-5">
+                <input
+                  type="hidden"
+                  name="aiPersonality"
+                  value={selectedTutor.toUpperCase()}
                 />
-              </div>
-            </form>
-          </SettingsSection>
+                <input
+                  type="hidden"
+                  name="difficultyCalibration"
+                  value={difficulty}
+                />
 
-          <SettingsSection
-            id="ai-config"
-            title={t.settings.tabs.aiConfig}
-            description={copy.aiDesc}
-            icon={Brain}
-            badge={`${copy.tutorCurrent} · ${
-              tutorCards.find((item) => item.id === selectedTutor)?.label
-            }`}
-            sectionRef={(node) => {
-              sectionRefs.current['ai-config'] = node
-            }}
-            headerRef={(node) => {
-              sectionHeaderRefs.current['ai-config'] = node
-            }}
-          >
-            <form action={aiConfigAction} className="space-y-5">
-              <input
-                type="hidden"
-                name="aiPersonality"
-                value={selectedTutor.toUpperCase()}
-              />
-              <input
-                type="hidden"
-                name="difficultyCalibration"
-                value={difficulty}
-              />
+                {aiConfigState.success ? (
+                  <div className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
+                    {copy.aiSuccess}
+                  </div>
+                ) : null}
+                {aiConfigState.error ? (
+                  <div className="rounded-[20px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-100">
+                    {aiConfigState.error}
+                  </div>
+                ) : null}
 
-              {aiConfigState.success ? (
-                <div className="rounded-[20px] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
-                  {copy.aiSuccess}
-                </div>
-              ) : null}
-              {aiConfigState.error ? (
-                <div className="rounded-[20px] border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-                  {aiConfigState.error}
-                </div>
-              ) : null}
-
-              <div className="grid gap-4 xl:grid-cols-3">
-                {tutorCards.map((tutor) => (
-                  <button
-                    key={tutor.id}
-                    type="button"
-                    onClick={() => setSelectedTutor(tutor.id)}
-                    className={cn(
-                      `${insetCardClassName} flex h-full flex-col items-start p-5 text-left transition-colors`,
-                      selectedTutor === tutor.id
-                        ? tutor.border + ' ' + tutor.bg
-                        : 'hover:bg-white/[0.05]'
-                    )}
-                  >
-                    <div
+                <div className="grid gap-4 xl:grid-cols-3">
+                  {tutorCards.map((tutor) => (
+                    <button
+                      key={tutor.id}
+                      type="button"
+                      onClick={() => setSelectedTutor(tutor.id)}
                       className={cn(
-                        'mb-5 rounded-2xl border p-3',
+                        `${insetCardClassName} flex h-full flex-col items-start p-5 text-left transition-colors`,
                         selectedTutor === tutor.id
                           ? tutor.border + ' ' + tutor.bg
-                          : 'border-white/8 bg-white/[0.03]'
+                          : 'hover:bg-surface-subtle dark:hover:bg-surface-selected'
                       )}
                     >
-                      <tutor.icon className={cn('h-6 w-6', tutor.tone)} />
-                    </div>
-                    <div className="text-[18px] font-semibold text-white">
-                      {tutor.label}
-                    </div>
-                    <div className="text-blue-100/56 mt-2 text-sm leading-6">
-                      {tutor.desc}
-                    </div>
-                    {selectedTutor === tutor.id ? (
-                      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[11px] font-medium text-sky-100">
-                        <CircleCheck className="h-3.5 w-3.5" />
-                        {copy.tutorCurrent}
-                      </div>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid gap-4 xl:grid-cols-2">
-                <div className={`${insetCardClassName} p-5`}>
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="text-[15px] font-semibold text-white">
-                      {t.settings.ai.difficulty}
-                    </div>
-                    <div className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[11px] font-medium text-sky-100">
-                      {difficulty < 30
-                        ? 'Foundational'
-                        : difficulty < 70
-                          ? 'Proficient'
-                          : 'Challenge'}
-                    </div>
-                  </div>
-                  <input
-                    name="difficultyCalibrationVisible"
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={difficulty}
-                    onChange={(event) =>
-                      setDifficulty(Number(event.target.value))
-                    }
-                    className="h-3 w-full cursor-pointer appearance-none rounded-full bg-white/10 accent-blue-500"
-                  />
-                  <div className="text-blue-100/42 mt-4 flex justify-between text-[11px] font-medium uppercase tracking-[0.18em]">
-                    <span>Standard</span>
-                    <span>Advanced</span>
-                    <span>Challenge</span>
-                  </div>
-                </div>
-
-                <div className={`${insetCardClassName} p-5`}>
-                  <div className="mb-3 text-[15px] font-semibold text-white">
-                    {copy.curriculumNote}
-                  </div>
-                  <div className="border-white/8 text-blue-50/78 rounded-2xl border bg-white/[0.03] px-4 py-3 text-sm">
-                    IGCSE (Cambridge International)
-                  </div>
-                  <div className="text-blue-100/48 mt-3 text-sm leading-6">
-                    {t.settings.ai.desc}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end pt-2">
-                <SectionSubmitButton
-                  idleLabel={copy.aiSave}
-                  pendingLabel={copy.aiSaving}
-                />
-              </div>
-            </form>
-          </SettingsSection>
-
-          <SettingsSection
-            id="notifications"
-            title={t.settings.tabs.notifications}
-            description={copy.notificationsDesc}
-            icon={Bell}
-            sectionRef={(node) => {
-              sectionRefs.current.notifications = node
-            }}
-            headerRef={(node) => {
-              sectionHeaderRefs.current.notifications = node
-            }}
-          >
-            {isNotifLoading ? (
-              <div className="flex min-h-[240px] flex-col items-center justify-center gap-4">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-                <div className="text-blue-100/56 text-sm">
-                  {t.common.loading}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className={`${insetCardClassName} overflow-hidden`}>
-                  <div className="border-white/8 grid grid-cols-[minmax(0,1fr)_88px_88px] border-b bg-white/[0.03] px-5 py-3">
-                    <div className="text-blue-100/42 text-[11px] font-medium uppercase tracking-[0.18em]">
-                      {copy.notificationChannels}
-                    </div>
-                    <div className="text-blue-100/42 text-center text-[11px] font-medium uppercase tracking-[0.18em]">
-                      {copy.inApp}
-                    </div>
-                    <div className="text-blue-100/42 text-center text-[11px] font-medium uppercase tracking-[0.18em]">
-                      {copy.email}
-                    </div>
-                  </div>
-
-                  {NOTIFICATION_MATRIX.map((row, index) => (
-                    <div
-                      key={row.label}
-                      className={cn(
-                        'grid grid-cols-[minmax(0,1fr)_88px_88px] items-center px-5 py-4',
-                        index !== NOTIFICATION_MATRIX.length - 1 &&
-                          'border-white/8 border-b',
-                        row.alwaysOn
-                          ? 'bg-white/[0.02]'
-                          : 'hover:bg-white/[0.03]'
-                      )}
-                    >
-                      <div className="pr-4">
-                        <div className="text-sm font-medium text-white">
-                          {lang === 'zh' ? row.label : row.label}
-                        </div>
-                        <div className="text-blue-100/48 mt-1 text-[12px] leading-5">
-                          {row.description}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-center">
-                        {row.alwaysOn ? (
-                          <Switch checked disabled />
-                        ) : row.inApp ? (
-                          <Switch
-                            checked={notifPrefs[row.inApp]}
-                            onCheckedChange={(checked) =>
-                              handleTogglePreference(row.inApp!, checked)
-                            }
-                          />
-                        ) : (
-                          <Switch checked={false} disabled />
+                      <div
+                        className={cn(
+                          'mb-5 rounded-2xl border p-3',
+                          selectedTutor === tutor.id
+                            ? tutor.border + ' ' + tutor.bg
+                            : 'border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle'
                         )}
+                      >
+                        <tutor.icon className={cn('h-6 w-6', tutor.tone)} />
                       </div>
-
-                      <div className="flex items-center justify-center">
-                        {row.alwaysOn ? (
-                          <Switch checked disabled />
-                        ) : row.email ? (
-                          <Switch
-                            checked={notifPrefs[row.email]}
-                            onCheckedChange={(checked) =>
-                              handleTogglePreference(row.email!, checked)
-                            }
-                          />
-                        ) : (
-                          <Switch checked={false} disabled />
-                        )}
+                      <div className={pageSectionTitleClass}>{tutor.label}</div>
+                      <div className={`mt-2 ${pageSectionDescriptionClass}`}>
+                        {tutor.desc}
                       </div>
-                    </div>
+                      {selectedTutor === tutor.id ? (
+                        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-medium text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
+                          <CircleCheck className="h-3.5 w-3.5" />
+                          {copy.tutorCurrent}
+                        </div>
+                      ) : null}
+                    </button>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-blue-100/48 text-sm">
-                    {notifDirty ? copy.instantApplied : copy.noChange}
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <div className={`${insetCardClassName} p-5`}>
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className={pageCardTitleClass}>
+                        {t.settings.ai.difficulty}
+                      </div>
+                      <div className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-medium text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
+                        {difficulty < 30
+                          ? 'Foundational'
+                          : difficulty < 70
+                            ? 'Proficient'
+                            : 'Challenge'}
+                      </div>
+                    </div>
+                    <input
+                      name="difficultyCalibrationVisible"
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={difficulty}
+                      onChange={(event) =>
+                        setDifficulty(Number(event.target.value))
+                      }
+                      className="h-3 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-blue-500 dark:bg-surface-subtle"
+                    />
+                    <div className="mt-4 flex justify-between text-[11px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
+                      <span>Standard</span>
+                      <span>Advanced</span>
+                      <span>Challenge</span>
+                    </div>
                   </div>
+
+                  <div className={`${insetCardClassName} p-5`}>
+                    <div className={`mb-3 ${pageCardTitleClass}`}>
+                      {copy.curriculumNote}
+                    </div>
+                    <div className={`${dataBlockClass} text-sm`}>
+                      IGCSE (Cambridge International)
+                    </div>
+                    <div className={`mt-3 ${pageSectionDescriptionClass}`}>
+                      {t.settings.ai.desc}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end pt-2">
+                  <SectionSubmitButton
+                    idleLabel={copy.aiSave}
+                    pendingLabel={copy.aiSaving}
+                  />
+                </div>
+              </form>
+            </SettingsSection>
+
+            <SettingsSection
+              id="notifications"
+              title={t.settings.tabs.notifications}
+              description={copy.notificationsDesc}
+              icon={Bell}
+              sectionRef={(node) => {
+                sectionRefs.current.notifications = node
+              }}
+              headerRef={(node) => {
+                sectionHeaderRefs.current.notifications = node
+              }}
+            >
+              {isNotifLoading ? (
+                <div className="flex min-h-[240px] flex-col items-center justify-center gap-4">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+                  <div className="text-sm text-text-secondary dark:text-text-secondary">
+                    {t.common.loading}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className={`${insetCardClassName} overflow-hidden`}>
+                    <div className="grid grid-cols-[minmax(0,1fr)_88px_88px] border-b border-borderTone bg-surface-subtle px-5 py-3 dark:border-borderTone dark:bg-surface-subtle">
+                      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
+                        {copy.notificationChannels}
+                      </div>
+                      <div className="text-center text-[11px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
+                        {copy.inApp}
+                      </div>
+                      <div className="text-center text-[11px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
+                        {copy.email}
+                      </div>
+                    </div>
+
+                    {NOTIFICATION_MATRIX.map((row, index) => (
+                      <div
+                        key={row.label}
+                        className={cn(
+                          'grid grid-cols-[minmax(0,1fr)_88px_88px] items-center px-5 py-4',
+                          index !== NOTIFICATION_MATRIX.length - 1 &&
+                            'border-b border-borderTone dark:border-borderTone',
+                          row.alwaysOn
+                            ? 'bg-surface-subtle/70 dark:bg-surface-subtle/70'
+                            : 'hover:bg-surface-subtle dark:hover:bg-surface-selected'
+                        )}
+                      >
+                        <div className="pr-4">
+                          <div className={pageCardTitleClass}>
+                            {lang === 'zh' ? row.label : row.label}
+                          </div>
+                          <div className={`mt-1 ${pageMetaTextClass}`}>
+                            {row.description}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-center">
+                          {row.alwaysOn ? (
+                            <Switch checked disabled />
+                          ) : row.inApp ? (
+                            <Switch
+                              checked={notifPrefs[row.inApp]}
+                              onCheckedChange={(checked) =>
+                                handleTogglePreference(row.inApp!, checked)
+                              }
+                            />
+                          ) : (
+                            <Switch checked={false} disabled />
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-center">
+                          {row.alwaysOn ? (
+                            <Switch checked disabled />
+                          ) : row.email ? (
+                            <Switch
+                              checked={notifPrefs[row.email]}
+                              onCheckedChange={(checked) =>
+                                handleTogglePreference(row.email!, checked)
+                              }
+                            />
+                          ) : (
+                            <Switch checked={false} disabled />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm text-text-secondary dark:text-text-secondary">
+                      {notifDirty ? copy.instantApplied : copy.noChange}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="glow"
+                      className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+                      onClick={handleSaveNotificationPreferences}
+                      disabled={isNotifSaving || !notifDirty}
+                    >
+                      {isNotifSaving ? copy.notifSaving : copy.notifSave}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </SettingsSection>
+
+            <SettingsSection
+              id="account"
+              title={t.settings.tabs.account}
+              description={copy.accountDesc}
+              icon={Shield}
+              sectionRef={(node) => {
+                sectionRefs.current.account = node
+              }}
+              headerRef={(node) => {
+                sectionHeaderRefs.current.account = node
+              }}
+            >
+              <div className="space-y-4">
+                {user?.role === 'STUDENT' ? (
+                  <div className={`${surfaceClassName} p-5`}>
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                      <div className="max-w-2xl">
+                        <div className={pageBadgeClass}>
+                          <Sparkles className="h-3.5 w-3.5 text-sky-600 dark:text-sky-300" />
+                          {copy.parentTitle}
+                        </div>
+                        <div className={pageNumericValueClass}>
+                          {inviteCode
+                            ? copy.parentWaiting
+                            : copy.parentDisconnected}
+                        </div>
+                        <div className={`mt-2 ${pageSectionDescriptionClass}`}>
+                          {copy.parentDesc}
+                        </div>
+                      </div>
+
+                      {inviteCode ? (
+                        <div
+                          className={`${insetCardClassName} min-w-[260px] p-5`}
+                        >
+                          <div className={pageKickerClass}>
+                            {copy.inviteCode}
+                          </div>
+                          <div className="mt-3 font-mono text-[30px] font-semibold tracking-[0.3em] text-text-primary dark:text-white">
+                            {inviteCode}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={`mt-4 ${subtleButtonClass}`}
+                            onClick={handleCopyInviteCode}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            {copy.copyCode}
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="glow"
+                          className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+                          onClick={handleGenerateCode}
+                          disabled={isGenerating}
+                        >
+                          <LinkIcon className="mr-2 h-4 w-4" />
+                          {isGenerating
+                            ? copy.generating
+                            : copy.generateInviteCode}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                <ReferralSection
+                  user={{
+                    referralCode: user?.referralCode || null,
+                    referralCount: user?.referralCount || 0,
+                  }}
+                  lang={lang}
+                />
+              </div>
+            </SettingsSection>
+
+            <SettingsSection
+              id="subscription"
+              title={t.settings.tabs.subscription}
+              description={copy.subscriptionDesc}
+              icon={CreditCard}
+              badge={statusLabel}
+              sectionRef={(node) => {
+                sectionRefs.current.subscription = node
+              }}
+              headerRef={(node) => {
+                sectionHeaderRefs.current.subscription = node
+              }}
+            >
+              <div className="space-y-4">
+                <div className="grid gap-4 xl:grid-cols-3">
+                  <div className={`${insetCardClassName} p-5`}>
+                    <div className={pageKickerClass}>{copy.currentPlan}</div>
+                    <div className={pageNumericValueClass}>{tierLabel}</div>
+                    <div className={pageMetaTextClass}>{statusLabel}</div>
+                  </div>
+
+                  <div className={`${insetCardClassName} p-5`}>
+                    <div className={pageKickerClass}>{copy.nextCharge}</div>
+                    <div className={pageNumericValueClass}>
+                      {subscriptionEndDate
+                        ? subscriptionEndDate.toLocaleString(
+                            lang === 'zh'
+                              ? 'zh-CN'
+                              : lang === 'ms'
+                                ? 'ms-MY'
+                                : 'en-US'
+                          )
+                        : copy.freeTier}
+                    </div>
+                    <div className={pageMetaTextClass}>
+                      {user?.cancelAtPeriodEnd
+                        ? copy.canceledStatus
+                        : copy.instantApplied}
+                    </div>
+                  </div>
+
+                  <div className={`${insetCardClassName} p-5`}>
+                    <div className={pageKickerClass}>{copy.pendingReward}</div>
+                    <div className={pageNumericValueClass}>
+                      {pendingDeferredWeeks} 周
+                    </div>
+                    <div className={pageMetaTextClass}>
+                      {pendingDeferredRewards.length} 条待结算记录
+                    </div>
+                  </div>
+                </div>
+
+                {normalizedStatus === 'TRIALING' ? (
+                  <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100">
+                    当前处于试用期，首次真实扣款前可在此页面取消计划。
+                  </div>
+                ) : null}
+
+                {user?.cancelAtPeriodEnd ? (
+                  <div className="rounded-[22px] border border-orange-200 bg-orange-50 px-4 py-3 text-sm leading-6 text-orange-700 dark:border-orange-400/20 dark:bg-orange-400/10 dark:text-orange-100">
+                    {copy.canceledStatus}
+                  </div>
+                ) : null}
+
+                {pendingDeferredWeeks > 0 ? (
+                  <div className="rounded-[22px] border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm leading-6 text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-100">
+                    待结算推荐奖励共 {pendingDeferredRewards.length} 条，合计{' '}
+                    {pendingDeferredWeeks} 周。后续完成真实扣款后会自动补发。
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap gap-3 pt-2">
                   <Button
                     type="button"
                     variant="glow"
                     className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
-                    onClick={handleSaveNotificationPreferences}
-                    disabled={isNotifSaving || !notifDirty}
+                    onClick={() => router.push('/pricing')}
                   >
-                    {isNotifSaving ? copy.notifSaving : copy.notifSave}
+                    {copy.upgrade}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={subtleButtonClass}
+                    onClick={handleCancelPlan}
+                    disabled={
+                      isCanceling ||
+                      !user?.stripeSubscriptionId ||
+                      normalizedStatus === 'CANCELED' ||
+                      !!user?.cancelAtPeriodEnd
+                    }
+                  >
+                    {isCanceling ? copy.canceling : copy.cancelPlan}
                   </Button>
                 </div>
               </div>
-            )}
-          </SettingsSection>
-
-          <SettingsSection
-            id="account"
-            title={t.settings.tabs.account}
-            description={copy.accountDesc}
-            icon={Shield}
-            sectionRef={(node) => {
-              sectionRefs.current.account = node
-            }}
-            headerRef={(node) => {
-              sectionHeaderRefs.current.account = node
-            }}
-          >
-            <div className="space-y-4">
-              {user?.role === 'STUDENT' ? (
-                <div className={`${surfaceClassName} p-5`}>
-                  <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="max-w-2xl">
-                      <div className="text-blue-100/78 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium">
-                        <Sparkles className="h-3.5 w-3.5 text-sky-300" />
-                        {copy.parentTitle}
-                      </div>
-                      <div className="mt-4 text-[22px] font-semibold text-white">
-                        {inviteCode
-                          ? copy.parentWaiting
-                          : copy.parentDisconnected}
-                      </div>
-                      <div className="text-blue-100/56 mt-2 text-sm leading-6">
-                        {copy.parentDesc}
-                      </div>
-                    </div>
-
-                    {inviteCode ? (
-                      <div
-                        className={`${insetCardClassName} min-w-[260px] p-5`}
-                      >
-                        <div className="text-blue-100/42 text-[11px] font-medium uppercase tracking-[0.18em]">
-                          {copy.inviteCode}
-                        </div>
-                        <div className="mt-3 font-mono text-[30px] font-semibold tracking-[0.3em] text-white">
-                          {inviteCode}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="mt-4 h-11 rounded-full border-white/10 bg-white/5 px-5 text-blue-50 hover:bg-white/10"
-                          onClick={handleCopyInviteCode}
-                        >
-                          <Copy className="mr-2 h-4 w-4" />
-                          {copy.copyCode}
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        type="button"
-                        variant="glow"
-                        className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
-                        onClick={handleGenerateCode}
-                        disabled={isGenerating}
-                      >
-                        <LinkIcon className="mr-2 h-4 w-4" />
-                        {isGenerating
-                          ? copy.generating
-                          : copy.generateInviteCode}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-
-              <ReferralSection
-                user={{
-                  referralCode: user?.referralCode || null,
-                  referralCount: user?.referralCount || 0,
-                }}
-                lang={lang}
-              />
-            </div>
-          </SettingsSection>
-
-          <SettingsSection
-            id="subscription"
-            title={t.settings.tabs.subscription}
-            description={copy.subscriptionDesc}
-            icon={CreditCard}
-            badge={statusLabel}
-            sectionRef={(node) => {
-              sectionRefs.current.subscription = node
-            }}
-            headerRef={(node) => {
-              sectionHeaderRefs.current.subscription = node
-            }}
-          >
-            <div className="space-y-4">
-              <div className="grid gap-4 xl:grid-cols-3">
-                <div className={`${insetCardClassName} p-5`}>
-                  <div className="text-blue-100/42 text-[11px] font-medium uppercase tracking-[0.18em]">
-                    {copy.currentPlan}
-                  </div>
-                  <div className="mt-3 text-[22px] font-semibold text-white">
-                    {tierLabel}
-                  </div>
-                  <div className="text-blue-100/52 mt-1 text-sm">
-                    {statusLabel}
-                  </div>
-                </div>
-
-                <div className={`${insetCardClassName} p-5`}>
-                  <div className="text-blue-100/42 text-[11px] font-medium uppercase tracking-[0.18em]">
-                    {copy.nextCharge}
-                  </div>
-                  <div className="mt-3 text-[22px] font-semibold text-white">
-                    {subscriptionEndDate
-                      ? subscriptionEndDate.toLocaleString(
-                          lang === 'zh'
-                            ? 'zh-CN'
-                            : lang === 'ms'
-                              ? 'ms-MY'
-                              : 'en-US'
-                        )
-                      : copy.freeTier}
-                  </div>
-                  <div className="text-blue-100/52 mt-1 text-sm">
-                    {user?.cancelAtPeriodEnd
-                      ? copy.canceledStatus
-                      : copy.instantApplied}
-                  </div>
-                </div>
-
-                <div className={`${insetCardClassName} p-5`}>
-                  <div className="text-blue-100/42 text-[11px] font-medium uppercase tracking-[0.18em]">
-                    {copy.pendingReward}
-                  </div>
-                  <div className="mt-3 text-[22px] font-semibold text-white">
-                    {pendingDeferredWeeks} 周
-                  </div>
-                  <div className="text-blue-100/52 mt-1 text-sm">
-                    {pendingDeferredRewards.length} 条待结算记录
-                  </div>
-                </div>
-              </div>
-
-              {normalizedStatus === 'TRIALING' ? (
-                <div className="rounded-[22px] border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-100">
-                  当前处于试用期，首次真实扣款前可在此页面取消计划。
-                </div>
-              ) : null}
-
-              {user?.cancelAtPeriodEnd ? (
-                <div className="rounded-[22px] border border-orange-400/20 bg-orange-400/10 px-4 py-3 text-sm leading-6 text-orange-100">
-                  {copy.canceledStatus}
-                </div>
-              ) : null}
-
-              {pendingDeferredWeeks > 0 ? (
-                <div className="rounded-[22px] border border-indigo-400/20 bg-indigo-400/10 px-4 py-3 text-sm leading-6 text-indigo-100">
-                  待结算推荐奖励共 {pendingDeferredRewards.length} 条，合计{' '}
-                  {pendingDeferredWeeks} 周。后续完成真实扣款后会自动补发。
-                </div>
-              ) : null}
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="glow"
-                  className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
-                  onClick={() => router.push('/pricing')}
-                >
-                  {copy.upgrade}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 rounded-full border-white/10 bg-white/5 px-5 text-blue-50 hover:bg-white/10"
-                  onClick={handleCancelPlan}
-                  disabled={
-                    isCanceling ||
-                    !user?.stripeSubscriptionId ||
-                    normalizedStatus === 'CANCELED' ||
-                    !!user?.cancelAtPeriodEnd
-                  }
-                >
-                  {isCanceling ? copy.canceling : copy.cancelPlan}
-                </Button>
-              </div>
-            </div>
-          </SettingsSection>
+            </SettingsSection>
+          </div>
         </div>
       </div>
     </div>
