@@ -77,6 +77,8 @@
 
 | 2026-03-19 | T-006.24 浅色主题代表页收口与内测通过 | 完成 T-006.24 的最终收口：修复 Dashboard Widgets/DailyMissions、Practice Preview Dialogs、Pricing 浅色化、Admin review/users detail 浅色壳层，Playwright 实测 Dashboard/Courses/Practice/Community/Settings/Pricing/Leaderboard/Achievements/Admin 代表页并回写 tasks.md 为 done。 | T-006.24 已完成并通过本地内测，代表页矩阵全部 accepted。 | - | - | - | - |
 
+| 2026-03-19 | 回滚 pricing 页面 | 按要求回滚 marketing pricing 页面，并在后续推进中排除该页面。 | pricing 页面已恢复到上一个提交版本，后续不再修改该页。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录
