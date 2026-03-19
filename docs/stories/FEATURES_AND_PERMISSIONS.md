@@ -186,7 +186,6 @@ LearnMore 平台定义了 6 种用户角色（`UserRole` enum）：
 **章节树结构** (`chapters` 表):
 - 自关联字段 `parentId` 实现树形结构
 - 支持无限层级嵌套
-- `x`, `y` 字段用于知识图谱布局
 
 ---
 
@@ -245,20 +244,14 @@ LearnMore 平台定义了 6 种用户角色（`UserRole` enum）：
 
 ---
 
-### 2.4 知识图谱
 
 **功能描述**: 可视化章节前置依赖关系
-**路由**: `/dashboard/knowledge-graph`
-**实现文件**: `src/app/(dashboard)/dashboard/knowledge-graph/page.tsx`, `src/actions/knowledge.ts`
 **数据库表**: `chapters`, `chapter_prerequisites`
 
 | 角色 | 权限 | 说明 |
 |------|------|------|
 | STUDENT | ⚠️ | 基础版（仅显示当前学科） |
-| PARENT | 👁️ | 可查看子女的知识图谱 |
-| PRO | ✅ | 跨学科知识图谱 🔒 |
 | ULTIMATE | ✅ | 同上 + 个性化推荐路径 🔒 |
-| TEACHER | ✅ | 可编辑知识图谱 |
 | ADMIN | ✅ | 同上 |
 
 **实现细节**:
@@ -1377,7 +1370,6 @@ model User {
 - 科目管理 (`subjects`)
 - 章节管理 (`chapters`) - 支持拖拽排序
 - 课程管理 (`lessons`) - 支持上传视频/文档
-- 知识图谱编辑 (`chapter_prerequisites`)
 
 ---
 
@@ -1490,7 +1482,6 @@ model SystemSetting {
 | 2.1 | 课程目录浏览 | ✅ | 👁️ | ✅ 🔒 | ✅ 🔒 | ✅ | ✅ |
 | 2.2 | 课程学习页 | ✅ | ❌ | ✅ 🔒 | ✅ 🔒 | ✅ | ✅ |
 | 2.3 | 学习进度统计 | ✅ | ✅ | ✅ 🔒 | ✅ 🔒 | 👁️ | ✅ |
-| 2.4 | 知识图谱 | ⚠️ | 👁️ | ✅ 🔒 | ✅ 🔒 | ✅ | ✅ |
 | 2.5 | 课程搜索 | ✅ | 👁️ | ✅ 🔒 | ✅ 🔒 | ✅ | ✅ |
 | 2.6 | 课程收藏 | ✅ | ❌ | ✅ 🔒 | ✅ 🔒 | ✅ | ✅ |
 | **3. 题库与练习** |

@@ -101,7 +101,6 @@ updated_at: 2026-03-04
 - `/admin/vouchers`：已接入统一 Admin 容器，页面恢复与其他 admin 子页一致的 sidebar 嵌套。
 - `/admin/users`：已修复列表区域宽度收缩问题，页面主区全宽渲染。
 - `/dashboard/debug/ui-kit`：已下线，当前行为为显式 404。
-- `/dashboard/knowledge-graph`：已下线，当前行为为显式 404。
 - `/dashboard/practice/import`：已下线，当前行为为显式 404，题目录入统一收口到内容管理流程。
 - `/dashboard/settings/notifications`：已下线，当前行为为显式 404；通知设置统一收口到 `/dashboard/settings` 的通知 tab。
 - `/admin/content`：已下线，当前行为为显式 404；仅保留 `/admin/content/review` 入口。

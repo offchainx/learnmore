@@ -55,7 +55,6 @@
 - **Story-044**: Content Pipeline (Question Ingestion)
 
 ## Backlog / Suspended
-- **Story-036**: Knowledge Graph (Lite)
 - **Story-045**: Permission System
 
 ## Known Issues

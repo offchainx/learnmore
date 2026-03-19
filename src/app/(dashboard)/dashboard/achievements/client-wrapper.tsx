@@ -28,7 +28,6 @@ export function AchievementsClientWrapper({ user, overview, badges }: Achievemen
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
-      'knowledgeGraph': '/dashboard/knowledge-graph',
       'admin': '/admin',
       'parent': '/dashboard'
     }

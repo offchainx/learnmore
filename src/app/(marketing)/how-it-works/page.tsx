@@ -43,7 +43,7 @@ const localTranslations = {
     s2: {
       step: "STEP 02",
       title: "Your personalized GPS for learning.",
-      desc: "No more getting lost in textbooks. Our Knowledge Graph connects every concept, creating a tailored roadmap from your current level straight to your goal.",
+      desc: "No more getting lost in textbooks. Our adaptive path system connects each learning step, creating a tailored roadmap from your current level straight to your goal.",
       cardTitle: "Dynamic Routing",
       cardDesc: "Path updates automatically as you improve",
       start: "START",
@@ -110,7 +110,7 @@ const localTranslations = {
     s2: {
       step: "第二步",
       title: "你的个性化学习 GPS。",
-      desc: "不再在课本中迷失方向。我们的知识图谱连接每一个概念，为你规划从当前水平直达目标的最佳路径。",
+      desc: "不再在课本中迷失方向。我们的学习路径系统会连接每一个学习步骤，为你规划从当前水平直达目标的最佳路径。",
       cardTitle: "动态路径规划",
       cardDesc: "路径随能力提升自动调整",
       start: "起点",

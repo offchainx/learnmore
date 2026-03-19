@@ -15,7 +15,6 @@
 | `/admin/vouchers` | 已登录（ADMIN） | 正常访问，且“内容管理”分组覆盖该路由 | 页面未使用统一 admin 容器，缺侧边栏嵌套 | 接入 `AdminClientWrapper` 并扩展内容分组匹配到 `/admin/vouchers` | 页面与 admin 其他子页一致 | main@5d2fb92 |
 | `/dashboard/*` | 未登录 | `/login?redirectTo=原路径` | 拦截逻辑存在但未补充回跳证据 | 补充 Playwright 回归（T-008/T-009）验证回跳闭环 | `GET /dashboard/practice` -> `/login?redirectTo=%2Fdashboard%2Fpractice`；登录后回跳原路径 | Playwright 2026-03-05（localhost:3000 + localhost:3001） |
 | `/dashboard/debug/ui-kit` | 任意登录态 | 调试页下线并返回 404 | 调试页可访问 | 路由文件改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
-| `/dashboard/knowledge-graph` | 任意登录态 | 功能页下线并返回 404 | 功能页可访问 | 路由文件改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |
 | `/dashboard/practice/import` | 任意登录态 | 功能页下线并返回 404 | 页面可访问并可上传题目 | 路由文件改为显式 `notFound()`（题目录入收口到 `/admin/content/import`） | 直接返回 404 | workspace change (2026-03-04) |
 | `/dashboard/settings/notifications` | 任意登录态 | 独立通知页下线并返回 404 | 与 `/dashboard/settings` 通知 tab 重复开发 | 路由文件改为显式 `notFound()`，通知中心入口改链到 `/dashboard/settings?tab=notifications` | 直接返回 404，通知设置统一在 settings 内完成 | workspace change (2026-03-04) |
 | `/course/:subjectId` | 任意登录态 | 课程旧路由下线并返回 404 | 页面可访问（课程壳） | `src/app/course/[subjectId]/layout.tsx` 与 `page.tsx` 改为显式 `notFound()` | 直接返回 404 | workspace change (2026-03-04) |

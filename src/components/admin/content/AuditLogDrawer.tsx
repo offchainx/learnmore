@@ -25,8 +25,8 @@ export function AuditLogDrawer({ isOpen, onClose, logs }: AuditLogDrawerProps) {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-[400px] sm:max-w-[400px] p-0 flex flex-col">
         {/* Header */}
-        <SheetHeader className="px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-          <SheetTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <SheetHeader className="px-6 py-5 border-b border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/50">
+          <SheetTitle className="text-lg font-semibold text-text-primary dark:text-white flex items-center gap-2">
             <History className="h-5 w-5 text-slate-600 dark:text-slate-400" />
             操作日志
           </SheetTitle>
@@ -56,6 +56,9 @@ export function AuditLogDrawer({ isOpen, onClose, logs }: AuditLogDrawerProps) {
                   <span className="text-xs font-mono text-slate-500 dark:text-slate-400 mb-0.5">
                     {log.timestamp}
                   </span>
+                  <p className="text-sm text-text-primary dark:text-slate-200">
+                    {log.comment}
+                  </p>
                   <p className="text-sm text-slate-700 dark:text-slate-200">
                     <span className="font-semibold text-slate-900 dark:text-white">{log.user}</span>{' '}
                     {log.action}{' '}
@@ -65,17 +68,11 @@ export function AuditLogDrawer({ isOpen, onClose, logs }: AuditLogDrawerProps) {
                   </p>
 
                   {/* User Info */}
-                  <div className="flex items-center mt-2 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-200 dark:border-slate-700/50 group-hover:border-slate-300 dark:group-hover:border-slate-700 transition-colors">
-                    <Avatar className="w-5 h-5 mr-2">
-                      <AvatarImage src={log.avatar} alt={log.user} className="grayscale opacity-70" />
-                      <AvatarFallback className="text-[10px]">
-                        {log.user.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 truncate">
-                      <Globe className="h-3 w-3" />
-                      <span>通过 Web 端执行</span>
-                    </div>
+                  <div className="flex items-center mt-2 p-2 bg-surface-subtle dark:bg-slate-800/50 rounded-md border border-borderTone dark:border-slate-700/50 group-hover:border-blue-200 dark:group-hover:border-slate-700 transition-colors">
+                    <History className="w-3.5 h-3.5 text-text-tertiary dark:text-slate-400 mr-2 shrink-0" />
+                    <span className="text-xs text-text-secondary dark:text-slate-300 truncate">
+                      通过 Web 端执行
+                    </span>
                   </div>
                 </div>
               </div>
@@ -95,13 +92,12 @@ export function AuditLogDrawer({ isOpen, onClose, logs }: AuditLogDrawerProps) {
         </div>
 
         {/* Footer Search */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+        <div className="p-4 border-t border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/50">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <Input
-              type="text"
-              placeholder="搜索日志..."
-              className="pl-9 h-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-blue-500"
+              placeholder="搜索记录 (如: 操作人、备注...)"
+              className="pl-9 h-9 bg-surface dark:bg-slate-900 border-borderTone dark:border-slate-800 focus-visible:ring-[hsl(var(--focus-ring))]"
             />
           </div>
         </div>

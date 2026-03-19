@@ -19,9 +19,7 @@ Style: Dark mode (slate-950 background), clean, futuristic but educational. Use 
 Sections to include:
 1. Hero Section:
    - Headline: "Not just practice, but your AI Personal Tutor."
-   - Subheadline: "Knowledge Graph-based adaptive learning that turns every minute into progress."
    - CTA Buttons: "Get Free Diagnosis Report" (Primary, glowing) and "Watch Demo" (Secondary).
-   - Visual: Right side placeholder for a 3D dynamic knowledge graph animation.
 
 2. Pain Points & Solution (3-Column Cards):
    - Card 1: "Stuck on scores?" -> "AI Attribution Analysis" (Pinpoint why you missed).
@@ -356,7 +354,6 @@ Generate a single-file React component using Tailwind CSS.
 ```text
 Design a "How It Works" page using scrollytelling for the 5-step AI Learning Loop:
 1. Assess (Diagnostic Radar Chart).
-2. Plan (Knowledge Graph Path).
 3. Learn (Video + Attention Heatmap).
 4. Practice (Adaptive Difficulty Curve).
 5. Review (Ebbinghaus Forgetting Curve).

@@ -73,7 +73,6 @@ pnpm add react-countup
 # 倒计时
 pnpm add react-countdown
 
-# 数据可视化 (知识图谱)
 pnpm add d3 @types/d3
 # 或
 pnpm add cytoscape @types/cytoscape
@@ -782,8 +781,6 @@ const PricingTable = dynamic(() => import('./_components/PricingTable'), {
   ssr: false,  // 如果不需要SSR
 });
 
-const KnowledgeGraphDemo = dynamic(
-  () => import('./_components/KnowledgeGraphDemo'),
   { ssr: false }  // Canvas/Three.js组件通常关闭SSR
 );
 ```

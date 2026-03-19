@@ -27,7 +27,7 @@ const SuccessStoriesPage: React.FC = () => {
         s1: {
             tag: "The Epiphany",
             title: "From Rote Memorization to Logical Mastery",
-            quote: "I used to memorize formulas blindly. The Knowledge Graph showed me how they connect. Now, I don't just remember physics—I understand it.",
+            quote: "I used to memorize formulas blindly. The guided learning path showed me how they connect. Now, I don't just remember physics—I understand it.",
             author: "Jun Hao, Grade 9",
             result: "Physics: C ➔ A",
             img: "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?q=80&w=800&auto=format&fit=crop"
@@ -74,7 +74,7 @@ const SuccessStoriesPage: React.FC = () => {
         s1: {
             tag: "顿悟时刻",
             title: "从死记硬背到逻辑精通",
-            quote: "我以前只是盲目地背公式。知识图谱向我展示了它们之间的联系。现在，我不只是记住了物理——我真正理解了它。",
+            quote: "我以前只是盲目地背公式。学习路径把它们之间的联系展示出来后，我不只是记住了物理——我真正理解了它。",
             author: "Jun Hao, 初三",
             result: "物理: C ➔ A",
             img: "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?q=80&w=800&auto=format&fit=crop"

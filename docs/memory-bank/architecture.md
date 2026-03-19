@@ -70,4 +70,3 @@ To support the current 23-page application structure, we require approximately *
 
 1.  **Immediate**: Run migration to add `UserSettings` and `DailyTask` to support the Dashboard UI features (Story-022 designs).
 2.  **Secondary**: Add `BlogPost` system if dynamically fetching blogs (vs hardcoded).
-3.  **Optimization**: Add indexes on `UserAttempt` for faster analytics (Knowledge Graph).

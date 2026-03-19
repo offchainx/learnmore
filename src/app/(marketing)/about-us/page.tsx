@@ -50,7 +50,7 @@ const AboutUsPage: React.FC = () => {
            {
              year: "2024 Q4",
              title: "UEC Junior Ready",
-             desc: "7 core subjects digitized. Knowledge Graph v1.0 launched.",
+             desc: "7 core subjects digitized. adaptive learning system v1.0 launched.",
              status: "completed"
            },
            {
@@ -98,7 +98,7 @@ const AboutUsPage: React.FC = () => {
           {
             name: "James Chen",
             role: "CTO",
-            bio: "Ex-Google AI researcher. Specialized in Knowledge Graphs and Adaptive Learning Algorithms.",
+            bio: "Ex-Google AI researcher. Specialized in adaptive learning algorithms and AI systems.",
             img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop"
           },
           {
@@ -156,7 +156,7 @@ const AboutUsPage: React.FC = () => {
            {
              year: "2024 Q4",
              title: "初中统考课程库完成",
-             desc: "完成初一至初三 7 大核心科目的数字化内容。知识图谱 v1.0 上线。",
+             desc: "完成初一至初三 7 大核心科目的数字化内容，自适应学习系统 v1.0 上线。",
              status: "completed"
            },
            {
@@ -204,7 +204,7 @@ const AboutUsPage: React.FC = () => {
           {
             name: "James Chen",
             role: "首席技术官 (CTO)",
-            bio: "前 Google AI 研究员。专攻知识图谱构建与自适应学习算法。",
+            bio: "前 Google AI 研究员。专攻自适应学习算法与 AI 系统。",
             img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop"
           },
           {

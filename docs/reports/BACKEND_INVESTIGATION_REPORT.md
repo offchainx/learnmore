@@ -262,7 +262,6 @@ ONBOARDING_PROFILE, ONBOARDING_GOALS, ONBOARDING_ASSESSMENT
 - `admin/` : 权限覆写、用户操作、条纹伪装
 - `parent.ts` : 亲子关系管理
 - `settings.ts` : 用户偏好设置
-- `knowledge.ts` : 知识图谱
 - `blog.ts` : 博客文章
 - `stripe-actions.ts` : Stripe集成
 - `marketing.ts` : 营销相关

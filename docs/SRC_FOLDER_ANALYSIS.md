@@ -157,7 +157,6 @@ app/
 | `/dashboard/community` | 学习社区 | ✅ 必需 |
 | `/dashboard/leaderboard` | 排行榜 | ✅ 必需 |
 | `/dashboard/achievements` | 成就系统 | ✅ 必需 |
-| `/dashboard/knowledge-graph` | 知识图谱 | ✅ 必需 |
 | `/dashboard/settings` | 设置 | ✅ 必需 |
 
 #### **管理后台页面 (6页)**

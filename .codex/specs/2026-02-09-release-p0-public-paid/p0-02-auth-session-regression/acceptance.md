@@ -39,7 +39,6 @@
 | AC-04 | 已登录访问 `/admin/vouchers` | 页面渲染 + Sidebar 分组状态 | 页面在统一 Admin 容器渲染，且“内容管理”分组覆盖 `/admin/vouchers` | pass | main@5d2fb92 |
 | AC-04 | 已登录访问 `/admin/users` | 页面布局 | 用户列表主区域全宽展示，无异常右侧留白 | pass | main@5d2fb92 |
 | AC-04 | 访问 `/dashboard/debug/ui-kit` | 路由状态 | 页面已下线，直接返回 404 | pass | workspace change (ui-kit route retired) |
-| AC-04 | 访问 `/dashboard/knowledge-graph` | 路由状态 | 页面已下线，直接返回 404 | pass | workspace change (knowledge-graph route retired) |
 | AC-04 | 访问 `/dashboard/practice/import` | 路由状态 | 页面已下线，直接返回 404（题目录入统一收口到内容管理） | pass | workspace change (practice import route retired) |
 | AC-04 | 访问 `/dashboard/settings/notifications` | 路由状态 | 页面已下线，直接返回 404（通知设置统一收口到 `/dashboard/settings`） | pass | workspace change (settings notifications retired) |
 | AC-04 | 从通知中心点击“通知设置” | 路由跳转 + 页面状态 | 跳转 `/dashboard/settings?tab=notifications` 并展示通知偏好矩阵 | pass | workspace change (settings tab integration) |

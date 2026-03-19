@@ -34,8 +34,8 @@ export default async function DashboardPage() {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white">
-          <div className="max-w-md p-6 bg-white dark:bg-slate-800 rounded-lg shadow-xl">
+        <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-page dark:bg-slate-950 text-text-primary dark:text-white">
+          <div className="max-w-md p-6 bg-surface dark:bg-slate-900 rounded-lg shadow-surface dark:shadow-xl border border-borderTone dark:border-slate-800">
             <h1 className="text-2xl font-bold mb-4 text-red-500">
               {dbSchemaIssue ? 'Database Schema Issue' : dbConnectionIssue ? 'Database Connection Issue' : 'Account Sync Issue'}
             </h1>
@@ -46,11 +46,11 @@ export default async function DashboardPage() {
                 ? 'Your login session is valid, but the app cannot connect to the database right now.'
                 : 'Your login session is valid, but your user profile was not found in our database.'}
             </p>
-            <div className="text-left text-sm bg-slate-100 dark:bg-slate-950 p-3 rounded mb-4 font-mono overflow-auto">
+            <div className="text-left text-sm bg-surface-subtle dark:bg-slate-950 p-3 rounded mb-4 font-mono overflow-auto">
               <p>User ID: {user.id}</p>
               <p>Email: {user.email}</p>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-text-secondary dark:text-slate-400">
               {dbSchemaIssue
                 ? 'Please run `npx prisma db push` and restart dev server.'
                 : dbConnectionIssue
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
                 await supabase.auth.signOut();
                 redirect('/login');
               }}>
-                <button type="submit" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 rounded text-sm font-medium transition-colors">
+                <button type="submit" className="px-4 py-2 bg-surface-muted hover:bg-surface-subtle dark:bg-slate-800 dark:hover:bg-slate-700 rounded text-sm font-medium transition-colors text-text-primary dark:text-white">
                   Sign Out
                 </button>
               </form>

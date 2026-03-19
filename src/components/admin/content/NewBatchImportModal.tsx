@@ -368,7 +368,7 @@ export function NewBatchImportModal({
                       className={`group relative border-2 border-dashed rounded-xl p-8 transition-all text-center ${
                         file
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                          : 'border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 bg-slate-50 dark:bg-slate-900'
+                          : 'border-borderTone dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 bg-surface dark:bg-slate-900'
                       }`}
                     >
                       <input
@@ -399,13 +399,13 @@ export function NewBatchImportModal({
                           </div>
                         ) : (
                           <>
-                            <div className="w-16 h-16 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center mb-3 border border-slate-200 dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform">
-                              <Upload className="h-8 w-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                            <div className="w-16 h-16 rounded-xl bg-surface dark:bg-slate-800 flex items-center justify-center mb-3 border border-borderTone dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform">
+                              <Upload className="h-8 w-8 text-text-tertiary group-hover:text-blue-500 transition-colors" />
                             </div>
-                            <span className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                            <span className="text-base font-semibold text-text-secondary dark:text-slate-300">
                               点击或拖拽文件上传
                             </span>
-                            <span className="text-sm text-slate-500 mt-2">
+                            <span className="text-sm text-text-tertiary mt-2">
                               支持 PDF / JPG / PNG / WEBP (最大 {MAX_PDF_SIZE / 1024 / 1024}MB)
                             </span>
                           </>
@@ -470,7 +470,7 @@ export function NewBatchImportModal({
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 text-white border-slate-700">
+            <Card className="bg-gradient-to-br from-surface to-surface-muted dark:from-slate-950 dark:to-slate-900 text-text-primary dark:text-white border-borderTone dark:border-slate-700 shadow-surface-md">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Zap className="h-5 w-5 text-yellow-400 fill-yellow-400" />
@@ -479,30 +479,30 @@ export function NewBatchImportModal({
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
-                    <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0 border border-black/5 dark:border-white/10">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-400" />
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    <span className="text-white font-semibold">多方式导入</span>
+                  <p className="text-text-secondary dark:text-slate-300 leading-relaxed">
+                    <span className="text-text-primary dark:text-white font-semibold">多方式导入</span>
                     ：支持 PDF/图像 与网页链接抓取，可按场景切换。
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
-                    <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0 border border-black/5 dark:border-white/10">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-400" />
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    <span className="text-white font-semibold">图案保留</span>
+                  <p className="text-text-secondary dark:text-slate-300 leading-relaxed">
+                    <span className="text-text-primary dark:text-white font-semibold">图案保留</span>
                     ：抓取时会解析题图链接并写入题目主图字段。
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
-                    <AlertCircle className="h-4 w-4 text-orange-400" />
+                  <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0 border border-black/5 dark:border-white/10">
+                    <AlertCircle className="h-4 w-4 text-orange-500 dark:text-orange-400" />
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    <span className="text-white font-semibold">审核入库</span>
-                    ：导入后题目进入 <span className="text-blue-400 font-semibold">待审核</span> 状态，需人工确认后发布。
+                  <p className="text-text-secondary dark:text-slate-300 leading-relaxed">
+                    <span className="text-text-primary dark:text-white font-semibold">审核入库</span>
+                    ：导入后题目进入 <span className="text-blue-600 dark:text-blue-400 font-semibold">待审核</span> 状态，需人工确认后发布。
                   </p>
                 </div>
               </CardContent>

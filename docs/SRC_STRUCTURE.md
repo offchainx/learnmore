@@ -222,7 +222,6 @@ actions/
 ├── courses/                                              # 课程学习模块
 │   ├── subject.ts                                        # Server Action: 科目/章节/课程数据
 │   ├── progress.ts                                       # Server Action: 学习进度同步
-│   └── knowledge.ts                                      # Server Action: 知识图谱数据
 │
 ├── gamification/                                         # 游戏化系统模块
 │   └── achievement.ts                                    # Server Action: 成就/等级/徽章系统
@@ -345,9 +344,7 @@ app/
 │       ├── debug/                                        # 开发调试工具
 │       │   └── ui-kit/page.tsx                           # 页面: UI组件展示 (开发环境)
 │       │
-│       ├── knowledge-graph/                              # 知识图谱
 │       │   ├── client-wrapper.tsx                        # 客户端包装器
-│       │   └── page.tsx                                  # 页面: 知识图谱可视化
 │       │
 │       ├── leaderboard/                                  # 排行榜
 │       │   ├── client-wrapper.tsx                        # 客户端包装器

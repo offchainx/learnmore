@@ -50,8 +50,8 @@ export default async function PastPaperPage({ params }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
       {questions.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-6 bg-slate-50 dark:bg-slate-900 space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-300">当前这套真题还没有可用题目。</p>
+        <div className="rounded-xl border border-borderTone dark:border-slate-800 p-6 bg-surface-subtle dark:bg-slate-900 space-y-4">
+          <p className="text-sm text-text-secondary dark:text-slate-300">当前这套真题还没有可用题目。</p>
           <Button asChild variant="outline">
             <Link href="/dashboard/practice">返回练习中心</Link>
           </Button>

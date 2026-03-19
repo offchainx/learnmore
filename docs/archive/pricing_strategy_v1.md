@@ -15,7 +15,6 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Free** | $0 | $0 | 体验用户 / 基础练习 | 基础题库练习，每日有限 AI 尝试。 |
 | **Self-Learner** | $60 | $54 | 自律性强的学生 | 完整题库 + 基础 AI 诊断。适合查漏补缺。 |
-| **Scholar** | $150 | $135 | **核心用户 (Best Value)** | 完整 AI 体验 (知识图谱+视频弹题)。适合系统性提分。 |
 | **Ultimate** | $260 | $234 | 冲刺名校 / 强监管需求 | 无限 AI + 家长实时监控 + 考前冲刺服务。 |
 
 ---
@@ -30,7 +29,6 @@
 | | Question Bank | Basic Only | Full Access | Full Access | **Full + Olympiad** |
 | | Past Papers | ❌ | Last 3 Years | Last 5 Years | **Last 10 Years** |
 | **AI Intelligence** | Diagnostic Report | Basic Score | Score + Weakness | Deep Analysis | **Deep + Trend** |
-| | Knowledge Graph | View Only | View Only | **Interactive Nav** | **Interactive Nav** |
 | | AI Q&A (Tutor) | 5 / day | 20 / day | **100 / day** | **Unlimited** |
 | | Mistake Book | Manual | Auto-Save | **Auto + Smart Push**| **Smart + Print** |
 | **Parenting** | Dashboard Access | ❌ | Weekly Email | **App Access** | **Real-time Alert** |
@@ -81,7 +79,6 @@ Design a sophisticated "Pricing Page" for LearnMore, inspired by TradingView's d
    - **Style**: Glowing border, slightly elevated.
    - "The complete AI Tutor experience."
    - Button: "Start Free Trial" (Solid Gradient Fill).
-   - Features: Knowledge Graph Navigation, 100 AI chats/day, Smart Mistake Push, Parent App Access.
 
 4. **Ultimate ($260/mo)**
    - "For top achievers & full monitoring."

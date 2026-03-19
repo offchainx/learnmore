@@ -22,7 +22,7 @@ const localTranslations = {
     hero: {
       badge: "New Curriculum Updated for 2025",
       headline: "More Than Just Practice.\nYour Personal AI Tutor.",
-      subheadline: "Knowledge Graph-based adaptive learning that turns every minute into progress. Stop guessing, start mastering.",
+      subheadline: "Adaptive AI learning that turns every minute into progress. Stop guessing, start mastering.",
       ctaPrimary: "Get Free Diagnosis Report",
       ctaSecondary: "Watch Demo",
       stat1: "Active Students",
@@ -39,7 +39,7 @@ const localTranslations = {
       card3Desc: "Textbooks are linear. Knowledge is interconnected. We give you a personalized GPS for learning."
     },
     features: {
-      f1Title: "Knowledge Graph Navigation",
+      f1Title: "Adaptive Learning Navigation",
       f1Desc: "Visualize the connection between concepts. If you fail a quadratic equation, we might trace it back to basic factorization weakness.",
       f1Tag: "Map Your Mind",
       f1List: ['Visual dependencies', 'Prerequisite mapping', 'Gap analysis'],
@@ -76,7 +76,7 @@ const localTranslations = {
       t1: "The analysis report helped me realize I wasn't bad at Math, I just missed one concept in Grade 7.",
       t1Author: "Michael Z.",
       t1Role: "Grade 9 • Improved +25 points",
-      t2: "I used to hate Physics formulas. The Knowledge Graph made me understand how they actually connect.",
+      t2: "I used to hate Physics formulas. The guided learning path helped me understand how they actually connect.",
       t2Author: "Sarah L.",
       t2Role: "Grade 8 • Top of Class",
       t3: "My parents finally stopped nagging me because the app sends them updates automatically!",
@@ -113,7 +113,7 @@ const localTranslations = {
     hero: {
       badge: "2025 新课标已更新",
       headline: "不仅仅是刷题，\n更是你的 AI 私人导师。",
-      subheadline: "基于知识图谱的自适应学习，让每一分钟的学习都转化为实实在在的进步。",
+      subheadline: "基于 AI 的自适应学习，让每一分钟的学习都转化为实实在在的进步。",
       ctaPrimary: "获取免费诊断报告",
       ctaSecondary: "观看演示",
       stat1: "活跃学员",
@@ -130,7 +130,7 @@ const localTranslations = {
       card3Desc: "课本是线性的，知识是网状的。我们为你提供个性化的学习 GPS 导航。"
     },
     features: {
-      f1Title: "知识图谱导航",
+      f1Title: "学习路径导航",
       f1Desc: "可视化概念之间的联系。如果你做错了一道二次方程，我们可能会追溯到因式分解的薄弱点。",
       f1Tag: "构建知识网络",
       f1List: ['可视化知识依赖', '前置知识点映射', '能力缺口分析'],
@@ -167,7 +167,7 @@ const localTranslations = {
       t1: "诊断报告帮我意识到我并不是数学差，我只是在七年级时漏掉了一个关键概念。",
       t1Author: "Michael Z.",
       t1Role: "九年级 • 提升 25 分",
-      t2: "我以前很讨厌物理公式。知识图谱让我明白了它们之间是如何相互联系的，太神奇了。",
+      t2: "我以前很讨厌物理公式。学习路径把它们之间的联系讲清楚后，我终于真正理解了。",
       t2Author: "Sarah L.",
       t2Role: "八年级 • 班级第一",
       t3: "我爸妈终于不再唠叨我了，因为 App 会自动把我的进步发给他们！",
@@ -204,7 +204,7 @@ const localTranslations = {
     hero: {
       badge: "Kurikulum Baharu 2025 Dikemaskini",
       headline: "Lebih Daripada Sekadar Latihan.\nTutor AI Peribadi Anda.",
-      subheadline: "Pembelajaran adaptif berasaskan Graf Pengetahuan yang menukar setiap minit kepada kemajuan. Berhenti meneka, mula menguasai.",
+      subheadline: "Pembelajaran adaptif berasaskan pembelajaran adaptif yang menukar setiap minit kepada kemajuan. Berhenti meneka, mula menguasai.",
       ctaPrimary: "Dapatkan Laporan Diagnosis Percuma",
       ctaSecondary: "Tonton Demo",
       stat1: "Pelajar Aktif",
@@ -221,7 +221,7 @@ const localTranslations = {
       card3Desc: "Buku teks adalah linear. Pengetahuan saling berkait. Kami memberikan anda GPS peribadi untuk pembelajaran."
     },
     features: {
-      f1Title: "Navigasi Graf Pengetahuan",
+      f1Title: "Navigasi pembelajaran adaptif",
       f1Desc: "Visualisasikan hubungan antara konsep. Jika anda gagal persamaan kuadratik, kami mungkin mengesan kelemahan dalam pemfaktoran asas.",
       f1Tag: "Petakan Minda Anda",
       f1List: ['Ketergantungan visual', 'Pemetaan prasyarat', 'Analisis jurang'],
@@ -256,7 +256,7 @@ const localTranslations = {
       t1: "Laporan analisis membantu saya menyedari saya tidak lemah dalam Matematik, saya cuma terlepas satu konsep di Tingkatan 1.",
       t1Author: "Michael Z.",
       t1Role: "Tingkatan 3 • Peningkatan +25 mata",
-      t2: "Saya dulu benci formula Fizik. Graf Pengetahuan membuatkan saya faham bagaimana ia sebenarnya berkait.",
+      t2: "Saya dulu benci formula Fizik. pembelajaran adaptif membuatkan saya faham bagaimana ia sebenarnya berkait.",
       t2Author: "Sarah L.",
       t2Role: "Tingkatan 2 • Teratas dalam Kelas",
       t3: "Ibu bapa saya akhirnya berhenti membebel kerana aplikasi menghantar kemaskini secara automatik!",
@@ -495,7 +495,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
       <section className="py-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-32">
           
-          {/* Feature 1: Knowledge Graph */}
+          {/* Feature 1: Adaptive Learning */}
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <div className="inline-block text-blue-400 font-bold tracking-wider uppercase text-sm mb-2">{t.features.f1Tag}</div>

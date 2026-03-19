@@ -93,10 +93,10 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
       <div className="container mx-auto py-8 space-y-8 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-3xl font-extrabold tracking-tight text-text-primary dark:text-white">
               数据看板
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">
+            <p className="text-text-secondary dark:text-slate-400 font-medium">
               题目内容生产与质量监控中心
             </p>
           </div>
@@ -121,50 +121,50 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-lg bg-white dark:bg-slate-900 hover:shadow-xl transition-all">
+          <Card className="border-borderTone dark:border-none shadow-surface dark:shadow-lg bg-surface dark:bg-slate-900 hover:shadow-lg dark:hover:shadow-xl transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <CardTitle className="text-sm font-medium text-text-secondary dark:text-slate-400">
                 已发布
               </CardTitle>
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">{publishedCount}</div>
-              <p className="text-xs text-slate-500 mt-1">
+              <div className="text-3xl font-bold text-text-primary dark:text-white">{publishedCount}</div>
+              <p className="text-xs text-text-tertiary dark:text-slate-500 mt-1">
                 发布率 {passRate}%
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-lg bg-white dark:bg-slate-900 hover:shadow-xl transition-all">
+          <Card className="border-borderTone dark:border-none shadow-surface dark:shadow-lg bg-surface dark:bg-slate-900 hover:shadow-lg dark:hover:shadow-xl transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <CardTitle className="text-sm font-medium text-text-secondary dark:text-slate-400">
                 待审核
               </CardTitle>
               <Clock className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">
+              <div className="text-3xl font-bold text-text-primary dark:text-white">
                 {stats.byStatus.REVIEW_PENDING || 0}
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-text-tertiary dark:text-slate-500 mt-1">
                 需要尽快处理
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-lg bg-white dark:bg-slate-900 hover:shadow-xl transition-all">
+          <Card className="border-borderTone dark:border-none shadow-surface dark:shadow-lg bg-surface dark:bg-slate-900 hover:shadow-lg dark:hover:shadow-xl transition-all">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <CardTitle className="text-sm font-medium text-text-secondary dark:text-slate-400">
                 用户纠错
               </CardTitle>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">
+              <div className="text-3xl font-bold text-text-primary dark:text-white">
                 {stats.pendingReports}
               </div>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-text-tertiary dark:text-slate-500 mt-1">
                 待处理反馈
               </p>
             </CardContent>
@@ -175,7 +175,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
           {/* Status Distribution */}
-          <Card className="border-none shadow-lg bg-white dark:bg-slate-900 rounded-[2rem]">
+          <Card className="border-borderTone dark:border-none shadow-surface dark:shadow-lg bg-surface dark:bg-slate-900 rounded-[2rem]">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
@@ -215,7 +215,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
           </Card>
 
           {/* Type Distribution */}
-          <Card className="border-none shadow-lg bg-white dark:bg-slate-900 rounded-[2rem]">
+          <Card className="border-borderTone dark:border-none shadow-surface dark:shadow-lg bg-surface dark:bg-slate-900 rounded-[2rem]">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">

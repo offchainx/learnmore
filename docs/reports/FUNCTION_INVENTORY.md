@@ -61,8 +61,6 @@
 - src/app/(dashboard)/dashboard/courses/client-wrapper.tsx (1)：`CoursesClientWrapper`
 - src/app/(dashboard)/dashboard/courses/page.tsx (1)：`CoursesPage`
 - src/app/(dashboard)/dashboard/debug/ui-kit/page.tsx (1)：`UIKitDebugPage`
-- src/app/(dashboard)/dashboard/knowledge-graph/client-wrapper.tsx (1)：`KnowledgeGraphClientWrapper`
-- src/app/(dashboard)/dashboard/knowledge-graph/page.tsx (1)：`KnowledgeGraphPage`
 - src/app/(dashboard)/dashboard/leaderboard/client-wrapper.tsx (1)：`LeaderboardClientWrapper`
 - src/app/(dashboard)/dashboard/leaderboard/page.tsx (1)：`LeaderboardPage`
 - src/app/(dashboard)/dashboard/loading.tsx (1)：`DashboardLoading`
@@ -219,7 +217,6 @@
 - src/components/dashboard/dialogs/GoalsDialog.tsx (1)：`GoalsDialog`
 - src/components/dashboard/dialogs/ProfileDialog.tsx (1)：`ProfileDialog`
 - src/components/dashboard/views/CommunityView.tsx (1)：`CommunityView`
-- src/components/dashboard/views/KnowledgeGraphView.tsx (3)：`getLayoutedElements`、`KnowledgeNode`、`KnowledgeGraphView`
 - src/components/dashboard/views/ParentDashboardView.tsx (2)：`ParentDashboardView`、`StatCard`
 - src/components/dashboard/views/SettingsView.tsx (3)：`SubmitButton`、`ReferralSection`、`SettingsView`
 - src/components/dashboard/Widgets.tsx (5)：`SidebarItem`、`SubjectCard`、`CircularProgress`、`StrengthBar`、`DailyInspiration`
@@ -359,7 +356,6 @@
 - src/actions/content-pipeline/import-service.ts (6)：`importFromPDF`、`resumeFailedImport`、`resumeFromStructuring`、`getImportTasks`、`getImportTaskDetail`、`deleteImportTask`
 - src/actions/content-pipeline/question-service.ts (17)：`generateContentHash`、`validateStatusTransition`、`createQuestion`、`bulkCreateQuestions`、`updateQuestionStatus`、`bulkUpdateQuestionStatus`、`getPendingReviewQuestions`、`getQuestionById`、`deleteQuestion`、`updateQuestion`、`getQuestions`、`getQuestionsByChapter`、`reportQuestion`、`getQuestionReports`、`resolveReport`、`bulkResolveReports`、`getContentStats`
 - src/actions/content-pipeline/review-service.ts (4)：`getQuestionForReview`、`updateQuestion`、`approveQuestion`、`rejectQuestion`
-- src/actions/courses/knowledge.ts (1)：`getKnowledgeGraphData`
 - src/actions/courses/progress.ts (1)：`updateUserLessonProgress`
 - src/actions/courses/subject.ts (3)：`getAllSubjects`、`getSubjectDetails`、`getLessonData`
 - src/actions/dashboard.ts (1)：`getDashboardStats`

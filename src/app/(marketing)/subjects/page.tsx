@@ -51,7 +51,7 @@ const SubjectsPage: React.FC = () => {
       continuum: {
         title: "Switching systems? No problem.",
         desc: "We map your knowledge, not just your textbook. Our Knowledge Continuum technology preserves your learning history even if you switch from UEC to IGCSE or SPM.",
-        feature1: "Universal Knowledge Graph",
+        feature1: "Unified Learning Path",
         feature2: "Gap Analysis Bridge"
       },
       roadmap: {
@@ -90,7 +90,7 @@ const SubjectsPage: React.FC = () => {
       continuum: {
         title: "转换学制？没问题。",
         desc: "我们映射你的知识体系，而不仅仅是课本。我们的“知识连续体”技术能够保存你的学习历史，即使你从 UEC 转到 IGCSE 或 SPM。",
-        feature1: "通用知识图谱",
+        feature1: "通用学习路径",
         feature2: "能力缺口分析桥梁"
       },
       roadmap: {

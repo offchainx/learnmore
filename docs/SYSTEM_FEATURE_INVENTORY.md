@@ -17,7 +17,6 @@
 | **模拟考场** | 全真环境模拟考试 (Mock Arena) | ✅ 已完成 | `practice.mode.mock` | Smart Plus |
 | **参考答案** | 仅显示题目对错与最终答案 | ✅ 已完成 | `analysis.view.answer` | Starter |
 | **详细解析** | 步骤级文字解析与思路指导 | ✅ 已完成 | `analysis.view.detailed` | Standard |
-| **知识关联** | 点击解析中的知识点跳转知识图谱 | 🚧 待集成 | `analysis.view.graph_link` | Smart Plus |
 | **AI 图片解析** | 拍题上传自动识别录入 (Smart Parser) | ✅ 已完成 | `tool.smart_parser` | Standard (限次) |
 
 ---
@@ -32,7 +31,6 @@
 | **高清视频播放** | 1080P/4K 无广告播放体验 | ✅ 已完成 | `course.play.hd` | Standard |
 | **进度自动同步** | 跨端同步视频播放位置与状态 | ✅ 已完成 | `course.progress.sync` | Starter |
 | **课件下载** | 配套 PDF 讲义、练习册下载 | 🚧 规划中 | `course.download.resource` | Smart Plus |
-| **知识图谱视图** | 可视化章节依赖关系图 (Lite) | 🚧 规划中 | `course.graph.view` | Standard |
 
 ---
 

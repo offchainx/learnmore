@@ -76,7 +76,7 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
   const questionImages = Array.from(new Set([...(data.questionImageUrls || []), ...stemImageUrls]))
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 scroll-smooth bg-slate-50 dark:bg-slate-950">
+    <div className="flex-1 overflow-y-auto p-6 scroll-smooth bg-page dark:bg-slate-950">
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
         {/* 题干部分 */}
         <EditableSection
@@ -87,21 +87,21 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
           onCancel={handleCancel}
         >
           {editingSection === 'stem' ? (
-            <div className="border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-950 focus-within:ring-2 focus-within:ring-blue-500/20">
+            <div className="border border-borderTone dark:border-slate-700 rounded-md bg-surface dark:bg-slate-950 focus-within:ring-2 focus-within:ring-[hsl(var(--focus-ring))]">
               <EditorToolbar onInsert={(t) => insertText('stem', t)} />
               <textarea
                 id="stem-textarea"
-                className="w-full p-4 bg-transparent border-0 focus:ring-0 text-sm font-mono text-slate-800 dark:text-slate-200 min-h-[150px] resize-y focus:outline-none"
+                className="w-full p-4 bg-transparent border-0 focus:ring-0 text-sm font-mono text-text-primary dark:text-slate-200 min-h-[150px] resize-y focus:outline-none"
                 value={tempData.stem}
                 onChange={(e) => setTempData({ ...tempData, stem: e.target.value })}
               />
-              <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+              <div className="px-3 py-2 border-t border-borderTone dark:border-slate-700 bg-surface-subtle dark:bg-slate-900">
+                <label className="text-xs font-semibold text-text-tertiary dark:text-slate-400 block mb-1">
                   公式补充（可选）
                 </label>
                 <input
                   type="text"
-                  className="w-full text-xs p-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                  className="w-full text-xs p-2 rounded border border-borderTone dark:border-slate-700 bg-surface dark:bg-slate-900 font-mono focus:ring-2 focus:ring-[hsl(var(--focus-ring))] focus:outline-none text-text-primary dark:text-white"
                   value={tempData.stemEquation || ''}
                   onChange={(e) => setTempData({ ...tempData, stemEquation: e.target.value })}
                   placeholder="例如: r = (3t^2 - 4t)i + (t^3 - 2t)j"
@@ -109,10 +109,10 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
               </div>
             </div>
           ) : (
-            <div className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 text-base leading-relaxed">
+            <div className="prose dark:prose-invert max-w-none text-text-primary dark:text-slate-200 text-base leading-relaxed">
               <MathRenderer content={data.stem} />
               {data.stemEquation && (
-                <div className="my-4 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-center shadow-inner">
+                <div className="my-4 p-4 bg-surface-subtle dark:bg-slate-900 rounded-lg border border-borderTone dark:border-slate-800 flex justify-center shadow-inner">
                   <MathRenderer content={`$$${data.stemEquation}$$`} className="text-lg" />
                 </div>
               )}
@@ -150,10 +150,10 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
                         })),
                       })
                     }
-                    className="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 dark:border-slate-600 cursor-pointer"
+                    className="w-4 h-4 text-green-600 focus:ring-green-500 border-borderTone dark:border-slate-600 cursor-pointer"
                   />
                   <div className="flex-1 relative">
-                    <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">
+                    <span className="absolute left-3 top-2.5 text-xs font-bold text-text-tertiary dark:text-slate-400">
                       {opt.id}
                     </span>
                     <input
@@ -164,7 +164,7 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
                         newOptions[idx].value = e.target.value
                         setTempData({ ...tempData, options: newOptions })
                       }}
-                      className="w-full pl-8 pr-10 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md focus:ring-2 focus:ring-blue-500/20 focus:outline-none text-slate-900 dark:text-white font-mono"
+                      className="w-full pl-8 pr-10 py-2 text-sm bg-surface dark:bg-slate-900 border border-borderTone dark:border-slate-700 rounded-md focus:ring-2 focus:ring-[hsl(var(--focus-ring))] focus:outline-none text-text-primary dark:text-white font-mono"
                     />
                     <button
                       type="button"
@@ -172,7 +172,7 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
                         const newOptions = tempData.options.filter((o) => o.id !== opt.id)
                         setTempData({ ...tempData, options: newOptions })
                       }}
-                      className="absolute right-2 top-2 text-slate-400 hover:text-red-500 transition-colors"
+                      className="absolute right-2 top-2 text-text-tertiary dark:text-slate-400 hover:text-red-500 transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -202,14 +202,14 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
                   className={`relative rounded-lg p-4 border transition-all ${
                     opt.isCorrect
                       ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
-                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                      : 'bg-surface dark:bg-slate-900 border-borderTone dark:border-slate-800'
                   }`}
                 >
                   <span
                     className={`absolute top-3 left-3 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
                       opt.isCorrect
                         ? 'bg-green-600 text-white'
-                        : 'border border-slate-300 dark:border-slate-600 text-slate-500'
+                        : 'border border-borderTone dark:border-slate-600 text-text-tertiary dark:text-slate-500'
                     }`}
                   >
                     {opt.id}
@@ -238,11 +238,11 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
           onCancel={handleCancel}
         >
           {editingSection === 'explanation' ? (
-            <div className="border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-950 focus-within:ring-2 focus-within:ring-blue-500/20">
+            <div className="border border-borderTone dark:border-slate-700 rounded-md bg-surface dark:bg-slate-950 focus-within:ring-2 focus-within:ring-[hsl(var(--focus-ring))]">
               <EditorToolbar onInsert={(t) => insertText('explanation', t)} />
               <textarea
                 id="explanation-textarea"
-                className="w-full p-4 bg-transparent border-0 focus:ring-0 text-sm font-mono text-slate-800 dark:text-slate-200 min-h-[150px] resize-y focus:outline-none"
+                className="w-full p-4 bg-transparent border-0 focus:ring-0 text-sm font-mono text-text-primary dark:text-slate-200 min-h-[150px] resize-y focus:outline-none"
                 value={tempData.explanation.text}
                 onChange={(e) =>
                   setTempData({
@@ -253,12 +253,12 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
               />
             </div>
           ) : (
-            <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            <div className="space-y-3 text-sm text-text-secondary dark:text-slate-300">
               <div>
                 <MathRenderer content={data.explanation.text} />
               </div>
               {data.explanation.steps && data.explanation.steps.length > 0 && (
-                <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded border border-slate-200 dark:border-slate-800 font-mono text-xs text-slate-700 dark:text-slate-400">
+                <div className="bg-surface-subtle dark:bg-slate-900 p-3 rounded border border-borderTone dark:border-slate-800 font-mono text-xs text-text-primary dark:text-slate-400">
                   {data.explanation.steps.map((step, i) => (
                     <div key={i}>{step}</div>
                   ))}
@@ -280,8 +280,8 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
         </EditableSection>
 
         {/* 题目图像 */}
-        <section className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-6">
-          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+        <section className="mt-8 border-t border-borderTone dark:border-slate-800 pt-6">
+          <h3 className="text-xs font-bold text-text-tertiary dark:text-slate-400 uppercase tracking-wider mb-4">
             题目图像
           </h3>
           {questionImages.length > 0 ? (
@@ -292,23 +292,23 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
                   href={url}
                   target="_blank"
                   rel="noreferrer"
-                  className="block border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-900 hover:border-blue-400 transition-colors"
+                  className="block border border-borderTone dark:border-slate-700 rounded-lg overflow-hidden bg-surface dark:bg-slate-900 hover:border-blue-400 transition-colors"
                 >
-                  <img src={url} alt="题目图像" className="w-full h-44 object-contain bg-slate-50 dark:bg-slate-950" />
+                  <img src={url} alt="题目图像" className="w-full h-44 object-contain bg-surface-subtle dark:bg-slate-950" />
                 </a>
               ))}
             </div>
           ) : (
-            <div className="h-28 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-sm text-slate-400">
+            <div className="h-28 rounded-lg border border-dashed border-borderTone dark:border-slate-700 flex items-center justify-center text-sm text-text-tertiary dark:text-slate-400">
               当前题目未检测到图像
             </div>
           )}
         </section>
 
         {/* 源材料 */}
-        <section className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-6">
+        <section className="mt-8 border-t border-borderTone dark:border-slate-800 pt-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-text-tertiary dark:text-slate-400 uppercase tracking-wider">
               源材料（OCR扫描图）
             </h3>
             <button
@@ -330,17 +330,17 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
             </button>
           </div>
           {showOriginal && (
-            <div className="bg-slate-100 dark:bg-slate-900 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-4 flex flex-col items-center justify-center min-h-[200px] animate-in fade-in duration-300">
+            <div className="bg-surface-subtle dark:bg-slate-900 rounded-lg border-2 border-dashed border-borderTone dark:border-slate-700 p-4 flex flex-col items-center justify-center min-h-[200px] animate-in fade-in duration-300">
               {data.sourceImageUrl ? (
                 <img
                   src={data.sourceImageUrl}
                   alt="OCR 源图"
-                  className="max-w-full h-auto rounded border border-slate-300 dark:border-slate-700"
+                  className="max-w-full h-auto rounded border border-borderTone dark:border-slate-700"
                 />
               ) : (
-                <div className="w-full h-48 bg-slate-200 dark:bg-slate-800 rounded flex items-center justify-center relative overflow-hidden group border border-slate-300 dark:border-slate-700">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 opacity-50"></div>
-                  <span className="relative z-10 text-slate-500 dark:text-slate-400 text-sm font-medium flex flex-col items-center">
+                <div className="w-full h-48 bg-surface dark:bg-slate-800 rounded flex items-center justify-center relative overflow-hidden group border border-borderTone dark:border-slate-700">
+                  <div className="absolute inset-0 bg-gradient-to-br from-surface-subtle to-borderTone dark:from-slate-700 dark:to-slate-800 opacity-50"></div>
+                  <span className="relative z-10 text-text-tertiary dark:text-slate-400 text-sm font-medium flex flex-col items-center">
                     <Image className="h-8 w-8 mb-2" />
                     暂无源材料图片
                   </span>

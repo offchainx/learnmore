@@ -15,7 +15,6 @@ import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
 import { SettingsView } from './views/SettingsView'
 import { AchievementsView } from '@/components/achievements/AchievementsView'
 import { ParentDashboardView } from './views/ParentDashboardView'
-import { KnowledgeGraphView } from './views/KnowledgeGraphView'
 import { User, UserSettings } from '@prisma/client'
 
 // --- Local Types ---
@@ -28,7 +27,6 @@ type View =
   | 'settings'
   | 'achievements'
   | 'parent'
-  | 'knowledgeGraph'
   | 'admin'
 
 type UserProfile = User & { settings: UserSettings | null }
@@ -47,7 +45,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
   )
 
   const handleViewChange = (view: string) => {
-    // For Settings, Community, Leaderboard, Courses, Practice, Achievements, KnowledgeGraph, and Admin, use real routes
+    // For Settings, Community, Leaderboard, Courses, Practice, Achievements, and Admin, use real routes
     if (view === 'settings') {
       router.push('/dashboard/settings')
       return
@@ -70,10 +68,6 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     }
     if (view === 'achievements') {
       router.push('/dashboard/achievements')
-      return
-    }
-    if (view === 'knowledgeGraph') {
-      router.push('/dashboard/knowledge-graph')
       return
     }
     if (view === 'admin') {
@@ -137,8 +131,6 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
             badges={[]}
           />
         )
-      case 'knowledgeGraph':
-        return <KnowledgeGraphView />
       default:
         return (
           <DashboardHome

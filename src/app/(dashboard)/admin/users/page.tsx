@@ -45,7 +45,7 @@ export default async function AdminUsersPage() {
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3">
+        <div className="mx-auto w-full max-w-[1820px] rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
           <UserTable
             initialData={
               initialUsersResult.success ? initialUsersResult.data : undefined

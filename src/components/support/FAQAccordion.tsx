@@ -44,7 +44,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "What's the difference between Free and Premium plans?",
-    answer: "The Free plan gives you access to basic practice and reference answers. Premium unlocks AI-powered tutoring, unlimited memory cards, knowledge graph connections, and advanced analytics."
+    answer: "The Free plan gives you access to basic practice and reference answers. Premium unlocks AI-powered tutoring, unlimited memory cards, adaptive learning insights, and advanced analytics."
   },
   {
     question: "How do I cancel my subscription?",

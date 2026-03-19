@@ -66,7 +66,6 @@
 7. `/admin/vouchers` 已接入统一 Admin 容器，页面恢复侧边栏嵌套，且内容管理分组匹配已覆盖 `/admin/vouchers`。
 8. `/admin/users` 已修复布局宽度收缩问题，列表区改为全宽填充，消除右侧留白。
 9. `/dashboard/debug/ui-kit` 已下线，路由改为显式 404，调试入口不再作为业务路径。
-10. `/dashboard/knowledge-graph` 已下线，路由改为显式 404。
 11. `/dashboard/practice/import` 已下线，路由改为显式 404（题目录入统一收口到内容管理）。
 12. `/dashboard/settings/notifications` 已下线，路由改为显式 404；通知设置统一收口到 `/dashboard/settings` 的通知 tab，通知中心入口同步改链。
 13. 已完成 `src/app/**/page.tsx` 全量路由扫描（保护/无保护）并更新 `受保护路由.md`，新增“可能重复/可收口”候选清单。
@@ -88,7 +87,6 @@
 10. `/admin/vouchers` 接入统一 Admin 容器与内容分组匹配。
 11. `/admin/users` 页面全宽布局修复，消除右侧留白。
 12. `/dashboard/debug/ui-kit` 下线为 404。
-13. `/dashboard/knowledge-graph` 下线为 404。
 14. `/dashboard/practice/import` 下线为 404（题目录入统一收口到内容管理）。
 15. `/dashboard/settings/notifications` 下线为 404，通知设置统一改为 `/dashboard/settings?tab=notifications`。
 16. 完成 `src/app/**/page.tsx` 全量路由扫描（保护/无保护）并更新路由基线文档。

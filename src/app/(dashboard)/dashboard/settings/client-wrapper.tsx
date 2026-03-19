@@ -25,7 +25,6 @@ export function SettingsClientWrapper({ user, userRole }: SettingsClientWrapperP
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
-      'knowledgeGraph': '/dashboard/knowledge-graph',
       'admin': '/admin',
       'parent': '/dashboard'
     }

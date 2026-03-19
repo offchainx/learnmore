@@ -31,7 +31,6 @@ src/app/
 │       ├── settings/page.tsx         → /dashboard/settings        (个人设置)
 │       ├── achievements/page.tsx     → /dashboard/achievements    (成就勋章)
 │       ├── leaderboard/page.tsx      → /dashboard/leaderboard     (排行榜)
-│       ├── knowledge-graph/page.tsx  → /dashboard/knowledge-graph (知识图谱)
 │       ├── courses/page.tsx          → /dashboard/courses         (我的课程)
 │       ├── practice/                 → /dashboard/practice        (练习中心)
 │       │   ├── page.tsx              → /dashboard/practice        (模式选择)

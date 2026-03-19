@@ -230,8 +230,8 @@ model Chapter {
   parentId  String?  @map("parent_id") @db.Uuid // 自关联实现树形结构
   title     String
   order     Int      @default(0)
-  x         Float? // For Knowledge Graph layout
-  y         Float? // For Knowledge Graph layout
+  x         Float?
+  y         Float?
   createdAt DateTime @default(now()) @map("created_at")
 
   // 🆕 练习中心扩展字段 (Story-043)

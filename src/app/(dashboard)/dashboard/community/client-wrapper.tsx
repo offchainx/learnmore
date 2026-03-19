@@ -22,7 +22,6 @@ export function CommunityClientWrapper({ children, user }: CommunityClientWrappe
       'community': '/dashboard/community',
       'settings': '/dashboard/settings',
       'achievements': '/dashboard/achievements',
-      'knowledgeGraph': '/dashboard/knowledge-graph',
       'admin': '/admin',
       'parent': '/dashboard'
     }

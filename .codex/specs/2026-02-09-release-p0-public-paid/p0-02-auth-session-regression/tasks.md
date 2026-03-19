@@ -25,7 +25,6 @@
 | sub-id | scope | description | status (todo/doing/done) | evidence |
 |---|---|---|---|---|
 | T-006.1 | admin/* | 梳理并修复 `/admin/**` 重定向与入口行为（含 `/admin` 管理员总览面板入口） | done | `/admin` 入口与 admin 子路由收口：main@9e66eb2, main@04a28ec, main@924c0cf, main@5d2fb92 |
-| T-006.2 | dashboard/* | 梳理并修复 `/dashboard/**` 重定向与会话保护行为 | done | 已下线：`/dashboard/debug/ui-kit`、`/dashboard/knowledge-graph`、`/dashboard/practice/import`、`/dashboard/settings/notifications`、`/course/:subjectId`、`/course/:subjectId/:lessonId`、`/checkout/config`（workspace changes, 2026-03-04） |
 | T-006.3 | auth + middleware | 统一 `/login`、`/register`、`redirectTo` 与 middleware 安全规则 | done | `redirectTo` 安全规则与登录回跳已在 AC-01/AC-04 验收矩阵验证通过（2026-03-05） |
 
 ## T-006.1 阶段进展（2026-03-04）
@@ -38,7 +37,6 @@
 - [x] `/admin/vouchers` 接入统一 Admin 容器并恢复侧边栏嵌套；内容管理分组匹配覆盖 `/admin/vouchers`。
 - [x] `/admin/users` 修复列表区宽度收缩，页面内容改为全宽填充，消除右侧异常留白。
 - [x] 调试页 `/dashboard/debug/ui-kit` 下线，路由改为显式 404。
-- [x] `/dashboard/knowledge-graph` 下线，路由改为显式 404。
 - [x] `/dashboard/practice/import` 下线，路由改为显式 404（题目录入统一收口到内容管理）。
 - [x] `/dashboard/settings/notifications` 下线为 404，通知设置统一收口到 `/dashboard/settings` 的通知 tab（通知中心入口改为 query tab）。
 - [x] `/admin/content` 下线为 404，仅保留 `/admin/content/review` 作为内容审核入口。
@@ -60,7 +58,6 @@
 10. `/admin/vouchers` 接入统一 Admin 容器，恢复侧边栏嵌套与分组匹配。
 11. `/admin/users` 修复列表主区域宽度收缩，消除右侧留白。
 12. `/dashboard/debug/ui-kit` 下线为 404。
-13. `/dashboard/knowledge-graph` 下线为 404。
 14. `/dashboard/practice/import` 下线为 404（题目录入统一收口到内容管理）。
 15. `/dashboard/settings/notifications` 下线为 404，统一改为 `/dashboard/settings?tab=notifications`。
 16. 完成全量页面路由扫描（保护/无保护），并补充“可能重复/可收口”候选清单。

@@ -75,33 +75,33 @@ function PrimaryModeCard({
           onDeactivate()
         }
       }}
-      className={`ease-[cubic-bezier(0.22,1,0.36,1)] group relative min-h-[188px] overflow-hidden rounded-[28px] border text-white transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 ${
+      className={`ease-[cubic-bezier(0.22,1,0.36,1)] group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 dark:text-white ${
         active
-          ? 'z-10 -translate-y-1 scale-[1.015] border-white/20 shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
-          : 'hover:border-white/14 border-white/10 shadow-[0_14px_28px_rgba(2,8,23,0.22)] hover:-translate-y-0.5'
+          ? 'z-10 -translate-y-1 scale-[1.015] border-borderTone shadow-[0_28px_58px_rgba(2,8,23,0.12)] dark:border-white/20 dark:shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
+          : 'hover:-translate-y-0.5 border-borderTone shadow-surface hover:border-blue-200 dark:border-white/10 dark:shadow-[0_14px_28px_rgba(2,8,23,0.22)] dark:hover:border-white/14'
       } ${disabled ? 'opacity-60' : 'cursor-pointer'} ${visualClassName}`}
     >
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.44)_55%,rgba(2,6,23,0.86)_100%)]" />
+      <div className="absolute inset-0 bg-surface dark:bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.44)_55%,rgba(2,6,23,0.86)_100%)]" />
       <div
         className={`absolute inset-0 transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-cyan-300/10 blur-3xl" />
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-300/20 blur-3xl dark:bg-white/10" />
+        <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-cyan-400/20 blur-3xl dark:bg-cyan-300/10" />
       </div>
-      <div className="border-white/6 absolute inset-[1px] rounded-[27px] border" />
+      <div className="border-transparent absolute inset-[1px] rounded-[27px] border dark:border-white/6" />
 
       <div className="relative flex h-full flex-col justify-between p-4">
         <div>
           <div className="flex items-start justify-between gap-4">
             <div
-              className={`flex h-9 w-9 items-center justify-center rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm transition-all duration-500 ${active ? 'bg-white/14 scale-105 shadow-[0_12px_22px_rgba(15,23,42,0.16)]' : ''}`}
+              className={`flex h-9 w-9 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle backdrop-blur-sm transition-all duration-500 dark:border-white/15 dark:bg-white/10 ${active ? 'scale-105 shadow-[0_12px_22px_rgba(15,23,42,0.08)] bg-white dark:bg-white/14 dark:shadow-[0_12px_22px_rgba(15,23,42,0.16)]' : ''}`}
             >
               <Icon className="h-4 w-4" />
             </div>
             <span
               className={cn(
                 pageHeroEyebrowClass,
-                'rounded-full border border-white/10 bg-black/20 px-3 py-1 text-slate-200'
+                'rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary dark:border-white/10 dark:bg-black/20 dark:text-slate-200'
               )}
             >
               {modeLabel}
@@ -110,17 +110,17 @@ function PrimaryModeCard({
 
           <div className="mt-5">
             <h3
-              className={cn(pageDisplayTitleClass, 'leading-none text-white')}
+              className={cn(pageDisplayTitleClass, 'leading-none text-text-primary dark:text-white')}
             >
               {title}
             </h3>
-            <p className={cn(pageMetaTextClass, 'mt-1.5 text-slate-100/90')}>
+            <p className={cn(pageMetaTextClass, 'mt-1.5 text-text-secondary dark:text-slate-100/90')}>
               {subtitle}
             </p>
             <p
               className={cn(
                 pageMetaTextClass,
-                `mt-2 max-w-[30ch] text-slate-300 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`
+                `mt-2 max-w-[30ch] text-text-secondary dark:text-slate-300 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`
               )}
             >
               {description}
@@ -135,7 +135,7 @@ function PrimaryModeCard({
             <span
               className={cn(
                 pageHeroEyebrowClass,
-                'inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-slate-200 backdrop-blur-sm'
+                'inline-flex rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary backdrop-blur-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-200'
               )}
             >
               {compactMeta}
@@ -146,7 +146,7 @@ function PrimaryModeCard({
             className={`mt-2.5 flex items-center gap-3 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`}
           >
             <Button
-              className="h-9 rounded-2xl bg-white px-4 text-slate-950 shadow-[0_10px_20px_rgba(255,255,255,0.12)] hover:bg-slate-100"
+              className="h-9 rounded-2xl bg-text-primary px-4 text-surface shadow-[0_10px_20px_rgba(15,23,42,0.12)] hover:bg-text-secondary dark:bg-white dark:text-slate-950 dark:shadow-[0_10px_20px_rgba(255,255,255,0.12)] dark:hover:bg-slate-100"
               onClick={(event) => {
                 event.stopPropagation()
                 if (!disabled) {
@@ -305,7 +305,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       icon: BrainCircuit,
       modeLabel: 'Adaptive',
       visualClassName:
-        'bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_25%),linear-gradient(135deg,_#132340,_#09152a_58%,_#07101f)]',
+        'bg-blue-50/50 dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_25%),linear-gradient(135deg,_#132340,_#09152a_58%,_#07101f)]',
       onStart: () => {
         if (onOpenSmartDrillPreview) {
           onOpenSmartDrillPreview()
@@ -321,7 +321,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       icon: Eraser,
       modeLabel: 'Recovery',
       visualClassName:
-        'bg-[radial-gradient(circle_at_top_left,_rgba(251,113,133,0.18),_transparent_25%),linear-gradient(135deg,_#2A1E2A,_#10182B_60%,_#09111F)]',
+        'bg-rose-50/50 dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,113,133,0.18),_transparent_25%),linear-gradient(135deg,_#2A1E2A,_#10182B_60%,_#09111F)]',
       onStart: () => {
         if (onOpenErrorWiperPreview) {
           onOpenErrorWiperPreview()
@@ -337,7 +337,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       icon: Trophy,
       modeLabel: 'Exam',
       visualClassName:
-        'bg-[radial-gradient(circle_at_top_left,_rgba(129,140,248,0.2),_transparent_28%),linear-gradient(135deg,_#2B2959,_#121C39_60%,_#0A1326)]',
+        'bg-indigo-50/50 dark:bg-[radial-gradient(circle_at_top_left,_rgba(129,140,248,0.2),_transparent_28%),linear-gradient(135deg,_#2B2959,_#121C39_60%,_#0A1326)]',
       onStart: () => {
         if (onOpenMockArenaPreview) {
           onOpenMockArenaPreview()

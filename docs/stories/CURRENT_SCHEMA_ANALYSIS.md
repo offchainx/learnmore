@@ -18,7 +18,6 @@
 ### 2. 课程模块 (Course System)
 - `Subject` - 科目
 - `Chapter` - 章节 (支持树形结构)
-- `ChapterPrerequisite` - 章节依赖关系 (知识图谱)
 - `Lesson` - 课程/视频
 - `BlogPost` - 博客文章
 
@@ -462,7 +461,6 @@ model ChapterStats {
 
 4. **树形结构支持**:
    - `Chapter` 自关联 (父子章节)
-   - `ChapterPrerequisite` 支持知识图谱
 
 ### ⚠️ 不足
 

@@ -317,11 +317,9 @@ INSERT INTO subjects (name, icon, order) VALUES
 
 ### 📋 Table: `chapters`
 
-**功能**: 章节表,支持树形结构和知识图谱可视化
 
 **业务场景**:
 - 树形目录: 一级章节 → 二级章节 → 三级章节
-- 知识图谱: 通过x、y坐标在画布上显示章节位置
 
 **字段说明**:
 
@@ -332,8 +330,6 @@ INSERT INTO subjects (name, icon, order) VALUES
 | `parentId` | UUID? | null | 外键 → chapters.id (自关联) | 父章节ID (null表示根章节) |
 | `title` | String | - | 章节名称 | 如"一元一次方程" |
 | `order` | Int | 0 | 排序 | 同级章节排序 |
-| `x` | Float? | null | X坐标 | 知识图谱可视化 |
-| `y` | Float? | null | Y坐标 | 知识图谱可视化 |
 | `createdAt` | DateTime | now() | 创建时间 | 记录创建时间 |
 
 **关联关系**:
@@ -357,7 +353,6 @@ INSERT INTO subjects (name, icon, order) VALUES
        └─ 一元二次方程 (Chapter, parentId=代数ID)
 ```
 
-**知识图谱坐标**:
 - `x`, `y` 用于前端绘制节点位置
 - 例: 章节A (x=100, y=200), 章节B (x=300, y=200)
 - 前端通过这些坐标绘制连线、迷雾效果
@@ -366,7 +361,6 @@ INSERT INTO subjects (name, icon, order) VALUES
 
 ### 📋 Table: `chapter_prerequisites`
 
-**功能**: 章节前置依赖关系表 (知识图谱核心)
 
 **业务场景**:
 - 定义学习路径: 必须先学A章节,才能解锁B章节

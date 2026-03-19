@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     default: 'LearnMore - 中学生在线教育平台',
   },
   description: '专为中学生打造的在线学习平台，涵盖数学、物理、化学、英语、语文、生物六大学科',
-  keywords: ['在线教育', '中学', 'AI导师', '自适应学习', '知识图谱', 'LearnMore'],
+  keywords: ['在线教育', '中学', 'AI导师', '自适应学习', '学习路径', 'LearnMore'],
   openGraph: {
     type: 'website',
     siteName: 'LearnMore',

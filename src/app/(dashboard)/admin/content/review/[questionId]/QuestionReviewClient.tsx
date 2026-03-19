@@ -72,31 +72,31 @@ export function QuestionReviewClient({ question: initialQuestion }: QuestionRevi
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] sm:h-[calc(100vh-4rem)] -m-4 sm:-m-8 bg-slate-50 dark:bg-slate-950 overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-2rem)] sm:h-[calc(100vh-4rem)] -m-4 sm:-m-8 bg-page dark:bg-slate-950 overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 shadow-sm">
+      <header className="flex-shrink-0 bg-surface dark:bg-slate-900 border-b border-borderTone dark:border-slate-800 px-6 py-4 shadow-sm">
         <div className="flex items-center justify-between max-w-full">
           <div className="flex items-center gap-4">
             <Link
               href="/admin/content/import"
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-surface-subtle dark:bg-slate-800 border border-borderTone dark:border-slate-700 hover:bg-surface-muted dark:hover:bg-slate-700 transition-colors"
             >
-              <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              <ArrowLeft className="h-5 w-5 text-text-secondary dark:text-slate-400" />
             </Link>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold text-text-primary dark:text-white flex items-center gap-2">
                 {question.title}
                 {isSaving && (
-                  <span className="text-sm font-normal text-slate-500 dark:text-slate-400 animate-pulse">
+                  <span className="text-sm font-normal text-text-tertiary dark:text-slate-400 animate-pulse">
                     保存中...
                   </span>
                 )}
               </h1>
               <div className="flex items-center gap-3 mt-1">
-                <span className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-xs text-text-tertiary dark:text-slate-400">
                   题目ID: {question.id}
                 </span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-transparent">
                   待审核
                 </span>
               </div>

@@ -456,7 +456,6 @@ git log --oneline --all --grep="功能名" -i
 | **个人仪表盘** | Sidebar | `/dashboard` | page.tsx | DashboardClient | dashboard.ts |
 | **排行榜** | Sidebar | `/dashboard/leaderboard` | page.tsx | LeaderboardView | leaderboard.ts |
 | **成就系统** | Sidebar | `/dashboard/achievements` | page.tsx | AchievementsView | achievements.ts |
-| **知识图谱** | Sidebar | `/dashboard/knowledge-graph` | page.tsx | KnowledgeGraph | knowledge-graph.ts |
 
 ### **管理功能**
 

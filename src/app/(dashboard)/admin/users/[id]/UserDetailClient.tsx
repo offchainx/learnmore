@@ -53,9 +53,9 @@ export const UserDetailClient: React.FC<UserDetailClientProps> = ({ user }) => {
       <UserProfileHeader user={user} />
 
       {/* Tabs */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-surface dark:bg-slate-900 border border-borderTone dark:border-slate-800 rounded-xl overflow-hidden">
         {/* Tab Bar */}
-        <div className="flex border-b border-slate-800 overflow-x-auto">
+        <div className="flex border-b border-borderTone dark:border-slate-800 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -63,16 +63,16 @@ export const UserDetailClient: React.FC<UserDetailClientProps> = ({ user }) => {
               disabled={tab.disabled}
               className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === tab.id
-                  ? 'text-blue-400 border-blue-400 bg-blue-500/5'
+                  ? 'text-blue-500 border-blue-500 bg-blue-500/5 dark:text-blue-400 dark:border-blue-400'
                   : tab.disabled
-                  ? 'text-slate-600 border-transparent cursor-not-allowed'
-                  : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'text-slate-400 border-transparent cursor-not-allowed dark:text-slate-600'
+                  : 'text-text-secondary border-transparent hover:text-text-primary hover:bg-surface-subtle dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50'
               }`}
             >
               {tab.icon}
               {tab.label}
               {tab.disabled && (
-                <span className="text-xs bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded">
+                <span className="text-xs bg-surface-subtle dark:bg-slate-800 text-text-tertiary dark:text-slate-500 px-1.5 py-0.5 rounded">
                   即将推出
                 </span>
               )}

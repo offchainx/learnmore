@@ -138,9 +138,7 @@
 - When：访问 `/dashboard/debug/ui-kit`
 - Then：页面直接返回 404，不再暴露调试 UI Kit 页面
 
-### 用例 19：`/dashboard/knowledge-graph` 已下线
 - Given：任意登录态用户
-- When：访问 `/dashboard/knowledge-graph`
 - Then：页面直接返回 404，不再作为业务可访问路由
 
 ### 用例 20：`/dashboard/practice/import` 已下线

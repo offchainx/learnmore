@@ -120,8 +120,8 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* 主要内容区 */}
         <div className="space-y-6 lg:col-span-2">
-          <Card className="overflow-hidden border-slate-800 bg-slate-900/40 backdrop-blur-md">
-            <CardHeader className="border-b border-slate-800 bg-slate-900/50">
+          <Card className="overflow-hidden border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/40 backdrop-blur-md">
+            <CardHeader className="border-b border-borderTone dark:border-slate-800 bg-surface/50 dark:bg-slate-900/50">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <div className="mb-2 flex items-center gap-2">
@@ -132,20 +132,20 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="border-slate-700 bg-slate-800 text-slate-300"
+                      className="border-borderTone dark:border-slate-700 bg-surface dark:bg-slate-800 text-text-secondary dark:text-slate-300"
                     >
                       {initialData.category}
                     </Badge>
                   </div>
-                  <CardTitle className="text-2xl font-bold tracking-tight text-white">
+                  <CardTitle className="text-2xl font-bold tracking-tight text-text-primary dark:text-white">
                     {initialData.title}
                   </CardTitle>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="rounded-xl border border-slate-800/50 bg-slate-950/50 p-6">
-                <p className="whitespace-pre-wrap leading-relaxed text-slate-200">
+              <div className="rounded-xl border border-borderTone dark:border-slate-800/50 bg-surface dark:bg-slate-950/50 p-6">
+                <p className="whitespace-pre-wrap leading-relaxed text-text-primary dark:text-slate-200">
                   {initialData.content}
                 </p>
               </div>
@@ -161,7 +161,7 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
                         (url: string, idx: number) => (
                           <div
                             key={idx}
-                            className="group relative aspect-video overflow-hidden rounded-lg border border-slate-800 bg-slate-950"
+                            className="group relative aspect-video overflow-hidden rounded-lg border border-borderTone dark:border-slate-800 bg-surface-muted dark:bg-slate-950"
                           >
                             <img
                               src={url}
@@ -181,37 +181,37 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
           </Card>
 
           {/* 回复区 */}
-          <Card className="border-slate-800 bg-slate-900/40 backdrop-blur-md">
+          <Card className="border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/40 backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <MessageCircle className="h-5 w-5 text-blue-400" />
+              <CardTitle className="flex items-center gap-2 text-lg text-text-primary dark:text-white">
+                <MessageCircle className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                 回复用户
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-text-tertiary dark:text-slate-400">
                 用户将通过电子邮件和站内通知收到此回复。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
                 placeholder="在此输入您的回复..."
-                className="min-h-[180px] border-slate-800 bg-slate-950 p-4 text-base text-white focus:ring-blue-500/20"
+                className="min-h-[180px] border-borderTone dark:border-slate-800 bg-surface dark:bg-slate-950 p-4 text-base text-text-primary dark:text-white focus:ring-[hsl(var(--focus-ring))]"
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
               />
 
               <div className="flex flex-col items-center justify-between gap-4 pt-2 sm:flex-row">
                 <div className="flex w-full items-center gap-3 sm:w-auto">
-                  <span className="whitespace-nowrap text-sm text-slate-400">
+                  <span className="whitespace-nowrap text-sm text-text-secondary dark:text-slate-400">
                     更新状态:
                   </span>
                   <Select
                     value={status}
                     onValueChange={(v: FeedbackStatus) => setStatus(v)}
                   >
-                    <SelectTrigger className="w-full border-slate-800 bg-slate-950 sm:w-[160px]">
+                    <SelectTrigger className="w-full border-borderTone dark:border-slate-800 bg-surface dark:bg-slate-950 text-text-primary dark:text-white sm:w-[160px]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="border-slate-800 bg-slate-900 text-white">
+                    <SelectContent className="border-borderTone dark:border-slate-800 bg-surface dark:bg-slate-900 text-text-primary dark:text-white">
                       <SelectItem value="PENDING">待处理</SelectItem>
                       <SelectItem value="IN_PROGRESS">处理中</SelectItem>
                       <SelectItem value="RESOLVED">已解决</SelectItem>
@@ -239,34 +239,34 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
 
         {/* 侧边信息栏 */}
         <div className="space-y-6">
-          <Card className="border-slate-800 bg-slate-900/40">
+          <Card className="border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/40">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-500">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-tertiary dark:text-slate-500">
                 <User className="h-4 w-4" />
                 用户信息
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 rounded-xl border border-slate-800/50 bg-slate-950/50 p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-blue-400">
+              <div className="flex items-center gap-3 rounded-xl border border-borderTone dark:border-slate-800/50 bg-surface dark:bg-slate-950/50 p-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
                   <User className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">
+                  <p className="text-sm font-semibold text-text-primary dark:text-white">
                     {initialData.user?.username || '匿名用户'}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-text-tertiary dark:text-slate-500">
                     ID: {initialData.userId || 'N/A'}
                   </p>
                 </div>
               </div>
               <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-2 text-slate-300">
-                  <Mail className="h-4 w-4 text-slate-500" />
+                <div className="flex items-center gap-2 text-text-secondary dark:text-slate-300">
+                  <Mail className="h-4 w-4 text-text-tertiary dark:text-slate-500" />
                   <span className="truncate text-sm">{initialData.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-300">
-                  <Clock className="h-4 w-4 text-slate-500" />
+                <div className="flex items-center gap-2 text-text-secondary dark:text-slate-300">
+                  <Clock className="h-4 w-4 text-text-tertiary dark:text-slate-500" />
                   <span className="text-sm">
                     提交于{' '}
                     {format(
@@ -279,9 +279,9 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-800 bg-slate-900/40">
+          <Card className="border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/40">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-500">
+              <CardTitle className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-tertiary dark:text-slate-500">
                 <AlertCircle className="h-4 w-4" />
                 处理历史
               </CardTitle>

@@ -85,6 +85,7 @@ export interface AuditLogEntry {
   target: string
   timestamp: string
   type: AuditLogType
+  comment?: string
 }
 
 // ==================== 统计数据相关 ====================
