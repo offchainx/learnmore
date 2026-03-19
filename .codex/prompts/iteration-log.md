@@ -83,6 +83,8 @@
 
 | 2026-03-19 | 完成T-006.24的R1-R3浅色残留收口 | 修复前台学科选中态、sidebar active 对比度、community 低对比度文案与 avatar fallback 的浅色残留。 | R1/R2/R3 已完成，相关共享样式与页面组件已更新并通过定向 eslint。 | - | - | - | - |
 
+| 2026-03-19 | 回滚R1-R3的共享样式试改 | 按用户要求回滚上一版对 sidebar active、practice subject selector、community 辅助文案和 avatar fallback 的共享样式修改。 | 已将这四处修改精确回滚到 97bf443 状态，不影响 pageSurfaces/pageTypography 的其他未提交改动。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录
