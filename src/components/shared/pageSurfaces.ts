@@ -22,10 +22,10 @@ export const pageBadgeClass =
   'inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-[11px] font-medium text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
 
 export const pageBadgeMutedClass =
-  'inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface px-3 py-1 text-[11px] font-medium text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary'
+  'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary'
 
 export const pagePillActiveClass =
-  'border-blue-200 bg-surface-selected text-sky-700 shadow-surface dark:border-transparent dark:bg-white dark:text-slate-950'
+  'border-blue-300 bg-[linear-gradient(180deg,#f8fbff_0%,#e8f1ff_100%)] text-blue-800 shadow-[0_10px_24px_rgba(59,130,246,0.10),inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-transparent dark:bg-white dark:text-slate-950'
 
 export const pagePillInactiveClass =
   'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'

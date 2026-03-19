@@ -798,7 +798,7 @@ export function CommunityView({
               </div>
             </Card>
 
-            <div className="text-[11px] text-text-tertiary dark:text-text-tertiary">
+            <div className="text-[12px] leading-5 text-text-secondary dark:text-text-secondary">
               {copy.shareCountNote}
             </div>
 

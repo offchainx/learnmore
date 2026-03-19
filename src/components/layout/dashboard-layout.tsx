@@ -59,18 +59,18 @@ const SidebarItem = ({
     onClick={onClick}
     className={`flex w-full items-center ${indent ? 'pl-8 pr-4' : 'px-4'} group relative overflow-hidden rounded-2xl py-3 text-sm font-medium transition-all duration-200 ${
       active
-        ? 'bg-surface-selected text-sky-700 shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-slate-800 dark:text-white'
+        ? 'bg-[linear-gradient(180deg,#f8fbff_0%,#e6f0ff_100%)] text-blue-800 shadow-[inset_0_0_0_1px_rgba(147,197,253,0.9),0_10px_22px_rgba(59,130,246,0.08)] dark:bg-slate-800 dark:text-white'
         : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white'
     }`}
   >
     {active && (
-      <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-sky-100/70 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+      <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/85 to-transparent dark:from-blue-600/10 dark:to-transparent" />
     )}
     <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
       <Icon
         className={`h-full w-full transition-all duration-200 ${
           active
-            ? 'text-sky-700 dark:text-blue-400'
+            ? 'text-blue-700 dark:text-blue-400'
             : `text-text-tertiary group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
         } ${
           Icon === Settings
@@ -113,18 +113,18 @@ const SidebarSection = ({
       onClick={onToggle}
       className={`group relative flex w-full items-center overflow-hidden rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
         isActive
-          ? 'bg-surface-selected text-sky-700 shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-slate-800 dark:text-white'
+          ? 'bg-[linear-gradient(180deg,#f8fbff_0%,#e6f0ff_100%)] text-blue-800 shadow-[inset_0_0_0_1px_rgba(147,197,253,0.9),0_10px_22px_rgba(59,130,246,0.08)] dark:bg-slate-800 dark:text-white'
           : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-white'
       }`}
     >
       {isActive && (
-        <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-sky-100/70 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+        <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/85 to-transparent dark:from-blue-600/10 dark:to-transparent" />
       )}
       <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
         <Icon
           className={`h-full w-full transition-all duration-200 ${
             isActive
-              ? 'text-sky-700 dark:text-blue-400'
+              ? 'text-blue-700 dark:text-blue-400'
               : `text-text-tertiary group-hover:-translate-y-0.5 group-hover:scale-105 dark:text-slate-500 ${getSidebarIconHoverClass(Icon)}`
           }`}
         />
