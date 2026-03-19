@@ -104,12 +104,12 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
 
   return (
     <>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+      <div className="overflow-hidden rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:text-white">
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between border-b border-borderTone px-6 py-4 dark:border-borderTone">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-text-secondary transition-colors hover:text-text-primary dark:text-text-secondary dark:hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm font-medium">返回列表</span>
@@ -117,7 +117,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
 
           {/* More Actions */}
           <div className="relative">
-            <button className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">
+            <button className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-surface hover:text-text-primary dark:text-text-secondary dark:hover:bg-white/10 dark:hover:text-white">
               <MoreHorizontal className="w-5 h-5" />
             </button>
           </div>
@@ -134,12 +134,12 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
 
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-white">{user.name}</h1>
+                  <h1 className="text-2xl font-bold text-text-primary dark:text-white">{user.name}</h1>
                   <UserStatusBadge status={user.status} />
                   <UserTierBadge tier={user.tier} />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-text-secondary dark:text-text-secondary">
                   <span className="flex items-center gap-1.5">
                     <Mail className="w-4 h-4" />
                     {user.email}
@@ -156,8 +156,8 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
                   )}
                 </div>
 
-                <p className="text-xs text-slate-500">
-                  用户ID: <code className="px-1.5 py-0.5 bg-slate-800 rounded font-mono">{user.id}</code>
+                <p className="text-xs text-text-tertiary dark:text-text-tertiary">
+                  用户ID: <code className="rounded bg-surface-subtle px-1.5 py-0.5 font-mono dark:bg-surface-subtle">{user.id}</code>
                 </p>
               </div>
             </div>
@@ -167,7 +167,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
               {isBanned ? (
                 <button
                   onClick={() => openConfirmDialog('unban')}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600/20 text-green-400 border border-green-600/30 rounded-lg hover:bg-green-600/30 transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-100 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-300 dark:hover:bg-green-500/15"
                 >
                   <ShieldCheck className="w-4 h-4" />
                   解除封禁
@@ -175,7 +175,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
               ) : (
                 <button
                   onClick={() => openConfirmDialog('ban')}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-colors text-sm font-medium"
+                  className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15"
                 >
                   <Ban className="w-4 h-4" />
                   封禁用户
@@ -184,7 +184,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
 
               <button
                 onClick={() => openConfirmDialog('impersonate')}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600/20 text-amber-400 border border-amber-600/30 rounded-lg hover:bg-amber-600/30 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/15"
               >
                 <LogIn className="w-4 h-4" />
                 伪装登录
@@ -192,7 +192,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
 
               <button
                 onClick={() => openConfirmDialog('resetPassword')}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 text-slate-300 border border-slate-600/30 rounded-lg hover:bg-slate-700 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 rounded-lg border border-borderTone bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:text-white dark:hover:bg-white/10"
               >
                 <KeyRound className="w-4 h-4" />
                 重置密码
@@ -201,22 +201,22 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-800">
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-borderTone pt-6 dark:border-borderTone md:grid-cols-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">{user.learningStats.totalQuestions}</p>
-              <p className="text-xs text-slate-400">答题总数</p>
+              <p className="text-2xl font-bold text-text-primary dark:text-white">{user.learningStats.totalQuestions}</p>
+              <p className="text-xs text-text-secondary dark:text-text-secondary">答题总数</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-400">{user.learningStats.accuracy}%</p>
-              <p className="text-xs text-slate-400">正确率</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-300">{user.learningStats.accuracy}%</p>
+              <p className="text-xs text-text-secondary dark:text-text-secondary">正确率</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-amber-400">{user.learningStats.mistakes}</p>
-              <p className="text-xs text-slate-400">错题数</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-300">{user.learningStats.mistakes}</p>
+              <p className="text-xs text-text-secondary dark:text-text-secondary">错题数</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-400">{user.learningStats.daysActive}</p>
-              <p className="text-xs text-slate-400">连续学习天数</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-cyan-300">{user.learningStats.daysActive}</p>
+              <p className="text-xs text-text-secondary dark:text-text-secondary">连续学习天数</p>
             </div>
           </div>
         </div>

@@ -75,6 +75,8 @@
 
 | 2026-03-19 | T-006.24 设置页偏好链路修复与 spec tasks 文档排版恢复 | 修复 Settings 的语言/主题持久化与 system 主题错误切换，恢复 p0-04 tasks.md 紧凑表格格式，并补充规则避免再被 Prettier 炸开 | 已修复 Settings 语言/主题草稿提交流程与误导文案；恢复 p0-04 tasks.md 紧凑表格；补充 GEMINI 规则禁止对 spec/tasks 文档跑 Prettier 或自动表格对齐工具 | 先按实际代码定位设置页状态流，再用最小范围文档规则修补提交门禁 | 直接 git commit 被 codex hook 拦截，因为未更新 iteration-log | 提交前先检查仓库是否要求 iteration-log 或 codex:close，并同步保护 spec/tasks 文档排版 | 提交当前修复，然后继续清 T-006.24 的浅色主题页面残留并完成内测 |
 
+| 2026-03-19 | T-006.24 浅色主题代表页收口与内测通过 | 完成 T-006.24 的最终收口：修复 Dashboard Widgets/DailyMissions、Practice Preview Dialogs、Pricing 浅色化、Admin review/users detail 浅色壳层，Playwright 实测 Dashboard/Courses/Practice/Community/Settings/Pricing/Leaderboard/Achievements/Admin 代表页并回写 tasks.md 为 done。 | T-006.24 已完成并通过本地内测，代表页矩阵全部 accepted。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

@@ -8,11 +8,7 @@ import {
 import { getAllSubjects } from '@/actions/courses/subject'
 import { QuestionReviewTable } from '@/components/admin/questions'
 import { SubjectFilter } from '@/components/admin/common'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { QuestionFilter } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import { AdminClientWrapper } from '@/components/admin/common'
@@ -20,7 +16,21 @@ import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
-import { pageBadgeClass } from '@/components/shared/pageSurfaces'
+import {
+  pageBadgeClass,
+  pageKpiCardClass,
+  pagePillActiveClass,
+  pagePillInactiveClass,
+  pageSectionHeaderBandClass,
+  pageSegmentedButtonCompactClass,
+  pageSegmentedControlCompactClass,
+  pageTableShellClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageHeroNumericValueClass,
+  pageKickerClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 import {
   AlertCircle,
   ClipboardCheck,
@@ -153,10 +163,10 @@ export default async function AdminContentPage({
       hint: '当前需要处理',
       icon: Clock3,
       caption: rangeLabel,
-      iconClassName: 'text-[#FBBF24]',
-      iconBgClassName: 'bg-[#3B2A10]',
+      iconClassName: 'text-amber-700 dark:text-[#FBBF24]',
+      iconBgClassName: 'bg-amber-50 dark:bg-[#3B2A10]',
       glowClassName: 'bg-[#F59E0B]/20',
-      borderClassName: 'border-[#5C4520]',
+      borderClassName: 'border-amber-200 dark:border-[#5C4520]',
     },
     {
       key: 'rejected',
@@ -165,10 +175,10 @@ export default async function AdminContentPage({
       hint: '可回看问题题',
       icon: RefreshCcw,
       caption: rangeLabel,
-      iconClassName: 'text-[#F87171]',
-      iconBgClassName: 'bg-[#31151D]',
+      iconClassName: 'text-rose-700 dark:text-[#F87171]',
+      iconBgClassName: 'bg-rose-50 dark:bg-[#31151D]',
       glowClassName: 'bg-[#EF4444]/20',
-      borderClassName: 'border-[#5C2B33]',
+      borderClassName: 'border-rose-200 dark:border-[#5C2B33]',
     },
     {
       key: 'reports',
@@ -177,10 +187,10 @@ export default async function AdminContentPage({
       hint: '来自用户纠错',
       icon: AlertCircle,
       caption: rangeLabel,
-      iconClassName: 'text-[#C4B5FD]',
-      iconBgClassName: 'bg-[#2A1F4A]',
+      iconClassName: 'text-violet-700 dark:text-[#C4B5FD]',
+      iconBgClassName: 'bg-violet-50 dark:bg-[#2A1F4A]',
       glowClassName: 'bg-[#8B5CF6]/20',
-      borderClassName: 'border-[#47306C]',
+      borderClassName: 'border-violet-200 dark:border-[#47306C]',
     },
     {
       key: 'volume',
@@ -189,22 +199,22 @@ export default async function AdminContentPage({
       hint: '新进入审核池',
       icon: FolderKanban,
       caption: currentRange === 'all' ? '累计内容量' : '内容入库速度',
-      iconClassName: 'text-[#60A5FA]',
-      iconBgClassName: 'bg-[#18335E]',
+      iconClassName: 'text-blue-700 dark:text-[#60A5FA]',
+      iconBgClassName: 'bg-blue-50 dark:bg-[#18335E]',
       glowClassName: 'bg-[#2563EB]/20',
-      borderClassName: 'border-[#2B4470]',
+      borderClassName: 'border-blue-200 dark:border-[#2B4470]',
     },
   ] as const
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3">
+        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary sm:p-3 dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7]">
           <PageHeroShell
-            className="px-4 py-4 sm:px-5 sm:py-4.5"
+            className="sm:py-4.5 px-4 py-4 sm:px-5"
             eyebrow={
               <div className={pageBadgeClass}>
-                <ClipboardCheck className="h-3 w-3 text-[#60A5FA]" />
+                <ClipboardCheck className="h-3 w-3 text-blue-600 dark:text-[#60A5FA]" />
                 Review Console
               </div>
             }
@@ -220,7 +230,7 @@ export default async function AdminContentPage({
                 className="flex-1"
               />
 
-              <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+              <div className={pageSegmentedControlCompactClass}>
                 {[
                   { key: '7d', label: '7 Days' },
                   { key: '30d', label: '30 Days' },
@@ -231,10 +241,10 @@ export default async function AdminContentPage({
                     <Link
                       key={range.key}
                       href={buildRangeHref(range.key as '7d' | '30d' | 'all')}
-                      className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                      className={`${pageSegmentedButtonCompactClass} ${
                         isActive
-                          ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                          : 'text-[#8FA4C2] hover:text-white'
+                          ? pagePillActiveClass
+                          : pagePillInactiveClass
                       }`}
                     >
                       {range.label}
@@ -250,7 +260,7 @@ export default async function AdminContentPage({
                 return (
                   <div
                     key={item.key}
-                    className={`relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)] ${item.borderClassName}`}
+                    className={`${pageKpiCardClass} ${item.borderClassName}`}
                   >
                     <div
                       className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${item.glowClassName}`}
@@ -260,19 +270,19 @@ export default async function AdminContentPage({
                     <div className="relative flex h-full items-start justify-between gap-4">
                       <div className="flex min-h-[120px] flex-1 flex-col justify-between gap-3">
                         <div className="space-y-1.5">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
-                            {item.label}
-                          </p>
+                          <p className={pageKickerClass}>{item.label}</p>
                           <div className="flex items-end gap-2">
-                            <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
+                            <p className={pageHeroNumericValueClass}>
                               {item.value}
                             </p>
-                            <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                            <span className={`pb-1 ${pageMetaTextClass}`}>
                               {item.caption}
                             </span>
                           </div>
                         </div>
-                        <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                        <p
+                          className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
+                        >
                           {item.hint}
                         </p>
                       </div>
@@ -289,8 +299,8 @@ export default async function AdminContentPage({
             </div>
           </section>
 
-          <Card className="bg-[#0F172A]/96 overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
-            <CardHeader className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+          <Card className={pageTableShellClass}>
+            <CardHeader className={pageSectionHeaderBandClass}>
               <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
                 <SectionBlockHeader
                   title="题目列表"
@@ -301,12 +311,14 @@ export default async function AdminContentPage({
                   <div className="flex items-center gap-2">
                     <SubjectFilter
                       subjects={subjects}
-                      triggerClassName="w-[200px] rounded-2xl border-[#24324D] bg-[#151F36] text-[#E6EDF7] hover:bg-[#1A2744] focus:ring-[#60A5FA] focus:ring-offset-[#0F172A] data-[placeholder]:text-[#8FA4C2]"
-                      contentClassName="border-[#24324D] bg-[#151F36] text-[#E6EDF7]"
+                      triggerClassName="w-[200px] rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
+                      contentClassName="border-borderTone bg-surface text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7]"
                     />
                   </div>
 
-                  <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+                  <div
+                    className={`${pageSegmentedControlCompactClass} flex-wrap gap-1`}
+                  >
                     {[
                       { key: 'all', label: '全部' },
                       { key: 'pending', label: '待审核' },
@@ -318,10 +330,10 @@ export default async function AdminContentPage({
                         <Link
                           key={tab.key}
                           href={buildTabHref(tab.key)}
-                          className={`rounded-xl px-3 py-1.5 text-sm transition-colors ${
+                          className={`${pageSegmentedButtonCompactClass} ${
                             isActive
-                              ? 'bg-[#1E2C47] text-white shadow-[inset_0_0_0_1px_rgba(96,165,250,0.2)]'
-                              : 'text-[#8FA4C2] hover:text-white'
+                              ? pagePillActiveClass
+                              : pagePillInactiveClass
                           }`}
                         >
                           {tab.label}
@@ -336,7 +348,7 @@ export default async function AdminContentPage({
             <CardContent className="p-4 sm:p-5">
               <Suspense
                 fallback={
-                  <div className="flex h-48 items-center justify-center text-[#7F93B2]">
+                  <div className="flex h-48 items-center justify-center text-text-secondary dark:text-[#7F93B2]">
                     加载中...
                   </div>
                 }

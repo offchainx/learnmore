@@ -1,41 +1,41 @@
-
 import React, { useState, useEffect } from 'react';
 // ⚠️ 暂时禁用 Gemini API (Issue-002)
 // import { GoogleGenAI } from "@google/genai";
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sparkles, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // --- Shared Helper Components ---
 
-export const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: React.ElementType, label: string, active?: boolean, onClick?: () => void }) => (
+export const SidebarItem = ({ icon: Icon, label, active = false, indent = false, onClick }: { icon: React.ElementType, label: string, active?: boolean, indent?: boolean, onClick?: () => void }) => (
   <button 
     onClick={onClick}
-    className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
+    className={cn(`flex items-center w-full py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
       active 
-        ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-slate-800' 
-        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
-    }`}
+        ? 'border border-blue-200/80 bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(219,234,254,0.82))] text-blue-700 shadow-surface dark:border-blue-400/20 dark:bg-surface-selected dark:text-white' 
+        : 'border border-transparent text-text-secondary hover:border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-white'
+    }`, indent ? 'pl-10 pr-4' : 'px-4')}
   >
     {active && (
-      <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/50 to-transparent dark:from-blue-600/10 dark:to-transparent" />
+      <div className="absolute inset-y-2 left-2 w-1 rounded-full bg-blue-500 dark:bg-cyan-300" />
     )}
     <div className="flex items-center justify-center w-5 h-5 mr-3 relative z-10 shrink-0">
-      <Icon className={`w-full h-full ${active ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`} />
+      <Icon className={`w-full h-full ${active ? 'text-blue-600 dark:text-cyan-300' : 'text-text-tertiary group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white'}`} />
     </div>
     <span className="relative z-10">{label}</span>
   </button>
 );
 
 export const SubjectCard = ({ name, icon: Icon, color, bgGradient }: { name: string, icon: React.ElementType, color: string, bgGradient: string }) => (
-  <Card className="border-none bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden h-32 flex flex-col justify-between p-5 shadow-sm hover:shadow-lg dark:shadow-black/20 border border-slate-200 dark:border-transparent">
+  <Card className="border-borderTone bg-surface hover:-translate-y-1 hover:border-blue-200/70 hover:bg-surface-subtle transition-all duration-300 cursor-pointer group relative overflow-hidden h-32 flex flex-col justify-between p-5 shadow-surface">
     <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${bgGradient} opacity-10 rounded-bl-full group-hover:opacity-20 transition-opacity`} />
-    <div className={`relative z-10 w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center ${color} ring-1 ring-slate-200 dark:ring-white/5 group-hover:ring-slate-300 dark:group-hover:ring-white/10 transition-all`}>
+    <div className={`relative z-10 w-10 h-10 rounded-xl bg-surface-subtle flex items-center justify-center ${color} ring-1 ring-borderTone group-hover:ring-blue-200/70 transition-all`}>
       <Icon className="h-5 w-5" />
     </div>
     <div className="relative z-10">
-      <h3 className="font-bold text-slate-900 dark:text-white text-base tracking-tight">{name}</h3>
-      <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+      <h3 className="font-bold text-text-primary dark:text-white text-base tracking-tight">{name}</h3>
+      <p className="text-xs text-text-secondary mt-1 flex items-center gap-1">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
         85% Complete
       </p>
@@ -56,12 +56,12 @@ export const CircularProgress = ({ value, color, label, subLabel }: { value: num
           <circle cx="64" cy="64" r={radius} stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} strokeLinecap="round" className={color} />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-           <span className="text-3xl font-bold text-slate-900 dark:text-white leading-none">{value}</span>
+           <span className="text-3xl font-bold text-text-primary dark:text-white leading-none">{value}</span>
         </div>
       </div>
       <div className="text-center mt-2">
-        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{label}</p>
-        <p className="text-xs text-slate-400">{subLabel}</p>
+        <p className="text-sm font-bold text-text-primary dark:text-slate-200">{label}</p>
+        <p className="text-xs text-text-secondary">{subLabel}</p>
       </div>
     </div>
   );
@@ -70,16 +70,16 @@ export const CircularProgress = ({ value, color, label, subLabel }: { value: num
 export const StrengthBar = ({ label, value, level, levelColor, suggestion }: { label: string, value: number, level: string, levelColor: string, suggestion?: string }) => (
   <div className="mb-6 last:mb-0">
     <div className="flex justify-between items-end mb-2">
-      <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{label}</span>
+      <span className="text-sm font-bold text-text-primary dark:text-slate-200">{label}</span>
       <div className="flex items-center gap-3">
          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${levelColor} text-white`}>{level}</span>
-         <span className="text-sm font-bold text-slate-600 dark:text-slate-400 w-8 text-right">{value}%</span>
+         <span className="text-sm font-bold text-text-secondary dark:text-slate-400 w-8 text-right">{value}%</span>
       </div>
     </div>
     <div className="w-full bg-slate-200 dark:bg-slate-700/50 rounded-full h-2.5 mb-1">
       <div className={`h-2.5 rounded-full transition-all duration-1000 ${value >= 90 ? 'bg-emerald-500' : value >= 75 ? 'bg-blue-500' : value >= 60 ? 'bg-yellow-500' : 'bg-orange-500'}`} style={{ width: `${value}%` }}></div>
     </div>
-    {suggestion && <p className="text-xs text-orange-500 flex items-center gap-1 mt-1">↑ {suggestion}</p>}
+    {suggestion && <p className="text-xs text-amber-600 dark:text-amber-300 flex items-center gap-1 mt-1">↑ {suggestion}</p>}
   </div>
 );
 
@@ -177,23 +177,23 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
   }, [lang, generateInspiration, getQuote]);
 
   return (
-    <div className={`group relative w-full overflow-hidden rounded-[28px] border border-[#24324D] bg-[#08111F] shadow-[0_18px_48px_rgba(2,8,23,0.28)] ${className || 'h-56 sm:h-64'}`}>
+    <div className={`group relative w-full overflow-hidden rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)] ${className || 'h-56 sm:h-64'}`}>
       {imageUrl ? (
         <img src={imageUrl} alt="Daily Inspiration" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
       ) : (
-        <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-cyan-500 to-slate-900"></div>
+        <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.45),transparent_30%),linear-gradient(135deg,#2563eb,#0f172a)]"></div>
       )}
-      <div className="absolute inset-0 bg-black/25 mix-blend-multiply"></div>
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/10 to-transparent"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/55 to-transparent"></div>
+      <div className="absolute inset-0 bg-slate-950/30 mix-blend-multiply"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/20 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent"></div>
       <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-5">
         <div>
-           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-100 backdrop-blur-md">
+           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-cyan-50 backdrop-blur-md">
              <Sparkles className="h-3 w-3 text-cyan-200" />
              {t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
            </div>
            <h1 className="mt-3 text-lg font-semibold tracking-tight text-white/95 drop-shadow-md sm:text-[20px]">{welcomeTitle}</h1>
-           <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-white/78 drop-shadow-sm sm:text-[13px]">{welcomeSub}</p>
+           <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-white/80 drop-shadow-sm sm:text-[13px]">{welcomeSub}</p>
         </div>
         <div className="flex items-end justify-between gap-4">
           <div className="max-w-3xl">
@@ -201,7 +201,7 @@ export const DailyInspiration = ({ lang, t, welcomeTitle, welcomeSub, className 
                &quot;{quote}&quot;
              </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={generateInspiration} disabled={loading} className="shrink-0 rounded-2xl border border-white/15 bg-white/10 px-3 text-[11px] font-semibold text-white/85 backdrop-blur-sm hover:bg-white/15 hover:text-white">
+          <Button variant="ghost" size="sm" onClick={generateInspiration} disabled={loading} className="shrink-0 rounded-2xl border border-white/15 bg-white/10 px-3 text-[11px] font-semibold text-white/90 backdrop-blur-sm hover:bg-white/15 hover:text-white">
              <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
              {loading ? (t.common?.loading || copy('加载中', 'Loading...')) : copy('换一张', 'Refresh')}
           </Button>

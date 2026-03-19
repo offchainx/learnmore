@@ -35,21 +35,21 @@ interface ComparisonSection {
 function CellRenderer({ value }: { value: CellValue }) {
   if (typeof value === 'boolean') {
     return value
-      ? <Check className="w-4 h-4 mx-auto text-green-500" />
-      : <X className="w-4 h-4 mx-auto text-slate-600" />;
+      ? <Check className="w-4 h-4 mx-auto text-emerald-600" />
+      : <X className="w-4 h-4 mx-auto text-slate-300" />;
   }
   if (typeof value === 'string') {
-    return <span className="text-slate-300">{value}</span>;
+    return <span className="text-slate-700">{value}</span>;
   }
   // Object variant: value + optional note / badge
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className="text-slate-300">{value.value}</span>
+      <span className="text-slate-700">{value.value}</span>
       {value.note && (
-        <span className="text-xs text-amber-400/70">{value.note}</span>
+        <span className="text-xs text-amber-700/80">{value.note}</span>
       )}
       {value.badge && (
-        <span className="text-xs bg-green-500/15 text-green-400 px-1.5 py-0.5 rounded-full">
+        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-xs text-emerald-700">
           {value.badge}
         </span>
       )}
@@ -156,7 +156,7 @@ const PricingPage: React.FC = () => {
           features: [
             "Everything in Standard, plus:",
             "Topic-Specific Training (AI Curated)",
-            "Knowledge Graph Navigation",
+            "Adaptive Learning Navigation",
             "AI Memory Unlimited — compounds over time",
             "Ebbinghaus Recall + Root Cause Analysis",
             "Virtual Study Room",
@@ -235,7 +235,7 @@ const PricingPage: React.FC = () => {
           features: [
             "包含自学版所有功能，另外还有：",
             "专项强化训练（AI 推荐）",
-            "知识图谱关联导航",
+            "学习路径导航",
             "AI 学习记忆无限，效果持续累积",
             "艾宾浩斯遗忘曲线 + 归因诊断",
             "虚拟自习室",
@@ -276,21 +276,21 @@ const PricingPage: React.FC = () => {
       key: 'starter' as const,
       monthlyPrice: 0,
       annualPrice: 0,
-      color: "border-cyan-400",
+      color: "border-slate-200",
       btnVariant: "outline" as const,
     },
     {
       key: 'standard' as const,
       monthlyPrice: 60,
       annualPrice: 54, // 10% off
-      color: "border-blue-500",
+      color: "border-blue-200",
       btnVariant: "outline" as const,
     },
     {
       key: 'smart_plus' as const,
       monthlyPrice: 150,
       annualPrice: 135, // 10% off
-      color: "border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.15)]",
+      color: "border-violet-300 shadow-[0_18px_50px_rgba(99,102,241,0.14)]",
       btnVariant: "glow" as const,
       highlight: true,
     },
@@ -298,7 +298,7 @@ const PricingPage: React.FC = () => {
       key: 'premier' as const,
       monthlyPrice: 260,
       annualPrice: 234, // 10% off
-      color: "border-amber-500",
+      color: "border-amber-300",
       btnVariant: "solid-gold" as const,
     }
   ];
@@ -327,7 +327,7 @@ const PricingPage: React.FC = () => {
           name: isZh ? "解析深度" : "Solution Depth",
           free: isZh ? "仅参考答案" : "Answer Key Only",
           self: isZh ? "详细文字解析" : "Step-by-Step Text",
-          scholar: isZh ? "文字解析 + 知识图谱" : "Text + Knowledge Graph",
+          scholar: isZh ? "文字解析 + 引导练习" : "Text + Guided Practice",
           ultimate: isZh ? "优先新题解析" : "Priority New Solutions"
         }
       ]
@@ -418,31 +418,41 @@ const PricingPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-blue-500/30 selection:text-blue-100 overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#eef6ff_0%,#f8fafc_20%,#ffffff_58%,#f8fafc_100%)] font-sans text-slate-950 selection:bg-blue-200 selection:text-slate-950">
       <Navbar lang={lang === 'ms' ? 'en' : lang} onToggleLang={toggleLang} />
 
-      <main className="pt-32 pb-20">
+      <main className="pt-28 pb-20">
 
         {/* Header & Toggle */}
-        <div className="text-center max-w-4xl mx-auto px-4 mb-16 animate-fade-in-up">
-           <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
-              {currentT.title}
-           </h1>
-           <p className="text-slate-400 text-lg mb-10 max-w-2xl mx-auto">
-              {currentT.subtitle}
-           </p>
+        <div className="mx-auto mb-16 max-w-6xl px-4 animate-fade-in-up">
+           <div className="relative overflow-hidden rounded-[40px] border border-slate-200/70 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.28),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.24),transparent_32%),linear-gradient(135deg,rgba(15,23,42,0.98),rgba(30,41,59,0.95)_45%,rgba(37,99,235,0.72))] px-6 py-14 text-center text-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] sm:px-10">
+             <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
+             <div className="absolute -left-12 top-12 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl" />
+             <div className="absolute -right-10 bottom-6 h-44 w-44 rounded-full bg-violet-300/20 blur-3xl" />
+             <div className="relative">
+               <div className="mx-auto inline-flex items-center rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100 backdrop-blur-md">
+                 LearnMore Pricing
+               </div>
+               <h1 className="mt-5 text-4xl font-extrabold tracking-tight md:text-5xl">
+                  {currentT.title}
+               </h1>
+               <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-200">
+                  {currentT.subtitle}
+               </p>
 
-           <div className="flex items-center justify-center gap-4">
-              <span className={`text-sm font-bold transition-colors ${!isAnnual ? 'text-white' : 'text-slate-500'}`}>{currentT.monthly}</span>
-              <button
-                onClick={() => setIsAnnual(!isAnnual)}
-                className="w-16 h-8 bg-slate-800 rounded-full p-1 relative transition-colors border border-slate-700"
-              >
-                 <div className={`w-6 h-6 bg-blue-500 rounded-full shadow-lg transition-transform duration-300 ${isAnnual ? 'translate-x-8' : 'translate-x-0'}`}></div>
-              </button>
-              <span className={`text-sm font-bold transition-colors ${isAnnual ? 'text-white' : 'text-slate-500'}`}>
-                 {currentT.annually} <span className="text-xs text-green-400 ml-1 font-normal">{currentT.save}</span>
-              </span>
+               <div className="mt-10 flex items-center justify-center gap-4">
+                  <span className={`text-sm font-bold transition-colors ${!isAnnual ? 'text-white' : 'text-slate-400'}`}>{currentT.monthly}</span>
+                  <button
+                    onClick={() => setIsAnnual(!isAnnual)}
+                    className="relative h-8 w-16 rounded-full border border-white/15 bg-white/10 p-1 transition-colors backdrop-blur-md"
+                  >
+                     <div className={`h-6 w-6 rounded-full bg-white shadow-lg shadow-slate-950/20 transition-transform duration-300 ${isAnnual ? 'translate-x-8' : 'translate-x-0'}`}></div>
+                  </button>
+                  <span className={`text-sm font-bold transition-colors ${isAnnual ? 'text-white' : 'text-slate-400'}`}>
+                     {currentT.annually} <span className="ml-1 text-xs font-normal text-emerald-300">{currentT.save}</span>
+                  </span>
+               </div>
+             </div>
            </div>
         </div>
 
@@ -452,31 +462,31 @@ const PricingPage: React.FC = () => {
               {plans.map((plan, idx) => (
                  <div
                    key={idx}
-                   className={`relative flex flex-col p-6 rounded-2xl bg-[#0a0a0a]/50 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-2 group ${plan.color} ${plan.highlight ? 'z-10 bg-[#0f111a] shadow-2xl scale-105 md:scale-100 xl:scale-105' : 'border-opacity-30 hover:border-opacity-60'}`}
+                   className={`relative flex flex-col rounded-[28px] border bg-white/88 p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 group ${plan.color} ${plan.highlight ? 'z-10 scale-[1.01] shadow-[0_24px_80px_rgba(99,102,241,0.16)] xl:scale-105' : 'shadow-[0_18px_50px_rgba(148,163,184,0.12)] hover:shadow-[0_22px_60px_rgba(148,163,184,0.18)]'}`}
                  >
                     {plan.highlight && (
-                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-purple-900/40 whitespace-nowrap">
+                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-violet-500/30">
                           {currentT.mostPopular}
                        </div>
                     )}
 
                     <div className="mb-6">
-                       <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
-                       <p className="text-slate-400 text-sm h-10">{plan.desc}</p>
+                       <h3 className="mb-2 text-xl font-bold text-slate-950">{plan.name}</h3>
+                       <p className="h-10 text-sm text-slate-600">{plan.desc}</p>
                     </div>
 
                     <div className="mb-8">
                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold text-white">
+                          <span className="text-3xl font-bold text-slate-950">
                              {idx === 0
                                ? isZh ? "永久免费" : "Forever Free"
                                : plan.price === 0 ? 'RM0' : `RM${plan.price}`
                              }
                           </span>
-                          {idx !== 0 && plan.price !== 0 && <span className="text-slate-500 text-sm">{currentT.perMo}</span>}
+                          {idx !== 0 && plan.price !== 0 && <span className="text-sm text-slate-500">{currentT.perMo}</span>}
                        </div>
                        {isAnnual && plan.price !== 0 && (
-                          <div className="text-xs text-green-400 mt-1">{currentT.billed(plan.annualPrice * 12)}</div>
+                          <div className="mt-1 text-xs text-emerald-600">{currentT.billed(plan.annualPrice * 12)}</div>
                        )}
                     </div>
 
@@ -494,12 +504,12 @@ const PricingPage: React.FC = () => {
                                 key={i}
                                 className={`flex items-start gap-3 text-sm ${
                                   isHeader
-                                    ? 'text-slate-400 italic mb-1 mt-2 text-xs'
-                                    : `text-slate-300 ${i < 2 ? 'text-white' : ''}`
+                                    ? 'mb-1 mt-2 text-xs italic text-slate-500'
+                                    : `text-slate-700 ${i < 2 ? 'font-medium text-slate-950' : ''}`
                                 }`}
                               >
                                 {!isHeader && (
-                                   <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlight ? 'text-purple-400' : 'text-slate-500'}`} />
+                                   <Check className={`mt-0.5 h-4 w-4 shrink-0 ${plan.highlight ? 'text-violet-600' : 'text-slate-400'}`} />
                                 )}
                                 <span title={tooltipText || ''}>{feat}</span>
                               </li>
@@ -511,9 +521,9 @@ const PricingPage: React.FC = () => {
                     <Button
                        fullWidth
                        className={`
-                          ${plan.btnVariant === 'outline' ? 'border-slate-700 hover:bg-slate-800 text-white bg-transparent border' : ''}
-                          ${plan.btnVariant === 'glow' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 border-none' : ''}
-                          ${plan.btnVariant === 'solid-gold' ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg shadow-amber-500/25 border-none' : ''}
+                          ${plan.btnVariant === 'outline' ? 'border border-slate-200 bg-slate-50 text-slate-950 hover:bg-slate-100' : ''}
+                          ${plan.btnVariant === 'glow' ? 'border-none bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20 hover:from-violet-500 hover:to-indigo-500' : ''}
+                          ${plan.btnVariant === 'solid-gold' ? 'border-none bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/20 hover:from-amber-400 hover:to-orange-400' : ''}
                        `}
                       onClick={() => handleSubscribe(plan.name, plan.key)}
                        disabled={loadingPlan !== null}
@@ -529,17 +539,17 @@ const PricingPage: React.FC = () => {
 
         {/* Feature Comparison */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
-           <h2 className="text-2xl font-bold text-center mb-12">{currentT.compareTitle}</h2>
-           <div className="overflow-x-auto">
+           <h2 className="mb-12 text-center text-2xl font-bold text-slate-950">{currentT.compareTitle}</h2>
+           <div className="overflow-x-auto rounded-[32px] border border-slate-200 bg-white/90 shadow-[0_20px_60px_rgba(148,163,184,0.14)]">
               <table className="w-full text-left border-collapse">
                  <thead>
-                    <tr className="border-b border-slate-800">
-                       <th className="p-4 text-slate-400 font-medium min-w-[200px]"></th>
+                    <tr className="border-b border-slate-200 bg-slate-50/80">
+                       <th className="min-w-[200px] p-4 font-medium text-slate-500"></th>
                        {plans.map((p, i) => (
                           <th key={i} className={`p-4 text-center font-bold min-w-[120px] ${
-                             i === 0 ? 'text-cyan-400' :
-                             i === 1 ? 'text-blue-500' :
-                             i === 2 ? 'text-purple-500' : 'text-amber-500'
+                             i === 0 ? 'text-cyan-700' :
+                             i === 1 ? 'text-blue-700' :
+                             i === 2 ? 'text-violet-700' : 'text-amber-700'
                           }`}>
                              {p.name}
                           </th>
@@ -550,28 +560,28 @@ const PricingPage: React.FC = () => {
                     {comparisonData.map((section, sIdx) => (
                        <React.Fragment key={sIdx}>
                           {/* 类别标题行 — 带可选引导说明文 */}
-                          <tr className="bg-slate-900/30">
+                          <tr className="bg-slate-50/80">
                              <td colSpan={5} className="p-4">
                                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500">{section.category}</div>
                                 {section.categoryNote && (
-                                   <div className="text-xs text-slate-600 mt-0.5">{section.categoryNote}</div>
+                                   <div className="mt-0.5 text-xs text-slate-500">{section.categoryNote}</div>
                                 )}
                              </td>
                           </tr>
                           {/* 功能行 */}
                           {section.features.map((row, rIdx) => (
-                             <tr key={rIdx} className="border-b border-slate-800/50 hover:bg-white/5 transition-colors">
-                                <td className="p-4 text-sm text-slate-200">{row.name}</td>
-                                <td className="p-4 text-center text-sm text-slate-400">
+                             <tr key={rIdx} className="border-b border-slate-100 transition-colors hover:bg-blue-50/50">
+                                <td className="p-4 text-sm font-medium text-slate-900">{row.name}</td>
+                                <td className="p-4 text-center text-sm text-slate-600">
                                    <CellRenderer value={row.free} />
                                 </td>
-                                <td className="p-4 text-center text-sm text-slate-400">
+                                <td className="p-4 text-center text-sm text-slate-600">
                                    <CellRenderer value={row.self} />
                                 </td>
-                                <td className="p-4 text-center text-sm text-slate-200 font-medium">
+                                <td className="p-4 text-center text-sm font-medium text-slate-700">
                                    <CellRenderer value={row.scholar} />
                                 </td>
-                                <td className="p-4 text-center text-sm text-slate-200 font-medium">
+                                <td className="p-4 text-center text-sm font-medium text-slate-700">
                                    <CellRenderer value={row.ultimate} />
                                 </td>
                              </tr>
@@ -585,28 +595,28 @@ const PricingPage: React.FC = () => {
 
         {/* Referral Section */}
         <div className="max-w-4xl mx-auto px-4">
-           <div className="relative rounded-3xl p-1 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500">
-              <div className="bg-[#0f111a] rounded-[22px] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 text-center md:text-left relative overflow-hidden">
+           <div className="relative rounded-3xl bg-gradient-to-r from-pink-400 via-rose-400 to-amber-300 p-1 shadow-[0_20px_60px_rgba(251,113,133,0.2)]">
+              <div className="relative flex flex-col items-center gap-8 overflow-hidden rounded-[22px] bg-white/92 p-8 text-center md:flex-row md:p-12 md:text-left">
                  {/* Bg Glow */}
-                 <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/20 rounded-full blur-[80px]"></div>
+                 <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-pink-200/70 blur-[80px]"></div>
 
-                 <div className="bg-slate-800 p-4 rounded-2xl shrink-0 relative z-10">
-                    <Gift className="w-12 h-12 text-pink-500" />
+                 <div className="relative z-10 shrink-0 rounded-2xl bg-rose-50 p-4 ring-1 ring-rose-100">
+                    <Gift className="h-12 w-12 text-pink-500" />
                  </div>
 
                  <div className="flex-1 relative z-10">
-                    <h3 className="text-2xl font-bold text-white mb-2">{currentT.referralTitle}</h3>
-                    <p className="text-slate-400 mb-6">
+                    <h3 className="mb-2 text-2xl font-bold text-slate-950">{currentT.referralTitle}</h3>
+                    <p className="mb-6 text-slate-600">
                        {currentT.referralDesc}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                        <input
                          type="email"
                          placeholder={currentT.referralPlaceholder}
-                         className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                         className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                        />
-                       <Button variant="glow" className="bg-pink-600 hover:bg-pink-500 shadow-pink-500/25 border-none">
-                          <Send className="w-4 h-4 mr-2" /> {currentT.referralBtn}
+                       <Button variant="glow" className="border-none bg-pink-600 shadow-pink-500/20 hover:bg-pink-500">
+                          <Send className="mr-2 h-4 w-4" /> {currentT.referralBtn}
                        </Button>
                     </div>
                  </div>
@@ -617,7 +627,7 @@ const PricingPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
+      <footer className="border-t border-slate-200 bg-transparent py-10 text-center text-sm text-slate-500">
          <div className="max-w-7xl mx-auto px-4">
             <p>{currentT.footer}</p>
          </div>

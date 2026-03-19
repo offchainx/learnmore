@@ -36,6 +36,11 @@ import { QuestionWithRelations } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import { bulkUpdateQuestionStatus } from '@/actions/content-pipeline/question-service'
 import { useToast } from '@/components/ui/use-toast'
+import {
+  pageSectionHeaderBandClass,
+  pageTableShellClass,
+} from '@/components/shared/pageSurfaces'
+import { cn } from '@/lib/utils'
 
 interface QuestionReviewTableProps {
   questions: QuestionWithRelations[]
@@ -186,8 +191,8 @@ export function QuestionReviewTable({
   return (
     <div className="space-y-4">
       {/* Batch Actions Toolbar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#24324D] bg-[#101A2E]/80 p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="ml-1 text-sm text-[#9FB0C9]">
+      <div className="flex flex-col gap-3 rounded-2xl border border-borderTone bg-surface-subtle p-3 shadow-surface sm:flex-row sm:items-center sm:justify-between dark:border-borderTone dark:bg-surface-subtle">
+        <div className="ml-1 text-sm text-text-secondary dark:text-text-secondary">
           {selectedIds.length > 0 ? (
             <span>已选择 {selectedIds.length} 项，支持批量审核</span>
           ) : (
@@ -200,7 +205,7 @@ export function QuestionReviewTable({
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('VERIFIED')}
-            className="border-[#1F6F4A] bg-[#0F221B] text-[#7FE0AF] hover:bg-[#163226] hover:text-[#A7F3D0]"
+            className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300 dark:hover:bg-emerald-400/15 dark:hover:text-emerald-200"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             通过
@@ -210,7 +215,7 @@ export function QuestionReviewTable({
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
-            className="border-[#6D2432] bg-[#241118] text-[#FDA4AF] hover:bg-[#33151D] hover:text-[#FECDD3]"
+            className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/15 dark:hover:text-rose-200"
           >
             <XCircle className="mr-2 h-4 w-4" />
             驳回
@@ -220,7 +225,7 @@ export function QuestionReviewTable({
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('PUBLISHED')}
-            className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+            className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200 dark:hover:bg-blue-400/15 dark:hover:text-white"
           >
             <ArrowUpCircle className="mr-2 h-4 w-4" />
             发布
@@ -229,11 +234,11 @@ export function QuestionReviewTable({
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-[24px] border border-[#24324D] bg-[#0D1628]">
+      <div className={cn(pageTableShellClass, 'rounded-[24px]')}>
         <Table>
           <TableHeader>
-            <TableRow className="border-b border-[#1B2840] bg-[#0F1A2F] hover:bg-[#0F1A2F]">
-              <TableHead className="h-12 w-[50px] text-[#7F93B2]">
+            <TableRow className={cn(pageSectionHeaderBandClass, 'border-b border-borderTone hover:bg-surface-subtle dark:border-borderTone dark:hover:bg-surface-subtle')}>
+              <TableHead className="h-12 w-[50px] text-text-secondary dark:text-text-secondary">
                 <Checkbox
                   checked={
                     questions.length > 0 &&
@@ -243,24 +248,24 @@ export function QuestionReviewTable({
                   aria-label="Select all"
                 />
               </TableHead>
-              <TableHead className="w-[90px] text-[#7F93B2]">题图</TableHead>
-              <TableHead className="w-[300px] text-[#7F93B2]">
+              <TableHead className="w-[90px] text-text-secondary dark:text-text-secondary">题图</TableHead>
+              <TableHead className="w-[300px] text-text-secondary dark:text-text-secondary">
                 题目内容
               </TableHead>
-              <TableHead className="text-[#7F93B2]">题型</TableHead>
-              <TableHead className="text-[#7F93B2]">科目/章节</TableHead>
-              <TableHead className="text-[#7F93B2]">难度</TableHead>
-              <TableHead className="text-[#7F93B2]">质量分</TableHead>
-              <TableHead className="text-[#7F93B2]">状态</TableHead>
-              <TableHead className="text-right text-[#7F93B2]">操作</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">题型</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">科目/章节</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">难度</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">质量分</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">状态</TableHead>
+              <TableHead className="text-right text-text-secondary dark:text-text-secondary">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="[&_tr:last-child]:border-b-0">
             {questions.length === 0 ? (
-              <TableRow className="border-b border-[#16233A] hover:bg-transparent">
+              <TableRow className="border-b border-borderTone hover:bg-transparent dark:border-borderTone">
                 <TableCell
                   colSpan={9}
-                  className="h-24 text-center text-[#7F93B2]"
+                  className="h-24 text-center text-text-secondary dark:text-text-secondary"
                 >
                   没有找到相关题目
                 </TableCell>
@@ -270,7 +275,7 @@ export function QuestionReviewTable({
                 <TableRow
                   key={question.id}
                   data-state={selectedIds.includes(question.id) && 'selected'}
-                  className="border-b border-[#16233A] text-[#E6EDF7] hover:bg-[#111C31] data-[state=selected]:bg-[#13203A]"
+                  className="border-b border-borderTone text-text-primary hover:bg-surface-subtle data-[state=selected]:bg-blue-50/70 dark:border-borderTone dark:text-white dark:hover:bg-surface-subtle dark:data-[state=selected]:bg-surface-selected"
                 >
                   <TableCell>
                     <Checkbox
@@ -284,39 +289,39 @@ export function QuestionReviewTable({
                       <img
                         src={getQuestionImage(question)!}
                         alt="题图缩略图"
-                        className="h-12 w-16 rounded border border-[#24324D] object-cover"
+                        className="h-12 w-16 rounded border border-borderTone object-cover"
                       />
                     ) : (
-                      <div className="flex h-12 w-16 items-center justify-center rounded border border-dashed border-[#2A3A57] text-[11px] text-[#60738F]">
+                      <div className="flex h-12 w-16 items-center justify-center rounded border border-dashed border-borderTone bg-surface-subtle text-[11px] text-text-tertiary dark:bg-surface-subtle dark:text-text-tertiary">
                         无图
                       </div>
                     )}
                   </TableCell>
                   <TableCell className="max-w-[300px]">
                     <div
-                      className="truncate text-sm font-medium text-[#E6EDF7]"
+                      className="truncate text-sm font-medium text-text-primary dark:text-white"
                       title={question.content}
                     >
                       {question.content.substring(0, 50)}...
                     </div>
-                    <div className="mt-1 text-xs text-[#7F93B2]">
+                    <div className="mt-1 text-xs text-text-secondary dark:text-text-secondary">
                       ID: {question.id.substring(0, 8)}
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className="border-[#314667] bg-[#121D33] text-[#C7D5EA]"
+                      className="border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-white"
                     >
                       {question.type}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-[#D6E7FF]">
+                    <div className="text-sm text-text-primary dark:text-white">
                       {question.chapter?.subject?.name || '-'}
                     </div>
                     <div
-                      className="max-w-[150px] truncate text-xs text-[#7F93B2]"
+                      className="max-w-[150px] truncate text-xs text-text-secondary dark:text-text-secondary"
                       title={question.chapter?.title}
                     >
                       {question.chapter?.title || '-'}
@@ -338,7 +343,7 @@ export function QuestionReviewTable({
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-8 w-8 rounded-full p-0 text-[#AFC3DE] hover:bg-[#18253E] hover:text-white"
+                          className="h-8 w-8 rounded-full p-0 text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-white"
                         >
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
@@ -370,11 +375,11 @@ export function QuestionReviewTable({
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-[#1B2840] bg-[#0F1A2F]/80 text-[#C7D5EA]">
+          <TableFooter className="border-t border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-white">
             <TableRow className="border-b-0 hover:bg-transparent">
               <TableCell colSpan={9}>
                 <div className="flex w-full items-center justify-between">
-                  <div className="text-xs text-[#7F93B2]">
+                  <div className="text-xs text-text-secondary dark:text-text-secondary">
                     第 {page} 页 / 共 {totalPages} 页
                   </div>
                   <div className="flex gap-2">
@@ -383,7 +388,7 @@ export function QuestionReviewTable({
                       size="sm"
                       onClick={() => goToPage(page - 1)}
                       disabled={page <= 1}
-                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-white dark:hover:bg-surface-subtle"
                     >
                       上一页
                     </Button>
@@ -392,7 +397,7 @@ export function QuestionReviewTable({
                       size="sm"
                       onClick={() => goToPage(page + 1)}
                       disabled={page >= totalPages}
-                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-white dark:hover:bg-surface-subtle"
                     >
                       下一页
                     </Button>
