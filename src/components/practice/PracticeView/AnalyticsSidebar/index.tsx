@@ -1,20 +1,97 @@
-import React from 'react';
-import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive';
-import ExamForecast from '@/components/practice/analytics/ExamForecast';
-import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard';
-import type { ChapterWithStats, ExamForecast as ExamForecastType, HiveNode } from '@/lib/practice/types';
+import React from 'react'
+import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive'
+import ExamForecast from '@/components/practice/analytics/ExamForecast'
+import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard'
+import { pageSectionGapCompactClass } from '@/components/shared/pageSpacing'
+import type {
+  ChapterWithStats,
+  ExamForecast as ExamForecastType,
+  HiveNode,
+} from '@/lib/practice/types'
 
 const PREVIEW_HIVE_NODES: HiveNode[] = [
-  { chapterId: 'preview-1', chapterTitle: '基础概念', masteryLevel: 3, correctRate: 88, totalAttempts: 26, status: 'strong', color: '#22c55e' },
-  { chapterId: 'preview-2', chapterTitle: '题型辨析', masteryLevel: 2, correctRate: 72, totalAttempts: 18, status: 'fair', color: '#eab308' },
-  { chapterId: 'preview-3', chapterTitle: '应用理解', masteryLevel: 1, correctRate: 56, totalAttempts: 14, status: 'weak', color: '#ef4444' },
-  { chapterId: 'preview-4', chapterTitle: '综合推理', masteryLevel: 2, correctRate: 68, totalAttempts: 12, status: 'fair', color: '#eab308' },
-  { chapterId: 'preview-5', chapterTitle: '审题速度', masteryLevel: 3, correctRate: 85, totalAttempts: 22, status: 'strong', color: '#22c55e' },
-  { chapterId: 'preview-6', chapterTitle: '易错修复', masteryLevel: 1, correctRate: 49, totalAttempts: 11, status: 'weak', color: '#ef4444' },
-  { chapterId: 'preview-7', chapterTitle: '进阶变式', masteryLevel: 2, correctRate: 64, totalAttempts: 16, status: 'fair', color: '#eab308' },
-  { chapterId: 'preview-8', chapterTitle: '限时稳定', masteryLevel: 3, correctRate: 82, totalAttempts: 19, status: 'strong', color: '#22c55e' },
-  { chapterId: 'preview-9', chapterTitle: '冲刺专题', masteryLevel: 0, correctRate: 0, totalAttempts: 0, status: 'locked', color: '#6b7280' },
-];
+  {
+    chapterId: 'preview-1',
+    chapterTitle: '基础概念',
+    masteryLevel: 3,
+    correctRate: 88,
+    totalAttempts: 26,
+    status: 'strong',
+    color: '#22c55e',
+  },
+  {
+    chapterId: 'preview-2',
+    chapterTitle: '题型辨析',
+    masteryLevel: 2,
+    correctRate: 72,
+    totalAttempts: 18,
+    status: 'fair',
+    color: '#eab308',
+  },
+  {
+    chapterId: 'preview-3',
+    chapterTitle: '应用理解',
+    masteryLevel: 1,
+    correctRate: 56,
+    totalAttempts: 14,
+    status: 'weak',
+    color: '#ef4444',
+  },
+  {
+    chapterId: 'preview-4',
+    chapterTitle: '综合推理',
+    masteryLevel: 2,
+    correctRate: 68,
+    totalAttempts: 12,
+    status: 'fair',
+    color: '#eab308',
+  },
+  {
+    chapterId: 'preview-5',
+    chapterTitle: '审题速度',
+    masteryLevel: 3,
+    correctRate: 85,
+    totalAttempts: 22,
+    status: 'strong',
+    color: '#22c55e',
+  },
+  {
+    chapterId: 'preview-6',
+    chapterTitle: '易错修复',
+    masteryLevel: 1,
+    correctRate: 49,
+    totalAttempts: 11,
+    status: 'weak',
+    color: '#ef4444',
+  },
+  {
+    chapterId: 'preview-7',
+    chapterTitle: '进阶变式',
+    masteryLevel: 2,
+    correctRate: 64,
+    totalAttempts: 16,
+    status: 'fair',
+    color: '#eab308',
+  },
+  {
+    chapterId: 'preview-8',
+    chapterTitle: '限时稳定',
+    masteryLevel: 3,
+    correctRate: 82,
+    totalAttempts: 19,
+    status: 'strong',
+    color: '#22c55e',
+  },
+  {
+    chapterId: 'preview-9',
+    chapterTitle: '冲刺专题',
+    masteryLevel: 0,
+    correctRate: 0,
+    totalAttempts: 0,
+    status: 'locked',
+    color: '#6b7280',
+  },
+]
 
 const PREVIEW_FORECAST: ExamForecastType = {
   grade: 'A-',
@@ -22,7 +99,7 @@ const PREVIEW_FORECAST: ExamForecastType = {
   trend: 'UP',
   confidence: 76,
   sparklineData: [58, 62, 66, 71, 74, 79, 84],
-};
+}
 
 const PREVIEW_WEAKNESSES: ChapterWithStats[] = [
   {
@@ -89,16 +166,16 @@ const PREVIEW_WEAKNESSES: ChapterWithStats[] = [
       monthlyCorrectRate: 59,
     },
   },
-];
+]
 
 interface PracticeCoachPanelProps {
-  selectedSubjectId: string;
-  currentSubjectTitle: string;
-  chapters: ChapterWithStats[];
-  knowledgeHive: HiveNode[];
-  examForecast: ExamForecastType | null;
-  isLoading: boolean;
-  errorMessage: string | null;
+  selectedSubjectId: string
+  currentSubjectTitle: string
+  chapters: ChapterWithStats[]
+  knowledgeHive: HiveNode[]
+  examForecast: ExamForecastType | null
+  isLoading: boolean
+  errorMessage: string | null
 }
 
 export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
@@ -110,16 +187,26 @@ export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
   isLoading,
   errorMessage,
 }) => {
-  const showPreviewState = !isLoading && !errorMessage;
-  const resolvedKnowledgeHive = knowledgeHive.length > 0 ? knowledgeHive : showPreviewState ? PREVIEW_HIVE_NODES : [];
+  const showPreviewState = !isLoading && !errorMessage
+  const resolvedKnowledgeHive =
+    knowledgeHive.length > 0
+      ? knowledgeHive
+      : showPreviewState
+        ? PREVIEW_HIVE_NODES
+        : []
   const shouldUsePreviewForecast =
     showPreviewState &&
-    (!examForecast || examForecast.grade === 'N/A' || examForecast.sparklineData.length === 0);
-  const resolvedExamForecast = shouldUsePreviewForecast ? PREVIEW_FORECAST : examForecast;
-  const resolvedChapters = chapters.length > 0 ? chapters : showPreviewState ? PREVIEW_WEAKNESSES : [];
+    (!examForecast ||
+      examForecast.grade === 'N/A' ||
+      examForecast.sparklineData.length === 0)
+  const resolvedExamForecast = shouldUsePreviewForecast
+    ? PREVIEW_FORECAST
+    : examForecast
+  const resolvedChapters =
+    chapters.length > 0 ? chapters : showPreviewState ? PREVIEW_WEAKNESSES : []
 
   return (
-    <div className="space-y-2.5 xl:sticky xl:top-2.5">
+    <div className={`${pageSectionGapCompactClass} xl:sticky xl:top-2.5`}>
       <KnowledgeHive
         subjectName={currentSubjectTitle || undefined}
         nodes={resolvedKnowledgeHive}
@@ -133,5 +220,5 @@ export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
       />
       <WeaknessCard chapters={resolvedChapters} />
     </div>
-  );
-};
+  )
+}

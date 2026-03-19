@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
@@ -22,6 +23,11 @@ import {
   pageShellFrameClass,
   pageSoftInsetClass,
 } from '@/components/shared/pageSurfaces'
+import {
+  pageCardPaddingClass,
+  pageGridGapClass,
+  pageSectionGapClass,
+} from '@/components/shared/pageSpacing'
 import {
   Award,
   Brain,
@@ -77,17 +83,17 @@ export const AchievementsView = ({
 
   return (
     <div className="animate-fade-in-up pb-12">
-      <div className={`space-y-6 ${pageShellFrameClass} sm:p-2.5`}>
+      <div className={`${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}>
         <PageHeroShell
           className={pageHeroShellClass}
-          eyebrow={
-            <div className={pageBadgeClass}>
-              <span className="h-2 w-2 rounded-full bg-amber-400" />
-              Achievement Vault
+          title={
+            <div className="flex flex-wrap items-center gap-3">
+              <span>成就中心</span>
+              <HeroCapsule label="Achievement Vault" />
             </div>
           }
-          title="成就中心"
           subtitle={`查看 ${user.username || 'Student'} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`}
+          titleClassName="font-semibold"
           actions={
             <div className={pageBadgeClass}>
               <span className="h-2 w-2 rounded-full bg-cyan-400" />
@@ -120,7 +126,7 @@ export const AchievementsView = ({
           </div>
         </PageHeroShell>
 
-        <Card className={cn(pagePanelClass, 'p-6')}>
+        <Card className={cn(pagePanelClass, pageCardPaddingClass)}>
           <div className="flex items-center justify-between gap-3">
             <SectionBlockHeader
               title="成长摘要"
@@ -133,7 +139,7 @@ export const AchievementsView = ({
           </div>
         </Card>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className={`grid grid-cols-2 md:grid-cols-4 ${pageGridGapClass}`}>
           {[
             {
               label: '连胜',
@@ -156,7 +162,10 @@ export const AchievementsView = ({
               icon: Clock,
             },
           ].map((item) => (
-            <Card key={item.label} className={cn(pagePanelClass, 'p-4')}>
+            <Card
+              key={item.label}
+              className={cn(pagePanelClass, pageCardPaddingClass)}
+            >
               <item.icon className="mb-2 h-5 w-5 text-blue-500" />
               <div className={pageNumericValueCompactClass}>{item.value}</div>
               <div className={`mt-1 ${pageMetaTextClass}`}>{item.label}</div>
@@ -164,7 +173,7 @@ export const AchievementsView = ({
           ))}
         </div>
 
-        <Card className={cn(pagePanelClass, 'p-6')}>
+        <Card className={cn(pagePanelClass, pageCardPaddingClass)}>
           <div className="mb-4 flex items-start justify-between gap-4">
             <SectionBlockHeader
               title="徽章墙"
@@ -204,7 +213,8 @@ export const AchievementsView = ({
           ) : (
             <div
               className={cn(
-                'grid gap-4',
+                'grid',
+                pageGridGapClass,
                 filteredBadges.length === 1 && 'max-w-[420px] grid-cols-1',
                 filteredBadges.length === 2 &&
                   'max-w-[860px] grid-cols-1 sm:grid-cols-2',

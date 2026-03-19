@@ -16,13 +16,24 @@ import {
   Loader2,
   MessageSquare,
   Search,
-  Sparkles,
 } from 'lucide-react'
 import { FeedbackCategory, FeedbackStatus } from '@/types/feedback'
 import { toast } from 'sonner'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
-import { pageBadgeClass } from '@/components/shared/pageSurfaces'
+import {
+  pageKpiCardClass,
+  pageSectionHeaderBandClass,
+  pageSegmentedButtonCompactClass,
+  pageSegmentedControlCompactClass,
+  pageTableShellClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageHeroNumericValueClass,
+  pageKickerClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 
 const statusStyles: Record<
   FeedbackStatus,
@@ -30,25 +41,30 @@ const statusStyles: Record<
 > = {
   PENDING: {
     label: '待处理',
-    className: 'border-[#5C4520] bg-[#3B2A10] text-[#FBBF24]',
+    className:
+      'border-amber-200 dark:border-[#5C4520] bg-amber-50 dark:bg-[#3B2A10] text-amber-700 dark:text-[#FBBF24]',
     icon: <AlertCircle className="h-3 w-3" />,
   },
   IN_PROGRESS: {
     label: '处理中',
-    className: 'border-[#2B4470] bg-[#18335E] text-[#60A5FA]',
+    className:
+      'border-blue-200 dark:border-[#2B4470] bg-blue-50 dark:bg-[#18335E] text-blue-700 dark:text-[#60A5FA]',
   },
   RESOLVED: {
     label: '已解决',
-    className: 'border-[#244B37] bg-[#123125] text-[#4ADE80]',
+    className:
+      'border-green-200 dark:border-[#244B37] bg-green-50 dark:bg-[#123125] text-green-600 dark:text-[#4ADE80]',
     icon: <CheckCircle2 className="h-3 w-3" />,
   },
   REJECTED: {
     label: '已拒绝',
-    className: 'border-[#5C2B33] bg-[#31151D] text-[#F87171]',
+    className:
+      'border-rose-200 dark:border-[#5C2B33] bg-rose-50 dark:bg-[#31151D] text-rose-600 dark:text-[#F87171]',
   },
   CLOSED: {
     label: '已关闭',
-    className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+    className:
+      'border-borderTone dark:border-[#24324D] bg-surface-subtle dark:bg-[#151F36] text-text-secondary dark:text-[#8FA4C2]',
   },
 }
 
@@ -235,7 +251,7 @@ export function FeedbackList({
         key: metric.id,
         icon: Inbox,
         iconClassName: 'text-[#60A5FA]',
-        iconBgClassName: 'bg-[#18335E]',
+        iconBgClassName: 'bg-blue-100 dark:bg-[#18335E]',
         glowClassName: 'bg-[#2563EB]/20',
         borderClassName: 'border-[#2B4470]',
       }
@@ -247,7 +263,7 @@ export function FeedbackList({
         key: metric.id,
         icon: Clock3,
         iconClassName: 'text-[#FBBF24]',
-        iconBgClassName: 'bg-[#3B2A10]',
+        iconBgClassName: 'bg-amber-100 dark:bg-[#3B2A10]',
         glowClassName: 'bg-[#F59E0B]/20',
         borderClassName: 'border-[#5C4520]',
       }
@@ -259,7 +275,7 @@ export function FeedbackList({
         key: metric.id,
         icon: Filter,
         iconClassName: 'text-[#C4B5FD]',
-        iconBgClassName: 'bg-[#2A1F4A]',
+        iconBgClassName: 'bg-purple-100 dark:bg-[#2A1F4A]',
         glowClassName: 'bg-[#8B5CF6]/20',
         borderClassName: 'border-[#47306C]',
       }
@@ -270,7 +286,7 @@ export function FeedbackList({
       key: metric.id,
       icon: CheckCircle2,
       iconClassName: 'text-[#4ADE80]',
-      iconBgClassName: 'bg-[#123125]',
+      iconBgClassName: 'bg-green-100 dark:bg-[#123125]',
       glowClassName: 'bg-[#22C55E]/20',
       borderClassName: 'border-[#244B37]',
     }
@@ -290,7 +306,8 @@ export function FeedbackList({
       return {
         text: '累计',
         icon: null,
-        className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+        className:
+          'border-borderTone dark:border-[#24324D] bg-surface-subtle dark:bg-[#151F36] text-text-secondary dark:text-[#8FA4C2]',
       }
     }
 
@@ -298,7 +315,8 @@ export function FeedbackList({
       return {
         text: '0%',
         icon: null,
-        className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+        className:
+          'border-borderTone dark:border-[#24324D] bg-surface-subtle dark:bg-[#151F36] text-text-secondary dark:text-[#8FA4C2]',
       }
     }
 
@@ -308,23 +326,23 @@ export function FeedbackList({
       text: `${positive ? '+' : ''}${trend}%`,
       icon: positive ? ArrowUp : ArrowDown,
       className: positive
-        ? 'border-[#244B37] bg-[#123125] text-[#86EFAC]'
-        : 'border-[#5C2B33] bg-[#31151D] text-[#FCA5A5]',
+        ? 'border-green-200 dark:border-[#244B37] bg-green-50 dark:bg-[#123125] text-green-600 dark:text-[#86EFAC]'
+        : 'border-rose-200 dark:border-[#5C2B33] bg-rose-50 dark:bg-[#31151D] text-rose-600 dark:text-[#FCA5A5]',
     }
   }
 
   return (
-    <div className="space-y-3 text-[#E6EDF7]">
+    <div className="space-y-3 text-foreground">
       <PageHeroShell
-        className="px-4 py-4 sm:px-5 sm:py-4.5"
-        eyebrow={
-          <div className={pageBadgeClass}>
-            <Sparkles className="h-3 w-3 text-[#60A5FA]" />
-            Inbox Console
-          </div>
+        className="sm:py-4.5 px-4 py-4 sm:px-5"
+        title={
+          <>
+            <span>反馈中心</span>
+            <HeroCapsule label="Inbox Console" />
+          </>
         }
-        title="反馈中心"
         subtitle="集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。"
+        titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
       />
 
       <section className="space-y-3">
@@ -336,7 +354,7 @@ export function FeedbackList({
           />
 
           <div className="flex flex-wrap items-center gap-3 md:justify-end">
-            <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+            <div className={pageSegmentedControlCompactClass}>
               {windowOptions.map((option) => {
                 const isActive = option.key === overviewWindow
                 return (
@@ -344,10 +362,10 @@ export function FeedbackList({
                     key={option.key}
                     type="button"
                     onClick={() => setOverviewWindow(option.key)}
-                    className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                    className={`${pageSegmentedButtonCompactClass} ${
                       isActive
-                        ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                        : 'text-[#8FA4C2] hover:text-white'
+                        ? 'dark:bg-white/12 bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] dark:text-white'
+                        : 'text-text-secondary hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white'
                     }`}
                   >
                     {option.label}
@@ -357,7 +375,7 @@ export function FeedbackList({
             </div>
 
             {overview?.lastUpdated ? (
-              <span className="font-mono text-xs text-[#9FB0C9]">
+              <span className="font-mono text-xs text-text-secondary dark:text-[#9FB0C9]">
                 更新于{' '}
                 {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
               </span>
@@ -373,7 +391,7 @@ export function FeedbackList({
             return (
               <div
                 key={card.key}
-                className={`relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)] ${card.borderClassName}`}
+                className={`${pageKpiCardClass} ${card.borderClassName}`}
               >
                 <div
                   className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
@@ -383,21 +401,19 @@ export function FeedbackList({
                 <div className="relative flex h-full items-start justify-between gap-4">
                   <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
                     <div className="space-y-1.5">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
-                        {card.title}
-                      </p>
+                      <p className={pageKickerClass}>{card.title}</p>
                       <div className="flex items-end gap-2">
-                        <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
+                        <p className={pageHeroNumericValueClass}>
                           {card.value}
                         </p>
-                        <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                        <span className={`pb-1 ${pageMetaTextClass}`}>
                           {card.caption}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] text-[#8EA3C0]">
+                      <span className={pageMetaTextClass}>
                         {card.trendLabel}
                       </span>
                       <span
@@ -408,13 +424,15 @@ export function FeedbackList({
                       </span>
                     </div>
 
-                    <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                    <p
+                      className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
+                    >
                       {card.meta}
                     </p>
                   </div>
 
                   <div
-                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 ${card.iconBgClassName}`}
+                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-gray-200 dark:border-white/10 ${card.iconBgClassName}`}
                   >
                     <Icon className={`h-5 w-5 ${card.iconClassName}`} />
                   </div>
@@ -425,12 +443,14 @@ export function FeedbackList({
         </div>
 
         {isOverviewLoading ? (
-          <p className="text-xs text-[#8FA4C2]">正在刷新反馈概览...</p>
+          <p className="text-xs text-text-secondary dark:text-[#8FA4C2]">
+            正在刷新反馈概览...
+          </p>
         ) : null}
       </section>
 
-      <div className="bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
-        <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+      <div className={`${pageTableShellClass} flex min-h-[500px] flex-col`}>
+        <div className={pageSectionHeaderBandClass}>
           <div className="flex flex-col gap-3">
             <SectionBlockHeader
               title="反馈队列"
@@ -452,7 +472,7 @@ export function FeedbackList({
                       setSearch(e.target.value)
                       lastLoadedListKey.current = ''
                     }}
-                    className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-10 pr-4 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                    className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#6F86A8] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                   />
                 </div>
 
@@ -466,7 +486,7 @@ export function FeedbackList({
                         )
                         lastLoadedListKey.current = ''
                       }}
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="ALL">状态: 全部</option>
                       {Object.entries(statusStyles).map(([value, config]) => (
@@ -490,7 +510,7 @@ export function FeedbackList({
                         )
                         lastLoadedListKey.current = ''
                       }}
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="ALL">分类: 全部</option>
                       {Object.entries(categoryLabels).map(([value, label]) => (
@@ -509,7 +529,7 @@ export function FeedbackList({
                 {hasFilters ? (
                   <button
                     onClick={resetFilters}
-                    className="text-sm text-[#8FA4C2] transition-colors hover:text-white"
+                    className="text-sm text-text-secondary transition-colors hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white"
                   >
                     重置筛选
                   </button>
@@ -517,14 +537,16 @@ export function FeedbackList({
               </div>
 
               <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                <span className="text-sm text-[#8FA4C2]">
+                <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                   当前命中{' '}
-                  <span className="font-semibold text-[#F4F7FB]">
+                  <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">
                     {currentTotal}
                   </span>{' '}
                   条反馈
                 </span>
-                <span className="text-xs text-[#6F86A8]">展示最近 20 条</span>
+                <span className="text-xs text-text-tertiary dark:text-[#6F86A8]">
+                  展示最近 20 条
+                </span>
               </div>
             </div>
           </div>
@@ -533,33 +555,33 @@ export function FeedbackList({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-[#1B2840] bg-[#101A2D]">
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+              <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   用户信息
                 </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   分类
                 </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   反馈内容
                 </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   状态
                 </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   提交时间
                 </th>
-                <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   操作
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1B2840]">
+            <tbody className="divide-y divide-borderTone dark:divide-[#1B2840]">
               {isListLoading ? (
                 <tr>
                   <td colSpan={6} className="h-48">
-                    <div className="flex flex-col items-center justify-center gap-3 text-[#8FA4C2]">
-                      <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
+                    <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-[#60A5FA]" />
                       <p className="text-sm">加载反馈列表...</p>
                     </div>
                   </td>
@@ -567,13 +589,13 @@ export function FeedbackList({
               ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="h-56">
-                    <div className="flex flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+                    <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
                       <MessageSquare className="h-10 w-10 opacity-30" />
                       <div className="space-y-1 text-center">
-                        <p className="text-sm font-medium text-[#D5E0F0]">
+                        <p className="text-sm font-medium text-text-primary dark:text-[#D5E0F0]">
                           当前筛选下暂无反馈
                         </p>
-                        <p className="text-xs text-[#6F86A8]">
+                        <p className="text-xs text-text-tertiary dark:text-[#6F86A8]">
                           可以尝试切换状态、分类或清空关键词后重试。
                         </p>
                       </div>
@@ -586,28 +608,28 @@ export function FeedbackList({
                   return (
                     <tr
                       key={item.id}
-                      className="group transition-colors hover:bg-[#131F35]"
+                      className="group transition-colors hover:bg-surface-subtle dark:hover:bg-[#131F35]"
                     >
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-[#F4F7FB]">
+                          <span className="text-sm font-semibold text-text-primary dark:text-[#F4F7FB]">
                             {item.user?.username || '匿名用户'}
                           </span>
-                          <span className="font-mono text-xs text-[#8FA4C2]">
+                          <span className="font-mono text-xs text-text-secondary dark:text-[#8FA4C2]">
                             {item.email}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center rounded-full border border-[#24324D] bg-[#151F36] px-2.5 py-1 text-xs text-[#D5E0F0]">
+                        <span className="inline-flex items-center rounded-full border border-borderTone bg-surface-subtle px-2.5 py-1 text-xs text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#D5E0F0]">
                           {categoryLabels[item.category]}
                         </span>
                       </td>
                       <td className="max-w-[420px] px-6 py-4">
-                        <p className="truncate text-sm font-medium text-[#F4F7FB]">
+                        <p className="truncate text-sm font-medium text-text-primary dark:text-[#F4F7FB]">
                           {item.title}
                         </p>
-                        <p className="mt-1 truncate text-xs text-[#8FA4C2]">
+                        <p className="mt-1 truncate text-xs text-text-secondary dark:text-[#8FA4C2]">
                           {item.content}
                         </p>
                       </td>
@@ -619,12 +641,12 @@ export function FeedbackList({
                           {status.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-[#8FA4C2]">
+                      <td className="px-6 py-4 text-xs text-text-secondary dark:text-[#8FA4C2]">
                         {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <Link href={`/admin/feedback/${item.id}`}>
-                          <button className="inline-flex items-center gap-1 rounded-xl border border-[#24324D] bg-[#151F36] px-3 py-2 text-sm text-[#E6EDF7] transition-colors hover:bg-[#1A2744]">
+                          <button className="inline-flex items-center gap-1 rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]">
                             处理
                             <ChevronRight className="h-4 w-4" />
                           </button>

@@ -5,6 +5,14 @@ import { useRouter } from 'next/navigation'
 import { Hexagon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  pageBadgeClass,
+  pagePanelClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageCardTitleClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 import type { HiveNode, HiveNodeStatus } from '@/lib/practice/types'
 import { cn } from '@/lib/utils'
 
@@ -15,15 +23,14 @@ interface KnowledgeHiveProps {
   error?: string | null
 }
 
-const cardClassName =
-  'overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] text-white shadow-[0_18px_40px_rgba(2,8,23,0.28)]'
+const cardClassName = pagePanelClass
 
 /**
  * 蜂巢节点组件
  */
 const HiveCell = memo(function HiveCell({
   node,
-  onClick
+  onClick,
 }: {
   node: HiveNode
   onClick: () => void
@@ -35,14 +42,14 @@ const HiveCell = memo(function HiveCell({
     strong: 'text-green-500 hover:text-green-400',
     fair: 'text-yellow-500 hover:text-yellow-400',
     weak: 'text-red-500 hover:text-red-400',
-    locked: 'text-gray-500 hover:text-gray-400'
+    locked: 'text-gray-500 hover:text-gray-400',
   }
 
   const statusLabels: Record<HiveNodeStatus, string> = {
     strong: '掌握良好',
     fair: '有待加强',
     weak: '需要练习',
-    locked: '未开始'
+    locked: '未开始',
   }
 
   return (
@@ -54,7 +61,7 @@ const HiveCell = memo(function HiveCell({
         onFocus={() => setShowTooltip(true)}
         onBlur={() => setShowTooltip(false)}
         className={cn(
-          'transition-all duration-200 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded',
+          'transform rounded transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary/50',
           statusStyles[node.status],
           node.status === 'locked' && 'cursor-not-allowed opacity-60'
         )}
@@ -71,13 +78,11 @@ const HiveCell = memo(function HiveCell({
       {/* Tooltip */}
       {showTooltip && (
         <div
-          className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2
-                     bg-popover text-popover-foreground text-sm rounded-lg shadow-lg
-                     border border-border whitespace-nowrap"
+          className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-lg"
           role="tooltip"
         >
           <div className="font-medium">{node.chapterTitle}</div>
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="mt-1 text-xs text-muted-foreground">
             {node.status === 'locked' ? (
               '尚未练习'
             ) : (
@@ -86,10 +91,10 @@ const HiveCell = memo(function HiveCell({
               </>
             )}
           </div>
-          <div className="text-xs mt-1">
+          <div className="mt-1 text-xs">
             <span
               className={cn(
-                'inline-block px-1.5 py-0.5 rounded text-white',
+                'inline-block rounded px-1.5 py-0.5 text-white',
                 node.status === 'strong' && 'bg-green-500',
                 node.status === 'fair' && 'bg-yellow-500',
                 node.status === 'weak' && 'bg-red-500',
@@ -100,7 +105,7 @@ const HiveCell = memo(function HiveCell({
             </span>
           </div>
           {/* Tooltip arrow */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
+          <div className="absolute left-1/2 top-full -mt-px -translate-x-1/2">
             <div className="border-8 border-transparent border-t-popover" />
           </div>
         </div>
@@ -115,19 +120,14 @@ const HiveCell = memo(function HiveCell({
 const HiveRow = memo(function HiveRow({
   nodes,
   offset,
-  onNodeClick
+  onNodeClick,
 }: {
   nodes: HiveNode[]
   offset: boolean
   onNodeClick: (node: HiveNode) => void
 }) {
   return (
-    <div
-      className={cn(
-        'flex justify-center gap-1',
-        offset && 'ml-4 sm:ml-5'
-      )}
-    >
+    <div className={cn('flex justify-center gap-1', offset && 'ml-4 sm:ml-5')}>
       {nodes.map((node) => (
         <HiveCell
           key={node.chapterId}
@@ -178,20 +178,20 @@ function KnowledgeHiveInner({
     return (
       <Card className={cardClassName}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base text-white">知识蜂巢</CardTitle>
+          <CardTitle className={pageCardTitleClass}>知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center gap-2">
             {[0, 1, 2].map((row) => (
               <div
                 key={row}
-                className={cn(
-                  'flex gap-2',
-                  row % 2 === 1 && 'ml-5'
-                )}
+                className={cn('flex gap-2', row % 2 === 1 && 'ml-5')}
               >
                 {Array.from({ length: row % 2 === 0 ? 5 : 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-9 w-9 rounded bg-slate-700 sm:h-10 sm:w-10" />
+                  <Skeleton
+                    key={i}
+                    className="h-9 w-9 rounded bg-surface-subtle dark:bg-slate-700 sm:h-10 sm:w-10"
+                  />
                 ))}
               </div>
             ))}
@@ -205,12 +205,10 @@ function KnowledgeHiveInner({
     return (
       <Card className={cardClassName}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base text-white">知识蜂巢</CardTitle>
+          <CardTitle className={pageCardTitleClass}>知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="py-4 text-center text-slate-400">
-            {error}
-          </div>
+          <div className={`py-4 text-center ${pageMetaTextClass}`}>{error}</div>
         </CardContent>
       </Card>
     )
@@ -220,10 +218,10 @@ function KnowledgeHiveInner({
     return (
       <Card className={cardClassName}>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base text-white">知识蜂巢</CardTitle>
+          <CardTitle className={pageCardTitleClass}>知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="py-4 text-center text-slate-400">
+          <div className={`py-4 text-center ${pageMetaTextClass}`}>
             暂无蜂巢数据
           </div>
         </CardContent>
@@ -245,13 +243,9 @@ function KnowledgeHiveInner({
   return (
     <Card className={cardClassName}>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-base">
+        <CardTitle className="flex items-center justify-between gap-3">
           <span>知识蜂巢</span>
-          {subjectName && (
-            <span className="text-xs font-normal text-slate-400">
-              {subjectName}
-            </span>
-          )}
+          {subjectName && <span className={pageBadgeClass}>{subjectName}</span>}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
@@ -269,8 +263,8 @@ function KnowledgeHiveInner({
             <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
             <span>需要练习 ({stats.weak})</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-slate-500/20 bg-slate-500/10 px-2 py-0.5 text-slate-200">
-            <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
+          <div className="flex items-center gap-1 rounded-full border border-borderTone bg-surface-subtle px-2 py-0.5 text-text-secondary dark:border-slate-500/20 dark:bg-slate-500/10 dark:text-slate-200">
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-400" />
             <span>未开始 ({stats.locked})</span>
           </div>
         </div>
@@ -288,7 +282,7 @@ function KnowledgeHiveInner({
         </div>
 
         {/* 底部提示 */}
-        <p className="mt-3 text-center text-[11px] text-slate-400">
+        <p className={`mt-3 text-center ${pageMetaTextClass}`}>
           点击六边形可进入对应章节练习
         </p>
       </CardContent>

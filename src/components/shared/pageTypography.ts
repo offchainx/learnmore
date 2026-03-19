@@ -31,5 +31,8 @@ export const pageMetaTextClass =
 export const pageNumericValueClass =
   'mt-2 text-[22px] font-semibold tracking-tight text-text-primary dark:text-white'
 
+export const pageHeroNumericValueClass =
+  'text-[30px] font-semibold tracking-tight text-text-primary dark:text-white sm:text-[32px]'
+
 export const pageNumericValueCompactClass =
   'text-[18px] font-semibold tracking-tight text-text-primary dark:text-white'

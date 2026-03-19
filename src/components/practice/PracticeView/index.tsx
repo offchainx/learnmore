@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { DbSubject, PracticeSubjectData } from './types'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   fetchWithTimeout,
   isAbortLikeError,
@@ -26,6 +27,11 @@ import {
   pagePanelClass,
   pageShellFrameClass,
 } from '@/components/shared/pageSurfaces'
+import {
+  pageCardPaddingClass,
+  pageGridGapClass,
+  pageSectionGapClass,
+} from '@/components/shared/pageSpacing'
 import { pageHeroEyebrowClass } from '@/components/shared/pageTypography'
 
 interface PracticeCenterScreenProps {
@@ -474,20 +480,26 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       />
 
       <div
-        className={`mx-auto w-full max-w-[1820px] space-y-3 ${pageShellFrameClass} sm:p-2.5`}
+        className={`mx-auto w-full max-w-[1820px] ${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}
       >
         <PageHeroShell
-          className={pageHeroShellClass}
-          title={headerCopy.title}
+          className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
+          title={
+            <>
+              <span>{headerCopy.title}</span>
+              <HeroCapsule label="Practice" />
+            </>
+          }
           subtitle={headerCopy.subtitle}
+          titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
         />
 
         <div ref={subjectSentinelRef} className="h-px" />
         <div
-          className={`sticky top-2.5 z-30 rounded-[22px] border px-3 py-2 transition-all duration-300 ease-out ${
+          className={`sticky top-2.5 z-30 transition-all duration-300 ease-out ${
             isSubjectBarPinned
-              ? 'border-borderTone bg-surface/95 shadow-surface-lg backdrop-blur-xl dark:border-borderTone dark:bg-surface/90 dark:shadow-[0_18px_40px_rgba(2,8,23,0.36)]'
-              : 'border-transparent bg-transparent'
+              ? 'rounded-[22px] border border-borderTone bg-surface/95 px-3 py-2 shadow-surface-lg backdrop-blur-xl dark:border-borderTone dark:bg-surface/90 dark:shadow-[0_18px_40px_rgba(2,8,23,0.36)]'
+              : 'border-transparent bg-transparent px-0 py-0'
           }`}
         >
           <div className={pageHeroEyebrowClass}>{headerCopy.subjectLabel}</div>
@@ -498,9 +510,11 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
           />
         </div>
 
-        <div className="grid gap-2.5 xl:grid-cols-3">
-          <div className="space-y-2.5 xl:col-span-2">
-            <div className={`${pagePanelClass} rounded-[26px] p-[18px]`}>
+        <div className={`grid xl:grid-cols-3 ${pageGridGapClass}`}>
+          <div className={`xl:col-span-2 ${pageSectionGapClass}`}>
+            <div
+              className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
+            >
               <PracticeModeGrid
                 selectedSubjectId={selectedSubjectId}
                 currentSubjectTitle={currentSubjectTitle}
@@ -514,15 +528,19 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
               />
             </div>
 
-            <div className="grid gap-2.5 xl:grid-cols-2">
-              <div className={`${pagePanelClass} rounded-[26px] p-4`}>
+            <div className={`grid xl:grid-cols-2 ${pageGridGapClass}`}>
+              <div
+                className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
+              >
                 <ChapterProgressSection
                   chapters={subjectData.chapters}
                   isLoading={isLoadingSubjectData}
                   onPreviewChapter={openChapterPreview}
                 />
               </div>
-              <div className={`${pagePanelClass} rounded-[26px] p-4`}>
+              <div
+                className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
+              >
                 <PastPaperLibrarySection
                   selectedSubjectId={selectedSubjectId}
                   papers={subjectData.pastPapers}
