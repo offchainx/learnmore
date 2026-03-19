@@ -3,13 +3,14 @@
 import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
-import { History, Plus, RefreshCw, Sparkles, AlertTriangle } from 'lucide-react'
+import { History, Plus, RefreshCw, AlertTriangle } from 'lucide-react'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
-import { pageBadgeClass } from '@/components/shared/pageSurfaces'
+import { pageTableShellClass } from '@/components/shared/pageSurfaces'
 import { StatsCards } from '@/components/admin/content/StatsCards'
 import { BatchTable } from '@/components/admin/content/BatchTable'
 import { AuditLogDrawer } from '@/components/admin/content/AuditLogDrawer'
@@ -136,17 +137,17 @@ export function ImportClient({
   return (
     <AdminClientWrapper userRole={userRole}>
       <div className="px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 sm:p-3">
+        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
           <PageHeroShell
-            className="px-4 py-4 sm:px-5 sm:py-4.5"
-            eyebrow={
-              <div className={pageBadgeClass}>
-                <Sparkles className="h-3 w-3 text-[#60A5FA]" />
-                Import Pipeline v1.0
-              </div>
+            className="sm:py-4.5 px-4 py-4 sm:px-5"
+            title={
+              <>
+                <span>批量导入</span>
+                <HeroCapsule label="Import Pipeline v1.0" />
+              </>
             }
-            title="批量导入"
             subtitle="统一管理 PDF、图像与网页抓取导入任务。"
+            titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
             actions={
               <div className="flex flex-wrap items-center gap-3">
                 <Button
@@ -154,7 +155,7 @@ export function ImportClient({
                   size="sm"
                   onClick={handleManualRefresh}
                   disabled={isRefreshing}
-                  className="flex items-center gap-2 border-[#24324D] bg-[#151F36] text-[#E6EDF7] hover:bg-[#1A2744] hover:text-[#E6EDF7]"
+                  className="h-10 rounded-full border-borderTone bg-surface px-4 text-text-primary hover:bg-surface-subtle hover:text-text-primary"
                 >
                   <RefreshCw
                     className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
@@ -165,7 +166,7 @@ export function ImportClient({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAuditDrawerOpen(true)}
-                  className="flex items-center gap-2 border-[#24324D] bg-[#151F36] text-[#E6EDF7] hover:bg-[#1A2744] hover:text-[#E6EDF7]"
+                  className="h-10 rounded-full border-borderTone bg-surface px-4 text-text-primary hover:bg-surface-subtle hover:text-text-primary"
                 >
                   <History className="h-4 w-4" />
                   操作日志
@@ -173,7 +174,7 @@ export function ImportClient({
                 <Button
                   size="sm"
                   onClick={() => setIsImportModalOpen(true)}
-                  className="flex items-center gap-2 bg-[#3B82F6] text-white hover:bg-[#2F6FDD]"
+                  className="h-10 rounded-full bg-[#3B82F6] px-4 text-white hover:bg-[#2F6FDD]"
                 >
                   <Plus className="h-4 w-4" />
                   批量导入
@@ -187,11 +188,11 @@ export function ImportClient({
           {initialTasksError ? (
             <Alert
               variant="destructive"
-              className="border-[#7F1D1D] bg-[#2A1118] text-[#FECACA]"
+              className="border-rose-200 bg-rose-50 text-rose-700"
             >
-              <AlertTriangle className="h-4 w-4 text-[#F87171]" />
+              <AlertTriangle className="h-4 w-4 text-rose-500" />
               <AlertTitle>导入任务列表加载失败</AlertTitle>
-              <AlertDescription className="text-[#FCA5A5]">
+              <AlertDescription className="text-rose-600">
                 {initialTasksError}
                 <span className="ml-1">
                   可先点击右上角“刷新”重试；任务原始记录仍在数据库
@@ -201,13 +202,18 @@ export function ImportClient({
             </Alert>
           ) : null}
 
-          <div>
+          <div className={pageTableShellClass}>
             <SectionBlockHeader
               title="批量任务管理"
               description="查看、重试和清理所有导入批次。"
-              className="mb-3"
+              className="border-b border-borderTone px-5 py-5 dark:border-[#24324D]"
             />
-            <BatchTable batches={batches} onDataChanged={handleImportSuccess} />
+            <div className="p-4 sm:p-5">
+              <BatchTable
+                batches={batches}
+                onDataChanged={handleImportSuccess}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   AlertTriangle,
   ArrowRight,
@@ -38,6 +39,7 @@ import { getSubjectLabel } from '@/lib/subjects'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   pageCardTitleClass,
+  pageHeroNumericValueClass,
   pageKickerClass,
   pageMetaTextClass,
   pageNumericValueClass,
@@ -54,9 +56,18 @@ import {
   pagePanelClass,
   pagePillActiveClass,
   pagePillInactiveClass,
+  pageSegmentedButtonClass,
+  pageSegmentedControlClass,
   pageShellFrameClass,
   pageSoftInsetClass,
 } from '@/components/shared/pageSurfaces'
+import {
+  pageCardPaddingClass,
+  pageCardTitleGapClass,
+  pageGridGapClass,
+  pageListGapClass,
+  pageSectionGapClass,
+} from '@/components/shared/pageSpacing'
 
 const shellClassName = pagePanelClass
 
@@ -298,9 +309,7 @@ export const CoursesView = ({ t }: { t: any }) => {
   }
 
   const renderSubjectSelector = () => (
-    <div
-      className={`${pagePanelClass} relative overflow-hidden rounded-[24px] px-4 py-3`}
-    >
+    <div className="relative overflow-hidden rounded-[24px] border border-borderTone bg-surface px-4 py-3 shadow-none dark:border-borderTone dark:bg-surface">
       <div className="mb-2 text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
         {copy('选择科目', 'Select Subject')}
       </div>
@@ -312,11 +321,19 @@ export const CoursesView = ({ t }: { t: any }) => {
             <button
               key={subject.id}
               onClick={() => setSelectedSubjectId(subject.id)}
-              className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
-                isActive ? pagePillActiveClass : pagePillInactiveClass
+              className={`flex min-h-[42px] shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
+                isActive
+                  ? 'scale-[1.02] border-transparent bg-slate-900 text-white shadow-[0_12px_26px_rgba(15,23,42,0.12)] dark:bg-white dark:text-slate-950'
+                  : 'bg-white/92 border-slate-200/80 text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-slate-300 hover:bg-white hover:text-slate-700 dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700'
               }`}
             >
-              <subject.icon className="h-4 w-4" />
+              <subject.icon
+                className={`h-4 w-4 ${
+                  isActive
+                    ? 'text-white dark:text-slate-950'
+                    : 'text-slate-400 dark:text-slate-500'
+                }`}
+              />
               <span>{localizedName}</span>
             </button>
           )
@@ -326,7 +343,7 @@ export const CoursesView = ({ t }: { t: any }) => {
   )
 
   const renderCurriculum = () => (
-    <div className="animate-fade-in-up space-y-4">
+    <div className={`animate-fade-in-up ${pageSectionGapClass}`}>
       {currentSubject.chapters.map((chapter) => (
         <Card key={chapter.id} className={`${panelClassName} overflow-hidden`}>
           <button
@@ -370,7 +387,7 @@ export const CoursesView = ({ t }: { t: any }) => {
 
           {expandedChapter === chapter.id ? (
             <div className="border-t border-borderTone bg-surface-subtle/70 px-4 py-3 dark:border-borderTone dark:bg-surface-subtle/80">
-              <div className="space-y-2">
+              <div className={pageListGapClass}>
                 {chapter.sections.map((section) => {
                   const meta = getContentTypeMeta(section.contentType, copy)
                   const MetaIcon = meta.icon
@@ -464,8 +481,8 @@ export const CoursesView = ({ t }: { t: any }) => {
   )
 
   const renderSmartReview = () => (
-    <div className="animate-fade-in-up space-y-4">
-      <div className="grid gap-3 md:grid-cols-3">
+    <div className={`animate-fade-in-up ${pageSectionGapClass}`}>
+      <div className={`grid md:grid-cols-3 ${pageGridGapClass}`}>
         {[
           {
             label: copy('低信心', 'Low Confidence'),
@@ -494,7 +511,10 @@ export const CoursesView = ({ t }: { t: any }) => {
         ].map((item) => {
           const Icon = item.icon
           return (
-            <Card key={item.label} className={`${panelClassName} p-4`}>
+            <Card
+              key={item.label}
+              className={`${panelClassName} ${pageCardPaddingClass}`}
+            >
               <div
                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${item.className}`}
               >
@@ -512,8 +532,10 @@ export const CoursesView = ({ t }: { t: any }) => {
         })}
       </div>
 
-      <Card className={`${panelClassName} p-5`}>
-        <div className="mb-4 flex items-start justify-between gap-4">
+      <Card className={`${panelClassName} ${pageCardPaddingClass}`}>
+        <div
+          className={`flex items-start justify-between gap-4 ${pageCardTitleGapClass}`}
+        >
           <div>
             <h3 className="flex items-center gap-2 text-lg font-bold text-text-primary dark:text-text-primary">
               <Flame className="h-5 w-5 text-amber-300" />
@@ -537,7 +559,7 @@ export const CoursesView = ({ t }: { t: any }) => {
         </div>
 
         {reviewQueue.length > 0 ? (
-          <div className="space-y-3">
+          <div className={pageListGapClass}>
             {reviewQueue.map((section) => (
               <button
                 key={section.id}
@@ -594,8 +616,8 @@ export const CoursesView = ({ t }: { t: any }) => {
   )
 
   const renderNotebook = () => (
-    <div className="animate-fade-in-up space-y-4">
-      <Card className={`${panelClassName} p-5`}>
+    <div className={`animate-fade-in-up ${pageSectionGapClass}`}>
+      <Card className={`${panelClassName} ${pageCardPaddingClass}`}>
         <div className="dark:border-white/8 flex flex-col gap-4 border-b border-borderTone pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="scrollbar-hide flex gap-2 overflow-x-auto">
             {[
@@ -630,7 +652,7 @@ export const CoursesView = ({ t }: { t: any }) => {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3">
+        <div className={`mt-4 grid ${pageGridGapClass}`}>
           {notebookItems.length > 0 ? (
             notebookItems.map((item) => (
               <Card
@@ -752,41 +774,52 @@ export const CoursesView = ({ t }: { t: any }) => {
       <div
         className={`mx-auto w-full max-w-[1820px] ${pageShellFrameClass} sm:p-2.5`}
       >
-        <div className="space-y-3">
+        <div className={pageSectionGapClass}>
           <PageHeroShell
-            className={pageHeroShellClass}
-            title={copy('课程学习', 'Course Learning')}
+            className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
+            title={
+              <>
+                <span>{copy('课程学习', 'Course Learning')}</span>
+                <HeroCapsule label="Courses" />
+              </>
+            }
             subtitle={copy(
               '继续你的课程推进、进入复习模式，或回看当前科目的笔记与高亮。',
               'Continue your course progress, switch into review mode, or revisit your notebook for the current subject.'
             )}
+            titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
           />
 
           {renderSubjectSelector()}
 
-          <section className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)]">
-            <div className="space-y-3">
-              <Card className={`${shellClassName} overflow-hidden p-0`}>
+          <section
+            className={`grid xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)] ${pageGridGapClass}`}
+          >
+            <div className={pageSectionGapClass}>
+              <Card
+                className={`${shellClassName} overflow-hidden p-0 shadow-none`}
+              >
                 <div className="relative px-5 py-5">
-                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(12,24,44,0.92),rgba(7,16,31,0.96))]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.97),rgba(241,247,255,0.95))]" />
                   <div
                     className={`absolute inset-0 bg-gradient-to-r ${currentHeroTheme.accentClass}`}
+                    style={{ opacity: 0.2 }}
                   />
-                  <div className="absolute -right-6 -top-8 h-36 w-36 rounded-full bg-cyan-400/10 blur-3xl" />
-                  <div className="bg-sky-500/8 absolute -left-10 bottom-0 h-28 w-28 rounded-full blur-3xl" />
+                  <div className="bg-cyan-400/8 absolute -right-6 -top-8 h-36 w-36 rounded-full blur-3xl" />
+                  <div className="bg-sky-500/6 absolute -left-10 bottom-0 h-28 w-28 rounded-full blur-3xl" />
                   {currentHeroTheme.patternImage ? (
                     <div
                       className="pointer-events-none absolute inset-0 hidden xl:block"
                       style={{
                         backgroundImage: [
-                          'linear-gradient(90deg, rgba(7,16,31,0.94) 0%, rgba(7,16,31,0.90) 28%, rgba(7,16,31,0.72) 46%, rgba(7,16,31,0.36) 66%, rgba(7,16,31,0.28) 100%)',
-                          'linear-gradient(180deg, rgba(7,16,31,0.12) 0%, rgba(7,16,31,0.04) 55%, rgba(7,16,31,0.18) 100%)',
+                          'linear-gradient(90deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.92) 28%, rgba(255,255,255,0.74) 46%, rgba(255,255,255,0.34) 66%, rgba(255,255,255,0.16) 100%)',
+                          'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 55%, rgba(255,255,255,0.12) 100%)',
                           `url(${currentHeroTheme.patternImage})`,
                         ].join(','),
                         backgroundSize: 'cover, cover, cover',
                         backgroundPosition: 'center, center, center',
                         backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
-                        opacity: '0.78',
+                        opacity: '0.92',
                       }}
                     />
                   ) : null}
@@ -802,14 +835,16 @@ export const CoursesView = ({ t }: { t: any }) => {
 
                   <div className="relative flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0">
-                      <div className="inline-flex items-center rounded-full border border-blue-200 bg-surface-selected px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-700 backdrop-blur-sm dark:border-cyan-300/15 dark:bg-white/[0.07] dark:text-cyan-100">
+                      <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-700 backdrop-blur-sm dark:border-cyan-300/15 dark:bg-white/[0.07] dark:text-cyan-100">
                         {getSubjectLabel(
                           selectedSubjectId,
                           lang,
                           currentSubject.title
                         )}
                       </div>
-                      <h2 className="mt-3 text-[28px] font-semibold tracking-tight text-text-primary dark:text-white">
+                      <h2
+                        className={`mt-3 ${pageHeroNumericValueClass} text-text-primary dark:text-white`}
+                      >
                         {currentSubject.title}
                       </h2>
                       <p className="mt-1 text-[13px] leading-6 text-text-secondary dark:text-slate-200">
@@ -823,7 +858,9 @@ export const CoursesView = ({ t }: { t: any }) => {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 xl:w-[420px]">
+                    <div
+                      className={`grid grid-cols-2 xl:w-[420px] ${pageGridGapClass}`}
+                    >
                       <div
                         className={`${pageSoftInsetClass} px-4 py-3 backdrop-blur-sm ${currentHeroTheme.statBorderClass}`}
                       >
@@ -876,7 +913,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                 </div>
               </Card>
 
-              <div className="inline-flex rounded-[20px] border border-borderTone bg-surface-subtle p-1 dark:border-borderTone dark:bg-surface-subtle">
+              <div className={pageSegmentedControlClass}>
                 {[
                   {
                     key: 'curriculum' as ViewMode,
@@ -900,7 +937,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     <button
                       key={item.key}
                       onClick={() => setActiveViewMode(item.key)}
-                      className={`flex items-center gap-2 rounded-[16px] px-4 py-2.5 text-sm font-bold transition-all ${
+                      className={`${pageSegmentedButtonClass} flex items-center gap-2 ${
                         isActive
                           ? pagePillActiveClass
                           : `border border-transparent ${pagePillInactiveClass}`
@@ -920,9 +957,11 @@ export const CoursesView = ({ t }: { t: any }) => {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Card className={`${panelClassName} p-5`}>
-                <div className="mb-4 flex items-start justify-between gap-4">
+            <div className={pageSectionGapClass}>
+              <Card className={`${panelClassName} ${pageCardPaddingClass}`}>
+                <div
+                  className={`flex items-start justify-between gap-4 ${pageCardTitleGapClass}`}
+                >
                   <div>
                     <h3
                       className={`flex items-center gap-2 ${pageSectionTitleClass}`}
@@ -944,10 +983,8 @@ export const CoursesView = ({ t }: { t: any }) => {
                   <div className={pageKickerClass}>
                     {copy('目标等级', 'Target Grade')}
                   </div>
-                  <div className="mt-2 text-[28px] font-semibold tracking-tight text-text-primary dark:text-white">
-                    A*
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div className={`mt-2 ${pageHeroNumericValueClass}`}>A*</div>
+                  <div className={`mt-3 grid grid-cols-2 ${pageGridGapClass}`}>
                     <div className={`${pageSoftInsetClass} px-3 py-3`}>
                       <div className={pageKickerClass}>
                         {copy('完成进度', 'Progress')}
@@ -1019,8 +1056,10 @@ export const CoursesView = ({ t }: { t: any }) => {
               </Card>
 
               {hasLiveClass ? (
-                <Card className={`${panelClassName} p-5`}>
-                  <div className="mb-3 flex items-start justify-between gap-4">
+                <Card className={`${panelClassName} ${pageCardPaddingClass}`}>
+                  <div
+                    className={`flex items-start justify-between gap-4 ${pageCardTitleGapClass}`}
+                  >
                     <div>
                       <h3 className={pageSectionTitleClass}>
                         {copy('下一节直播课', 'Next Live Class')}
@@ -1060,7 +1099,9 @@ export const CoursesView = ({ t }: { t: any }) => {
                   </div>
                 </Card>
               ) : (
-                <Card className={`${panelClassName} p-5 text-center`}>
+                <Card
+                  className={`${panelClassName} text-center ${pageCardPaddingClass}`}
+                >
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-subtle text-text-tertiary dark:bg-white/[0.06] dark:text-slate-400">
                     <Coffee className="h-6 w-6" />
                   </div>

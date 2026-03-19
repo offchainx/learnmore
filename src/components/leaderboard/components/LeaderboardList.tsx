@@ -13,6 +13,8 @@ import {
   pagePanelStrongClass,
   pagePillActiveClass,
   pagePillInactiveClass,
+  pageSegmentedButtonCompactClass,
+  pageSegmentedControlCompactClass,
   pageSoftInsetClass,
 } from '@/components/shared/pageSurfaces'
 import {
@@ -93,16 +95,22 @@ export function LeaderboardList({
   const currentUser = listData.find((user) => user.isMe)
 
   return (
-    <div className={cn(pagePanelStrongClass, 'flex h-full min-h-[520px] flex-col overflow-hidden rounded-[30px]')}>
+    <div
+      className={cn(
+        pagePanelStrongClass,
+        'flex h-full min-h-[520px] flex-col overflow-hidden rounded-[30px]'
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-borderTone/80 px-5 py-4 dark:border-borderTone">
         <div className="flex items-center gap-3">
           <h3 className={pageSectionTitleClass}>{title}</h3>
-          <div className={cn(pageSoftInsetClass, 'flex rounded-full p-1')}>
+          <div className={pageSegmentedControlCompactClass}>
             <button
               type="button"
               onClick={() => onTabChange('global')}
               className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
+                pageSegmentedButtonCompactClass,
+                'rounded-full text-xs',
                 activeTab === 'global'
                   ? `${pagePillActiveClass} shadow-surface`
                   : pagePillInactiveClass
@@ -114,7 +122,8 @@ export function LeaderboardList({
               type="button"
               onClick={() => onTabChange('friends')}
               className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
+                pageSegmentedButtonCompactClass,
+                'rounded-full text-xs',
                 activeTab === 'friends'
                   ? `${pagePillActiveClass} shadow-surface`
                   : pagePillInactiveClass
@@ -126,14 +135,15 @@ export function LeaderboardList({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className={cn(pageSoftInsetClass, 'flex rounded-full p-1')}>
+          <div className={pageSegmentedControlCompactClass}>
             {(Object.keys(periodLabels) as PeriodKey[]).map((value) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => onPeriodChange(value)}
                 className={cn(
-                  'rounded-full px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
+                  pageSegmentedButtonCompactClass,
+                  'rounded-full text-xs',
                   period === value
                     ? `${pagePillActiveClass} shadow-surface`
                     : pagePillInactiveClass
@@ -154,7 +164,9 @@ export function LeaderboardList({
         </div>
       </div>
 
-      <div className={`grid grid-cols-[80px_minmax(0,1fr)_120px] items-center gap-3 border-b border-borderTone/80 px-5 py-3 ${pageKickerClass} dark:border-borderTone`}>
+      <div
+        className={`grid grid-cols-[80px_minmax(0,1fr)_120px] items-center gap-3 border-b border-borderTone/80 px-5 py-3 ${pageKickerClass} dark:border-borderTone`}
+      >
         <div className="text-center">{rankLabel}</div>
         <div>{studentLabel}</div>
         <div className="text-right">{xpLabel}</div>
@@ -163,7 +175,9 @@ export function LeaderboardList({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
           <div className="space-y-2 px-5 py-4">
-            <div className="pb-2 text-sm text-text-secondary dark:text-text-secondary">{loadingLabel}</div>
+            <div className="pb-2 text-sm text-text-secondary dark:text-text-secondary">
+              {loadingLabel}
+            </div>
             {Array.from({ length: 6 }).map((_, index) => (
               <div
                 key={`skeleton-${index}`}
@@ -182,7 +196,9 @@ export function LeaderboardList({
             ))}
           </div>
         ) : listData.length === 0 ? (
-          <div className="px-5 py-8 text-sm text-text-secondary dark:text-text-secondary">{emptyLabel}</div>
+          <div className="px-5 py-8 text-sm text-text-secondary dark:text-text-secondary">
+            {emptyLabel}
+          </div>
         ) : (
           listData.map((user) => {
             const isPromotion = user.status === 'promotion'
@@ -229,7 +245,9 @@ export function LeaderboardList({
                       src={user.avatar}
                       alt={user.name}
                       className={`h-10 w-10 rounded-2xl border object-cover ${
-                        user.isMe ? 'border-blue-300/70 dark:border-blue-400/40' : 'border-borderTone dark:border-borderTone'
+                        user.isMe
+                          ? 'border-blue-300/70 dark:border-blue-400/40'
+                          : 'border-borderTone dark:border-borderTone'
                       }`}
                     />
                     <div className="min-w-0 flex-1">
@@ -238,18 +256,20 @@ export function LeaderboardList({
                           {user.name}
                         </div>
                         {user.isMe ? (
-                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-blue-500/18 dark:text-sky-100">
+                          <span className="dark:bg-blue-500/18 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:text-sky-100">
                             {youBadge}
                           </span>
                         ) : null}
                         {user.isRival ? (
-                          <span className="flex shrink-0 items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:border-red-400/20 dark:bg-red-500/8 dark:text-red-100">
+                          <span className="dark:bg-red-500/8 flex shrink-0 items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:border-red-400/20 dark:text-red-100">
                             <Sword className="h-3 w-3" />
                             {rivalBadge}
                           </span>
                         ) : null}
                       </div>
-                      <div className={`mt-1 flex items-center gap-2 ${pageMetaTextClass}`}>
+                      <div
+                        className={`mt-1 flex items-center gap-2 ${pageMetaTextClass}`}
+                      >
                         {isPromotion ? (
                           <span className="text-emerald-400">
                             {promotionZoneLabel}
@@ -279,7 +299,7 @@ export function LeaderboardList({
       </div>
 
       {currentUser && !loading ? (
-        <div className="border-t border-blue-200 bg-state-info-bg px-5 py-3 dark:border-blue-400/20 dark:bg-blue-500/8">
+        <div className="dark:bg-blue-500/8 border-t border-blue-200 bg-state-info-bg px-5 py-3 dark:border-blue-400/20">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-sm font-semibold text-text-primary dark:text-white">

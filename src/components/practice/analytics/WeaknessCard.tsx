@@ -1,116 +1,153 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { AlertOctagon, Play } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import type { ChapterWithStats } from '@/lib/practice/types';
+import React, { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { AlertOctagon, Play } from 'lucide-react'
+
+import { Card } from '@/components/ui/card'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import {
+  pageEmptyStateClass,
+  pageInteractiveRowClass,
+  pagePanelClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageCardTitleClass,
+  pageKickerClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
+import {
+  pageCardPaddingCompactClass,
+  pageListGapClass,
+  pageListItemMinHeightClass,
+} from '@/components/shared/pageSpacing'
+import type { ChapterWithStats } from '@/lib/practice/types'
 
 interface WeaknessCardProps {
-  chapters: ChapterWithStats[];
+  chapters: ChapterWithStats[]
 }
 
-const WEAKNESS_PER_PAGE = 4;
+const WEAKNESS_PER_PAGE = 4
 
 export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
-  const router = useRouter();
-  const cardClassName =
-    'rounded-[26px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.94),rgba(2,6,23,0.98))] p-4 text-white shadow-[0_18px_40px_rgba(2,8,23,0.28)]';
+  const router = useRouter()
 
-  // 筛选薄弱点逻辑：
-  // 1. 至少答题 5 次
-  // 2. 正确率 < 70%
-  // 3. 按正确率升序排序
   const weaknesses = chapters
-    .filter(c => c.stats.totalAttempts >= 5 && c.stats.masteryLevel < 70)
-    .sort((a, b) => a.stats.masteryLevel - b.stats.masteryLevel);
-  const [page, setPage] = useState(0);
+    .filter(
+      (chapter) =>
+        chapter.stats.totalAttempts >= 5 && chapter.stats.masteryLevel < 70
+    )
+    .sort((a, b) => a.stats.masteryLevel - b.stats.masteryLevel)
 
-  const totalPages = Math.max(1, Math.ceil(weaknesses.length / WEAKNESS_PER_PAGE));
+  const [page, setPage] = useState(0)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(weaknesses.length / WEAKNESS_PER_PAGE)
+  )
   const visibleWeaknesses = useMemo(
-    () => weaknesses.slice(page * WEAKNESS_PER_PAGE, (page + 1) * WEAKNESS_PER_PAGE),
-    [weaknesses, page],
-  );
+    () =>
+      weaknesses.slice(
+        page * WEAKNESS_PER_PAGE,
+        (page + 1) * WEAKNESS_PER_PAGE
+      ),
+    [weaknesses, page]
+  )
 
   useEffect(() => {
-    setPage(0);
-  }, [weaknesses.length]);
+    setPage(0)
+  }, [weaknesses.length])
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (totalPages <= 1) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? 1 : -1;
-    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)));
-  };
-
-  if (weaknesses.length === 0) {
-    return (
-      <Card className={cardClassName}>
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-white">
-           <AlertOctagon className="w-4 h-4 text-green-500" /> 薄弱点快修
-        </h3>
-        <div className="py-4 text-center text-sm text-slate-400">
-          当前没有明显薄弱点，继续保持练习节奏。
-        </div>
-      </Card>
-    );
+    if (totalPages <= 1) return
+    event.preventDefault()
+    const direction = event.deltaY > 0 ? 1 : -1
+    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)))
   }
 
   return (
-     <Card className={cardClassName}>
-        <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-white">
-           <AlertOctagon className="w-4 h-4 text-red-500" /> 薄弱点快修
-        </h3>
-        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-slate-300">
+    <Card className={`${pagePanelClass} ${pageCardPaddingCompactClass}`}>
+      <div className="flex items-start justify-between gap-3">
+        <SectionBlockHeader
+          title={
+            <span className={`flex items-center gap-2 ${pageCardTitleClass}`}>
+              <AlertOctagon className="h-4 w-4 text-rose-400" />
+              薄弱点快修
+            </span>
+          }
+          description="默认展示 4 条，滚动滑鼠滚轮可切到下一组需优先补强的章节。"
+          className="flex-1"
+        />
+        <span className="rounded-full border border-borderTone bg-surface-subtle px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary">
           {weaknesses.length} 条
         </span>
+      </div>
+
+      {weaknesses.length === 0 ? (
+        <div className={`${pageEmptyStateClass} mt-4`}>
+          <div className={pageCardTitleClass}>当前没有明显薄弱点</div>
+          <p className={`mx-auto mt-2 max-w-sm ${pageMetaTextClass}`}>
+            继续保持训练节奏，系统会在出现连续失分章节时优先提示你回来补强。
+          </p>
         </div>
-        <p className="mb-3 text-[12px] leading-5 text-slate-400">
-          默认展示 4 条，滚动滑鼠滚轮可一次切换下一组薄弱点。
-        </p>
-        <div className="mb-3 flex gap-1">
-          {Array.from({ length: totalPages }).map((_, index) => (
-            <span
-              key={index}
-              className={`h-1.5 rounded-full transition-all ${index === page ? 'w-4 bg-white' : 'w-1.5 bg-white/20'}`}
-            />
-          ))}
-        </div>
-        <div className="space-y-2.5" onWheel={handleWheel}>
-           {visibleWeaknesses.map((chapter) => (
-              <div 
-                key={chapter.id} 
-                className="group flex cursor-pointer items-center justify-between rounded-2xl border border-white/8 bg-white/5 p-3 transition-all hover:border-red-500/20 hover:bg-white/8"
-                onClick={() => router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)}
-              >
-                 <div className="flex-1 min-w-0 pr-2">
-                    <div className="truncate text-sm font-bold text-white transition-colors group-hover:text-red-200">
-                      {chapter.title}
-                    </div>
-                    <div className="mt-1 text-[10px] font-bold uppercase text-red-300">
-                      掌握度 {chapter.stats.masteryLevel}%
-                    </div>
-                 </div>
-                 <Button 
-                    size="sm" 
-                    className="h-8 shrink-0 rounded-xl border border-red-500/20 bg-red-500/10 px-3 text-[10px] font-black uppercase text-red-200 transition-all hover:bg-red-500 hover:text-white"
-                 >
-                    去补强 <Play className="w-2.5 h-2.5 ml-1 fill-current" />
-                 </Button>
-              </div>
-           ))}
-           {visibleWeaknesses.length < WEAKNESS_PER_PAGE &&
-            Array.from({ length: WEAKNESS_PER_PAGE - visibleWeaknesses.length }).map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="flex h-[68px] items-center justify-center rounded-2xl border border-dashed border-white/8 bg-white/[0.03]"
-              >
-                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
-                  已到列表底部
-                </span>
-              </div>
+      ) : (
+        <>
+          <div className="mt-4 flex gap-1">
+            {Array.from({ length: totalPages }).map((_, index) => (
+              <span
+                key={index}
+                className={`h-1.5 rounded-full transition-all ${
+                  index === page
+                    ? 'w-4 bg-blue-500 dark:bg-white'
+                    : 'w-1.5 bg-slate-300 dark:bg-white/20'
+                }`}
+              />
             ))}
-        </div>
-     </Card>
-  );
-};
+          </div>
+
+          <div className={`mt-4 ${pageListGapClass}`} onWheel={handleWheel}>
+            {visibleWeaknesses.map((chapter) => (
+              <button
+                key={chapter.id}
+                type="button"
+                onClick={() =>
+                  router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)
+                }
+                className={`${pageInteractiveRowClass} ${pageListItemMinHeightClass} justify-between`}
+              >
+                <div className="min-w-0 flex-1 pr-2">
+                  <div className={`truncate ${pageCardTitleClass}`}>
+                    {chapter.title}
+                  </div>
+                  <div className={`mt-1 ${pageKickerClass}`}>
+                    掌握度 {chapter.stats.masteryLevel}% · 最近{' '}
+                    {chapter.stats.recentAttempts} 次练习
+                  </div>
+                  <div className={`mt-1 ${pageMetaTextClass}`}>
+                    共作答 {chapter.stats.totalAttempts}{' '}
+                    次，建议先回到章节训练修复高频失分点。
+                  </div>
+                </div>
+
+                <span className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-surface">
+                  去补强
+                  <Play className="ml-1 h-3 w-3 fill-current" />
+                </span>
+              </button>
+            ))}
+
+            {visibleWeaknesses.length < WEAKNESS_PER_PAGE
+              ? Array.from({
+                  length: WEAKNESS_PER_PAGE - visibleWeaknesses.length,
+                }).map((_, index) => (
+                  <div
+                    key={`empty-${index}`}
+                    className={`flex ${pageListItemMinHeightClass} items-center justify-center rounded-[22px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
+                  >
+                    <span className={pageKickerClass}>已到列表底部</span>
+                  </div>
+                ))
+              : null}
+          </div>
+        </>
+      )}
+    </Card>
+  )
+}

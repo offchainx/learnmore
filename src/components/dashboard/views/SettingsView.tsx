@@ -25,6 +25,7 @@ import {
 import { cancelSubscriptionAction } from '@/actions/billing/stripe'
 import { toast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   pageCardTitleClass,
@@ -1227,13 +1228,12 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       <div className={`${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}>
         <PageHeroShell
           className={`${pagePanelStrongClass} ${pageHeroShellClass}`}
-          eyebrow={
-            <div className={pageBadgeClass}>
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              {copy.heroBadge}
+          title={
+            <div className="flex flex-wrap items-center gap-3">
+              <span>{copy.heroTitle}</span>
+              <HeroCapsule label={copy.heroBadge} />
             </div>
           }
-          title={copy.heroTitle}
           subtitle={copy.heroSub}
           titleClassName="font-semibold"
           subtitleClassName="text-[13px] leading-6 text-text-secondary dark:text-text-secondary"
@@ -1458,9 +1458,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                             <button
                               key={option.id}
                               type="button"
-                              onClick={() =>
-                                setProfileTheme(option.id as ThemePreference)
-                              }
+                              onClick={() => {
+                                const nextTheme = option.id as ThemePreference
+                                setProfileTheme(nextTheme)
+                                setThemePreference(nextTheme)
+                              }}
                               className={cn(
                                 choiceButtonClass,
                                 profileTheme === option.id

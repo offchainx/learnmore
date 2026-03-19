@@ -1,20 +1,10 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  AlertCircle,
-  CheckCircle2,
-  ClipboardCheck,
-  Clock3,
-  Search,
-  Siren,
-} from 'lucide-react'
+import { AlertCircle, CheckCircle2, Clock3, Search, Siren } from 'lucide-react'
 import { useApp } from '@/providers'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from '@/components/ui/card'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -24,7 +14,18 @@ import {
 } from '@/components/ui/select'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
-import { pageBadgeClass } from '@/components/shared/pageSurfaces'
+import {
+  pageKpiCardClass,
+  pageSectionHeaderBandClass,
+  pageSegmentedButtonCompactClass,
+  pageSegmentedControlCompactClass,
+  pageTableShellClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageHeroNumericValueClass,
+  pageKickerClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 import { ReportDetailsDrawer } from './ReportDetailsDrawer'
 import { ReportsTable } from './ReportsTable'
 import { MOCK_REPORTS } from './constants'
@@ -159,9 +160,9 @@ export const ReportsClient: React.FC = () => {
       meta: text.stats.openQueueHint,
       icon: Clock3,
       iconClassName: 'text-[#FBBF24]',
-      iconBgClassName: 'bg-[#3B2A10]',
+      iconBgClassName: 'bg-amber-100',
       glowClassName: 'bg-[#F59E0B]/20',
-      borderClassName: 'border-[#5C4520]',
+      borderClassName: 'border-amber-200',
     },
     {
       key: 'resolved',
@@ -171,9 +172,9 @@ export const ReportsClient: React.FC = () => {
       meta: text.stats.resolvedInRangeHint,
       icon: CheckCircle2,
       iconClassName: 'text-[#4ADE80]',
-      iconBgClassName: 'bg-[#123125]',
+      iconBgClassName: 'bg-green-100',
       glowClassName: 'bg-[#22C55E]/20',
-      borderClassName: 'border-[#244B37]',
+      borderClassName: 'border-green-200',
     },
     {
       key: 'avg',
@@ -183,9 +184,9 @@ export const ReportsClient: React.FC = () => {
       meta: text.stats.avgResolutionHint,
       icon: AlertCircle,
       iconClassName: 'text-[#60A5FA]',
-      iconBgClassName: 'bg-[#18335E]',
+      iconBgClassName: 'bg-blue-100',
       glowClassName: 'bg-[#2563EB]/20',
-      borderClassName: 'border-[#2B4470]',
+      borderClassName: 'border-blue-200',
     },
     {
       key: 'answer',
@@ -195,9 +196,9 @@ export const ReportsClient: React.FC = () => {
       meta: text.stats.answerWrongHint,
       icon: Siren,
       iconClassName: 'text-[#C4B5FD]',
-      iconBgClassName: 'bg-[#2A1F4A]',
+      iconBgClassName: 'bg-violet-100',
       glowClassName: 'bg-[#8B5CF6]/20',
-      borderClassName: 'border-[#47306C]',
+      borderClassName: 'border-violet-200',
     },
   ] as const
 
@@ -210,17 +211,17 @@ export const ReportsClient: React.FC = () => {
 
   return (
     <div className="px-3 py-2 sm:px-4 sm:py-3">
-      <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3">
+      <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
         <PageHeroShell
-          className="px-4 py-4 sm:px-5 sm:py-4.5"
-          eyebrow={
-            <div className={pageBadgeClass}>
-              <ClipboardCheck className="h-3 w-3 text-[#60A5FA]" />
-              {text.header.badge}
-            </div>
+          className="sm:py-4.5 px-4 py-4 sm:px-5"
+          title={
+            <>
+              <span>{text.header.title}</span>
+              <HeroCapsule label={text.header.badge} />
+            </>
           }
-          title={text.header.title}
           subtitle={text.header.description}
+          titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
         />
 
         <section className="space-y-3">
@@ -231,7 +232,7 @@ export const ReportsClient: React.FC = () => {
               className="flex-1"
             />
 
-            <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+            <div className={pageSegmentedControlCompactClass}>
               {[
                 { key: '7d', label: text.header.range7d },
                 { key: '30d', label: text.header.range30d },
@@ -243,10 +244,10 @@ export const ReportsClient: React.FC = () => {
                     key={range.key}
                     type="button"
                     onClick={() => setTimeRange(range.key as RangeKey)}
-                    className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                    className={`${pageSegmentedButtonCompactClass} ${
                       isActive
-                        ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                        : 'text-[#8FA4C2] hover:text-white'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     {range.label}
@@ -262,7 +263,7 @@ export const ReportsClient: React.FC = () => {
               return (
                 <div
                   key={card.key}
-                  className={`relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)] ${card.borderClassName}`}
+                  className={`${pageKpiCardClass} ${card.borderClassName}`}
                 >
                   <div
                     className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
@@ -272,25 +273,25 @@ export const ReportsClient: React.FC = () => {
                   <div className="relative flex h-full items-start justify-between gap-4">
                     <div className="flex min-h-[120px] flex-1 flex-col justify-between gap-3">
                       <div className="space-y-1.5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
-                          {card.title}
-                        </p>
+                        <p className={pageKickerClass}>{card.title}</p>
                         <div className="flex items-end gap-2">
-                          <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
+                          <p className={pageHeroNumericValueClass}>
                             {card.value}
                           </p>
-                          <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                          <span className={`pb-1 ${pageMetaTextClass}`}>
                             {card.caption}
                           </span>
                         </div>
                       </div>
-                      <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                      <p
+                        className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
+                      >
                         {card.meta}
                       </p>
                     </div>
 
                     <div
-                      className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 ${card.iconBgClassName}`}
+                      className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/60 ${card.iconBgClassName}`}
                     >
                       <Icon className={`h-5 w-5 ${card.iconClassName}`} />
                     </div>
@@ -301,8 +302,8 @@ export const ReportsClient: React.FC = () => {
           </div>
         </section>
 
-        <Card className="bg-[#0F172A]/96 overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
-          <CardHeader className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+        <Card className={pageTableShellClass}>
+          <CardHeader className={pageSectionHeaderBandClass}>
             <div className="flex flex-col gap-3">
               <SectionBlockHeader
                 title={text.filters.queueTitle}
@@ -311,13 +312,13 @@ export const ReportsClient: React.FC = () => {
 
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div className="relative w-full xl:max-w-[460px]">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6F84A2]" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder={text.filters.searchPlaceholder}
-                    className="h-11 w-full rounded-2xl border border-[#24324D] bg-[#121C32] pl-10 pr-4 text-sm text-[#E6EDF7] placeholder:text-[#6F84A2] focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:ring-offset-2 focus:ring-offset-[#0F172A]"
+                    className="h-11 w-full rounded-2xl border border-borderTone bg-surface pl-10 pr-4 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-page"
                   />
                 </div>
 
@@ -328,10 +329,10 @@ export const ReportsClient: React.FC = () => {
                       setIssueFilter(value as IssueFilter)
                     }
                   >
-                    <SelectTrigger className="w-[200px] rounded-2xl border-[#24324D] bg-[#151F36] text-[#E6EDF7] hover:bg-[#1A2744] focus:ring-[#60A5FA] focus:ring-offset-[#0F172A] data-[placeholder]:text-[#8FA4C2]">
+                    <SelectTrigger className="w-[200px] rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/20 focus:ring-offset-page data-[placeholder]:text-text-tertiary">
                       <SelectValue placeholder={text.filters.issueLabel} />
                     </SelectTrigger>
-                    <SelectContent className="border-[#24324D] bg-[#151F36] text-[#E6EDF7]">
+                    <SelectContent className="border-borderTone bg-surface text-text-primary">
                       <SelectItem value="ALL">
                         {text.filters.issueAll}
                       </SelectItem>
@@ -347,7 +348,7 @@ export const ReportsClient: React.FC = () => {
                     </SelectContent>
                   </Select>
 
-                  <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+                  <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl border border-borderTone bg-surface-subtle p-1">
                     {statusTabs.map((tab) => {
                       const isActive = statusFilter === tab.key
                       return (
@@ -357,8 +358,8 @@ export const ReportsClient: React.FC = () => {
                           onClick={() => setStatusFilter(tab.key)}
                           className={`rounded-xl px-3 py-1.5 text-sm transition-colors ${
                             isActive
-                              ? 'bg-[#1E2C47] text-white shadow-[inset_0_0_0_1px_rgba(96,165,250,0.2)]'
-                              : 'text-[#8FA4C2] hover:text-white'
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-text-secondary hover:text-text-primary'
                           }`}
                         >
                           {tab.label}

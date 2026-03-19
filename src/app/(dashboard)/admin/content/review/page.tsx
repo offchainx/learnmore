@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   getContentStats,
   getQuestions,
@@ -17,7 +18,6 @@ import { redirect } from 'next/navigation'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
-  pageBadgeClass,
   pageKpiCardClass,
   pagePillActiveClass,
   pagePillInactiveClass,
@@ -31,14 +31,7 @@ import {
   pageKickerClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
-import {
-  AlertCircle,
-  ClipboardCheck,
-  Clock3,
-  FolderKanban,
-  RefreshCcw,
-  Sparkles,
-} from 'lucide-react'
+import { AlertCircle, Clock3, FolderKanban, RefreshCcw } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -209,17 +202,17 @@ export default async function AdminContentPage({
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary sm:p-3 dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7]">
+        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7] sm:p-3">
           <PageHeroShell
             className="sm:py-4.5 px-4 py-4 sm:px-5"
-            eyebrow={
-              <div className={pageBadgeClass}>
-                <ClipboardCheck className="h-3 w-3 text-blue-600 dark:text-[#60A5FA]" />
-                Review Console
-              </div>
+            title={
+              <>
+                <span>内容管理</span>
+                <HeroCapsule label="Review Console" />
+              </>
             }
-            title="内容管理"
             subtitle="审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。"
+            titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
           />
 
           <section className="space-y-3">
@@ -242,9 +235,7 @@ export default async function AdminContentPage({
                       key={range.key}
                       href={buildRangeHref(range.key as '7d' | '30d' | 'all')}
                       className={`${pageSegmentedButtonCompactClass} ${
-                        isActive
-                          ? pagePillActiveClass
-                          : pagePillInactiveClass
+                        isActive ? pagePillActiveClass : pagePillInactiveClass
                       }`}
                     >
                       {range.label}

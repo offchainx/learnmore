@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   Bookmark,
   Bot,
@@ -36,14 +37,12 @@ import {
   isAbortLikeError,
 } from '@/lib/http/fetch-with-timeout'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageCardTitleClass,
   pageMetaTextClass,
-  pageSectionDescriptionClass,
-  pageSectionTitleClass,
 } from '@/components/shared/pageTypography'
 import {
-  pageBadgeClass,
   pageBadgeMutedClass,
   pageEmptyStateClass,
   pageHeroShellClass,
@@ -52,8 +51,15 @@ import {
   pagePanelClass,
   pagePillActiveClass,
   pagePillInactiveClass,
+  pageSegmentedButtonClass,
+  pageSegmentedControlClass,
   pageShellFrameClass,
 } from '@/components/shared/pageSurfaces'
+import {
+  pageGridGapClass,
+  pageSectionGapClass,
+  pageSectionGapCompactClass,
+} from '@/components/shared/pageSpacing'
 
 type SubjectOption = Awaited<ReturnType<typeof getCategories>>[number]
 
@@ -709,16 +715,13 @@ export function CommunityView({
 
   return (
     <div className="animate-fade-in-up pb-12">
-      <div className={`space-y-6 ${pageShellFrameClass} sm:p-2.5`}>
+      <div className={`${pageSectionGapClass} ${pageShellFrameClass} sm:p-2.5`}>
         <PageHeroShell
           className={`${surfaceClassName} ${pageHeroShellClass}`}
           title={
             <div className="flex flex-wrap items-center gap-3">
               <span>{t.community.title}</span>
-              <div className={pageBadgeClass}>
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                {copy.badge}
-              </div>
+              <HeroCapsule label={copy.badge} />
             </div>
           }
           subtitle={t.community.sub}
@@ -750,11 +753,15 @@ export function CommunityView({
           }
         />
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)]">
-          <div className="space-y-4">
+        <div
+          className={`grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] ${pageGridGapClass}`}
+        >
+          <div className={pageSectionGapCompactClass}>
             <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex flex-wrap items-center gap-2">
+                <div
+                  className={`flex flex-wrap items-center gap-2 ${pageSegmentedControlClass}`}
+                >
                   {[
                     { key: 'all' as ScopeFilter, label: copy.all },
                     { key: 'following' as ScopeFilter, label: copy.following },
@@ -763,7 +770,7 @@ export function CommunityView({
                     <button
                       key={item.key}
                       onClick={() => setScopeFilter(item.key)}
-                      className={`rounded-full border px-4 py-2 text-[13px] font-medium transition-all ${
+                      className={`${pageSegmentedButtonClass} rounded-full text-[13px] ${
                         scopeFilter === item.key
                           ? pagePillActiveClass
                           : pagePillInactiveClass
@@ -954,22 +961,21 @@ export function CommunityView({
               : null}
           </div>
 
-          <div className="space-y-4">
+          <div className={pageSectionGapCompactClass}>
             <Card className={`${surfaceClassName} p-5`}>
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div
-                    className={`flex items-center gap-2 ${pageCardTitleClass}`}
-                  >
-                    <Mic className="h-4 w-4 text-emerald-300" />
-                    {copy.roomsTitle}
-                  </div>
-                  <div
-                    className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
-                  >
-                    {copy.roomsSub}
-                  </div>
-                </div>
+                <SectionBlockHeader
+                  title={
+                    <span
+                      className={`flex items-center gap-2 ${pageCardTitleClass}`}
+                    >
+                      <Mic className="h-4 w-4 text-emerald-300" />
+                      {copy.roomsTitle}
+                    </span>
+                  }
+                  description={copy.roomsSub}
+                  className="flex-1"
+                />
                 <span className="dark:bg-emerald-400/12 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-medium text-emerald-700 dark:border-emerald-400/30 dark:text-emerald-200">
                   {copy.liveNow}
                 </span>
@@ -1018,19 +1024,17 @@ export function CommunityView({
             </Card>
 
             <Card className={`${surfaceClassName} p-5`}>
-              <div>
-                <div
-                  className={`flex items-center gap-2 ${pageCardTitleClass}`}
-                >
-                  <Hash className="h-4 w-4 text-sky-300" />
-                  {copy.boardsTitle}
-                </div>
-                <div
-                  className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
-                >
-                  {copy.boardsSub}
-                </div>
-              </div>
+              <SectionBlockHeader
+                title={
+                  <span
+                    className={`flex items-center gap-2 ${pageCardTitleClass}`}
+                  >
+                    <Hash className="h-4 w-4 text-sky-300" />
+                    {copy.boardsTitle}
+                  </span>
+                }
+                description={copy.boardsSub}
+              />
 
               <div className="mt-4 space-y-4">
                 {boardGroups.map((group) => (
@@ -1071,19 +1075,17 @@ export function CommunityView({
             </Card>
 
             <Card className={`${surfaceClassName} p-5`}>
-              <div>
-                <div
-                  className={`flex items-center gap-2 ${pageCardTitleClass}`}
-                >
-                  <Crown className="h-4 w-4 text-amber-300" />
-                  {copy.contributorsTitle}
-                </div>
-                <div
-                  className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
-                >
-                  {copy.contributorsSub}
-                </div>
-              </div>
+              <SectionBlockHeader
+                title={
+                  <span
+                    className={`flex items-center gap-2 ${pageCardTitleClass}`}
+                  >
+                    <Crown className="h-4 w-4 text-amber-300" />
+                    {copy.contributorsTitle}
+                  </span>
+                }
+                description={copy.contributorsSub}
+              />
 
               <div className="mt-4 space-y-3">
                 {contributors.map((user, index) => (
@@ -1133,19 +1135,17 @@ export function CommunityView({
             </Card>
 
             <Card className={`${surfaceClassName} p-5`}>
-              <div>
-                <div
-                  className={`flex items-center gap-2 ${pageCardTitleClass}`}
-                >
-                  <Flame className="h-4 w-4 text-orange-300" />
-                  {copy.hotTopicsTitle}
-                </div>
-                <div
-                  className={`mt-1 text-text-secondary dark:text-text-secondary ${pageMetaTextClass}`}
-                >
-                  {copy.hotTopicsSub}
-                </div>
-              </div>
+              <SectionBlockHeader
+                title={
+                  <span
+                    className={`flex items-center gap-2 ${pageCardTitleClass}`}
+                  >
+                    <Flame className="h-4 w-4 text-orange-300" />
+                    {copy.hotTopicsTitle}
+                  </span>
+                }
+                description={copy.hotTopicsSub}
+              />
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {topics.map((topic) => (

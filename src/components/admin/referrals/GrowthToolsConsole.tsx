@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { VoucherDiscountType } from '@prisma/client'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   ArrowDown,
   ArrowUp,
@@ -14,7 +15,6 @@ import {
   Loader2,
   Minus,
   Search,
-  Sparkles,
   Ticket,
   Users,
 } from 'lucide-react'
@@ -23,6 +23,17 @@ import {
   createVoucherCodeAction,
   toggleVoucherStatusAction,
 } from '@/actions/admin/voucher'
+import {
+  pageKpiCardClass,
+  pageSegmentedButtonCompactClass,
+  pageSegmentedControlCompactClass,
+  pageTableShellClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageHeroNumericValueClass,
+  pageKickerClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 
 type GrowthTab = 'referrals' | 'vouchers'
 type TimeRange = '7D' | '30D' | 'ALL'
@@ -85,11 +96,16 @@ const referralStatusLabelMap: Record<ReferralRow['status'], string> = {
 }
 
 const referralStatusClassMap: Record<ReferralRow['status'], string> = {
-  PENDING: 'border-[#5C4520] bg-[#3B2A10] text-[#FBBF24]',
-  COMPLETED: 'border-[#244B37] bg-[#123125] text-[#4ADE80]',
-  DEFERRED: 'border-[#2B4470] bg-[#18335E] text-[#60A5FA]',
-  EXPIRED: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
-  CANCELLED: 'border-[#5C2B33] bg-[#31151D] text-[#F87171]',
+  PENDING:
+    'border-amber-200 bg-amber-50 text-amber-700 dark:border-[#5C4520] dark:bg-[#3B2A10] dark:text-[#FBBF24]',
+  COMPLETED:
+    'border-green-200 bg-green-50 text-green-700 dark:border-[#244B37] dark:bg-[#123125] dark:text-[#86EFAC]',
+  DEFERRED:
+    'border-blue-200 bg-blue-50 text-blue-700 dark:border-[#2B4470] dark:bg-[#18335E] dark:text-[#93C5FD]',
+  EXPIRED:
+    'border-slate-200 bg-slate-100 text-slate-600 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2]',
+  CANCELLED:
+    'border-rose-200 bg-rose-50 text-rose-600 dark:border-[#5C2B33] dark:bg-[#31151D] dark:text-[#FCA5A5]',
 }
 
 function formatDateTime(input: string | null | undefined) {
@@ -127,7 +143,8 @@ function getTrendDisplay(trend: number | null) {
     return {
       text: '累计',
       icon: null,
-      className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+      className:
+        'border-borderTone bg-surface-subtle text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2]',
     }
   }
 
@@ -135,7 +152,8 @@ function getTrendDisplay(trend: number | null) {
     return {
       text: '0%',
       icon: null,
-      className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+      className:
+        'border-borderTone bg-surface-subtle text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2]',
     }
   }
 
@@ -144,8 +162,8 @@ function getTrendDisplay(trend: number | null) {
     text: `${positive ? '+' : ''}${trend}%`,
     icon: positive ? ArrowUp : ArrowDown,
     className: positive
-      ? 'border-[#244B37] bg-[#123125] text-[#86EFAC]'
-      : 'border-[#5C2B33] bg-[#31151D] text-[#FCA5A5]',
+      ? 'border-green-200 bg-green-50 text-green-600 dark:border-[#244B37] dark:bg-[#123125] dark:text-[#86EFAC]'
+      : 'border-rose-200 bg-rose-50 text-rose-600 dark:border-[#5C2B33] dark:bg-[#31151D] dark:text-[#FCA5A5]',
   }
 }
 
@@ -268,9 +286,9 @@ export function GrowthToolsConsole({
         trendLabel: range === 'ALL' ? '累计视角' : '较上窗口新增',
         icon: Users,
         iconClassName: 'text-[#60A5FA]',
-        iconBgClassName: 'bg-[#18335E]',
+        iconBgClassName: 'bg-blue-100 dark:bg-[#18335E]',
         glowClassName: 'bg-[#2563EB]/20',
-        borderClassName: 'border-[#2B4470]',
+        borderClassName: 'border-blue-200 dark:border-[#2B4470]',
       },
       {
         key: 'completed',
@@ -285,9 +303,9 @@ export function GrowthToolsConsole({
         trendLabel: range === 'ALL' ? '累计视角' : '较上窗口完成',
         icon: CheckCircle2,
         iconClassName: 'text-[#4ADE80]',
-        iconBgClassName: 'bg-[#123125]',
+        iconBgClassName: 'bg-green-100 dark:bg-[#123125]',
         glowClassName: 'bg-[#22C55E]/20',
-        borderClassName: 'border-[#244B37]',
+        borderClassName: 'border-green-200 dark:border-[#244B37]',
       },
       {
         key: 'deferred',
@@ -300,9 +318,9 @@ export function GrowthToolsConsole({
         trendLabel: range === 'ALL' ? '累计视角' : '较上窗口变化',
         icon: Clock3,
         iconClassName: 'text-[#FBBF24]',
-        iconBgClassName: 'bg-[#3B2A10]',
+        iconBgClassName: 'bg-amber-100 dark:bg-[#3B2A10]',
         glowClassName: 'bg-[#F59E0B]/20',
-        borderClassName: 'border-[#5C4520]',
+        borderClassName: 'border-amber-200 dark:border-[#5C4520]',
       },
     ]
 
@@ -321,9 +339,9 @@ export function GrowthToolsConsole({
           trendLabel: range === 'ALL' ? '累计视角' : '较上窗口变化',
           icon: Ticket,
           iconClassName: 'text-[#C4B5FD]',
-          iconBgClassName: 'bg-[#2A1F4A]',
+          iconBgClassName: 'bg-violet-100 dark:bg-[#2A1F4A]',
           glowClassName: 'bg-[#8B5CF6]/20',
-          borderClassName: 'border-[#47306C]',
+          borderClassName: 'border-violet-200 dark:border-[#47306C]',
         },
         {
           key: 'vouchers-redeemed',
@@ -338,9 +356,9 @@ export function GrowthToolsConsole({
           trendLabel: range === 'ALL' ? '累计视角' : '较上窗口核销',
           icon: BadgeCheck,
           iconClassName: 'text-[#FBBF24]',
-          iconBgClassName: 'bg-[#3A2A10]',
+          iconBgClassName: 'bg-amber-100 dark:bg-[#3A2A10]',
           glowClassName: 'bg-[#F59E0B]/20',
-          borderClassName: 'border-[#5C4520]',
+          borderClassName: 'border-amber-200 dark:border-[#5C4520]',
         }
       )
     }
@@ -444,22 +462,19 @@ export function GrowthToolsConsole({
   }
 
   return (
-    <div className="space-y-3 text-[#E6EDF7]">
-      <section className="relative overflow-hidden rounded-[28px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
+    <div className="space-y-3 text-text-primary">
+      <section className="relative overflow-hidden rounded-[28px] border border-borderTone bg-surface px-4 py-4 shadow-surface sm:px-5">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
         <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
 
         <div className="relative flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7] sm:text-[30px]">
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-[30px]">
               增长工具
             </h1>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#274066] bg-[#10203C] px-2.5 py-1 text-[11px] font-medium text-[#D6E7FF]">
-              <Sparkles className="h-3 w-3 text-[#60A5FA]" />
-              Growth Console
-            </div>
+            <HeroCapsule label="Growth Console" />
           </div>
-          <p className="max-w-3xl text-sm text-[#B2C3DA]">
+          <p className="max-w-3xl text-sm text-text-secondary">
             在同一工作台内查看推荐关系链路、奖励状态与 Voucher
             发放/核销情况，减少在多个后台工具间切换。
           </p>
@@ -469,14 +484,16 @@ export function GrowthToolsConsole({
       <section className="space-y-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-[#E6EDF7]">增长概览</h2>
-            <p className="text-sm text-[#8FA4C2]">
+            <h2 className="text-lg font-semibold text-text-primary">
+              增长概览
+            </h2>
+            <p className="text-sm text-text-secondary">
               聚焦推荐转化、待发奖励与 Voucher
               使用情况，并补充相对上周期的变化。
             </p>
           </div>
 
-          <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+          <div className={pageSegmentedControlCompactClass}>
             {[
               { key: '7D', label: '7 Days' },
               { key: '30D', label: '30 Days' },
@@ -488,10 +505,10 @@ export function GrowthToolsConsole({
                   key={option.key}
                   type="button"
                   onClick={() => setRange(option.key as TimeRange)}
-                  className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                  className={`${pageSegmentedButtonCompactClass} ${
                     isActive
-                      ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                      : 'text-[#8FA4C2] hover:text-white'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >
                   {option.label}
@@ -511,7 +528,7 @@ export function GrowthToolsConsole({
             return (
               <div
                 key={card.key}
-                className={`relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)] ${card.borderClassName}`}
+                className={`${pageKpiCardClass} p-4 ${card.borderClassName}`}
               >
                 <div
                   className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
@@ -520,20 +537,18 @@ export function GrowthToolsConsole({
                 <div className="relative flex h-full items-start justify-between gap-4">
                   <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
                     <div className="space-y-1.5">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
-                        {card.title}
-                      </p>
+                      <p className={pageKickerClass}>{card.title}</p>
                       <div className="flex items-end gap-2">
-                        <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
+                        <p className={pageHeroNumericValueClass}>
                           {card.value}
                         </p>
-                        <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                        <span className={`pb-1 ${pageMetaTextClass}`}>
                           {card.caption}
                         </span>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] text-[#8EA3C0]">
+                      <span className={pageMetaTextClass}>
                         {card.trendLabel}
                       </span>
                       <span
@@ -543,13 +558,15 @@ export function GrowthToolsConsole({
                         {trend.text}
                       </span>
                     </div>
-                    <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                    <p
+                      className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
+                    >
                       {card.meta}
                     </p>
                   </div>
 
                   <div
-                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 ${card.iconBgClassName}`}
+                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/60 ${card.iconBgClassName}`}
                   >
                     <Icon className={`h-5 w-5 ${card.iconClassName}`} />
                   </div>
@@ -560,25 +577,27 @@ export function GrowthToolsConsole({
         </div>
       </section>
 
-      <div className="bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
-        <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+      <div className={`${pageTableShellClass} flex min-h-[500px] flex-col`}>
+        <div className="border-b border-borderTone bg-surface-subtle px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-3">
             <div className="space-y-1">
-              <h2 className="text-2xl font-semibold text-[#F4F7FB]">工作区</h2>
-              <p className="text-sm text-[#8FA4C2]">
+              <h2 className="text-2xl font-semibold text-text-primary">
+                工作区
+              </h2>
+              <p className="text-sm text-text-secondary">
                 在推荐关系和 Voucher 管理之间切换，保持同一套筛选和表格工作流。
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+              <div className={pageSegmentedControlCompactClass}>
                 <button
                   type="button"
                   onClick={() => setActiveTab('referrals')}
-                  className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                  className={`${pageSegmentedButtonCompactClass} ${
                     activeTab === 'referrals'
-                      ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                      : 'text-[#8FA4C2] hover:text-white'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-text-secondary hover:text-text-primary'
                   }`}
                 >
                   推荐关系
@@ -587,10 +606,10 @@ export function GrowthToolsConsole({
                   <button
                     type="button"
                     onClick={() => setActiveTab('vouchers')}
-                    className={`rounded-xl px-5 py-2 text-sm transition-colors ${
+                    className={`${pageSegmentedButtonCompactClass} ${
                       activeTab === 'vouchers'
-                        ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                        : 'text-[#8FA4C2] hover:text-white'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     Voucher 管理
@@ -603,12 +622,12 @@ export function GrowthToolsConsole({
 
         {activeTab === 'referrals' ? (
           <>
-            <div className="border-b border-[#1B2840] bg-[#10192D] px-5 py-4 sm:px-6">
+            <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center">
                   <div className="group relative w-full md:w-80">
                     <Search
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary transition-colors group-focus-within:text-primary"
                       size={18}
                     />
                     <input
@@ -616,7 +635,7 @@ export function GrowthToolsConsole({
                       placeholder="搜索推荐码、用户或邮箱..."
                       value={referralKeyword}
                       onChange={(e) => setReferralKeyword(e.target.value)}
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-10 pr-4 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#8FA4C2] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     />
                   </div>
 
@@ -628,7 +647,7 @@ export function GrowthToolsConsole({
                           e.target.value as 'ALL' | ReferralRow['status']
                         )
                       }
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="ALL">状态: 全部</option>
                       {Object.entries(referralStatusLabelMap).map(
@@ -640,15 +659,15 @@ export function GrowthToolsConsole({
                       )}
                     </select>
                     <ChevronDown
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary"
                       size={16}
                     />
                   </div>
                 </div>
 
-                <span className="text-sm text-[#8FA4C2]">
+                <span className="text-sm text-text-secondary">
                   当前命中{' '}
-                  <span className="font-semibold text-[#F4F7FB]">
+                  <span className="font-semibold text-text-primary">
                     {filteredReferrals.length}
                   </span>{' '}
                   条推荐关系
@@ -659,36 +678,36 @@ export function GrowthToolsConsole({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1120px] border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-[#1B2840] bg-[#101A2D]">
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  <tr className="border-b border-borderTone bg-surface-subtle">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       推荐人
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       被推荐人
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       推荐码
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       状态
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       奖励状态
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       延迟奖励
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       创建时间
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1B2840]">
+                <tbody className="divide-y divide-borderTone">
                   {filteredReferrals.length === 0 ? (
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-6 py-16 text-center text-sm text-[#8FA4C2]"
+                        className="px-6 py-16 text-center text-sm text-text-secondary"
                       >
                         当前筛选下暂无推荐关系记录
                       </td>
@@ -697,37 +716,37 @@ export function GrowthToolsConsole({
                     filteredReferrals.map((row) => (
                       <tr
                         key={row.id}
-                        className="transition-colors hover:bg-[#131F35]"
+                        className="transition-colors hover:bg-surface-subtle"
                       >
                         <td className="px-6 py-4">
                           <div className="space-y-0.5">
-                            <p className="max-w-[220px] truncate text-sm font-medium text-[#F4F7FB]">
+                            <p className="max-w-[220px] truncate text-sm font-medium text-text-primary">
                               {row.referrer.username}
                             </p>
-                            <p className="max-w-[220px] truncate text-xs text-[#8FA4C2]">
+                            <p className="max-w-[220px] truncate text-xs text-text-secondary">
                               {row.referrer.email}
                             </p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="space-y-0.5">
-                            <p className="max-w-[220px] truncate text-sm font-medium text-[#F4F7FB]">
+                            <p className="max-w-[220px] truncate text-sm font-medium text-text-primary">
                               {row.referee.username}
                             </p>
-                            <p className="max-w-[220px] truncate text-xs text-[#8FA4C2]">
+                            <p className="max-w-[220px] truncate text-xs text-text-secondary">
                               {row.referee.email}
                             </p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <code className="rounded bg-[#151F36] px-2 py-1 font-mono text-xs text-[#D5E0F0]">
+                            <code className="rounded bg-surface-subtle px-2 py-1 font-mono text-xs text-text-primary">
                               {row.referralCode}
                             </code>
                             <button
                               type="button"
                               onClick={() => copyCode(row.referralCode)}
-                              className="rounded p-1 text-[#8FA4C2] transition-colors hover:bg-[#1A2744] hover:text-white"
+                              className="rounded p-1 text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text-primary"
                             >
                               {copiedCode === row.referralCode ? (
                                 <CheckCircle2 className="h-3.5 w-3.5 text-[#4ADE80]" />
@@ -744,24 +763,26 @@ export function GrowthToolsConsole({
                             {referralStatusLabelMap[row.status]}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-[#D5E0F0]">
+                        <td className="px-6 py-4 text-sm text-text-primary">
                           {row.rewardGranted ? '已发放' : '未触发'}
                         </td>
                         <td className="px-6 py-4">
                           {row.deferredRewardTier ? (
                             <div className="space-y-0.5">
-                              <p className="text-sm font-medium text-[#F4F7FB]">
+                              <p className="text-sm font-medium text-text-primary">
                                 {row.deferredRewardTier}
                               </p>
-                              <p className="text-xs text-[#8FA4C2]">
+                              <p className="text-xs text-text-secondary">
                                 {row.deferredRewardWeeks || 0} 周后结算
                               </p>
                             </div>
                           ) : (
-                            <span className="text-sm text-[#8FA4C2]">无</span>
+                            <span className="text-sm text-text-secondary">
+                              无
+                            </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-xs text-[#8FA4C2]">
+                        <td className="px-6 py-4 text-xs text-text-secondary">
                           {formatDateTime(row.createdAt)}
                         </td>
                       </tr>
@@ -773,11 +794,11 @@ export function GrowthToolsConsole({
           </>
         ) : (
           <>
-            <div className="border-b border-[#1B2840] bg-[#10192D] px-5 py-4 sm:px-6">
+            <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
               <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Code
                     </label>
                     <input
@@ -786,11 +807,11 @@ export function GrowthToolsConsole({
                         setCode(event.target.value.toUpperCase())
                       }
                       placeholder="例如: LM10OFF"
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#8FA4C2] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Discount Type
                     </label>
                     <select
@@ -800,14 +821,14 @@ export function GrowthToolsConsole({
                           event.target.value as VoucherDiscountType
                         )
                       }
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="AMOUNT">AMOUNT</option>
                       <option value="PERCENT">PERCENT</option>
                     </select>
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Discount Value
                     </label>
                     <input
@@ -819,11 +840,11 @@ export function GrowthToolsConsole({
                           ? '例如 10（10%）'
                           : '例如 10（RM10）'
                       }
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#8FA4C2] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Max Redemptions
                     </label>
                     <input
@@ -833,33 +854,33 @@ export function GrowthToolsConsole({
                         setMaxRedemptions(event.target.value)
                       }
                       placeholder="留空 = 不限"
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Valid From
                     </label>
                     <input
                       type="datetime-local"
                       value={validFrom}
                       onChange={(event) => setValidFrom(event.target.value)}
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Valid To
                     </label>
                     <input
                       type="datetime-local"
                       value={validTo}
                       onChange={(event) => setValidTo(event.target.value)}
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm font-medium text-[#D5E0F0]">
+                    <label className="mb-2 block text-sm font-medium text-text-primary">
                       Stripe Coupon ID
                     </label>
                     <input
@@ -868,21 +889,21 @@ export function GrowthToolsConsole({
                         setStripeCouponId(event.target.value)
                       }
                       placeholder="例如: 3mQw..."
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] px-4 py-3 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                 </div>
 
-                <div className="rounded-[24px] border border-[#24324D] bg-[linear-gradient(180deg,rgba(17,26,46,0.9),rgba(11,18,32,0.94))] p-5">
+                <div className="rounded-[24px] border border-borderTone bg-surface-subtle p-5 dark:border-[#24324D] dark:bg-[#151F36]">
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-[#F4F7FB]">
+                    <h3 className="text-lg font-semibold text-text-primary">
                       创建 Voucher
                     </h3>
-                    <p className="text-sm text-[#8FA4C2]">
+                    <p className="text-sm text-text-secondary">
                       在统一工作台内创建金额减免或百分比折扣，并立即进入启停管理。
                     </p>
                   </div>
-                  <div className="mt-5 space-y-3 text-sm text-[#B2C3DA]">
+                  <div className="mt-5 space-y-3 text-sm text-text-secondary">
                     <p>当前支持：</p>
                     <p>AMOUNT 固定金额减免</p>
                     <p>PERCENT 百分比折扣</p>
@@ -902,12 +923,12 @@ export function GrowthToolsConsole({
               </div>
             </div>
 
-            <div className="border-b border-[#1B2840] bg-[#10192D] px-5 py-4 sm:px-6">
+            <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
               <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center">
                   <div className="group relative w-full md:w-80">
                     <Search
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary transition-colors group-focus-within:text-primary"
                       size={18}
                     />
                     <input
@@ -915,7 +936,7 @@ export function GrowthToolsConsole({
                       placeholder="搜索 Voucher code 或 Stripe Coupon..."
                       value={voucherKeyword}
                       onChange={(e) => setVoucherKeyword(e.target.value)}
-                      className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-10 pr-4 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#8FA4C2] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     />
                   </div>
                   <div className="relative min-w-[160px]">
@@ -926,14 +947,14 @@ export function GrowthToolsConsole({
                           e.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE'
                         )
                       }
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="ALL">状态: 全部</option>
                       <option value="ACTIVE">启用中</option>
                       <option value="INACTIVE">已停用</option>
                     </select>
                     <ChevronDown
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary"
                       size={16}
                     />
                   </div>
@@ -945,21 +966,21 @@ export function GrowthToolsConsole({
                           e.target.value as 'ALL' | VoucherDiscountType
                         )
                       }
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="ALL">类型: 全部</option>
                       <option value="AMOUNT">AMOUNT</option>
                       <option value="PERCENT">PERCENT</option>
                     </select>
                     <ChevronDown
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary"
                       size={16}
                     />
                   </div>
                 </div>
-                <span className="text-sm text-[#8FA4C2]">
+                <span className="text-sm text-text-secondary">
                   当前命中{' '}
-                  <span className="font-semibold text-[#F4F7FB]">
+                  <span className="font-semibold text-text-primary">
                     {filteredVouchers.length}
                   </span>{' '}
                   个 Voucher
@@ -970,39 +991,39 @@ export function GrowthToolsConsole({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1180px] border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-[#1B2840] bg-[#101A2D]">
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                  <tr className="border-b border-borderTone bg-surface-subtle">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       Code
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       Type
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       Value
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       Usage
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       Stripe Coupon
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       有效期
                     </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       状态
                     </th>
-                    <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                    <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
                       操作
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#1B2840]">
+                <tbody className="divide-y divide-borderTone">
                   {filteredVouchers.length === 0 ? (
                     <tr>
                       <td
                         colSpan={8}
-                        className="px-6 py-16 text-center text-sm text-[#8FA4C2]"
+                        className="px-6 py-16 text-center text-sm text-text-secondary"
                       >
                         当前筛选下暂无 Voucher
                       </td>
@@ -1011,17 +1032,17 @@ export function GrowthToolsConsole({
                     filteredVouchers.map((voucher) => (
                       <tr
                         key={voucher.id}
-                        className="transition-colors hover:bg-[#131F35]"
+                        className="transition-colors hover:bg-surface-subtle"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <code className="rounded bg-[#151F36] px-2 py-1 font-mono text-xs text-[#D5E0F0]">
+                            <code className="rounded bg-surface-subtle px-2 py-1 font-mono text-xs text-text-primary">
                               {voucher.code}
                             </code>
                             <button
                               type="button"
                               onClick={() => copyCode(voucher.code)}
-                              className="rounded p-1 text-[#8FA4C2] transition-colors hover:bg-[#1A2744] hover:text-white"
+                              className="rounded p-1 text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text-primary"
                             >
                               {copiedCode === voucher.code ? (
                                 <CheckCircle2 className="h-3.5 w-3.5 text-[#4ADE80]" />
@@ -1031,24 +1052,24 @@ export function GrowthToolsConsole({
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-[#D5E0F0]">
+                        <td className="px-6 py-4 text-sm text-text-primary">
                           {voucher.discountType}
                         </td>
-                        <td className="px-6 py-4 text-sm text-[#D5E0F0]">
+                        <td className="px-6 py-4 text-sm text-text-primary">
                           {voucher.discountType === 'PERCENT'
                             ? `${voucher.discountValue}%`
                             : `RM ${voucher.discountValue}`}
                         </td>
-                        <td className="px-6 py-4 text-sm text-[#D5E0F0]">
+                        <td className="px-6 py-4 text-sm text-text-primary">
                           {voucher.redeemedCount}
                           {voucher.maxRedemptions !== null
                             ? ` / ${voucher.maxRedemptions}`
                             : ' / ∞'}
                         </td>
-                        <td className="px-6 py-4 font-mono text-xs text-[#8FA4C2]">
+                        <td className="px-6 py-4 font-mono text-xs text-text-secondary">
                           {voucher.stripeCouponId || '—'}
                         </td>
-                        <td className="px-6 py-4 text-xs text-[#8FA4C2]">
+                        <td className="px-6 py-4 text-xs text-text-secondary">
                           <div>{formatDateTime(voucher.validFrom)}</div>
                           <div>{formatDateTime(voucher.validTo)}</div>
                         </td>
@@ -1056,8 +1077,8 @@ export function GrowthToolsConsole({
                           <span
                             className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${
                               voucher.isActive
-                                ? 'border-[#244B37] bg-[#123125] text-[#4ADE80]'
-                                : 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]'
+                                ? 'border-green-200 bg-green-50 text-green-700'
+                                : 'border-slate-200 bg-slate-100 text-slate-600'
                             }`}
                           >
                             {voucher.isActive ? 'ACTIVE' : 'INACTIVE'}
@@ -1069,7 +1090,7 @@ export function GrowthToolsConsole({
                               toggleVoucherStatus(voucher.id, !voucher.isActive)
                             }
                             disabled={isPending}
-                            className="inline-flex items-center gap-2 rounded-xl border border-[#24324D] bg-[#151F36] px-3 py-2 text-sm text-[#E6EDF7] transition-colors hover:bg-[#1A2744] disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center gap-2 rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {voucher.isActive ? '停用' : '启用'}
                           </button>

@@ -11,6 +11,7 @@ import {
 } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -28,7 +29,20 @@ import {
 } from 'lucide-react'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
-import { pageBadgeClass } from '@/components/shared/pageSurfaces'
+import {
+  pageBadgeClass,
+  pageKpiCardClass,
+  pageSectionHeaderBandClass,
+  pageSegmentedButtonCompactClass,
+  pageSegmentedControlCompactClass,
+  pageTableShellClass,
+} from '@/components/shared/pageSurfaces'
+import {
+  pageCardTitleClass,
+  pageHeroNumericValueClass,
+  pageKickerClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 import type {
   AdminDashboardAuditItem,
   AdminDashboardLoadState,
@@ -53,19 +67,22 @@ interface AdminDashboardV2Props {
 const ITEMS_PER_PAGE = 5
 
 const shellClassName =
-  'mx-auto w-full max-w-[1820px] space-y-2.5 rounded-[32px] border border-[#24324D] bg-[#0B1220] p-2.5 text-[#E6EDF7] sm:p-3'
+  'mx-auto w-full max-w-[1820px] space-y-2.5 rounded-[32px] border border-borderTone dark:border-[#24324D] bg-page dark:bg-[#0B1220] p-2.5 text-text-primary dark:text-[#E6EDF7] sm:p-3'
 
-const sectionClassName =
-  'overflow-hidden rounded-[28px] border border-[#24324D] bg-[#0F172A]/96 shadow-[0_18px_40px_rgba(2,8,23,0.24)]'
+const sectionClassName = pageTableShellClass
 
 const levelStyles = {
-  normal: 'border border-[#334155] bg-[#152033] text-[#C7D2E3]',
-  info: 'border border-[#244B82] bg-[#132540] text-[#93C5FD]',
-  low: 'border border-[#244B82] bg-[#132540] text-[#93C5FD]',
-  medium: 'border border-[#5A451B] bg-[#2E2410] text-[#FBBF24]',
-  warning: 'border border-[#5A451B] bg-[#2E2410] text-[#FBBF24]',
-  high: 'border border-[#5E2B32] bg-[#32171D] text-[#FB7185]',
-  critical: 'border border-[#7F1D1D] bg-[#34161A] text-[#FCA5A5]',
+  normal:
+    'border border-borderTone dark:border-[#334155] bg-surface-subtle dark:bg-[#152033] text-text-secondary dark:text-[#C7D2E3]',
+  info: 'border border-blue-200 dark:border-[#244B82] bg-blue-50 dark:bg-[#132540] text-blue-700 dark:text-[#93C5FD]',
+  low: 'border border-blue-200 dark:border-[#244B82] bg-blue-50 dark:bg-[#132540] text-blue-700 dark:text-[#93C5FD]',
+  medium:
+    'border border-amber-200 dark:border-[#5A451B] bg-amber-50 dark:bg-[#2E2410] text-amber-700 dark:text-[#FBBF24]',
+  warning:
+    'border border-amber-200 dark:border-[#5A451B] bg-amber-50 dark:bg-[#2E2410] text-amber-700 dark:text-[#FBBF24]',
+  high: 'border border-rose-200 dark:border-[#5E2B32] bg-rose-50 dark:bg-[#32171D] text-rose-600 dark:text-[#FB7185]',
+  critical:
+    'border border-red-300 dark:border-[#7F1D1D] bg-red-50 dark:bg-[#34161A] text-red-700 dark:text-[#FCA5A5]',
 } as const
 
 const windowOptions: Array<{
@@ -286,12 +303,14 @@ function PageMeta({
             key={index}
             className={cn(
               'h-1.5 rounded-full transition-all',
-              index === page ? 'w-4 bg-white' : 'w-1.5 bg-[#31445F]'
+              index === page
+                ? 'w-4 bg-primary dark:bg-white'
+                : 'w-1.5 bg-borderTone dark:bg-[#31445F]'
             )}
           />
         ))}
       </div>
-      <span className="rounded-full bg-[#151F36] px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[#8FA4C2]">
+      <span className="rounded-full bg-surface-subtle px-3 py-1 text-[11px] font-black tracking-[0.14em] text-text-tertiary dark:bg-[#151F36] dark:text-[#8FA4C2]">
         {countLabel}
       </span>
     </div>
@@ -307,8 +326,8 @@ function EmptySlots({
 }) {
   const className =
     tone === 'danger'
-      ? 'border-[#352028] bg-[#140F14] text-[#55303A]'
-      : 'border-[#1B2840] bg-[#0E1729] text-[#31445F]'
+      ? 'border-rose-200 dark:border-[#352028] bg-rose-50 dark:bg-[#140F14] text-rose-300 dark:text-[#55303A]'
+      : 'border-borderTone dark:border-[#1B2840] bg-surface-subtle dark:bg-[#0E1729] text-text-tertiary dark:text-[#31445F]'
 
   return (
     <>
@@ -332,15 +351,15 @@ function EmptySlots({
 function Header({ window }: { window: AdminDashboardWindow }) {
   return (
     <PageHeroShell
-      className="px-4 py-4 sm:px-5 sm:py-4.5"
-      eyebrow={
-        <div className={pageBadgeClass}>
-          <ShieldAlert className="h-3 w-3 text-[#60A5FA]" />
-          Command Center
-        </div>
+      className="sm:py-4.5 px-4 py-4 sm:px-5"
+      title={
+        <>
+          <span>管理总览</span>
+          <HeroCapsule label="Command Center" />
+        </>
       }
-      title="管理总览"
       subtitle="聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。"
+      titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
       actions={
         <div className={pageBadgeClass}>
           <Calendar className="h-3.5 w-3.5 text-[#60A5FA]" />
@@ -376,7 +395,7 @@ function KpiRow({
         />
 
         <div className="flex flex-wrap items-center gap-3 md:justify-end">
-          <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+          <div className={pageSegmentedControlCompactClass}>
             {windowOptions.map((option) => {
               const isActive = option.key === window
               return (
@@ -385,10 +404,10 @@ function KpiRow({
                   type="button"
                   onClick={() => onWindowChange(option.key)}
                   className={cn(
-                    'rounded-xl px-5 py-2 text-sm transition-colors',
+                    pageSegmentedButtonCompactClass,
                     isActive
-                      ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                      : 'text-[#8FA4C2] hover:text-white'
+                      ? 'dark:bg-white/12 bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] dark:text-white'
+                      : 'text-text-secondary hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white'
                   )}
                 >
                   {option.label}
@@ -398,13 +417,13 @@ function KpiRow({
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs text-[#9FB0C9]">
+            <span className="font-mono text-xs text-text-secondary dark:text-[#9FB0C9]">
               更新于 {formatLastUpdated(lastUpdated)}
             </span>
             <button
               type="button"
               onClick={onRefresh}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#24324D] bg-[#151F36] px-3 py-2 text-sm text-[#E6EDF7] transition-colors hover:bg-[#1A2744]"
+              className="inline-flex items-center gap-2 rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
             >
               <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
               刷新
@@ -424,8 +443,8 @@ function KpiRow({
             <div
               key={item.id}
               className={cn(
-                'relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)]',
-                visual.borderClassName
+                pageKpiCardClass,
+                'dark: border-borderTone' + visual.borderClassName
               )}
             >
               <div
@@ -439,14 +458,10 @@ function KpiRow({
               <div className="relative flex h-full items-start justify-between gap-4">
                 <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
                   <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
-                      {item.title}
-                    </p>
+                    <p className={pageKickerClass}>{item.title}</p>
                     <div className="flex items-end gap-2">
-                      <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
-                        {item.value}
-                      </p>
-                      <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                      <p className={pageHeroNumericValueClass}>{item.value}</p>
+                      <span className={`pb-1 ${pageMetaTextClass}`}>
                         {item.trendLabel}
                       </span>
                     </div>
@@ -469,7 +484,9 @@ function KpiRow({
                         <Badge level="warning">{item.exception}</Badge>
                       ) : null}
                     </div>
-                    <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                    <p
+                      className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
+                    >
                       {visual.hint}
                     </p>
                   </div>
@@ -511,12 +528,12 @@ function PriorityQueue({ items }: { items: AdminDashboardWorkItem[] }) {
 
   return (
     <section className={sectionClassName}>
-      <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+      <div className={pageSectionHeaderBandClass}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <SectionBlockHeader
             title={
               <div className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-[#F59E0B]" />
+                <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                 <span>今日必须处理</span>
               </div>
             }
@@ -537,14 +554,12 @@ function PriorityQueue({ items }: { items: AdminDashboardWorkItem[] }) {
       >
         {items.length === 0 ? (
           <div className="flex h-full min-h-[364px] flex-col items-center justify-center gap-3 px-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#244B37] bg-[#123125] text-[#4ADE80]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-green-200 bg-green-50 text-green-600 dark:border-[#244B37] dark:bg-[#123125] dark:text-[#4ADE80]">
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-[#E6EDF7]">
-                当前没有积压事项
-              </p>
-              <p className="text-sm text-[#8FA4C2]">
+              <p className={pageCardTitleClass}>当前没有积压事项</p>
+              <p className={pageMetaTextClass}>
                 今日工作队列已清空，可转入常规巡检。
               </p>
             </div>
@@ -557,7 +572,7 @@ function PriorityQueue({ items }: { items: AdminDashboardWorkItem[] }) {
                 <li key={item.id}>
                   <Link
                     href={item.href}
-                    className="group block rounded-[22px] border border-[#1B2840] bg-[#121C32] px-4 py-3.5 transition-all duration-300 animate-in hover:border-[#2A466C] hover:bg-[#15233A]"
+                    className="group block rounded-[22px] border border-borderTone bg-surface px-4 py-3.5 transition-all duration-300 animate-in hover:border-primary/40 hover:bg-surface-subtle dark:border-[#1B2840] dark:bg-[#121C32] dark:hover:border-[#2A466C] dark:hover:bg-[#15233A]"
                     style={{ animationDelay: `${index * 45}ms` }}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -570,19 +585,21 @@ function PriorityQueue({ items }: { items: AdminDashboardWorkItem[] }) {
                             {meta.actionLabel}
                           </Badge>
                         </div>
-                        <p className="line-clamp-2 text-sm font-medium leading-6 text-[#F4F7FB] transition-colors group-hover:text-white">
+                        <p className="line-clamp-2 text-sm font-medium leading-6 text-text-primary transition-colors group-hover:text-primary dark:text-[#F4F7FB] dark:group-hover:text-white">
                           {item.title}
                         </p>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#8FA4C2]">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary dark:text-[#8FA4C2]">
                           <span>{meta.sourceHint}</span>
-                          <span className="text-[#4B5D7A]">/</span>
+                          <span className="text-text-tertiary dark:text-[#4B5D7A]">
+                            /
+                          </span>
                           <span>处理动作：{meta.actionLabel}</span>
                         </div>
                       </div>
 
                       <div className="flex shrink-0 flex-col items-end gap-2">
                         <Badge level={item.slaLevel}>{item.sla}</Badge>
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-[#60A5FA]">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-primary dark:text-[#60A5FA]">
                           {meta.actionLabel}
                           <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </span>
@@ -616,15 +633,17 @@ function RiskPanel({ items }: { items: AdminDashboardRiskItem[] }) {
     <section
       className={cn(
         sectionClassName,
-        hasRisk ? 'border-[#5C2B33]' : 'border-[#244B37] bg-[#0F172A]/90'
+        hasRisk
+          ? 'border-rose-200 dark:border-[#5C2B33]'
+          : 'border-green-200 dark:border-[#244B37]'
       )}
     >
       <div
         className={cn(
-          'border-b px-5 py-5 sm:px-6',
+          pageSectionHeaderBandClass,
           hasRisk
-            ? 'border-[#5C2B33] bg-[#241318]'
-            : 'border-[#1F3A2D] bg-[#101F1B]'
+            ? 'border-rose-200 bg-rose-50 dark:border-[#5C2B33] dark:bg-[#241318]'
+            : 'border-green-200 bg-green-50 dark:border-[#1F3A2D] dark:bg-[#101F1B]'
         )}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -633,13 +652,17 @@ function RiskPanel({ items }: { items: AdminDashboardRiskItem[] }) {
               <div
                 className={cn(
                   'flex items-center gap-2',
-                  hasRisk ? 'text-[#FCA5A5]' : 'text-[#E6EDF7]'
+                  hasRisk
+                    ? 'text-rose-600 dark:text-[#FCA5A5]'
+                    : 'text-text-primary dark:text-[#E6EDF7]'
                 )}
               >
                 <ShieldAlert
                   className={cn(
                     'h-4 w-4',
-                    hasRisk ? 'text-[#F87171]' : 'text-[#4ADE80]'
+                    hasRisk
+                      ? 'text-rose-500 dark:text-[#F87171]'
+                      : 'text-green-500 dark:text-[#4ADE80]'
                   )}
                 />
                 <span>最近告警</span>
@@ -662,14 +685,12 @@ function RiskPanel({ items }: { items: AdminDashboardRiskItem[] }) {
       >
         {!hasRisk ? (
           <div className="flex h-full min-h-[364px] flex-col items-center justify-center gap-3 px-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#244B37] bg-[#123125] text-[#4ADE80]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-green-200 bg-green-50 text-green-600 dark:border-[#244B37] dark:bg-[#123125] dark:text-[#4ADE80]">
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-[#E6EDF7]">
-                当前没有新增告警
-              </p>
-              <p className="text-sm text-[#8FA4C2]">
+              <p className={pageCardTitleClass}>当前没有新增告警</p>
+              <p className={pageMetaTextClass}>
                 系统运行稳定，保持常规权限巡检即可。
               </p>
             </div>
@@ -680,17 +701,19 @@ function RiskPanel({ items }: { items: AdminDashboardRiskItem[] }) {
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className="group block rounded-[22px] border border-[#352028] bg-[#1A131A] px-4 py-3.5 transition-all duration-300 animate-in hover:border-[#5C2B33] hover:bg-[#24171D]"
+                  className="group block rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3.5 transition-all duration-300 animate-in hover:border-rose-400 hover:bg-rose-100 dark:border-[#352028] dark:bg-[#1A131A] dark:hover:border-[#5C2B33] dark:hover:bg-[#24171D]"
                   style={{ animationDelay: `${index * 45}ms` }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1 space-y-2">
-                      <p className="line-clamp-2 text-sm font-medium leading-6 text-[#F4F7FB]">
+                      <p className="line-clamp-2 text-sm font-medium leading-6 text-text-primary dark:text-[#F4F7FB]">
                         {item.title}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-[#8FA4C2]">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary dark:text-[#8FA4C2]">
                         <span>{item.source}</span>
-                        <span className="text-[#4B5D7A]">/</span>
+                        <span className="text-text-tertiary dark:text-[#4B5D7A]">
+                          /
+                        </span>
                         <span>{item.time}</span>
                       </div>
                     </div>
@@ -717,14 +740,14 @@ function AccessPlaceholder() {
     <section className={sectionClassName}>
       <div className="min-h-[412px] p-4">
         <div className="flex h-full min-h-[364px] flex-col items-center justify-center gap-3 px-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#24324D] bg-[#151F36] text-[#8FA4C2]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2]">
             <Key className="h-5 w-5" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium text-[#E6EDF7]">
+            <p className="text-sm font-medium text-text-primary dark:text-[#E6EDF7]">
               当前角色不展示风险面板
             </p>
-            <p className="text-sm text-[#8FA4C2]">
+            <p className="text-sm text-text-secondary dark:text-[#8FA4C2]">
               教师角色仅保留工作队列与审计信息。
             </p>
           </div>
@@ -745,7 +768,7 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
 
   return (
     <section className={sectionClassName}>
-      <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+      <div className={pageSectionHeaderBandClass}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <SectionBlockHeader
             title="最近操作审计"
@@ -760,7 +783,7 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
             />
             <Link
               href="/admin/permissions"
-              className="text-sm font-medium text-[#60A5FA] transition-colors hover:text-[#93C5FD]"
+              className="text-sm font-medium text-primary transition-colors hover:text-primary/80 dark:text-[#60A5FA] dark:hover:text-[#93C5FD]"
             >
               查看全部日志
             </Link>
@@ -774,16 +797,12 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
       >
         {items.length === 0 ? (
           <div className="flex h-full min-h-[364px] flex-col items-center justify-center gap-3 px-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#24324D] bg-[#151F36] text-[#8FA4C2]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2]">
               <Key className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-[#E6EDF7]">
-                当前时间范围内暂无审计记录
-              </p>
-              <p className="text-sm text-[#8FA4C2]">
-                滚动切页后将展示更早日志。
-              </p>
+              <p className={pageCardTitleClass}>当前时间范围内暂无审计记录</p>
+              <p className={pageMetaTextClass}>滚动切页后将展示更早日志。</p>
             </div>
           </div>
         ) : (
@@ -791,26 +810,26 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
             {visibleItems.map((log, index) => (
               <li
                 key={log.id}
-                className="rounded-[22px] border border-[#1B2840] bg-[#121C32] px-4 py-3.5 duration-300 animate-in"
+                className="rounded-[22px] border border-borderTone bg-surface px-4 py-3.5 duration-300 animate-in dark:border-[#1B2840] dark:bg-[#121C32]"
                 style={{ animationDelay: `${index * 45}ms` }}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E293B] text-[11px] font-semibold text-[#E6EDF7]">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-subtle text-[11px] font-semibold text-text-primary dark:bg-[#1E293B] dark:text-[#E6EDF7]">
                         {log.actor.charAt(0).toUpperCase()}
                       </div>
-                      <span className="truncate font-medium text-[#F4F7FB]">
+                      <span className="truncate font-medium text-text-primary dark:text-[#F4F7FB]">
                         {log.actor}
                       </span>
                     </div>
-                    <span className="shrink-0 font-mono text-xs text-[#6F86A8]">
+                    <span className="shrink-0 font-mono text-xs text-text-tertiary dark:text-[#6F86A8]">
                       {log.time}
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge level={log.level}>{log.action}</Badge>
-                    <span className="font-mono text-xs text-[#B2C3DA]">
+                    <span className="font-mono text-xs text-text-secondary dark:text-[#B2C3DA]">
                       {log.target}
                     </span>
                   </div>
@@ -920,19 +939,19 @@ export default function AdminDashboardV2({
           )}
         >
           <div className="space-y-4 text-center">
-            <AlertTriangle className="mx-auto h-12 w-12 text-[#F87171]" />
+            <AlertTriangle className="mx-auto h-12 w-12 text-rose-500 dark:text-[#F87171]" />
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-[#F4F7FB]">
+              <h2 className="text-lg font-semibold text-text-primary dark:text-[#F4F7FB]">
                 管理仪表盘加载失败
               </h2>
-              <p className="text-sm text-[#8FA4C2]">
+              <p className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                 请先刷新重试，再检查后台数据源与权限日志状态。
               </p>
             </div>
             <button
               type="button"
               onClick={handleRefresh}
-              className="inline-flex items-center rounded-xl border border-[#24324D] bg-[#151F36] px-4 py-2 text-sm text-[#E6EDF7] transition-colors hover:bg-[#1A2744]"
+              className="inline-flex items-center rounded-xl border border-borderTone bg-surface px-4 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
             >
               重试
             </button>

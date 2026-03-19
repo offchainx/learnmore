@@ -14,6 +14,7 @@ import { TierRoadmap } from './components/TierRoadmap'
 import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
 import { FocusPanel } from './components/FocusPanel'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   pageMetaTextClass,
@@ -24,6 +25,10 @@ import {
   pageHeroShellClass,
   pageShellFrameClass,
 } from '@/components/shared/pageSurfaces'
+import {
+  pageGridGapClass,
+  pageSectionGapClass,
+} from '@/components/shared/pageSpacing'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 import {
   fetchWithTimeout,
@@ -734,17 +739,17 @@ export const LeaderboardView = ({
       <div
         className={`relative mx-auto max-w-[1500px] ${pageShellFrameClass} lg:h-[calc(100vh-7.5rem)]`}
       >
-        <div className="flex h-full min-h-0 flex-col gap-4">
+        <div className={`flex h-full min-h-0 flex-col ${pageSectionGapClass}`}>
           <PageHeroShell
             className={pageHeroShellClass}
-            eyebrow={
-              <div className={pageBadgeClass}>
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
-                {copy.heroBadge}
+            title={
+              <div className="flex flex-wrap items-center gap-3">
+                <span>{copy.title}</span>
+                <HeroCapsule label={copy.heroBadge} />
               </div>
             }
-            title={copy.title}
             subtitle={copy.heroSubtitle}
+            titleClassName="font-semibold"
             subtitleClassName={pageSectionDescriptionClass}
             actions={
               <div className={`${pageBadgeClass} ${pageMetaTextClass}`}>
@@ -763,7 +768,9 @@ export const LeaderboardView = ({
             promotionLabel={copy.promotionLabel(myGapToPrevious)}
           />
 
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_360px]">
+          <div
+            className={`grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_360px] ${pageGridGapClass}`}
+          >
             <div className="min-h-0">
               {error ? (
                 <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
@@ -800,7 +807,7 @@ export const LeaderboardView = ({
               />
             </div>
 
-            <div className="flex min-h-0 flex-col gap-4">
+            <div className={`flex min-h-0 flex-col ${pageSectionGapClass}`}>
               {overview && growthSummary ? (
                 <XPBreakdown
                   level={overview.level}

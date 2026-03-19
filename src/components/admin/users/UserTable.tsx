@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   Activity,
   Search,
@@ -64,7 +65,7 @@ const IconButton: React.FC<{
 }> = ({ icon, onClick, className = '' }) => (
   <button
     onClick={onClick}
-    className={`rounded-xl border border-transparent p-2 text-[#8FA4C2] transition-colors hover:border-[#24324D] hover:bg-[#18243D] hover:text-[#E6EDF7] ${className}`}
+    className={`rounded-xl border border-transparent p-2 text-text-secondary transition-colors hover:border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:text-[#8FA4C2] dark:hover:border-[#24324D] dark:hover:bg-[#18243D] dark:hover:text-[#E6EDF7] ${className}`}
   >
     {icon}
   </button>
@@ -323,7 +324,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         key: metric.id,
         icon: Users,
         iconClassName: 'text-[#60A5FA]',
-        iconBgClassName: 'bg-[#18335E]',
+        iconBgClassName: 'bg-blue-100 dark:bg-[#18335E]',
         glowClassName: 'bg-[#2563EB]/20',
         borderClassName: 'border-[#2B4470]',
       }
@@ -335,7 +336,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         key: metric.id,
         icon: Activity,
         iconClassName: 'text-[#4ADE80]',
-        iconBgClassName: 'bg-[#123125]',
+        iconBgClassName: 'bg-green-100 dark:bg-[#123125]',
         glowClassName: 'bg-[#22C55E]/20',
         borderClassName: 'border-[#244B37]',
       }
@@ -347,7 +348,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         key: metric.id,
         icon: Ticket,
         iconClassName: 'text-[#C4B5FD]',
-        iconBgClassName: 'bg-[#2A1F4A]',
+        iconBgClassName: 'bg-purple-100 dark:bg-[#2A1F4A]',
         glowClassName: 'bg-[#8B5CF6]/20',
         borderClassName: 'border-[#47306C]',
       }
@@ -359,7 +360,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         key: metric.id,
         icon: Sparkles,
         iconClassName: 'text-[#FBBF24]',
-        iconBgClassName: 'bg-[#3A2A10]',
+        iconBgClassName: 'bg-amber-100 dark:bg-[#3A2A10]',
         glowClassName: 'bg-[#F59E0B]/20',
         borderClassName: 'border-[#5C4520]',
       }
@@ -370,7 +371,7 @@ export const UserTable: React.FC<UserTableProps> = ({
       key: metric.id,
       icon: Ban,
       iconClassName: 'text-[#F87171]',
-      iconBgClassName: 'bg-[#31151D]',
+      iconBgClassName: 'bg-rose-100 dark:bg-[#31151D]',
       glowClassName: 'bg-[#EF4444]/20',
       borderClassName: 'border-[#5C2B33]',
     }
@@ -392,7 +393,8 @@ export const UserTable: React.FC<UserTableProps> = ({
       return {
         text: '累计',
         icon: null,
-        className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+        className:
+          'border-borderTone dark:border-[#24324D] bg-surface-subtle dark:bg-[#151F36] text-text-secondary dark:text-[#8FA4C2]',
       }
     }
 
@@ -400,7 +402,8 @@ export const UserTable: React.FC<UserTableProps> = ({
       return {
         text: '0%',
         icon: null,
-        className: 'border-[#24324D] bg-[#151F36] text-[#8FA4C2]',
+        className:
+          'border-borderTone dark:border-[#24324D] bg-surface-subtle dark:bg-[#151F36] text-text-secondary dark:text-[#8FA4C2]',
       }
     }
 
@@ -410,8 +413,8 @@ export const UserTable: React.FC<UserTableProps> = ({
       text: `${positive ? '+' : ''}${trend}%`,
       icon: positive ? ArrowUp : ArrowDown,
       className: positive
-        ? 'border-[#244B37] bg-[#123125] text-[#86EFAC]'
-        : 'border-[#5C2B33] bg-[#31151D] text-[#FCA5A5]',
+        ? 'border-green-200 dark:border-[#244B37] bg-green-50 dark:bg-[#123125] text-green-600 dark:text-[#86EFAC]'
+        : 'border-rose-200 dark:border-[#5C2B33] bg-rose-50 dark:bg-[#31151D] text-rose-600 dark:text-[#FCA5A5]',
     }
   }
 
@@ -419,9 +422,9 @@ export const UserTable: React.FC<UserTableProps> = ({
     if (sortConfig.key !== key)
       return <div className="ml-1 h-4 w-4 opacity-0 group-hover:opacity-30" />
     return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="ml-1 h-4 w-4 text-[#60A5FA]" />
+      <ArrowUp className="ml-1 h-4 w-4 text-primary dark:text-[#60A5FA]" />
     ) : (
-      <ArrowDown className="ml-1 h-4 w-4 text-[#60A5FA]" />
+      <ArrowDown className="ml-1 h-4 w-4 text-primary dark:text-[#60A5FA]" />
     )
   }
 
@@ -456,7 +459,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         <button
           key={1}
           onClick={() => handlePageChange(1)}
-          className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${currentPage === 1 ? 'border-[#33527B] bg-[#2563EB] text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]' : 'border-[#24324D] bg-[#151F36] text-[#8FA4C2] hover:bg-[#1A2744] hover:text-[#E6EDF7]'}`}
+          className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${currentPage === 1 ? 'border-primary/50 bg-primary text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]' : 'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-[#E6EDF7]'}`}
         >
           1
         </button>
@@ -508,7 +511,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         <button
           key={totalPages}
           onClick={() => handlePageChange(totalPages)}
-          className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${currentPage === totalPages ? 'border-[#33527B] bg-[#2563EB] text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]' : 'border-[#24324D] bg-[#151F36] text-[#8FA4C2] hover:bg-[#1A2744] hover:text-[#E6EDF7]'}`}
+          className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${currentPage === totalPages ? 'border-primary/50 bg-primary text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]' : 'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-[#E6EDF7]'}`}
         >
           {totalPages}
         </button>
@@ -520,9 +523,9 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   if (isLoading && data.data.length === 0) {
     return (
-      <div className="bg-[#0F172A]/96 flex min-h-[520px] items-center justify-center rounded-[28px] border border-[#24324D] text-[#8FA4C2]">
+      <div className="dark:bg-[#0F172A]/96 flex min-h-[520px] items-center justify-center rounded-[28px] border border-borderTone bg-surface text-text-secondary dark:border-[#24324D] dark:text-[#8FA4C2]">
         <div className="space-y-3 text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[#24324D] border-t-[#60A5FA]" />
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-borderTone border-t-primary dark:border-[#24324D] dark:border-t-[#60A5FA]" />
           <p className="text-sm">加载用户目录...</p>
         </div>
       </div>
@@ -530,22 +533,19 @@ export const UserTable: React.FC<UserTableProps> = ({
   }
 
   return (
-    <div className="space-y-3 text-[#E6EDF7]">
-      <section className="relative overflow-hidden rounded-[28px] border border-[#24324D] bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] px-4 py-4 shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
+    <div className="space-y-3 text-foreground">
+      <section className="relative overflow-hidden rounded-[28px] border border-borderTone bg-surface px-4 py-4 shadow-surface dark:border-[#24324D] dark:bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] dark:shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
         <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
 
         <div className="relative flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-[#E6EDF7] sm:text-[30px]">
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary dark:text-[#E6EDF7] sm:text-[30px]">
               用户管理
             </h1>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#274066] bg-[#10203C] px-2.5 py-1 text-[11px] font-medium text-[#D6E7FF]">
-              <Sparkles className="h-3 w-3 text-[#60A5FA]" />
-              User Directory
-            </div>
+            <HeroCapsule label="User Directory" />
           </div>
-          <p className="max-w-3xl text-sm text-[#B2C3DA]">
+          <p className="max-w-3xl text-sm text-text-secondary dark:text-[#B2C3DA]">
             集中查看用户状态、订阅等级、最近活跃与高风险动作，保持筛选、分页与快捷操作在同一工作区内完成。
           </p>
         </div>
@@ -554,14 +554,16 @@ export const UserTable: React.FC<UserTableProps> = ({
       <section className="space-y-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-[#E6EDF7]">用户概览</h2>
-            <p className="text-sm text-[#8FA4C2]">
+            <h2 className="text-lg font-semibold text-text-primary dark:text-[#E6EDF7]">
+              用户概览
+            </h2>
+            <p className="text-sm text-text-secondary dark:text-[#8FA4C2]">
               聚焦全站用户结构、付费档位分布与风险账号规模，并补充相对上周期的变化。
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 md:justify-end">
-            <div className="inline-flex items-center rounded-2xl border border-[#24324D] bg-[#121C32] p-1">
+            <div className="inline-flex items-center rounded-2xl border border-borderTone bg-surface-subtle p-1 dark:border-[#24324D] dark:bg-[#121C32]">
               {overviewWindowOptions.map((option) => {
                 const isActive = option.key === overviewWindow
                 return (
@@ -571,8 +573,8 @@ export const UserTable: React.FC<UserTableProps> = ({
                     onClick={() => setOverviewWindow(option.key)}
                     className={`rounded-xl px-5 py-2 text-sm transition-colors ${
                       isActive
-                        ? 'bg-white/12 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
-                        : 'text-[#8FA4C2] hover:text-white'
+                        ? 'dark:bg-white/12 bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] dark:text-white'
+                        : 'text-text-secondary hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white'
                     }`}
                   >
                     {option.label}
@@ -582,7 +584,7 @@ export const UserTable: React.FC<UserTableProps> = ({
             </div>
 
             {overview?.lastUpdated ? (
-              <span className="font-mono text-xs text-[#9FB0C9]">
+              <span className="font-mono text-xs text-text-secondary dark:text-[#9FB0C9]">
                 更新于{' '}
                 {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
               </span>
@@ -598,7 +600,7 @@ export const UserTable: React.FC<UserTableProps> = ({
             return (
               <div
                 key={card.key}
-                className={`relative overflow-hidden rounded-[24px] border bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] p-4 shadow-[0_18px_40px_rgba(2,8,23,0.38)] ${card.borderClassName}`}
+                className={`relative overflow-hidden rounded-[24px] border border-borderTone bg-surface p-4 shadow-surface dark:bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] dark:shadow-[0_18px_40px_rgba(2,8,23,0.38)] dark:${card.borderClassName}`}
               >
                 <div
                   className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
@@ -608,20 +610,20 @@ export const UserTable: React.FC<UserTableProps> = ({
                 <div className="relative flex h-full items-start justify-between gap-4">
                   <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
                     <div className="space-y-1.5">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8EA3C0]">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary dark:text-[#8EA3C0]">
                         {card.title}
                       </p>
                       <div className="flex items-end gap-2">
-                        <p className="text-[2rem] font-semibold leading-none tracking-tight text-[#F8FBFF]">
+                        <p className="text-[2rem] font-semibold leading-none tracking-tight text-text-primary dark:text-[#F8FBFF]">
                           {card.value}
                         </p>
-                        <span className="pb-1 text-[11px] text-[#8EA3C0]">
+                        <span className="pb-1 text-[11px] text-text-secondary dark:text-[#8EA3C0]">
                           {card.caption}
                         </span>
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] text-[#8EA3C0]">
+                      <span className="text-[11px] text-text-secondary dark:text-[#8EA3C0]">
                         {card.trendLabel}
                       </span>
                       <span
@@ -631,13 +633,13 @@ export const UserTable: React.FC<UserTableProps> = ({
                         {trend.text}
                       </span>
                     </div>
-                    <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-[#B2C3DA]">
+                    <p className="line-clamp-2 max-w-[20rem] text-sm leading-6 text-text-secondary dark:text-[#B2C3DA]">
                       {card.meta}
                     </p>
                   </div>
 
                   <div
-                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 ${card.iconBgClassName}`}
+                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-gray-200 dark:border-white/10 ${card.iconBgClassName}`}
                   >
                     <Icon className={`h-5 w-5 ${card.iconClassName}`} />
                   </div>
@@ -648,18 +650,20 @@ export const UserTable: React.FC<UserTableProps> = ({
         </div>
 
         {isOverviewLoading ? (
-          <p className="text-xs text-[#8FA4C2]">正在刷新用户概览...</p>
+          <p className="text-xs text-text-secondary dark:text-[#8FA4C2]">
+            正在刷新用户概览...
+          </p>
         ) : null}
       </section>
 
-      <div className="bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-[#24324D] shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
-        <div className="border-b border-[#1B2840] bg-[#0F1A2F] px-5 py-5 sm:px-6">
+      <div className="dark:bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-[#24324D] dark:shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
+        <div className="border-b border-borderTone bg-surface-subtle px-5 py-5 dark:border-[#1B2840] dark:bg-[#0F1A2F] sm:px-6">
           <div className="flex flex-col gap-3">
             <div className="space-y-1">
-              <h2 className="text-2xl font-semibold text-[#F4F7FB]">
+              <h2 className="text-2xl font-semibold text-text-primary dark:text-[#F4F7FB]">
                 用户列表
               </h2>
-              <p className="text-sm text-[#8FA4C2]">
+              <p className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                 搜索、筛选并处理用户状态，保留原有详情跳转与高风险操作逻辑。
               </p>
             </div>
@@ -678,7 +682,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                     onChange={(e) =>
                       setFilters((f) => ({ ...f, search: e.target.value }))
                     }
-                    className="w-full rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-10 pr-4 text-sm text-[#E6EDF7] outline-none transition-all placeholder:text-[#6F86A8] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                    className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#6F86A8] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                   />
                 </div>
 
@@ -692,7 +696,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                           status: e.target.value as Admin.UserStatus | 'All',
                         }))
                       }
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="All">状态: 全部</option>
                       {Object.values(Admin.UserStatus).map((s) => (
@@ -718,7 +722,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                             | 'All',
                         }))
                       }
-                      className="w-full appearance-none rounded-2xl border border-[#24324D] bg-[#151F36] py-2.5 pl-3 pr-10 text-sm text-[#E6EDF7] outline-none transition-all hover:bg-[#1A2744] focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="All">等级: 全部</option>
                       {Object.values(Admin.SubscriptionTier).map((t) => (
@@ -737,7 +741,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                 {isFiltered ? (
                   <button
                     onClick={resetFilters}
-                    className="text-sm text-[#8FA4C2] transition-colors hover:text-white"
+                    className="text-sm text-text-secondary transition-colors hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white"
                   >
                     重置筛选
                   </button>
@@ -745,14 +749,14 @@ export const UserTable: React.FC<UserTableProps> = ({
               </div>
 
               <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-                <span className="text-sm text-[#8FA4C2]">
+                <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                   当前命中{' '}
-                  <span className="font-semibold text-[#F4F7FB]">
+                  <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">
                     {data.total}
                   </span>{' '}
                   位用户
                 </span>
-                <button className="inline-flex items-center gap-2 rounded-xl border border-[#24324D] bg-[#151F36] px-4 py-2 text-sm font-medium text-[#E6EDF7] transition-colors hover:bg-[#1A2744]">
+                <button className="inline-flex items-center gap-2 rounded-xl border border-borderTone bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-subtle dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]">
                   <Download size={16} />
                   导出
                 </button>
@@ -764,9 +768,9 @@ export const UserTable: React.FC<UserTableProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1120px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-[#1B2840] bg-[#101A2D]">
+              <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
                 <th
-                  className="group cursor-pointer select-none px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8] transition-colors hover:text-[#E6EDF7]"
+                  className="group cursor-pointer select-none px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-text-primary dark:text-[#6F86A8] dark:hover:text-[#E6EDF7]"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center">
@@ -802,7 +806,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                   </div>
                 </th>
                 <th
-                  className="group cursor-pointer select-none px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8] transition-colors hover:text-[#E6EDF7]"
+                  className="group cursor-pointer select-none px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary transition-colors hover:text-text-primary dark:text-[#6F86A8] dark:hover:text-[#E6EDF7]"
                   onClick={() => handleSort('lastActive')}
                 >
                   <div className="flex items-center">
@@ -810,18 +814,18 @@ export const UserTable: React.FC<UserTableProps> = ({
                     {renderSortIcon('lastActive')}
                   </div>
                 </th>
-                <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6F86A8]">
+                <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
                   操作
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1B2840]">
+            <tbody className="divide-y divide-borderTone dark:divide-[#1B2840]">
               {data.data.length > 0 ? (
                 data.data.map((user) => (
                   <tr
                     key={user.id}
                     onClick={() => handleUserClick(user)}
-                    className="group cursor-pointer transition-colors hover:bg-[#131F35]"
+                    className="group cursor-pointer transition-colors hover:bg-surface-subtle dark:hover:bg-[#131F35]"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -830,10 +834,10 @@ export const UserTable: React.FC<UserTableProps> = ({
                           colorClass={user.avatarColor}
                         />
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-[#F4F7FB] transition-colors group-hover:text-[#93C5FD]">
+                          <span className="text-sm font-semibold text-text-primary transition-colors group-hover:text-primary dark:text-[#F4F7FB] dark:group-hover:text-[#93C5FD]">
                             {user.name}
                           </span>
-                          <span className="font-mono text-xs text-[#8FA4C2]">
+                          <span className="font-mono text-xs text-text-secondary dark:text-[#8FA4C2]">
                             {user.email}
                           </span>
                         </div>
@@ -841,11 +845,11 @@ export const UserTable: React.FC<UserTableProps> = ({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="text-sm text-[#D5E0F0]">
+                        <span className="text-sm text-text-primary dark:text-[#D5E0F0]">
                           {user.grade}
                         </span>
                         <span
-                          className="max-w-[160px] truncate text-xs text-[#8FA4C2]"
+                          className="max-w-[160px] truncate text-xs text-text-secondary dark:text-[#8FA4C2]"
                           title={user.school}
                         >
                           {user.school}
@@ -877,7 +881,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                           }
                           className={
                             activeDropdownId === user.id
-                              ? 'border-[#24324D] bg-[#18243D] text-[#E6EDF7]'
+                              ? 'border-borderTone bg-surface-subtle text-text-primary dark:border-[#24324D] dark:bg-[#18243D] dark:text-[#E6EDF7]'
                               : ''
                           }
                         />
@@ -885,7 +889,7 @@ export const UserTable: React.FC<UserTableProps> = ({
 
                       {activeDropdownId === user.id ? (
                         <div
-                          className="absolute right-6 top-11 z-50 w-52 origin-top-right overflow-hidden rounded-2xl border border-[#24324D] bg-[#151F36] shadow-[0_18px_40px_rgba(2,8,23,0.42)] duration-100 animate-in fade-in zoom-in-95"
+                          className="absolute right-6 top-11 z-50 w-52 origin-top-right overflow-hidden rounded-2xl border border-borderTone bg-surface shadow-surface duration-100 animate-in fade-in zoom-in-95 dark:border-[#24324D] dark:bg-[#151F36] dark:shadow-[0_18px_40px_rgba(2,8,23,0.42)]"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="py-1.5">
@@ -894,7 +898,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                                 handleUserClick(user)
                                 setActiveDropdownId(null)
                               }}
-                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#D5E0F0] transition-colors hover:bg-[#1A2744] hover:text-white"
+                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white"
                             >
                               <Eye size={14} />
                               查看详情
@@ -942,13 +946,13 @@ export const UserTable: React.FC<UserTableProps> = ({
                                   ])
                                 }}
                               >
-                                <button className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#D5E0F0] transition-colors hover:bg-[#1A2744] hover:text-white">
+                                <button className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white">
                                   <ShieldAlert size={14} />
                                   提权 / 覆写
                                 </button>
                               </OverrideModal>
                             ) : null}
-                            <div className="mx-3 my-1 h-px bg-[#24324D]" />
+                            <div className="mx-3 my-1 h-px bg-borderTone dark:bg-[#24324D]" />
                             <button
                               onClick={() =>
                                 handleQuickAction(
@@ -958,7 +962,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                                     : 'ban'
                                 )
                               }
-                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-[#FCA5A5] transition-colors hover:bg-[#33161A] hover:text-[#FECACA]"
+                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-rose-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-[#FCA5A5] dark:hover:bg-[#33161A] dark:hover:text-[#FECACA]"
                             >
                               <Ban size={14} />
                               {user.status === Admin.UserStatus.BANNED
@@ -974,9 +978,9 @@ export const UserTable: React.FC<UserTableProps> = ({
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center">
-                    <div className="flex flex-col items-center justify-center text-[#8FA4C2]">
+                    <div className="flex flex-col items-center justify-center text-text-secondary dark:text-[#8FA4C2]">
                       <Filter className="mb-3 h-12 w-12 opacity-20" />
-                      <p className="text-lg font-medium text-[#E6EDF7]">
+                      <p className="text-lg font-medium text-text-primary dark:text-[#E6EDF7]">
                         未找到用户
                       </p>
                       <p className="text-sm">尝试调整搜索条件或筛选器</p>
@@ -994,25 +998,28 @@ export const UserTable: React.FC<UserTableProps> = ({
           </table>
         </div>
 
-        <div className="mt-auto flex select-none flex-col gap-4 border-t border-[#1B2840] bg-[#10192D] p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-[#8FA4C2]">
+        <div className="mt-auto flex select-none flex-col gap-4 border-t border-borderTone bg-surface-subtle p-4 dark:border-[#1B2840] dark:bg-[#10192D] sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-text-secondary dark:text-[#8FA4C2]">
             显示第{' '}
-            <span className="font-medium text-[#E6EDF7]">
+            <span className="font-medium text-text-primary dark:text-[#E6EDF7]">
               {data.total === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
             </span>{' '}
             到{' '}
-            <span className="font-medium text-[#E6EDF7]">
+            <span className="font-medium text-text-primary dark:text-[#E6EDF7]">
               {Math.min(currentPage * itemsPerPage, data.total)}
             </span>{' '}
             条，共{' '}
-            <span className="font-medium text-[#E6EDF7]">{data.total}</span> 条
+            <span className="font-medium text-text-primary dark:text-[#E6EDF7]">
+              {data.total}
+            </span>{' '}
+            条
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="rounded-xl border border-[#24324D] bg-[#151F36] p-2 text-[#8FA4C2] transition-colors hover:bg-[#1A2744] hover:text-white disabled:opacity-30 disabled:hover:bg-[#151F36] disabled:hover:text-[#8FA4C2]"
+              className="rounded-xl border border-borderTone bg-surface p-2 text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-30 disabled:hover:bg-surface disabled:hover:text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-white dark:disabled:hover:bg-[#151F36] dark:disabled:hover:text-[#8FA4C2]"
             >
               <ChevronLeft size={18} />
             </button>
@@ -1026,13 +1033,13 @@ export const UserTable: React.FC<UserTableProps> = ({
               disabled={
                 currentPage === data.totalPages || data.totalPages === 0
               }
-              className="rounded-xl border border-[#24324D] bg-[#151F36] p-2 text-[#8FA4C2] transition-colors hover:bg-[#1A2744] hover:text-white disabled:opacity-30 disabled:hover:bg-[#151F36] disabled:hover:text-[#8FA4C2]"
+              className="rounded-xl border border-borderTone bg-surface p-2 text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-30 disabled:hover:bg-surface disabled:hover:text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-white dark:disabled:hover:bg-[#151F36] dark:disabled:hover:text-[#8FA4C2]"
             >
               <ChevronRight size={18} />
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-[#8FA4C2]">
+          <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-[#8FA4C2]">
             <span>每页</span>
             <select
               value={itemsPerPage}
@@ -1040,7 +1047,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                 setItemsPerPage(Number(e.target.value))
                 setCurrentPage(1)
               }}
-              className="rounded-xl border border-[#24324D] bg-[#151F36] px-2.5 py-1.5 text-[#E6EDF7] outline-none transition-all focus:border-[#33527B] focus:ring-2 focus:ring-[#60A5FA]/20"
+              className="rounded-xl border border-borderTone bg-surface px-2.5 py-1.5 text-text-primary outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
