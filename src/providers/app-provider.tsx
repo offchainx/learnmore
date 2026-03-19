@@ -10,6 +10,7 @@ interface AppContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
   theme: string | undefined;
+  setThemePreference: (theme: 'light' | 'dark' | 'system') => void;
   toggleTheme: () => void;
   t: typeof translations.en; // Strongly typed based on English structure
 }
@@ -56,10 +57,15 @@ export const AppProvider = ({
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
+  const setThemePreference = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+  };
+
   const value = {
     lang,
     setLang: handleSetLang,
     theme,
+    setThemePreference,
     toggleTheme,
     t: translations[lang] || translations['en']
   };

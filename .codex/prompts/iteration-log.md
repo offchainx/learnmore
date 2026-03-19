@@ -73,6 +73,8 @@
 | 2026-03-13 | T-006.23.1 页面级标题壳子统一，并补课程学习/学员社区外层页面壳包裹范围 | 先抽统一 PageHeroShell，再把 Dashboard/Courses/Practice/Community/Settings/Leaderboard/Achievements 顶部接入；随后按反馈把 Courses 和 Community 改成与练习中心一致的整页外层壳结构，Community Hub 移到标题右侧。 | 完成统一标题壳子组件接入主要页面；修复 Settings/Community/Leaderboard 相关类型与兼容问题；课程学习和学员社区的外层壳已包住整段主体，社区标题胶囊移至标题右侧。 | - | - | - | - |
 | 2026-03-15 | 用户要求提交并推送当前工作区全部改动 | 先检查 git 状态/分支/远端，再执行全量暂存与提交；若被仓库 hook 拦截，则反查 codex 门禁并补齐 iteration log 后继续 commit/push | 已定位 pre-commit 会强制要求更新 `.codex/prompts/iteration-log.md`；当前已补日志并重新准备执行提交与推送 | 先读 `git status`、`git branch --show-current`、`git remote -v`，再根据报错查看 `scripts/codex/check-session.mjs`，能快速确定阻塞不是代码本身而是仓库流程门禁 | 直接 `git commit` 会因为未更新 iteration log 被 hook 拦截，中断推送流程 | 当用户要求“直接提交并推送当前全部改动”时，先检查仓库是否有 codex/log 类 hook；若提交失败，立即读取 hook 脚本并补齐最小 required 文件，再重新执行 `git add -A -> git commit -> git push` | 完成当前全量 commit 和 push，确认工作区回到 clean |
 
+| 2026-03-19 | T-006.24 设置页偏好链路修复与 spec tasks 文档排版恢复 | 修复 Settings 的语言/主题持久化与 system 主题错误切换，恢复 p0-04 tasks.md 紧凑表格格式，并补充规则避免再被 Prettier 炸开 | 已修复 Settings 语言/主题草稿提交流程与误导文案；恢复 p0-04 tasks.md 紧凑表格；补充 GEMINI 规则禁止对 spec/tasks 文档跑 Prettier 或自动表格对齐工具 | 先按实际代码定位设置页状态流，再用最小范围文档规则修补提交门禁 | 直接 git commit 被 codex hook 拦截，因为未更新 iteration-log | 提交前先检查仓库是否要求 iteration-log 或 codex:close，并同步保护 spec/tasks 文档排版 | 提交当前修复，然后继续清 T-006.24 的浅色主题页面残留并完成内测 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

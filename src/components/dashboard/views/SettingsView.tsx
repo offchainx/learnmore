@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/labeled-input'
 import { Switch } from '@/components/ui/switch'
 import { useApp } from '@/providers'
+import type { Lang } from '@/providers/app-provider'
 import { updateProfile } from '@/actions/user/profile'
 import { updateAIConfig } from '@/actions/user/settings'
 import { generateInviteCode } from '@/actions/user/parent'
@@ -27,6 +28,7 @@ import { cn } from '@/lib/utils'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import {
   pageCardTitleClass,
+  pageHeroNumericValueClass,
   pageKickerClass,
   pageMetaTextClass,
   pageNumericValueClass,
@@ -42,9 +44,15 @@ import {
   pagePanelStrongClass,
   pagePillActiveClass,
   pagePillInactiveClass,
+  pageSegmentedButtonClass,
   pageShellFrameClass,
   pageSoftInsetClass,
 } from '@/components/shared/pageSurfaces'
+import {
+  pageCardPaddingClass,
+  pageGridGapClass,
+  pageSectionGapClass,
+} from '@/components/shared/pageSpacing'
 import {
   Bell,
   Bot,
@@ -176,8 +184,7 @@ const choiceActiveClass =
 const choiceIdleClass =
   'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'
 
-const choiceButtonClass =
-  'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]'
+const choiceButtonClass = `${pageSegmentedButtonClass} flex w-full items-center justify-between rounded-2xl border`
 
 const subtleButtonClass =
   'h-11 rounded-full border border-borderTone bg-surface-subtle px-4 text-text-primary hover:bg-surface-selected hover:text-sky-700 dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:hover:bg-surface-selected'
@@ -186,6 +193,18 @@ const dataBlockClass =
   'rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3 text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-white'
 
 const initialState = { error: undefined, success: undefined }
+
+type ThemePreference = 'light' | 'dark' | 'system'
+
+function isLangPreference(value: string | null | undefined): value is Lang {
+  return value === 'en' || value === 'zh' || value === 'ms'
+}
+
+function isThemePreference(
+  value: string | null | undefined
+): value is ThemePreference {
+  return value === 'light' || value === 'dark' || value === 'system'
+}
 
 type UserProfile = {
   id: string
@@ -209,8 +228,8 @@ type UserProfile = {
   settings: {
     aiPersonality?: string | null
     difficultyCalibration?: number | null
-    language?: 'en' | 'zh' | 'ms' | null
-    theme?: 'light' | 'dark' | 'system' | null
+    language?: string | null
+    theme?: string | null
     notificationDaily?: boolean | null
     notificationWeekly?: boolean | null
   } | null
@@ -235,8 +254,7 @@ function SectionSubmitButton({
   return (
     <Button
       type="submit"
-      variant="glow"
-      className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+      className="h-11 rounded-full px-5 text-sm font-semibold"
       disabled={pending}
     >
       {pending ? pendingLabel : idleLabel}
@@ -268,7 +286,7 @@ function SettingsSection({
       id={id}
       data-section-id={id}
       ref={sectionRef}
-      className={`${surfaceClassName} overflow-hidden p-6`}
+      className={`${surfaceClassName} overflow-hidden ${pageCardPaddingClass}`}
     >
       <div
         ref={headerRef}
@@ -386,7 +404,7 @@ function ReferralSection({
   }
 
   return (
-    <div className={`${surfaceClassName} p-5`}>
+    <div className={`${surfaceClassName} ${pageCardPaddingClass}`}>
       <div className="flex items-start gap-3">
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-400/20 dark:bg-emerald-400/10">
           <Gift className="h-5 w-5 text-emerald-300" />
@@ -465,7 +483,7 @@ function ReferralSection({
 }
 
 export const SettingsView = ({ user }: SettingsViewProps) => {
-  const { t, lang, setLang, theme, toggleTheme } = useApp()
+  const { t, lang, setLang, theme, setThemePreference } = useApp()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -520,6 +538,18 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     account: null,
     subscription: null,
   })
+  const persistedLang = isLangPreference(user?.settings?.language)
+    ? user.settings.language
+    : lang
+  const persistedTheme = isThemePreference(user?.settings?.theme)
+    ? user.settings.theme
+    : isThemePreference(theme)
+      ? theme
+      : 'system'
+  const [profileLang, setProfileLang] = useState<Lang>(persistedLang)
+  const [profileTheme, setProfileTheme] =
+    useState<ThemePreference>(persistedTheme)
+  const profilePreferenceSyncRef = useRef(false)
 
   const copy = useMemo(() => {
     if (lang === 'zh') {
@@ -539,7 +569,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           '管理家长连接、推荐关系和账户相关能力，保留增长入口但收口到同一页。',
         subscriptionDesc:
           '查看当前套餐、到期状态和推荐奖励待结算情况，在同一区域完成升级与续费决策。',
-        instantApplied: '即时生效',
+        preferenceSaveHint: '保存后同步到当前设备与账号偏好。',
+        notificationPending: '有未保存的通知改动。',
+        subscriptionHealthy: '当前按计划续期。',
+        savedToAccount: '已同步到当前账号偏好。',
         profileSave: '保存个人资料',
         aiSave: '保存 AI 配置',
         notifSave: '保存通知偏好',
@@ -604,7 +637,12 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           'Urus sambungan ibu bapa, kod jemputan dan modul pertumbuhan dalam seksyen yang sama.',
         subscriptionDesc:
           'Semak pelan, tempoh tamat dan ganjaran rujukan yang masih menunggu penyelesaian.',
-        instantApplied: 'Berkuat kuasa segera',
+        preferenceSaveHint:
+          'Simpan dahulu untuk diselaraskan ke peranti ini dan keutamaan akaun.',
+        notificationPending:
+          'Terdapat perubahan notifikasi yang belum disimpan.',
+        subscriptionHealthy: 'Langganan sedang diperbaharui seperti biasa.',
+        savedToAccount: 'Telah diselaraskan ke keutamaan akaun semasa.',
         profileSave: 'Simpan profil',
         aiSave: 'Simpan AI',
         notifSave: 'Simpan notifikasi',
@@ -671,7 +709,12 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         'Handle parent connection, invite code and referral tools inside the same console.',
       subscriptionDesc:
         'Review your plan, renewal status and pending referral rewards in one area.',
-      instantApplied: 'Applies instantly',
+      preferenceSaveHint:
+        'Save first to sync this device and your account preference.',
+      notificationPending:
+        'You have notification changes that are not saved yet.',
+      subscriptionHealthy: 'Your subscription is renewing as scheduled.',
+      savedToAccount: 'Synced to your current account preference.',
       profileSave: 'Save profile',
       aiSave: 'Save AI config',
       notifSave: 'Save notifications',
@@ -848,6 +891,35 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     JSON.stringify(notifPrefs) !== JSON.stringify(initialNotifPrefs)
   const railTopOffset = 28
 
+  useEffect(() => {
+    setProfileLang(persistedLang)
+  }, [persistedLang])
+
+  useEffect(() => {
+    setProfileTheme(persistedTheme)
+  }, [persistedTheme])
+
+  useEffect(() => {
+    if (!profileState.success) {
+      profilePreferenceSyncRef.current = false
+      return
+    }
+
+    if (profilePreferenceSyncRef.current) {
+      return
+    }
+
+    setLang(profileLang)
+    setThemePreference(profileTheme)
+    profilePreferenceSyncRef.current = true
+  }, [
+    profileLang,
+    profileState.success,
+    profileTheme,
+    setLang,
+    setThemePreference,
+  ])
+
   const resolveScrollTarget = (sectionId: TabId) =>
     sectionHeaderRefs.current[sectionId]
 
@@ -956,7 +1028,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       setInitialNotifPrefs(notifPrefs)
       toast({
         title: copy.notificationsSaved,
-        description: copy.instantApplied,
+        description: copy.savedToAccount,
       })
       return
     }
@@ -1152,7 +1224,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
   return (
     <div className="animate-fade-in-up pb-12">
-      <div className={`space-y-6 ${pageShellFrameClass} sm:p-2.5`}>
+      <div className={`${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}>
         <PageHeroShell
           className={`${pagePanelStrongClass} ${pageHeroShellClass}`}
           eyebrow={
@@ -1166,7 +1238,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           titleClassName="font-semibold"
           subtitleClassName="text-[13px] leading-6 text-text-secondary dark:text-text-secondary"
           actions={
-            <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
+            <div
+              className={`grid sm:grid-cols-2 xl:min-w-[360px] ${pageGridGapClass}`}
+            >
               <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
                 <div className={pageKickerClass}>{copy.accountSummary}</div>
                 <div className={pageCardTitleClass}>
@@ -1192,8 +1266,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         />
 
         <div className="grid grid-cols-1 gap-6 xl:h-[calc(100vh-14.5rem)] xl:grid-cols-[260px_minmax(0,1fr)] xl:overflow-hidden">
-          <div className="space-y-4 xl:self-start">
-            <Card className={`${surfaceClassName} p-4`}>
+          <div className={`xl:self-start ${pageSectionGapClass}`}>
+            <Card className={`${surfaceClassName} ${pageCardPaddingClass}`}>
               <div className="space-y-2">
                 {menuItems.map((item) => (
                   <button
@@ -1231,7 +1305,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
           <div
             ref={scrollContainerRef}
-            className="space-y-6 xl:h-full xl:overflow-y-auto xl:pb-[42rem] xl:pr-2 xl:pt-7"
+            className={`xl:h-full xl:overflow-y-auto xl:pb-[42rem] xl:pr-2 xl:pt-7 ${pageSectionGapClass}`}
           >
             <SettingsSection
               id="profile"
@@ -1246,12 +1320,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               }}
             >
               <form action={profileAction} className="space-y-5">
-                <input type="hidden" name="language" value={lang} />
-                <input
-                  type="hidden"
-                  name="theme"
-                  value={theme === 'system' ? 'system' : theme}
-                />
+                <input type="hidden" name="language" value={profileLang} />
+                <input type="hidden" name="theme" value={profileTheme} />
                 <input
                   type="checkbox"
                   name="notificationDaily"
@@ -1278,7 +1348,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   </div>
                 ) : null}
 
-                <div className="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+                <div
+                  className={`grid xl:grid-cols-[300px_minmax(0,1fr)] ${pageGridGapClass}`}
+                >
                   <div className={`${insetCardClassName} p-5`}>
                     <div className={`mb-4 ${pageCardTitleClass}`}>
                       {copy.avatarLabel}
@@ -1303,9 +1375,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                     </div>
                   </div>
 
-                  <div className="grid gap-4">
+                  <div className={`grid ${pageGridGapClass}`}>
                     <div
-                      className={`${insetCardClassName} grid gap-4 p-5 md:grid-cols-2`}
+                      className={`${insetCardClassName} grid p-5 md:grid-cols-2 ${pageGridGapClass}`}
                     >
                       <Input
                         label={t.settings.profile.displayName}
@@ -1331,7 +1403,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                     </div>
 
                     <div
-                      className={`${insetCardClassName} grid gap-4 p-5 md:grid-cols-2`}
+                      className={`${insetCardClassName} grid p-5 md:grid-cols-2 ${pageGridGapClass}`}
                     >
                       <div>
                         <div className={`mb-3 ${pageCardTitleClass}`}>
@@ -1346,13 +1418,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                             <button
                               key={option.id}
                               type="button"
-                              onClick={() =>
-                                setLang(option.id as 'en' | 'zh' | 'ms')
-                              }
-                              aria-pressed={lang === option.id}
+                              onClick={() => setProfileLang(option.id as Lang)}
+                              aria-pressed={profileLang === option.id}
                               className={cn(
                                 choiceButtonClass,
-                                lang === option.id
+                                profileLang === option.id
                                   ? choiceActiveClass
                                   : choiceIdleClass
                               )}
@@ -1363,7 +1433,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                                 </span>
                                 {option.label}
                               </span>
-                              {lang === option.id ? (
+                              {profileLang === option.id ? (
                                 <CircleCheck className="h-4 w-4 text-sky-500 dark:text-sky-200" />
                               ) : null}
                             </button>
@@ -1388,60 +1458,33 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                             <button
                               key={option.id}
                               type="button"
-                              onClick={() => {
-                                if (
-                                  option.id === 'system' &&
-                                  theme !== 'light' &&
-                                  theme !== 'dark'
-                                ) {
-                                  return
-                                }
-
-                                if (option.id === 'system') {
-                                  toggleTheme()
-                                  return
-                                }
-
-                                if (
-                                  (option.id === 'dark' && theme !== 'dark') ||
-                                  (option.id === 'light' && theme !== 'light')
-                                ) {
-                                  toggleTheme()
-                                }
-                              }}
+                              onClick={() =>
+                                setProfileTheme(option.id as ThemePreference)
+                              }
                               className={cn(
                                 choiceButtonClass,
-                                (option.id === 'dark' && theme === 'dark') ||
-                                  (option.id === 'light' &&
-                                    theme === 'light') ||
-                                  (option.id === 'system' &&
-                                    theme !== 'dark' &&
-                                    theme !== 'light')
+                                profileTheme === option.id
                                   ? choiceActiveClass
                                   : choiceIdleClass
                               )}
-                              aria-pressed={
-                                (option.id === 'dark' && theme === 'dark') ||
-                                (option.id === 'light' && theme === 'light') ||
-                                (option.id === 'system' &&
-                                  theme !== 'dark' &&
-                                  theme !== 'light')
-                              }
+                              aria-pressed={profileTheme === option.id}
                             >
                               <span className="flex items-center gap-3">
                                 <option.icon className="h-4 w-4 text-sky-600 dark:text-sky-300" />
                                 {option.label}
                               </span>
-                              {(option.id === 'dark' && theme === 'dark') ||
-                              (option.id === 'light' && theme === 'light') ||
-                              (option.id === 'system' &&
-                                theme !== 'dark' &&
-                                theme !== 'light') ? (
+                              {profileTheme === option.id ? (
                                 <CircleCheck className="h-4 w-4 text-sky-500 dark:text-sky-200" />
                               ) : null}
                             </button>
                           ))}
                         </div>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <p className={pageMetaTextClass}>
+                          {copy.preferenceSaveHint}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1494,7 +1537,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   </div>
                 ) : null}
 
-                <div className="grid gap-4 xl:grid-cols-3">
+                <div className={`grid xl:grid-cols-3 ${pageGridGapClass}`}>
                   {tutorCards.map((tutor) => (
                     <button
                       key={tutor.id}
@@ -1531,7 +1574,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   ))}
                 </div>
 
-                <div className="grid gap-4 xl:grid-cols-2">
+                <div className={`grid xl:grid-cols-2 ${pageGridGapClass}`}>
                   <div className={`${insetCardClassName} p-5`}>
                     <div className="mb-4 flex items-center justify-between">
                       <div className={pageCardTitleClass}>
@@ -1675,12 +1718,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-sm text-text-secondary dark:text-text-secondary">
-                      {notifDirty ? copy.instantApplied : copy.noChange}
+                      {notifDirty ? copy.notificationPending : copy.noChange}
                     </div>
                     <Button
                       type="button"
-                      variant="glow"
-                      className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+                      className="h-11 rounded-full px-5 text-sm font-semibold"
                       onClick={handleSaveNotificationPreferences}
                       disabled={isNotifSaving || !notifDirty}
                     >
@@ -1729,7 +1771,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                           <div className={pageKickerClass}>
                             {copy.inviteCode}
                           </div>
-                          <div className="mt-3 font-mono text-[30px] font-semibold tracking-[0.3em] text-text-primary dark:text-white">
+                          <div
+                            className={`mt-3 font-mono tracking-[0.3em] ${pageHeroNumericValueClass}`}
+                          >
                             {inviteCode}
                           </div>
                           <Button
@@ -1745,8 +1789,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                       ) : (
                         <Button
                           type="button"
-                          variant="glow"
-                          className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+                          className="h-11 rounded-full px-5 text-sm font-semibold"
                           onClick={handleGenerateCode}
                           disabled={isGenerating}
                         >
@@ -1784,7 +1827,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               }}
             >
               <div className="space-y-4">
-                <div className="grid gap-4 xl:grid-cols-3">
+                <div className={`grid xl:grid-cols-3 ${pageGridGapClass}`}>
                   <div className={`${insetCardClassName} p-5`}>
                     <div className={pageKickerClass}>{copy.currentPlan}</div>
                     <div className={pageNumericValueClass}>{tierLabel}</div>
@@ -1807,7 +1850,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                     <div className={pageMetaTextClass}>
                       {user?.cancelAtPeriodEnd
                         ? copy.canceledStatus
-                        : copy.instantApplied}
+                        : copy.subscriptionHealthy}
                     </div>
                   </div>
 
@@ -1844,8 +1887,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                 <div className="flex flex-wrap gap-3 pt-2">
                   <Button
                     type="button"
-                    variant="glow"
-                    className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+                    className="h-11 rounded-full px-5 text-sm font-semibold"
                     onClick={() => router.push('/pricing')}
                   >
                     {copy.upgrade}
