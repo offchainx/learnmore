@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DailyInspiration } from './Widgets'
 import { DailyMissions } from './DailyMissions'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   Activity,
   ArrowUpRight,
@@ -18,6 +17,7 @@ import { useApp } from '@/providers'
 import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard'
 import { PracticeMode, User, UserSettings } from '@prisma/client'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageCardTitleClass,
   pageHeroNumericValueClass,
@@ -317,16 +317,16 @@ export const DashboardHome = ({
             <PageHeroShell
               className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
               title={
-                <>
-                  <span>{copy('仪表盘', 'Dashboard')}</span>
-                  <HeroCapsule label="Dashboard" />
-                </>
+                <PageHeroTitle
+                  title={copy('仪表盘', 'Dashboard')}
+                  capsuleLabel="Dashboard"
+                />
               }
               subtitle={copy(
                 '集中查看最近学习节奏、今日任务、课程恢复点和整体学科稳定度。',
                 'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.'
               )}
-              titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+              titleClassName="font-semibold"
               actions={
                 <div className={`shrink-0 ${pageSegmentedControlCompactClass}`}>
                   {(['7D', '30D'] as DashboardOverviewWindow[]).map(

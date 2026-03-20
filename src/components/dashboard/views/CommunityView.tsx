@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   Bookmark,
   Bot,
@@ -32,6 +31,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import { toast } from '@/components/ui/use-toast'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   fetchWithTimeout,
   isAbortLikeError,
@@ -723,10 +723,7 @@ export function CommunityView({
         <PageHeroShell
           className={`${surfaceClassName} ${pageHeroShellClass}`}
           title={
-            <div className="flex flex-wrap items-center gap-3">
-              <span>{t.community.title}</span>
-              <HeroCapsule label={copy.badge} />
-            </div>
+            <PageHeroTitle title={t.community.title} capsuleLabel={copy.badge} />
           }
           subtitle={t.community.sub}
           titleClassName="font-semibold"

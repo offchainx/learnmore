@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { VoucherDiscountType } from '@prisma/client'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   ArrowDown,
   ArrowUp,
@@ -31,6 +31,7 @@ import {
 } from '@/components/shared/pageSurfaces'
 import {
   pageHeroNumericValueClass,
+  pageHeroTitleClass,
   pageKickerClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
@@ -468,12 +469,9 @@ export function GrowthToolsConsole({
         <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
 
         <div className="relative flex min-w-0 flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-[30px]">
-              增长工具
-            </h1>
-            <HeroCapsule label="Growth Console" />
-          </div>
+          <h1 className={`${pageHeroTitleClass} font-semibold`}>
+            <PageHeroTitle title="增长工具" capsuleLabel="Growth Console" />
+          </h1>
           <p className="max-w-3xl text-sm text-text-secondary">
             在同一工作台内查看推荐关系链路、奖励状态与 Voucher
             发放/核销情况，减少在多个后台工具间切换。

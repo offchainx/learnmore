@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   AlertTriangle,
   ArrowRight,
@@ -37,6 +36,7 @@ import { LessonPlayer } from './LessonPlayer'
 import { useApp } from '@/providers'
 import { getSubjectLabel } from '@/lib/subjects'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageCardTitleClass,
   pageHeroNumericValueClass,
@@ -778,16 +778,16 @@ export const CoursesView = ({ t }: { t: any }) => {
           <PageHeroShell
             className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
             title={
-              <>
-                <span>{copy('课程学习', 'Course Learning')}</span>
-                <HeroCapsule label="Courses" />
-              </>
+              <PageHeroTitle
+                title={copy('课程学习', 'Course Learning')}
+                capsuleLabel="Courses"
+              />
             }
             subtitle={copy(
               '继续你的课程推进、进入复习模式，或回看当前科目的笔记与高亮。',
               'Continue your course progress, switch into review mode, or revisit your notebook for the current subject.'
             )}
-            titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+            titleClassName="font-semibold"
           />
 
           {renderSubjectSelector()}

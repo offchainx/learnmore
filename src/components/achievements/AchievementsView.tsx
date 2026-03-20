@@ -3,8 +3,8 @@
 import React, { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageCardTitleClass,
@@ -87,10 +87,7 @@ export const AchievementsView = ({
         <PageHeroShell
           className={pageHeroShellClass}
           title={
-            <div className="flex flex-wrap items-center gap-3">
-              <span>成就中心</span>
-              <HeroCapsule label="Achievement Vault" />
-            </div>
+            <PageHeroTitle title="成就中心" capsuleLabel="Achievement Vault" />
           }
           subtitle={`查看 ${user.username || 'Student'} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`}
           titleClassName="font-semibold"

@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   getContentStats,
   getQuestions,
@@ -16,6 +15,7 @@ import { AdminClientWrapper } from '@/components/admin/common'
 import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageKpiCardClass,
@@ -206,13 +206,10 @@ export default async function AdminContentPage({
           <PageHeroShell
             className="sm:py-4.5 px-4 py-4 sm:px-5"
             title={
-              <>
-                <span>内容管理</span>
-                <HeroCapsule label="Review Console" />
-              </>
+              <PageHeroTitle title="内容管理" capsuleLabel="Review Console" />
             }
             subtitle="审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。"
-            titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+            titleClassName="font-semibold"
           />
 
           <section className="space-y-3">

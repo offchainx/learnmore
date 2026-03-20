@@ -87,6 +87,8 @@
 
 | 2026-03-20 | 重新收口R1-R2-R3并限定在局部组件 | 重新实现 R1/R2/R3，但只改 Courses/Practice 的本地学科选择器、Community 的本地低对比度元素，以及 UserNav/AvatarUpload 的头像 fallback，不再碰共享 token 与 sidebar。 | R1/R2/R3 已以局部组件补丁方式重做，避免影响无关页面视觉。 | - | - | - | - |
 
+| 2026-03-20 | T-006.23 capsule 视觉语言统一 | 以 Community Hub 为基准，把所有页面标题旁 capsule 的视觉和渲染路径统一到同一套语言，并确保直接渲染到前端。 | 新增共享 PageHeroTitle，统一 Community/Dashboard/Courses/Practice/Settings/Leaderboard/Achievements 及 Admin 各页 hero capsule 渲染路径；补充 capsule 不换行与 shrink 约束，定向 eslint 通过。 | 先确认问题在标题行组合结构而不只是 HeroCapsule token；再抽共享标题组件并只改真实页面标题区，避免影响无关 badge。 | 直接 git commit 被 codex hook 拦截，因为未更新 iteration-log。 | 提交前先检查仓库 codex hook；涉及全局视觉统一时，优先统一真实渲染路径，再调整共享样式细节。 | 提交本轮 capsule 统一改动，然后拆解 T-006.25 的实现范围与子任务。 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

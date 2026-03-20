@@ -14,8 +14,8 @@ import { TierRoadmap } from './components/TierRoadmap'
 import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
 import { FocusPanel } from './components/FocusPanel'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageMetaTextClass,
   pageSectionDescriptionClass,
@@ -743,10 +743,7 @@ export const LeaderboardView = ({
           <PageHeroShell
             className={pageHeroShellClass}
             title={
-              <div className="flex flex-wrap items-center gap-3">
-                <span>{copy.title}</span>
-                <HeroCapsule label={copy.heroBadge} />
-              </div>
+              <PageHeroTitle title={copy.title} capsuleLabel={copy.heroBadge} />
             }
             subtitle={copy.heroSubtitle}
             titleClassName="font-semibold"

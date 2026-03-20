@@ -4,11 +4,11 @@ import React, { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { History, Plus, RefreshCw, AlertTriangle } from 'lucide-react'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import { pageTableShellClass } from '@/components/shared/pageSurfaces'
 import { StatsCards } from '@/components/admin/content/StatsCards'
@@ -141,13 +141,13 @@ export function ImportClient({
           <PageHeroShell
             className="sm:py-4.5 px-4 py-4 sm:px-5"
             title={
-              <>
-                <span>批量导入</span>
-                <HeroCapsule label="Import Pipeline v1.0" />
-              </>
+              <PageHeroTitle
+                title="批量导入"
+                capsuleLabel="Import Pipeline v1.0"
+              />
             }
             subtitle="统一管理 PDF、图像与网页抓取导入任务。"
-            titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+            titleClassName="font-semibold"
             actions={
               <div className="flex flex-wrap items-center gap-3">
                 <Button

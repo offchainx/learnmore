@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   Activity,
   Search,
@@ -34,6 +34,7 @@ import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
 import { toggleUserStatus } from '@/actions/admin/user-ops'
 import { OverrideModal } from '@/components/admin/permissions/OverrideModal'
+import { pageHeroTitleClass } from '@/components/shared/pageTypography'
 import { toast } from 'sonner'
 
 // --- Helper Components ---
@@ -539,12 +540,9 @@ export const UserTable: React.FC<UserTableProps> = ({
         <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
 
         <div className="relative flex min-w-0 flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary dark:text-[#E6EDF7] sm:text-[30px]">
-              用户管理
-            </h1>
-            <HeroCapsule label="User Directory" />
-          </div>
+          <h1 className={`${pageHeroTitleClass} font-semibold`}>
+            <PageHeroTitle title="用户管理" capsuleLabel="User Directory" />
+          </h1>
           <p className="max-w-3xl text-sm text-text-secondary dark:text-[#B2C3DA]">
             集中查看用户状态、订阅等级、最近活跃与高风险动作，保持筛选、分页与快捷操作在同一工作区内完成。
           </p>

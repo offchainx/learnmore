@@ -19,8 +19,8 @@ import {
 } from 'lucide-react'
 import { FeedbackCategory, FeedbackStatus } from '@/types/feedback'
 import { toast } from 'sonner'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageKpiCardClass,
@@ -336,13 +336,10 @@ export function FeedbackList({
       <PageHeroShell
         className="sm:py-4.5 px-4 py-4 sm:px-5"
         title={
-          <>
-            <span>反馈中心</span>
-            <HeroCapsule label="Inbox Console" />
-          </>
+          <PageHeroTitle title="反馈中心" capsuleLabel="Inbox Console" />
         }
         subtitle="集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。"
-        titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+        titleClassName="font-semibold"
       />
 
       <section className="space-y-3">

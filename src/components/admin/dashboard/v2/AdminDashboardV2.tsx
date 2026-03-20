@@ -11,7 +11,6 @@ import {
 } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -28,6 +27,7 @@ import {
   Users,
 } from 'lucide-react'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageBadgeClass,
@@ -353,13 +353,10 @@ function Header({ window }: { window: AdminDashboardWindow }) {
     <PageHeroShell
       className="sm:py-4.5 px-4 py-4 sm:px-5"
       title={
-        <>
-          <span>管理总览</span>
-          <HeroCapsule label="Command Center" />
-        </>
+        <PageHeroTitle title="管理总览" capsuleLabel="Command Center" />
       }
       subtitle="聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。"
-      titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+      titleClassName="font-semibold"
       actions={
         <div className={pageBadgeClass}>
           <Calendar className="h-3.5 w-3.5 text-[#60A5FA]" />

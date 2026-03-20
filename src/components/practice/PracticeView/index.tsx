@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { DbSubject, PracticeSubjectData } from './types'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import {
   fetchWithTimeout,
   isAbortLikeError,
@@ -22,6 +21,7 @@ import {
   type PracticeModePreviewConfig,
 } from './PracticeModePreviewDialog'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageHeroShellClass,
   pagePanelClass,
@@ -485,13 +485,10 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
         <PageHeroShell
           className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
           title={
-            <>
-              <span>{headerCopy.title}</span>
-              <HeroCapsule label="Practice" />
-            </>
+            <PageHeroTitle title={headerCopy.title} capsuleLabel="Practice" />
           }
           subtitle={headerCopy.subtitle}
-          titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+          titleClassName="font-semibold"
         />
 
         <div ref={subjectSentinelRef} className="h-px" />

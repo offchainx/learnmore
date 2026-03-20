@@ -25,7 +25,7 @@ export const pageBadgeMutedClass =
   'inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface px-3 py-1 text-[11px] font-medium text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary'
 
 export const pageHeroCapsuleClass =
-  'inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-[11px] font-medium text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none'
+  'inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-[11px] font-medium leading-none text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none'
 
 export const pageHeroCapsuleDotClass =
   'h-3 w-3 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(52,211,153,0.16)] dark:bg-emerald-400 dark:shadow-[0_0_0_3px_rgba(52,211,153,0.16)]'

@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, CheckCircle2, Clock3, Search, Siren } from 'lucide-react'
 import { useApp } from '@/providers'
-import { HeroCapsule } from '@/components/shared/HeroCapsule'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   Select,
@@ -13,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
+import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageKpiCardClass,
@@ -215,13 +215,13 @@ export const ReportsClient: React.FC = () => {
         <PageHeroShell
           className="sm:py-4.5 px-4 py-4 sm:px-5"
           title={
-            <>
-              <span>{text.header.title}</span>
-              <HeroCapsule label={text.header.badge} />
-            </>
+            <PageHeroTitle
+              title={text.header.title}
+              capsuleLabel={text.header.badge}
+            />
           }
           subtitle={text.header.description}
-          titleClassName="flex flex-wrap items-center gap-2 text-2xl sm:text-[30px]"
+          titleClassName="font-semibold"
         />
 
         <section className="space-y-3">
