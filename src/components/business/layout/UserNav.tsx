@@ -36,7 +36,9 @@ export function UserNav({ user, showDetails = false }: UserNavProps) {
           <Button variant="ghost" className="relative h-9 w-9 rounded-lg p-0">
             <Avatar className="h-9 w-9 rounded-lg">
               <AvatarImage src={user.avatar || undefined} alt={displayName} className="object-cover"/>
-              <AvatarFallback className="rounded-lg">{displayName[0].toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="rounded-lg border border-slate-200 bg-slate-50 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                {displayName[0].toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           </Button>
           {showDetails && (

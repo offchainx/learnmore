@@ -67,7 +67,7 @@ export function AvatarUpload({ currentAvatar, username, onUpload }: AvatarUpload
     <div className="flex flex-col items-center gap-4">
       <Avatar className="h-24 w-24 border-2 border-slate-200 dark:border-slate-800">
         <AvatarImage src={preview || ''} alt={username} />
-        <AvatarFallback className="text-2xl">
+        <AvatarFallback className="border border-slate-200 bg-slate-50 text-2xl text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
           {username?.[0]?.toUpperCase() || 'U'}
         </AvatarFallback>
       </Avatar>

@@ -85,6 +85,8 @@
 
 | 2026-03-19 | 回滚R1-R3的共享样式试改 | 按用户要求回滚上一版对 sidebar active、practice subject selector、community 辅助文案和 avatar fallback 的共享样式修改。 | 已将这四处修改精确回滚到 97bf443 状态，不影响 pageSurfaces/pageTypography 的其他未提交改动。 | - | - | - | - |
 
+| 2026-03-20 | 重新收口R1-R2-R3并限定在局部组件 | 重新实现 R1/R2/R3，但只改 Courses/Practice 的本地学科选择器、Community 的本地低对比度元素，以及 UserNav/AvatarUpload 的头像 fallback，不再碰共享 token 与 sidebar。 | R1/R2/R3 已以局部组件补丁方式重做，避免影响无关页面视觉。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

@@ -54,11 +54,11 @@ export const PracticeSubjectBar: React.FC<PracticeSubjectBarProps> = ({
             onClick={() => onSelect(subject.id)}
             className={`flex min-h-[42px] items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 transition-all duration-300 ${
               isActive
-                ? 'scale-[1.02] border-transparent bg-slate-900 text-white shadow-[0_12px_26px_rgba(15,23,42,0.18)] dark:bg-white dark:text-black'
+                ? 'scale-[1.01] border-blue-300 bg-[linear-gradient(180deg,#f8fbff_0%,#e8f1ff_100%)] text-blue-800 shadow-[0_10px_24px_rgba(59,130,246,0.10),inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-transparent dark:bg-white dark:text-slate-950'
                 : 'border-slate-200/80 bg-white/92 text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-slate-300 hover:bg-white hover:text-slate-700 dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700'
             }`}
           >
-            <Icon className={`h-4 w-4 ${isActive ? 'text-white dark:text-black' : 'text-slate-400 dark:text-slate-500'}`} />
+            <Icon className={`h-4 w-4 ${isActive ? 'text-blue-700 dark:text-slate-950' : 'text-slate-400 dark:text-slate-500'}`} />
             <span className="text-sm font-bold">{label}</span>
           </button>
         )

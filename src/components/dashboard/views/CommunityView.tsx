@@ -710,7 +710,11 @@ export function CommunityView({
       )
     }
 
-    return <span className={pageBadgeMutedClass}>{copy.original}</span>
+    return (
+      <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-medium text-violet-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
+        {copy.original}
+      </span>
+    )
   }
 
   return (
@@ -805,7 +809,7 @@ export function CommunityView({
               </div>
             </Card>
 
-            <div className="text-[11px] text-text-tertiary dark:text-text-tertiary">
+            <div className="text-[12px] leading-5 text-text-secondary dark:text-text-secondary">
               {copy.shareCountNote}
             </div>
 
