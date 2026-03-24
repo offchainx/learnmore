@@ -54,7 +54,10 @@ export async function getKnowledgeHiveData(
     // console.log(`[Hive] Fetching data for ${subjectId}`);
     // 1. 查询该科目下所有章节
     const chapters = await prisma.chapter.findMany({
-      where: { subjectId },
+      where: {
+        subjectId,
+        children: { none: {} },
+      },
       orderBy: { order: 'asc' },
       select: {
         id: true,

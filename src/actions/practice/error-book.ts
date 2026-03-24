@@ -175,6 +175,9 @@ export async function getErrorWiperSession(subjectId?: string) {
       byQuestion.set(attempt.questionId, list)
     }
 
+    // Error Wiper 的读定义是“基于历史错题 attempts 聚合出的修复视图”，
+    // 不是独立的选题池。因此这里按 question 维度回放用户错误历史，
+    // 再筛出“最近仍错”或“整体正确率偏低”的题目作为修复会话。
     const sessionData = Array.from(byQuestion.entries())
       .map(([questionId, records]) => {
         const latest = records[0]

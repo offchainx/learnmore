@@ -10,6 +10,7 @@ import {
 } from '@/components/shared/pageTypography'
 import { cn } from '@/lib/utils'
 import type { DbChapter } from '../types'
+import { parseStructuredChapterTitle } from '../chapterDisplay'
 
 interface ChapterCardProps {
   chapter: DbChapter
@@ -27,6 +28,11 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({
   const router = useRouter()
   const mastery = chapter.stats.masteryLevel
   const stars = mastery >= 80 ? 3 : mastery >= 50 ? 2 : mastery > 0 ? 1 : 0
+  const parsedTitle = parseStructuredChapterTitle(chapter.title)
+  const displayCode = parsedTitle?.code ?? String(absoluteIndex + 1).padStart(2, '0')
+  const displayTitle = parsedTitle
+    ? parsedTitle.combinedTitle
+    : chapter.title
 
   // HOT: 7天内 > 10次答题且正确率 < 70%
   const isHotspot =
@@ -44,7 +50,7 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({
         <div className="flex w-10 flex-col items-center gap-1">
           <div className={cn(pageHeroEyebrowClass, 'text-slate-400')}>章节</div>
           <div className="text-xl font-black text-slate-900 dark:text-white">
-            {String(absoluteIndex + 1).padStart(2, '0')}
+            {displayCode}
           </div>
         </div>
 
@@ -56,7 +62,7 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({
                 'line-clamp-1 text-slate-900 dark:text-white'
               )}
             >
-              {chapter.title}
+              {displayTitle}
             </h4>
             {isHotspot && (
               <span

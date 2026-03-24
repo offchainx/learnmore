@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Compass } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -6,6 +6,7 @@ import {
   pageKickerMutedClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { ChapterCard } from './ChapterCard'
 import type { DbChapter } from '../types'
 
@@ -16,124 +17,61 @@ interface ChapterProgressSectionProps {
 }
 
 const CHAPTERS_PER_PAGE = 4
-const MOCK_CHAPTERS: DbChapter[] = [
-  {
-    id: 'mock-ch-1',
-    title: '函数与图像',
-    subjectId: 'mock-subject',
-    parentId: null,
-    order: 1,
-    stats: {
-      totalAttempts: 14,
-      correctCount: 9,
-      masteryLevel: 64,
-      questionCount: 36,
-      recentAttempts: 7,
-      recentCorrectRate: 61,
-      monthlyCorrectRate: 64,
-    },
-  },
-  {
-    id: 'mock-ch-2',
-    title: '一次方程',
-    subjectId: 'mock-subject',
-    parentId: null,
-    order: 2,
-    stats: {
-      totalAttempts: 10,
-      correctCount: 8,
-      masteryLevel: 80,
-      questionCount: 28,
-      recentAttempts: 4,
-      recentCorrectRate: 80,
-      monthlyCorrectRate: 80,
-    },
-  },
-  {
-    id: 'mock-ch-3',
-    title: '几何证明',
-    subjectId: 'mock-subject',
-    parentId: null,
-    order: 3,
-    stats: {
-      totalAttempts: 12,
-      correctCount: 6,
-      masteryLevel: 50,
-      questionCount: 24,
-      recentAttempts: 6,
-      recentCorrectRate: 50,
-      monthlyCorrectRate: 50,
-    },
-  },
-  {
-    id: 'mock-ch-4',
-    title: '概率基础',
-    subjectId: 'mock-subject',
-    parentId: null,
-    order: 4,
-    stats: {
-      totalAttempts: 8,
-      correctCount: 5,
-      masteryLevel: 63,
-      questionCount: 20,
-      recentAttempts: 5,
-      recentCorrectRate: 60,
-      monthlyCorrectRate: 63,
-    },
-  },
-  {
-    id: 'mock-ch-5',
-    title: '统计图表',
-    subjectId: 'mock-subject',
-    parentId: null,
-    order: 5,
-    stats: {
-      totalAttempts: 13,
-      correctCount: 7,
-      masteryLevel: 57,
-      questionCount: 24,
-      recentAttempts: 7,
-      recentCorrectRate: 55,
-      monthlyCorrectRate: 57,
-    },
-  },
-]
 
 export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({
   chapters,
   isLoading,
   onPreviewChapter,
 }) => {
-  const hasMockPreview = !isLoading && chapters.length === 0
-  const displayChapters = hasMockPreview ? MOCK_CHAPTERS : chapters
   const [page, setPage] = useState(0)
+  const sectionRef = useRef<HTMLDivElement | null>(null)
+  const hasRealChapters = chapters.length > 0
 
   const totalPages = Math.max(
     1,
-    Math.ceil(displayChapters.length / CHAPTERS_PER_PAGE)
+    Math.ceil(chapters.length / CHAPTERS_PER_PAGE)
   )
   const visibleChapters = useMemo(
     () =>
-      displayChapters.slice(
+      chapters.slice(
         page * CHAPTERS_PER_PAGE,
         (page + 1) * CHAPTERS_PER_PAGE
       ),
-    [displayChapters, page]
+    [chapters, page]
   )
 
   useEffect(() => {
     setPage(0)
-  }, [displayChapters.length])
+  }, [chapters.length])
 
-  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (totalPages <= 1) return
-    event.preventDefault()
-    const direction = event.deltaY > 0 ? 1 : -1
-    setPage((prev) => Math.max(0, Math.min(totalPages - 1, prev + direction)))
-  }
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const handleWheel = (event: WheelEvent) => {
+      if (totalPages <= 1) return
+
+      const direction = event.deltaY > 0 ? 1 : -1
+      const nextPage = Math.max(0, Math.min(totalPages - 1, page + direction))
+
+      if (nextPage === page) {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+      setPage(nextPage)
+    }
+
+    section.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => {
+      section.removeEventListener('wheel', handleWheel)
+    }
+  }, [page, totalPages])
 
   return (
-    <div className="space-y-3">
+    <div ref={sectionRef} className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div
@@ -170,7 +108,7 @@ export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({
               'rounded-full bg-slate-100 px-3 py-1 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
             )}
           >
-            {displayChapters.length} 个章节
+            {chapters.length} 个章节
           </span>
         </div>
       </div>
@@ -186,39 +124,45 @@ export const ChapterProgressSection: React.FC<ChapterProgressSectionProps> = ({
         </div>
       ) : (
         <div className="space-y-3">
-          {hasMockPreview ? (
-            <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/80 px-4 py-2.5 text-xs leading-5 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
-              开始练习后，这里会生成你的章节地图。当前先用 mock 列表预览排布。
-            </div>
-          ) : null}
-
-          <div className="space-y-3" onWheel={handleWheel}>
-            {visibleChapters.map((chapter, index) => (
-              <div
-                key={chapter.id}
-                className="duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <ChapterCard
-                  chapter={chapter}
-                  absoluteIndex={page * CHAPTERS_PER_PAGE + index}
-                  isPreview={hasMockPreview}
-                  onPreview={onPreviewChapter}
-                />
-              </div>
-            ))}
-            {visibleChapters.length < CHAPTERS_PER_PAGE &&
-              Array.from({
-                length: CHAPTERS_PER_PAGE - visibleChapters.length,
-              }).map((_, index) => (
+          {!hasRealChapters ? (
+            <PageEmptyState
+              icon={Compass}
+              title="当前科目还没有可用章节练习"
+              description="章节数据接通后，这里会展示真实章节掌握度和定向练习入口。当前不再注入 mock 章节。"
+              className="rounded-[24px] border border-dashed border-amber-200 bg-amber-50/70 px-5 py-7 dark:border-amber-900/40 dark:bg-amber-950/10"
+              iconContainerClassName="border-amber-200 bg-white text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300"
+              titleClassName="text-base text-amber-900 dark:text-amber-100"
+              descriptionClassName="max-w-lg text-xs leading-6 text-amber-700 dark:text-amber-200"
+            />
+          ) : (
+            <div className="space-y-3">
+              {visibleChapters.map((chapter, index) => (
                 <div
-                  key={`empty-${index}`}
-                  className="flex h-[76px] items-center justify-center rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/35 dark:border-slate-800/60 dark:bg-slate-900/20"
+                  key={chapter.id}
+                  className="duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <span className={pageKickerMutedClass}>已到列表底部</span>
+                  <ChapterCard
+                    chapter={chapter}
+                    absoluteIndex={page * CHAPTERS_PER_PAGE + index}
+                    isPreview={false}
+                    onPreview={onPreviewChapter}
+                  />
                 </div>
               ))}
-          </div>
+              {visibleChapters.length < CHAPTERS_PER_PAGE &&
+                Array.from({
+                  length: CHAPTERS_PER_PAGE - visibleChapters.length,
+                }).map((_, index) => (
+                  <div
+                    key={`empty-${index}`}
+                    className="flex h-[76px] items-center justify-center rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/35 dark:border-slate-800/60 dark:bg-slate-900/20"
+                  >
+                    <span className={pageKickerMutedClass}>已到列表底部</span>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
       )}
     </div>

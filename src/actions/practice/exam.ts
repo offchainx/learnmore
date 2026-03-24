@@ -90,7 +90,10 @@ export async function generateMockExam(
 
   // 3. 获取该科目的所有章节
   const chapters = await prisma.chapter.findMany({
-    where: { subjectId },
+    where: {
+      subjectId,
+      children: { none: {} },
+    },
     select: { id: true }
   })
 
@@ -133,7 +136,9 @@ async function getQuestionsByDifficulty(
   const candidates = await prisma.question.findMany({
     where: {
       chapterId: { in: chapterIds },
-      difficulty: { in: difficultyLevels }
+      difficulty: { in: difficultyLevels },
+      isPastPaper: false,
+      status: { in: ['PUBLISHED', 'VERIFIED'] },
     },
     select: { id: true }
   })
