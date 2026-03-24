@@ -5,6 +5,10 @@ import { getChapterWithStats, getRandomQuestions } from '@/actions/practice/data
 import { QuizView } from '@/components/business/quiz/QuizView';
 import prisma from '@/lib/prisma';
 import type { ChapterWithStats } from '@/lib/practice/types';
+import { PageEmptyState } from '@/components/shared/PageEmptyState';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { BookOpen } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{
@@ -53,9 +57,8 @@ function buildPreviewChapter(chapterId: string): ChapterWithStats {
   };
 }
 
-function createMockQuestion(
+function createPreviewQuestion(
   chapterId: string,
-  subjectId: string,
   overrides: Partial<Question> & Pick<Question, 'id' | 'content' | 'type' | 'answer'>,
 ): Question {
   const { id, type, content, answer, ...rest } = overrides;
@@ -65,13 +68,13 @@ function createMockQuestion(
     curriculum: 'UEC',
     grade: 8,
     chapterId,
-    subjectId,
+    subjectId: 'preview',
     difficulty: 3,
     type,
     content,
     options: null,
     answer,
-    explanation: overrides.explanation ?? '这是一条用于章节地图答题页预览的 mock 解析。',
+    explanation: overrides.explanation ?? '这是一条仅用于章节预览的演示题。',
     contentHash: null,
     createdAt: new Date('2026-03-12T00:00:00.000Z'),
     createdBy: null,
@@ -86,8 +89,8 @@ function createMockQuestion(
     sourceFileId: null,
     assetUrl: null,
     imageUrls: [],
-    source: 'Chapter Map Mock Preview',
-    tags: ['chapter-map', 'mock-preview'],
+    source: 'Chapter Preview',
+    tags: ['chapter-preview'],
     isPastPaper: false,
     paperId: null,
     ...rest,
@@ -112,7 +115,23 @@ export default async function ChapterDrillPage({ params }: PageProps) {
   const [subject, questions] = previewChapter
     ? await Promise.all([
         Promise.resolve({ name: '练习预览' }),
-        Promise.resolve<Question[]>([]),
+        Promise.resolve<Question[]>([
+          createPreviewQuestion(chapterId, {
+            id: `${chapterId}-preview-1`,
+            type: QuestionType.SINGLE_CHOICE,
+            content: `【${previewChapter.title}】这是一道预览章节题，用来承接进入章节练习后的统一答题页。`,
+            options: { A: '继续练习', B: '返回首页', C: '刷新数据', D: '查看统计' },
+            answer: 'A',
+            difficulty: 1,
+          }),
+          createPreviewQuestion(chapterId, {
+            id: `${chapterId}-preview-2`,
+            type: QuestionType.FILL_BLANK,
+            content: `【${previewChapter.title}】当前 preview 分支只用于展示章节练习的 ______ 流程。`,
+            answer: '读取',
+            difficulty: 1,
+          }),
+        ]),
       ])
     : await Promise.all([
         prisma.subject.findUnique({
@@ -127,32 +146,27 @@ export default async function ChapterDrillPage({ params }: PageProps) {
       ]);
 
   const publishedQuestions = questions.filter((question) => question.status === ContentStatus.PUBLISHED);
-  const fallbackQuestions: Question[] = [
-    createMockQuestion(chapterId, chapter.subjectId, {
-      id: `${chapterId}-mock-1`,
-      type: QuestionType.SINGLE_CHOICE,
-      content: `【${chapter.title}】若 \\(3x + 5 = 20\\)，则 \\(x\\) 的值是？`,
-      options: { A: '3', B: '4', C: '5', D: '6' },
-      answer: 'C',
-      difficulty: 2,
-    }),
-    createMockQuestion(chapterId, chapter.subjectId, {
-      id: `${chapterId}-mock-2`,
-      type: QuestionType.MULTIPLE_CHOICE,
-      content: `【${chapter.title}】下列哪些选项属于本章节常见考点？`,
-      options: { A: '基础概念辨析', B: '核心公式应用', C: '跨题型变式', D: '无关记忆题' },
-      answer: ['A', 'B', 'C'],
-      difficulty: 3,
-    }),
-    createMockQuestion(chapterId, chapter.subjectId, {
-      id: `${chapterId}-mock-3`,
-      type: QuestionType.FILL_BLANK,
-      content: `【${chapter.title}】请填写：本轮章节练习用于预览统一答题页的 ______ 内容。`,
-      answer: 'mock',
-      difficulty: 1,
-    }),
-  ];
-  const displayQuestions = publishedQuestions.length > 0 ? publishedQuestions : fallbackQuestions;
+
+  if (!previewChapter && publishedQuestions.length === 0) {
+    return (
+      <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
+        <PageEmptyState
+          icon={BookOpen}
+          title="当前章节还没有可用练习题"
+          description="这个章节的数据已经接通，但当前没有已发布题目可供练习。现在不再为正式章节自动注入 mock 题。"
+          className="rounded-[28px] border border-dashed border-amber-200 bg-amber-50/70 px-5 py-8 dark:border-amber-900/40 dark:bg-amber-950/10"
+          iconContainerClassName="border-amber-200 bg-white text-amber-600 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300"
+          titleClassName="text-lg text-amber-900 dark:text-amber-100"
+          descriptionClassName="max-w-lg text-sm leading-6 text-amber-700 dark:text-amber-200"
+          actions={
+            <Button asChild variant="outline" className="rounded-2xl">
+              <Link href="/dashboard/practice">返回练习中心</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
@@ -164,7 +178,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
         mode="CHAPTER_DRILL"
         chapterId={chapterId}
         subjectId={chapter.subjectId}
-        questions={displayQuestions}
+        questions={publishedQuestions}
         submitLabel="提交章节练习"
         refreshLabel="换一组题"
         exitLabel="退出章节练习"
@@ -181,9 +195,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
         rightPanelNote={
           previewChapter
             ? '当前入口来自右侧分析卡片，这里先用 mock 题承接预览章节，避免 preview id 进入真实 Prisma 查询。'
-            : publishedQuestions.length > 0
-            ? '章节地图更适合定向补弱。建议先完整做完这一章的整组题，再回看章节正确率和题型波动。'
-            : '当前章节暂时没有真实题目，这里先用 mock 题帮你确认跳转和统一答题页逻辑。'
+            : '章节地图更适合定向补弱。建议先完整做完这一章的整组题，再回看章节正确率和题型波动。'
         }
       />
     </div>

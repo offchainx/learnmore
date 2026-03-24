@@ -65,6 +65,10 @@ export async function getChapterWithStats(
   const chapter = await prisma.chapter.findUnique({
     where: { id: chapterId },
     include: {
+      children: {
+        select: { id: true },
+        take: 1,
+      },
       _count: {
         select: { questions: true }
       }
@@ -72,6 +76,11 @@ export async function getChapterWithStats(
   })
 
   if (!chapter) {
+    return null
+  }
+
+  // Chapter Drill 只应消费叶子章节。
+  if (chapter.children.length > 0) {
     return null
   }
 
@@ -164,7 +173,10 @@ export async function getSubjectChapters(
 
   // 3. 查询该科目下所有章节及题目数
   const chapters = await prisma.chapter.findMany({
-    where: { subjectId },
+    where: {
+      subjectId,
+      children: { none: {} },
+    },
     include: {
       _count: {
         select: { questions: true }
@@ -366,6 +378,7 @@ export async function getRandomQuestions(
     subjectId,
     difficulty,
     types,
+    includePastPaper = false,
     excludeRecentDays = 30,
     limit = 10,
     userId
@@ -395,6 +408,7 @@ export async function getRandomQuestions(
   // 2. 构建基础查询条件
   const whereCondition: Prisma.QuestionWhereInput = {
     status: { in: ['PUBLISHED', 'VERIFIED'] },
+    isPastPaper: includePastPaper,
   }
 
   // C1: Apply Tier-based filtering (Business Integration)

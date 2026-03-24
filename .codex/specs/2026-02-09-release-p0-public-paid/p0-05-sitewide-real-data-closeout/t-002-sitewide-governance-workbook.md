@@ -1,7 +1,7 @@
 # T-002 全站治理总表工作底稿
 
 > 用途：按 `T-002.1 -> T-002.10` 顺序逐项补全全站治理前置内容。  
-> 当前进度：已完成 `T-002.1`、`T-002.2`、`T-002.3`、`T-002.4`、`T-002.5`、`T-002.6`、`T-002.7`。
+> 当前进度：已完成 `T-002.1`、`T-002.2`、`T-002.3`、`T-002.4`、`T-002.5`、`T-002.6`、`T-002.7`、`T-002.8`、`T-002.9`、`T-002.10`。
 
 ## T-002.1 全站页面域清单
 
@@ -573,3 +573,166 @@
   - 页面直连接口不允许信任前端传入的 `userId`
   - 高价值写接口必须给出稳定重复提交返回码
 - 下一步进入 `T-002.8` 时，应基于这套契约去找全站 `mock/fallback/preview-only` 热点，因为很多 mock 问题本质上是契约不稳导致页面只能自己兜底。
+
+## T-002.8 mock / fallback / preview-only 热点清单（第一版）
+
+### 处置分类定义
+| 分类 | 含义 | 处理原则 |
+|---|---|---|
+| 必须替换 | 正式页面正在直接展示 mock / 硬编码 / 假数据 | 进入对应页面任务前必须替换为真实链路 |
+| 正式下线/禁用 | 当前存在面向正式页面的 preview/mock 入口，但不应在生产主流程继续暴露 | 开发时要么移除入口，要么显式环境开关禁用 |
+| 非核账展示 | 明确属于营销文案、视觉预览、演示文案，不参与真实数据验收 | 可保留，但必须与正式数据隔离且不可伪装成真实结果 |
+| 技术兜底 | 错误降级、兼容查询、零值 fallback，不主动造“好看数据” | 可暂保留，但必须记入验收说明，不作为真实展示能力 |
+
+### 必须替换的正式页假数据热点
+| 页面域 | 热点 | 文件/位置 | 当前症状 | 处置 | 归属任务 |
+|---|---|---|---|---|---|
+| Leaderboard | 整页首屏 mock 榜单 | `/src/app/(dashboard)/dashboard/leaderboard/page.tsx` | `buildMockLeaderboardEntries()` 直接喂给页面 | 必须替换为真实榜单读取 | `T-016` |
+| Leaderboard | API 失败后回退到 mock 用户 | `/src/components/leaderboard/LeaderboardView.tsx` | `mockFallbackUsers` 在请求失败或空数据时继续展示 | 必须改为空态/错误态，不允许继续展示伪榜单 | `T-016` |
+| Dashboard | 排名卡硬编码 | `/src/components/dashboard/DashboardHome.tsx` | `Top 15%`、`68%` 直接写死 | 必须接入真实 rank / percentile / average | `T-005` |
+| Courses | 整个课程中心使用共享 mock 课程树与笔记 | `/src/components/courses/CoursesView.tsx` + `/src/components/shared/data.tsx` | `subjectsData`、`mockUserContent` 直接支撑正式页 | 必须整体替换，不做局部修补 | `T-006` |
+| Courses | 正式课程详情路由为空壳 | `/src/app/course/[subjectId]/page.tsx`、`/src/app/course/[subjectId]/[lessonId]/page.tsx` | 页面直接 `notFound()` | 必须补真实承载页或调整路由归属 | `T-006` |
+| Contact | 联系页仅前端 UI，没有正式提交链路 | `/src/app/(marketing)/contact/page.tsx` | 表单没有 Action/API，不落库 | 必须接正式提交或在接通前禁用提交 | `T-019` |
+| Parent Dashboard | 排名卡仍有硬编码 | `/src/components/dashboard/views/ParentDashboardView.tsx` | `Top 15%` 写死 | 必须替换为真实学生榜单聚合或空态 | 后续 parent 相关任务 |
+
+### 正式下线/禁用的 preview/mock 入口
+| 页面域 | 热点 | 文件/位置 | 当前症状 | 建议处理 | 归属任务 |
+|---|---|---|---|---|---|
+| Smart Drill | URL 可直接开启 mock 预览 | `/src/app/(dashboard)/dashboard/practice/smart-drill/page.tsx` + `/src/components/practice/modes/SmartDrillMode.tsx` | `?preview=mock` 可进入本地 mock 题组 | 生产主流程禁用；若保留仅限内部调试开关 | `T-007` |
+| Smart Drill | 正式页内置 mock 题组 | `/src/components/practice/modes/SmartDrillMode.tsx` | `MOCK_SMART_DRILL_QUESTIONS` 参与正式渲染分支 | 从正式组件剥离到内部 demo/debug | `T-007` |
+| Practice Chapter Map | 无真实数据时自动展示 mock 章节图 | `/src/components/practice/PracticeView/ChapterMap/index.tsx` | `hasMockPreview ? MOCK_CHAPTERS : chapters` | 改为空态/引导，不再自动注入 mock | `T-007` |
+| Practice Past Paper | 无数据时自动展示 mock 试卷 | `/src/components/practice/PracticeView/PastPapersSection.tsx` | `hasMockPreview ? MOCK_PAPERS : papers` | 改为空态/禁用态，不再自动注入 mock | `T-007` |
+| Error Wiper | 启动页文案仍标注 Preview | `/src/components/practice/modes/ErrorWiperMode.tsx` | 正式模式首屏显示 `Error Wiper Preview` | 去掉 preview 语义，避免误导 | `T-007` |
+| Admin Stripe Mock | 保留未接真实 Stripe 历史的 mock action | `/src/actions/admin/stripe-mock.ts` | 明确为模拟支付历史 | 若无引用则下线；若后续接 admin 账单则改真实源 | `T-009/T-010/T-012` |
+
+### 可保留但必须显式标注为“非核账展示”的内容
+| 页面域 | 文件/位置 | 当前内容 | 结论 |
+|---|---|---|---|
+| Marketing | `/src/app/(marketing)/how-it-works/page.tsx` | `68%` 等演示文案 | 属于营销 copy，可保留，不纳入真实数据验收 |
+| Practice Preview Dialog | `/src/components/practice/PracticeView/PracticeModePreviewDialog.tsx` | 练习模式介绍弹窗 | 可保留，前提是只表达模式说明，不展示真实用户结果 |
+| Marketing Landing | `/src/components/marketing/landing-page.tsx` | 推荐语、testimonial、文案数字说明 | 属于营销内容，不作为核账数据 |
+| Parent Dashboard Read-Only 标签 | `/src/components/dashboard/views/ParentDashboardView.tsx` | `Read-Only` UI 标识 | 标签本身可保留，但卡片数据不能继续硬编码 |
+
+### 可保留的技术兜底，但需写入验收说明
+| 链路 | 文件/位置 | 当前行为 | 结论 |
+|---|---|---|---|
+| Auth 兼容查询 fallback | `/src/actions/user/auth.ts` | schema mismatch 时降级查询用户 | 可以保留，但不应伪造业务数据 |
+| 官网平台统计降级为 0 | `/src/actions/marketing/campaign.ts` | DB 不可达时返回 0 | 可保留，属于容灾；但上线前应确保不会长期掩盖真实问题 |
+| OCR mock provider 拦截 | `/src/actions/content-pipeline/import-service.ts` | 检测到 mock OCR 直接阻止入库 | 应保留，这属于防止假数据入库 |
+| 内容审核 reviewer fallback | `/src/actions/content-pipeline/review-service.ts` | reviewer 缺失时找任一用户兜底 | 可临时保留，但需在内容域任务里明确审计策略 |
+
+### 当前阶段结论
+- `T-002.8` 第一版已确认本项目当前最重的正式页假数据集中在 4 个域：
+  - Dashboard
+  - Courses
+  - Practice
+  - Leaderboard
+- 当前最不适合并行推进的根因也更清楚了：
+  - 这些域不仅有 mock，还共享练习、排行榜、任务、用户画像等聚合口径
+- 下一步进入 `T-002.9` 时，应按“先清共享依赖、再做页面域波次”的原则排顺序，而不是按页面外观优先级排。
+
+## T-002.9 页面域波次顺序与依赖图（第一版）
+
+### 排序原则
+| 原则 | 说明 |
+|---|---|
+| 先共享规则，后页面域 | 先处理共享聚合和共享写链路，避免后续每个页面各修一遍 |
+| 先高耦合核心域，后外围独立域 | Dashboard / Practice / Leaderboard / Achievements 优先于独立的 marketing 页面 |
+| 先去假数据，再谈细节体验 | 只要页面还在吃 mock，就不进入 UI 微调 |
+| 允许并行，但必须按写边界分线程 | 共享 schema / 共享 action / 共享聚合仍由主线程收口 |
+
+### 共享依赖主图
+| 共享能力 | 依赖页面域 | 说明 |
+|---|---|---|
+| `exam_records` / `user_attempts` 结果链路 | Dashboard, Practice, Leaderboard, Achievements, Admin Statistics | 练习写链路是一切统计的源头 |
+| `daily_tasks` / XP / streak | Dashboard, Achievements, Courses, Practice | 任务与奖励触发时机必须统一 |
+| `leaderboard_entries` 排名聚合 | Dashboard, Leaderboard, Practice | 积分写入与榜单读取必须同口径 |
+| `user_progress` / 学习时长 | Dashboard, Courses, Achievements, Admin | 课程域不是孤立页面，直接影响首页和成就 |
+| 支付/推荐/券码链路 | Pricing, Admin Growth, User 状态展示 | Stripe webhook、referral、voucher 必须统一收口 |
+| 社区互动计数 | Community, Admin Dashboard | `post_likes` / `comments` 计数要一致 |
+
+### 建议执行波次
+| 波次 | 页面域任务 | 前置依赖 | 是否建议并行 | 说明 |
+|---|---|---|---|---|
+| Wave 0 | `T-002` 治理总表收口 | 无 | 否 | 当前阶段，先锁规则 |
+| Wave 1 | `T-007 Practice` + `T-016 Leaderboard` + `T-017 Achievements` | `T-002.6`、`T-002.7` 已完成 | 否 | 这三块共享练习结果、积分、任务、XP 口径，应视为一个核心簇 |
+| Wave 2 | `T-005 Dashboard` | Wave 1 核心聚合稳定 | 否 | Dashboard 读取依赖最广，必须站在真实聚合之上接 |
+| Wave 3 | `T-006 Courses` + `T-018 Settings` | 任务/学习时长/streak 规则已锁 | 可有限并行 | Courses 影响学习进度与首页；Settings 相对独立但共享用户配置 |
+| Wave 4 | `T-008 Community` + `T-011 Feedback` | 用户主档、通知、权限契约已稳定 | 可并行 | 两域写链路独立度较高 |
+| Wave 5 | `T-009` + `T-010` + `T-012` + `T-013` + `T-014` + `T-015` | 前面真实数据源已接通 | 可按子域并行 | Admin 以消费真实业务数据为主，适合后置收口 |
+| Wave 6 | `T-019 Public / Marketing / Auth` | 支付、contact、profile、growth 能力已稳定 | 可并行 | 多为跳转/表单/展示收口 |
+| Wave 7 | `T-020` + `T-021` | 所有页面域开发完成 | 否 | 统一核账、预发回归、发布前收口 |
+
+### 多线程并行边界建议
+| 线程角色 | 允许负责的内容 | 禁止并行改动的共享文件 |
+|---|---|---|
+| 主线程 | `T-002`、共享 schema、共享 action、共享聚合、统一字段字典 | `/prisma/schema.prisma`、共享 `src/actions/*` 聚合、共享 `src/lib/*` |
+| 页面线程 A | Courses / Settings | 不得改练习核心聚合 |
+| 页面线程 B | Community / Feedback | 不得改支付与任务共享逻辑 |
+| 页面线程 C | Admin 子域 | 不得自行改动全局字段口径 |
+| 页面线程 D | Public / Marketing | 不得自己定义支付或用户状态来源 |
+
+### 当前阶段结论
+- `T-002.9` 第一版已经锁定了开发顺序主线：
+  - 先 Practice / Leaderboard / Achievements
+  - 再 Dashboard
+  - 再 Courses / Settings
+  - 再 Community / Admin / Public
+- 这也解释了为什么当前不应该一上来就把不同页面扔到不同 thread 去写：
+  - Wave 1 和 Wave 2 之前，共享聚合还没定稳，并行开发会放大返工
+- 下一步 `T-002.10` 只需要做一件事：
+  - 让用户确认这条波次顺序是否就是正式开发顺序
+
+## T-002.10 建议锁定版（待用户确认）
+
+### 建议锁定的正式开发顺序
+| 顺序 | 页面域任务 | 锁定理由 |
+|---|---|---|
+| 1 | `T-007 Practice` | 练习结果链路是全站统计根源，必须先真实化 |
+| 2 | `T-016 Leaderboard` | Dashboard 排名卡与榜单页共享同一积分口径 |
+| 3 | `T-017 Achievements` | XP / streak / tasks 与练习域强耦合，必须跟练习一起定口径 |
+| 4 | `T-005 Dashboard` | 首页依赖前 3 项的真实聚合，不适合先做 |
+| 5 | `T-006 Courses` | 课程进度与学习时长进入第二批，避免和练习核心链路混修 |
+| 6 | `T-018 Settings` | 用户设置与通知偏好相对独立，适合和 Courses 同波次推进 |
+| 7 | `T-008 Community` | 依赖用户主档与通知，但与练习核心聚合解耦 |
+| 8 | `T-011 Feedback` | 写链路独立，可和 Community 并行 |
+| 9 | `T-009/T-010/T-012/T-013/T-014/T-015` | Admin 各子域以消费真实业务数据为主，后置更稳 |
+| 10 | `T-019 Public / Marketing / Auth` | 多为 CTA、表单、跳转、支付链路收口，适合最后整理 |
+| 11 | `T-020/T-021` | 全量核账、预发回归、上线前收口 |
+
+### 建议锁定的并行策略
+| 阶段 | 是否允许并行 | 限制 |
+|---|---|---|
+| `T-007 ~ T-005` | 不建议 | 共享练习、榜单、任务、XP 聚合，主线程收口 |
+| `T-006 + T-018` | 可有限并行 | 不改共享练习聚合，不改全局 schema |
+| `T-008 + T-011` | 可并行 | 不改支付、任务、排行榜共享逻辑 |
+| Admin 多子域 | 可拆 thread | 必须指定共享文件唯一 owner |
+| `T-019` | 可并行 | 不重新定义支付/用户状态口径 |
+
+### 待用户确认事项
+| 事项 | 当前建议 |
+|---|---|
+| 是否接受先做 Practice/Leaderboard/Achievements，再做 Dashboard | 建议接受 |
+| 是否接受 Courses 不先于 Dashboard 开发 | 建议接受 |
+| 是否接受 `T-019` 放到 Admin 之后统一收口 | 建议接受 |
+| 是否接受 `T-002` 完成后，再开始多 thread 并行 | 建议接受 |
+
+### 当前阶段结论
+- `T-002` 的治理底稿已经足以支撑进入“确认开发顺序”阶段。
+- 如果用户确认上述顺序，则 `T-002.10` 可直接标记完成，随后正式进入 Wave 1 开发。
+
+### 用户确认结果
+- 用户已确认按上述建议顺序推进。
+- `T-002.10` 现标记完成。
+- 后续正式开发顺序锁定为：
+  - `T-007 Practice`
+  - `T-016 Leaderboard`
+  - `T-017 Achievements`
+  - `T-005 Dashboard`
+  - `T-006 Courses`
+  - `T-018 Settings`
+  - `T-008 Community`
+  - `T-011 Feedback`
+  - `T-009/T-010/T-012/T-013/T-014/T-015 Admin 子域`
+  - `T-019 Public / Marketing / Auth`
+  - `T-020/T-021` 验证与发布收口

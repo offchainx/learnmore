@@ -90,6 +90,7 @@
 | 2026-03-20 | T-006.23 capsule 视觉语言统一 | 以 Community Hub 为基准，把所有页面标题旁 capsule 的视觉和渲染路径统一到同一套语言，并确保直接渲染到前端。 | 新增共享 PageHeroTitle，统一 Community/Dashboard/Courses/Practice/Settings/Leaderboard/Achievements 及 Admin 各页 hero capsule 渲染路径；补充 capsule 不换行与 shrink 约束，定向 eslint 通过。 | 先确认问题在标题行组合结构而不只是 HeroCapsule token；再抽共享标题组件并只改真实页面标题区，避免影响无关 badge。 | 直接 git commit 被 codex hook 拦截，因为未更新 iteration-log。 | 提交前先检查仓库 codex hook；涉及全局视觉统一时，优先统一真实渲染路径，再调整共享样式细节。 | 提交本轮 capsule 统一改动，然后拆解 T-006.25 的实现范围与子任务。 |
 
 | 2026-03-24 | 用户要求把当前工作区全部改动统一提交并推送到 origin/main；过程中补齐 T-006.25 文档回写、轻量回归与导航/空态统一收口。 | 先检查分支/远端/工作区，再执行全量暂存、补齐 iteration-log 门禁、完成 commit 与 push。 | 已完成 T-006.25 收口与文档回写，定位并处理 codex 提交门禁；当前准备重新执行全量 commit/push。 | 先看 git status/branch/remote，再根据 pre-commit 报错反查 codex:check 与 codex:close 要求，能快速定位阻塞并补齐。 | 直接 git commit 会被 pre-commit 拦截；如果不先更新 iteration-log，无法完成全量推送。 | 当用户要求直接推送当前全部改动时，先执行 git 状态检查，再优先运行 pnpm codex:close 补齐 iteration-log，最后再做 git add -A、commit、push。 | 重新执行 git commit，并把当前 main 上的未推送提交全部推送到 origin/main。 |
+| 2026-03-24 | 练习中心章节体系、知识蜂巢、学科章节录入与 T-007.3 读链路二次收口 | 先冻结章节层级与入口规则，再逐科整理章节与 preview，最后回到 Practice 读链路，把叶子章节消费、真题隔离和 Error Wiper 定义压进服务层查询。 | 已完成中文/英文/数学/科学/历史/地理章节与 preview 对齐；补充规则文档与任务清单；完成 T-007.3 第二轮读链路收口并推送到 `codex/practice-structure-read-rules` 分支。 | 先把“规则”与“数据结构”定清楚，再改服务层读取逻辑，能显著减少后续 T-007.4 和内容导入阶段的返工。 | 若不先固化叶子章节/真题隔离/Error Wiper 规则，后续写链路和题目录入会继续口径漂移。 | 当练习中心涉及章节体系和多入口题池时，优先固化 `chapterId + tags`、叶子章节消费、真题隔离和 Error Wiper 定义，再推进读取与写入链路。 | 继续按已固化规则进入 T-007.4，处理提交、幂等与副作用收口。 |
 
 ## 约束
 

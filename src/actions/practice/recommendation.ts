@@ -119,6 +119,7 @@ export async function getSmartDrillQuestions(
         where: {
           subjectId,
           chapterId: { in: weakChapterIds },
+          isPastPaper: false,
           difficulty: difficultyFilter,
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
@@ -143,6 +144,7 @@ export async function getSmartDrillQuestions(
       const newQuestions = await prisma.question.findMany({
         where: {
           subjectId,
+          isPastPaper: false,
           difficulty: difficultyFilter,
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: [...attemptedIds, ...Array.from(excludeIds)] },
@@ -160,6 +162,7 @@ export async function getSmartDrillQuestions(
       const fallback = await prisma.question.findMany({
         where: {
           subjectId,
+          isPastPaper: false,
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
         },

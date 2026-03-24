@@ -1,8 +1,7 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
-import { Hexagon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -23,6 +22,54 @@ interface KnowledgeHiveProps {
   error?: string | null
 }
 
+type HiveRowSlot =
+  | { type: 'node'; node: HiveNode }
+  | { type: 'placeholder' }
+
+interface HiveRowData {
+  slots: HiveRowSlot[]
+  offset: boolean
+}
+
+type HiveLayoutMode = 'compact' | 'dense'
+
+interface HiveLayoutConfig {
+  slotWidth: number
+  slotHeight: number
+  horizontalGap: number
+  verticalGap: number
+  evenRowOffset: number
+  rowPattern: [number, number]
+}
+
+interface PositionedHiveRow {
+  left: number
+  top: number
+  slots: HiveRowSlot[]
+}
+
+const HEXAGON_CLIP_PATH =
+  'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
+
+const HIVE_LAYOUT_CONFIGS: Record<HiveLayoutMode, HiveLayoutConfig> = {
+  compact: {
+    slotWidth: 40,
+    slotHeight: 46,
+    horizontalGap: 5,
+    verticalGap: 4,
+    evenRowOffset: -20,
+    rowPattern: [5, 6],
+  },
+  dense: {
+    slotWidth: 34,
+    slotHeight: 39,
+    horizontalGap: 5,
+    verticalGap: 3,
+    evenRowOffset: -18,
+    rowPattern: [9, 10],
+  },
+}
+
 const cardClassName = pagePanelClass
 
 /**
@@ -30,9 +77,13 @@ const cardClassName = pagePanelClass
  */
 const HiveCell = memo(function HiveCell({
   node,
+  slotWidth,
+  slotHeight,
   onClick,
 }: {
   node: HiveNode
+  slotWidth: number
+  slotHeight: number
   onClick: () => void
 }) {
   const [showTooltip, setShowTooltip] = useState(false)
@@ -67,11 +118,12 @@ const HiveCell = memo(function HiveCell({
         )}
         disabled={node.status === 'locked'}
         aria-label={`${node.chapterTitle} - ${statusLabels[node.status]}`}
+        style={{ width: slotWidth, height: slotHeight }}
       >
-        <Hexagon
-          className="h-9 w-9 sm:h-10 sm:w-10"
-          fill="currentColor"
-          strokeWidth={1.5}
+        <span
+          aria-hidden="true"
+          className="block h-full w-full bg-current"
+          style={{ clipPath: HEXAGON_CLIP_PATH }}
         />
       </button>
 
@@ -114,30 +166,129 @@ const HiveCell = memo(function HiveCell({
   )
 })
 
-/**
- * 蜂巢布局行组件
- */
-const HiveRow = memo(function HiveRow({
-  nodes,
-  offset,
-  onNodeClick,
-}: {
-  nodes: HiveNode[]
-  offset: boolean
-  onNodeClick: (node: HiveNode) => void
-}) {
-  return (
-    <div className={cn('flex justify-center gap-1', offset && 'ml-4 sm:ml-5')}>
-      {nodes.map((node) => (
-        <HiveCell
-          key={node.chapterId}
-          node={node}
-          onClick={() => onNodeClick(node)}
-        />
-      ))}
-    </div>
-  )
-})
+function createPreferredRows(nodes: HiveNode[]): HiveRowData[] | null {
+  if (nodes.length === 15) {
+    return [
+      {
+        slots: nodes
+          .slice(0, 5)
+          .map((node) => ({ type: 'node' as const, node })),
+        offset: true,
+      },
+      {
+        slots: [
+          ...nodes
+            .slice(5, 10)
+            .map((node) => ({ type: 'node' as const, node })),
+          { type: 'placeholder' as const },
+        ],
+        offset: false,
+      },
+      {
+        slots: nodes
+          .slice(10, 15)
+          .map((node) => ({ type: 'node' as const, node })),
+        offset: true,
+      },
+    ]
+  }
+
+  if (nodes.length === 16) {
+    return [
+      {
+        slots: nodes
+          .slice(0, 5)
+          .map((node) => ({ type: 'node' as const, node })),
+        offset: true,
+      },
+      {
+        slots: nodes
+          .slice(5, 11)
+          .map((node) => ({ type: 'node' as const, node })),
+        offset: false,
+      },
+      {
+        slots: nodes
+          .slice(11, 16)
+          .map((node) => ({ type: 'node' as const, node })),
+        offset: true,
+      },
+    ]
+  }
+
+  return null
+}
+
+function distributeToRows(nodeList: HiveNode[]): HiveRowData[] {
+  const layoutMode = resolveHiveLayoutMode(nodeList)
+  const [compactCount, expandedCount] = HIVE_LAYOUT_CONFIGS[layoutMode].rowPattern
+  const preferredRows = createPreferredRows(nodeList)
+  if (preferredRows) {
+    return preferredRows
+  }
+
+  const rows: HiveRowData[] = []
+  let index = 0
+  let rowIndex = 0
+
+  while (index < nodeList.length) {
+    const slotCount = rowIndex % 2 === 0 ? compactCount : expandedCount
+    const rowNodes = nodeList.slice(index, index + slotCount)
+    const slots: HiveRowSlot[] = [
+      ...rowNodes.map((node) => ({ type: 'node' as const, node })),
+      ...Array.from({ length: slotCount - rowNodes.length }, () => ({
+        type: 'placeholder' as const,
+      })),
+    ]
+
+    rows.push({
+      slots,
+      offset: rowIndex % 2 === 0,
+    })
+    index += rowNodes.length
+    rowIndex++
+  }
+
+  return rows
+}
+
+function resolveHiveLayoutMode(nodes: HiveNode[]): HiveLayoutMode {
+  return nodes.length >= 40 ? 'dense' : 'compact'
+}
+
+function buildPositionedRows(
+  rows: HiveRowData[],
+  config: HiveLayoutConfig
+): {
+  rows: PositionedHiveRow[]
+  width: number
+  height: number
+} {
+  const stepX = config.slotWidth + config.horizontalGap
+  const offsetX = stepX / 2 + config.evenRowOffset
+  const rowStepY = config.slotHeight * 0.75 + config.verticalGap
+
+  const measuredRows = rows.map((row, index) => ({
+    left: row.offset ? offsetX : 0,
+    top: index * rowStepY,
+    slots: row.slots,
+    width: row.slots.length * stepX + (row.offset ? offsetX : 0),
+  }))
+
+  const width = Math.max(...measuredRows.map((row) => row.width))
+  const height =
+    config.slotHeight + Math.max(0, measuredRows.length - 1) * rowStepY
+
+  return {
+    width,
+    height,
+    rows: measuredRows.map((row) => ({
+      top: row.top,
+      left: (width - row.width) / 2 + row.left,
+      slots: row.slots,
+    })),
+  }
+}
 
 /**
  * 知识蜂巢主组件
@@ -150,6 +301,8 @@ function KnowledgeHiveInner({
   error = null,
 }: KnowledgeHiveProps) {
   const router = useRouter()
+  const layoutMode = resolveHiveLayoutMode(nodes)
+  const layoutConfig = HIVE_LAYOUT_CONFIGS[layoutMode]
 
   const handleNodeClick = (node: HiveNode) => {
     if (node.status === 'locked') return
@@ -157,44 +310,80 @@ function KnowledgeHiveInner({
     router.push(`/dashboard/practice/chapter-drill/${node.chapterId}`)
   }
 
-  // 将节点分成蜂巢布局行 (5-4-5-4 交错模式)
-  const distributeToRows = (nodeList: HiveNode[]): HiveNode[][] => {
-    const rows: HiveNode[][] = []
-    let index = 0
-    let rowIndex = 0
-
-    while (index < nodeList.length) {
-      // 奇数行 5 个，偶数行 4 个（交错效果）
-      const rowSize = rowIndex % 2 === 0 ? 5 : 4
-      rows.push(nodeList.slice(index, index + rowSize))
-      index += rowSize
-      rowIndex++
-    }
-
-    return rows
-  }
-
   if (loading) {
+    const loadingRows = distributeToRows(
+      Array.from({
+        length: layoutMode === 'dense' ? 38 : 15,
+      }).map((_, index) => ({
+        chapterId: `loading-${index}`,
+        chapterTitle: `loading-${index}`,
+        masteryLevel: 0,
+        status: 'locked' as const,
+        correctRate: 0,
+        totalAttempts: 0,
+        color: '#6b7280',
+      }))
+    )
+    const positionedLoadingRows = buildPositionedRows(
+      loadingRows,
+      layoutConfig
+    )
+
     return (
       <Card className={cardClassName}>
         <CardHeader className="pb-2">
           <CardTitle className={pageCardTitleClass}>知识蜂巢</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center gap-2">
-            {[0, 1, 2].map((row) => (
-              <div
-                key={row}
-                className={cn('flex gap-2', row % 2 === 1 && 'ml-5')}
-              >
-                {Array.from({ length: row % 2 === 0 ? 5 : 4 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="h-9 w-9 rounded bg-surface-subtle dark:bg-slate-700 sm:h-10 sm:w-10"
-                  />
-                ))}
-              </div>
-            ))}
+          <div className="flex justify-center pt-2">
+            <div
+              className="relative"
+              style={
+                {
+                  width: positionedLoadingRows.width,
+                  height: positionedLoadingRows.height,
+                } as CSSProperties
+              }
+            >
+              {positionedLoadingRows.rows.map((row, rowIndex) => (
+                <div
+                  key={rowIndex}
+                  className="absolute left-0 top-0"
+                  style={
+                    {
+                      width:
+                        row.slots.length *
+                        (layoutConfig.slotWidth + layoutConfig.horizontalGap),
+                      height: layoutConfig.slotHeight,
+                      transform: `translate(${row.left}px, ${row.top}px)`,
+                    } as CSSProperties
+                  }
+                >
+                  {row.slots.map((slot, slotIndex) => (
+                    <div
+                      key={
+                        slot.type === 'node'
+                          ? slot.node.chapterId
+                          : `loading-placeholder-${rowIndex}-${slotIndex}`
+                      }
+                      className="absolute left-0 top-0 flex items-center justify-center"
+                      style={
+                        {
+                          width: layoutConfig.slotWidth,
+                          height: layoutConfig.slotHeight,
+                          transform: `translateX(${slotIndex * (layoutConfig.slotWidth + layoutConfig.horizontalGap)}px)`,
+                        } as CSSProperties
+                      }
+                    >
+                      <Skeleton
+                        className="h-full w-full bg-surface-subtle dark:bg-slate-700"
+                        style={{ clipPath: HEXAGON_CLIP_PATH }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -230,6 +419,7 @@ function KnowledgeHiveInner({
   }
 
   const rows = distributeToRows(nodes)
+  const positionedRows = buildPositionedRows(rows, layoutConfig)
 
   // 统计各状态数量
   const stats = nodes.reduce(
@@ -251,15 +441,15 @@ function KnowledgeHiveInner({
       <CardContent className="pt-0">
         {/* 图例 */}
         <div className="mb-3 flex flex-wrap justify-center gap-1.5 text-[10px]">
-          <div className="flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-green-200">
+          <div className="flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-green-800 dark:text-green-200">
             <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
             <span>掌握良好 ({stats.strong})</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-yellow-100">
+          <div className="flex items-center gap-1 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-yellow-800 dark:text-yellow-100">
             <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
             <span>有待加强 ({stats.fair})</span>
           </div>
-          <div className="flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-red-100">
+          <div className="flex items-center gap-1 rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-red-700 dark:text-red-100">
             <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
             <span>需要练习 ({stats.weak})</span>
           </div>
@@ -270,15 +460,65 @@ function KnowledgeHiveInner({
         </div>
 
         {/* 蜂巢网格 */}
-        <div className="flex flex-col items-center gap-1 py-1">
-          {rows.map((rowNodes, rowIndex) => (
-            <HiveRow
-              key={rowIndex}
-              nodes={rowNodes}
-              offset={rowIndex % 2 === 1}
-              onNodeClick={handleNodeClick}
-            />
-          ))}
+        <div className="flex justify-center pt-3">
+          <div
+            className="relative"
+            style={
+              {
+                width: positionedRows.width,
+                height: positionedRows.height,
+              } as CSSProperties
+            }
+          >
+            {positionedRows.rows.map((row, rowIndex) => (
+              <div
+                key={rowIndex}
+                className="absolute left-0 top-0"
+                style={
+                  {
+                    width:
+                      row.slots.length *
+                      (layoutConfig.slotWidth + layoutConfig.horizontalGap),
+                    height: layoutConfig.slotHeight,
+                    transform: `translate(${row.left}px, ${row.top}px)`,
+                  } as CSSProperties
+                }
+              >
+                {row.slots.map((slot, slotIndex) => (
+                  <div
+                    key={
+                      slot.type === 'node'
+                        ? slot.node.chapterId
+                        : `placeholder-${rowIndex}-${slotIndex}`
+                    }
+                    className="absolute left-0 top-0 flex items-center justify-center"
+                    style={
+                      {
+                        width: layoutConfig.slotWidth,
+                        height: layoutConfig.slotHeight,
+                        transform: `translateX(${slotIndex * (layoutConfig.slotWidth + layoutConfig.horizontalGap)}px)`,
+                      } as CSSProperties
+                    }
+                  >
+                    {slot.type === 'node' ? (
+                      <HiveCell
+                        node={slot.node}
+                        slotWidth={layoutConfig.slotWidth}
+                        slotHeight={layoutConfig.slotHeight}
+                        onClick={() => handleNodeClick(slot.node)}
+                      />
+                    ) : (
+                      <div
+                        aria-hidden="true"
+                        className="h-full w-full opacity-0"
+                        style={{ clipPath: HEXAGON_CLIP_PATH }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* 底部提示 */}
