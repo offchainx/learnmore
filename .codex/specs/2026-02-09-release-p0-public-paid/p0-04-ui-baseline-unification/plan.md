@@ -619,6 +619,73 @@
 - 专做颜色、CTA、空态、加载态、错误态、移动端收尾
 - 不再调整信息架构。
 
+### T-006.25 全局基线实现批次
+- 目标：把 `T-005.1 ~ T-005.4` 已冻结的全局基线，从“局部页面已接线”收成“共享层可复用、导航单一来源、空态有统一组件、基础件有统一合同”的系统化实现批次。
+- 范围：优先处理主路径与共享层，不做营销页和低频遗留页面的无差别重写。
+
+#### T-006.25.1 token 审计与硬编码清理
+- 先审计 `globals.css / pageSurfaces / pageTypography / pageSpacing / layout shell` 与代表页。
+- 只处理主路径里仍绕过语义 token 的颜色、圆角、阴影、focus ring 与容器层级写法。
+- 目标：
+  - 主路径壳层、surface、text、border、shadow 都能追到语义 token
+  - 清理 `slate / zinc / blue / purple` 一类旧页面直写在共享层和代表页中的残留
+  - 不做“为了统一而统一”的全站替换
+- 2026-03-24 收口说明：
+  - 已完成 `globals.css / pageSurfaces / pageTypography / dashboard-layout`
+  - 已完成代表页主路径：`DashboardHome / DailyMissions / Widgets / CoursesView / TrainingModeCards / SubjectSelector / UnifiedPracticeWorkspace / chapter-drill/*`
+  - 已完成 Admin 主路径：`BatchTable / StatsCards / NewBatchImportModal / AuditLogDrawer / ReportsClient / ReportsTable / ReportDetailsDrawer / QuestionReviewTable / ImportHistoryTable / Quality* badges`
+  - 验证方式：针对上述文件跑定向 `eslint`；`globals.css` 仅出现“无匹配 ESLint 配置”的忽略提示，无错误
+
+#### T-006.25.2 基础组件统一收口
+- 核心对象：`Button / Card / Input / Textarea`
+- 必要时补齐直接依赖它们的 `SelectTrigger / Tabs / Switch`
+- 目标：
+  - 默认态、hover、focus、disabled 有单一合同
+  - 圆角、阴影、surface 层级不再由页面局部覆盖决定
+  - 应用主路径不再依赖 `glow` 这类营销语法
+- 2026-03-24：已完成 `Button / Card / Input / Textarea / SelectTrigger / Tabs / Switch / labeled-input / badge / checkbox / radio-group / custom-tabs` 的基础合同收口，并清理主路径 `LessonPlayer / CommunityView / practice error-wiper` 中对 `glow` 变体的依赖。
+
+#### T-006.25.3 公共空态模板组件化
+- 从现有 `pageEmptyStateClass` 升级到共享 EmptyState 组件
+- 统一图标区、标题、说明、主 CTA、次 CTA 结构
+- 第一批替换：
+  - Dashboard
+  - Leaderboard
+  - Community
+  - 代表性的 Courses / Practice 空态
+- 2026-03-24：已新增共享 `PageEmptyState`，并接入 Dashboard / Courses / Community / Leaderboard / Practice 代表空态；本地 `EmptyPanel` 手写实现已移除，后续页面新增空态默认直接走共享组件。
+
+#### T-006.25.4 壳层与导航单一来源
+- 抽共享 `nav config` 与 active 匹配规则
+- 统一：
+  - `BottomTabBar`
+  - `dashboard-layout`
+  - dashboard/client wrappers
+  - admin wrapper 中复用的 dashboard 导航入口
+- 顺带收口：
+  - `questionBank` -> `practice`
+  - 桌面与移动端同页不同命名
+  - `startsWith / ===` 混用的 active 规则
+- 2026-03-24：已新增共享 `dashboard-nav`，统一桌面 sidebar、移动 bottom tab、DashboardClient 与各 route wrapper 的导航来源；业务主链中的 `questionBank` 命名已收敛为 `practice`，仅保留 helper alias 作为兼容层。
+
+#### T-006.25.5 代表页回归与文档回填
+- 不做高成本截图认证，先做最小闭环
+- 固定检查四层：
+  - token
+  - primitives
+  - empty state
+  - nav
+- 代表页：
+  - Dashboard
+  - Courses
+  - Practice
+  - Community
+  - Settings
+  - Leaderboard
+  - Achievements
+  - Admin
+- 2026-03-24：已完成源码契约检查与定向 `eslint`；`PageEmptyState`、`dashboard-nav`、代表页空态替换、主路径 `glow` 清理与 `questionBank -> practice` 收敛均已回写到文档，本批次不再追加截图认证。
+
 ### T-006.10 全局基线实现
 - 才进入 `globals.css`、`ui/*`、`BottomTabBar`、`dashboard-layout`
 - 将练习中心提炼出的规则扩展到全局。

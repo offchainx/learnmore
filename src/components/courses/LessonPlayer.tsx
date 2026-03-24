@@ -73,7 +73,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
            </div>
            <p className="text-xs text-slate-400 text-right mb-6">1250 / 1500 XP to Level Up</p>
 
-           <Button fullWidth variant="glow" onClick={onComplete}>
+           <Button fullWidth variant="primary" onClick={onComplete}>
               Continue Journey <ChevronRight className="w-4 h-4 ml-1" />
            </Button>
         </div>
@@ -111,7 +111,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
             </div>
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
                <Button variant="ghost" onClick={() => setIsNoteModalOpen(false)}>Cancel</Button>
-               <Button variant="glow" onClick={saveNote}>Save Note</Button>
+               <Button variant="primary" onClick={saveNote}>Save Note</Button>
             </div>
           </Card>
         </div>
@@ -328,7 +328,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
                   </div>
                 </div>
 
-                <Button fullWidth size="lg" variant="glow" onClick={handleFinish} className="group relative overflow-hidden">
+                <Button fullWidth size="lg" variant="primary" onClick={handleFinish} className="group relative overflow-hidden">
                    <span className="relative z-10 flex items-center gap-2">
                      Complete & Continue <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                    </span>

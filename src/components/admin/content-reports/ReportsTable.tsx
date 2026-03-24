@@ -121,10 +121,10 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
                       )}
 
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-text-primary dark:text-[#E6EDF7]">
+                        <div className="truncate text-sm font-medium text-text-primary dark:text-text-primary">
                           {report.user.name}
                         </div>
-                        <div className="mt-1 text-xs text-text-secondary dark:text-[#7F93B2]">
+                        <div className="mt-1 text-xs text-text-secondary dark:text-text-secondary">
                           {report.timestamp}
                         </div>
                       </div>
@@ -135,19 +135,19 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
 
                   <TableCell className="max-w-[360px]">
                     <div
-                      className="truncate text-sm font-medium text-text-primary dark:text-[#E6EDF7]"
+                      className="truncate text-sm font-medium text-text-primary dark:text-text-primary"
                       title={report.question.text}
                     >
                       {report.question.text}
                     </div>
-                    <div className="mt-1 flex items-center gap-1 text-xs text-text-secondary dark:text-[#7F93B2]">
+                    <div className="mt-1 flex items-center gap-1 text-xs text-text-secondary dark:text-text-secondary">
                       <Hash className="h-3 w-3" />
                       {report.question.id}
                     </div>
                   </TableCell>
 
                   <TableCell>
-                    <div className="text-sm text-text-primary dark:text-[#D6E7FF]">
+                    <div className="text-sm text-text-primary dark:text-text-primary">
                       {report.question.subject}
                     </div>
                   </TableCell>
@@ -157,7 +157,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
-                      className="h-8 w-8 rounded-full p-0 text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-[#AFC3DE] dark:hover:bg-[#18253E] dark:hover:text-white"
+                      className="h-8 w-8 rounded-full p-0 text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
                       onClick={(event) => {
                         event.stopPropagation()
                         onSelectReport(report)
@@ -175,8 +175,8 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
           <TableFooter>
             <TableRow className="border-b-0 hover:bg-transparent">
               <TableCell colSpan={6}>
-                <div className="flex w-full items-center justify-between">
-                  <div className="text-xs text-text-secondary dark:text-[#7F93B2]">
+                  <div className="flex w-full items-center justify-between">
+                  <div className="text-xs text-text-secondary dark:text-text-secondary">
                     {text.table.showing} 1 {text.table.to} {reports.length}{' '}
                     {text.table.of} {totalCount} {text.table.results}
                   </div>
@@ -185,7 +185,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
                       variant="outline"
                       size="sm"
                       disabled
-                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-text-primary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -193,7 +193,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
                       variant="outline"
                       size="sm"
                       disabled={reports.length === 0}
-                      className="border-[#24324D] bg-[#151F36] text-[#D6E7FF] hover:bg-[#1A2744] hover:text-white"
+                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-text-primary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>

@@ -16,6 +16,7 @@ import {
 import { useApp } from '@/providers'
 import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard'
 import { PracticeMode, User, UserSettings } from '@prisma/client'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
@@ -31,7 +32,6 @@ import {
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeClass,
-  pageEmptyStateClass,
   pageHeroShellClass,
   pageInteractiveRowClass,
   pageInsetClass,
@@ -116,35 +116,6 @@ function modeAppearsInTitle(mode: PracticeMode, title: string) {
   return normalizedTitle.includes(modeLabelMap[mode] || '')
 }
 
-function EmptyPanelState({
-  title,
-  description,
-  actionLabel,
-  onAction,
-}: {
-  title: string
-  description: string
-  actionLabel: string
-  onAction: () => void
-}) {
-  return (
-    <div className={pageEmptyStateClass}>
-      <div className="text-sm font-bold text-text-primary dark:text-white">
-        {title}
-      </div>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-secondary dark:text-slate-400">
-        {description}
-      </p>
-      <Button
-        onClick={onAction}
-        className="mt-5 rounded-2xl px-4 py-2 text-sm font-bold"
-      >
-        {actionLabel}
-      </Button>
-    </div>
-  )
-}
-
 function PageDots({
   totalPages,
   page,
@@ -160,7 +131,7 @@ function PageDots({
         {Array.from({ length: totalPages }).map((_, index) => (
           <span
             key={index}
-            className={`h-1.5 rounded-full transition-all ${index === page ? 'w-4 bg-blue-500 dark:bg-white' : 'w-1.5 bg-slate-300 dark:bg-white/20'}`}
+            className={`h-1.5 rounded-full transition-all ${index === page ? 'w-4 bg-primary dark:bg-primary' : 'w-1.5 bg-[hsl(var(--border-default))] dark:bg-[hsl(var(--border-default))]'}`}
           />
         ))}
       </div>
@@ -423,7 +394,7 @@ export const DashboardHome = ({
                         className={`${pageInteractiveRowClass} ${pageListItemTallClass} justify-between duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both`}
                         style={{ animationDelay: `${index * 45}ms` }}
                       >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]">
                           <Play className="h-4 w-4 fill-current" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -435,9 +406,9 @@ export const DashboardHome = ({
                           >
                             {item.title}
                           </div>
-                          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-surface-subtle">
+                          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface-subtle">
                             <div
-                              className="h-full rounded-full bg-cyan-400"
+                              className="h-full rounded-full bg-primary"
                               style={{
                                 width: `${Math.max(6, item.progress)}%`,
                               }}
@@ -469,7 +440,7 @@ export const DashboardHome = ({
                       ))}
                   </div>
                 ) : (
-                  <EmptyPanelState
+                  <PageEmptyState
                     title={copy(
                       '还没有最近学习记录',
                       'No recent learning path'
@@ -478,8 +449,14 @@ export const DashboardHome = ({
                       '你完成第一段课程后，这里会出现最近进度和下一步建议。',
                       'Complete your first course step and your recent activity will show up here.'
                     )}
-                    actionLabel={copy('开始课程', 'Start Learning')}
-                    onAction={() => navigate('/dashboard/courses')}
+                    actions={
+                      <Button
+                        onClick={() => navigate('/dashboard/courses')}
+                        className="rounded-2xl px-4 py-2 text-sm font-bold"
+                      >
+                        {copy('开始课程', 'Start Learning')}
+                      </Button>
+                    }
                   />
                 )}
               </Card>
@@ -494,7 +471,7 @@ export const DashboardHome = ({
                     <h3
                       className={`flex items-center gap-2 ${pageSectionTitleClass}`}
                     >
-                      <Activity className="h-5 w-5 text-cyan-300" />
+                      <Activity className="h-5 w-5 text-primary" />
                       {t.dashboard?.subjectProgress ||
                         copy('学科进度', 'Subject Progress')}
                     </h3>
@@ -550,7 +527,7 @@ export const DashboardHome = ({
                           </div>
                           <div className="text-right">
                             <div
-                              className={`${pageNumericValueCompactClass} ${sub.accuracy >= 80 ? 'text-emerald-700 dark:text-emerald-300' : 'text-cyan-700 dark:text-cyan-200'}`}
+                              className={`${pageNumericValueCompactClass} ${sub.accuracy >= 80 ? 'text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]' : 'text-primary dark:text-primary'}`}
                             >
                               {sub.accuracy}%
                             </div>
@@ -561,9 +538,9 @@ export const DashboardHome = ({
                             </div>
                           </div>
                         </div>
-                        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-surface-subtle">
+                        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface-subtle">
                           <div
-                            className={`h-full rounded-full ${sub.accuracy >= 80 ? 'bg-emerald-400' : 'bg-cyan-400'}`}
+                            className={`h-full rounded-full ${sub.accuracy >= 80 ? 'bg-[hsl(var(--state-success-fg))]' : 'bg-primary'}`}
                             style={{ width: `${Math.max(4, sub.accuracy)}%` }}
                           />
                         </div>
@@ -584,7 +561,7 @@ export const DashboardHome = ({
                       ))}
                   </div>
                 ) : (
-                  <EmptyPanelState
+                  <PageEmptyState
                     title={copy(
                       '还没有学科进度数据',
                       'No subject progress yet'
@@ -593,8 +570,14 @@ export const DashboardHome = ({
                       '先开始一次练习，系统才会逐步建立你的学科稳定度和进度分布。',
                       'Start practicing to build your subject progress and performance profile.'
                     )}
-                    actionLabel={copy('开始练习', 'Start Practicing')}
-                    onAction={() => navigate('/dashboard/practice')}
+                    actions={
+                      <Button
+                        onClick={() => navigate('/dashboard/practice')}
+                        className="rounded-2xl px-4 py-2 text-sm font-bold"
+                      >
+                        {copy('开始练习', 'Start Practicing')}
+                      </Button>
+                    }
                   />
                 )}
               </Card>
@@ -605,7 +588,7 @@ export const DashboardHome = ({
             className={`xl:min-h-0 xl:overflow-hidden ${pageSectionGapClass}`}
           >
             <Card
-              className={`${pagePanelClass} overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_30%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] shadow-none dark:bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_28%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] dark:text-white ${pageCardPaddingClass}`}
+              className={`${pagePanelClass} overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_30%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] shadow-none dark:bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_28%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] dark:text-text-primary ${pageCardPaddingClass}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -623,7 +606,7 @@ export const DashboardHome = ({
 
               <div className="mt-4 text-center">
                 <div
-                  className={`${pageHeroNumericValueClass} text-sky-700 dark:text-cyan-100`}
+                  className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}
                 >
                   Top 15%
                 </div>
@@ -642,8 +625,8 @@ export const DashboardHome = ({
                   </div>
                   <div className={pageNumericValueCompactClass}>68%</div>
                 </div>
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-400/20 dark:bg-emerald-400/10">
-                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
+                <div className="rounded-2xl border border-borderTone bg-[hsl(var(--state-success-bg))] px-4 py-3 dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]">
+                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]">
                     {copy('你的表现', 'You')}
                   </div>
                   <div className={pageNumericValueCompactClass}>
@@ -671,7 +654,7 @@ export const DashboardHome = ({
                   <h3
                     className={`flex items-center gap-2 ${pageSectionTitleClass}`}
                   >
-                    <Layers3 className="h-5 w-5 text-cyan-300" />
+                    <Layers3 className="h-5 w-5 text-primary" />
                     {copy('最近练习回顾', 'Recent Practice')}
                   </h3>
                   <p className={pageSectionDescriptionClass}>
@@ -717,7 +700,7 @@ export const DashboardHome = ({
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <div className="text-[18px] font-semibold tracking-tight text-sky-700 dark:text-cyan-100">
+                        <div className="text-[18px] font-semibold tracking-tight text-primary dark:text-primary">
                           {record.score}%
                         </div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
@@ -729,14 +712,20 @@ export const DashboardHome = ({
                   ))}
                 </div>
               ) : (
-                <EmptyPanelState
+                <PageEmptyState
                   title={copy('还没有练习记录', 'No recent practice yet')}
                   description={copy(
                     '完成第一轮练习后，这里会告诉你最近一次训练效果和接下来最值得做的动作。',
                     'Complete your first practice round and this panel will summarize your latest performance.'
                   )}
-                  actionLabel={copy('开始练习', 'Start Practice')}
-                  onAction={() => navigate('/dashboard/practice')}
+                  actions={
+                    <Button
+                      onClick={() => navigate('/dashboard/practice')}
+                      className="rounded-2xl px-4 py-2 text-sm font-bold"
+                    >
+                      {copy('开始练习', 'Start Practice')}
+                    </Button>
+                  }
                 />
               )}
             </Card>

@@ -20,6 +20,7 @@ import {
   PracticeModePreviewDialog,
   type PracticeModePreviewConfig,
 } from './PracticeModePreviewDialog'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
@@ -562,14 +563,13 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
         </div>
 
         {!isBootstrapLoading && dbSubjects.length === 0 ? (
-          <section className="rounded-[30px] border border-dashed border-borderTone bg-surface-subtle p-8 text-center dark:border-borderTone dark:bg-surface-subtle">
-            <h3 className="text-xl font-black tracking-tight text-text-primary dark:text-text-primary">
-              {headerCopy.noSubjectsTitle}
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-text-secondary dark:text-text-secondary">
-              {headerCopy.noSubjectsSubtitle}
-            </p>
-          </section>
+          <PageEmptyState
+            title={headerCopy.noSubjectsTitle}
+            description={headerCopy.noSubjectsSubtitle}
+            className="rounded-[30px] p-8"
+            titleClassName="text-xl font-black tracking-tight"
+            descriptionClassName="text-sm leading-6"
+          />
         ) : null}
       </div>
     </div>

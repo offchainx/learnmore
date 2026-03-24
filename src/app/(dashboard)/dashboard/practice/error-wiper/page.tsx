@@ -36,7 +36,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
           你的错题簿暂时已经清空，当前没有需要继续擦除的历史错题。
         </p>
         <Link href="/dashboard/practice">
-          <Button size="xl" variant="glow" className="rounded-2xl font-black tracking-widest">
+          <Button size="xl" variant="primary" className="rounded-2xl font-black tracking-widest">
             <ArrowLeft className="w-4 h-4 mr-2" />
             返回练习中心
           </Button>

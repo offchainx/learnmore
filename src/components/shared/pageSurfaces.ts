@@ -1,19 +1,19 @@
 export const pageShellFrameClass =
-  'rounded-[32px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_42%,hsl(var(--surface-muted))_100%)] p-2 text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_38%,hsl(var(--surface-muted))_100%)] dark:text-white dark:shadow-[0_22px_50px_rgba(2,8,23,0.34)]'
+  'rounded-[32px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_42%,hsl(var(--surface-muted))_100%)] p-2 text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_38%,hsl(var(--surface-muted))_100%)] dark:text-text-primary dark:shadow-[0_22px_50px_rgba(2,8,23,0.34)]'
 
 export const pagePanelClass =
-  'rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] text-text-primary shadow-surface-md dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:text-white dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
+  'rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] text-text-primary shadow-surface-md dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:text-text-primary dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
 
 export const pagePanelStrongClass =
-  'rounded-[30px] border border-borderTone bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_34%),linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_52%,hsl(var(--surface-muted))_100%)] text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_30%),linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_52%,hsl(var(--surface-muted))_100%)] dark:text-white dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
+  'rounded-[30px] border border-borderTone bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_34%),linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_52%,hsl(var(--surface-muted))_100%)] text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_30%),linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_52%,hsl(var(--surface-muted))_100%)] dark:text-text-primary dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
 
 export const pageHeroShellClass = 'rounded-[30px] px-4 py-3 sm:px-5 sm:py-3.5'
 
 export const pageInsetClass =
-  'rounded-[24px] border border-borderTone bg-surface text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] dark:border-borderTone dark:bg-surface-subtle dark:text-white dark:shadow-none'
+  'rounded-[24px] border border-borderTone bg-surface text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:shadow-none'
 
 export const pageSoftInsetClass =
-  'rounded-[22px] border border-borderTone bg-surface-subtle text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.24)] dark:border-borderTone dark:bg-surface-subtle dark:text-white dark:shadow-none'
+  'rounded-[22px] border border-borderTone bg-surface-subtle text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.24)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:shadow-none'
 
 export const pageEmptyStateClass =
   'rounded-[22px] border border-dashed border-borderTone bg-surface-subtle px-5 py-7 text-center dark:border-borderTone dark:bg-surface-subtle'
@@ -37,7 +37,7 @@ export const pageSegmentedControlCompactClass =
   'inline-flex items-center rounded-2xl border border-borderTone bg-surface-subtle p-1 dark:border-borderTone dark:bg-surface-subtle'
 
 export const pagePillActiveClass =
-  'border-blue-200 bg-surface-selected text-sky-700 shadow-surface dark:border-transparent dark:bg-white dark:text-slate-950'
+  'border-borderTone bg-surface-selected text-primary shadow-surface dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse'
 
 export const pagePillInactiveClass =
   'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'
@@ -49,16 +49,16 @@ export const pageSegmentedButtonCompactClass =
   'rounded-xl px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]'
 
 export const pageInteractiveRowClass =
-  'group flex w-full items-center gap-4 rounded-[22px] border border-borderTone bg-surface px-4 py-4 text-left shadow-surface transition-all hover:-translate-y-0.5 hover:border-blue-300/60 hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-cyan-400/25 dark:hover:bg-surface-selected'
+  'group flex w-full items-center gap-4 rounded-[22px] border border-borderTone bg-surface px-4 py-4 text-left shadow-surface transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-selected'
 
 export const pageKpiCardClass =
   'relative overflow-hidden rounded-[24px] border border-borderTone bg-surface p-4 shadow-surface dark:bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] dark:shadow-[0_18px_40px_rgba(2,8,23,0.38)]'
 
 export const pageTableShellClass =
-  'overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-[#24324D] dark:bg-[#0F172A]/96 dark:shadow-[0_18px_40px_rgba(2,8,23,0.24)]'
+  'overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-surface-md'
 
 export const pageSectionHeaderBandClass =
   'border-b border-borderTone bg-surface-subtle px-5 py-5 sm:px-6 dark:border-borderTone dark:bg-surface-subtle'
 
 export const pageInputClass =
-  'h-11 w-full rounded-full border border-borderTone bg-surface px-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-blue-300 focus:ring-2 focus:ring-blue-500/15 dark:border-borderTone dark:bg-surface-subtle dark:text-white dark:placeholder:text-text-tertiary dark:focus:border-cyan-400/30 dark:focus:ring-sky-400/35'
+  'h-11 w-full rounded-full border border-borderTone bg-surface px-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-[hsl(var(--border-strong))] focus:ring-2 focus:ring-[hsl(var(--focus-ring))]/15 dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:placeholder:text-text-tertiary dark:focus:border-[hsl(var(--border-strong))] dark:focus:ring-[hsl(var(--focus-ring))]/24'

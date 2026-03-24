@@ -14,12 +14,14 @@ const buttonVariants = cva(
         destructive:
           'bg-destructive text-destructive-foreground shadow-surface hover:bg-destructive/92',
         outline:
-          'border border-borderTone bg-surface text-text-primary shadow-surface hover:bg-surface-subtle hover:text-text-primary',
+          'border border-borderTone bg-surface text-text-primary shadow-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-text-primary dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-subtle dark:hover:text-text-primary',
         secondary:
-          'border border-borderTone/80 bg-surface-subtle text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] hover:bg-surface-selected hover:text-sky-700 dark:hover:text-white',
-        ghost: 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary',
+          'border border-borderTone bg-surface-subtle text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] hover:border-[hsl(var(--border-strong))] hover:bg-surface-selected hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-selected dark:hover:text-primary',
+        ghost:
+          'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary',
         link: 'text-primary underline-offset-4 hover:underline',
-        glow: 'border-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:scale-[1.02] hover:shadow-blue-500/40 transition-all duration-200',
+        glow:
+          'border border-borderTone bg-[linear-gradient(135deg,hsl(var(--primary))_0%,hsl(var(--state-info-fg))_100%)] text-primary-foreground shadow-lg shadow-primary/25 hover:scale-[1.02] hover:shadow-primary/40',
       },
       size: {
         default: 'h-10 px-4 py-2',

@@ -9,22 +9,33 @@ interface QualityScoreBadgeProps {
 export function QualityScoreBadge({ score, className }: QualityScoreBadgeProps) {
   if (score === null || score === undefined) {
     return (
-      <Badge variant="outline" className={cn("text-gray-500 border-gray-200", className)}>
+      <Badge
+        variant="outline"
+        className={cn(
+          'border-borderTone bg-surface-subtle text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary',
+          className
+        )}
+      >
         -
       </Badge>
     )
   }
 
-  let color = "text-gray-700 border-gray-200"
+  let color =
+    'border-borderTone bg-surface-subtle text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
   
   if (score >= 90) {
-    color = "text-green-700 border-green-200 bg-green-50"
+    color =
+      'border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))]'
   } else if (score >= 80) {
-    color = "text-blue-700 border-blue-200 bg-blue-50"
+    color =
+      'border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]'
   } else if (score >= 60) {
-    color = "text-yellow-700 border-yellow-200 bg-yellow-50"
+    color =
+      'border-borderTone bg-[hsl(var(--state-warning-bg))] text-[hsl(var(--state-warning-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-warning-bg))] dark:text-[hsl(var(--state-warning-fg))]'
   } else {
-    color = "text-red-700 border-red-200 bg-red-50"
+    color =
+      'border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]'
   }
 
   return (

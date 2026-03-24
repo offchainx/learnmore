@@ -1,20 +1,24 @@
 'use client'
 
-import { Home, BookOpen, Edit, MessageCircle, User } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useApp } from '@/providers'
+import {
+  isDashboardViewActive,
+  mobileDashboardNavItems,
+} from '@/components/layout/dashboard-nav'
 import { cn } from '@/lib/utils'
-
-const tabs = [
-  { id: 'home', icon: Home, label: '首页', path: '/dashboard' },
-  { id: 'courses', icon: BookOpen, label: '课程', path: '/dashboard/courses' },
-  { id: 'practice', icon: Edit, label: '练习', path: '/dashboard/practice' },
-  { id: 'community', icon: MessageCircle, label: '社区', path: '/dashboard/community' },
-  { id: 'profile', icon: User, label: '我的', path: '/dashboard/settings' },
-]
 
 export function BottomTabBar() {
   const pathname = usePathname()
+  const { t } = useApp()
+  const tabLabels = {
+    dashboard: t.sidebar.dashboard,
+    courses: t.sidebar.courses,
+    practice: t.sidebar.practice,
+    community: t.sidebar.community,
+    settings: t.sidebar.settings,
+  }
 
   return (
     <nav
@@ -27,8 +31,8 @@ export function BottomTabBar() {
       aria-label="主导航"
     >
       <div className="flex items-center justify-around h-16">
-        {tabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.path)
+        {mobileDashboardNavItems.map((tab) => {
+          const isActive = isDashboardViewActive(tab.id, pathname)
           const Icon = tab.icon
 
           return (
@@ -51,7 +55,9 @@ export function BottomTabBar() {
                   isActive && 'scale-110'
                 )}
               />
-              <span className="text-xs font-medium">{tab.label}</span>
+              <span className="text-xs font-medium">
+                {tabLabels[tab.id as keyof typeof tabLabels]}
+              </span>
             </Link>
           )
         })}

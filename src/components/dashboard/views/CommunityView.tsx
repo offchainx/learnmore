@@ -30,6 +30,7 @@ import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { toast } from '@/components/ui/use-toast'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
@@ -44,7 +45,6 @@ import {
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeMutedClass,
-  pageEmptyStateClass,
   pageHeroShellClass,
   pageInputClass,
   pageInsetClass,
@@ -742,7 +742,7 @@ export function CommunityView({
               </div>
               <Button
                 asChild
-                variant="glow"
+                variant="primary"
                 className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
               >
                 <Link href="/dashboard/community/new">
@@ -819,15 +819,17 @@ export function CommunityView({
             ) : null}
 
             {!loading && visiblePosts.length === 0 ? (
-              <Card
-                className={`${pageEmptyStateClass} rounded-[28px] px-5 py-12 text-center text-text-secondary dark:text-text-secondary`}
-              >
-                <Bot className="mx-auto mb-4 h-10 w-10 opacity-40" />
-                <div className="text-sm">
-                  {scopeFilter === 'following'
-                    ? copy.noFollowingPosts
-                    : copy.noPosts}
-                </div>
+              <Card className="rounded-[28px]">
+                <PageEmptyState
+                  icon={Bot}
+                  title={
+                    scopeFilter === 'following'
+                      ? copy.noFollowingPosts
+                      : copy.noPosts
+                  }
+                  className="px-5 py-12"
+                  iconClassName="opacity-50"
+                />
               </Card>
             ) : null}
 

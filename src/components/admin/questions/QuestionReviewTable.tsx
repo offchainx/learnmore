@@ -205,7 +205,7 @@ export function QuestionReviewTable({
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('VERIFIED')}
-            className="border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300 dark:hover:bg-emerald-400/15 dark:hover:text-emerald-200"
+            className="border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]"
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             通过
@@ -215,7 +215,7 @@ export function QuestionReviewTable({
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
-            className="border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/15 dark:hover:text-rose-200"
+            className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
           >
             <XCircle className="mr-2 h-4 w-4" />
             驳回
@@ -225,7 +225,7 @@ export function QuestionReviewTable({
             variant="outline"
             disabled={selectedIds.length === 0 || isUpdating}
             onClick={() => handleBulkStatusUpdate('PUBLISHED')}
-            className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200 dark:hover:bg-blue-400/15 dark:hover:text-white"
+            className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
           >
             <ArrowUpCircle className="mr-2 h-4 w-4" />
             发布
@@ -275,7 +275,7 @@ export function QuestionReviewTable({
                 <TableRow
                   key={question.id}
                   data-state={selectedIds.includes(question.id) && 'selected'}
-                  className="border-b border-borderTone text-text-primary hover:bg-surface-subtle data-[state=selected]:bg-blue-50/70 dark:border-borderTone dark:text-white dark:hover:bg-surface-subtle dark:data-[state=selected]:bg-surface-selected"
+                  className="border-b border-borderTone text-text-primary hover:bg-surface-subtle data-[state=selected]:bg-surface-selected dark:border-borderTone dark:text-text-primary dark:hover:bg-surface-subtle dark:data-[state=selected]:bg-surface-selected"
                 >
                   <TableCell>
                     <Checkbox
@@ -299,7 +299,7 @@ export function QuestionReviewTable({
                   </TableCell>
                   <TableCell className="max-w-[300px]">
                     <div
-                      className="truncate text-sm font-medium text-text-primary dark:text-white"
+                      className="truncate text-sm font-medium text-text-primary dark:text-text-primary"
                       title={question.content}
                     >
                       {question.content.substring(0, 50)}...
@@ -311,13 +311,13 @@ export function QuestionReviewTable({
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className="border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-white"
+                      className="border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary"
                     >
                       {question.type}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-text-primary dark:text-white">
+                    <div className="text-sm text-text-primary dark:text-text-primary">
                       {question.chapter?.subject?.name || '-'}
                     </div>
                     <div
@@ -343,7 +343,7 @@ export function QuestionReviewTable({
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-8 w-8 rounded-full p-0 text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-white"
+                          className="h-8 w-8 rounded-full p-0 text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
                         >
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
@@ -375,7 +375,7 @@ export function QuestionReviewTable({
               ))
             )}
           </TableBody>
-          <TableFooter className="border-t border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-white">
+          <TableFooter className="border-t border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary">
             <TableRow className="border-b-0 hover:bg-transparent">
               <TableCell colSpan={9}>
                 <div className="flex w-full items-center justify-between">
@@ -389,6 +389,7 @@ export function QuestionReviewTable({
                       onClick={() => goToPage(page - 1)}
                       disabled={page <= 1}
                       className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-white dark:hover:bg-surface-subtle"
+                      
                     >
                       上一页
                     </Button>

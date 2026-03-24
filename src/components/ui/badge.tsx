@@ -16,11 +16,16 @@ const badgeVariants = cva(
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/85',
         outline: 'border-borderTone bg-surface text-text-primary',
         // AI Studio Variants
-        primary: "border-blue-200 dark:border-blue-800 bg-state-info-bg dark:bg-blue-900/30 text-state-info-fg dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50",
-        success: "border-emerald-200 dark:border-emerald-800 bg-state-success-bg dark:bg-emerald-900/30 text-state-success-fg dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50",
-        warning: "border-amber-200 dark:border-amber-800 bg-state-warning-bg dark:bg-amber-900/30 text-state-warning-fg dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50",
-        danger: "border-red-200 dark:border-red-800 bg-state-danger-bg dark:bg-red-900/30 text-state-danger-fg dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50",
-        neutral: "border-borderTone bg-surface-subtle text-text-secondary hover:bg-surface-selected hover:text-text-primary dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700/80",
+        primary:
+          "border-borderTone bg-state-info-bg text-state-info-fg hover:bg-state-info-bg dark:border-borderTone dark:bg-state-info-bg dark:text-state-info-fg dark:hover:bg-state-info-bg",
+        success:
+          "border-borderTone bg-state-success-bg text-state-success-fg hover:bg-state-success-bg dark:border-borderTone dark:bg-state-success-bg dark:text-state-success-fg dark:hover:bg-state-success-bg",
+        warning:
+          "border-borderTone bg-state-warning-bg text-state-warning-fg hover:bg-state-warning-bg dark:border-borderTone dark:bg-state-warning-bg dark:text-state-warning-fg dark:hover:bg-state-warning-bg",
+        danger:
+          "border-borderTone bg-state-danger-bg text-state-danger-fg hover:bg-state-danger-bg dark:border-borderTone dark:bg-state-danger-bg dark:text-state-danger-fg dark:hover:bg-state-danger-bg",
+        neutral:
+          "border-borderTone bg-surface-subtle text-text-secondary hover:bg-surface-selected hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-text-primary",
       },
     },
     defaultVariants: {

@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { ArrowUpRight, Flame, LucideIcon, Sword } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { cn } from '@/lib/utils'
 import {
   pageBadgeClass,
-  pageEmptyStateClass,
   pageInsetClass,
   pagePanelStrongClass,
   pagePillActiveClass,
@@ -197,23 +197,19 @@ export function FocusPanel({
           </Button>
         </div>
       ) : (
-        <div className={cn(pageEmptyStateClass, 'px-4 py-4 text-left')}>
-          <div className="flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white/90">
-            <Sword className="h-5 w-5 text-red-400" />
-            {rivalLabel}
-          </div>
-          <p className="mt-3 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
-            {rivalEmptyDescription}
-          </p>
-          <Button
-            asChild
-            size="sm"
-            variant="secondary"
-            className="mt-4"
-          >
-            <Link href="/dashboard/practice">{rivalEmptyCta}</Link>
-          </Button>
-        </div>
+        <PageEmptyState
+          icon={Sword}
+          align="left"
+          title={rivalLabel}
+          description={rivalEmptyDescription}
+          className="px-4 py-4"
+          iconClassName="text-red-400"
+          actions={
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/dashboard/practice">{rivalEmptyCta}</Link>
+            </Button>
+          }
+        />
       )}
     </Card>
   )

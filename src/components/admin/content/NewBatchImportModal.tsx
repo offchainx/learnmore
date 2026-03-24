@@ -271,10 +271,10 @@ export function NewBatchImportModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="pb-4 border-b">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            <Upload className="h-6 w-6 text-blue-600" />
+            <Upload className="h-6 w-6 text-primary" />
             批量导入 AI
           </DialogTitle>
           <DialogDescription>支持文件导入（PDF/图像）与网页链接抓取，两种方式可切换。</DialogDescription>
@@ -299,17 +299,17 @@ export function NewBatchImportModal({
                               type="button"
                               className={`text-left p-4 rounded-xl border transition-all ${
                                 active
-                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                                  : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                  ? 'border-borderTone bg-surface-selected dark:border-borderTone dark:bg-surface-selected'
+                                  : 'border-borderTone dark:border-borderTone hover:border-[hsl(var(--border-strong))]'
                               }`}
                               onClick={() => field.onChange(method.key)}
                               disabled={isUploading}
                             >
                               <div className="flex items-center justify-between mb-1">
-                                <span className="font-semibold text-slate-900 dark:text-white">{method.title}</span>
+                                <span className="font-semibold text-text-primary dark:text-text-primary">{method.title}</span>
                                 <Badge variant={active ? 'default' : 'secondary'}>{method.badge}</Badge>
                               </div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">{method.description}</p>
+                              <p className="text-xs text-text-secondary dark:text-text-secondary">{method.description}</p>
                             </button>
                           )
                         })}
@@ -367,8 +367,8 @@ export function NewBatchImportModal({
                     <div
                       className={`group relative border-2 border-dashed rounded-xl p-8 transition-all text-center ${
                         file
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
-                          : 'border-borderTone dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 bg-surface dark:bg-slate-900'
+                          ? 'border-borderTone bg-surface-selected dark:border-borderTone dark:bg-surface-selected'
+                          : 'border-borderTone dark:border-borderTone hover:border-[hsl(var(--border-strong))] bg-surface dark:bg-surface'
                       }`}
                     >
                       <input
@@ -387,10 +387,10 @@ export function NewBatchImportModal({
                       >
                         {file ? (
                           <div className="relative">
-                            <div className="w-16 h-16 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-3 border border-blue-200 dark:border-blue-800">
-                              <FileText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                            <div className="w-16 h-16 rounded-xl bg-[hsl(var(--state-info-bg))] dark:bg-[hsl(var(--state-info-bg))] flex items-center justify-center mb-3 border border-borderTone dark:border-borderTone">
+                              <FileText className="h-8 w-8 text-[hsl(var(--state-info-fg))] dark:text-[hsl(var(--state-info-fg))]" />
                             </div>
-                            <span className="font-semibold text-slate-900 dark:text-white block max-w-xs truncate">
+                            <span className="font-semibold text-text-primary dark:text-text-primary block max-w-xs truncate">
                               {file.name}
                             </span>
                             <Badge variant="secondary" className="mt-2">
@@ -399,10 +399,10 @@ export function NewBatchImportModal({
                           </div>
                         ) : (
                           <>
-                            <div className="w-16 h-16 rounded-xl bg-surface dark:bg-slate-800 flex items-center justify-center mb-3 border border-borderTone dark:border-slate-700 shadow-sm group-hover:scale-110 transition-transform">
-                              <Upload className="h-8 w-8 text-text-tertiary group-hover:text-blue-500 transition-colors" />
+                            <div className="w-16 h-16 rounded-xl bg-surface dark:bg-surface-subtle flex items-center justify-center mb-3 border border-borderTone dark:border-borderTone shadow-sm group-hover:scale-110 transition-transform">
+                              <Upload className="h-8 w-8 text-text-tertiary group-hover:text-primary transition-colors" />
                             </div>
-                            <span className="text-base font-semibold text-text-secondary dark:text-slate-300">
+                            <span className="text-base font-semibold text-text-secondary dark:text-text-secondary">
                               点击或拖拽文件上传
                             </span>
                             <span className="text-sm text-text-tertiary mt-2">
@@ -470,39 +470,39 @@ export function NewBatchImportModal({
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="bg-gradient-to-br from-surface to-surface-muted dark:from-slate-950 dark:to-slate-900 text-text-primary dark:text-white border-borderTone dark:border-slate-700 shadow-surface-md">
+            <Card className="bg-gradient-to-br from-surface to-surface-muted dark:from-surface dark:to-surface-subtle text-text-primary dark:text-text-primary border-borderTone dark:border-borderTone shadow-surface-md">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                  <Zap className="h-5 w-5 text-[hsl(var(--state-warning-fg))] fill-[hsl(var(--state-warning-fg))]" />
                   导入指南
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0 border border-black/5 dark:border-white/10">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-400" />
+                  <div className="w-8 h-8 rounded-lg bg-surface-subtle dark:bg-surface-subtle flex items-center justify-center shrink-0 border border-borderTone dark:border-borderTone">
+                    <CheckCircle2 className="h-4 w-4 text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]" />
                   </div>
-                  <p className="text-text-secondary dark:text-slate-300 leading-relaxed">
-                    <span className="text-text-primary dark:text-white font-semibold">多方式导入</span>
+                  <p className="text-text-secondary dark:text-text-secondary leading-relaxed">
+                    <span className="text-text-primary dark:text-text-primary font-semibold">多方式导入</span>
                     ：支持 PDF/图像 与网页链接抓取，可按场景切换。
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0 border border-black/5 dark:border-white/10">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-400" />
+                  <div className="w-8 h-8 rounded-lg bg-surface-subtle dark:bg-surface-subtle flex items-center justify-center shrink-0 border border-borderTone dark:border-borderTone">
+                    <CheckCircle2 className="h-4 w-4 text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]" />
                   </div>
-                  <p className="text-text-secondary dark:text-slate-300 leading-relaxed">
-                    <span className="text-text-primary dark:text-white font-semibold">图案保留</span>
+                  <p className="text-text-secondary dark:text-text-secondary leading-relaxed">
+                    <span className="text-text-primary dark:text-text-primary font-semibold">图案保留</span>
                     ：抓取时会解析题图链接并写入题目主图字段。
                   </p>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0 border border-black/5 dark:border-white/10">
-                    <AlertCircle className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+                  <div className="w-8 h-8 rounded-lg bg-surface-subtle dark:bg-surface-subtle flex items-center justify-center shrink-0 border border-borderTone dark:border-borderTone">
+                    <AlertCircle className="h-4 w-4 text-[hsl(var(--state-warning-fg))] dark:text-[hsl(var(--state-warning-fg))]" />
                   </div>
-                  <p className="text-text-secondary dark:text-slate-300 leading-relaxed">
-                    <span className="text-text-primary dark:text-white font-semibold">审核入库</span>
-                    ：导入后题目进入 <span className="text-blue-600 dark:text-blue-400 font-semibold">待审核</span> 状态，需人工确认后发布。
+                  <p className="text-text-secondary dark:text-text-secondary leading-relaxed">
+                    <span className="text-text-primary dark:text-text-primary font-semibold">审核入库</span>
+                    ：导入后题目进入 <span className="text-primary dark:text-primary font-semibold">待审核</span> 状态，需人工确认后发布。
                   </p>
                 </div>
               </CardContent>

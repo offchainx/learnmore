@@ -3,9 +3,9 @@ import { useRouter } from 'next/navigation'
 import { AlertOctagon, Play } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
-  pageEmptyStateClass,
   pageInteractiveRowClass,
   pagePanelClass,
 } from '@/components/shared/pageSurfaces'
@@ -81,12 +81,11 @@ export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
       </div>
 
       {weaknesses.length === 0 ? (
-        <div className={`${pageEmptyStateClass} mt-4`}>
-          <div className={pageCardTitleClass}>当前没有明显薄弱点</div>
-          <p className={`mx-auto mt-2 max-w-sm ${pageMetaTextClass}`}>
-            继续保持训练节奏，系统会在出现连续失分章节时优先提示你回来补强。
-          </p>
-        </div>
+        <PageEmptyState
+          title="当前没有明显薄弱点"
+          description="继续保持训练节奏，系统会在出现连续失分章节时优先提示你回来补强。"
+          className="mt-4"
+        />
       ) : (
         <>
           <div className="mt-4 flex gap-1">
@@ -95,8 +94,8 @@ export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
                 key={index}
                 className={`h-1.5 rounded-full transition-all ${
                   index === page
-                    ? 'w-4 bg-blue-500 dark:bg-white'
-                    : 'w-1.5 bg-slate-300 dark:bg-white/20'
+                    ? 'w-4 bg-primary dark:bg-primary'
+                    : 'w-1.5 bg-[hsl(var(--border-default))] dark:bg-[hsl(var(--border-default))]'
                 }`}
               />
             ))}

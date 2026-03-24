@@ -159,10 +159,10 @@ export const ReportsClient: React.FC = () => {
       caption: rangeLabel,
       meta: text.stats.openQueueHint,
       icon: Clock3,
-      iconClassName: 'text-[#FBBF24]',
-      iconBgClassName: 'bg-amber-100',
-      glowClassName: 'bg-[#F59E0B]/20',
-      borderClassName: 'border-amber-200',
+      iconClassName: 'text-[hsl(var(--state-warning-fg))]',
+      iconBgClassName: 'bg-[hsl(var(--state-warning-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-warning-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       key: 'resolved',
@@ -171,10 +171,10 @@ export const ReportsClient: React.FC = () => {
       caption: rangeLabel,
       meta: text.stats.resolvedInRangeHint,
       icon: CheckCircle2,
-      iconClassName: 'text-[#4ADE80]',
-      iconBgClassName: 'bg-green-100',
-      glowClassName: 'bg-[#22C55E]/20',
-      borderClassName: 'border-green-200',
+      iconClassName: 'text-[hsl(var(--state-success-fg))]',
+      iconBgClassName: 'bg-[hsl(var(--state-success-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-success-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       key: 'avg',
@@ -183,10 +183,10 @@ export const ReportsClient: React.FC = () => {
       caption: rangeLabel,
       meta: text.stats.avgResolutionHint,
       icon: AlertCircle,
-      iconClassName: 'text-[#60A5FA]',
-      iconBgClassName: 'bg-blue-100',
-      glowClassName: 'bg-[#2563EB]/20',
-      borderClassName: 'border-blue-200',
+      iconClassName: 'text-[hsl(var(--state-info-fg))]',
+      iconBgClassName: 'bg-[hsl(var(--state-info-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-info-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       key: 'answer',
@@ -195,10 +195,10 @@ export const ReportsClient: React.FC = () => {
       caption: rangeLabel,
       meta: text.stats.answerWrongHint,
       icon: Siren,
-      iconClassName: 'text-[#C4B5FD]',
-      iconBgClassName: 'bg-violet-100',
-      glowClassName: 'bg-[#8B5CF6]/20',
-      borderClassName: 'border-violet-200',
+      iconClassName: 'text-[hsl(var(--text-secondary))]',
+      iconBgClassName: 'bg-surface-subtle',
+      glowClassName: 'bg-[hsl(var(--focus-ring))]/16',
+      borderClassName: 'border-borderTone',
     },
   ] as const
 
@@ -268,7 +268,7 @@ export const ReportsClient: React.FC = () => {
                   <div
                     className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
                   />
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-70" />
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--border-strong))]/70 to-transparent opacity-70" />
 
                   <div className="relative flex h-full items-start justify-between gap-4">
                     <div className="flex min-h-[120px] flex-1 flex-col justify-between gap-3">
@@ -291,7 +291,7 @@ export const ReportsClient: React.FC = () => {
                     </div>
 
                     <div
-                      className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/60 ${card.iconBgClassName}`}
+                      className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-borderTone ${card.iconBgClassName}`}
                     >
                       <Icon className={`h-5 w-5 ${card.iconClassName}`} />
                     </div>

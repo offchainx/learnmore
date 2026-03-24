@@ -26,18 +26,18 @@ export const SidebarItem = ({
     className={cn(
       `group relative flex w-full items-center overflow-hidden rounded-2xl py-3 text-sm font-medium transition-all duration-200 ${
         active
-          ? 'border border-blue-200/80 bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(219,234,254,0.82))] text-blue-700 shadow-surface dark:border-blue-400/20 dark:bg-surface-selected dark:text-white'
-          : 'border border-transparent text-text-secondary hover:border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-white'
+          ? 'border border-borderTone bg-surface-selected text-primary shadow-surface dark:border-borderTone dark:bg-surface-selected dark:text-primary'
+          : 'border border-transparent text-text-secondary hover:border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-text-primary'
       }`,
       indent ? 'pl-10 pr-4' : 'px-4'
     )}
   >
     {active && (
-      <div className="absolute inset-y-2 left-2 w-1 rounded-full bg-blue-500 dark:bg-cyan-300" />
+      <div className="absolute inset-y-2 left-2 w-1 rounded-full bg-primary dark:bg-primary" />
     )}
     <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
       <Icon
-        className={`h-full w-full ${active ? 'text-blue-600 dark:text-cyan-300' : 'text-text-tertiary group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white'}`}
+        className={`h-full w-full ${active ? 'text-primary dark:text-primary' : 'text-text-tertiary group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-text-primary'}`}
       />
     </div>
     <span className="relative z-10">{label}</span>
@@ -55,17 +55,17 @@ export const SubjectCard = ({
   color: string
   bgGradient: string
 }) => (
-  <Card className="group relative flex h-32 cursor-pointer flex-col justify-between overflow-hidden border-borderTone bg-surface p-5 shadow-surface transition-all duration-300 hover:-translate-y-1 hover:border-blue-200/70 hover:bg-surface-subtle">
+  <Card className="group relative flex h-32 cursor-pointer flex-col justify-between overflow-hidden border-borderTone bg-surface p-5 shadow-surface transition-all duration-300 hover:-translate-y-1 hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle">
     <div
       className={`absolute right-0 top-0 h-24 w-24 bg-gradient-to-br ${bgGradient} rounded-bl-full opacity-10 transition-opacity group-hover:opacity-20`}
     />
     <div
-      className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-surface-subtle ${color} ring-1 ring-borderTone transition-all group-hover:ring-blue-200/70`}
+      className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-xl bg-surface-subtle ${color} ring-1 ring-borderTone transition-all group-hover:ring-[hsl(var(--border-strong))]`}
     >
       <Icon className="h-5 w-5" />
     </div>
     <div className="relative z-10">
-      <h3 className="text-base font-bold tracking-tight text-text-primary dark:text-white">
+      <h3 className="text-base font-bold tracking-tight text-text-primary dark:text-text-primary">
         {name}
       </h3>
       <p className="mt-1 flex items-center gap-1 text-xs text-text-secondary">
@@ -105,7 +105,7 @@ export const CircularProgress = ({
             stroke="currentColor"
             strokeWidth="8"
             fill="transparent"
-            className="text-slate-200 dark:text-slate-700/50"
+            className="text-[hsl(var(--border-subtle))] dark:text-[hsl(var(--border-default))]"
           />
           <circle
             cx="64"
@@ -121,13 +121,13 @@ export const CircularProgress = ({
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-3xl font-bold leading-none text-text-primary dark:text-white">
+          <span className="text-3xl font-bold leading-none text-text-primary dark:text-text-primary">
             {value}
           </span>
         </div>
       </div>
       <div className="mt-2 text-center">
-        <p className="text-sm font-bold text-text-primary dark:text-slate-200">
+        <p className="text-sm font-bold text-text-primary dark:text-text-primary">
           {label}
         </p>
         <p className="text-xs text-text-secondary">{subLabel}</p>
@@ -151,7 +151,7 @@ export const StrengthBar = ({
 }) => (
   <div className="mb-6 last:mb-0">
     <div className="mb-2 flex items-end justify-between">
-      <span className="text-sm font-bold text-text-primary dark:text-slate-200">
+      <span className="text-sm font-bold text-text-primary dark:text-text-primary">
         {label}
       </span>
       <div className="flex items-center gap-3">
@@ -160,14 +160,14 @@ export const StrengthBar = ({
         >
           {level}
         </span>
-        <span className="w-8 text-right text-sm font-bold text-text-secondary dark:text-slate-400">
+        <span className="w-8 text-right text-sm font-bold text-text-secondary dark:text-text-secondary">
           {value}%
         </span>
       </div>
     </div>
-    <div className="mb-1 h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-700/50">
+    <div className="mb-1 h-2.5 w-full rounded-full bg-[hsl(var(--border-subtle))] dark:bg-[hsl(var(--border-default))]">
       <div
-        className={`h-2.5 rounded-full transition-all duration-1000 ${value >= 90 ? 'bg-emerald-500' : value >= 75 ? 'bg-blue-500' : value >= 60 ? 'bg-yellow-500' : 'bg-orange-500'}`}
+        className={`h-2.5 rounded-full transition-all duration-1000 ${value >= 90 ? 'bg-[hsl(var(--state-success-fg))]' : value >= 75 ? 'bg-primary' : value >= 60 ? 'bg-[hsl(var(--state-warning-fg))]' : 'bg-[hsl(var(--state-danger-fg))]'}`}
         style={{ width: `${value}%` }}
       ></div>
     </div>
@@ -301,26 +301,26 @@ export const DailyInspiration = ({
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
       ) : (
-        <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.45),transparent_30%),linear-gradient(135deg,#2563eb,#0f172a)]"></div>
+        <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_top_left,hsl(var(--state-info-fg))_0%,transparent_30%),linear-gradient(135deg,hsl(var(--primary))_0%,hsl(var(--surface-inverse))_100%)]"></div>
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent"></div>
-      <div className="from-white/92 absolute inset-0 bg-gradient-to-t via-white/50 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-white/92 via-white/50 to-transparent"></div>
       <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-5">
         <div>
-          <div className="bg-white/78 inline-flex items-center gap-2 rounded-full border border-white/70 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-700 backdrop-blur-md">
-            <Sparkles className="h-3 w-3 text-sky-500" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/78 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-secondary backdrop-blur-md">
+            <Sparkles className="h-3 w-3 text-primary" />
             {t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
           </div>
-          <h1 className="mt-3 text-lg font-semibold tracking-tight text-slate-900 sm:text-[20px]">
+          <h1 className="mt-3 text-lg font-semibold tracking-tight text-text-primary sm:text-[20px]">
             {welcomeTitle}
           </h1>
-          <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-slate-700 sm:text-[13px]">
+          <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-text-secondary sm:text-[13px]">
             {welcomeSub}
           </p>
         </div>
         <div className="flex items-end justify-between gap-4">
           <div className="max-w-3xl">
-            <p className="text-sm italic leading-6 text-slate-800 sm:text-[15px]">
+            <p className="text-sm italic leading-6 text-text-primary sm:text-[15px]">
               &quot;{quote}&quot;
             </p>
           </div>
@@ -329,7 +329,7 @@ export const DailyInspiration = ({
             size="sm"
             onClick={generateInspiration}
             disabled={loading}
-            className="bg-white/78 shrink-0 rounded-2xl border border-white/70 px-3 text-[11px] font-semibold text-slate-700 backdrop-blur-sm hover:bg-white hover:text-slate-900"
+            className="shrink-0 rounded-2xl border border-white/70 bg-white/78 px-3 text-[11px] font-semibold text-text-secondary backdrop-blur-sm hover:bg-white hover:text-text-primary"
           >
             <RefreshCw
               className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}

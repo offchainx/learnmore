@@ -39,10 +39,11 @@ export function StatsCards({ stats }: StatsCardsProps) {
       meta: stats.tasksToday > 0 ? '新批次已进入导入管线' : '等待新的导入批次',
       caption: '自动刷新 5 秒同步',
       icon: CalendarDays,
-      iconClassName: 'text-[#60A5FA]',
-      iconBgClassName: 'bg-blue-100 dark:bg-[#18335E]',
-      glowClassName: 'bg-[#2563EB]/20',
-      borderClassName: 'border-blue-200 dark:border-[#2B4470]',
+      iconClassName: 'text-[hsl(var(--state-info-fg))]',
+      iconBgClassName:
+        'bg-[hsl(var(--state-info-bg))] dark:bg-[hsl(var(--state-info-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-info-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       title: '进行中任务',
@@ -50,10 +51,11 @@ export function StatsCards({ stats }: StatsCardsProps) {
       meta: stats.activeBatches > 0 ? '解析与结构化正在处理' : '当前队列空闲',
       caption: `${stats.completedTasks} 个已完成批次`,
       icon: Activity,
-      iconClassName: 'text-[#60A5FA]',
-      iconBgClassName: 'bg-sky-100 dark:bg-[#172554]',
-      glowClassName: 'bg-[#3B82F6]/20',
-      borderClassName: 'border-sky-200 dark:border-[#28426D]',
+      iconClassName: 'text-[hsl(var(--state-info-fg))]',
+      iconBgClassName:
+        'bg-[hsl(var(--state-info-bg))] dark:bg-[hsl(var(--state-info-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-info-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       title: '解析成功率',
@@ -61,10 +63,11 @@ export function StatsCards({ stats }: StatsCardsProps) {
       meta: `成功 ${stats.completedTasks} / 失败 ${stats.failedTasks}`,
       caption: stats.failedTasks === 0 ? '当前管线稳定' : '建议优先处理失败项',
       icon: CheckCircle2,
-      iconClassName: 'text-[#4ADE80]',
-      iconBgClassName: 'bg-green-100 dark:bg-[#123125]',
-      glowClassName: 'bg-[#22C55E]/20',
-      borderClassName: 'border-green-200 dark:border-[#244B37]',
+      iconClassName: 'text-[hsl(var(--state-success-fg))]',
+      iconBgClassName:
+        'bg-[hsl(var(--state-success-bg))] dark:bg-[hsl(var(--state-success-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-success-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       title: '待审核题目',
@@ -75,10 +78,11 @@ export function StatsCards({ stats }: StatsCardsProps) {
           : '审核队列已清空',
       caption: '建议联动已完成批次处理',
       icon: ClipboardClock,
-      iconClassName: 'text-[#FBBF24]',
-      iconBgClassName: 'bg-amber-100 dark:bg-[#3B2A10]',
-      glowClassName: 'bg-[#F59E0B]/20',
-      borderClassName: 'border-amber-200 dark:border-[#5C4520]',
+      iconClassName: 'text-[hsl(var(--state-warning-fg))]',
+      iconBgClassName:
+        'bg-[hsl(var(--state-warning-bg))] dark:bg-[hsl(var(--state-warning-bg))]',
+      glowClassName: 'bg-[hsl(var(--state-warning-fg))]/20',
+      borderClassName: 'border-borderTone',
     },
     {
       title: '近 7 天导入题量',
@@ -87,10 +91,10 @@ export function StatsCards({ stats }: StatsCardsProps) {
       caption:
         stats.importedQuestions7d > 0 ? '导入节奏已启动' : '最近 7 天暂无新增',
       icon: TriangleAlert,
-      iconClassName: 'text-[#C4B5FD]',
-      iconBgClassName: 'bg-violet-100 dark:bg-[#2A1F4A]',
-      glowClassName: 'bg-[#8B5CF6]/20',
-      borderClassName: 'border-violet-200 dark:border-[#47306C]',
+      iconClassName: 'text-[hsl(var(--text-secondary))]',
+      iconBgClassName: 'bg-surface-subtle dark:bg-surface-selected',
+      glowClassName: 'bg-[hsl(var(--focus-ring))]/16',
+      borderClassName: 'border-borderTone',
     },
   ] as const
 
@@ -128,7 +132,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
                 }}
               />
               <motion.div
-                className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent"
+                className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--border-strong))]/70 to-transparent"
                 animate={{ opacity: [0.35, 0.95, 0.35] }}
                 transition={{
                   duration: 3.2,
@@ -157,7 +161,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
 
                 <div
                   className={cn(
-                    'relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/60 dark:border-white/10',
+                    'relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-borderTone',
                     card.iconBgClassName
                   )}
                 >
@@ -177,10 +181,10 @@ export function StatsCards({ stats }: StatsCardsProps) {
         className="h-full"
       >
         <Card
-          className={`${pageKpiCardClass} relative flex h-full min-h-[154px] flex-col justify-between border-blue-200 p-4`}
+          className={`${pageKpiCardClass} relative flex h-full min-h-[154px] flex-col justify-between border-borderTone p-4`}
         >
           <motion.div
-            className="absolute -right-8 top-0 h-24 w-24 rounded-full bg-[#3B82F6]/20 blur-3xl"
+            className="absolute -right-8 top-0 h-24 w-24 rounded-full bg-[hsl(var(--state-info-fg))]/20 blur-3xl"
             animate={{ scale: [1, 1.16, 1], opacity: [0.16, 0.3, 0.16] }}
             transition={{ duration: 4.5, repeat: Infinity }}
           />
@@ -204,9 +208,9 @@ export function StatsCards({ stats }: StatsCardsProps) {
                   总量 {stats.storageLimit} MB，剩余 {remaining} MB
                 </p>
                 <div className="space-y-2">
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-[#0B1425]">
+                  <div className="h-2.5 overflow-hidden rounded-full bg-surface-subtle dark:bg-surface-subtle">
                     <motion.div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#2563EB,#60A5FA)]"
+                      className="h-full rounded-full bg-[linear-gradient(90deg,hsl(var(--primary)),hsl(var(--state-info-fg)))]"
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min(100, usagePercent)}%` }}
                       transition={{ duration: 0.9, ease: 'easeOut' }}
@@ -222,8 +226,8 @@ export function StatsCards({ stats }: StatsCardsProps) {
               </div>
             </div>
 
-            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-blue-100 dark:border-white/10 dark:bg-[#18335E]">
-              <HardDrive className="h-5 w-5 text-[#60A5FA]" />
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-borderTone bg-[hsl(var(--state-info-bg))] dark:bg-[hsl(var(--state-info-bg))]">
+              <HardDrive className="h-5 w-5 text-[hsl(var(--state-info-fg))]" />
             </div>
           </div>
         </Card>

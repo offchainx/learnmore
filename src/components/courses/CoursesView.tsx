@@ -35,6 +35,7 @@ import {
 import { LessonPlayer } from './LessonPlayer'
 import { useApp } from '@/providers'
 import { getSubjectLabel } from '@/lib/subjects'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
@@ -49,7 +50,6 @@ import {
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeClass,
-  pageEmptyStateClass,
   pageHeroShellClass,
   pageInputClass,
   pageInsetClass,
@@ -85,57 +85,65 @@ const courseHeroThemes: Record<
   }
 > = {
   chinese: {
-    accentClass: 'from-cyan-500/18 via-sky-400/10 to-blue-500/12',
-    statBorderClass: 'border-cyan-400/12',
+    accentClass:
+      'from-[hsl(var(--state-info-fg))]/18 via-[hsl(var(--state-info-bg))]/45 to-primary/12',
+    statBorderClass: 'border-[hsl(var(--state-info-fg))]/12',
     patternImage: '/images/course-themes/chinese-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.08' stroke-width='8' stroke-linecap='round'><path d='M45 70c28-18 56-24 92-18'/><path d='M76 48c16 22 24 42 24 74'/><path d='M145 56c18 24 22 46 18 72'/><path d='M202 78c32-18 68-24 112-12'/><path d='M230 48c20 24 28 48 30 86'/><path d='M294 42c14 16 24 38 30 68'/></g><g fill='white' fill-opacity='.045'><circle cx='78' cy='158' r='16'/><rect x='194' y='142' width='44' height='44' rx='8'/><circle cx='320' cy='152' r='18'/></g></svg>",
   },
   malay: {
-    accentClass: 'from-cyan-500/14 via-teal-400/10 to-emerald-400/10',
-    statBorderClass: 'border-teal-300/12',
+    accentClass:
+      'from-[hsl(var(--state-success-fg))]/14 via-[hsl(var(--state-success-bg))]/50 to-[hsl(var(--state-info-bg))]/24',
+    statBorderClass: 'border-[hsl(var(--state-success-fg))]/12',
     patternImage: '/images/course-themes/malay-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='6'><path d='M46 150c42-54 84-54 126 0'/><path d='M196 150c36-44 74-44 110 0'/><path d='M84 118c16-16 34-24 54-24'/><path d='M238 112c14-12 30-18 48-18'/></g><g fill='white' fill-opacity='.05'><circle cx='72' cy='72' r='18'/><circle cx='284' cy='74' r='24'/><rect x='168' y='54' width='34' height='34' rx='8'/></g></svg>",
   },
   english: {
-    accentClass: 'from-sky-500/16 via-indigo-400/10 to-cyan-400/10',
-    statBorderClass: 'border-sky-300/12',
+    accentClass:
+      'from-primary/16 via-[hsl(var(--state-info-bg))]/48 to-[hsl(var(--state-warning-bg))]/20',
+    statBorderClass: 'border-primary/12',
     patternImage: '/images/course-themes/english-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.08' stroke-width='6'><path d='M66 152 96 60l30 92'/><path d='M78 118h36'/><path d='M164 154V66h56'/><path d='M164 110h42'/><path d='M164 154h58'/><path d='M274 154V66h54'/><path d='M274 110h40'/></g><g fill='white' fill-opacity='.045'><circle cx='324' cy='62' r='14'/><circle cx='232' cy='154' r='12'/></g></svg>",
   },
   math: {
-    accentClass: 'from-cyan-500/14 via-emerald-400/10 to-sky-500/10',
-    statBorderClass: 'border-emerald-300/12',
+    accentClass:
+      'from-[hsl(var(--state-success-fg))]/14 via-[hsl(var(--state-warning-bg))]/40 to-[hsl(var(--state-info-bg))]/24',
+    statBorderClass: 'border-[hsl(var(--state-success-fg))]/12',
     patternImage: '/images/course-themes/math-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='4'><path d='M48 170 102 74l54 96'/><circle cx='218' cy='112' r='44'/><path d='M156 112h124'/><path d='M218 50v124'/><path d='M292 166c18-18 34-70 54-102'/></g><g fill='white' fill-opacity='.045'><circle cx='82' cy='56' r='12'/><rect x='316' y='46' width='26' height='26' rx='6'/></g></svg>",
   },
   science: {
-    accentClass: 'from-cyan-500/16 via-sky-400/10 to-teal-400/10',
-    statBorderClass: 'border-cyan-300/12',
+    accentClass:
+      'from-[hsl(var(--state-info-fg))]/16 via-[hsl(var(--state-info-bg))]/42 to-[hsl(var(--state-success-bg))]/24',
+    statBorderClass: 'border-[hsl(var(--state-info-fg))]/12',
     patternImage: '/images/course-themes/science-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='4'><circle cx='90' cy='92' r='22'/><circle cx='152' cy='78' r='16'/><circle cx='146' cy='136' r='14'/><path d='M110 86 138 80'/><path d='M106 102 134 128'/><circle cx='276' cy='108' r='38'/><path d='M238 108h76'/><path d='M276 70v76'/><ellipse cx='276' cy='108' rx='18' ry='38'/></g><g fill='white' fill-opacity='.045'><circle cx='328' cy='58' r='10'/><circle cx='338' cy='154' r='14'/></g></svg>",
   },
   history: {
-    accentClass: 'from-cyan-500/12 via-amber-300/8 to-sky-500/10',
-    statBorderClass: 'border-amber-200/12',
+    accentClass:
+      'from-[hsl(var(--state-warning-fg))]/12 via-[hsl(var(--state-warning-bg))]/38 to-[hsl(var(--state-info-bg))]/22',
+    statBorderClass: 'border-[hsl(var(--state-warning-fg))]/12',
     patternImage: '/images/course-themes/history-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='5'><path d='M54 162h116'/><path d='M72 162V78'/><path d='M96 162V66'/><path d='M122 162V84'/><path d='M146 162V72'/><path d='M60 76h102'/><path d='M222 64v96'/><path d='M250 64v96'/><path d='M278 64v96'/><path d='M210 92h80'/><path d='M210 130h80'/></g><g fill='white' fill-opacity='.045'><rect x='318' y='54' width='34' height='34' rx='8'/><circle cx='334' cy='150' r='16'/></g></svg>",
   },
   geography: {
-    accentClass: 'from-cyan-500/16 via-sky-400/12 to-blue-500/10',
-    statBorderClass: 'border-sky-300/12',
+    accentClass:
+      'from-primary/16 via-[hsl(var(--state-info-bg))]/50 to-[hsl(var(--state-info-fg))]/12',
+    statBorderClass: 'border-primary/12',
     patternImage: '/images/course-themes/geography-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.075' stroke-width='4'><ellipse cx='118' cy='108' rx='56' ry='36'/><path d='M62 108h112'/><path d='M118 72v72'/><path d='M82 82c12 18 12 54 0 72'/><path d='M154 82c-12 18-12 54 0 72'/><path d='M226 152c24-18 42-56 82-80'/><path d='M236 78c24 22 42 18 82 4'/></g><g fill='white' fill-opacity='.045'><circle cx='298' cy='140' r='18'/></g></svg>",
   },
   other: {
-    accentClass: 'from-cyan-500/14 via-slate-300/8 to-blue-500/10',
-    statBorderClass: 'border-slate-300/12',
+    accentClass:
+      'from-[hsl(var(--border-strong))]/14 via-[hsl(var(--surface-subtle))]/52 to-primary/10',
+    statBorderClass: 'border-[hsl(var(--border-strong))]/12',
     patternImage: '/images/course-themes/other-hero-theme.png',
     patternSvg:
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 220' fill='none'><g stroke='white' stroke-opacity='.07' stroke-width='4'><rect x='70' y='72' width='58' height='58' rx='14'/><rect x='146' y='58' width='82' height='82' rx='18'/><circle cx='302' cy='98' r='34'/><path d='M76 154h246'/></g></svg>",
@@ -179,38 +187,9 @@ function getContentTypeMeta(
       return {
         label: copy('课程', 'Lesson'),
         icon: PlayCircle,
-        className: 'text-text-tertiary dark:text-slate-300',
+        className: 'text-text-tertiary dark:text-text-tertiary',
       }
   }
-}
-
-function EmptyPanel({
-  title,
-  description,
-  actionLabel,
-  onAction,
-}: {
-  title: string
-  description: string
-  actionLabel: string
-  onAction: () => void
-}) {
-  return (
-    <div className={pageEmptyStateClass}>
-      <div className="text-sm font-bold text-text-primary dark:text-text-primary">
-        {title}
-      </div>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-secondary dark:text-text-secondary">
-        {description}
-      </p>
-      <Button
-        onClick={onAction}
-        className="mt-5 rounded-2xl px-4 py-2 text-sm font-bold"
-      >
-        {actionLabel}
-      </Button>
-    </div>
-  )
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -323,15 +302,15 @@ export const CoursesView = ({ t }: { t: any }) => {
               onClick={() => setSelectedSubjectId(subject.id)}
               className={`flex min-h-[42px] shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
                 isActive
-                  ? 'scale-[1.01] border-blue-300 bg-[linear-gradient(180deg,#f8fbff_0%,#e8f1ff_100%)] text-blue-800 shadow-[0_10px_24px_rgba(59,130,246,0.10),inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-transparent dark:bg-white dark:text-slate-950'
-                  : 'bg-white/92 border-slate-200/80 text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-slate-300 hover:bg-white hover:text-slate-700 dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-slate-400 dark:hover:bg-slate-700'
+                  ? 'scale-[1.01] border-borderTone bg-surface-selected text-primary shadow-[0_10px_24px_rgba(59,130,246,0.10),inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse'
+                  : 'border-borderTone bg-surface text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected'
               }`}
             >
               <subject.icon
                 className={`h-4 w-4 ${
                   isActive
-                    ? 'text-blue-700 dark:text-slate-950'
-                    : 'text-slate-400 dark:text-slate-500'
+                    ? 'text-primary dark:text-text-inverse'
+                    : 'text-text-tertiary dark:text-text-tertiary'
                 }`}
               />
               <span>{localizedName}</span>
@@ -356,7 +335,7 @@ export const CoursesView = ({ t }: { t: any }) => {
             }
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle text-sky-600 dark:border-borderTone dark:bg-surface-subtle dark:text-cyan-200">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-primary">
                 {expandedChapter === chapter.id ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
@@ -398,13 +377,13 @@ export const CoursesView = ({ t }: { t: any }) => {
                       key={section.id}
                       className={`flex items-center justify-between rounded-[20px] border px-4 py-3 transition-all ${
                         isNext
-                          ? 'border-cyan-300/40 bg-cyan-50 text-text-primary dark:border-cyan-400/25 dark:bg-cyan-400/[0.08]'
-                          : 'border-borderTone bg-surface hover:border-blue-300/60 hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-sky-400/20 dark:hover:bg-surface-selected'
+                          ? 'border-borderTone bg-surface-selected text-text-primary dark:border-borderTone dark:bg-surface-selected'
+                          : 'border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-selected'
                       }`}
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         {section.isCompleted ? (
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))]">
                             <CircleCheck className="h-4 w-4" />
                           </div>
                         ) : section.isLocked ? (
@@ -412,7 +391,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                             <Lock className="h-4 w-4" />
                           </div>
                         ) : (
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-200">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]">
                             <MetaIcon className="h-4 w-4" />
                           </div>
                         )}
@@ -425,7 +404,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                               {meta.label}
                             </div>
                             {isNext ? (
-                              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/10 dark:text-cyan-100">
+                              <span className="rounded-full border border-borderTone bg-[hsl(var(--state-info-bg))] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]">
                                 {copy('继续学习', 'Continue')}
                               </span>
                             ) : null}
@@ -454,7 +433,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                           }
                           className={`rounded-2xl px-4 text-xs font-bold ${
                             section.isCompleted
-                              ? 'border border-blue-200 bg-surface-selected text-sky-700 hover:bg-blue-100 dark:border-borderTone dark:bg-surface-selected dark:text-white dark:hover:bg-surface-selected'
+                              ? 'border border-borderTone bg-surface-selected text-primary hover:bg-surface-selected dark:border-borderTone dark:bg-surface-selected dark:text-primary dark:hover:bg-surface-selected'
                               : ''
                           }`}
                         >
@@ -550,7 +529,7 @@ export const CoursesView = ({ t }: { t: any }) => {
           </div>
           {reviewQueue.length > 0 ? (
             <Button
-              className="rounded-2xl bg-white text-slate-950 hover:bg-slate-100"
+              className="rounded-2xl bg-surface text-text-primary hover:bg-surface-subtle dark:bg-surface dark:text-text-primary dark:hover:bg-surface-subtle"
               onClick={() => setIsReviewSessionOpen(true)}
             >
               {copy('开始复习', 'Start Review')}
@@ -570,7 +549,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     chapterTitle: copy('复习模式', 'Review Mode'),
                   })
                 }
-                className="group flex w-full items-center justify-between rounded-[22px] border border-borderTone bg-surface px-4 py-4 text-left shadow-surface transition-all hover:-translate-y-0.5 hover:border-blue-300/60 hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-cyan-400/25 dark:hover:bg-surface-selected"
+                className="group flex w-full items-center justify-between rounded-[22px] border border-borderTone bg-surface px-4 py-4 text-left shadow-surface transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-selected"
               >
                 <div>
                   <div className="flex items-center gap-2">
@@ -580,8 +559,8 @@ export const CoursesView = ({ t }: { t: any }) => {
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] ${
                         section.userConfidence === 'low'
-                          ? 'bg-red-50 text-red-700 dark:bg-red-400/10 dark:text-red-200'
-                          : 'bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-200'
+                          ? 'bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]'
+                          : 'bg-[hsl(var(--state-warning-bg))] text-[hsl(var(--state-warning-fg))] dark:bg-[hsl(var(--state-warning-bg))] dark:text-[hsl(var(--state-warning-fg))]'
                       }`}
                     >
                       {section.userConfidence === 'low'
@@ -596,19 +575,25 @@ export const CoursesView = ({ t }: { t: any }) => {
                     )}
                   </div>
                 </div>
-                <ArrowRight className="h-4 w-4 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-sky-600 dark:text-text-tertiary dark:group-hover:text-cyan-200" />
+                <ArrowRight className="h-4 w-4 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-primary dark:text-text-tertiary dark:group-hover:text-primary" />
               </button>
             ))}
           </div>
         ) : (
-          <EmptyPanel
+          <PageEmptyState
             title={copy('当前没有需要优先复习的内容', 'No urgent review items')}
             description={copy(
               '继续保持课程学习节奏，系统会在检测到波动时把内容推到这里。',
               'Keep your learning momentum. Items will appear here when the system detects instability.'
             )}
-            actionLabel={copy('继续课程学习', 'Continue Courses')}
-            onAction={() => setActiveViewMode('curriculum')}
+            actions={
+              <Button
+                onClick={() => setActiveViewMode('curriculum')}
+                className="rounded-2xl px-4 py-2 text-sm font-bold"
+              >
+                {copy('继续课程学习', 'Continue Courses')}
+              </Button>
+            }
           />
         )}
       </Card>
@@ -618,7 +603,7 @@ export const CoursesView = ({ t }: { t: any }) => {
   const renderNotebook = () => (
     <div className={`animate-fade-in-up ${pageSectionGapClass}`}>
       <Card className={`${panelClassName} ${pageCardPaddingClass}`}>
-        <div className="dark:border-white/8 flex flex-col gap-4 border-b border-borderTone pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-borderTone pb-4 dark:border-borderTone sm:flex-row sm:items-center sm:justify-between">
           <div className="scrollbar-hide flex gap-2 overflow-x-auto">
             {[
               { key: 'all', label: copy('全部', 'All') },
@@ -641,7 +626,7 @@ export const CoursesView = ({ t }: { t: any }) => {
           </div>
 
           <div className="relative w-full sm:w-56">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-tertiary" />
             <input
               type="text"
               placeholder={copy('搜索笔记...', 'Search notes...')}
@@ -657,7 +642,7 @@ export const CoursesView = ({ t }: { t: any }) => {
             notebookItems.map((item) => (
               <Card
                 key={item.id}
-                className="rounded-[22px] border border-borderTone bg-surface p-4 text-text-primary shadow-surface transition-all hover:border-blue-300/60 hover:bg-surface-subtle dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:border-cyan-400/25 dark:hover:bg-white/[0.06]"
+                className="rounded-[22px] border border-borderTone bg-surface p-4 text-text-primary shadow-surface transition-all hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-selected"
               >
                 <div className="mb-2 flex items-start justify-between gap-4">
                   <div className="flex items-center gap-2">
@@ -670,24 +655,24 @@ export const CoursesView = ({ t }: { t: any }) => {
                     {item.type === 'highlight' ? (
                       <Zap className="h-4 w-4 text-amber-300" />
                     ) : null}
-                    <span className="text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary dark:text-slate-400">
+                    <span className="text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
                       {item.type}
                     </span>
                   </div>
-                  <span className="text-xs text-text-tertiary dark:text-slate-500">
+                  <span className="text-xs text-text-tertiary dark:text-text-tertiary">
                     {item.date}
                   </span>
                 </div>
-                <div className="text-sm font-bold text-text-primary dark:text-white">
+                <div className="text-sm font-bold text-text-primary dark:text-text-primary">
                   {item.chapter}
                 </div>
-                <p className="mt-2 text-sm leading-6 text-text-secondary dark:text-slate-300">
+                <p className="mt-2 text-sm leading-6 text-text-secondary dark:text-text-secondary">
                   {item.content}
                 </p>
               </Card>
             ))
           ) : (
-            <EmptyPanel
+            <PageEmptyState
               title={copy(
                 '当前没有匹配的笔记内容',
                 'No matching notebook items'
@@ -696,11 +681,17 @@ export const CoursesView = ({ t }: { t: any }) => {
                 '切换筛选或搜索关键词后，这里会展示你在当前科目下保存的笔记、书签和高亮。',
                 'Change the filter or search query to find your saved notes, bookmarks, and highlights.'
               )}
-              actionLabel={copy('清空筛选', 'Clear Filters')}
-              onAction={() => {
-                setNotebookFilter('all')
-                setSearchQuery('')
-              }}
+              actions={
+                <Button
+                  onClick={() => {
+                    setNotebookFilter('all')
+                    setSearchQuery('')
+                  }}
+                  className="rounded-2xl px-4 py-2 text-sm font-bold"
+                >
+                  {copy('清空筛选', 'Clear Filters')}
+                </Button>
+              }
             />
           )}
         </div>
@@ -711,17 +702,17 @@ export const CoursesView = ({ t }: { t: any }) => {
   return (
     <div className="relative px-3 py-1.5 sm:px-4 sm:py-2">
       {isReviewSessionOpen ? (
-        <div className="fixed inset-0 z-[100] flex animate-fade-in-up flex-col bg-page/95 backdrop-blur-sm dark:bg-slate-950/95">
-          <div className="dark:border-white/8 flex items-center justify-between border-b border-borderTone px-6 py-5">
+        <div className="fixed inset-0 z-[100] flex animate-fade-in-up flex-col bg-page/95 backdrop-blur-sm dark:bg-page/95">
+          <div className="flex items-center justify-between border-b border-borderTone px-6 py-5 dark:border-borderTone">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-400/15 text-amber-300">
                 <Flame className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-text-primary dark:text-white">
+                <h2 className="text-xl font-bold text-text-primary dark:text-text-primary">
                   {copy('专注复习模式', 'Focus Review Mode')}
                 </h2>
-                <p className="text-xs text-text-secondary dark:text-slate-400">
+                <p className="text-xs text-text-secondary dark:text-text-secondary">
                   {copy(
                     '本轮将优先处理低信心内容',
                     'This round prioritizes low confidence topics'
@@ -731,7 +722,7 @@ export const CoursesView = ({ t }: { t: any }) => {
             </div>
             <button
               onClick={() => setIsReviewSessionOpen(false)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-borderTone bg-surface text-text-tertiary transition-colors hover:text-text-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-borderTone bg-surface text-text-tertiary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary dark:hover:bg-surface-selected dark:hover:text-text-primary"
             >
               <X className="h-5 w-5" />
             </button>
@@ -747,7 +738,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                 `You have ${reviewQueue.length} items to review`
               )}
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-text-secondary dark:text-slate-400">
+            <p className="mt-4 max-w-xl text-lg text-text-secondary dark:text-text-secondary">
               {copy(
                 '预计耗时 15 分钟左右。现在开始，把不稳的点先补齐。',
                 'Estimated time is about 15 minutes. Start now and close your weak points first.'
@@ -805,8 +796,8 @@ export const CoursesView = ({ t }: { t: any }) => {
                     className={`absolute inset-0 bg-gradient-to-r ${currentHeroTheme.accentClass}`}
                     style={{ opacity: 0.2 }}
                   />
-                  <div className="bg-cyan-400/8 absolute -right-6 -top-8 h-36 w-36 rounded-full blur-3xl" />
-                  <div className="bg-sky-500/6 absolute -left-10 bottom-0 h-28 w-28 rounded-full blur-3xl" />
+                  <div className="absolute -right-6 -top-8 h-36 w-36 rounded-full bg-[hsl(var(--state-info-fg))]/8 blur-3xl" />
+                  <div className="absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-[hsl(var(--state-warning-bg))]/55 blur-3xl" />
                   {currentHeroTheme.patternImage ? (
                     <div
                       className="pointer-events-none absolute inset-0 hidden xl:block"
@@ -835,7 +826,7 @@ export const CoursesView = ({ t }: { t: any }) => {
 
                   <div className="relative flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div className="min-w-0">
-                      <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-700 backdrop-blur-sm dark:border-cyan-300/15 dark:bg-white/[0.07] dark:text-cyan-100">
+                      <div className="inline-flex items-center rounded-full border border-borderTone bg-surface-selected px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary backdrop-blur-sm dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse">
                         {getSubjectLabel(
                           selectedSubjectId,
                           lang,
@@ -843,11 +834,11 @@ export const CoursesView = ({ t }: { t: any }) => {
                         )}
                       </div>
                       <h2
-                        className={`mt-3 ${pageHeroNumericValueClass} text-text-primary dark:text-white`}
+                        className={`mt-3 ${pageHeroNumericValueClass} text-text-primary dark:text-text-primary`}
                       >
                         {currentSubject.title}
                       </h2>
-                      <p className="mt-1 text-[13px] leading-6 text-text-secondary dark:text-slate-200">
+                      <p className="mt-1 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
                         {currentSubject.subTitle}
                       </p>
                       <p className="mt-3 max-w-xl text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
@@ -904,9 +895,9 @@ export const CoursesView = ({ t }: { t: any }) => {
                     </div>
                   </div>
 
-                  <div className="mt-5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                  <div className="mt-5 overflow-hidden rounded-full bg-surface-subtle dark:bg-surface-subtle">
                     <div
-                      className="h-3 rounded-full bg-[linear-gradient(90deg,#22D3EE,#60A5FA)] shadow-[0_0_18px_rgba(34,211,238,0.28)]"
+                      className="h-3 rounded-full bg-primary shadow-[0_0_18px_rgba(37,99,235,0.28)]"
                       style={{ width: `${currentSubject.progress}%` }}
                     />
                   </div>
@@ -966,7 +957,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     <h3
                       className={`flex items-center gap-2 ${pageSectionTitleClass}`}
                     >
-                      <GraduationCap className="h-5 w-5 text-cyan-300" />
+                      <GraduationCap className="h-5 w-5 text-primary" />
                       {copy('学习目标', 'Study Goal')}
                     </h3>
                     <p className={pageSectionDescriptionClass}>
@@ -976,7 +967,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                       )}
                     </p>
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-slate-500" />
+                  <ArrowUpRight className="h-4 w-4 text-text-tertiary" />
                 </div>
 
                 <div className={`${pageInsetClass} p-4`}>
@@ -1005,10 +996,10 @@ export const CoursesView = ({ t }: { t: any }) => {
                     </div>
                   </div>
                   {nextLesson ? (
-                    <div className="border-cyan-400/12 mt-4 rounded-[20px] border bg-cyan-400/[0.06] p-4">
+                    <div className="mt-4 rounded-[20px] border border-borderTone bg-surface-selected p-4 dark:border-borderTone dark:bg-surface-selected">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-sky-700 dark:text-cyan-200">
+                          <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-primary dark:text-primary">
                             {copy('推荐继续', 'Continue')}
                           </div>
                           <div className={`mt-2 ${pageSectionTitleClass}`}>
@@ -1027,7 +1018,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                             <span>+{nextLesson.xp} XP</span>
                           </div>
                         </div>
-                        <BookOpenCheck className="mt-1 h-5 w-5 shrink-0 text-cyan-300" />
+                        <BookOpenCheck className="mt-1 h-5 w-5 shrink-0 text-primary" />
                       </div>
                       <Button
                         className="mt-4 w-full rounded-2xl"
@@ -1038,7 +1029,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     </div>
                   ) : (
                     <div className="mt-4">
-                      <EmptyPanel
+                      <PageEmptyState
                         title={copy(
                           '当前没有可继续的课程',
                           'No lesson available'
@@ -1047,8 +1038,14 @@ export const CoursesView = ({ t }: { t: any }) => {
                           '当前科目的课程已经完成或暂未开放。你可以先进入智能复习模式。',
                           'This subject is completed or temporarily unavailable. You can switch into smart review first.'
                         )}
-                        actionLabel={copy('进入智能复习', 'Open Review')}
-                        onAction={() => setActiveViewMode('review')}
+                        actions={
+                          <Button
+                            onClick={() => setActiveViewMode('review')}
+                            className="rounded-2xl px-4 py-2 text-sm font-bold"
+                          >
+                            {copy('进入智能复习', 'Open Review')}
+                          </Button>
+                        }
                       />
                     </div>
                   )}
@@ -1073,14 +1070,14 @@ export const CoursesView = ({ t }: { t: any }) => {
                     </div>
                     <button
                       onClick={() => setHasLiveClass(false)}
-                      className="text-xs font-medium text-text-tertiary transition-colors hover:text-text-primary dark:text-slate-500 dark:hover:text-white"
+                      className="text-xs font-medium text-text-tertiary transition-colors hover:text-text-primary dark:text-text-tertiary dark:hover:text-text-primary"
                     >
                       {copy('隐藏', 'Dismiss')}
                     </button>
                   </div>
-                  <div className="border-cyan-400/12 rounded-[24px] border bg-cyan-400/[0.06] p-4">
+                  <div className="rounded-[24px] border border-borderTone bg-surface-selected p-4 dark:border-borderTone dark:bg-surface-selected">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-surface-subtle text-text-primary dark:bg-white/[0.06] dark:text-white">
+                      <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-surface-subtle text-text-primary dark:bg-surface-subtle dark:text-text-primary">
                         <span className="text-[10px] font-semibold">18</span>
                         <span className="text-[10px]">OCT</span>
                       </div>
@@ -1102,7 +1099,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                 <Card
                   className={`${panelClassName} text-center ${pageCardPaddingClass}`}
                 >
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-subtle text-text-tertiary dark:bg-white/[0.06] dark:text-slate-400">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-subtle text-text-tertiary dark:bg-surface-subtle dark:text-text-tertiary">
                     <Coffee className="h-6 w-6" />
                   </div>
                   <div className={pageSectionTitleClass}>

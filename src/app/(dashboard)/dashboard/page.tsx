@@ -34,8 +34,8 @@ export default async function DashboardPage() {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center bg-page dark:bg-slate-950 text-text-primary dark:text-white">
-          <div className="max-w-md p-6 bg-surface dark:bg-slate-900 rounded-lg shadow-surface dark:shadow-xl border border-borderTone dark:border-slate-800">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-page p-8 text-center text-text-primary dark:bg-page dark:text-text-primary">
+          <div className="max-w-md rounded-lg border border-borderTone bg-surface p-6 shadow-surface dark:border-borderTone dark:bg-surface-subtle dark:shadow-surface-md">
             <h1 className="text-2xl font-bold mb-4 text-red-500">
               {dbSchemaIssue ? 'Database Schema Issue' : dbConnectionIssue ? 'Database Connection Issue' : 'Account Sync Issue'}
             </h1>
@@ -46,11 +46,11 @@ export default async function DashboardPage() {
                 ? 'Your login session is valid, but the app cannot connect to the database right now.'
                 : 'Your login session is valid, but your user profile was not found in our database.'}
             </p>
-            <div className="text-left text-sm bg-surface-subtle dark:bg-slate-950 p-3 rounded mb-4 font-mono overflow-auto">
+            <div className="mb-4 overflow-auto rounded bg-surface-subtle p-3 text-left text-sm font-mono dark:bg-surface">
               <p>User ID: {user.id}</p>
               <p>Email: {user.email}</p>
             </div>
-            <p className="text-sm text-text-secondary dark:text-slate-400">
+            <p className="text-sm text-text-secondary dark:text-text-secondary">
               {dbSchemaIssue
                 ? 'Please run `npx prisma db push` and restart dev server.'
                 : dbConnectionIssue
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
                     redirect('/dashboard');
                   }
                 }}>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors">
+                  <button type="submit" className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
                     Fix My Account
                   </button>
                 </form>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
                 await supabase.auth.signOut();
                 redirect('/login');
               }}>
-                <button type="submit" className="px-4 py-2 bg-surface-muted hover:bg-surface-subtle dark:bg-slate-800 dark:hover:bg-slate-700 rounded text-sm font-medium transition-colors text-text-primary dark:text-white">
+                <button type="submit" className="rounded bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-subtle dark:bg-surface dark:hover:bg-surface-subtle dark:text-text-primary">
                   Sign Out
                 </button>
               </form>

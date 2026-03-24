@@ -157,11 +157,11 @@
   background: transparent; 
 }
 ::-webkit-scrollbar-thumb {
-  background: #64748b; 
+  background: hsl(var(--border-strong)); 
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569; 
+  background: hsl(var(--text-tertiary)); 
 }
 
 /* Custom UI Effects */

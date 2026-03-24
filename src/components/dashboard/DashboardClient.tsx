@@ -3,6 +3,11 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
+import {
+  type DashboardView,
+  getDashboardRoute,
+  normalizeDashboardView,
+} from '@/components/layout/dashboard-nav'
 import { useApp } from '@/providers'
 import { DashboardData } from '@/actions/dashboard'
 
@@ -17,18 +22,6 @@ import { AchievementsView } from '@/components/achievements/AchievementsView'
 import { ParentDashboardView } from './views/ParentDashboardView'
 import { User, UserSettings } from '@prisma/client'
 
-// --- Local Types ---
-type View =
-  | 'dashboard'
-  | 'courses'
-  | 'questionBank'
-  | 'leaderboard'
-  | 'community'
-  | 'settings'
-  | 'achievements'
-  | 'parent'
-  | 'admin'
-
 type UserProfile = User & { settings: UserSettings | null }
 
 interface DashboardClientProps {
@@ -40,42 +33,19 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
   const router = useRouter()
   const { t: appT } = useApp()
   // Automatically switch to parent view if user is a parent
-  const [currentView, setCurrentView] = useState<View>(
+  const [currentView, setCurrentView] = useState<DashboardView>(
     user.role === 'PARENT' ? 'parent' : 'dashboard'
   )
 
   const handleViewChange = (view: string) => {
-    // For Settings, Community, Leaderboard, Courses, Practice, Achievements, and Admin, use real routes
-    if (view === 'settings') {
-      router.push('/dashboard/settings')
+    const normalizedView = normalizeDashboardView(view)
+
+    if (normalizedView === 'dashboard' || normalizedView === 'parent') {
+      setCurrentView(normalizedView)
       return
     }
-    if (view === 'community') {
-      router.push('/dashboard/community')
-      return
-    }
-    if (view === 'leaderboard') {
-      router.push('/dashboard/leaderboard')
-      return
-    }
-    if (view === 'courses') {
-      router.push('/dashboard/courses')
-      return
-    }
-    if (view === 'questionBank') {
-      router.push('/dashboard/practice')
-      return
-    }
-    if (view === 'achievements') {
-      router.push('/dashboard/achievements')
-      return
-    }
-    if (view === 'admin') {
-      router.push('/admin')
-      return
-    }
-    // For other views, still use useState (for now)
-    setCurrentView(view as View)
+
+    router.push(getDashboardRoute(normalizedView))
   }
 
   const renderContent = () => {
@@ -101,7 +71,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
         )
       case 'courses':
         return <CoursesView t={appT} />
-      case 'questionBank':
+      case 'practice':
         return <PracticeCenterScreen t={appT} />
       case 'leaderboard':
         return (

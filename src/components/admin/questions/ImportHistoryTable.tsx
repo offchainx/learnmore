@@ -68,11 +68,19 @@ export function ImportHistoryTable({ tasks }: ImportHistoryTableProps) {
   const getStatusBadge = (status: ProcessingStatus) => {
     switch (status) {
       case 'COMPLETED':
-        return <Badge className="bg-green-500 hover:bg-green-600">成功</Badge>
+        return (
+          <Badge className="border border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))]">
+            成功
+          </Badge>
+        )
       case 'FAILED':
         return <Badge variant="destructive">失败</Badge>
       case 'PROCESSING':
-        return <Badge className="bg-blue-500 hover:bg-blue-600">处理中</Badge>
+        return (
+          <Badge className="border border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]">
+            处理中
+          </Badge>
+        )
       case 'PENDING':
         return <Badge variant="secondary">等待中</Badge>
       default:
@@ -81,7 +89,7 @@ export function ImportHistoryTable({ tasks }: ImportHistoryTableProps) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface">
       <Table>
         <TableHeader>
           <TableRow>

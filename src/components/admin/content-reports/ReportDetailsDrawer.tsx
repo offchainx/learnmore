@@ -23,84 +23,83 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
 
   const getOptionClasses = (optionId: string) => {
     if (optionId === systemAnswerId) {
-        // Correct answer style (Green)
-        return "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-500/20";
+        return "border-borderTone bg-[hsl(var(--state-success-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]";
     }
     if (optionId === userAnswerId && report.issueType === IssueType.ANSWER_WRONG) {
-        return "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-500/20";
+        return "border-borderTone bg-[hsl(var(--state-danger-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))]";
     }
-    return "hover:bg-gray-50 dark:hover:bg-white/5 border-transparent";
+    return "border-transparent hover:bg-surface-subtle dark:hover:bg-surface-subtle";
   };
 
   const getOptionBadgeClasses = (optionId: string) => {
-      if (optionId === systemAnswerId) return "bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400";
-      if (optionId === userAnswerId) return "bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400";
-      return "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400";
+      if (optionId === systemAnswerId) return "bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))]";
+      if (optionId === userAnswerId) return "bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]";
+      return "bg-surface-subtle text-text-secondary dark:bg-surface-subtle dark:text-text-secondary";
   };
 
   const getOptionIcon = (optionId: string) => {
-      if (optionId === systemAnswerId) return <Check className="text-green-500" size={18} />;
-      if (optionId === userAnswerId) return <X className="text-red-500" size={18} />;
+      if (optionId === systemAnswerId) return <Check className="text-[hsl(var(--state-success-fg))]" size={18} />;
+      if (optionId === userAnswerId) return <X className="text-[hsl(var(--state-danger-fg))]" size={18} />;
       return null;
   };
 
   return (
-    <div className={`fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white dark:bg-[#0B0E14] drawer-glass shadow-2xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col border-l border-white/10 overflow-hidden ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+    <div className={`drawer-glass fixed inset-y-0 right-0 z-50 flex w-full transform flex-col overflow-hidden border-l border-borderTone bg-surface shadow-2xl transition-transform duration-300 ease-in-out dark:border-borderTone dark:bg-page sm:w-[500px] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
       {/* Background Blobs inside drawer */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none -mr-32 -mt-32"></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none -ml-20 -mb-20"></div>
+      <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-[hsl(var(--state-warning-bg))] blur-[100px] -mr-32 -mt-32"></div>
+      <div className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 rounded-full bg-[hsl(var(--state-info-bg))] blur-[100px] -ml-20 -mb-20"></div>
 
-      <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10 relative z-10 bg-white/50 dark:bg-black/20 backdrop-blur-md">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <BarChart3 className="text-purple-500" size={24} />
+      <div className="relative z-10 flex items-center justify-between border-b border-borderTone bg-surface/80 p-6 backdrop-blur-md dark:border-borderTone dark:bg-surface/70">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-text-primary dark:text-text-primary">
+          <BarChart3 className="text-primary" size={24} />
           {text.drawer.reportDetails}
         </h2>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-500 dark:hover:text-white transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-white/10">
+        <button onClick={onClose} className="rounded-full p-1 text-text-tertiary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:hover:bg-surface-subtle dark:hover:text-text-primary">
           <X size={20} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 relative z-10 custom-scrollbar">
+      <div className="custom-scrollbar relative z-10 flex-1 space-y-6 overflow-y-auto p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
               {report.user.avatar ? (
-                 <img src={report.user.avatar} alt="User" className="w-12 h-12 rounded-full border-2 border-white dark:border-white/10" />
+                 <img src={report.user.avatar} alt="User" className="h-12 w-12 rounded-full border-2 border-surface object-cover dark:border-surface" />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold border-2 border-white dark:border-white/10 text-lg">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-surface bg-[linear-gradient(135deg,hsl(var(--state-danger-bg)),hsl(var(--state-warning-bg)))] text-lg font-bold text-text-primary dark:border-surface">
                     {report.user.name.split(' ').map(n => n[0]).join('')}
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-gray-900 rounded-full p-0.5">
-                <Star className="text-yellow-500" size={14} fill="currentColor" />
+              <div className="absolute -bottom-1 -right-1 rounded-full bg-surface p-0.5 dark:bg-surface">
+                <Star className="text-[hsl(var(--state-warning-fg))]" size={14} fill="currentColor" />
               </div>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">{report.user.name}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{text.drawer.student} • {report.question.subject}</p>
+              <h3 className="font-medium text-text-primary dark:text-text-primary">{report.user.name}</h3>
+              <p className="text-xs text-text-secondary dark:text-text-secondary">{text.drawer.student} • {report.question.subject}</p>
             </div>
           </div>
           <div className="flex flex-col items-end">
-            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-500/20 mb-1 text-nowrap">
+            <span className="mb-1 text-nowrap rounded-full border border-borderTone bg-[hsl(var(--state-danger-bg))] px-3 py-1 text-xs font-semibold text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]">
               {text.issueType[report.issueType]}
             </span>
-            <span className="text-xs text-gray-400">{text.drawer.idPrefix}: #{report.id}</span>
+            <span className="text-xs text-text-tertiary dark:text-text-tertiary">{text.drawer.idPrefix}: #{report.id}</span>
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 border border-gray-200 dark:border-white/5">
-          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{text.drawer.userComment}</h4>
-          <p className="text-sm text-gray-700 dark:text-gray-300 italic">&ldquo;{report.comment}&rdquo;</p>
+        <div className="rounded-xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
+          <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary">{text.drawer.userComment}</h4>
+          <p className="text-sm italic text-text-secondary dark:text-text-secondary">&ldquo;{report.comment}&rdquo;</p>
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+          <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary dark:text-text-primary">
             <HelpCircle className="text-primary" size={18} />
             {text.drawer.questionContent}
           </h4>
-          <div className="bg-white dark:bg-[#161B26] border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-gray-200 dark:border-white/5">
-              <p className="text-sm text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+          <div className="overflow-hidden rounded-xl border border-borderTone bg-surface shadow-sm dark:border-borderTone dark:bg-surface">
+            <div className="border-b border-borderTone p-4 dark:border-borderTone">
+              <p className="text-sm font-medium leading-relaxed text-text-primary dark:text-text-primary">
                 {report.question.text}
               </p>
             </div>
@@ -110,7 +109,7 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
                   <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold mr-3 ${getOptionBadgeClasses(option.id)}`}>
                     {option.id}
                   </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 flex-1">{option.text}</span>
+                  <span className="flex-1 text-sm text-text-secondary dark:text-text-secondary">{option.text}</span>
                   {getOptionIcon(option.id)}
                 </div>
               ))}
@@ -119,28 +118,28 @@ export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 rounded-xl bg-green-50 dark:bg-green-500/5 border border-green-200 dark:border-green-500/10 text-center">
-             <div className="text-xs text-green-500 font-semibold mb-1">{text.drawer.systemAnswer}</div>
-             <div className="text-lg font-bold text-gray-900 dark:text-white">{text.drawer.option} {systemAnswerId}</div>
+          <div className="rounded-xl border border-borderTone bg-[hsl(var(--state-success-bg))] p-3 text-center dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]">
+             <div className="mb-1 text-xs font-semibold text-[hsl(var(--state-success-fg))]">{text.drawer.systemAnswer}</div>
+             <div className="text-lg font-bold text-text-primary dark:text-text-primary">{text.drawer.option} {systemAnswerId}</div>
           </div>
-          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/10 text-center">
-            <div className="text-xs text-red-500 font-semibold mb-1">{text.drawer.userSuggests}</div>
-            <div className="text-lg font-bold text-gray-900 dark:text-white">{text.drawer.option} {userAnswerId}</div>
+          <div className="rounded-xl border border-borderTone bg-[hsl(var(--state-danger-bg))] p-3 text-center dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))]">
+            <div className="mb-1 text-xs font-semibold text-[hsl(var(--state-danger-fg))]">{text.drawer.userSuggests}</div>
+            <div className="text-lg font-bold text-text-primary dark:text-text-primary">{text.drawer.option} {userAnswerId}</div>
           </div>
         </div>
       </div>
 
-      <div className="p-6 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#11141B] flex flex-col gap-3 relative z-10">
-        <button className="w-full py-2.5 rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium shadow-lg shadow-green-500/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+      <div className="relative z-10 flex flex-col gap-3 border-t border-borderTone bg-surface-subtle p-6 dark:border-borderTone dark:bg-surface-subtle">
+        <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-[hsl(var(--state-success-fg))] py-2.5 font-medium text-white shadow-lg shadow-[hsl(var(--state-success-fg))]/20 transition-all hover:scale-[1.02] hover:bg-[hsl(var(--state-success-fg))]">
           <CheckCircle2 size={18} />
           {text.drawer.confirmErrorRefund}
         </button>
         <div className="flex gap-3">
-          <button className="flex-1 py-2.5 rounded-lg border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+          <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-borderTone bg-[hsl(var(--state-danger-bg))] py-2.5 text-sm font-medium text-[hsl(var(--state-danger-fg))] transition-colors hover:bg-[hsl(var(--state-danger-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]">
             <XCircle size={18} />
             {text.drawer.rejectReport}
           </button>
-          <button className="flex-1 py-2.5 rounded-lg bg-blue-600/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-600/20 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)] transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+          <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-borderTone bg-[hsl(var(--state-info-bg))] py-2.5 text-sm font-medium text-[hsl(var(--state-info-fg))] shadow-[0_0_15px_-3px_rgba(59,130,246,0.18)] transition-colors hover:bg-[hsl(var(--state-info-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]">
             <Wrench size={18} />
             {text.drawer.markAsFixed}
           </button>

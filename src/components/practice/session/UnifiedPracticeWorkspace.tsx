@@ -125,12 +125,12 @@ export default function UnifiedPracticeWorkspace({
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-2">
         {onRefresh ? (
-          <Button variant="outline" size="sm" className="rounded-xl bg-white/80 dark:bg-slate-950/80" onClick={onRefresh}>
+          <Button variant="outline" size="sm" className="rounded-xl bg-surface/90 dark:bg-surface-subtle/90" onClick={onRefresh}>
             <RotateCcw className="mr-2 h-4 w-4" />
             {refreshLabel}
           </Button>
         ) : null}
-        <Button variant="ghost" size="sm" className="rounded-xl bg-white/80 text-slate-700 hover:bg-white dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-950" onClick={onExit}>
+        <Button variant="ghost" size="sm" className="rounded-xl bg-surface/90 text-text-secondary hover:bg-surface hover:text-text-primary dark:bg-surface-subtle/90 dark:text-text-secondary dark:hover:bg-surface-subtle" onClick={onExit}>
           <LogOut className="mr-2 h-4 w-4" />
           {exitLabel}
         </Button>
@@ -138,10 +138,10 @@ export default function UnifiedPracticeWorkspace({
 
       <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)_280px]">
       <aside className={cn('hidden xl:block', `xl:sticky ${stickyOffsetClassName} xl:self-start`)}>
-        <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_16px_40px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/80">
+        <Card className="rounded-[28px]">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-black tracking-tight text-slate-900 dark:text-white">答题卡</CardTitle>
-            <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">点击题号可快速跳转。蓝色表示当前题，亮色表示已作答。</p>
+            <CardTitle className="text-base font-black tracking-tight text-text-primary dark:text-text-primary">答题卡</CardTitle>
+            <p className="text-xs leading-5 text-text-secondary dark:text-text-secondary">点击题号可快速跳转。高亮表示当前题，成功色表示已作答。</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-4 gap-2">
@@ -156,10 +156,10 @@ export default function UnifiedPracticeWorkspace({
                     className={cn(
                       'flex aspect-square items-center justify-center rounded-xl border text-sm font-black transition-all',
                       active
-                        ? 'border-cyan-400 bg-cyan-400/15 text-cyan-600 shadow-[0_0_0_1px_rgba(34,211,238,0.2)] dark:text-cyan-300'
+                        ? 'border-primary/30 bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] shadow-[0_0_0_1px_rgba(37,99,235,0.12)]'
                         : answered
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-300'
-                          : 'border-slate-200 bg-slate-100 text-slate-500 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-400',
+                          ? 'border-[hsl(var(--state-success-fg))/0.18] bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))]'
+                          : 'border-borderTone bg-surface-subtle text-text-tertiary hover:border-[hsl(var(--border-strong))] hover:bg-surface',
                     )}
                   >
                     {index + 1}
@@ -168,7 +168,7 @@ export default function UnifiedPracticeWorkspace({
               })}
             </div>
 
-            <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+            <div className="space-y-2 text-xs text-text-secondary dark:text-text-secondary">
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full bg-cyan-400/70" />
                 当前题
@@ -178,7 +178,7 @@ export default function UnifiedPracticeWorkspace({
                 已作答
               </div>
               <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-slate-300 dark:bg-slate-700" />
+                <span className="h-3 w-3 rounded-full bg-borderTone" />
                 未作答
               </div>
             </div>
@@ -196,19 +196,19 @@ export default function UnifiedPracticeWorkspace({
             data-question-id={item.id}
             className="scroll-mt-28"
           >
-            <Card className="overflow-hidden rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_16px_36px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950/80">
-              <CardHeader className="border-b border-slate-200/70 bg-slate-50/75 px-5 py-4 dark:border-slate-800 dark:bg-slate-900/50 sm:px-6">
+            <Card className="overflow-hidden rounded-[28px]">
+              <CardHeader className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-300">
+                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
                       Question {String(index + 1).padStart(2, '0')}
                     </div>
-                    <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="mt-1 text-sm text-text-secondary dark:text-text-secondary">
                       {item.meta || '按顺序完成整组题目后统一交卷'}
                     </div>
                   </div>
 
-                  <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-400">
+                  <div className="rounded-full border border-borderTone bg-surface px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
                     难度 {item.difficulty ?? 3} / 5
                   </div>
                 </div>
@@ -236,30 +236,30 @@ export default function UnifiedPracticeWorkspace({
       </main>
 
       <aside className={cn(`sticky ${stickyOffsetClassName} self-start`)}>
-        <Card className="rounded-[28px] border-slate-200/80 bg-white/95 shadow-[0_16px_40px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/80">
+        <Card className="rounded-[28px]">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-300">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
                   {modeLabel}
                 </div>
-                <CardTitle className="mt-2 text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                <CardTitle className="mt-2 text-xl font-black tracking-tight text-text-primary dark:text-text-primary">
                   {title}
                 </CardTitle>
-                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{subtitle}</p>
+                <p className="mt-2 text-sm leading-6 text-text-secondary dark:text-text-secondary">{subtitle}</p>
               </div>
             </div>
 
-            <div className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+            <div className="text-xs leading-5 text-text-secondary dark:text-text-secondary">
               右上角可刷新当前练习或直接退出，交卷操作保留在下方状态栏。
             </div>
           </CardHeader>
 
           <CardContent className="space-y-5">
             {timeLimitSeconds !== null ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
-                  <Clock3 className="h-3.5 w-3.5 text-cyan-500" />
+              <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
+                <div className="mb-2 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary">
+                  <Clock3 className="h-3.5 w-3.5 text-primary" />
                   剩余时间
                 </div>
                 <CountdownTimer
@@ -275,20 +275,20 @@ export default function UnifiedPracticeWorkspace({
             ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">已答题数</div>
-                <div className="mt-2 text-3xl font-black text-slate-900 dark:text-white">{answeredCount}</div>
-                <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">共 {totalQuestions} 题</div>
+              <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary">已答题数</div>
+                <div className="mt-2 text-3xl font-black text-text-primary dark:text-text-primary">{answeredCount}</div>
+                <div className="mt-1 text-sm text-text-secondary dark:text-text-secondary">共 {totalQuestions} 题</div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">完成进度</div>
-                <div className="mt-2 text-3xl font-black text-slate-900 dark:text-white">{progress}%</div>
+              <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary">完成进度</div>
+                <div className="mt-2 text-3xl font-black text-text-primary dark:text-text-primary">{progress}%</div>
                 <Progress value={progress} className="mt-3 h-2" />
               </div>
             </div>
 
             {rightPanelNote ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 text-sm leading-6 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+              <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4 text-sm leading-6 text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary">
                 {rightPanelNote}
               </div>
             ) : null}

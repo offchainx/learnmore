@@ -16,16 +16,16 @@ export function QualityCheckDisplay({ result, className }: QualityCheckDisplayPr
 
   // 根据分数确定颜色
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600'
-    if (score >= 70) return 'text-yellow-600'
-    return 'text-red-600'
+    if (score >= 90) return 'text-[hsl(var(--state-success-fg))]'
+    if (score >= 70) return 'text-[hsl(var(--state-warning-fg))]'
+    return 'text-[hsl(var(--state-danger-fg))]'
   }
 
   // 根据分数确定进度条颜色类名
   const getProgressColorClass = (score: number) => {
-    if (score >= 90) return 'bg-green-600'
-    if (score >= 70) return 'bg-yellow-600'
-    return 'bg-red-600'
+    if (score >= 90) return 'bg-[hsl(var(--state-success-fg))]'
+    if (score >= 70) return 'bg-[hsl(var(--state-warning-fg))]'
+    return 'bg-[hsl(var(--state-danger-fg))]'
   }
 
   return (
@@ -42,7 +42,7 @@ export function QualityCheckDisplay({ result, className }: QualityCheckDisplayPr
 
       <div className="space-y-3 pt-2">
         {issues.length === 0 ? (
-          <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-md text-sm">
+          <div className="flex items-center gap-2 rounded-md border border-borderTone bg-[hsl(var(--state-success-bg))] p-3 text-sm text-[hsl(var(--state-success-fg))]">
             <CheckCircle className="h-4 w-4" />
             <span>完美！未发现质量问题。</span>
           </div>
@@ -64,9 +64,12 @@ function IssueItem({ issue }: { issue: QualityIssue }) {
   }
 
   const styles = {
-    ERROR: "text-red-600 bg-red-50 border-red-100",
-    WARNING: "text-yellow-600 bg-yellow-50 border-yellow-100",
-    INFO: "text-blue-600 bg-blue-50 border-blue-100"
+    ERROR:
+      'border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))]',
+    WARNING:
+      'border-borderTone bg-[hsl(var(--state-warning-bg))] text-[hsl(var(--state-warning-fg))]',
+    INFO:
+      'border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))]',
   }
 
   const Icon = icons[issue.type]

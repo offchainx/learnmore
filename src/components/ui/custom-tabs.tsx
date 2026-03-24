@@ -27,8 +27,8 @@ export const CustomTabs: React.FC<TabsProps> = ({ items, activeId, onChange, cla
               onClick={() => onChange(item.id)}
               className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all ${
                 isActive 
-                  ? 'border border-blue-200 bg-surface-selected text-sky-700 shadow-surface dark:border-borderTone dark:bg-surface dark:text-white' 
-                  : 'text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white'
+                  ? 'border border-borderTone bg-surface-selected text-primary shadow-surface dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse' 
+                  : 'text-text-secondary hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-text-primary'
               }`}
             >
               {item.icon && <item.icon className="w-4 h-4" />}
@@ -52,8 +52,8 @@ export const CustomTabs: React.FC<TabsProps> = ({ items, activeId, onChange, cla
             className={`
               relative px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 border
               ${isActive 
-                ? 'bg-surface-selected text-sky-700 border-blue-200 shadow-surface dark:bg-surface dark:text-white dark:border-borderTone' 
-                : 'bg-surface text-text-secondary border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:bg-surface-subtle dark:text-text-secondary dark:border-borderTone dark:hover:bg-surface-selected'}
+                ? 'bg-surface-selected text-primary border-borderTone shadow-surface dark:bg-surface-inverse dark:text-text-inverse dark:border-borderTone' 
+                : 'bg-surface text-text-secondary border-borderTone hover:bg-surface-subtle hover:text-text-primary dark:bg-surface-subtle dark:text-text-secondary dark:border-borderTone dark:hover:bg-surface-selected dark:hover:text-text-primary'}
             `}
           >
             {item.icon && <item.icon className="w-3.5 h-3.5" />}

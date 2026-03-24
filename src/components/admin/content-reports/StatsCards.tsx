@@ -13,17 +13,17 @@ export const StatsCards: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       {/* Pending Reports */}
-      <Card className="group relative overflow-hidden rounded-[28px] border-red-200/70 bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-danger-bg)))] hover:border-red-300/80 dark:border-red-900/40 dark:bg-slate-900">
+      <Card className="group relative overflow-hidden rounded-[28px] border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-danger-bg)))] hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:bg-surface">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
           <ClipboardList size={72} className="text-red-500" />
         </div>
         <CardContent className="relative z-10 p-6">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-red-500 shadow-glow-red animate-pulse"></div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-gray-400">{text.pendingReports}</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary">{text.pendingReports}</span>
           </div>
-          <div className="mb-1 text-4xl font-bold text-text-primary dark:text-white">24</div>
-          <div className="flex items-center text-xs font-medium text-state-danger-fg dark:text-red-400">
+          <div className="mb-1 text-4xl font-bold text-text-primary dark:text-text-primary">24</div>
+          <div className="flex items-center text-xs font-medium text-state-danger-fg dark:text-state-danger-fg">
             <ArrowUp size={14} className="mr-0.5" />
             <span>{text.sinceYesterday}</span>
           </div>
@@ -32,17 +32,17 @@ export const StatsCards: React.FC = () => {
       </Card>
 
       {/* Resolved Today */}
-      <Card className="group relative overflow-hidden rounded-[28px] border-emerald-200/70 bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-success-bg)))] hover:border-emerald-300/80 dark:border-emerald-900/40 dark:bg-slate-900">
+      <Card className="group relative overflow-hidden rounded-[28px] border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-success-bg)))] hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:bg-surface">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
           <CheckCircle2 size={72} className="text-green-500" />
         </div>
         <CardContent className="relative z-10 p-6">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-500 shadow-glow-green"></div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-gray-400">{text.resolvedToday}</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary">{text.resolvedToday}</span>
           </div>
-          <div className="mb-1 text-4xl font-bold text-text-primary dark:text-white">18</div>
-          <div className="flex items-center text-xs font-medium text-state-success-fg dark:text-emerald-400">
+          <div className="mb-1 text-4xl font-bold text-text-primary dark:text-text-primary">18</div>
+          <div className="flex items-center text-xs font-medium text-state-success-fg dark:text-state-success-fg">
             <TrendingUp size={14} className="mr-0.5" />
             <span>{text.resolutionRate}</span>
           </div>
@@ -51,22 +51,22 @@ export const StatsCards: React.FC = () => {
       </Card>
 
       {/* Avg. Resolution Time */}
-      <Card className="group relative overflow-hidden rounded-[28px] border-blue-200/70 bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-info-bg)))] hover:border-blue-300/80 dark:border-blue-900/40 dark:bg-slate-900">
+      <Card className="group relative overflow-hidden rounded-[28px] border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-info-bg)))] hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:bg-surface">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-          <Clock size={72} className="text-blue-500" />
+          <Clock size={72} className="text-[hsl(var(--state-info-fg))]" />
         </div>
         <CardContent className="relative z-10 p-6">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-glow-blue"></div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-gray-400">{text.avgResolutionTime}</span>
+            <div className="h-2 w-2 rounded-full bg-[hsl(var(--state-info-fg))] shadow-glow-blue"></div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary">{text.avgResolutionTime}</span>
           </div>
-          <div className="mb-1 text-4xl font-bold text-text-primary dark:text-white">2.5<span className="ml-1 text-lg font-normal text-text-tertiary dark:text-gray-500">{text.hours}</span></div>
-          <div className="flex items-center text-xs font-medium text-state-info-fg dark:text-blue-400">
+          <div className="mb-1 text-4xl font-bold text-text-primary dark:text-text-primary">2.5<span className="ml-1 text-lg font-normal text-text-tertiary dark:text-text-tertiary">{text.hours}</span></div>
+          <div className="flex items-center text-xs font-medium text-state-info-fg dark:text-state-info-fg">
             <ArrowDown size={14} className="mr-0.5" />
             <span>{text.fromLastWeek}</span>
           </div>
         </CardContent>
-        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-gradient-to-r from-transparent via-[hsl(var(--state-info-fg))]/50 to-transparent"></div>
       </Card>
     </div>
   );

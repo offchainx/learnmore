@@ -75,33 +75,33 @@ function PrimaryModeCard({
           onDeactivate()
         }
       }}
-      className={`ease-[cubic-bezier(0.22,1,0.36,1)] group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 dark:text-white ${
+      className={`ease-[cubic-bezier(0.22,1,0.36,1)] group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))]/40 dark:text-text-primary ${
         active
-          ? 'z-10 -translate-y-1 scale-[1.015] border-borderTone shadow-[0_28px_58px_rgba(2,8,23,0.12)] dark:border-white/20 dark:shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
-          : 'hover:-translate-y-0.5 border-borderTone shadow-surface hover:border-blue-200 dark:border-white/10 dark:shadow-[0_14px_28px_rgba(2,8,23,0.22)] dark:hover:border-white/14'
+          ? 'z-10 -translate-y-1 scale-[1.015] border-borderTone shadow-[0_28px_58px_rgba(2,8,23,0.12)] dark:border-borderTone dark:shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
+          : 'hover:-translate-y-0.5 border-borderTone shadow-surface hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:shadow-[0_14px_28px_rgba(2,8,23,0.22)] dark:hover:border-[hsl(var(--border-strong))]'
       } ${disabled ? 'opacity-60' : 'cursor-pointer'} ${visualClassName}`}
     >
       <div className="absolute inset-0 bg-surface dark:bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.44)_55%,rgba(2,6,23,0.86)_100%)]" />
       <div
         className={`absolute inset-0 transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-300/20 blur-3xl dark:bg-white/10" />
-        <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-cyan-400/20 blur-3xl dark:bg-cyan-300/10" />
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[hsl(var(--state-info-bg))]/80 blur-3xl dark:bg-[hsl(var(--state-info-bg))]/20" />
+        <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-primary/12 blur-3xl dark:bg-primary/10" />
       </div>
-      <div className="border-transparent absolute inset-[1px] rounded-[27px] border dark:border-white/6" />
+      <div className="border-transparent absolute inset-[1px] rounded-[27px] border dark:border-borderTone/60" />
 
       <div className="relative flex h-full flex-col justify-between p-4">
         <div>
           <div className="flex items-start justify-between gap-4">
             <div
-              className={`flex h-9 w-9 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle backdrop-blur-sm transition-all duration-500 dark:border-white/15 dark:bg-white/10 ${active ? 'scale-105 shadow-[0_12px_22px_rgba(15,23,42,0.08)] bg-white dark:bg-white/14 dark:shadow-[0_12px_22px_rgba(15,23,42,0.16)]' : ''}`}
+              className={`flex h-9 w-9 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle backdrop-blur-sm transition-all duration-500 dark:border-borderTone dark:bg-surface-subtle ${active ? 'scale-105 bg-surface shadow-[0_12px_22px_rgba(15,23,42,0.08)] dark:bg-surface dark:shadow-[0_12px_22px_rgba(15,23,42,0.16)]' : ''}`}
             >
               <Icon className="h-4 w-4" />
             </div>
             <span
               className={cn(
                 pageHeroEyebrowClass,
-                'rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary dark:border-white/10 dark:bg-black/20 dark:text-slate-200'
+                'rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
               )}
             >
               {modeLabel}
@@ -110,17 +110,17 @@ function PrimaryModeCard({
 
           <div className="mt-5">
             <h3
-              className={cn(pageDisplayTitleClass, 'leading-none text-text-primary dark:text-white')}
+              className={cn(pageDisplayTitleClass, 'leading-none text-text-primary dark:text-text-primary')}
             >
               {title}
             </h3>
-            <p className={cn(pageMetaTextClass, 'mt-1.5 text-text-secondary dark:text-slate-100/90')}>
+            <p className={cn(pageMetaTextClass, 'mt-1.5 text-text-secondary dark:text-text-secondary')}>
               {subtitle}
             </p>
             <p
               className={cn(
                 pageMetaTextClass,
-                `mt-2 max-w-[30ch] text-text-secondary dark:text-slate-300 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`
+                `mt-2 max-w-[30ch] text-text-secondary dark:text-text-secondary transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`
               )}
             >
               {description}
@@ -135,7 +135,7 @@ function PrimaryModeCard({
             <span
               className={cn(
                 pageHeroEyebrowClass,
-                'inline-flex rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary backdrop-blur-sm dark:border-white/10 dark:bg-white/10 dark:text-slate-200'
+                'inline-flex rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary backdrop-blur-sm dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
               )}
             >
               {compactMeta}
@@ -146,7 +146,7 @@ function PrimaryModeCard({
             className={`mt-2.5 flex items-center gap-3 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`}
           >
             <Button
-              className="h-9 rounded-2xl bg-text-primary px-4 text-surface shadow-[0_10px_20px_rgba(15,23,42,0.12)] hover:bg-text-secondary dark:bg-white dark:text-slate-950 dark:shadow-[0_10px_20px_rgba(255,255,255,0.12)] dark:hover:bg-slate-100"
+              className="h-9 rounded-2xl bg-text-primary px-4 text-surface shadow-[0_10px_20px_rgba(15,23,42,0.12)] hover:bg-text-secondary dark:bg-surface-inverse dark:text-text-inverse dark:shadow-[0_10px_20px_rgba(255,255,255,0.12)] dark:hover:bg-surface-inverse"
               onClick={(event) => {
                 event.stopPropagation()
                 if (!disabled) {
@@ -305,7 +305,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       icon: BrainCircuit,
       modeLabel: 'Adaptive',
       visualClassName:
-        'bg-blue-50/50 dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.18),_transparent_25%),linear-gradient(135deg,_#132340,_#09152a_58%,_#07101f)]',
+        'bg-[hsl(var(--state-info-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-info-fg))_0%,transparent_25%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
         if (onOpenSmartDrillPreview) {
           onOpenSmartDrillPreview()
@@ -321,7 +321,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       icon: Eraser,
       modeLabel: 'Recovery',
       visualClassName:
-        'bg-rose-50/50 dark:bg-[radial-gradient(circle_at_top_left,_rgba(251,113,133,0.18),_transparent_25%),linear-gradient(135deg,_#2A1E2A,_#10182B_60%,_#09111F)]',
+        'bg-[hsl(var(--state-danger-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-danger-fg))_0%,transparent_25%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_60%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
         if (onOpenErrorWiperPreview) {
           onOpenErrorWiperPreview()
@@ -337,7 +337,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       icon: Trophy,
       modeLabel: 'Exam',
       visualClassName:
-        'bg-indigo-50/50 dark:bg-[radial-gradient(circle_at_top_left,_rgba(129,140,248,0.2),_transparent_28%),linear-gradient(135deg,_#2B2959,_#121C39_60%,_#0A1326)]',
+        'bg-[hsl(var(--state-warning-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-warning-fg))_0%,transparent_28%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_60%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
         if (onOpenMockArenaPreview) {
           onOpenMockArenaPreview()
@@ -357,7 +357,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
         <div
           className={cn(
             pageHeroEyebrowClass,
-            'inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-slate-600 dark:bg-slate-900 dark:text-slate-300'
+            'inline-flex items-center gap-2 rounded-full bg-surface-subtle px-3 py-1 text-text-secondary dark:bg-surface-subtle dark:text-text-secondary'
           )}
         >
           <TimerReset className="h-3 w-3" />
@@ -368,7 +368,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
         <p
           className={cn(
             pageSectionDescriptionClass,
-            'max-w-2xl text-slate-600 dark:text-slate-300'
+            'max-w-2xl text-text-secondary dark:text-text-secondary'
           )}
         >
           {copy.subheading}

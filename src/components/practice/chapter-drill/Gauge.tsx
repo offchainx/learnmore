@@ -11,7 +11,7 @@ export const Gauge: React.FC<GaugeProps> = ({ value }) => {
 
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-borderTone bg-surface p-6 text-center shadow-surface dark:border-borderTone dark:bg-surface-subtle">
-      <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-transparent via-blue-500/40 to-transparent dark:via-cyan-300/40"></div>
+      <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-transparent via-[hsl(var(--state-info-fg))]/40 to-transparent dark:via-[hsl(var(--state-info-fg))]/40"></div>
       <p className="mb-4 text-xs font-bold uppercase tracking-tighter text-text-secondary dark:text-text-secondary">Mastery Progress</p>
       
       <div className="relative flex items-center justify-center">
@@ -21,7 +21,7 @@ export const Gauge: React.FC<GaugeProps> = ({ value }) => {
         >
           {/* Background Track */}
           <circle
-            className="text-slate-200 dark:text-slate-700"
+            className="text-[hsl(var(--border-subtle))] dark:text-[hsl(var(--border-default))]"
             cx="50"
             cy="50"
             fill="transparent"
@@ -31,7 +31,7 @@ export const Gauge: React.FC<GaugeProps> = ({ value }) => {
           />
           {/* Progress Bar */}
           <circle
-            className="text-blue-500 transition-all duration-1000 ease-in-out dark:text-cyan-300"
+            className="text-primary transition-all duration-1000 ease-in-out dark:text-primary"
             cx="50"
             cy="50"
             fill="transparent"
@@ -44,7 +44,7 @@ export const Gauge: React.FC<GaugeProps> = ({ value }) => {
           />
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className="text-2xl font-black text-text-primary dark:text-white">{value}%</span>
+          <span className="text-2xl font-black text-text-primary dark:text-text-primary">{value}%</span>
           <span className="text-[10px] font-medium uppercase tracking-widest text-text-secondary dark:text-text-secondary">Level 4</span>
         </div>
       </div>

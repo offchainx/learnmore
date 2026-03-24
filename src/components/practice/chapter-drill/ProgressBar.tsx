@@ -9,11 +9,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ current, total }) => {
   return (
     <div className="flex gap-1 h-1.5 w-full">
       {Array.from({ length: total }).map((_, idx) => {
-        let colorClass = 'bg-slate-200 dark:bg-slate-700';
+        let colorClass = 'bg-[hsl(var(--border-subtle))] dark:bg-[hsl(var(--border-default))]';
         if (idx < current) {
-          colorClass = 'bg-blue-500 dark:bg-cyan-300';
+          colorClass = 'bg-primary dark:bg-primary';
         } else if (idx === current) {
-          colorClass = 'bg-blue-300 dark:bg-cyan-300/40';
+          colorClass = 'bg-[hsl(var(--state-info-fg))]/45 dark:bg-[hsl(var(--state-info-fg))]/45';
         }
         return <div key={idx} className={`flex-1 rounded-[2px] ${colorClass}`} />;
       })}
