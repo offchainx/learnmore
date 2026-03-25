@@ -7,7 +7,7 @@
 
 import prisma from '@/lib/prisma'
 import type { Question, PracticeMode, Prisma } from '@prisma/client'
-import { incrementTotalStudyTime } from '@/actions/user/study-metrics'
+import { applyPracticeSubmissionEffects } from './submission-effects'
 
 // ============ 类型定义 ============
 
@@ -257,12 +257,26 @@ export async function submitExam(
   duration: number
 ): Promise<SubmitExamResult> {
   try {
-    // 1. 验证考试记录存在且属于该用户
+    const buildExistingResult = async (): Promise<SubmitExamResult> => {
+      const existing = await getExamResult(examRecordId, userId)
+      if (!existing) {
+        return {
+          success: false,
+          error: 'Exam record not found',
+        }
+      }
+
+      return {
+        success: true,
+        result: existing,
+      }
+    }
+
     const examRecord = await prisma.examRecord.findFirst({
       where: {
         id: examRecordId,
-        userId
-      }
+        userId,
+      },
     })
 
     if (!examRecord) {
@@ -272,12 +286,8 @@ export async function submitExam(
       }
     }
 
-    // 2. 检查是否已提交（duration 不为 null 表示已完成）
     if (examRecord.duration !== null) {
-      return {
-        success: false,
-        error: 'Exam already submitted'
-      }
+      return buildExistingResult()
     }
 
     // 3. 获取所有题目的正确答案
@@ -319,31 +329,52 @@ export async function submitExam(
     // 5. 计算分数 (百分制)
     const score = Math.round((correctCount / answers.length) * 100)
 
-    // 6. 更新 ExamRecord
-    await prisma.examRecord.update({
-      where: { id: examRecordId },
-      data: {
-        score,
-        correctCount,
-        duration
-      }
-    })
-
-    // 7. 批量创建 UserAttempt 记录
-    const attemptData: Prisma.UserAttemptCreateManyInput[] = results.map(r => ({
+    const attemptData: Prisma.UserAttemptCreateManyInput[] = results.map((r) => ({
       userId,
       questionId: r.questionId,
       examRecordId,
       userAnswer: r.userAnswer as Prisma.InputJsonValue,
       isCorrect: r.isCorrect,
-      duration: Math.round(duration / answers.length) // 平均每题时间
+      duration: answers.length > 0 ? Math.max(1, Math.round(duration / answers.length)) : null,
     }))
 
-    await prisma.userAttempt.createMany({
-      data: attemptData
+    const submissionState = await prisma.$transaction(async (tx) => {
+      const updated = await tx.examRecord.updateMany({
+        where: {
+          id: examRecordId,
+          userId,
+          duration: null,
+        },
+        data: {
+          score,
+          correctCount,
+          duration,
+        },
+      })
+
+      if (updated.count === 0) {
+        return { created: false as const }
+      }
+
+      if (attemptData.length > 0) {
+        await tx.userAttempt.createMany({
+          data: attemptData,
+        })
+      }
+
+      return { created: true as const }
     })
 
-    await incrementTotalStudyTime(userId, duration)
+    if (!submissionState.created) {
+      return buildExistingResult()
+    }
+
+    await applyPracticeSubmissionEffects({
+      userId,
+      mode: 'MOCK_EXAM',
+      correctCount,
+      duration,
+    })
 
     return {
       success: true,

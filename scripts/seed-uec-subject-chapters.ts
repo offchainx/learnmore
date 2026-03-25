@@ -17,6 +17,86 @@ type SubjectSeed = {
 
 const prisma = new PrismaClient()
 
+type SubjectHierarchyConfig = {
+  roots?: Record<string, string>
+  groups?: Record<string, string>
+}
+
+const SUBJECT_HIERARCHY: Record<string, SubjectHierarchyConfig> = {
+  chinese: {
+    roots: {
+      '1': '1 作文',
+      '2': '2 应用文',
+      '3': '3 语文基础知识',
+      '4': '4 现代文阅读',
+      '5': '5 文言文阅读',
+    },
+  },
+  english: {
+    roots: {
+      '1': '1 Context',
+      '2': '2 Text Types',
+      '3': '3 Forms and Functions',
+      '4': '4 Vocabulary',
+      '5': '5 Grammar',
+    },
+  },
+  math: {
+    roots: {
+      '1': '1 算术',
+      '2': '2 代数',
+      '3': '3 几何',
+      '4': '4 统计学',
+      '5': '5 集合论',
+    },
+  },
+  science: {
+    roots: {
+      '1': '1 走入科学世界',
+      '2': '2 生命科学',
+      '3': '3 物质科学',
+      '4': '4 地球、宇宙与空间科学',
+    },
+    groups: {
+      '2.3': '2.3 生命活动',
+      '3.3': '3.3 能量',
+      '4.3': '4.3 地球资源',
+      '4.4': '4.4 太阳系、银河系与宇宙',
+    },
+  },
+  history: {
+    roots: {
+      '1': '1 马来西亚史部分',
+      '2': '2 世界史部分',
+    },
+    groups: {
+      '1.1': '1.1 15至18世纪的马来半岛王国',
+      '1.2': '1.2 英国殖民势力入侵马六甲与马来半岛',
+      '1.3': '1.3 英国扩大在马来半岛和北婆罗洲的势力',
+      '1.4': '1.4 英殖民统治下的发展',
+      '1.5': '1.5 日本侵略我国',
+      '1.6': '1.6 紧急状态与马来亚联合邦的独立',
+      '1.7': '1.7 马来西亚的成立与发展',
+      '2.1': '2.1 总论',
+      '2.2': '2.2 中国古代史',
+      '2.3': '2.3 中国近现代史',
+      '2.4': '2.4 南亚及东南亚史',
+      '2.5': '2.5 欧洲古代史',
+      '2.6': '2.6 欧洲近现代史',
+    },
+  },
+  geography: {
+    roots: {
+      '1': '1 读图解图',
+      '2': '2 地理资料的收集与处理',
+      '3': '3 马来西亚地理',
+      '4': '4 自然地理',
+      '5': '5 人文地理',
+      '6': '6 全球议题',
+    },
+  },
+}
+
 const SUBJECT_SEEDS: SubjectSeed[] = [
   {
     key: 'chinese',
@@ -363,6 +443,17 @@ function getDemoTitleFilters() {
   }))
 }
 
+function extractChapterPrefix(title: string) {
+  const match = title.match(/^(\d+(?:\.\d+)*)/)
+  return match?.[1] ?? null
+}
+
+function buildOrderFromPrefix(prefix: string) {
+  const parts = prefix.split('.').map((part) => Number(part))
+  const [a = 0, b = 0, c = 0, d = 0] = parts
+  return a * 1_000_000 + b * 10_000 + c * 100 + d
+}
+
 async function ensureChapter({
   subjectId,
   title,
@@ -377,7 +468,7 @@ async function ensureChapter({
   dryRun: boolean
 }) {
   const existing = await prisma.chapter.findFirst({
-    where: { subjectId, title, parentId },
+    where: { subjectId, title },
     orderBy: { createdAt: 'asc' },
   })
 
@@ -427,47 +518,16 @@ async function seedSubject(seed: SubjectSeed, dryRun: boolean) {
   console.log(`\n处理科目: ${seed.name} (${seed.key})`)
 
   if (seed.replaceExistingTree) {
-    const existingChapters = await prisma.chapter.findMany({
-      where: { subjectId: subject.id },
-      select: {
-        id: true,
-        title: true,
-        parentId: true,
-        _count: {
-          select: {
-            questions: true,
-            lessons: true,
-          },
-        },
+    const occupiedChapter = await prisma.chapter.findFirst({
+      where: {
+        subjectId: subject.id,
+        OR: [{ questions: { some: {} } }, { lessons: { some: {} } }],
       },
+      select: { title: true },
     })
 
-    const occupiedChapter = existingChapters.find(
-      (chapter) => chapter._count.questions > 0 || chapter._count.lessons > 0,
-    )
-
     if (occupiedChapter) {
-      throw new Error(
-        `科目 ${seed.key} 存在已挂内容的章节，停止替换：${occupiedChapter.title}`,
-      )
-    }
-
-    if (existingChapters.length > 0) {
-      console.log(`  - 重建章节树，清理旧章节 ${existingChapters.length} 个`)
-      if (!dryRun) {
-        await prisma.chapter.deleteMany({
-          where: {
-            subjectId: subject.id,
-            parentId: { not: null },
-          },
-        })
-        await prisma.chapter.deleteMany({
-          where: {
-            subjectId: subject.id,
-            parentId: null,
-          },
-        })
-      }
+      console.log(`  - 检测到已挂内容章节，进入 parent_id 回填模式：${occupiedChapter.title}`)
     }
   }
 
@@ -489,25 +549,59 @@ async function seedSubject(seed: SubjectSeed, dryRun: boolean) {
     }
   }
 
-  for (const [rootIndex, chapter] of seed.chapters.entries()) {
-    const rootOrder = (rootIndex + 1) * 100
-    const root = await ensureChapter({
+  const hierarchy = SUBJECT_HIERARCHY[seed.key] ?? {}
+  const rootCache = new Map<string, string>()
+  const groupCache = new Map<string, string>()
+
+  for (const chapter of seed.chapters) {
+    const prefix = extractChapterPrefix(chapter.title)
+    let parentId: string | null = null
+
+    if (prefix) {
+      const parts = prefix.split('.')
+      const rootKey = parts[0]
+      const groupKey = parts.length >= 3 ? `${parts[0]}.${parts[1]}` : null
+
+      if (rootKey && hierarchy.roots?.[rootKey]) {
+        let rootId = rootCache.get(rootKey)
+        if (!rootId) {
+          const root = await ensureChapter({
+            subjectId: subject.id,
+            title: hierarchy.roots[rootKey],
+            parentId: null,
+            order: buildOrderFromPrefix(rootKey),
+            dryRun,
+          })
+          rootId = root.id
+          rootCache.set(rootKey, rootId)
+        }
+        parentId = rootId
+      }
+
+      if (groupKey && hierarchy.groups?.[groupKey]) {
+        let groupId = groupCache.get(groupKey)
+        if (!groupId) {
+          const group = await ensureChapter({
+            subjectId: subject.id,
+            title: hierarchy.groups[groupKey],
+            parentId,
+            order: buildOrderFromPrefix(groupKey),
+            dryRun,
+          })
+          groupId = group.id
+          groupCache.set(groupKey, groupId)
+        }
+        parentId = groupId
+      }
+    }
+
+    await ensureChapter({
       subjectId: subject.id,
       title: chapter.title,
-      parentId: null,
-      order: rootOrder,
+      parentId,
+      order: prefix ? buildOrderFromPrefix(prefix) : 0,
       dryRun,
     })
-
-    for (const [childIndex, childTitle] of (chapter.children ?? []).entries()) {
-      await ensureChapter({
-        subjectId: subject.id,
-        title: childTitle,
-        parentId: root.id,
-        order: rootOrder + childIndex + 1,
-        dryRun,
-      })
-    }
   }
 }
 

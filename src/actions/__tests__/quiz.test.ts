@@ -34,6 +34,7 @@ vi.mock('@/actions/gamification/streak', () => ({
 }));
 
 vi.mock('@/actions/gamification/daily-tasks', () => ({
+  ensureDailyTasks: vi.fn().mockResolvedValue(undefined),
   trackDailyProgress: vi.fn().mockResolvedValue(undefined),
 }));
 

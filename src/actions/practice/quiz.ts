@@ -2,12 +2,6 @@
 
 import { getCurrentUser } from '../user/auth';
 import { z } from 'zod';
-import { DailyTaskType } from '@prisma/client';
-import { updateLeaderboardScore } from '../leaderboard';
-import { checkAndRefreshStreak } from '@/actions/gamification/streak';
-import { trackDailyProgress } from '@/actions/gamification/daily-tasks';
-import { awardBadgeIfEligible } from '@/actions/gamification/achievements';
-import { incrementTotalStudyTime } from '@/actions/user/study-metrics';
 import { submitPracticeSession } from './session';
 
 const SubmitQuizSchema = z.object({
@@ -57,17 +51,6 @@ export async function submitQuiz(
     const totalQuestions = submitResult.totalQuestions || answers.length;
     const score = submitResult.score || 0;
     const results = submitResult.results || {};
-
-    // 4. Update Leaderboard
-    if (correctCount > 0) {
-      await updateLeaderboardScore(user.id, correctCount * 10);
-    }
-
-    // 5. Gamification
-    await checkAndRefreshStreak(user.id);
-    await trackDailyProgress(user.id, DailyTaskType.QUIZ_SCORE);
-    await awardBadgeIfEligible(user.id, 'PRACTICE');
-    await incrementTotalStudyTime(user.id, duration);
 
     return {
       success: true,

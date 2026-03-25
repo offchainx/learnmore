@@ -76,6 +76,7 @@ export default function SmartDrillContinuousSession({
   const [savedSession, setSavedSession] = useState(false)
   const [questionStates, setQuestionStates] = useState<boolean[]>([])
   const [isFinished, setIsFinished] = useState(false)
+  const [clientSessionId] = useState(() => crypto.randomUUID())
 
   const workspaceQuestions = useMemo<UnifiedPracticeQuestion[]>(
     () =>
@@ -132,6 +133,7 @@ export default function SmartDrillContinuousSession({
     const submitResult = await submitPracticeSession({
       userId,
       mode: 'SMART_DRILL',
+      clientSessionId,
       subjectId,
       title,
       duration,

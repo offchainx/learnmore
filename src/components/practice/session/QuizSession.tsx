@@ -57,6 +57,7 @@ export default function QuizSession({
   const [savedTotalQuestions, setSavedTotalQuestions] = useState<number | null>(null)
   const [savedSession, setSavedSession] = useState(false)
   const [startedAt] = useState(() => Date.now())
+  const [clientSessionId] = useState(() => crypto.randomUUID())
 
   const currentQuestion = questions[currentIndex]
   const totalQuestions = questions.length
@@ -139,6 +140,7 @@ export default function QuizSession({
     const submitResult = await submitPracticeSession({
       userId,
       mode,
+      clientSessionId,
       answers,
       duration,
       subjectId,

@@ -12,6 +12,10 @@ vi.mock('@/actions/user/study-metrics', () => ({
   incrementTotalStudyTime: vi.fn().mockResolvedValue(0),
 }))
 
+vi.mock('../submission-effects', () => ({
+  applyPracticeSubmissionEffects: vi.fn().mockResolvedValue(undefined),
+}))
+
 // Mock prisma
 vi.mock('@/lib/prisma', () => ({
   default: {
@@ -27,6 +31,7 @@ vi.mock('@/lib/prisma', () => ({
     examRecord: {
       create: vi.fn(),
       findFirst: vi.fn(),
+      updateMany: vi.fn(),
       update: vi.fn(),
     },
     userAttempt: {
@@ -34,7 +39,8 @@ vi.mock('@/lib/prisma', () => ({
     },
     errorBook: {
       upsert: vi.fn(),
-    }
+    },
+    $transaction: vi.fn(),
   },
 }))
 
@@ -45,6 +51,10 @@ describe('Exam Session Integration (Mocked)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    const prismaMock = prisma as any
+    prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
+      callback(prismaMock)
+    )
   })
 
   describe('startExam', () => {
@@ -108,6 +118,7 @@ describe('Exam Session Integration (Mocked)', () => {
         userId,
         duration: null
       })
+      prismaMock.examRecord.updateMany.mockResolvedValue({ count: 1 })
 
       prismaMock.question.findMany.mockResolvedValue([
         { id: 'q1', answer: 'A', type: 'SINGLE_CHOICE', explanation: 'exp1' },
@@ -124,7 +135,7 @@ describe('Exam Session Integration (Mocked)', () => {
       expect(result.success).toBe(true)
       expect(result.result?.score).toBe(50)
       
-      expect(prismaMock.examRecord.update).toHaveBeenCalled()
+      expect(prismaMock.examRecord.updateMany).toHaveBeenCalled()
       expect(prismaMock.userAttempt.createMany).toHaveBeenCalled()
     })
   })

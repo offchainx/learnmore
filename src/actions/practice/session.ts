@@ -2,6 +2,8 @@
 
 import prisma from '@/lib/prisma'
 import { Prisma, PracticeMode, QuestionType } from '@prisma/client'
+import { persistPracticeSession } from './submission-core'
+import { applyPracticeSubmissionEffects } from './submission-effects'
 
 export interface SessionAnswerInput {
   questionId: string
@@ -12,6 +14,7 @@ export interface SubmitPracticeSessionInput {
   userId: string
   mode: PracticeMode
   answers: SessionAnswerInput[]
+  clientSessionId?: string | null
   duration?: number
   chapterId?: string | null
   subjectId?: string | null
@@ -84,7 +87,18 @@ export async function submitPracticeSession(
     const results: Record<string, boolean> = {}
     let correctCount = 0
 
-    const attemptsData: Prisma.UserAttemptCreateManyInput[] = []
+    const averageDuration =
+      input.duration && input.answers.length > 0
+        ? Math.max(1, Math.round(input.duration / input.answers.length))
+        : null
+
+    const attemptsData: Array<{
+      questionId: string
+      userAnswer: Prisma.InputJsonValue
+      isCorrect: boolean
+      duration: number | null
+    }> = []
+
     for (const submission of input.answers) {
       const question = questionMap.get(submission.questionId)
       if (!question) continue
@@ -93,46 +107,43 @@ export async function submitPracticeSession(
       if (isCorrect) correctCount += 1
 
       attemptsData.push({
-        userId: input.userId,
         questionId: question.id,
         userAnswer: (submission.userAnswer ?? null) as Prisma.InputJsonValue,
         isCorrect,
-        duration: input.duration ? Math.max(1, Math.round(input.duration / input.answers.length)) : null,
+        duration: averageDuration,
       })
     }
 
-    const totalQuestions = attemptsData.length
-    const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
     const resolvedSubjectId =
       input.subjectId ?? questions.find((q) => q.subjectId)?.subjectId ?? null
 
-    const examRecord = await prisma.examRecord.create({
-      data: {
-        userId: input.userId,
-        chapterId: input.chapterId ?? null,
-        subjectId: resolvedSubjectId,
-        mode: input.mode,
-        title: input.title ?? null,
-        score,
-        totalQuestions,
-        correctCount,
-        duration: input.duration ?? null,
-      },
+    const persisted = await persistPracticeSession({
+      userId: input.userId,
+      mode: input.mode,
+      clientSessionId: input.clientSessionId ?? null,
+      chapterId: input.chapterId ?? null,
+      subjectId: resolvedSubjectId,
+      title: input.title ?? null,
+      duration: input.duration ?? null,
+      attempts: attemptsData,
     })
 
-    if (attemptsData.length > 0) {
-      await prisma.userAttempt.createMany({
-        data: attemptsData.map((a) => ({ ...a, examRecordId: examRecord.id })),
+    if (persisted.created) {
+      await applyPracticeSubmissionEffects({
+        userId: input.userId,
+        mode: input.mode,
+        correctCount: persisted.correctCount,
+        duration: input.duration ?? null,
       })
     }
 
     return {
       success: true,
-      examRecordId: examRecord.id,
-      score,
-      totalQuestions,
-      correctCount,
-      results,
+      examRecordId: persisted.examRecordId,
+      score: persisted.score,
+      totalQuestions: persisted.totalQuestions,
+      correctCount: persisted.correctCount,
+      results: persisted.results,
     }
   } catch (error) {
     console.error('submitPracticeSession error:', error)

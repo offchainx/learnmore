@@ -1,7 +1,7 @@
 # T-007 练习域真实化工作底稿
 
 > 用途：按 `T-007.1 -> T-007.6` 顺序推进 `/dashboard/practice` 全路由族真实化。  
-> 当前进度：已完成 `T-007.1`、`T-007.2`、`T-007.3`。  
+> 当前进度：已完成 `T-007.1`、`T-007.2`、`T-007.3`、`T-007.4`。  
 > `T-007.3` 已完成两轮收口：第一轮清理首页/章节 fallback mock，第二轮基于正式规则补齐叶子章节消费、真题隔离与 Error Wiper 读定义。
 
 ## T-007.1 路由 / 页面 / 组件 / CTA / 当前数据源盘点
@@ -262,3 +262,70 @@
   - 提交幂等
   - task / streak / XP / leaderboard 副作用
 - 上述内容继续留给 `T-007.4`。
+
+## T-007.4 练习域写链路、幂等与副作用对齐
+
+### 本轮目标
+| 目标 | 结果 |
+|---|---|
+| 统一 `exam_records` / `user_attempts` 的总账与细账职责 | 已完成 |
+| 为 Practice 会话提交引入真正的幂等键 | 已完成 |
+| 收口 Smart Drill / Chapter Drill / Past Paper / Mock Arena / Error Wiper 的副作用触发 | 已完成 |
+| 将 Error Wiper 改成“一次会话一条总账、多条细账” | 已完成 |
+
+### 本轮正式规则
+| 规则 | 落地结果 |
+|---|---|
+| `exam_records` 负责记录一轮练习/考试的汇总结果 | 已统一保持为总账 |
+| `user_attempts` 负责记录逐题明细，并通过 `examRecordId` 回挂对应总账 | 已统一保持为细账 |
+| Practice 会话必须带稳定 `clientSessionId`，重复提交返回已存在结果，而不是重复写库 | 已落库到 `exam_records.client_session_id` + 唯一约束 |
+| Mock Arena 已存在 `examRecordId` 的场景，靠“条件更新 `duration is null`”防重复提交 | 已改成 `updateMany` 条件提交 |
+| Error Wiper 不是逐题落总账，而是一轮修复会话一条 `exam_records` | 已改成批量提交 |
+
+### 本轮实际改动
+| 改动点 | 文件 | 改动结果 |
+|---|---|---|
+| 为练习会话引入幂等总账写入核心 | `/src/actions/practice/submission-core.ts` | 新增 `persistPracticeSession()`，统一创建/回放 `exam_records + user_attempts`，支持按 `clientSessionId` 幂等返回已存在结果 |
+| 为副作用建立统一入口 | `/src/actions/practice/submission-effects.ts` | 新增 `applyPracticeSubmissionEffects()`，统一收口 `ensureDailyTasks / streak / leaderboard / daily_tasks / badge / totalStudyTime` |
+| 统一章节训练 / Smart Drill / Past Paper 的提交主链路 | `/src/actions/practice/session.ts` | `submitPracticeSession()` 现在统一走 `persistPracticeSession()`，新提交才触发副作用 |
+| 移除 `submitQuiz()` 内分散副作用 | `/src/actions/practice/quiz.ts` | `submitQuiz()` 不再单独写 leaderboard / task / streak / badge / studyTime，统一由共享提交链路处理 |
+| 收口 Mock Arena 幂等提交 | `/src/actions/practice/exam.ts` | `submitExam()` 改为 `updateMany(where duration=null)` 条件提交；重复提交直接回放已存在结果 |
+| 将 Error Wiper 改为批量会话提交 | `/src/actions/practice/error-book.ts` | 新增 `submitErrorWiperSession()`；一轮修复只落一条 `exam_records` 和多条 `user_attempts` |
+| 接通 Error Wiper 前端批量提交 | `/src/app/(dashboard)/dashboard/practice/error-wiper/page.tsx` + `/src/components/practice/modes/ErrorWiperMode.tsx` | 页面改为整组一次提交，不再逐题调用写接口 |
+| 为统一 Practice 会话提交注入客户端会话键 | `/src/components/business/quiz/QuizView.tsx` + `/src/components/practice/session/QuizSession.tsx` + `/src/components/practice/modes/SmartDrillContinuousSession.tsx` | 各模式会话在客户端创建稳定 `clientSessionId`，避免双击/重试重复写库 |
+| 为总账增加会话幂等字段 | `/prisma/schema.prisma` | `exam_records` 新增 `client_session_id`，并添加 `@@unique([userId, clientSessionId])` |
+
+### 副作用统一结果
+| 模式 | leaderboard | daily task | streak | badge | study time |
+|---|---|---|---|---|---|
+| `SMART_DRILL` | `correctCount * 10` | `QUIZ_SCORE +1` | 触发 | 触发 `PRACTICE` | 累计一次 |
+| `CHAPTER_DRILL` | `correctCount * 10` | `QUIZ_SCORE +1` | 触发 | 触发 `PRACTICE` | 累计一次 |
+| `MOCK_EXAM` | `correctCount * 10` | `QUIZ_SCORE +1` | 触发 | 触发 `PRACTICE` | 累计一次 |
+| `PAST_PAPER` | 不加分 | `QUIZ_SCORE +1` | 触发 | 触发 `PRACTICE` | 累计一次 |
+| `ERROR_WIPER` | 不加分 | `FIX_ERROR + correctCount` | 触发 | 触发 `PRACTICE` | 累计一次 |
+
+### 本轮验证
+| 验证项 | 结果 |
+|---|---|
+| `pnpm prisma:generate` | 已通过 |
+| `pnpm exec dotenv -e .env.local -- pnpm prisma db push --accept-data-loss` | 已通过 |
+| 相关变更文件 `eslint` | 已通过 |
+| 相关测试 | 已通过：`src/actions/practice/__tests__/session.integration.test.ts`、`src/actions/__tests__/quiz.test.ts`、`src/actions/practice/__tests__/error-book.test.ts` |
+
+### 手动验证方式
+1. 进入 `Smart Drill` 或 `Chapter Drill`，完成一轮提交。
+2. 在数据库确认只新增 **1 条** `exam_records`，并新增对应数量的 `user_attempts`。
+3. 在提交按钮连点或重复触发相同会话提交后，确认不会新增第二条相同会话的 `exam_records`。
+4. 进入 `Mock Arena`，完成一场考试后再次重复提交，确认接口直接回放结果，不重复新增 attempts。
+5. 进入 `Error Wiper`，完成一整组修复后，确认只新增 **1 条** `mode = ERROR_WIPER` 的 `exam_records`，而不是每题一条。
+6. 提交完成后检查：
+   - `users.total_study_time` 只累计一次
+   - `users.streak` 只推进一次
+   - `daily_tasks.current_count` 只按模式规则推进一次
+   - `leaderboard_entries` 只按支持的模式加分一次
+
+### 当前阶段结论
+- `T-007.4` 已将 Practice 写链路收口为“统一总账/细账 + 幂等会话提交 + 统一副作用”。
+- 当前剩余范围主要是 `T-007.5`：
+  - Smart Drill / Error Wiper 的 preview 语义与 mock 展示彻底清理
+  - 正式页中遗留的 demo/debug 分支下线

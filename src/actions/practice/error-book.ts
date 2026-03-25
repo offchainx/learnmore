@@ -2,41 +2,16 @@
 
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '../user/auth'
-import { DailyTaskType, PracticeMode } from '@prisma/client'
-import { checkAndRefreshStreak } from '@/actions/gamification/streak'
-import { trackDailyProgress } from '@/actions/gamification/daily-tasks'
+import { PracticeMode, Prisma } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
+import { persistPracticeSession } from './submission-core'
+import { applyPracticeSubmissionEffects } from './submission-effects'
 
 function streakToMastery(streak: number): number {
   if (streak >= 3) return 3
   if (streak <= 0) return 0
   return streak
-}
-
-async function createWiperAttempt(userId: string, questionId: string, isCorrect: boolean): Promise<void> {
-  const examRecord = await prisma.examRecord.create({
-    data: {
-      userId,
-      mode: PracticeMode.ERROR_WIPER,
-      title: 'Error Wiper Session',
-      score: isCorrect ? 100 : 0,
-      totalQuestions: 1,
-      correctCount: isCorrect ? 1 : 0,
-      duration: 10,
-    },
-  })
-
-  await prisma.userAttempt.create({
-    data: {
-      userId,
-      questionId,
-      examRecordId: examRecord.id,
-      userAnswer: isCorrect ? 'CORRECTED' : 'WRONG',
-      isCorrect,
-      duration: 10,
-    },
-  })
 }
 
 async function getUserRetentionDate(userId: string): Promise<Date> {
@@ -118,24 +93,15 @@ export async function removeErrorBookEntry(_errorBookEntryId: string) {
 
 export async function updateErrorBookMastery(questionId: string, isCorrect: boolean) {
   try {
-    const user = await getCurrentUser()
-    if (!user) return { success: false, error: 'Unauthorized' }
-
-    await createWiperAttempt(user.id, questionId, isCorrect)
-
-    if (isCorrect) {
-      await trackDailyProgress(user.id, DailyTaskType.FIX_ERROR)
-      await checkAndRefreshStreak(user.id)
-    }
-
-    const recent = await prisma.userAttempt.findMany({
-      where: { userId: user.id, questionId },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { isCorrect: true },
+    const result = await submitErrorWiperSession({
+      attempts: [{ questionId, isCorrect }],
+      duration: 10,
+      clientSessionId: `legacy-error-book-${questionId}-${Date.now()}`,
     })
-    const level = streakToMastery(recent.reduce((acc, r) => (r.isCorrect ? acc + 1 : 0), 0))
 
+    if (!result.success) return result
+
+    const level = result.levels[questionId] ?? 0
     if (level >= 3) return { success: true, mastered: true, message: 'Problem Mastered!' }
     return { success: true, mastered: false, level }
   } catch (error) {
@@ -208,29 +174,138 @@ export async function getErrorWiperSession(subjectId?: string) {
   }
 }
 
-export async function updateErrorWiperProgress(questionId: string, isCorrect: boolean) {
+export interface ErrorWiperAttemptInput {
+  questionId: string
+  isCorrect: boolean
+}
+
+export interface SubmitErrorWiperSessionInput {
+  attempts: ErrorWiperAttemptInput[]
+  duration?: number
+  subjectId?: string
+  clientSessionId?: string | null
+}
+
+async function getMasteryLevelsByQuestion(userId: string, questionIds: string[]) {
+  const attempts = await prisma.userAttempt.findMany({
+    where: {
+      userId,
+      questionId: { in: questionIds },
+    },
+    select: {
+      questionId: true,
+      isCorrect: true,
+      createdAt: true,
+    },
+    orderBy: [{ questionId: 'asc' }, { createdAt: 'desc' }],
+  })
+
+  const grouped = new Map<string, boolean[]>()
+  for (const attempt of attempts) {
+    const list = grouped.get(attempt.questionId) ?? []
+    if (list.length < 3) {
+      list.push(attempt.isCorrect)
+      grouped.set(attempt.questionId, list)
+    }
+  }
+
+  const levels: Record<string, number> = {}
+  for (const questionId of questionIds) {
+    const recent = grouped.get(questionId) ?? []
+    levels[questionId] = streakToMastery(recent.reduce((acc, isCorrect) => (isCorrect ? acc + 1 : 0), 0))
+  }
+
+  return levels
+}
+
+export async function submitErrorWiperSession(input: SubmitErrorWiperSessionInput) {
   try {
     const user = await getCurrentUser()
     if (!user) return { success: false, error: 'Unauthorized' }
 
-    await createWiperAttempt(user.id, questionId, isCorrect)
-
-    if (isCorrect) {
-      await trackDailyProgress(user.id, DailyTaskType.FIX_ERROR)
-      await checkAndRefreshStreak(user.id)
+    if (!input.attempts || input.attempts.length === 0) {
+      return { success: false, error: 'No attempts submitted' }
     }
 
-    const recent = await prisma.userAttempt.findMany({
-      where: { userId: user.id, questionId },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { isCorrect: true },
+    const questionIds = input.attempts.map((attempt) => attempt.questionId)
+    const questions = await prisma.question.findMany({
+      where: {
+        id: { in: questionIds },
+        status: { in: ['PUBLISHED', 'VERIFIED'] },
+      },
+      select: {
+        id: true,
+        subjectId: true,
+      },
     })
 
-    const level = streakToMastery(recent.reduce((acc, r) => (r.isCorrect ? acc + 1 : 0), 0))
-    return { success: true, wiped: level >= 3, level }
+    if (questions.length === 0) {
+      return { success: false, error: 'No valid questions found' }
+    }
+
+    const questionMap = new Map(questions.map((question) => [question.id, question]))
+    const averageDuration =
+      input.duration && input.attempts.length > 0
+        ? Math.max(1, Math.round(input.duration / input.attempts.length))
+        : 10
+
+    const persisted = await persistPracticeSession({
+      userId: user.id,
+      mode: PracticeMode.ERROR_WIPER,
+      clientSessionId: input.clientSessionId ?? null,
+      subjectId:
+        input.subjectId ??
+        questions.find((question) => question.subjectId)?.subjectId ??
+        null,
+      title: 'Error Wiper Session',
+      duration: input.duration ?? input.attempts.length * 10,
+      attempts: input.attempts
+        .filter((attempt) => questionMap.has(attempt.questionId))
+        .map((attempt) => ({
+          questionId: attempt.questionId,
+          userAnswer: (attempt.isCorrect ? 'CORRECTED' : 'WRONG') as Prisma.InputJsonValue,
+          isCorrect: attempt.isCorrect,
+          duration: averageDuration,
+        })),
+    })
+
+    if (persisted.created) {
+      await applyPracticeSubmissionEffects({
+        userId: user.id,
+        mode: PracticeMode.ERROR_WIPER,
+        correctCount: persisted.correctCount,
+        duration: input.duration ?? input.attempts.length * 10,
+      })
+    }
+
+    const levels = await getMasteryLevelsByQuestion(
+      user.id,
+      input.attempts.map((attempt) => attempt.questionId)
+    )
+
+    return {
+      success: true,
+      examRecordId: persisted.examRecordId,
+      levels,
+      wipedQuestionIds: Object.entries(levels)
+        .filter(([, level]) => level >= 3)
+        .map(([questionId]) => questionId),
+    }
   } catch (error) {
     console.error('Error updating wiper progress:', error)
     return { success: false, error: 'Failed to update progress' }
   }
+}
+
+export async function updateErrorWiperProgress(questionId: string, isCorrect: boolean) {
+  const result = await submitErrorWiperSession({
+    attempts: [{ questionId, isCorrect }],
+    duration: 10,
+    clientSessionId: `legacy-error-wiper-${questionId}-${Date.now()}`,
+  })
+
+  if (!result.success) return result
+
+  const level = result.levels[questionId] ?? 0
+  return { success: true, wiped: level >= 3, level }
 }

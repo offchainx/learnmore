@@ -1,4 +1,4 @@
-import { getErrorWiperSession, updateErrorWiperProgress } from '@/actions/practice/error-book';
+import { getErrorWiperSession, submitErrorWiperSession } from '@/actions/practice/error-book';
 import { ErrorWiperSession, ErrorBookEntry } from '@/components/practice/modes/ErrorWiperMode';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -51,9 +51,18 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
   }
 
   // Wrapper to match expected Promise<void> return type
-  async function handleUpdateProgress(questionId: string, isCorrect: boolean): Promise<void> {
+  async function handleSubmitWiperSession(input: {
+    attempts: Array<{ questionId: string; isCorrect: boolean }>
+    duration: number
+    clientSessionId: string
+  }) {
     'use server';
-    await updateErrorWiperProgress(questionId, isCorrect);
+    return submitErrorWiperSession({
+      attempts: input.attempts,
+      duration: input.duration,
+      subjectId,
+      clientSessionId: input.clientSessionId,
+    });
   }
 
   const formattedSession: ErrorBookEntry[] = session.data.map((entry) => ({
@@ -75,7 +84,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
       <ErrorWiperSession
         initialSession={formattedSession}
         autoStart={autoStart}
-        onUpdateProgress={handleUpdateProgress}
+        onSubmitSession={handleSubmitWiperSession}
         onSessionComplete={handleSessionComplete}
       />
     </div>

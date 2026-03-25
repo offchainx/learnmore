@@ -19,7 +19,16 @@ interface ErrorWiperSessionProps {
   initialSession: ErrorBookEntry[];
   autoStart?: boolean;
   onSessionComplete: (results: { wiped: number; remaining: number }) => void;
-  onUpdateProgress: (questionId: string, isCorrect: boolean) => Promise<void>;
+  onSubmitSession: (input: {
+    attempts: Array<{ questionId: string; isCorrect: boolean }>;
+    duration: number;
+    clientSessionId: string;
+  }) => Promise<{
+    success: boolean;
+    levels?: Record<string, number>;
+    wipedQuestionIds?: string[];
+    error?: string;
+  }>;
 }
 
 function isCorrectAnswer(question: Question, userAnswer: string | string[] | undefined) {
@@ -52,13 +61,15 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
   initialSession,
   autoStart = false,
   onSessionComplete,
-  onUpdateProgress,
+  onSubmitSession,
 }) => {
   const router = useRouter();
   const reloadPage = () => window.location.reload();
   const [hasStarted, setHasStarted] = useState(autoStart);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [summary, setSummary] = useState<{ wiped: number; remaining: number; states: boolean[] } | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [clientSessionId] = useState(() => crypto.randomUUID());
 
   const workspaceQuestions = useMemo<UnifiedPracticeQuestion[]>(
     () =>
@@ -72,28 +83,35 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
 
   const handleSubmit = async ({
     answers,
+    duration,
   }: {
     answers: Record<string, string | string[]>;
     duration: number;
   }) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setSubmitError(null);
 
     const nextStates = initialSession.map((entry) =>
       isCorrectAnswer(entry.question, answers[entry.questionId] ?? answers[entry.id]),
     );
 
-    let wiped = 0;
+    const submitResult = await onSubmitSession({
+      attempts: initialSession.map((entry, index) => ({
+        questionId: entry.questionId,
+        isCorrect: nextStates[index],
+      })),
+      duration,
+      clientSessionId,
+    });
 
-    for (let index = 0; index < initialSession.length; index += 1) {
-      const entry = initialSession[index];
-      const isCorrect = nextStates[index];
-      await onUpdateProgress(entry.questionId, isCorrect);
-      if (isCorrect && entry.masteryLevel + 1 >= 3) {
-        wiped += 1;
-      }
+    if (!submitResult.success) {
+      setSubmitError(submitResult.error || '提交错题修复失败，请稍后重试。');
+      setIsSubmitting(false);
+      return;
     }
 
+    const wiped = submitResult.wipedQuestionIds?.length ?? 0;
     const remaining = Math.max(0, initialSession.length - wiped);
     setSummary({ wiped, remaining, states: nextStates });
     setIsSubmitting(false);
@@ -117,6 +135,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
             ? '还有一部分错题没有彻底擦除，建议再来一轮 Error Wiper，或者切回 Smart Drill 检查整体稳定性。'
             : '这轮已经把当前错题基本收干净，可以回到练习中心切到 Smart Drill 或 Mock Arena 继续。'
         }
+        note={submitError}
         questionStates={summary.states}
         primaryActionLabel="返回练习中心"
         primaryAction={() => onSessionComplete({ wiped: summary.wiped, remaining: summary.remaining })}

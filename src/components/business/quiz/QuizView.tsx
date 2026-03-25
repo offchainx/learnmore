@@ -67,6 +67,7 @@ export function QuizView({
   const reloadPage = () => window.location.reload();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [clientSessionId] = useState(() => crypto.randomUUID());
   const [result, setResult] = useState<{
     score: number;
     correctCount: number;
@@ -100,6 +101,7 @@ export function QuizView({
     const submitResult = await submitPracticeSession({
       userId,
       mode,
+      clientSessionId,
       chapterId: chapterId ?? null,
       subjectId: subjectId ?? null,
       title,

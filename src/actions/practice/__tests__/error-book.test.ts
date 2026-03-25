@@ -1,110 +1,168 @@
-
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getErrorBookQuestions, removeErrorBookEntry, getErrorWiperSession } from '../error-book';
-
-const mockErrorBookEntry = {
-  id: 'eb1',
-  userId: 'user-1',
-  questionId: 'q1',
-  masteryLevel: 1,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  question: {
-    id: 'q1',
-    type: 'SINGLE_CHOICE',
-    content: 'Test Question',
-    options: { A: 'A' },
-    answer: 'A',
-    chapter: {
-      id: 'c1',
-      title: 'Chapter 1',
-      subject: { id: 's1', name: 'Math' },
-    },
-  },
-};
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { mockPrisma } = vi.hoisted(() => {
-  const mp = {
-    errorBook: {
-      findMany: vi.fn(),
-      delete: vi.fn(),
+  const prisma = {
+    user: {
       findUnique: vi.fn(),
-      update: vi.fn(),
     },
-  };
-  return { mockPrisma: mp };
-});
+    userAttempt: {
+      findMany: vi.fn(),
+    },
+    question: {
+      findMany: vi.fn(),
+    },
+  }
+
+  return { mockPrisma: prisma }
+})
 
 vi.mock('@/lib/prisma', () => ({
   default: mockPrisma,
-}));
+}))
 
-vi.mock('../../auth', () => ({
+vi.mock('../../user/auth', () => ({
   getCurrentUser: vi.fn(),
-}));
+}))
 
-import { getCurrentUser } from '../../user/auth';
+vi.mock('@/lib/permissions/engine', () => ({
+  getEffectiveTier: vi.fn().mockReturnValue('FREE'),
+}))
 
-const mockGetCurrentUser = getCurrentUser as unknown as ReturnType<typeof vi.fn>;
+vi.mock('@/lib/permissions/prisma-scope', () => ({
+  getRetentionDate: vi.fn().mockReturnValue(new Date(0)),
+}))
 
-describe('Error Book Server Actions (Practice)', () => {
+vi.mock('../submission-core', () => ({
+  persistPracticeSession: vi.fn(),
+}))
+
+vi.mock('../submission-effects', () => ({
+  applyPracticeSubmissionEffects: vi.fn().mockResolvedValue(undefined),
+}))
+
+import { getCurrentUser } from '../../user/auth'
+import { getErrorWiperSession, submitErrorWiperSession } from '../error-book'
+import { persistPracticeSession } from '../submission-core'
+import { applyPracticeSubmissionEffects } from '../submission-effects'
+
+const mockGetCurrentUser = vi.mocked(getCurrentUser)
+const mockPersistPracticeSession = vi.mocked(persistPracticeSession)
+const mockApplyPracticeSubmissionEffects = vi.mocked(applyPracticeSubmissionEffects)
+
+describe('error-book', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      permissionOverrides: [],
+    })
+  })
 
-  describe('getErrorBookQuestions', () => {
-    it('should reject unauthorized users', async () => {
-      mockGetCurrentUser.mockResolvedValue(null);
-      const result = await getErrorBookQuestions();
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Unauthorized');
-    });
+  it('拒绝未登录用户获取 Error Wiper 会话', async () => {
+    mockGetCurrentUser.mockResolvedValue(null)
 
-    it('should fetch error book questions for the current user', async () => {
-      mockGetCurrentUser.mockResolvedValue({ id: 'user-1' });
-      mockPrisma.errorBook.findMany.mockResolvedValue([mockErrorBookEntry]);
+    const result = await getErrorWiperSession()
 
-      const result = await getErrorBookQuestions();
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('Unauthorized')
+  })
 
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual([mockErrorBookEntry]);
-      expect(mockPrisma.errorBook.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId: 'user-1', masteryLevel: { gt: 0 } },
-        })
-      );
-    });
-  });
+  it('按错题历史聚合 Error Wiper 会话', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: 'user-1' } as any)
+    mockPrisma.userAttempt.findMany.mockResolvedValue([
+      {
+        userId: 'user-1',
+        questionId: 'q1',
+        isCorrect: false,
+        createdAt: new Date('2026-03-20T10:00:00Z'),
+        question: {
+          id: 'q1',
+          type: 'SINGLE_CHOICE',
+          content: '题目1',
+          options: { A: 'A' },
+          answer: 'A',
+          explanation: '解析1',
+          chapter: {
+            id: 'c1',
+            title: '章节1',
+            subject: { id: 's1', name: 'Math' },
+          },
+        },
+      },
+      {
+        userId: 'user-1',
+        questionId: 'q1',
+        isCorrect: true,
+        createdAt: new Date('2026-03-19T10:00:00Z'),
+        question: {
+          id: 'q1',
+          type: 'SINGLE_CHOICE',
+          content: '题目1',
+          options: { A: 'A' },
+          answer: 'A',
+          explanation: '解析1',
+          chapter: {
+            id: 'c1',
+            title: '章节1',
+            subject: { id: 's1', name: 'Math' },
+          },
+        },
+      },
+    ])
 
-  describe('getErrorWiperSession', () => {
-    it('should fetch wiper session questions (mastery < 3)', async () => {
-      mockGetCurrentUser.mockResolvedValue({ id: 'user-1' });
-      mockPrisma.errorBook.findMany.mockResolvedValue([mockErrorBookEntry]);
+    const result = await getErrorWiperSession()
 
-      const result = await getErrorWiperSession();
+    expect(result.success).toBe(true)
+    expect(result.data).toHaveLength(1)
+    expect(result.data?.[0]?.questionId).toBe('q1')
+  })
 
-      expect(result.success).toBe(true);
-      // Since shuffling is random, we just check data presence
-      expect(result.data).toHaveLength(1);
-      expect(mockPrisma.errorBook.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId: 'user-1', masteryLevel: { lt: 3 } },
-        })
-      );
-    });
-  });
+  it('按批次提交 Error Wiper 会话，并只触发一次副作用', async () => {
+    mockGetCurrentUser.mockResolvedValue({ id: 'user-1' } as any)
+    mockPrisma.question.findMany.mockResolvedValue([
+      { id: 'q1', subjectId: 'subject-1' },
+      { id: 'q2', subjectId: 'subject-1' },
+    ])
+    mockPersistPracticeSession.mockResolvedValue({
+      created: true,
+      examRecordId: 'exam-wiper-1',
+      score: 50,
+      totalQuestions: 2,
+      correctCount: 1,
+      results: { q1: true, q2: false },
+    })
+    mockPrisma.userAttempt.findMany.mockResolvedValue([
+      {
+        questionId: 'q1',
+        isCorrect: true,
+        createdAt: new Date('2026-03-20T10:00:00Z'),
+      },
+      {
+        questionId: 'q2',
+        isCorrect: false,
+        createdAt: new Date('2026-03-20T10:00:00Z'),
+      },
+    ])
 
-  describe('removeErrorBookEntry', () => {
-    it('should remove an error book entry', async () => {
-      mockGetCurrentUser.mockResolvedValue({ id: 'user-1' });
-      mockPrisma.errorBook.delete.mockResolvedValue(mockErrorBookEntry);
+    const result = await submitErrorWiperSession({
+      attempts: [
+        { questionId: 'q1', isCorrect: true },
+        { questionId: 'q2', isCorrect: false },
+      ],
+      duration: 60,
+      clientSessionId: 'wiper-session-1',
+    })
 
-      const result = await removeErrorBookEntry('eb1');
-
-      expect(result.success).toBe(true);
-      expect(mockPrisma.errorBook.delete).toHaveBeenCalledWith({
-        where: { id: 'eb1', userId: 'user-1' },
-      });
-    });
-  });
-});
+    expect(result.success).toBe(true)
+    expect(result.examRecordId).toBe('exam-wiper-1')
+    expect(mockPersistPracticeSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        mode: 'ERROR_WIPER',
+        clientSessionId: 'wiper-session-1',
+      })
+    )
+    expect(mockApplyPracticeSubmissionEffects).toHaveBeenCalledTimes(1)
+    expect(result.levels?.q1).toBeDefined()
+  })
+})
