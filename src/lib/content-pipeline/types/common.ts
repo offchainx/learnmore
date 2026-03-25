@@ -188,6 +188,8 @@ export interface QuestionFilter {
   reviewedBy?: string
   createdAfter?: Date
   createdBefore?: Date
+  includeDeleted?: boolean
+  deletedOnly?: boolean
 }
 
 /**

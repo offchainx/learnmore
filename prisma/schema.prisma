@@ -9,33 +9,36 @@ datasource db {
 
 // ============ 用户模块 ============
 model User {
-  id             String            @id @default(uuid()) @db.Uuid
-  email          String            @unique
-  username       String?           @unique
-  role           UserRole          @default(STUDENT)
-  status         UserAccountStatus @default(ACTIVE)
-  avatar         String?
-  grade          Int? // 年级 (7-9)
-  school         String?           @map("school")
-  streak         Int               @default(0)
-  totalStudyTime Int               @default(0) @map("total_study_time") // seconds
-  xp             Int               @default(0)
-  aiTokenBalance Int               @default(5) @map("ai_token_balance") // Free daily quota or permanent balance
-  lastStudyDate  DateTime?         @map("last_study_date")
+  // 身份 / 归属字段
+  id       String            @id @default(uuid()) @db.Uuid
+  email    String            @unique
+  username String?           @unique
+  role     UserRole          @default(STUDENT)
+  status   UserAccountStatus @default(ACTIVE)
 
-  // Tracking & Growth
-  lastSignInAt DateTime? @map("last_sign_in_at")
-  signInCount  Int       @default(0) @map("sign_in_count")
-  utmSource    String?   @map("utm_source")
-  utmMedium    String?   @map("utm_medium")
-  utmCampaign  String?   @map("utm_campaign")
+  // 内容 / 资料字段
+  avatar String?
+  grade  Int? // 年级 (7-9)
+  school String? @map("school")
 
-  // 推荐系统
-  referralCode  String? @unique @map("referral_code") // 用户的推荐码（唯一）
-  referralCount Int     @default(0) @map("referral_count") // 成功推荐数量
-  referralLimit Int     @default(10) @map("referral_limit") // 推荐上限
+  // 成长 / 统计字段
+  streak         Int       @default(0)
+  totalStudyTime Int       @default(0) @map("total_study_time") // seconds
+  xp             Int       @default(0)
+  aiTokenBalance Int       @default(5) @map("ai_token_balance") // Free daily quota or permanent balance
+  lastStudyDate  DateTime? @map("last_study_date")
+  lastSignInAt   DateTime? @map("last_sign_in_at")
+  signInCount    Int       @default(0) @map("sign_in_count")
 
-  // 订阅相关
+  // 来源 / 推荐字段
+  utmSource     String? @map("utm_source")
+  utmMedium     String? @map("utm_medium")
+  utmCampaign   String? @map("utm_campaign")
+  referralCode  String? @unique @map("referral_code")
+  referralCount Int     @default(0) @map("referral_count")
+  referralLimit Int     @default(10) @map("referral_limit")
+
+  // 状态 / 订阅字段
   subscriptionTier     SubscriptionTier?  @default(STARTER) @map("subscription_tier")
   subscriptionStart    DateTime?          @map("subscription_start")
   subscriptionEnd      DateTime?          @map("subscription_end")
@@ -44,9 +47,8 @@ model User {
   stripeCustomerId     String?            @map("stripe_customer_id")
   stripeSubscriptionId String?            @map("stripe_subscription_id")
   firstPaidAt          DateTime?          @map("first_paid_at")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
 
   // Relations
   settings           UserSettings?
@@ -116,21 +118,23 @@ model InviteCode {
 }
 
 model UserSettings {
-  id                    String        @id @default(uuid()) @db.Uuid
-  userId                String        @unique @map("user_id") @db.Uuid
+  // 归属字段
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @map("user_id") @db.Uuid
+
+  // 内容字段
   theme                 String        @default("dark")
   language              String        @default("en") // 'en', 'zh', 'ms'
   aiPersonality         AiPersonality @default(ENCOURAGING) @map("ai_personality")
   difficultyCalibration Int           @default(50) @map("difficulty_calibration") // 0-100
   curriculumSystem      String?       @map("curriculum_system") // e.g. "UEC", "IGCSE"
+  studyReminderTime     String?       @map("study_reminder_time") // e.g. "20:00"
+  notificationDaily     Boolean       @default(true) @map("notification_daily") // Push/In-app
+  notificationWeekly    Boolean       @default(true) @map("notification_weekly") // Push/In-app
+  emailMarketing        Boolean       @default(true) @map("email_marketing")
+  emailActivity         Boolean       @default(true) @map("email_activity")
 
-  // Notifications & Reminders
-  studyReminderTime  String? @map("study_reminder_time") // e.g. "20:00"
-  notificationDaily  Boolean @default(true) @map("notification_daily") // Push/In-app
-  notificationWeekly Boolean @default(true) @map("notification_weekly") // Push/In-app
-  emailMarketing     Boolean @default(true) @map("email_marketing")
-  emailActivity      Boolean @default(true) @map("email_activity")
-
+  // 状态 / 审计字段
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
@@ -194,11 +198,15 @@ model Badge {
 }
 
 model UserBadge {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  badgeId   String   @map("badge_id") @db.Uuid
+  // 归属字段
+  id      String @id @default(uuid()) @db.Uuid
+  userId  String @map("user_id") @db.Uuid
+  badgeId String @map("badge_id") @db.Uuid
+
+  // 状态 / 审计字段
   awardedAt DateTime @default(now()) @map("awarded_at")
 
+  // Relations
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
@@ -209,12 +217,18 @@ model UserBadge {
 
 // ============ 课程模块 ============
 model Subject {
-  id    String  @id @default(uuid()) @db.Uuid
-  key   String  @unique // chinese, malay, english, math, science, history, geography, other
-  name  String  @unique // 数学, 物理, 化学...
-  icon  String?
-  order Int     @default(0)
+  // 归属字段
+  id   String @id @default(uuid()) @db.Uuid
+  key  String @unique // chinese, malay, english, math, science, history, geography, other
+  name String @unique // 数学, 物理, 化学...
 
+  // 内容字段
+  icon String?
+
+  // 状态 / 排序字段
+  order Int @default(0)
+
+  // Relations
   chapters    Chapter[]
   posts       Post[]
   examRecords ExamRecord[] // 🆕 练习记录关联 (Story-043)
@@ -225,20 +239,25 @@ model Subject {
 }
 
 model Chapter {
-  id        String   @id @default(uuid()) @db.Uuid
-  subjectId String   @map("subject_id") @db.Uuid
-  parentId  String?  @map("parent_id") @db.Uuid // 自关联实现树形结构
-  title     String
-  order     Int      @default(0)
-  x         Float?
-  y         Float?
-  createdAt DateTime @default(now()) @map("created_at")
+  // 归属字段
+  id        String  @id @default(uuid()) @db.Uuid
+  subjectId String  @map("subject_id") @db.Uuid
+  parentId  String? @map("parent_id") @db.Uuid // 自关联实现树形结构
 
-  // 🆕 练习中心扩展字段 (Story-043)
+  // 内容字段
+  title String
+
+  // 布局 / 缓存字段
+  x               Float?
+  y               Float?
   totalQuestions  Int       @default(0) @map("total_questions") // 该章节题目总数
   avgDifficulty   Float?    @map("avg_difficulty") // 平均难度
   cachedMastery   Json?     @map("cached_mastery") // { [userId]: masteryLevel }
   lastCacheUpdate DateTime? @map("last_cache_update") // 缓存最后更新时间
+
+  // 状态 / 排序字段
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
@@ -299,13 +318,18 @@ model BlogPost {
 
 // ============ 学习进度 ============
 model UserProgress {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  lessonId     String   @map("lesson_id") @db.Uuid
-  progress     Float    @default(0) // 0-100
-  isCompleted  Boolean  @default(false) @map("is_completed")
-  lastPosition Int?     @map("last_position") // 视频最后播放位置(秒)
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  // 归属字段
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @map("user_id") @db.Uuid
+  lessonId String @map("lesson_id") @db.Uuid
+
+  // 内容字段
+  progress     Float   @default(0) // 0-100
+  isCompleted  Boolean @default(false) @map("is_completed")
+  lastPosition Int?    @map("last_position") // 视频最后播放位置(秒)
+
+  // 状态 / 审计字段
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -318,39 +342,45 @@ model UserProgress {
 
 // ============ 题库模块 ============
 model Question {
-  id          String       @id @default(uuid()) @db.Uuid
+  // 归属字段
+  id        String  @id @default(uuid()) @db.Uuid
+  subjectId String? @map("subject_id") @db.Uuid
+  chapterId String? @map("chapter_id") @db.Uuid // 改为可选，支持未分类题目
+
+  // 内容字段
   curriculum  String       @default("UEC")
   grade       Int?
-  chapterId   String?      @map("chapter_id") @db.Uuid // 改为可选，支持未分类题目
-  subjectId   String?      @map("subject_id") @db.Uuid
   difficulty  Int          @default(3) // 1-5星
   type        QuestionType
   content     String       @db.Text // 题干(Markdown+LaTeX)
   options     Json? // 选项 {"A": "...", "B": "..."}
   answer      Json // 答案 "A" 或 ["A", "C"]
   explanation String?      @db.Text // 解析
+  assetUrl    String?      @map("asset_url")
+  imageUrls   String[]     @default([]) @map("image_urls")
 
-  contentHash String? @unique @map("content_hash") // MD5哈希（用于去重）
-  createdAt   DateTime  @default(now()) @map("created_at")
-  createdBy   String?   @map("created_by") @db.Uuid
-  reviewedAt  DateTime? @map("reviewed_at")
-  reviewedBy  String?   @map("reviewed_by") @db.Uuid
-  publishedAt DateTime? @map("published_at")
-  publishedBy String?   @map("published_by") @db.Uuid
-
-  qualityScore Float? @map("quality_score") // 0-100
-  reportCount  Int    @default(0) @map("report_count") // 被报错次数
-
-  // 状态控制
-  status      ContentStatus @default(DRAFT)
-  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
-  sourceFileId String?   @map("source_file_id") @db.Uuid
-  assetUrl     String?   @map("asset_url")
-  imageUrls    String[]  @default([]) @map("image_urls")
+  // 来源 / 标签字段
+  sourceFileId String?  @map("source_file_id") @db.Uuid
   source       String?
-  tags         String[]  @default([])
-  isPastPaper  Boolean   @default(false) @map("is_past_paper")
-  paperId      String?   @map("paper_id")
+  tags         String[] @default([])
+  isPastPaper  Boolean  @default(false) @map("is_past_paper")
+  paperId      String?  @map("paper_id")
+  contentHash  String?  @unique @map("content_hash") // MD5哈希（用于去重）
+
+  // 状态 / 审核字段
+  status       ContentStatus @default(DRAFT)
+  qualityScore Float?        @map("quality_score") // 0-100
+  reportCount  Int           @default(0) @map("report_count") // 被报错次数
+  createdBy    String?       @map("created_by") @db.Uuid
+  reviewedBy   String?       @map("reviewed_by") @db.Uuid
+  publishedBy  String?       @map("published_by") @db.Uuid
+  deletedBy    String?       @map("deleted_by") @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at")
+  reviewedAt   DateTime?     @map("reviewed_at")
+  publishedAt  DateTime?     @map("published_at")
+  deletedAt    DateTime?     @map("deleted_at")
+  deleteReason String?       @map("delete_reason") @db.Text
 
   // Relations
   chapter    Chapter?         @relation(fields: [chapterId], references: [id], onDelete: SetNull)
@@ -366,6 +396,8 @@ model Question {
   @@index([grade])
   @@index([difficulty])
   @@index([status])
+  @@index([deletedAt])
+  @@index([deletedBy])
   @@index([contentHash])
   @@index([isPastPaper])
   @@index([paperId])
@@ -383,14 +415,19 @@ enum QuestionType {
 }
 
 model UserAttempt {
-  id           String   @id @default(uuid()) @db.Uuid
-  userId       String   @map("user_id") @db.Uuid
-  questionId   String   @map("question_id") @db.Uuid
-  examRecordId String?  @map("exam_record_id") @db.Uuid
-  userAnswer   Json     @map("user_answer")
-  isCorrect    Boolean  @map("is_correct")
-  duration     Int? // Time taken in seconds
-  createdAt    DateTime @default(now()) @map("created_at")
+  // 归属字段
+  id           String  @id @default(uuid()) @db.Uuid
+  userId       String  @map("user_id") @db.Uuid
+  questionId   String  @map("question_id") @db.Uuid
+  examRecordId String? @map("exam_record_id") @db.Uuid
+
+  // 内容字段
+  userAnswer Json    @map("user_answer")
+  isCorrect  Boolean @map("is_correct")
+  duration   Int? // Time taken in seconds
+
+  // 状态 / 审计字段
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -407,19 +444,23 @@ model UserAttempt {
 }
 
 model ExamRecord {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String   @map("user_id") @db.Uuid
-  chapterId      String?  @map("chapter_id") @db.Uuid
-  title          String?
-  score          Float
-  totalQuestions Int      @map("total_questions")
-  correctCount   Int      @map("correct_count")
-  duration       Int? // Time taken in seconds
-  createdAt      DateTime @default(now()) @map("created_at")
+  // 归属字段
+  id        String  @id @default(uuid()) @db.Uuid
+  userId    String  @map("user_id") @db.Uuid
+  subjectId String? @map("subject_id") @db.Uuid // 关联科目
+  chapterId String? @map("chapter_id") @db.Uuid
+  clientSessionId String? @map("client_session_id")
 
-  // 🆕 练习中心扩展字段 (Story-043)
-  mode      PracticeMode @default(MOCK_EXAM) // 练习模式
-  subjectId String?      @map("subject_id") @db.Uuid // 关联科目
+  // 内容字段
+  title          String?
+  mode           PracticeMode @default(MOCK_EXAM) // 练习模式
+  score          Float
+  totalQuestions Int          @map("total_questions")
+  correctCount   Int          @map("correct_count")
+  duration       Int? // Time taken in seconds
+
+  // 状态 / 审计字段
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -429,6 +470,8 @@ model ExamRecord {
   @@index([userId])
   @@index([subjectId])
   @@index([mode])
+  @@index([clientSessionId])
+  @@unique([userId, clientSessionId])
   @@map("exam_records")
 }
 
@@ -672,28 +715,29 @@ enum ReportStatus {
 
 // ==================== 源文件管理 ====================
 model SourceFile {
-  id       String @id @default(uuid()) @db.Uuid
-  filename String
+  // 归属字段
+  id         String  @id @default(uuid()) @db.Uuid
+  subjectId  String? @map("subject_id") @db.Uuid
+  uploadedBy String  @map("uploaded_by") @db.Uuid
+
+  // 内容字段
+  filename   String
   sourceNote String? @map("source_note")
-  fileUrl  String @map("file_url") // Supabase Storage URL
-  fileType String @map("file_type") // "pdf" | "image" | "docx"
-  fileSize Int    @map("file_size") // bytes
-  subjectId String? @map("subject_id") @db.Uuid
+  fileUrl    String  @map("file_url") // Supabase Storage URL
+  fileType   String  @map("file_type") // "pdf" | "image" | "docx"
+  fileSize   Int     @map("file_size") // bytes
+  ocrRawText String? @map("ocr_raw_text") @db.Text // OCR原始输出
 
-  // 处理状态
-  status     ProcessingStatus @default(PENDING)
-  ocrStatus  ProcessingStatus @default(PENDING) @map("ocr_status")
-  ocrRawText String?          @map("ocr_raw_text") @db.Text // OCR原始输出
+  // 状态 / 审核字段
+  status      ProcessingStatus @default(PENDING)
+  ocrStatus   ProcessingStatus @default(PENDING) @map("ocr_status")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  processedAt DateTime?        @map("processed_at")
 
-  // 关联
+  // Relations
   questions Question[]
-  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
-
-  // 审计
-  uploadedBy  String    @map("uploaded_by") @db.Uuid
-  uploader    User      @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
-  createdAt   DateTime  @default(now()) @map("created_at")
-  processedAt DateTime? @map("processed_at")
+  subject   Subject?   @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  uploader  User       @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
 
   @@index([uploadedBy])
   @@index([status])
@@ -726,23 +770,25 @@ model ContentReviewLog {
 
 // ==================== 用户纠错 ====================
 model QuestionReport {
-  id         String   @id @default(uuid()) @db.Uuid
-  questionId String   @map("question_id") @db.Uuid
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
+  // 归属字段
+  id         String @id @default(uuid()) @db.Uuid
+  questionId String @map("question_id") @db.Uuid
   reportedBy String @map("reported_by") @db.Uuid
-  reporter   User   @relation("UserQuestionReports", fields: [reportedBy], references: [id])
 
+  // 内容字段
   issueType   ReportIssueType @map("issue_type")
   description String          @db.Text
-  status      ReportStatus    @default(PENDING)
 
-  // 审核处理
-  reviewedBy String?   @map("reviewed_by") @db.Uuid
-  reviewedAt DateTime? @map("reviewed_at")
-  resolution String?   @db.Text // 处理结果
+  // 状态 / 审核字段
+  status     ReportStatus @default(PENDING)
+  reviewedBy String?      @map("reviewed_by") @db.Uuid
+  reviewedAt DateTime?    @map("reviewed_at")
+  resolution String?      @db.Text // 处理结果
+  createdAt  DateTime     @default(now()) @map("created_at")
 
-  createdAt DateTime @default(now()) @map("created_at")
+  // Relations
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reporter User     @relation("UserQuestionReports", fields: [reportedBy], references: [id])
 
   @@index([questionId])
   @@index([status])
@@ -820,18 +866,25 @@ model ImpersonationSession {
 }
 
 model UserPermissionOverride {
+  // 归属字段
   id     String @id @default(uuid()) @db.Uuid
   userId String @map("user_id") @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  overriddenBy  String  @map("overridden_by") @db.Uuid // Admin ID
+  // 内容字段
   targetField   String  @map("target_field") // 'subscriptionTier' | 'subscriptionEnd'
   previousValue String? @map("previous_value")
   newValue      String? @map("new_value")
   reason        String  @db.Text
 
+  // 来源 / 操作字段
+  overriddenBy String @map("overridden_by") @db.Uuid // Admin ID
+
+  // 状态 / 审计字段
   createdAt DateTime  @default(now()) @map("created_at")
   expiresAt DateTime? @map("expires_at") // Optional: auto-expire the override
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("user_permission_overrides")
@@ -912,23 +965,27 @@ enum FeedbackStatus {
 }
 
 model UserFeedback {
-  id          String           @id @default(uuid()) @db.Uuid
-  userId      String?          @map("user_id") @db.Uuid // 可选，支持匿名
+  // 归属字段
+  id     String  @id @default(uuid()) @db.Uuid
+  userId String? @map("user_id") @db.Uuid // 可选，支持匿名
+
+  // 内容字段
   email       String? // 匿名用户的联系邮箱
   category    FeedbackCategory
   title       String
   content     String           @db.Text
   attachments String[] // 附件图片 URL 列表
-  status      FeedbackStatus   @default(PENDING)
   priority    Int              @default(0) // 优先级 0-3
 
-  adminReply String?   @map("admin_reply") @db.Text
-  repliedAt  DateTime? @map("replied_at")
-  repliedBy  String?   @map("replied_by") @db.Uuid // Admin ID
+  // 状态 / 审核字段
+  status     FeedbackStatus @default(PENDING)
+  adminReply String?        @map("admin_reply") @db.Text
+  repliedAt  DateTime?      @map("replied_at")
+  repliedBy  String?        @map("replied_by") @db.Uuid // Admin ID
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  // Relations
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])

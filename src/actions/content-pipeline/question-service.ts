@@ -1,6 +1,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
+import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import {
   ContentStatus,
@@ -29,6 +30,41 @@ import type {
   UpdateStatusInput,
   ReportFilter,
 } from '@/lib/content-pipeline/types'
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function isUuid(value: string | undefined | null): value is string {
+  return !!value && UUID_RE.test(value.trim())
+}
+
+async function resolveReviewerId(preferredReviewerId?: string): Promise<string> {
+  if (isUuid(preferredReviewerId)) {
+    return preferredReviewerId
+  }
+
+  const currentUser = await getCurrentUser()
+  if (currentUser?.id && isUuid(currentUser.id)) {
+    return currentUser.id
+  }
+
+  const admin = await prisma.user.findFirst({
+    where: { role: 'ADMIN' },
+    select: { id: true },
+  })
+  if (admin?.id) {
+    return admin.id
+  }
+
+  const fallback = await prisma.user.findFirst({
+    select: { id: true },
+  })
+  if (fallback?.id) {
+    return fallback.id
+  }
+
+  throw new Error('没有可用的审核人')
+}
 
 export async function generateContentHash(
   content: string,
@@ -99,8 +135,11 @@ function selectQuestionRelations(): Prisma.QuestionSelect {
     createdBy: true,
     reviewedBy: true,
     publishedBy: true,
+    deletedBy: true,
     reviewedAt: true,
     publishedAt: true,
+    deletedAt: true,
+    deleteReason: true,
     chapter: { include: { subject: true } },
     subject: true,
     sourceFile: true,
@@ -248,6 +287,7 @@ export async function updateQuestionStatus(
   input: UpdateStatusInput
 ): Promise<ServiceResult<QuestionWithRelations>> {
   try {
+    const reviewerId = await resolveReviewerId(input.reviewerId)
     const currentQuestion = await prisma.question.findUnique({
       where: { id: input.questionId },
       select: { id: true, status: true },
@@ -283,10 +323,10 @@ export async function updateQuestionStatus(
         where: { id: input.questionId },
         data: {
           status: input.newStatus,
-          reviewedBy: input.reviewerId,
+          reviewedBy: reviewerId,
           reviewedAt: new Date(),
           ...(input.newStatus === ContentStatus.PUBLISHED && {
-            publishedBy: input.reviewerId,
+            publishedBy: reviewerId,
             publishedAt: new Date(),
           }),
         },
@@ -299,7 +339,7 @@ export async function updateQuestionStatus(
           action,
           fromStatus: currentQuestion.status,
           toStatus: input.newStatus,
-          reviewerId: input.reviewerId,
+          reviewerId,
           comment: input.comment,
           changes: input.changes as object | undefined,
         },
@@ -350,13 +390,6 @@ export async function bulkUpdateQuestionStatus(
   }
 }
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-function isUuid(value: string | undefined | null): value is string {
-  return !!value && UUID_RE.test(value.trim())
-}
-
 function toValidStatusList(
   status: QuestionFilter['status']
 ): ContentStatus[] | undefined {
@@ -381,6 +414,12 @@ function toValidTypeList(
 
 function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
   const where: Prisma.QuestionWhereInput = {}
+
+  if (filter.deletedOnly) {
+    where.deletedAt = { not: null }
+  } else if (!filter.includeDeleted) {
+    where.deletedAt = null
+  }
 
   const statusList = toValidStatusList(filter.status)
   if (statusList)
@@ -476,59 +515,93 @@ export async function deleteQuestion(
   id: string,
   operatorId?: string,
   options?: { hardDelete?: boolean; comment?: string }
-): Promise<ServiceResult<{ archived: boolean }>> {
+): Promise<ServiceResult<{ deleted: boolean; hardDeleted: boolean }>> {
   try {
     const question = await prisma.question.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: { id: true, status: true, deletedAt: true },
     })
     if (!question)
       return { success: false, error: '题目不存在', code: 'NOT_FOUND' }
 
-    if (question.status === ContentStatus.PUBLISHED && !options?.hardDelete) {
+    if (question.deletedAt) {
       return {
         success: false,
-        error: '已发布的题目不能直接删除，请先下架（设为 VERIFIED 状态）',
-        code: 'CANNOT_DELETE_PUBLISHED',
+        error: '题目已删除',
+        code: 'DELETE_FAILED',
       }
     }
+
+    const resolvedOperatorId = await resolveReviewerId(operatorId)
 
     if (options?.hardDelete) {
       await prisma.question.delete({ where: { id } })
       revalidatePath('/admin/content/review')
-      return { success: true, data: { archived: false } }
+      return { success: true, data: { deleted: true, hardDeleted: true } }
     }
 
+    const deletedAt = new Date()
     await prisma.$transaction([
       prisma.question.update({
         where: { id },
-        data: { status: ContentStatus.ARCHIVED },
+        data: {
+          status: ContentStatus.ARCHIVED,
+          deletedAt,
+          deletedBy: resolvedOperatorId,
+          deleteReason: options?.comment ?? '题目已软删除',
+        },
       }),
-      ...(operatorId
-        ? [
-            prisma.contentReviewLog.create({
-              data: {
-                contentType: 'question',
-                contentId: id,
-                action: ReviewAction.ARCHIVE,
-                fromStatus: question.status,
-                toStatus: ContentStatus.ARCHIVED,
-                reviewerId: operatorId,
-                comment: options?.comment ?? '题目已归档',
-              },
-            }),
-          ]
-        : []),
+      prisma.contentReviewLog.create({
+        data: {
+          contentType: 'question',
+          contentId: id,
+          action: ReviewAction.ARCHIVE,
+          fromStatus: question.status,
+          toStatus: ContentStatus.ARCHIVED,
+          reviewerId: resolvedOperatorId,
+          comment: options?.comment ?? '题目已软删除',
+        },
+      }),
     ])
 
     revalidatePath('/admin/content/review')
-    return { success: true, data: { archived: true } }
+    return { success: true, data: { deleted: true, hardDeleted: false } }
   } catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : '删除失败',
       code: 'DELETE_FAILED',
     }
+  }
+}
+
+export async function bulkDeleteQuestions(
+  questionIds: string[],
+  operatorId?: string,
+  options?: { hardDelete?: boolean; comment?: string }
+): Promise<BulkOperationResult<{ deleted: boolean; hardDeleted: boolean }>> {
+  const results: BulkOperationResult<{ deleted: boolean; hardDeleted: boolean }>['results'] = []
+  let succeeded = 0
+  let failed = 0
+
+  for (let i = 0; i < questionIds.length; i++) {
+    const result = await deleteQuestion(questionIds[i], operatorId, options)
+
+    if (result.success && result.data) {
+      results.push({ index: i, success: true, data: result.data })
+      succeeded++
+    } else {
+      results.push({ index: i, success: false, error: result.error })
+      failed++
+    }
+  }
+
+  return {
+    success: failed === 0,
+    total: questionIds.length,
+    succeeded,
+    failed,
+    results,
   }
 }
 

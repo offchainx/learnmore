@@ -29,12 +29,17 @@ import {
   XCircle,
   ArrowUpCircle,
   ClipboardCheck,
+  Trash2,
 } from 'lucide-react'
 import { DifficultyBadge } from '../common/DifficultyBadge'
 import { QualityScoreBadge } from '../common/QualityScoreBadge'
 import { QuestionWithRelations } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
-import { bulkUpdateQuestionStatus } from '@/actions/content-pipeline/question-service'
+import {
+  bulkDeleteQuestions,
+  bulkUpdateQuestionStatus,
+  deleteQuestion,
+} from '@/actions/content-pipeline/question-service'
 import { useToast } from '@/components/ui/use-toast'
 import {
   pageSectionHeaderBandClass,
@@ -46,12 +51,14 @@ interface QuestionReviewTableProps {
   questions: QuestionWithRelations[]
   page: number
   totalPages: number
+  currentTab?: string
 }
 
 export function QuestionReviewTable({
   questions,
   page,
   totalPages,
+  currentTab = 'all',
 }: QuestionReviewTableProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -59,6 +66,7 @@ export function QuestionReviewTable({
   const [mounted, setMounted] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
+  const isDeletedView = currentTab === 'deleted'
 
   useEffect(() => {
     setMounted(true)
@@ -97,7 +105,6 @@ export function QuestionReviewTable({
       const result = await bulkUpdateQuestionStatus({
         questionIds: selectedIds,
         newStatus,
-        reviewerId: 'ADMIN', // TODO: Replace with actual user ID
         comment: 'Bulk update via Admin Interface',
       })
 
@@ -109,10 +116,86 @@ export function QuestionReviewTable({
         setSelectedIds([])
         router.refresh()
       } else {
+        const firstError = result.results.find((item) => !item.success)?.error
         toast({
           variant: 'destructive',
           title: '操作失败',
-          description: `更新失败: ${result.failed} 个错误`,
+          description: firstError ? `更新失败: ${firstError}` : `更新失败: ${result.failed} 个错误`,
+        })
+      }
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: '错误',
+        description: '发生未知错误',
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0 || isDeletedView) return
+    if (!window.confirm(`确认删除已选中的 ${selectedIds.length} 道题目？删除后会移入“已删除”列表。`)) {
+      return
+    }
+
+    setIsUpdating(true)
+    try {
+      const result = await bulkDeleteQuestions(selectedIds, undefined, {
+        comment: 'Bulk delete via Admin Interface',
+      })
+
+      if (result.success) {
+        toast({
+          title: '删除成功',
+          description: `已删除 ${result.succeeded} 道题目`,
+        })
+        setSelectedIds([])
+        router.refresh()
+      } else {
+        const firstError = result.results.find((item) => !item.success)?.error
+        toast({
+          variant: 'destructive',
+          title: '删除失败',
+          description: firstError ? `删除失败: ${firstError}` : `删除失败: ${result.failed} 个错误`,
+        })
+      }
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: '错误',
+        description: '发生未知错误',
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleRowDelete = async (questionId: string) => {
+    if (isDeletedView) return
+    if (!window.confirm('确认删除这道题目？删除后会移入“已删除”列表。')) {
+      return
+    }
+
+    setIsUpdating(true)
+    try {
+      const result = await deleteQuestion(questionId, undefined, {
+        comment: 'Single delete via Admin Interface',
+      })
+
+      if (result.success) {
+        toast({
+          title: '删除成功',
+          description: '题目已移入“已删除”列表',
+        })
+        setSelectedIds((current) => current.filter((id) => id !== questionId))
+        router.refresh()
+      } else {
+        toast({
+          variant: 'destructive',
+          title: '删除失败',
+          description: result.error || '删除失败',
         })
       }
     } catch {
@@ -173,6 +256,22 @@ export function QuestionReviewTable({
     return match?.[1] || null
   }
 
+  const formatDateTime = (value: Date | string | null | undefined) => {
+    if (!value) return '-'
+
+    const date = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(date.getTime())) return '-'
+
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  }
+
   if (!mounted) {
     return (
       <div className="space-y-4">
@@ -193,43 +292,59 @@ export function QuestionReviewTable({
       {/* Batch Actions Toolbar */}
       <div className="flex flex-col gap-3 rounded-2xl border border-borderTone bg-surface-subtle p-3 shadow-surface sm:flex-row sm:items-center sm:justify-between dark:border-borderTone dark:bg-surface-subtle">
         <div className="ml-1 text-sm text-text-secondary dark:text-text-secondary">
-          {selectedIds.length > 0 ? (
+          {isDeletedView ? (
+            <span>已删除题目仅用于追踪，不参与审核流转。</span>
+          ) : selectedIds.length > 0 ? (
             <span>已选择 {selectedIds.length} 项，支持批量审核</span>
           ) : (
             <span>勾选题目后可批量通过、驳回或发布</span>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={selectedIds.length === 0 || isUpdating}
-            onClick={() => handleBulkStatusUpdate('VERIFIED')}
-            className="border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]"
-          >
-            <CheckCircle className="mr-2 h-4 w-4" />
-            通过
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={selectedIds.length === 0 || isUpdating}
-            onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
-            className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
-          >
-            <XCircle className="mr-2 h-4 w-4" />
-            驳回
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={selectedIds.length === 0 || isUpdating}
-            onClick={() => handleBulkStatusUpdate('PUBLISHED')}
-            className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
-          >
-            <ArrowUpCircle className="mr-2 h-4 w-4" />
-            发布
-          </Button>
+          {!isDeletedView ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selectedIds.length === 0 || isUpdating}
+                onClick={() => handleBulkStatusUpdate('VERIFIED')}
+                className="border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]"
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                通过
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selectedIds.length === 0 || isUpdating}
+                onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
+                className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                驳回
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selectedIds.length === 0 || isUpdating}
+                onClick={() => handleBulkStatusUpdate('PUBLISHED')}
+                className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
+              >
+                <ArrowUpCircle className="mr-2 h-4 w-4" />
+                发布
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selectedIds.length === 0 || isUpdating}
+                onClick={handleBulkDelete}
+                className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                删除
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
 
@@ -254,6 +369,7 @@ export function QuestionReviewTable({
               </TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">题型</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">科目/章节</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">时间</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">难度</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">质量分</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">状态</TableHead>
@@ -264,7 +380,7 @@ export function QuestionReviewTable({
             {questions.length === 0 ? (
               <TableRow className="border-b border-borderTone hover:bg-transparent dark:border-borderTone">
                 <TableCell
-                  colSpan={9}
+                  colSpan={10}
                   className="h-24 text-center text-text-secondary dark:text-text-secondary"
                 >
                   没有找到相关题目
@@ -318,13 +434,25 @@ export function QuestionReviewTable({
                   </TableCell>
                   <TableCell>
                     <div className="text-sm text-text-primary dark:text-text-primary">
-                      {question.chapter?.subject?.name || '-'}
+                      {question.subject?.name || question.chapter?.subject?.name || '-'}
                     </div>
                     <div
                       className="max-w-[150px] truncate text-xs text-text-secondary dark:text-text-secondary"
                       title={question.chapter?.title}
                     >
                       {question.chapter?.title || '-'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1 text-xs text-text-secondary dark:text-text-secondary">
+                      <div>
+                        <span className="mr-1 text-text-tertiary dark:text-text-tertiary">导入:</span>
+                        <span>{formatDateTime(question.createdAt)}</span>
+                      </div>
+                      <div>
+                        <span className="mr-1 text-text-tertiary dark:text-text-tertiary">审核:</span>
+                        <span>{formatDateTime(question.reviewedAt)}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -368,6 +496,18 @@ export function QuestionReviewTable({
                             查看题目/审核
                           </Link>
                         </DropdownMenuItem>
+                        {!isDeletedView ? (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleRowDelete(question.id)}
+                              className="text-[hsl(var(--state-danger-fg))]"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              删除
+                            </DropdownMenuItem>
+                          </>
+                        ) : null}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -377,7 +517,7 @@ export function QuestionReviewTable({
           </TableBody>
           <TableFooter className="border-t border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary">
             <TableRow className="border-b-0 hover:bg-transparent">
-              <TableCell colSpan={9}>
+              <TableCell colSpan={10}>
                 <div className="flex w-full items-center justify-between">
                   <div className="text-xs text-text-secondary dark:text-text-secondary">
                     第 {page} 页 / 共 {totalPages} 页

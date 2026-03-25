@@ -16,3 +16,6 @@ export * from './import-utils'
 
 // OCR providers
 export * from './providers'
+
+// Web import skeleton
+export * from './web-import'

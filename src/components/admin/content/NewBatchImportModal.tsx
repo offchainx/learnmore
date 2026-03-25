@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -42,6 +43,7 @@ const importSchema = z
     importMethod: z.enum(['FILE_UPLOAD', 'WEB_URL']),
     subjectId: z.string().min(1, '请选择科目'),
     source: z.string().min(2, '来源备注至少需要2个字符').max(100),
+    isPastPaper: z.boolean().default(false),
     pageUrl: z.string().optional(),
     maxQuestions: z.string().optional(),
   })
@@ -118,6 +120,7 @@ export function NewBatchImportModal({
       importMethod: 'FILE_UPLOAD',
       subjectId: '',
       source: '',
+      isPastPaper: false,
       pageUrl: '',
       maxQuestions: '',
     },
@@ -130,6 +133,7 @@ export function NewBatchImportModal({
       importMethod: 'FILE_UPLOAD',
       subjectId: '',
       source: '',
+      isPastPaper: false,
       pageUrl: '',
       maxQuestions: '',
     })
@@ -169,6 +173,7 @@ export function NewBatchImportModal({
           pageUrl: values.pageUrl!.trim(),
           subjectId: values.subjectId,
           source: values.source,
+          isPastPaper: values.isPastPaper,
           maxQuestions: values.maxQuestions?.trim() ? Number(values.maxQuestions) : undefined,
         }
         // 网页导入点击后直接返回任务列表，状态在列表中查看
@@ -210,6 +215,7 @@ export function NewBatchImportModal({
       const payload = {
         subjectId: values.subjectId,
         source: values.source,
+        isPastPaper: values.isPastPaper,
       }
 
       // 文件导入点击后也直接返回任务列表，进度统一在批量任务管理中查看
@@ -235,6 +241,7 @@ export function NewBatchImportModal({
             pdfUrl: uploadRes.url,
             subjectId: payload.subjectId,
             source: payload.source,
+            isPastPaper: payload.isPastPaper,
           })
 
           if (!importRes.success || !importRes.data) {
@@ -357,6 +364,28 @@ export function NewBatchImportModal({
                       </FormControl>
                       <FormDescription className="text-xs">用于题库检索与导入追踪</FormDescription>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isPastPaper"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between rounded-xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
+                      <div className="space-y-1">
+                        <FormLabel className="mb-0">是否为真题</FormLabel>
+                        <FormDescription className="text-xs">
+                          开启后导入题目进入真题池；关闭后进入普通练习池。
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isUploading}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />

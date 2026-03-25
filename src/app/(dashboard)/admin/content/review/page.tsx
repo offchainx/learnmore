@@ -80,6 +80,7 @@ export default async function AdminContentPage({
   const filter: QuestionFilter = {
     subjectId,
     status: statusFilter,
+    deletedOnly: currentTab === 'deleted',
   }
 
   // Fetch data in parallel
@@ -312,6 +313,7 @@ export default async function AdminContentPage({
                       { key: 'pending', label: '待审核' },
                       { key: 'published', label: '已发布' },
                       { key: 'rejected', label: '已驳回' },
+                      { key: 'deleted', label: '已删除' },
                     ].map((tab) => {
                       const isActive = currentTab === tab.key
                       return (
@@ -345,6 +347,7 @@ export default async function AdminContentPage({
                   questions={questions}
                   page={questionsResult.page}
                   totalPages={questionsResult.totalPages}
+                  currentTab={currentTab}
                 />
               </Suspense>
             </CardContent>

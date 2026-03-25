@@ -103,7 +103,7 @@ export interface UpdateStatusInput {
 export interface BulkUpdateStatusInput {
   questionIds: string[]
   newStatus: ContentStatus
-  reviewerId: string
+  reviewerId?: string
   comment?: string
 }
 

@@ -24,6 +24,10 @@ export interface ImportFromPDFInput {
   sourcePaper?: string
   /** 章节 ID (可选，用于直接分类) */
   chapterId?: string
+  /** 是否作为真题导入 */
+  isPastPaper?: boolean
+  /** 真题卷号（可选） */
+  paperId?: string | null
 }
 
 /**

@@ -1,7 +1,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { Question, Prisma } from '@prisma/client'
+import { Question } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
@@ -64,10 +64,6 @@ export async function getSmartDrillQuestions(
     const tier = getEffectiveTier(user)
     const minDate = getRetentionDate(tier)
 
-    const difficultyFilter: Prisma.IntFilter = {}
-    if (tier === 'STARTER') difficultyFilter.lte = 2
-    else if (tier === 'STANDARD') difficultyFilter.lte = 4
-
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
@@ -120,7 +116,6 @@ export async function getSmartDrillQuestions(
           subjectId,
           chapterId: { in: weakChapterIds },
           isPastPaper: false,
-          difficulty: difficultyFilter,
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
         },
@@ -145,7 +140,6 @@ export async function getSmartDrillQuestions(
         where: {
           subjectId,
           isPastPaper: false,
-          difficulty: difficultyFilter,
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: [...attemptedIds, ...Array.from(excludeIds)] },
         },

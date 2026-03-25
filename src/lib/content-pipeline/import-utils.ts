@@ -110,6 +110,8 @@ export function convertToCreateInput(
     sourceFileId?: string | null
     source?: string | null
     qualityScore?: number
+    isPastPaper?: boolean
+    paperId?: string | null
   }
 ): CreateQuestionInput {
   const imageUrls = Array.from(
@@ -133,6 +135,8 @@ export function convertToCreateInput(
     source: metadata.source ?? null,
     assetUrl: imageUrls[0] ?? null,
     imageUrls,
+    isPastPaper: metadata.isPastPaper ?? false,
+    paperId: metadata.paperId ?? null,
     qualityScore: metadata.qualityScore ?? null,
   }
 }

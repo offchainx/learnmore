@@ -1,9 +1,18 @@
 import { QuestionType } from '@prisma/client'
+import { request as httpRequest } from 'node:http'
+import { request as httpsRequest } from 'node:https'
 
 const DEFAULT_DELAY_MS = 1200
+export const EXAMCOO_VIEW_URL_PATTERN = /^https?:\/\/www\.examcoo\.com\/editor\/do\/view\/id\/\d+/i
 
 interface CookieJarStore {
   [name: string]: string
+}
+
+interface NodeHttpResponse {
+  statusCode: number
+  headers: Record<string, string | string[] | undefined>
+  body: string
 }
 
 export interface ExamcooImportQuestion {
@@ -37,6 +46,10 @@ interface RawExamcooQuestion {
   c?: string
 }
 
+export function isExamcooViewPaperUrl(url: string): boolean {
+  return EXAMCOO_VIEW_URL_PATTERN.test(url.trim())
+}
+
 class CookieJar {
   private store: CookieJarStore = {}
 
@@ -46,6 +59,22 @@ class CookieJar {
       typeof header.getSetCookie === 'function'
         ? header.getSetCookie()
         : splitSetCookieHeader(res.headers.get('set-cookie'))
+
+    for (const line of setCookieLines) {
+      const first = line.split(';')[0]
+      const [name, ...rest] = first.split('=')
+      if (!name || rest.length === 0) continue
+      this.store[name.trim()] = rest.join('=').trim()
+    }
+  }
+
+  ingestFromHeaders(headers: Record<string, string | string[] | undefined>) {
+    const setCookie = headers['set-cookie']
+    const setCookieLines = Array.isArray(setCookie)
+      ? setCookie
+      : typeof setCookie === 'string'
+        ? splitSetCookieHeader(setCookie)
+        : []
 
     for (const line of setCookieLines) {
       const first = line.split(';')[0]
@@ -95,6 +124,68 @@ function splitSetCookieHeader(raw: string | null): string[] {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function doNodeHttpRequest(
+  url: string,
+  options: { method: 'GET' | 'POST'; headers: Record<string, string>; body?: string },
+  redirectCount = 0
+): Promise<NodeHttpResponse> {
+  return new Promise((resolve, reject) => {
+    const target = new URL(url)
+    const requestImpl = target.protocol === 'https:' ? httpsRequest : httpRequest
+    const req = requestImpl(
+      target,
+      {
+        method: options.method,
+        headers: options.headers,
+      },
+      (res) => {
+        const statusCode = res.statusCode ?? 0
+        const location = res.headers.location
+
+        if (
+          location &&
+          statusCode >= 300 &&
+          statusCode < 400 &&
+          redirectCount < 5
+        ) {
+          res.resume()
+          const nextUrl = new URL(location, target).toString()
+          void doNodeHttpRequest(
+            nextUrl,
+            {
+              method: statusCode === 303 ? 'GET' : options.method,
+              headers: options.headers,
+              body: statusCode === 303 ? undefined : options.body,
+            },
+            redirectCount + 1
+          ).then(resolve, reject)
+          return
+        }
+
+        const chunks: Buffer[] = []
+        res.on('data', (chunk) => {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        })
+        res.on('end', () => {
+          resolve({
+            statusCode,
+            headers: res.headers,
+            body: Buffer.concat(chunks).toString('utf8'),
+          })
+        })
+      }
+    )
+
+    req.on('error', reject)
+
+    if (options.body) {
+      req.write(options.body)
+    }
+
+    req.end()
+  })
 }
 
 function decodeHtml(input = ''): string {
@@ -263,10 +354,12 @@ async function httpGet(url: string, jar: CookieJar, referer?: string): Promise<s
   if (cookie) headers.cookie = cookie
   if (referer) headers.referer = referer
 
-  const res = await fetch(url, { method: 'GET', headers, cache: 'no-store' })
-  jar.ingestFromResponse(res)
-  if (!res.ok) throw new Error(`GET ${url} failed: ${res.status}`)
-  return res.text()
+  const res = await doNodeHttpRequest(url, { method: 'GET', headers })
+  jar.ingestFromHeaders(res.headers)
+  if (res.statusCode < 200 || res.statusCode >= 300) {
+    throw new Error(`GET ${url} failed: ${res.statusCode}`)
+  }
+  return res.body
 }
 
 async function httpPostForm(
@@ -287,10 +380,12 @@ async function httpPostForm(
   if (referer) headers.referer = referer
 
   const body = new URLSearchParams(form).toString()
-  const res = await fetch(url, { method: 'POST', headers, body, cache: 'no-store' })
-  jar.ingestFromResponse(res)
-  if (!res.ok) throw new Error(`POST ${url} failed: ${res.status}`)
-  return res.text()
+  const res = await doNodeHttpRequest(url, { method: 'POST', headers, body })
+  jar.ingestFromHeaders(res.headers)
+  if (res.statusCode < 200 || res.statusCode >= 300) {
+    throw new Error(`POST ${url} failed: ${res.statusCode}`)
+  }
+  return res.body
 }
 
 function parseAnswer(type: QuestionType, rawAnswer: unknown, optionCount: number): string | string[] | null {

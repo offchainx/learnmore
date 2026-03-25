@@ -13,7 +13,7 @@ import { revalidatePath } from 'next/cache'
 import { ProcessingStatus, ContentStatus, ReviewAction } from '@prisma/client'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
-import { crawlExamcooViewPaper } from '@/lib/content-pipeline/examcoo-view-import'
+import { resolveWebImportAdapter, runWebImport } from '@/lib/content-pipeline/web-import'
 import { bulkCreateQuestions } from './question-service'
 import { getCurrentUser } from '@/actions/user/auth'
 import type {
@@ -43,11 +43,20 @@ interface ImportFromWebUrlInput {
   source?: string
   chapterId?: string
   maxQuestions?: number
+  isPastPaper?: boolean
+  paperId?: string | null
 }
 
 function buildSourceLabel(input: ImportFromWebUrlInput, fallback: string): string {
   const base = input.source?.trim()
   return base || fallback
+}
+
+function buildWebImportQuestionSource(
+  input: ImportFromWebUrlInput,
+  fallbackMeta?: string | null
+): string {
+  return buildSourceLabel(input, fallbackMeta?.trim() || 'web-import')
 }
 
 async function moveImportedQuestionsToReviewPending(questionIds: string[], reviewerId: string): Promise<void> {
@@ -377,6 +386,8 @@ export async function importFromPDF(
           subjectId: input.subjectId,
           sourceFileId: sourceFile.id,
           source: input.source,
+          isPastPaper: input.isPastPaper ?? false,
+          paperId: input.isPastPaper ? input.paperId ?? null : null,
           qualityScore,
         })
       })
@@ -472,11 +483,12 @@ export async function importFromWebUrl(
     }
   }
 
-  if (!/^https?:\/\/www\.examcoo\.com\/editor\/do\/view\/id\/\d+/i.test(pageUrl)) {
+  const resolvedAdapter = await resolveWebImportAdapter(pageUrl)
+  if (!resolvedAdapter.success || !resolvedAdapter.data) {
     return {
       success: false,
-      error: '当前仅支持 Examcoo 试卷页面链接（/editor/do/view/id/{id}）',
-      code: 'INVALID_PDF',
+      error: resolvedAdapter.error || '当前没有可处理该链接的网页导入适配器',
+      code: resolvedAdapter.code || 'INVALID_PDF',
     }
   }
 
@@ -525,7 +537,7 @@ export async function importFromWebUrl(
   try {
     const sourceFile = await prisma.sourceFile.create({
       data: {
-        filename: extractFilename(pageUrl) || 'examcoo-view.html',
+        filename: extractFilename(pageUrl) || `${resolvedAdapter.data.name}.html`,
         sourceNote: input.source?.trim() || null,
         fileUrl: pageUrl,
         fileType: 'html',
@@ -539,13 +551,18 @@ export async function importFromWebUrl(
     })
     sourceFileId = sourceFile.id
 
-    const crawled = await crawlExamcooViewPaper({
-      url: pageUrl,
-      limit: input.maxQuestions,
+    const webImportResult = await runWebImport({
+      pageUrl,
+      subjectId: input.subjectId,
+      source: input.source,
+      chapterId: input.chapterId,
+      maxQuestions: input.maxQuestions,
     })
+    if (!webImportResult.success || !webImportResult.data) {
+      throw new Error(webImportResult.error || '网页导入失败')
+    }
 
-    const sourceTag = buildSourceLabel(input, crawled.sourceTag)
-    const questionsToCreate: CreateQuestionInput[] = crawled.questions.map((question) => ({
+    const questionsToCreate: CreateQuestionInput[] = webImportResult.data.normalized.questions.map((question) => ({
       content: question.content,
       type: question.type,
       difficulty: 3,
@@ -557,12 +574,15 @@ export async function importFromWebUrl(
       answer: question.answer,
       explanation: question.explanation,
       sourceFileId,
-      source: sourceTag,
-      tags: ['examcoo', 'web-import'],
+      source: buildWebImportQuestionSource(
+        input,
+        typeof question.sourceMeta?.sourceTag === 'string' ? question.sourceMeta.sourceTag : null
+      ),
+      tags: [question.sourceSite, 'web-import'],
       assetUrl: question.assetUrl,
-      imageUrls: question.imageUrls ?? (question.assetUrl ? [question.assetUrl] : []),
-      isPastPaper: true,
-      paperId: crawled.paperId,
+      imageUrls: question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
+      isPastPaper: input.isPastPaper ?? false,
+      paperId: input.isPastPaper ? input.paperId ?? question.paperId ?? null : null,
       qualityScore: null,
       createdBy: currentUser.id,
     }))

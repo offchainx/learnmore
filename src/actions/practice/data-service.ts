@@ -384,55 +384,23 @@ export async function getRandomQuestions(
     userId
   } = filters
 
-  // 1. 获取用户等级 (C1)
-  let tier: ReturnType<typeof getEffectiveTier> = 'STARTER'
-  if (userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        permissionOverrides: {
-          where: {
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } }
-            ]
-          }
-        }
-      }
-    })
-    if (user) {
-      tier = getEffectiveTier(user)
-    }
-  }
-
-  // 2. 构建基础查询条件
+  // 1. 构建基础查询条件
   const whereCondition: Prisma.QuestionWhereInput = {
     status: { in: ['PUBLISHED', 'VERIFIED'] },
     isPastPaper: includePastPaper,
   }
 
-  // C1: Apply Tier-based filtering (Business Integration)
-  // Starter: 1-2 星 / Standard: 1-4 星 / Smart Plus/Premier: 1-5 星
-  const tierAllowedDifficulty =
-    tier === 'STARTER' ? [1, 2]
-      : tier === 'STANDARD' ? [1, 2, 3, 4]
-        : [1, 2, 3, 4, 5]
-
-  // 用户手动筛选难度时，必须与权限难度取严格交集
-  // 交集为空时直接返回空结果，避免被“自动兜底”重写筛选条件
+  // 当前联调阶段暂不按套餐裁剪难度，显式筛选时仅尊重用户传入的难度集合。
   if (difficulty && difficulty.length > 0) {
     const normalizedDifficulty = Array.from(
       new Set(
         difficulty.filter((d): d is number => Number.isInteger(d) && d >= 1 && d <= 5)
       )
     )
-    const intersection = normalizedDifficulty.filter(d => tierAllowedDifficulty.includes(d))
-    if (intersection.length === 0) {
+    if (normalizedDifficulty.length === 0) {
       return []
     }
-    whereCondition.difficulty = { in: intersection }
-  } else {
-    whereCondition.difficulty = { in: tierAllowedDifficulty }
+    whereCondition.difficulty = { in: normalizedDifficulty }
   }
 
   // 章节筛选
