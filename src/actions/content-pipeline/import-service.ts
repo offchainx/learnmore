@@ -13,6 +13,7 @@ import { revalidatePath } from 'next/cache'
 import { ProcessingStatus, ContentStatus, ReviewAction } from '@prisma/client'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
+import { autoAssignQuestionChapters } from '@/lib/content-pipeline/chapter-tagging'
 import { resolveWebImportAdapter, runWebImport } from '@/lib/content-pipeline/web-import'
 import { bulkCreateQuestions } from './question-service'
 import { getCurrentUser } from '@/actions/user/auth'
@@ -378,7 +379,7 @@ export async function importFromPDF(
       }
 
       // 转换为创建输入并计算质量分数
-      const questionsToCreate: CreateQuestionInput[] = structureResult.questions.map((q) => {
+      const questionsToCreateDraft: CreateQuestionInput[] = structureResult.questions.map((q) => {
         const qualityScore = options?.skipQualityCheck ? undefined : calculateQualityScore(q)
 
         return convertToCreateInput(q, {
@@ -391,6 +392,9 @@ export async function importFromPDF(
           qualityScore,
         })
       })
+      const questionsToCreate = await autoAssignQuestionChapters(
+        questionsToCreateDraft
+      )
 
       // ==================== 阶段 6: 保存入库 ====================
       reportProgress(createProgress('SAVING', `正在保存 ${questionsToCreate.length} 道题目...`))
@@ -562,7 +566,7 @@ export async function importFromWebUrl(
       throw new Error(webImportResult.error || '网页导入失败')
     }
 
-    const questionsToCreate: CreateQuestionInput[] = webImportResult.data.normalized.questions.map((question) => ({
+    const questionsToCreateDraft: CreateQuestionInput[] = webImportResult.data.normalized.questions.map((question) => ({
       content: question.content,
       type: question.type,
       difficulty: 3,
@@ -586,6 +590,9 @@ export async function importFromWebUrl(
       qualityScore: null,
       createdBy: currentUser.id,
     }))
+    const questionsToCreate = await autoAssignQuestionChapters(
+      questionsToCreateDraft
+    )
 
     const bulkResult = await bulkCreateQuestions({
       questions: questionsToCreate,

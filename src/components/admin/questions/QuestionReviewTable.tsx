@@ -30,6 +30,7 @@ import {
   ArrowUpCircle,
   ClipboardCheck,
   Trash2,
+  Sparkles,
 } from 'lucide-react'
 import { DifficultyBadge } from '../common/DifficultyBadge'
 import { QualityScoreBadge } from '../common/QualityScoreBadge'
@@ -37,6 +38,7 @@ import { QuestionWithRelations } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import {
   bulkDeleteQuestions,
+  bulkAutoTagQuestionChapters,
   bulkUpdateQuestionStatus,
   deleteQuestion,
 } from '@/actions/content-pipeline/question-service'
@@ -161,6 +163,41 @@ export function QuestionReviewTable({
           description: firstError ? `删除失败: ${firstError}` : `删除失败: ${result.failed} 个错误`,
         })
       }
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: '错误',
+        description: '发生未知错误',
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleBulkAutoTag = async (targetIds: string[] = selectedIds) => {
+    if (targetIds.length === 0 || isDeletedView) return
+
+    setIsUpdating(true)
+    try {
+      const result = await bulkAutoTagQuestionChapters({
+        questionIds: targetIds,
+      })
+      if (result.succeeded > 0) {
+        toast({
+          title: '章节补全完成',
+          description: `已补章节 ${result.succeeded} 题${result.failed > 0 ? `，未命中 ${result.failed} 题` : ''}`,
+        })
+        setSelectedIds([])
+        router.refresh()
+        return
+      }
+
+      const firstError = result.results.find((item) => !item.success)?.error
+      toast({
+        variant: 'destructive',
+        title: '章节补全失败',
+        description: firstError || '没有题目命中可用章节',
+      })
     } catch {
       toast({
         variant: 'destructive',
@@ -322,6 +359,16 @@ export function QuestionReviewTable({
               >
                 <XCircle className="mr-2 h-4 w-4" />
                 驳回
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selectedIds.length === 0 || isUpdating}
+                onClick={() => handleBulkAutoTag()}
+                className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI补章节
               </Button>
               <Button
                 size="sm"
@@ -499,6 +546,12 @@ export function QuestionReviewTable({
                         {!isDeletedView ? (
                           <>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleBulkAutoTag([question.id])}
+                            >
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              AI补章节
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleRowDelete(question.id)}
                               className="text-[hsl(var(--state-danger-fg))]"

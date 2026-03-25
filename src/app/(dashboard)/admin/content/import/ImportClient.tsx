@@ -83,6 +83,14 @@ export function ImportClient({
   )
 
   const stats = useMemo<StatsData>(() => initialStats, [initialStats])
+  const hasActiveBatches = useMemo(
+    () =>
+      history.some(
+        (task) =>
+          task.status === 'PROCESSING' || task.status === 'PENDING'
+      ),
+    [history]
+  )
 
   const auditLogs = useMemo<AuditLogEntry[]>(
     () =>
@@ -117,12 +125,14 @@ export function ImportClient({
   const [isRefreshing, startRefresh] = useTransition()
 
   useEffect(() => {
+    if (!hasActiveBatches) return undefined
+
     const timer = setInterval(() => {
       router.refresh()
     }, 5000)
 
     return () => clearInterval(timer)
-  }, [router])
+  }, [hasActiveBatches, router])
 
   const handleImportSuccess = () => {
     router.refresh()

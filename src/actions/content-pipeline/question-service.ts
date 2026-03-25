@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
+import { suggestQuestionChapters } from '@/lib/content-pipeline/chapter-tagging'
 import {
   ContentStatus,
   Prisma,
@@ -64,6 +65,14 @@ async function resolveReviewerId(preferredReviewerId?: string): Promise<string> 
   }
 
   throw new Error('没有可用的审核人')
+}
+
+function safeRevalidatePath(path: string): void {
+  try {
+    revalidatePath(path)
+  } catch (error) {
+    console.warn(`Skip revalidatePath(${path}):`, error)
+  }
 }
 
 export async function generateContentHash(
@@ -602,6 +611,134 @@ export async function bulkDeleteQuestions(
     succeeded,
     failed,
     results,
+  }
+}
+
+export async function bulkAutoTagQuestionChapters(
+  input: { questionIds: string[] }
+): Promise<BulkOperationResult<QuestionWithRelations>> {
+  const questionIds = Array.isArray(input.questionIds) ? input.questionIds : []
+  const results: BulkOperationResult<QuestionWithRelations>['results'] = []
+  let succeeded = 0
+  let failed = 0
+
+  try {
+    const questions = await prisma.question.findMany({
+      where: {
+        id: { in: questionIds },
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        content: true,
+        explanation: true,
+        tags: true,
+        subjectId: true,
+        chapterId: true,
+      },
+    })
+
+    const questionMap = new Map(questions.map((question) => [question.id, question]))
+    const suggestions = await suggestQuestionChapters(
+      questions.map((question) => ({
+        id: question.id,
+        content: question.content,
+        explanation: question.explanation,
+        tags: question.tags,
+        subjectId: question.subjectId,
+        chapterId: question.chapterId,
+      }))
+    )
+    const suggestionMap = new Map(
+      suggestions.map((suggestion) => [suggestion.questionId, suggestion])
+    )
+
+    for (let index = 0; index < questionIds.length; index++) {
+      const questionId = questionIds[index]
+      const question = questionMap.get(questionId)
+
+      if (!question) {
+        results.push({ index, success: false, error: '题目不存在或已删除' })
+        failed++
+        continue
+      }
+
+      if (!question.subjectId) {
+        results.push({ index, success: false, error: '题目缺少科目，无法补章节' })
+        failed++
+        continue
+      }
+
+      if (question.chapterId) {
+        const existing = await prisma.question.findUnique({
+          where: { id: questionId },
+          select: selectQuestionRelations(),
+        })
+
+        results.push({
+          index,
+          success: true,
+          data: existing as QuestionWithRelations,
+        })
+        succeeded++
+        continue
+      }
+
+      const suggestion = suggestionMap.get(questionId)
+      if (!suggestion?.chapterId) {
+        results.push({
+          index,
+          success: false,
+          error: suggestion?.reason || '未能匹配到合适章节',
+        })
+        failed++
+        continue
+      }
+
+      const updated = await prisma.question.update({
+        where: { id: questionId },
+        data: {
+          chapterId: suggestion.chapterId,
+        },
+        select: selectQuestionRelations(),
+      })
+
+      results.push({
+        index,
+        success: true,
+        data: updated as QuestionWithRelations,
+      })
+      succeeded++
+    }
+
+    safeRevalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/import')
+    safeRevalidatePath('/dashboard/practice')
+
+    return {
+      success: failed === 0,
+      total: questionIds.length,
+      succeeded,
+      failed,
+      results,
+    }
+  } catch (error) {
+    console.error('bulkAutoTagQuestionChapters failed:', error)
+    return {
+      success: false,
+      total: questionIds.length,
+      succeeded,
+      failed: questionIds.length,
+      results:
+        questionIds.length > 0
+          ? questionIds.map((_, index) => ({
+              index,
+              success: false,
+              error:
+                error instanceof Error ? error.message : '章节补全失败',
+            }))
+          : results,
+    }
   }
 }
 
