@@ -95,6 +95,7 @@
 
 | 2026-03-25 | T-007.4 练习写链路、幂等与副作用收口 | 统一 Practice 提交链路，新增 clientSessionId 幂等、收口 Mock Arena 条件提交与 Error Wiper 批量会话提交，并同步文档与测试 | 已完成 T-007.4：统一 exam_records/user_attempts 总账细账模型、落地幂等键、统一副作用、完成 Error Wiper 一轮一总账改造，定向测试与 db push 通过 | 先锁定总账/细账职责，再抽共享 persist/effects helper，能用最小改动覆盖 Smart Drill、Chapter Drill、Mock Arena 与 Error Wiper | 旧测试对 Error Wiper 和 Mock Arena 提交模型假设过时，需要同步调整 mock 与断言 | 涉及练习提交时，先审计所有提交入口与副作用，再抽统一提交核心和副作用核心，最后补客户端 session key 与定向测试 | 提交当前 T-007.4 改动；如继续推进则进入 T-007.5 清理 preview/mock 正式展示 |
 | 2026-03-25 | 工作包 D 章节打标与导入页轮询收口 | 为导入链路和审核台补上“规则优先 + AI 可选”的章节打标，并去掉 `/admin/content/import` 空闲状态下的固定 5 秒轮询。 | 已新增章节打标器、导入前自动补章节、审核台 `AI补章节` 动作与 SOP 回写；导入页仅在存在处理中批次时轮询，空闲状态 6 秒内不再重复请求页面。 | 先用当前科目的叶子章节做规则命中，再把未命中的题收敛到小候选集，能显著降低 token 成本，也避免 AI 自由乱猜。 | Next server action 直接收 `string[]` 会被当成临时客户端引用，导致审核台动作 500；按钮事件也会把 `MouseEvent` 误当成题目 ID。 | server action 默认优先用对象入参；客户端批量动作不要直接把事件处理函数当回调传入，需要显式包装为 `() => action()`。 | 清理当前历史题的章节缺口，并继续推进非真题样本进入 `Chapter Drill / Mock Arena` 的端到端验证。 |
+| 2026-03-25 | 章节打标 AI 提供方切换到 Gemini | 按用户提供的 Gemini key，把章节打标 AI 从 Anthropic 优先改成 Gemini 优先，并验证“规则未命中”的题也能走 AI 补章节。 | 已接入 Gemini API，当前优先使用 `gemini-2.5-flash-lite` 做章节候选排序；样例“辛亥革命推翻了哪个朝代？”已成功命中 `辛亥革命与中华民国的建立` 章节。 | 先调用 Google 模型列表确认 key 真可用，再选便宜且对新 key 可用的 Flash Lite，能避免一上来就踩废弃模型。 | `gemini-1.5-flash` 与 `gemini-2.0-flash-lite` 对该 key 不可用或已对新用户关闭，如果不先试模型列表会反复 404。 | 接第三方模型前先调用 `ListModels` 验证当前 key 实际可用的模型名，再把代码默认值切到可调用且便宜的版本。 | 用 Gemini 给现有无章节的历史题批量补一轮 `chapterId`，再验证 `Chapter Drill / Mock Arena` 读取效果。 |
 
 ## 约束
 

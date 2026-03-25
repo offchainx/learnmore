@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import prisma from '@/lib/prisma'
 import type { CreateQuestionInput } from './types'
 
@@ -147,15 +148,24 @@ function parseJsonBlock(text: string): unknown {
 }
 
 class ChapterTaggingAI {
-  private client: Anthropic | null
+  private anthropicClient: Anthropic | null
+  private geminiClient: GoogleGenerativeAI | null
 
   constructor() {
-    const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
-    this.client = apiKey ? new Anthropic({ apiKey }) : null
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY?.trim()
+    const geminiApiKey =
+      process.env.GEMINI_API_KEY?.trim() || process.env.GOOGLE_API_KEY?.trim()
+
+    this.anthropicClient = anthropicApiKey
+      ? new Anthropic({ apiKey: anthropicApiKey })
+      : null
+    this.geminiClient = geminiApiKey
+      ? new GoogleGenerativeAI(geminiApiKey)
+      : null
   }
 
   get available(): boolean {
-    return Boolean(this.client)
+    return Boolean(this.geminiClient || this.anthropicClient)
   }
 
   async tagBatch(
@@ -167,7 +177,7 @@ class ChapterTaggingAI {
       candidates: ChapterCandidate[]
     }>
   ): Promise<Map<string, ChapterTaggingSuggestion>> {
-    if (!this.client || batch.length === 0) {
+    if (batch.length === 0) {
       return new Map()
     }
 
@@ -207,24 +217,12 @@ ${JSON.stringify(
 ]`
 
     try {
-      const response = await this.client.messages.create({
-        model: 'claude-3-5-haiku-20241022',
-        max_tokens: 1400,
-        temperature: 0,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      })
+      const parsed = this.geminiClient
+        ? await this.tagBatchWithGemini(prompt)
+        : this.anthropicClient
+          ? await this.tagBatchWithAnthropic(prompt)
+          : null
 
-      const firstBlock = response.content[0]
-      if (firstBlock?.type !== 'text') {
-        return new Map()
-      }
-
-      const parsed = parseJsonBlock(firstBlock.text)
       if (!Array.isArray(parsed)) {
         return new Map()
       }
@@ -259,6 +257,46 @@ ${JSON.stringify(
       console.error('AI chapter tagging failed:', error)
       return new Map()
     }
+  }
+
+  private async tagBatchWithGemini(prompt: string): Promise<unknown> {
+    if (!this.geminiClient) return null
+
+    const model = this.geminiClient.getGenerativeModel({
+      model: 'gemini-2.5-flash-lite',
+      generationConfig: {
+        temperature: 0,
+        maxOutputTokens: 1400,
+        responseMimeType: 'application/json',
+      },
+    })
+
+    const response = await model.generateContent(prompt)
+    const text = response.response.text()
+    return parseJsonBlock(text)
+  }
+
+  private async tagBatchWithAnthropic(prompt: string): Promise<unknown> {
+    if (!this.anthropicClient) return null
+
+    const response = await this.anthropicClient.messages.create({
+      model: 'claude-3-5-haiku-20241022',
+      max_tokens: 1400,
+      temperature: 0,
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    })
+
+    const firstBlock = response.content[0]
+    if (firstBlock?.type !== 'text') {
+      return null
+    }
+
+    return parseJsonBlock(firstBlock.text)
   }
 }
 
