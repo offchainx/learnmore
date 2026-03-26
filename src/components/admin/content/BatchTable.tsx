@@ -44,10 +44,18 @@ import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import {
   deleteImportTask,
+  getImportTaskDetail,
   resumeFailedImport,
 } from '@/actions/content-pipeline/import-service'
 import { useToast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface BatchTableProps {
   batches: BatchData[]
@@ -171,6 +179,10 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
   const [mounted, setMounted] = useState(false)
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
+  const [diagnosticsLoading, setDiagnosticsLoading] = useState(false)
+  const [diagnosticsTaskName, setDiagnosticsTaskName] = useState<string>('')
+  const [diagnosticsData, setDiagnosticsData] = useState<BatchData['importDiagnostics'] | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -283,6 +295,31 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
       })
     }
   }
+
+  const handleOpenDiagnostics = (batch: BatchData) => {
+    setDiagnosticsTaskName(batch.sourceRemark || batch.name)
+    setDiagnosticsData(batch.importDiagnostics ?? null)
+    setDiagnosticsOpen(true)
+    setDiagnosticsLoading(true)
+
+    startTransition(async () => {
+      const detail = await getImportTaskDetail(batch.id)
+      if (detail.success && detail.data) {
+        setDiagnosticsData(detail.data.sourceFile.importDiagnostics ?? null)
+      } else if (!batch.importDiagnostics) {
+        toast({
+          variant: 'destructive',
+          title: '读取诊断失败',
+          description: detail.error || '当前批次暂无可读诊断信息',
+        })
+      }
+      setDiagnosticsLoading(false)
+    })
+  }
+
+  const diagnosticsMissingIds = diagnosticsData?.missingRawQuestionIds ?? []
+  const diagnosticsDuplicateIds = diagnosticsData?.duplicatedRawQuestionIds ?? []
+  const diagnosticsFailedQuestions = diagnosticsData?.failedQuestions ?? []
 
   if (!mounted) {
     return (
@@ -519,6 +556,12 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                           复制来源链接
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          onClick={() => handleOpenDiagnostics(batch)}
+                        >
+                          <FileSearch className="h-4 w-4" />
+                          查看导入诊断
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() =>
                             router.push(
                               `/admin/content/review?sourceFileId=${batch.id}`
@@ -624,6 +667,89 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
           </div>
         </div>
       </div>
+
+      <Dialog open={diagnosticsOpen} onOpenChange={setDiagnosticsOpen}>
+        <DialogContent className="max-w-3xl border-borderTone bg-surface text-text-primary">
+          <DialogHeader>
+            <DialogTitle>导入诊断</DialogTitle>
+            <DialogDescription className="text-text-secondary">
+              {diagnosticsTaskName || '当前批次'} 的抓取与入库诊断信息
+            </DialogDescription>
+          </DialogHeader>
+
+          {diagnosticsLoading && !diagnosticsData ? (
+            <div className="rounded-2xl border border-borderTone bg-surface-subtle p-6 text-sm text-text-secondary">
+              正在加载诊断信息...
+            </div>
+          ) : diagnosticsData ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  ['预期题数', diagnosticsData.expectedQuestionCount ?? 0],
+                  ['解析题数', diagnosticsData.normalizedQuestionCount ?? 0],
+                  ['入库题数', diagnosticsData.createdQuestionCount ?? 0],
+                  ['缺失题数', diagnosticsMissingIds.length],
+                ].map(([label, value]) => (
+                  <div
+                    key={String(label)}
+                    className="rounded-2xl border border-borderTone bg-surface-subtle p-4"
+                  >
+                    <div className="text-xs text-text-secondary">{label}</div>
+                    <div className="mt-2 text-2xl font-semibold text-text-primary">
+                      {value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
+                  <div className="text-sm font-medium text-text-primary">
+                    缺失题号
+                  </div>
+                  <div className="mt-2 text-sm text-text-secondary">
+                    {diagnosticsMissingIds.length > 0
+                      ? diagnosticsMissingIds.join(', ')
+                      : '当前没有缺失题号'}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
+                  <div className="text-sm font-medium text-text-primary">
+                    重复题号
+                  </div>
+                  <div className="mt-2 text-sm text-text-secondary">
+                    {diagnosticsDuplicateIds.length > 0
+                      ? diagnosticsDuplicateIds.join(', ')
+                      : '当前没有重复题号'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
+                <div className="text-sm font-medium text-text-primary">
+                  失败明细
+                </div>
+                <div className="mt-2 space-y-2 text-sm text-text-secondary">
+                  {diagnosticsFailedQuestions.length > 0 ? (
+                    diagnosticsFailedQuestions.map((item, index) => (
+                      <div key={`${item.rawQuestionId || 'unknown'}-${index}`}>
+                        {(item.rawQuestionId || '未知题号') + '：' + item.reason}
+                      </div>
+                    ))
+                  ) : (
+                    <div>当前没有失败题。</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-borderTone bg-surface-subtle p-6 text-sm text-text-secondary">
+              当前批次还没有可显示的导入诊断信息。
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
