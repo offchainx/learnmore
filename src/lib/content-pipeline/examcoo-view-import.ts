@@ -213,7 +213,17 @@ function normalizeImageUrl(rawUrl: string, attrName: string): string {
   if (/^https?:\/\//i.test(value)) return value
   if (value.startsWith('//')) return `https:${value}`
 
+  const uploadsToPaperMatch = value.match(
+    /^\/uploads\/\d+\/(\d+)\/images\/(\d{6})\/([^/?#]+)$/i
+  )
+
   if (attrName === '_djrealurl') {
+    // Examcoo API 经常返回历史 _djrealurl=/uploads/...，
+    // 但真实可访问的是前台页面渲染后的 /paper/<uid>/<yyyymm>/<filename>。
+    if (uploadsToPaperMatch) {
+      const [, ownerId, yearMonth, filename] = uploadsToPaperMatch
+      return `https://img.examcoo.com/paper/${ownerId}/${yearMonth}/${filename}`
+    }
     return `https://img.examcoo.com${value.startsWith('/') ? '' : '/'}${value}`
   }
 

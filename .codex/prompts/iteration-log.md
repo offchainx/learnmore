@@ -112,6 +112,8 @@
 
 | 2026-03-26 | Task 7 图片题干图转存修复 | 修复 examcoo 图片 URL 抽取：同一个 <img> 同时存在 src 与 _djrealurl 时优先使用 src，避免抽到无扩展名的 _djrealurl 导致 404，确保题干图可以被下载并转存。 | examcoo-view-import.ts 现在会按 img tag 粒度选取最佳图片 URL：优先 src，其次 _djrealurl；相对图片路径也会归一到 img.examcoo.com，导入转存阶段不再大量 404。 | - | - | - | - |
 
+| 2026-03-26 | Task 7 examcoo 题图 URL 归一化修复 | 修复 examcoo API 返回 _djrealurl=/uploads/... 但前台真实可访问图片是 /paper/... 的问题，确保题干图抓取时优先落成可下载的 paper URL。 | examcoo-view-import.ts 现在会把 _djrealurl=/uploads/<bucket>/<uid>/images/<yyyymm>/<filename> 归一化为 https://img.examcoo.com/paper/<uid>/<yyyymm>/<filename>，本地已验证 202494 的题图不再是 404。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录
