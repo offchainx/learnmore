@@ -210,6 +210,14 @@ function decodeHtml(input = ''): string {
 
 function normalizeImageUrl(rawUrl: string, attrName: string): string {
   const value = rawUrl.trim()
+  const absoluteUploadsToPaperMatch = value.match(
+    /^https?:\/\/img\.examcoo\.com\/uploads\/\d+\/(\d+)\/images\/(\d{6})\/([^/?#]+)$/i
+  )
+  if (absoluteUploadsToPaperMatch) {
+    const [, ownerId, yearMonth, filename] = absoluteUploadsToPaperMatch
+    return `https://img.examcoo.com/paper/${ownerId}/${yearMonth}/${filename}`
+  }
+
   if (/^https?:\/\//i.test(value)) return value
   if (value.startsWith('//')) return `https:${value}`
 

@@ -114,6 +114,8 @@
 
 | 2026-03-26 | Task 7 examcoo 题图 URL 归一化修复 | 修复 examcoo API 返回 _djrealurl=/uploads/... 但前台真实可访问图片是 /paper/... 的问题，确保题干图抓取时优先落成可下载的 paper URL。 | examcoo-view-import.ts 现在会把 _djrealurl=/uploads/<bucket>/<uid>/images/<yyyymm>/<filename> 归一化为 https://img.examcoo.com/paper/<uid>/<yyyymm>/<filename>，本地已验证 202494 的题图不再是 404。 | - | - | - | - |
 
+| 2026-03-26 | Task 7 examcoo 题干图链路收口，定位 215111 整卷里仍有绝对 uploads 图链未被替换的问题 | 当 examcoo 图片 src 已经是绝对的 img.examcoo.com/uploads 路径时，也要在抓取阶段归一化成可下载的 paper 路径，再进入转存替换流程 | 已修复 normalizeImageUrl 对绝对 uploads 图链的漏判；新抓取时这类题干图会先归一为 /paper/... 再转存到 Supabase，避免正文残留旧外链 | 先用审核页抽查最新整卷导入结果，直接看 content 中真实落库的图片 URL，再回溯抓取归一化逻辑 | 只验证了相对 _djrealurl->paper 映射，漏掉了 src 本身就是绝对 uploads URL 的分支 | 遇到网页图片转存问题时，先分别核对三层：抓取阶段抽到的原始 URL、归一化后的可下载 URL、最终写入 content 的替换结果；三层缺一不可。 | 提交并推送本轮补丁，然后用 215111 整卷重新导入验证所有题干图是否都替换成 Supabase 链接 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录
