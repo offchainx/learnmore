@@ -6,6 +6,7 @@
  */
 
 import prisma from '@/lib/prisma'
+import { QuestionType } from '@prisma/client'
 import type { Question, PracticeMode, Prisma } from '@prisma/client'
 import { applyPracticeSubmissionEffects } from './submission-effects'
 
@@ -65,6 +66,14 @@ const DIFFICULTY_LEVELS = {
   hard: [4, 5],
 }
 
+const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
+  QuestionType.SINGLE_CHOICE,
+  QuestionType.MULTIPLE_CHOICE,
+  QuestionType.FILL_BLANK,
+  QuestionType.TRUE_FALSE,
+  QuestionType.MCQ,
+]
+
 // ============ A: 生成模拟试卷 ============
 
 /**
@@ -104,11 +113,21 @@ export async function generateMockExam(
   const chapterIds = chapters.map(c => c.id)
 
   // 4. 按难度分别抽取题目
-  const [easyQuestions, mediumQuestions, hardQuestions] = await Promise.all([
-    getQuestionsByDifficulty(chapterIds, DIFFICULTY_LEVELS.easy, easyCount),
-    getQuestionsByDifficulty(chapterIds, DIFFICULTY_LEVELS.medium, mediumCount),
-    getQuestionsByDifficulty(chapterIds, DIFFICULTY_LEVELS.hard, hardCount),
-  ])
+  const easyQuestions = await getQuestionsByDifficulty(
+    chapterIds,
+    DIFFICULTY_LEVELS.easy,
+    easyCount
+  )
+  const mediumQuestions = await getQuestionsByDifficulty(
+    chapterIds,
+    DIFFICULTY_LEVELS.medium,
+    mediumCount
+  )
+  const hardQuestions = await getQuestionsByDifficulty(
+    chapterIds,
+    DIFFICULTY_LEVELS.hard,
+    hardCount
+  )
 
   // 5. 合并并打乱顺序
   const allQuestions = [...easyQuestions, ...mediumQuestions, ...hardQuestions]
@@ -138,6 +157,8 @@ async function getQuestionsByDifficulty(
       chapterId: { in: chapterIds },
       difficulty: { in: difficultyLevels },
       isPastPaper: false,
+      deletedAt: null,
+      type: { in: PRACTICE_SUPPORTED_TYPES },
       status: { in: ['PUBLISHED', 'VERIFIED'] },
     },
     select: { id: true }

@@ -720,6 +720,7 @@ DOM 提取主要负责：
 - Step 6-3：练习链路抽样验证
   - 每批导入后按本 SOP 的抽样规则验证 `Smart Drill / Chapter Drill / Past Paper / 知识蜂巢`
   - 小题池场景下，如果“排除最近作答”会导致题池为空，需要允许回退兜底
+  - 当前 `Smart Drill / Chapter Drill / Mock Arena` 只应消费前台已支持完整作答的题型；`ESSAY` 等未支持题型不得进入这几个入口的题池
 - Step 6-4：异常口径回看
   - 核对“为什么题目看不到”时，至少按以下顺序排查：
     - `status`

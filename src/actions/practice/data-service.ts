@@ -8,6 +8,7 @@
  */
 
 import prisma from '@/lib/prisma'
+import { QuestionType } from '@prisma/client'
 import type { Question, Prisma } from '@prisma/client'
 import type {
   ChapterWithStats,
@@ -19,6 +20,14 @@ import type {
 import { QUOTA_CONFIGS } from '@/lib/practice/types'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
+
+const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
+  QuestionType.SINGLE_CHOICE,
+  QuestionType.MULTIPLE_CHOICE,
+  QuestionType.FILL_BLANK,
+  QuestionType.TRUE_FALSE,
+  QuestionType.MCQ,
+]
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
@@ -389,6 +398,7 @@ export async function getRandomQuestions(
     status: { in: ['PUBLISHED', 'VERIFIED'] },
     isPastPaper: includePastPaper,
     deletedAt: null,
+    type: { in: PRACTICE_SUPPORTED_TYPES },
   }
 
   // 当前联调阶段暂不按套餐裁剪难度，显式筛选时仅尊重用户传入的难度集合。

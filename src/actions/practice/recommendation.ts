@@ -1,7 +1,7 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { Question } from '@prisma/client'
+import { Question, QuestionType } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 
@@ -17,6 +17,14 @@ const SUBJECT_KEY_MAP: Record<string, string> = {
   geography: 'geography',
   other: 'other',
 }
+
+const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
+  QuestionType.SINGLE_CHOICE,
+  QuestionType.MULTIPLE_CHOICE,
+  QuestionType.FILL_BLANK,
+  QuestionType.TRUE_FALSE,
+  QuestionType.MCQ,
+]
 
 async function resolveSubjectId(identifier: string): Promise<string | null> {
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier)) {
@@ -116,6 +124,8 @@ export async function getSmartDrillQuestions(
           subjectId,
           chapterId: { in: weakChapterIds },
           isPastPaper: false,
+          deletedAt: null,
+          type: { in: PRACTICE_SUPPORTED_TYPES },
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
         },
@@ -140,6 +150,8 @@ export async function getSmartDrillQuestions(
         where: {
           subjectId,
           isPastPaper: false,
+          deletedAt: null,
+          type: { in: PRACTICE_SUPPORTED_TYPES },
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: [...attemptedIds, ...Array.from(excludeIds)] },
         },
@@ -157,12 +169,29 @@ export async function getSmartDrillQuestions(
         where: {
           subjectId,
           isPastPaper: false,
+          deletedAt: null,
+          type: { in: PRACTICE_SUPPORTED_TYPES },
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
         },
         take: limit - selected.length,
       })
       selected.push(...fallback)
+    }
+
+    if (selected.length < limit) {
+      const finalFallback = await prisma.question.findMany({
+        where: {
+          subjectId,
+          isPastPaper: false,
+          deletedAt: null,
+          type: { in: PRACTICE_SUPPORTED_TYPES },
+          status: { in: ['PUBLISHED', 'VERIFIED'] },
+          id: { notIn: selected.map((question) => question.id) },
+        },
+        take: limit - selected.length,
+      })
+      selected.push(...finalFallback)
     }
 
     return selected.sort(() => Math.random() - 0.5)
