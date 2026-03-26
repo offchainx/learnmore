@@ -739,14 +739,26 @@ export async function importFromWebUrl(
       .map((r) => r.data!.id)
     await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
 
+    // 两段式写回：先确保批次状态落成 COMPLETED（避免 diagnostics 写入失败导致卡在 PROCESSING）
     await prisma.sourceFile.update({
       where: { id: sourceFileId },
       data: {
         status: ProcessingStatus.COMPLETED,
         processedAt: new Date(),
-        importDiagnostics: pendingImportDiagnostics as Prisma.InputJsonValue,
       },
     })
+
+    // diagnostics 是增强信息，写入失败不应阻塞主流程
+    try {
+      await prisma.sourceFile.update({
+        where: { id: sourceFileId },
+        data: {
+          importDiagnostics: pendingImportDiagnostics as Prisma.InputJsonValue,
+        },
+      })
+    } catch (diagnosticsError) {
+      console.warn('写入导入诊断失败（已忽略）:', diagnosticsError)
+    }
 
     revalidatePath('/admin/content/review')
     revalidatePath('/admin/content/import')
@@ -768,18 +780,31 @@ export async function importFromWebUrl(
     }
   } catch (error) {
     if (sourceFileId) {
-      await prisma.sourceFile.update({
-        where: { id: sourceFileId },
-        data: {
-          status: ProcessingStatus.FAILED,
-          ...(pendingImportDiagnostics
-            ? {
-                importDiagnostics:
-                  pendingImportDiagnostics as Prisma.InputJsonValue,
-              }
-            : {}),
-        },
-      })
+      // 优先把状态落成 FAILED，diagnostics 写入失败不影响状态落库
+      try {
+        await prisma.sourceFile.update({
+          where: { id: sourceFileId },
+          data: {
+            status: ProcessingStatus.FAILED,
+          },
+        })
+      } catch (statusError) {
+        console.warn('写入失败状态失败（可能 schema 未同步）:', statusError)
+      }
+
+      if (pendingImportDiagnostics) {
+        try {
+          await prisma.sourceFile.update({
+            where: { id: sourceFileId },
+            data: {
+              importDiagnostics:
+                pendingImportDiagnostics as Prisma.InputJsonValue,
+            },
+          })
+        } catch (diagnosticsError) {
+          console.warn('写入失败诊断失败（已忽略）:', diagnosticsError)
+        }
+      }
     }
 
     return {
@@ -1071,6 +1096,8 @@ export async function getImportTasks(options?: {
   }>
 > {
   try {
+    const now = new Date()
+    const stuckCutoff = new Date(now.getTime() - 3 * 60 * 1000)
     const where = options?.status ? { status: options.status } : {}
 
     const [tasks, total] = await prisma.$transaction([
@@ -1107,6 +1134,38 @@ export async function getImportTasks(options?: {
       }),
       prisma.sourceFile.count({ where }),
     ])
+
+    // 自愈：极少数情况下（例如请求中断/进程重启），网页导入可能已完成入库但 source_files 仍停留在 PROCESSING。
+    // 只对满足以下条件的批次做“安全补全”：
+    // - 仍为 PROCESSING 且无 processedAt
+    // - OCR 已跳过（html/web import）
+    // - 已有入库题目（_count.questions > 0）
+    // - 创建时间超过 3 分钟（避免误伤正在执行的任务）
+    const stuckIds = tasks
+      .filter(
+        (task) =>
+          task.status === ProcessingStatus.PROCESSING &&
+          !task.processedAt &&
+          task.ocrStatus === ProcessingStatus.SKIPPED &&
+          task._count.questions > 0 &&
+          task.createdAt < stuckCutoff
+      )
+      .map((task) => task.id)
+
+    const stuckIdSet = new Set(stuckIds)
+    if (stuckIds.length > 0) {
+      await prisma.sourceFile.updateMany({
+        where: {
+          id: { in: stuckIds },
+          status: ProcessingStatus.PROCESSING,
+          processedAt: null,
+        },
+        data: {
+          status: ProcessingStatus.COMPLETED,
+          processedAt: now,
+        },
+      })
+    }
 
     const sourceIds = tasks.map((task) => task.id)
     const questionRows =
@@ -1147,6 +1206,12 @@ export async function getImportTasks(options?: {
       data: {
         tasks: tasks.map((t) => {
           const resolvedSubject = t.subject || t.questions[0]?.subject
+          const resolvedStatus = stuckIdSet.has(t.id)
+            ? ProcessingStatus.COMPLETED
+            : t.status
+          const resolvedProcessedAt = stuckIdSet.has(t.id)
+            ? now
+            : t.processedAt
           return {
             ...(resolvedSubject
               ? {
@@ -1159,11 +1224,11 @@ export async function getImportTasks(options?: {
             id: t.id,
             filename: t.filename,
             fileUrl: t.fileUrl,
-            status: t.status,
+            status: resolvedStatus,
             ocrStatus: t.ocrStatus,
             questionsCount: t._count.questions,
             createdAt: t.createdAt,
-            processedAt: t.processedAt,
+            processedAt: resolvedProcessedAt,
             source: t.sourceNote ?? t.questions[0]?.source ?? undefined,
             curriculum: t.questions[0]?.curriculum ?? 'UEC',
             sourceYear:
@@ -1171,7 +1236,7 @@ export async function getImportTasks(options?: {
                 ? Number(t.questions[0].source.match(/(19|20)\d{2}/)?.[0])
                 : undefined,
             events: deriveImportEvents({
-              sourceStatus: t.status,
+              sourceStatus: resolvedStatus,
               questionStatuses: bySource[t.id]?.statuses ?? [],
               hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
             }),
@@ -1583,6 +1648,139 @@ export async function getImportTaskDetail(sourceFileId: string): Promise<
       success: false,
       error: error instanceof Error ? error.message : '获取失败',
       code: 'FETCH_FAILED',
+    }
+  }
+}
+
+export async function recomputeImportDiagnosticsForTask(input: {
+  sourceFileId: string
+}): Promise<
+  ServiceResult<{
+    importDiagnostics: ImportDiagnostics
+    diagnosticsSummary?: string
+    diagnosticsPreview?: string
+  }>
+> {
+  try {
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: '用户未登录',
+        code: 'UNAUTHORIZED',
+      }
+    }
+
+    if (!['ADMIN', 'TEACHER'].includes(currentUser.role)) {
+      return {
+        success: false,
+        error: '仅管理员或教师可以执行该操作',
+        code: 'UNAUTHORIZED',
+      }
+    }
+
+    const sourceFile = await prisma.sourceFile.findUnique({
+      where: { id: input.sourceFileId },
+      select: {
+        id: true,
+        fileUrl: true,
+        fileType: true,
+        subjectId: true,
+        status: true,
+        processedAt: true,
+        importDiagnostics: true,
+      },
+    })
+
+    if (!sourceFile) {
+      return {
+        success: false,
+        error: '源文件不存在',
+        code: 'NOT_FOUND',
+      }
+    }
+
+    if (sourceFile.fileType !== 'html') {
+      return {
+        success: false,
+        error: '当前仅支持网页导入任务的诊断重算',
+        code: 'INVALID_PDF',
+      }
+    }
+
+    const webImportResult = await runWebImport({
+      pageUrl: sourceFile.fileUrl,
+      subjectId: sourceFile.subjectId,
+    })
+    if (!webImportResult.success || !webImportResult.data) {
+      return {
+        success: false,
+        error: webImportResult.error || '网页抓取失败，无法重算诊断',
+        code: webImportResult.code || 'FETCH_FAILED',
+      }
+    }
+
+    const createdCount = await prisma.question.count({
+      where: { sourceFileId: sourceFile.id },
+    })
+
+    const diagnostics: ImportDiagnostics = stripUndefinedDeep({
+      adapterName: webImportResult.data.adapterName,
+      adapterVersion: webImportResult.data.adapterVersion,
+      mode: webImportResult.data.diagnostics.mode,
+      expectedQuestionCount: webImportResult.data.diagnostics.expectedQuestionCount,
+      expectedRawQuestionIds: toStringArray(webImportResult.data.diagnostics.expectedRawQuestionIds),
+      selectedQuestionCount: webImportResult.data.diagnostics.selectedQuestionCount,
+      selectedRawQuestionIds: toStringArray(webImportResult.data.diagnostics.selectedRawQuestionIds),
+      skippedByLimitRawQuestionIds: toStringArray(webImportResult.data.diagnostics.skippedByLimitRawQuestionIds),
+      collectedQuestionCount: webImportResult.data.diagnostics.collectedQuestionCount,
+      collectedRawQuestionIds: toStringArray(webImportResult.data.diagnostics.collectedRawQuestionIds),
+      normalizedQuestionCount: webImportResult.data.diagnostics.normalizedQuestionCount,
+      normalizedRawQuestionIds: toStringArray(webImportResult.data.diagnostics.normalizedRawQuestionIds),
+      missingRawQuestionIds: toStringArray(webImportResult.data.diagnostics.missingRawQuestionIds),
+      assetCount: webImportResult.data.diagnostics.assetCount,
+      flaggedQuestionCount: webImportResult.data.diagnostics.flaggedQuestionCount,
+      createdQuestionCount: createdCount,
+    })
+
+    const now = new Date()
+    // 先确保状态落库，再尝试写 diagnostics（避免 Json 字段导致状态写回失败）
+    if (
+      sourceFile.status === ProcessingStatus.PROCESSING &&
+      !sourceFile.processedAt &&
+      createdCount > 0
+    ) {
+      await prisma.sourceFile.update({
+        where: { id: sourceFile.id },
+        data: { status: ProcessingStatus.COMPLETED, processedAt: now },
+      })
+    }
+
+    try {
+      await prisma.sourceFile.update({
+        where: { id: sourceFile.id },
+        data: {
+          importDiagnostics: diagnostics as Prisma.InputJsonValue,
+        },
+      })
+    } catch (diagnosticsError) {
+      console.warn('写入重算诊断失败（已忽略）:', diagnosticsError)
+    }
+
+    return {
+      success: true,
+      data: {
+        importDiagnostics: diagnostics,
+        diagnosticsSummary: buildImportDiagnosticsSummaryText(diagnostics),
+        diagnosticsPreview: buildImportDiagnosticsPreviewText(diagnostics),
+      },
+    }
+  } catch (error) {
+    console.error('重算导入诊断失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '重算失败',
+      code: 'UNKNOWN_ERROR',
     }
   }
 }

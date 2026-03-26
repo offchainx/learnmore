@@ -45,6 +45,7 @@ import { zhCN } from 'date-fns/locale'
 import {
   deleteImportTask,
   getImportTaskDetail,
+  recomputeImportDiagnosticsForTask,
   resumeFailedImport,
 } from '@/actions/content-pipeline/import-service'
 import { useToast } from '@/components/ui/use-toast'
@@ -181,7 +182,9 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
   const [mounted, setMounted] = useState(false)
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
   const [diagnosticsLoading, setDiagnosticsLoading] = useState(false)
+  const [diagnosticsRecomputing, setDiagnosticsRecomputing] = useState(false)
   const [diagnosticsTaskName, setDiagnosticsTaskName] = useState<string>('')
+  const [diagnosticsSourceFileId, setDiagnosticsSourceFileId] = useState<string>('')
   const [diagnosticsData, setDiagnosticsData] = useState<BatchData['importDiagnostics'] | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -298,6 +301,7 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
 
   const handleOpenDiagnostics = (batch: BatchData) => {
     setDiagnosticsTaskName(batch.sourceRemark || batch.name)
+    setDiagnosticsSourceFileId(batch.id)
     setDiagnosticsData(batch.importDiagnostics ?? null)
     setDiagnosticsOpen(true)
     setDiagnosticsLoading(true)
@@ -314,6 +318,32 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
         })
       }
       setDiagnosticsLoading(false)
+    })
+  }
+
+  const handleRecomputeDiagnostics = () => {
+    if (!diagnosticsSourceFileId) return
+    setDiagnosticsRecomputing(true)
+    startTransition(async () => {
+      const res = await recomputeImportDiagnosticsForTask({
+        sourceFileId: diagnosticsSourceFileId,
+      })
+      if (!res.success || !res.data) {
+        toast({
+          variant: 'destructive',
+          title: '重算失败',
+          description: res.error || '请稍后重试',
+        })
+        setDiagnosticsRecomputing(false)
+        return
+      }
+      setDiagnosticsData(res.data.importDiagnostics)
+      toast({
+        title: '诊断已更新',
+        description: res.data.diagnosticsSummary || '已完成诊断重算',
+      })
+      setDiagnosticsRecomputing(false)
+      refreshData()
     })
   }
 
@@ -676,6 +706,17 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
               {diagnosticsTaskName || '当前批次'} 的抓取与入库诊断信息
             </DialogDescription>
           </DialogHeader>
+
+          <div className="flex items-center justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRecomputeDiagnostics}
+              disabled={isPending || diagnosticsRecomputing}
+            >
+              {diagnosticsRecomputing ? '重算中...' : '重新计算诊断'}
+            </Button>
+          </div>
 
           {diagnosticsLoading && !diagnosticsData ? (
             <div className="rounded-2xl border border-borderTone bg-surface-subtle p-6 text-sm text-text-secondary">
