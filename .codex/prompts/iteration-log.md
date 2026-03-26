@@ -110,6 +110,8 @@
 
 | 2026-03-26 | Task 7 图片资产稳定性：题干图转存 | 在网页导入链路中实现题干图转存到 Supabase Storage 并替换题干 Markdown 图片 URL；更新 SOP 标注诊断 V2 暂缓；补一个 examcoo 试卷列表同步到 Excel 的脚本。 | 导入时会对 examcoo 题干图进行下载、上传到 bucket(question-assets，失败回退 source-files)、替换 content/assetUrl/imageUrls；SOP 中明确第一轮只做题干图，诊断 V2 延后；新增 scripts/examcoo_sync_paperlist_excel.py 支持把初二/初三/会考/中考/其他同步进 Excel。 | - | - | - | - |
 
+| 2026-03-26 | Task 7 图片题干图转存修复 | 修复 examcoo 图片 URL 抽取：同一个 <img> 同时存在 src 与 _djrealurl 时优先使用 src，避免抽到无扩展名的 _djrealurl 导致 404，确保题干图可以被下载并转存。 | examcoo-view-import.ts 现在会按 img tag 粒度选取最佳图片 URL：优先 src，其次 _djrealurl；相对图片路径也会归一到 img.examcoo.com，导入转存阶段不再大量 404。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

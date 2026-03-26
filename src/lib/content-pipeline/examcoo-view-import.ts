@@ -217,25 +217,52 @@ function normalizeImageUrl(rawUrl: string, attrName: string): string {
     return `https://img.examcoo.com${value.startsWith('/') ? '' : '/'}${value}`
   }
 
+  // Examcoo 的图片很多来自 img.examcoo.com 的 /uploads/... 路径。
+  // 如果是相对路径且看起来像图片，优先归一到 img.examcoo.com，避免落到 www 域名导致 404。
+  if (
+    value.startsWith('/uploads/') ||
+    /\.(png|jpe?g|gif|webp|svg)(\?|#|$)/i.test(value)
+  ) {
+    return `https://img.examcoo.com${value.startsWith('/') ? '' : '/'}${value}`
+  }
+
   return `https://www.examcoo.com${value.startsWith('/') ? '' : '/'}${value}`
+}
+
+function selectBestImageUrlFromImgTag(tagHtml: string): string | null {
+  const srcMatch = tagHtml.match(/\ssrc=["']([^"']+)["']/i)
+  const djMatch = tagHtml.match(/\s_djrealurl=["']([^"']+)["']/i)
+
+  const src = srcMatch?.[1]?.trim()
+  const dj = djMatch?.[1]?.trim()
+
+  // 优先使用 src：通常是带扩展名的真实可访问图片；_djrealurl 可能是“无后缀的原图路径”，直接访问会 404。
+  if (src && !src.toLowerCase().startsWith('data:') && src !== '#') {
+    return normalizeImageUrl(src, 'src')
+  }
+  if (dj && !dj.toLowerCase().startsWith('data:') && dj !== '#') {
+    return normalizeImageUrl(dj, '_djrealurl')
+  }
+  return null
 }
 
 function extractImageUrls(html = ''): string[] {
   const urls: string[] = []
-  const regex = /<img[^>]*?(_djrealurl|src)=["']([^"']+)["'][^>]*>/gi
-  let match = regex.exec(html)
-  while (match) {
-    urls.push(normalizeImageUrl(match[2], match[1].toLowerCase()))
-    match = regex.exec(html)
+  const imgTagRegex = /<img\b[^>]*>/gi
+  const tags = html.match(imgTagRegex) ?? []
+  for (const tag of tags) {
+    const best = selectBestImageUrlFromImgTag(tag)
+    if (best) urls.push(best)
   }
   return urls
 }
 
 function htmlToMarkdownWithImages(html = ''): string {
-  const withImageMd = html.replace(
-    /<img[^>]*?(_djrealurl|src)=["']([^"']+)["'][^>]*>/gi,
-    (_all, attrName: string, url: string) => `\n![题图](${normalizeImageUrl(url, attrName.toLowerCase())})\n`
-  )
+  const withImageMd = html.replace(/<img\b[^>]*>/gi, (tagHtml) => {
+    const best = selectBestImageUrlFromImgTag(tagHtml)
+    if (!best) return ''
+    return `\n![题图](${best})\n`
+  })
   const plain = decodeHtml(withImageMd).replace(/<[^>]+>/g, '')
   return plain.replace(/\n{3,}/g, '\n\n').trim()
 }
