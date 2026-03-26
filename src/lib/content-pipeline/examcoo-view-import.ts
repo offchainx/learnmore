@@ -30,6 +30,13 @@ export interface ExamcooImportResult {
   paperId: string
   paperTitle: string
   sourceTag: string
+  expectedQuestionCount: number
+  expectedRawQuestionIds: string[]
+  selectedQuestionCount: number
+  selectedRawQuestionIds: string[]
+  skippedByLimitRawQuestionIds: string[]
+  collectedQuestionCount: number
+  collectedRawQuestionIds: string[]
   questions: ExamcooImportQuestion[]
 }
 
@@ -453,6 +460,15 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
   const targetQuestions = Number.isFinite(limit) && (limit || 0) > 0
     ? allQuestions.slice(0, Number(limit))
     : allQuestions
+  const expectedRawQuestionIds = allQuestions
+    .map((item) => item.id)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const selectedRawQuestionIds = targetQuestions
+    .map((item) => item.id)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const skippedByLimitRawQuestionIds = expectedRawQuestionIds.filter(
+    (questionId) => !selectedRawQuestionIds.includes(questionId)
+  )
 
   const questions: ExamcooImportQuestion[] = []
 
@@ -512,6 +528,13 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
     paperId: pid,
     paperTitle,
     sourceTag: `examcoo:view:${pid}`,
+    expectedQuestionCount: expectedRawQuestionIds.length,
+    expectedRawQuestionIds,
+    selectedQuestionCount: selectedRawQuestionIds.length,
+    selectedRawQuestionIds,
+    skippedByLimitRawQuestionIds,
+    collectedQuestionCount: questions.length,
+    collectedRawQuestionIds: questions.map((question) => question.questionId),
     questions,
   }
 }

@@ -26,6 +26,35 @@ export type ImportEventCode =
   | 'REVIEW_APPROVED'
   | 'REVIEW_REJECTED'
 
+export interface ImportFailedQuestionDiagnostic {
+  rawQuestionId?: string | null
+  reason: string
+}
+
+export interface ImportDiagnostics {
+  adapterName?: string
+  adapterVersion?: string
+  mode?: string
+  expectedQuestionCount?: number
+  expectedRawQuestionIds?: string[]
+  selectedQuestionCount?: number
+  selectedRawQuestionIds?: string[]
+  skippedByLimitRawQuestionIds?: string[]
+  collectedQuestionCount?: number
+  collectedRawQuestionIds?: string[]
+  normalizedQuestionCount?: number
+  normalizedRawQuestionIds?: string[]
+  missingRawQuestionIds?: string[]
+  assetCount?: number
+  flaggedQuestionCount?: number
+  createdQuestionCount?: number
+  createdRawQuestionIds?: string[]
+  duplicatedQuestionCount?: number
+  duplicatedRawQuestionIds?: string[]
+  failedQuestionCount?: number
+  failedQuestions?: ImportFailedQuestionDiagnostic[]
+}
+
 /**
  * 批量任务数据（UI展示用）
  */
@@ -43,6 +72,9 @@ export interface BatchData {
   sourceRemark?: string
   sourceFileUrl?: string
   events: ImportEventCode[]
+  importDiagnostics?: ImportDiagnostics | null
+  diagnosticsSummary?: string
+  diagnosticsPreview?: string
 }
 
 /**
@@ -65,6 +97,9 @@ export interface ImportTask {
   source?: string
   curriculum?: string
   events?: ImportEventCode[]
+  importDiagnostics?: ImportDiagnostics | null
+  diagnosticsSummary?: string
+  diagnosticsPreview?: string
 }
 
 // ==================== 审核日志相关 ====================

@@ -3,12 +3,24 @@ import type { WebImportContext, WebImportRunResult } from '../types'
 import { normalizeWebImportResult } from '../utils'
 import { resolveWebImportAdapter } from './resolve-adapter'
 
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 export async function runWebImport(
   context: WebImportContext
 ): Promise<ServiceResult<WebImportRunResult>> {
   const resolved = await resolveWebImportAdapter(context.pageUrl)
   if (!resolved.success || !resolved.data) {
-    return resolved
+    return {
+      success: false,
+      error: resolved.error,
+      code: resolved.code,
+    }
   }
 
   const adapter = resolved.data
@@ -18,6 +30,17 @@ export async function runWebImport(
   const flaggedQuestionCount = normalized.questions.filter(
     (question) => question.sourceMeta?.needsAttention === true
   ).length
+  const normalizedRawQuestionIds = normalized.questions
+    .map((question) => question.rawQuestionId)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const expectedRawQuestionIds = toStringArray(raw.metadata?.examcooExpectedRawQuestionIds)
+  const selectedRawQuestionIds = toStringArray(raw.metadata?.examcooSelectedRawQuestionIds)
+  const collectedRawQuestionIds = toStringArray(raw.metadata?.examcooCollectedRawQuestionIds)
+  const skippedByLimitRawQuestionIds = toStringArray(raw.metadata?.examcooSkippedByLimitRawQuestionIds)
+  const selectedIdsForMissing = selectedRawQuestionIds.length > 0 ? selectedRawQuestionIds : collectedRawQuestionIds
+  const missingRawQuestionIds = selectedIdsForMissing.filter(
+    (questionId) => !normalizedRawQuestionIds.includes(questionId)
+  )
 
   return {
     success: true,
@@ -29,7 +52,25 @@ export async function runWebImport(
       normalized,
       diagnostics: {
         mode: raw.mode,
-        questionCount: normalized.questions.length,
+        expectedQuestionCount:
+          typeof raw.metadata?.examcooExpectedQuestionCount === 'number'
+            ? raw.metadata.examcooExpectedQuestionCount
+            : expectedRawQuestionIds.length || undefined,
+        expectedRawQuestionIds,
+        selectedQuestionCount:
+          typeof raw.metadata?.examcooSelectedQuestionCount === 'number'
+            ? raw.metadata.examcooSelectedQuestionCount
+            : selectedRawQuestionIds.length || undefined,
+        selectedRawQuestionIds,
+        skippedByLimitRawQuestionIds,
+        collectedQuestionCount:
+          typeof raw.metadata?.examcooCollectedQuestionCount === 'number'
+            ? raw.metadata.examcooCollectedQuestionCount
+            : collectedRawQuestionIds.length || undefined,
+        collectedRawQuestionIds,
+        normalizedQuestionCount: normalized.questions.length,
+        normalizedRawQuestionIds,
+        missingRawQuestionIds,
         assetCount: raw.assets.length,
         flaggedQuestionCount,
       },

@@ -38,6 +38,17 @@ function getExamcooMetadata(raw: WebImportRawResult): ExamcooImportResult {
   const paperTitle = String(metadata.examcooPaperTitle ?? '')
   const sourceTag = String(metadata.examcooSourceTag ?? '')
   const questions = (metadata.examcooQuestions as unknown as ExamcooImportQuestion[] | undefined) ?? []
+  const expectedQuestionCount = Number(metadata.examcooExpectedQuestionCount ?? questions.length)
+  const expectedRawQuestionIds =
+    (metadata.examcooExpectedRawQuestionIds as unknown as string[] | undefined) ?? []
+  const selectedQuestionCount = Number(metadata.examcooSelectedQuestionCount ?? questions.length)
+  const selectedRawQuestionIds =
+    (metadata.examcooSelectedRawQuestionIds as unknown as string[] | undefined) ?? []
+  const skippedByLimitRawQuestionIds =
+    (metadata.examcooSkippedByLimitRawQuestionIds as unknown as string[] | undefined) ?? []
+  const collectedQuestionCount = Number(metadata.examcooCollectedQuestionCount ?? questions.length)
+  const collectedRawQuestionIds =
+    (metadata.examcooCollectedRawQuestionIds as unknown as string[] | undefined) ?? questions.map((q) => q.questionId)
 
   if (!paperId || !paperTitle || !sourceTag || !Array.isArray(questions)) {
     throw new Error('Examcoo raw metadata 不完整，无法继续提取题目')
@@ -47,6 +58,13 @@ function getExamcooMetadata(raw: WebImportRawResult): ExamcooImportResult {
     paperId,
     paperTitle,
     sourceTag,
+    expectedQuestionCount,
+    expectedRawQuestionIds,
+    selectedQuestionCount,
+    selectedRawQuestionIds,
+    skippedByLimitRawQuestionIds,
+    collectedQuestionCount,
+    collectedRawQuestionIds,
     questions,
   }
 }
@@ -78,6 +96,13 @@ export const examcooViewAdapter: WebImportAdapter = {
         examcooPaperId: crawled.paperId,
         examcooPaperTitle: crawled.paperTitle,
         examcooSourceTag: crawled.sourceTag,
+        examcooExpectedQuestionCount: crawled.expectedQuestionCount,
+        examcooExpectedRawQuestionIds: crawled.expectedRawQuestionIds as unknown as JsonValue,
+        examcooSelectedQuestionCount: crawled.selectedQuestionCount,
+        examcooSelectedRawQuestionIds: crawled.selectedRawQuestionIds as unknown as JsonValue,
+        examcooSkippedByLimitRawQuestionIds: crawled.skippedByLimitRawQuestionIds as unknown as JsonValue,
+        examcooCollectedQuestionCount: crawled.collectedQuestionCount,
+        examcooCollectedRawQuestionIds: crawled.collectedRawQuestionIds as unknown as JsonValue,
         examcooQuestions: crawled.questions as unknown as JsonValue,
       },
     }

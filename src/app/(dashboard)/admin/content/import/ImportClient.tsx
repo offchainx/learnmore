@@ -14,11 +14,10 @@ import { StatsCards } from '@/components/admin/content/StatsCards'
 import { BatchTable } from '@/components/admin/content/BatchTable'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 import { NewBatchImportModal } from '@/components/admin/content/NewBatchImportModal'
-import { mapImportTaskToBatchData } from '@/lib/content-pipeline/mappers'
 import { getSubjectLabel, type UiLang } from '@/lib/subjects'
 import type {
   AuditLogEntry,
-  ImportTask,
+  BatchData,
   StatsData,
 } from '@/types/content-pipeline'
 
@@ -46,7 +45,7 @@ interface ImportClientProps {
   userRole: string
   userLanguage: UiLang
   initialSubjects: RawSubject[]
-  initialHistory: ImportTask[]
+  initialBatches: BatchData[]
   initialTasksError?: string | null
   initialStats: StatsData
   initialAuditLogs: AuditLogEntry[]
@@ -56,31 +55,25 @@ export function ImportClient({
   userRole,
   userLanguage,
   initialSubjects,
-  initialHistory,
+  initialBatches,
   initialTasksError,
   initialStats,
   initialAuditLogs,
 }: ImportClientProps) {
   const router = useRouter()
 
-  const history = useMemo<ImportTask[]>(
+  const batches = useMemo<BatchData[]>(
     () =>
-      (initialHistory || []).map((task) => ({
-        ...task,
-        createdAt: toDate(task.createdAt),
-        processedAt: task.processedAt ? toDate(task.processedAt) : null,
+      (initialBatches || []).map((batch) => ({
+        ...batch,
+        createdAt: toDate(batch.createdAt),
       })),
-    [initialHistory]
+    [initialBatches]
   )
 
   const subjects = useMemo(
     () => buildLocalizedSubjects(initialSubjects || [], userLanguage),
     [initialSubjects, userLanguage]
-  )
-
-  const batches = useMemo(
-    () => history.map(mapImportTaskToBatchData),
-    [history]
   )
 
   const stats = useMemo<StatsData>(() => initialStats, [initialStats])
@@ -90,11 +83,11 @@ export function ImportClient({
   )
   const hasActiveBatches = useMemo(
     () =>
-      history.some(
+      batches.some(
         (task) =>
-          task.status === 'PROCESSING' || task.status === 'PENDING'
+          task.status === 'Processing' || task.status === 'Pending'
       ),
-    [history]
+    [batches]
   )
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)

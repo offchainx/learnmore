@@ -6,6 +6,7 @@ import {
 } from '@/actions/content-pipeline/import-service'
 import { getImportSubjects } from '@/actions/courses/subject'
 import { getProfile } from '@/actions/user/profile'
+import { mapImportTaskToBatchData } from '@/lib/content-pipeline/mappers'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 
@@ -31,6 +32,7 @@ export default async function ImportPage() {
   // Fetch import history
   const tasksResult = await getImportTasks({ limit: 10 })
   const tasks = tasksResult.success ? tasksResult.data?.tasks || [] : []
+  const batches = tasks.map(mapImportTaskToBatchData)
   const tasksError = tasksResult.success ? null : tasksResult.error || '导入任务查询失败'
 
   // Fetch dashboard stats
@@ -59,7 +61,7 @@ export default async function ImportPage() {
       userRole={profile.role}
       userLanguage={userLanguage}
       initialSubjects={subjects}
-      initialHistory={tasks}
+      initialBatches={batches}
       initialTasksError={tasksError}
       initialStats={stats}
       initialAuditLogs={auditLogs}

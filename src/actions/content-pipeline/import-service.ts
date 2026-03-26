@@ -10,7 +10,7 @@
 
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { ProcessingStatus, ContentStatus, ReviewAction } from '@prisma/client'
+import { Prisma, ProcessingStatus, ContentStatus, ReviewAction } from '@prisma/client'
 import { format } from 'date-fns'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
@@ -18,6 +18,7 @@ import { autoAssignQuestionChapters } from '@/lib/content-pipeline/chapter-taggi
 import { resolveWebImportAdapter, runWebImport } from '@/lib/content-pipeline/web-import'
 import { bulkCreateQuestions } from './question-service'
 import { getCurrentUser } from '@/actions/user/auth'
+import type { ImportDiagnostics } from '@/types/content-pipeline'
 import type {
   ImportFromPDFInput,
   ImportResult,
@@ -132,6 +133,118 @@ function deriveImportEvents(input: {
   }
 
   return Array.from(new Set(events))
+}
+
+function isDuplicateBulkCreateError(error?: string): boolean {
+  return Boolean(error && (error.includes('重复') || error.includes('已存在')))
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function stripUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => stripUndefinedDeep(item))
+      .filter((item) => item !== undefined) as T
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, item]) => item !== undefined)
+        .map(([key, item]) => [key, stripUndefinedDeep(item)])
+    ) as T
+  }
+
+  return value
+}
+
+function buildWebImportDiagnostics(
+  diagnostics: NonNullable<Awaited<ReturnType<typeof runWebImport>>['data']>['diagnostics'],
+  normalizedQuestions: Array<{ rawQuestionId?: string | null }>,
+  bulkResults: Array<{ index: number; success: boolean; error?: string }>
+): ImportDiagnostics {
+  const normalizedRawQuestionIds = normalizedQuestions
+    .map((question) => question.rawQuestionId)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+
+  const createdRawQuestionIds = bulkResults
+    .filter((result) => result.success)
+    .map((result) => normalizedQuestions[result.index]?.rawQuestionId)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+
+  const duplicatedRawQuestionIds = bulkResults
+    .filter((result) => !result.success && isDuplicateBulkCreateError(result.error))
+    .map((result) => normalizedQuestions[result.index]?.rawQuestionId)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+
+  const failedQuestions = bulkResults
+    .filter((result) => !result.success && !isDuplicateBulkCreateError(result.error))
+    .map((result) => ({
+      rawQuestionId: normalizedQuestions[result.index]?.rawQuestionId ?? null,
+      reason: result.error || '创建失败',
+    }))
+
+  return stripUndefinedDeep({
+    mode: diagnostics.mode,
+    expectedQuestionCount: diagnostics.expectedQuestionCount,
+    expectedRawQuestionIds: toStringArray(diagnostics.expectedRawQuestionIds),
+    selectedQuestionCount: diagnostics.selectedQuestionCount,
+    selectedRawQuestionIds: toStringArray(diagnostics.selectedRawQuestionIds),
+    skippedByLimitRawQuestionIds: toStringArray(diagnostics.skippedByLimitRawQuestionIds),
+    collectedQuestionCount: diagnostics.collectedQuestionCount,
+    collectedRawQuestionIds: toStringArray(diagnostics.collectedRawQuestionIds),
+    normalizedQuestionCount: diagnostics.normalizedQuestionCount,
+    normalizedRawQuestionIds,
+    missingRawQuestionIds: toStringArray(diagnostics.missingRawQuestionIds),
+    assetCount: diagnostics.assetCount,
+    flaggedQuestionCount: diagnostics.flaggedQuestionCount,
+    createdQuestionCount: createdRawQuestionIds.length,
+    createdRawQuestionIds,
+    duplicatedQuestionCount: duplicatedRawQuestionIds.length,
+    duplicatedRawQuestionIds,
+    failedQuestionCount: failedQuestions.length,
+    failedQuestions,
+  })
+}
+
+function buildImportDiagnosticsSummaryText(diagnostics?: ImportDiagnostics | null): string | undefined {
+  if (!diagnostics) return undefined
+  const parts: string[] = []
+
+  if (typeof diagnostics.expectedQuestionCount === 'number') {
+    parts.push(`预期 ${diagnostics.expectedQuestionCount} 题`)
+  }
+  if (typeof diagnostics.normalizedQuestionCount === 'number') {
+    parts.push(`解析 ${diagnostics.normalizedQuestionCount} 题`)
+  }
+  if (typeof diagnostics.createdQuestionCount === 'number') {
+    parts.push(`入库 ${diagnostics.createdQuestionCount} 题`)
+  }
+  if ((diagnostics.missingRawQuestionIds?.length ?? 0) > 0) {
+    parts.push(`缺失 ${diagnostics.missingRawQuestionIds!.length} 题`)
+  }
+  if ((diagnostics.duplicatedRawQuestionIds?.length ?? 0) > 0) {
+    parts.push(`重复 ${diagnostics.duplicatedRawQuestionIds!.length} 题`)
+  }
+  if ((diagnostics.failedQuestions?.length ?? 0) > 0) {
+    parts.push(`失败 ${diagnostics.failedQuestions!.length} 题`)
+  }
+
+  return parts.length > 0 ? parts.join(' / ') : undefined
+}
+
+function buildImportDiagnosticsPreviewText(diagnostics?: ImportDiagnostics | null): string | undefined {
+  const missingIds = diagnostics?.missingRawQuestionIds ?? []
+  if (missingIds.length === 0) return undefined
+  const preview = missingIds.slice(0, 3).join(', ')
+  return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
 }
 
 // ==================== 主要导入函数 ====================
@@ -538,6 +651,7 @@ export async function importFromWebUrl(
   }
 
   let sourceFileId: string | null = null
+  let pendingImportDiagnostics: ImportDiagnostics | null = null
 
   try {
     const sourceFile = await prisma.sourceFile.create({
@@ -601,9 +715,23 @@ export async function importFromWebUrl(
       createdBy: currentUser.id,
     })
 
+    pendingImportDiagnostics = stripUndefinedDeep({
+      adapterName: webImportResult.data.adapterName,
+      adapterVersion: webImportResult.data.adapterVersion,
+      ...buildWebImportDiagnostics(
+        webImportResult.data.diagnostics,
+        webImportResult.data.normalized.questions,
+        bulkResult.results.map((result) => ({
+          index: result.index,
+          success: result.success,
+          error: result.error,
+        }))
+      ),
+    })
+
     const questionsCreated = bulkResult.results.filter((r) => r.success).length
     const questionsDuplicated = bulkResult.results.filter(
-      (r) => !r.success && (r.error?.includes('重复') || r.error?.includes('已存在'))
+      (r) => !r.success && isDuplicateBulkCreateError(r.error)
     ).length
     const questionsFailed = bulkResult.failed - questionsDuplicated
     const questionIds = bulkResult.results
@@ -616,6 +744,7 @@ export async function importFromWebUrl(
       data: {
         status: ProcessingStatus.COMPLETED,
         processedAt: new Date(),
+        importDiagnostics: pendingImportDiagnostics as Prisma.InputJsonValue,
       },
     })
 
@@ -641,7 +770,15 @@ export async function importFromWebUrl(
     if (sourceFileId) {
       await prisma.sourceFile.update({
         where: { id: sourceFileId },
-        data: { status: ProcessingStatus.FAILED },
+        data: {
+          status: ProcessingStatus.FAILED,
+          ...(pendingImportDiagnostics
+            ? {
+                importDiagnostics:
+                  pendingImportDiagnostics as Prisma.InputJsonValue,
+              }
+            : {}),
+        },
       })
     }
 
@@ -928,6 +1065,7 @@ export async function getImportTasks(options?: {
       sourceYear?: number
       curriculum?: string
       events?: ImportEventCode[]
+      importDiagnostics?: ImportDiagnostics | null
     }>
     total: number
   }>
@@ -1037,6 +1175,13 @@ export async function getImportTasks(options?: {
               questionStatuses: bySource[t.id]?.statuses ?? [],
               hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
             }),
+            importDiagnostics: (t.importDiagnostics as ImportDiagnostics | null | undefined) ?? null,
+            diagnosticsSummary: buildImportDiagnosticsSummaryText(
+              (t.importDiagnostics as ImportDiagnostics | null | undefined) ?? null
+            ),
+            diagnosticsPreview: buildImportDiagnosticsPreviewText(
+              (t.importDiagnostics as ImportDiagnostics | null | undefined) ?? null
+            ),
           }
         }),
         total,
@@ -1062,6 +1207,7 @@ export async function getImportTasks(options?: {
             ocrStatus: true,
             createdAt: true,
             processedAt: true,
+            importDiagnostics: true,
             _count: {
               select: { questions: true },
             },
@@ -1152,6 +1298,13 @@ export async function getImportTasks(options?: {
               questionStatuses: bySource[t.id]?.statuses ?? [],
               hasReportedQuestion: bySource[t.id]?.hasReported ?? false,
             }),
+            importDiagnostics: (t.importDiagnostics as ImportDiagnostics | null | undefined) ?? null,
+            diagnosticsSummary: buildImportDiagnosticsSummaryText(
+              (t.importDiagnostics as ImportDiagnostics | null | undefined) ?? null
+            ),
+            diagnosticsPreview: buildImportDiagnosticsPreviewText(
+              (t.importDiagnostics as ImportDiagnostics | null | undefined) ?? null
+            ),
           })),
           total,
         },
@@ -1354,6 +1507,7 @@ export async function getImportTaskDetail(sourceFileId: string): Promise<
       status: ProcessingStatus
       ocrStatus: ProcessingStatus
       ocrRawText: string | null
+      importDiagnostics?: ImportDiagnostics | null
       createdAt: Date
       processedAt: Date | null
     }
@@ -1415,6 +1569,7 @@ export async function getImportTaskDetail(sourceFileId: string): Promise<
           status: sourceFile.status,
           ocrStatus: sourceFile.ocrStatus,
           ocrRawText: sourceFile.ocrRawText,
+          importDiagnostics: (sourceFile.importDiagnostics as ImportDiagnostics | null | undefined) ?? null,
           createdAt: sourceFile.createdAt,
           processedAt: sourceFile.processedAt,
         },

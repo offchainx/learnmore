@@ -51,7 +51,16 @@ export interface WebImportRunResult {
   normalized: NormalizedWebImportResult
   diagnostics: {
     mode: WebImportRawResult['mode']
-    questionCount: number
+    expectedQuestionCount?: number
+    expectedRawQuestionIds?: string[]
+    selectedQuestionCount?: number
+    selectedRawQuestionIds?: string[]
+    skippedByLimitRawQuestionIds?: string[]
+    collectedQuestionCount?: number
+    collectedRawQuestionIds?: string[]
+    normalizedQuestionCount: number
+    normalizedRawQuestionIds: string[]
+    missingRawQuestionIds: string[]
     assetCount: number
     flaggedQuestionCount: number
   }

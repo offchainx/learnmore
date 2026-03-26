@@ -41,12 +41,15 @@ export function mapImportTaskToBatchData(task: ImportTask): BatchData {
     curriculum: task.curriculum || 'UEC',
     progress: task.status === 'COMPLETED' ? 100 : task.status === 'PROCESSING' ? 50 : 0,
     status: mapProcessingStatusToBatchStatus(task.status),
-    statusMessage: getStatusMessage(task.status),
+    statusMessage: task.diagnosticsSummary || getStatusMessage(task.status),
     createdAt: task.createdAt,
     questionsCount: task.questionsCount,
     sourceRemark,
     sourceFileUrl: task.fileUrl,
     events: task.events ?? ['IMPORT_TASK_CREATED'],
+    importDiagnostics: task.importDiagnostics ?? null,
+    diagnosticsSummary: task.diagnosticsSummary,
+    diagnosticsPreview: task.diagnosticsPreview,
   }
 }
 

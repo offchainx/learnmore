@@ -727,6 +727,7 @@ model SourceFile {
   fileType   String  @map("file_type") // "pdf" | "image" | "docx"
   fileSize   Int     @map("file_size") // bytes
   ocrRawText String? @map("ocr_raw_text") @db.Text // OCR原始输出
+  importDiagnostics Json? @map("import_diagnostics") // 批次诊断：预期题数 / 缺失题号 / 失败原因等
 
   // 状态 / 审核字段
   status      ProcessingStatus @default(PENDING)

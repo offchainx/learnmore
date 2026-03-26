@@ -130,6 +130,42 @@ function getProgressColor(status: BatchStatusUI) {
   }
 }
 
+function buildImportDiagnosticsSummary(batch: BatchData): string | null {
+  if (batch.diagnosticsSummary) return batch.diagnosticsSummary
+  const diagnostics = batch.importDiagnostics
+  if (!diagnostics) return null
+
+  const summaryParts: string[] = []
+  if (typeof diagnostics.expectedQuestionCount === 'number') {
+    summaryParts.push(`预期 ${diagnostics.expectedQuestionCount} 题`)
+  }
+  if (typeof diagnostics.normalizedQuestionCount === 'number') {
+    summaryParts.push(`解析 ${diagnostics.normalizedQuestionCount} 题`)
+  }
+  if (typeof diagnostics.createdQuestionCount === 'number') {
+    summaryParts.push(`入库 ${diagnostics.createdQuestionCount} 题`)
+  }
+  if ((diagnostics.missingRawQuestionIds?.length || 0) > 0) {
+    summaryParts.push(`缺失 ${diagnostics.missingRawQuestionIds!.length} 题`)
+  }
+  if ((diagnostics.duplicatedRawQuestionIds?.length || 0) > 0) {
+    summaryParts.push(`重复 ${diagnostics.duplicatedRawQuestionIds!.length} 题`)
+  }
+  if ((diagnostics.failedQuestions?.length || 0) > 0) {
+    summaryParts.push(`失败 ${diagnostics.failedQuestions!.length} 题`)
+  }
+
+  return summaryParts.length > 0 ? summaryParts.join(' / ') : null
+}
+
+function buildMissingQuestionPreview(batch: BatchData): string | null {
+  if (batch.diagnosticsPreview) return batch.diagnosticsPreview
+  const missingIds = batch.importDiagnostics?.missingRawQuestionIds ?? []
+  if (missingIds.length === 0) return null
+  const preview = missingIds.slice(0, 3).join(', ')
+  return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
+}
+
 export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -422,6 +458,16 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                           )}`}
                         />
                       </div>
+                      {buildImportDiagnosticsSummary(batch) && (
+                        <div className="text-[11px] text-text-secondary dark:text-text-secondary">
+                          {buildImportDiagnosticsSummary(batch)}
+                        </div>
+                      )}
+                      {buildMissingQuestionPreview(batch) && (
+                        <div className="text-[11px] text-text-tertiary dark:text-text-tertiary">
+                          {buildMissingQuestionPreview(batch)}
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="px-3 py-3">

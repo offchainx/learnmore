@@ -58,6 +58,8 @@ export { Admin } from './admin'
 export type {
   BatchStatusUI,
   BatchData,
+  ImportDiagnostics,
+  ImportFailedQuestionDiagnostic,
   ImportTask,
   AuditLogType,
   AuditLogEntry,
