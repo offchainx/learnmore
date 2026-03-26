@@ -147,9 +147,9 @@ const ConfidenceBar = memo(function ConfidenceBar({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="flex cursor-help items-center gap-2 text-xs text-slate-500">
+        <div className="flex cursor-help items-center gap-2 text-xs text-slate-500 dark:text-slate-300">
           <span>预测可信度</span>
-          <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-700">
+          <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <div
               className={cn(
                 'h-full rounded-full transition-all',
@@ -316,10 +316,10 @@ function ExamForecastInner({
           </div>
 
           <div className="mt-3 grid gap-2">
-            <div className="dark:bg-emerald-500/8 rounded-2xl border border-emerald-500/15 bg-emerald-50 px-3 py-2 text-[12px] leading-5 text-emerald-800 dark:text-emerald-100">
+            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-50 px-3 py-2 text-[12px] leading-5 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-500/14 dark:text-emerald-50">
               预测等级基于最近练习正确率、完成度和连续活跃表现综合生成。
             </div>
-            <div className="dark:border-white/8 rounded-2xl border border-borderTone bg-surface-subtle px-3 py-2 text-[12px] leading-5 text-text-secondary dark:bg-white/5 dark:text-slate-300">
+            <div className="rounded-2xl border border-borderTone bg-surface-subtle px-3 py-2 text-[12px] leading-5 text-text-secondary dark:border-white/10 dark:bg-white/6 dark:text-slate-200">
               建议继续完成 Smart Drill 和 Mock Arena，考试预测会更快收敛。
             </div>
           </div>
