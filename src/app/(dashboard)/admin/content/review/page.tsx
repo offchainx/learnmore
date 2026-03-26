@@ -90,7 +90,7 @@ export default async function AdminContentPage({
         ? getPendingReviewQuestions({ page, pageSize: 20 }, filter)
         : getQuestions({ page, pageSize: 20 }, filter),
       getAllSubjects(),
-      getContentStats(currentRange),
+      getContentStats(currentRange, { subjectId }),
     ])
 
   const questions = questionsResult.data || []

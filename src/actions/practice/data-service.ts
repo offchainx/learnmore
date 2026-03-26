@@ -388,6 +388,7 @@ export async function getRandomQuestions(
   const whereCondition: Prisma.QuestionWhereInput = {
     status: { in: ['PUBLISHED', 'VERIFIED'] },
     isPastPaper: includePastPaper,
+    deletedAt: null,
   }
 
   // 当前联调阶段暂不按套餐裁剪难度，显式筛选时仅尊重用户传入的难度集合。
@@ -441,11 +442,22 @@ export async function getRandomQuestions(
     whereCondition.id = { notIn: excludeQuestionIds }
   }
 
+  const loadCandidateQuestions = (where: Prisma.QuestionWhereInput) =>
+    prisma.question.findMany({
+      where,
+      select: { id: true }
+    })
+
   // 3. 先查询所有符合条件的题目ID（性能优化：避免在大数据集上直接random）
-  const candidateQuestions = await prisma.question.findMany({
-    where: whereCondition,
-    select: { id: true }
-  })
+  let candidateQuestions = await loadCandidateQuestions(whereCondition)
+
+  // 早期联调时章节题池很小，若仅因为“最近做过”导致题池被排空，则回退一次。
+  if (candidateQuestions.length === 0 && excludeQuestionIds.length > 0) {
+    const fallbackWhere: Prisma.QuestionWhereInput = { ...whereCondition }
+    delete fallbackWhere.id
+
+    candidateQuestions = await loadCandidateQuestions(fallbackWhere)
+  }
 
   if (candidateQuestions.length === 0) {
     return []

@@ -1119,7 +1119,8 @@ export async function bulkResolveReports(
 }
 
 export async function getContentStats(
-  timeRange: '7d' | '30d' | 'all' = '7d'
+  timeRange: '7d' | '30d' | 'all' = '7d',
+  options?: { subjectId?: string }
 ): Promise<
   ServiceResult<{
     totalQuestions: number
@@ -1135,28 +1136,32 @@ export async function getContentStats(
       timeRange === 'all'
         ? undefined
         : new Date(now - (timeRange === '30d' ? 30 : 7) * 24 * 60 * 60 * 1000)
+    const scopedSubjectId = isUuid(options?.subjectId) ? options?.subjectId : undefined
 
-    const questionWhere = rangeStart
-      ? {
-          createdAt: { gte: rangeStart },
-        }
-      : undefined
+    const questionWhere: Prisma.QuestionWhereInput = {
+      deletedAt: null,
+      ...(scopedSubjectId && { subjectId: scopedSubjectId }),
+      ...(rangeStart && {
+        createdAt: { gte: rangeStart },
+      }),
+    }
 
-    const reportWhere = rangeStart
-      ? {
-          status: 'PENDING' as const,
-          createdAt: { gte: rangeStart },
-        }
-      : {
-          status: 'PENDING' as const,
-        }
+    const reportWhere: Prisma.QuestionReportWhereInput = {
+      status: 'PENDING' as const,
+      ...(rangeStart && { createdAt: { gte: rangeStart } }),
+      question: {
+        deletedAt: null,
+        ...(scopedSubjectId && { subjectId: scopedSubjectId }),
+      },
+    }
 
-    const recentlyAddedWhere =
-      timeRange === 'all'
-        ? undefined
-        : {
-            createdAt: { gte: rangeStart! },
-          }
+    const recentlyAddedWhere: Prisma.QuestionWhereInput = {
+      deletedAt: null,
+      ...(scopedSubjectId && { subjectId: scopedSubjectId }),
+      ...(rangeStart && {
+        createdAt: { gte: rangeStart },
+      }),
+    }
 
     const [
       totalQuestions,
@@ -1164,7 +1169,7 @@ export async function getContentStats(
       typeCounts,
       pendingReports,
       recentlyAdded,
-    ] = await Promise.all([
+    ] = await prisma.$transaction([
       prisma.question.count({
         where: questionWhere,
       }),
