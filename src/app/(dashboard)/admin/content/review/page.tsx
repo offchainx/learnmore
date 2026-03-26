@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import {
   getContentStats,
+  getContentReviewActivityLogs,
   getQuestions,
   getPendingReviewQuestions,
 } from '@/actions/content-pipeline/question-service'
@@ -32,6 +33,7 @@ import {
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
 import { AlertCircle, Clock3, FolderKanban, RefreshCcw } from 'lucide-react'
+import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -84,13 +86,14 @@ export default async function AdminContentPage({
   }
 
   // Fetch data in parallel
-  const [questionsResult, subjectsResult, contentStatsResult] =
+  const [questionsResult, subjectsResult, contentStatsResult, activityLogsResult] =
     await Promise.all([
       currentTab === 'pending'
         ? getPendingReviewQuestions({ page, pageSize: 20 }, filter)
         : getQuestions({ page, pageSize: 20 }, filter),
       getAllSubjects(),
       getContentStats(currentRange, { subjectId }),
+      getContentReviewActivityLogs({ limit: 40, subjectId }),
     ])
 
   const questions = questionsResult.data || []
@@ -137,6 +140,10 @@ export default async function AdminContentPage({
   const contentStats = contentStatsResult.success
     ? contentStatsResult.data
     : null
+  const activityLogs =
+    activityLogsResult.success && activityLogsResult.data
+      ? activityLogsResult.data
+      : []
   const rangeLabel =
     currentRange === '30d'
       ? '30 天范围'
@@ -211,6 +218,16 @@ export default async function AdminContentPage({
             }
             subtitle="审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。"
             titleClassName="font-semibold"
+            actions={
+              <AdminActivityActions
+                logs={activityLogs}
+                auditTitle="审核操作日志"
+                auditDescription="基于 content_review_logs 真实记录生成的近期审核活动。"
+                emptyText="当前还没有可显示的审核日志。"
+                searchPlaceholder="搜索审核人、动作、题干片段..."
+                footerText={`当前显示 ${activityLogs.length} 条真实审核日志`}
+              />
+            }
           />
 
           <section className="space-y-3">

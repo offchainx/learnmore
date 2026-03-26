@@ -1,5 +1,9 @@
 import { ImportClient } from './ImportClient'
-import { getImportDashboardStats, getImportTasks } from '@/actions/content-pipeline/import-service'
+import {
+  getImportActivityLogs,
+  getImportDashboardStats,
+  getImportTasks,
+} from '@/actions/content-pipeline/import-service'
 import { getImportSubjects } from '@/actions/courses/subject'
 import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
@@ -30,7 +34,10 @@ export default async function ImportPage() {
   const tasksError = tasksResult.success ? null : tasksResult.error || '导入任务查询失败'
 
   // Fetch dashboard stats
-  const statsResult = await getImportDashboardStats()
+  const [statsResult, auditLogsResult] = await Promise.all([
+    getImportDashboardStats(),
+    getImportActivityLogs({ limit: 40 }),
+  ])
   const stats = statsResult.success && statsResult.data
     ? statsResult.data
     : {
@@ -44,6 +51,8 @@ export default async function ImportPage() {
         storageUsed: 0,
         storageLimit: 1024,
       }
+  const auditLogs =
+    auditLogsResult.success && auditLogsResult.data ? auditLogsResult.data : []
 
   return (
     <ImportClient 
@@ -53,6 +62,7 @@ export default async function ImportPage() {
       initialHistory={tasks}
       initialTasksError={tasksError}
       initialStats={stats}
+      initialAuditLogs={auditLogs}
     />
   )
 }

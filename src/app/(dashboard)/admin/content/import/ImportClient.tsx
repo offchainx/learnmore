@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useEffect, useMemo, useState, useTransition } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
-import { History, Plus, RefreshCw, AlertTriangle } from 'lucide-react'
+import { Plus, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AdminClientWrapper } from '@/components/admin/common'
@@ -13,7 +12,7 @@ import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import { pageTableShellClass } from '@/components/shared/pageSurfaces'
 import { StatsCards } from '@/components/admin/content/StatsCards'
 import { BatchTable } from '@/components/admin/content/BatchTable'
-import { AuditLogDrawer } from '@/components/admin/content/AuditLogDrawer'
+import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 import { NewBatchImportModal } from '@/components/admin/content/NewBatchImportModal'
 import { mapImportTaskToBatchData } from '@/lib/content-pipeline/mappers'
 import { getSubjectLabel, type UiLang } from '@/lib/subjects'
@@ -50,6 +49,7 @@ interface ImportClientProps {
   initialHistory: ImportTask[]
   initialTasksError?: string | null
   initialStats: StatsData
+  initialAuditLogs: AuditLogEntry[]
 }
 
 export function ImportClient({
@@ -59,6 +59,7 @@ export function ImportClient({
   initialHistory,
   initialTasksError,
   initialStats,
+  initialAuditLogs,
 }: ImportClientProps) {
   const router = useRouter()
 
@@ -83,6 +84,10 @@ export function ImportClient({
   )
 
   const stats = useMemo<StatsData>(() => initialStats, [initialStats])
+  const auditLogs = useMemo<AuditLogEntry[]>(
+    () => initialAuditLogs || [],
+    [initialAuditLogs]
+  )
   const hasActiveBatches = useMemo(
     () =>
       history.some(
@@ -92,37 +97,7 @@ export function ImportClient({
     [history]
   )
 
-  const auditLogs = useMemo<AuditLogEntry[]>(
-    () =>
-      history.slice(0, 20).map((task) => ({
-        id: task.id,
-        user: 'System',
-        avatar: '',
-        action:
-          task.status === 'COMPLETED'
-            ? '完成导入任务'
-            : task.status === 'FAILED'
-              ? '导入任务失败'
-              : task.status === 'PROCESSING'
-                ? '开始处理导入任务'
-                : '创建导入任务',
-        target: task.filename,
-        timestamp: format(task.createdAt, 'yyyy-MM-dd HH:mm:ss'),
-        type:
-          task.status === 'COMPLETED'
-            ? 'success'
-            : task.status === 'FAILED'
-              ? 'error'
-              : task.status === 'PROCESSING'
-                ? 'info'
-                : 'warning',
-      })),
-    [history]
-  )
-
-  const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [isRefreshing, startRefresh] = useTransition()
 
   useEffect(() => {
     if (!hasActiveBatches) return undefined
@@ -136,12 +111,6 @@ export function ImportClient({
 
   const handleImportSuccess = () => {
     router.refresh()
-  }
-
-  const handleManualRefresh = () => {
-    startRefresh(() => {
-      router.refresh()
-    })
   }
 
   return (
@@ -160,27 +129,14 @@ export function ImportClient({
             titleClassName="font-semibold"
             actions={
               <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleManualRefresh}
-                  disabled={isRefreshing}
-                  className="h-10 rounded-full border-borderTone bg-surface px-4 text-text-primary hover:bg-surface-subtle hover:text-text-primary"
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
-                  />
-                  刷新
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAuditDrawerOpen(true)}
-                  className="h-10 rounded-full border-borderTone bg-surface px-4 text-text-primary hover:bg-surface-subtle hover:text-text-primary"
-                >
-                  <History className="h-4 w-4" />
-                  操作日志
-                </Button>
+                <AdminActivityActions
+                  logs={auditLogs}
+                  auditTitle="导入操作日志"
+                  auditDescription="基于 source_files 真实记录生成的近期导入活动。"
+                  emptyText="当前还没有可显示的导入日志。"
+                  searchPlaceholder="搜索批次名、操作人、状态备注..."
+                  footerText={`当前显示 ${auditLogs.length} 条真实导入日志`}
+                />
                 <Button
                   size="sm"
                   onClick={() => setIsImportModalOpen(true)}
@@ -227,12 +183,6 @@ export function ImportClient({
           </div>
         </div>
       </div>
-
-      <AuditLogDrawer
-        isOpen={isAuditDrawerOpen}
-        onClose={() => setIsAuditDrawerOpen(false)}
-        logs={auditLogs}
-      />
 
       <NewBatchImportModal
         isOpen={isImportModalOpen}

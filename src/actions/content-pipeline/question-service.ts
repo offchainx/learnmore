@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import { suggestQuestionChapters } from '@/lib/content-pipeline/chapter-tagging'
+import { format } from 'date-fns'
 import {
   ContentStatus,
   Prisma,
@@ -12,6 +13,7 @@ import {
   ReviewAction,
 } from '@prisma/client'
 import { createHash } from 'crypto'
+import type { AuditLogEntry } from '@/types/content-pipeline'
 import type {
   BulkCreateQuestionsInput,
   BulkOperationResult,
@@ -72,6 +74,47 @@ function safeRevalidatePath(path: string): void {
     revalidatePath(path)
   } catch (error) {
     console.warn(`Skip revalidatePath(${path}):`, error)
+  }
+}
+
+function buildReviewLogUser(user?: {
+  email?: string | null
+  username?: string | null
+} | null): string {
+  return user?.username || user?.email || '未知审核人'
+}
+
+function mapReviewActionLabel(action: ReviewAction): string {
+  switch (action) {
+    case ReviewAction.SUBMIT_REVIEW:
+      return '提交审核'
+    case ReviewAction.APPROVE:
+      return '审核通过'
+    case ReviewAction.REJECT:
+      return '驳回题目'
+    case ReviewAction.PUBLISH:
+      return '发布题目'
+    case ReviewAction.ARCHIVE:
+      return '归档题目'
+    case ReviewAction.REQUEST_CHANGE:
+      return '请求复审'
+    default:
+      return action
+  }
+}
+
+function mapReviewActionType(action: ReviewAction): AuditLogEntry['type'] {
+  switch (action) {
+    case ReviewAction.APPROVE:
+    case ReviewAction.PUBLISH:
+      return 'success'
+    case ReviewAction.REJECT:
+    case ReviewAction.REQUEST_CHANGE:
+      return 'warning'
+    case ReviewAction.ARCHIVE:
+      return 'error'
+    default:
+      return 'info'
   }
 }
 
@@ -1213,6 +1256,88 @@ export async function getContentStats(
     return {
       success: false,
       error: error instanceof Error ? error.message : '获取统计失败',
+      code: 'FETCH_FAILED',
+    }
+  }
+}
+
+export async function getContentReviewActivityLogs(options?: {
+  limit?: number
+  subjectId?: string
+}): Promise<ServiceResult<AuditLogEntry[]>> {
+  try {
+    const scopedSubjectId = isUuid(options?.subjectId) ? options?.subjectId : undefined
+    const logs = await prisma.contentReviewLog.findMany({
+      where: {
+        contentType: 'question',
+      },
+      select: {
+        id: true,
+        contentId: true,
+        action: true,
+        comment: true,
+        createdAt: true,
+        reviewer: {
+          select: {
+            email: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: Math.max(40, (options?.limit ?? 30) * 4),
+    })
+
+    const questionIds = Array.from(new Set(logs.map((log) => log.contentId)))
+    const questions = await prisma.question.findMany({
+      where: {
+        id: { in: questionIds },
+      },
+      select: {
+        id: true,
+        subjectId: true,
+        content: true,
+        deletedAt: true,
+      },
+    })
+
+    const questionMap = new Map(questions.map((question) => [question.id, question]))
+
+    const entries = logs
+      .filter((log) => {
+        if (!scopedSubjectId) return true
+        return questionMap.get(log.contentId)?.subjectId === scopedSubjectId
+      })
+      .map<AuditLogEntry>((log) => {
+        const question = questionMap.get(log.contentId)
+        const target = question?.content
+          ? question.content.slice(0, 48)
+          : '题目记录'
+        return {
+          id: log.id,
+          user: buildReviewLogUser(log.reviewer),
+          avatar: '',
+          action: mapReviewActionLabel(log.action),
+          target:
+            target.length >= 48 ? `${target}...` : target,
+          timestamp: format(log.createdAt, 'yyyy-MM-dd HH:mm:ss'),
+          type: mapReviewActionType(log.action),
+          comment:
+            log.comment ||
+            (question?.deletedAt ? '该题已删除，保留审核轨迹。' : '已记录审核动作'),
+        }
+      })
+      .slice(0, options?.limit ?? 30)
+
+    return {
+      success: true,
+      data: entries,
+    }
+  } catch (error) {
+    console.error('获取内容审核日志失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取内容审核日志失败',
       code: 'FETCH_FAILED',
     }
   }

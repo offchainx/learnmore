@@ -37,7 +37,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       title: '今日新建任务',
       value: String(stats.tasksToday),
       meta: stats.tasksToday > 0 ? '新批次已进入导入管线' : '等待新的导入批次',
-      caption: '自动刷新 5 秒同步',
+      caption: '有进行中任务时自动轮询',
       icon: CalendarDays,
       iconClassName: 'text-[hsl(var(--state-info-fg))]',
       iconBgClassName:

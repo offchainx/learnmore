@@ -11,6 +11,7 @@
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { ProcessingStatus, ContentStatus, ReviewAction } from '@prisma/client'
+import { format } from 'date-fns'
 import { OCRService } from '@/lib/content-pipeline/ocr-service'
 import { AIStructurer } from '@/lib/content-pipeline/ai-structurer'
 import { autoAssignQuestionChapters } from '@/lib/content-pipeline/chapter-tagging'
@@ -27,7 +28,7 @@ import type {
   ServiceResult,
   ImportStage
 } from '@/lib/content-pipeline/types'
-import type { ImportEventCode, StatsData } from '@/types/content-pipeline'
+import type { AuditLogEntry, ImportEventCode, StatsData } from '@/types/content-pipeline'
 import type { OCRResult } from '@/lib/content-pipeline'
 import {
   MAX_PAGES,
@@ -1230,6 +1231,110 @@ export async function getImportDashboardStats(): Promise<ServiceResult<StatsData
     return {
       success: false,
       error: error instanceof Error ? error.message : '获取统计失败',
+      code: 'FETCH_FAILED',
+    }
+  }
+}
+
+function buildImportLogUser(user?: {
+  email?: string | null
+  username?: string | null
+} | null): string {
+  return user?.username || user?.email || '未知用户'
+}
+
+function buildImportActivityLogType(
+  status: ProcessingStatus,
+  phase: 'created' | 'completed'
+): AuditLogEntry['type'] {
+  if (phase === 'created') return 'info'
+  if (status === ProcessingStatus.COMPLETED) return 'success'
+  if (status === ProcessingStatus.FAILED) return 'error'
+  return 'warning'
+}
+
+export async function getImportActivityLogs(options?: {
+  limit?: number
+  subjectId?: string
+}): Promise<ServiceResult<AuditLogEntry[]>> {
+  try {
+    const scopedSubjectId = options?.subjectId?.trim()
+    const sourceFiles = await prisma.sourceFile.findMany({
+      where: {
+        ...(scopedSubjectId ? { subjectId: scopedSubjectId } : {}),
+      },
+      select: {
+        id: true,
+        filename: true,
+        sourceNote: true,
+        status: true,
+        createdAt: true,
+        processedAt: true,
+        uploader: {
+          select: {
+            email: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: Math.max(20, (options?.limit ?? 30) * 2),
+    })
+
+    const logs = sourceFiles
+      .flatMap<AuditLogEntry>((file) => {
+        const user = buildImportLogUser(file.uploader)
+        const baseTarget = file.filename
+        const entries: AuditLogEntry[] = [
+          {
+            id: `${file.id}-created`,
+            user,
+            avatar: '',
+            action: '创建导入任务',
+            target: baseTarget,
+            timestamp: format(file.createdAt, 'yyyy-MM-dd HH:mm:ss'),
+            type: buildImportActivityLogType(file.status, 'created'),
+            comment: file.sourceNote || '已进入导入管线',
+          },
+        ]
+
+        if (file.processedAt) {
+          entries.push({
+            id: `${file.id}-processed`,
+            user,
+            avatar: '',
+            action:
+              file.status === ProcessingStatus.COMPLETED
+                ? '完成导入任务'
+                : file.status === ProcessingStatus.FAILED
+                  ? '导入任务失败'
+                  : '更新导入任务状态',
+            target: baseTarget,
+            timestamp: format(file.processedAt, 'yyyy-MM-dd HH:mm:ss'),
+            type: buildImportActivityLogType(file.status, 'completed'),
+            comment:
+              file.status === ProcessingStatus.COMPLETED
+                ? '解析、结构化与入库流程已完成'
+                : file.status === ProcessingStatus.FAILED
+                  ? '任务处理失败，请结合批次状态排查'
+                  : `当前状态：${file.status}`,
+          })
+        }
+
+        return entries
+      })
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+      .slice(0, options?.limit ?? 30)
+
+    return {
+      success: true,
+      data: logs,
+    }
+  } catch (error) {
+    console.error('获取导入活动日志失败:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取导入活动日志失败',
       code: 'FETCH_FAILED',
     }
   }

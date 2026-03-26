@@ -316,10 +316,10 @@ function ExamForecastInner({
           </div>
 
           <div className="mt-3 grid gap-2">
-            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-50 px-3 py-2 text-[12px] leading-5 text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-500/14 dark:text-emerald-50">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] leading-5 text-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] dark:border-[#2C6D59] dark:bg-[#14342B] dark:text-[#E4FFF5] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               预测等级基于最近练习正确率、完成度和连续活跃表现综合生成。
             </div>
-            <div className="rounded-2xl border border-borderTone bg-surface-subtle px-3 py-2 text-[12px] leading-5 text-text-secondary dark:border-white/10 dark:bg-white/6 dark:text-slate-200">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-700 dark:border-[#31425E] dark:bg-[#1A2740] dark:text-[#DCE6F5]">
               建议继续完成 Smart Drill 和 Mock Arena，考试预测会更快收敛。
             </div>
           </div>
