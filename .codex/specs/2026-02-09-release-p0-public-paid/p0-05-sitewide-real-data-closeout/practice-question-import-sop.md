@@ -3,6 +3,250 @@
 > 用途：在开始 `T-007.4` 之前，为练习中心导入一批可用的真实题目，并统一导入、清理、打标、审核的执行方式。
 > 状态：当前项目可直接执行的正式流程说明。
 
+## 文档使用方式
+
+这份文档现在分成 2 层：
+
+1. 顶部“任务清单层”
+- 这是唯一主执行顺序
+- 你只看这里，就应该知道当前做到哪个 task、下一步是什么
+- 后续 thread 中提到的 `Step 1 / Step 2 / Step 6`，默认都以这一层为准
+
+2. 下方“详细说明层”
+- 保留原来的抓取方案、低成本策略、阶段 A-E、工作包等完整信息
+- 这些内容不删，只作为展开说明、实现参考和运营执行 SOP
+- 如果顶部任务清单和下方细节文字有理解冲突，以顶部任务清单的顺序和定义为准
+
+## 当前主任务清单
+
+下面这组 task 是当前唯一主执行顺序。
+
+### Task 1：打通导入入口与题池分流
+
+子任务：
+
+- 给文件导入 / 网页导入增加统一入口
+- 导入时明确区分“真题 / 非真题”
+- 保证普通练习题不会误入 `Past Paper`
+
+完成判定：
+
+- 运营导入时可以显式选择是否为真题
+- `isPastPaper + paperId` 写入规则稳定
+
+当前状态：
+
+- 已完成
+
+对应详细章节：
+
+- [当前真实入口](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#当前真实入口)
+- [工作包 A：导入时增加“是否为真题”开关](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#工作包-a导入时增加是否为真题开关)
+
+### Task 2：搭建网页抓取导入底座
+
+子任务：
+
+- 把网页导入统一收敛到 `importFromWebUrl`
+- 把单站点抓取逻辑抽成 adapter
+- 引入 `Crawlee + Playwright` 作为多站点抓取底座
+- 建立统一中间结构和 runner
+
+完成判定：
+
+- 当前至少 1 个站点可走新架构导入
+- 后续接第二站点不需要重写整条入口
+
+当前状态：
+
+- 已完成第一轮
+
+对应详细章节：
+
+- [网页抓取导入增强方案](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#网页抓取导入增强方案)
+- [Crawlee + Playwright 详细实施步骤](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#crawlee--playwright-详细实施步骤)
+- [开发落地步骤（详细说明）](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#开发落地步骤详细说明)
+
+### Task 3：补规则清洗与 AI 补全
+
+子任务：
+
+- 明确“题型支持矩阵”
+- 规则清洗：
+  - HTML 清洗
+  - 空白 / 断行规范化
+  - 选项标签对齐
+  - 答案格式统一
+  - 图片地址修正
+- 明确“图片处理口径”
+  - 含图题如何抽取
+  - 图片 URL 如何保存
+  - 图片是否落本地存储
+  - 哪些格式当前稳定，哪些仍需人工抽查
+- AI 补全：
+  - 结构纠偏
+  - 解析补全
+  - 难度建议
+  - tags / 章节候选建议
+
+完成判定：
+
+- 不依赖 AI，也能导入一批结构基本可用的题
+- AI 失败不会阻断导入主链路
+
+当前状态：
+
+- 已完成第一轮
+
+对应详细章节：
+
+- [开发落地步骤（详细说明）](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#开发落地步骤详细说明)
+- [低成本与省 Token 策略](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#低成本与省-token-策略)
+
+### Task 4：补章节打标与规则校验
+
+子任务：
+
+- 保证每题有 `subjectId`
+- 尽量补齐叶子 `chapterId`
+- 真题题目必须严格隔离
+- 答案格式必须和题型匹配
+- 规则优先，AI 只做章节候选增强
+
+完成判定：
+
+- 普通练习题能够进入章节型入口
+- 不合法题目不会直接发布
+
+当前状态：
+
+- 已完成第一轮
+
+对应详细章节：
+
+- [核心规则](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#核心规则)
+- [阶段 D：导入后打标](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#阶段-d导入后打标)
+- [工作包 D：AI 辅助章节打标](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#工作包-dai-辅助章节打标)
+
+### Task 5：补审核台、删除、KPI 和审核可用性
+
+子任务：
+
+- 审核台展示导入时间 / 审核时间
+- 审核台展示科目 / 章节 / 真题标记
+- 批量通过 / 驳回 / 发布 / 删除可用
+- 单题菜单同类动作可用
+- 顶部 KPI 口径正确
+- 软删除与“已删除”视图可用
+- 批量导入页右上角“刷新 / 操作日志”要明确是真实功能还是占位
+- 内容审核页右上角是否需要补同类“刷新 / 操作日志”入口
+
+完成判定：
+
+- 审核台可以稳定处理导入后的题目
+- 审核数据和列表展示口径一致
+
+当前状态：
+
+- 已完成第一轮
+
+对应详细章节：
+
+- [开发落地步骤（详细说明）](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#开发落地步骤详细说明)
+- [工作包 B：题目软删除与“已删除”视图](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#工作包-b题目软删除与已删除视图)
+
+### Task 6：验证非真题练习入口真实消费
+
+子任务：
+
+- `Smart Drill` 真实读链路验证
+- `Chapter Drill` 真实读链路验证
+- `Mock Arena` 真实读链路验证
+- `Error Wiper` 真实读链路验证
+- 进入练习模式后退出时，必须保留当前科目上下文，而不是默认回到第一个科目
+- 排查题目“为什么看不到”的完整过滤链
+- 保证未支持完整作答的题型不进入这几个入口
+- 复核 `知识蜂巢 / 考试预测 / 薄弱点快修` 的当前逻辑是否完整
+- 修复练习分析卡片在暗色模式下的可读性问题（例如考试预测辅助文案）
+
+完成判定：
+
+- 非真题题目已能被正式练习入口真实消费
+- 入口不是“页面能打开”，而是“题能被选出并且能做”
+
+当前状态：
+
+- 进行中
+- 第一轮已完成
+
+对应详细章节：
+
+- [开发落地步骤（详细说明）](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#开发落地步骤详细说明)
+- [发布前抽样验证](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#发布前抽样验证)
+
+### Task 7：扩第一批基础题并补章节覆盖
+
+子任务：
+
+- 继续导入非真题基础题
+- 扩每个叶子章节的最小题量
+- 提升 `Mock Arena` 和 `Chapter Drill` 的题池覆盖
+- 做更像正式环境的小规模发布验证
+
+完成判定：
+
+- 至少 1 个科目可稳定支撑 `Smart Drill + Chapter Drill + Mock Arena`
+
+当前状态：
+
+- 未开始
+
+对应详细章节：
+
+- [Step 7：先做第一批基础题目](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#step-7先做第一批基础题目)
+
+### Task 8：单独打通 `Past Paper`
+
+子任务：
+
+- 真题卷单独导入
+- 严格校验 `isPastPaper + paperId`
+- 单独验证真题入口和普通练习池隔离
+
+完成判定：
+
+- 至少 1 套真题卷可以真实支撑 `Past Paper`
+
+当前状态：
+
+- 未开始
+
+对应详细章节：
+
+- [阶段 E：审核与发布](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#阶段-e审核与发布)
+- [当前最推荐的执行方式](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/practice-question-import-sop.md#当前最推荐的执行方式)
+
+## 当前进展同步
+
+为了避免 thread 中对进度理解不一致，当前统一认知如下：
+
+- `Task 1`：已完成
+- `Task 2`：已完成第一轮
+- `Task 3`：已完成第一轮
+- `Task 4`：已完成第一轮
+- `Task 5`：已完成第一轮
+- `Task 6`：进行中，第一轮已完成
+- `Task 7`：未开始
+- `Task 8`：未开始
+
+当前主线含义：
+
+- 现在不是回到“怎么导入”
+- 也不是进入 `Past Paper`
+- 当前主线是继续把 `Task 6 -> Task 7` 做扎实，也就是：
+  - 先把非真题练习入口彻底打稳
+  - 再扩第一批基础题的题量和章节覆盖
+
 ## 目标
 
 - 将一批题目导入 `questions`，并确保后续可被练习中心真实消费。
@@ -619,7 +863,13 @@ DOM 提取主要负责：
 - 在第二个站点接入前，不要宣称“通用爬虫引擎已经成立”
 - 在第一批真实题目通过练习验证前，不要扩大导入规模
 
-## 开发落地步骤
+## 开发落地步骤（详细说明）
+
+说明：
+
+- 本节保留原来的 `Step 1 - Step 7` 展开说明
+- 这些 step 现在是上方 `Task 1 - Task 8` 的详细解释层
+- thread 中如果只说“当前做到 Step 6”，默认优先以上方“当前主任务清单”的定义为准
 
 下面是建议的明确开发顺序，按这个顺序做，返工最少。
 
@@ -1008,7 +1258,7 @@ DOM 提取主要负责：
 - OCR 结构错误修正
 - 题干和解析的语义清洗
 
-## 标准执行流程
+## 标准执行流程（运营执行 SOP，不等于开发任务编号）
 
 ## 阶段 A：准备导入批次
 
@@ -1209,7 +1459,7 @@ DOM 提取主要负责：
 - 知识蜂巢
 - 薄弱点快修
 
-## 当前优先工作包
+## 当前优先工作包（对主任务的补充拆分，不单独改变主顺序）
 
 为了先打通 `Past Paper` 以外的正式练习入口，当前按下面 4 个工作包推进。
 
@@ -1346,7 +1596,7 @@ DOM 提取主要负责：
 - 如果未配置 AI Key，则退化为“规则优先”模式，不阻断导入主链路
 - 对于题干与章节树完全不同词域的题目，规则模式允许保留 `chapterId = null`，进入人工确认队列
 
-## 当前推进顺序
+## 当前推进顺序（与上方主任务清单对齐）
 
 为了尽快打通非真题正式练习链路，当前按下面顺序实施：
 
@@ -1377,6 +1627,244 @@ DOM 提取主要负责：
 
 4. 大批量 OCR 后不清洗直接发布
 - 会直接污染正式用户体验和后续统计
+
+## 当前题型支持矩阵
+
+本节用于明确“系统里有哪些题型”“哪些能稳定采集”“哪些能稳定展示/消费”，避免后续误把“数据模型支持”当成“正式练习可完整使用”。
+
+当前数据模型支持 6 类题型：
+
+1. `SINGLE_CHOICE`
+2. `MULTIPLE_CHOICE`
+3. `FILL_BLANK`
+4. `ESSAY`
+5. `TRUE_FALSE`
+6. `MCQ`（legacy）
+
+当前口径如下：
+
+- `SINGLE_CHOICE`
+  - 数据模型：支持
+  - 网页抓取：稳定
+  - OCR / AI 结构化：支持
+  - 审核页展示：支持
+  - 练习入口消费：支持
+- `MULTIPLE_CHOICE`
+  - 数据模型：支持
+  - 网页抓取：稳定
+  - OCR / AI 结构化：支持
+  - 审核页展示：支持
+  - 练习入口消费：支持
+- `FILL_BLANK`
+  - 数据模型：支持
+  - 网页抓取：支持
+  - OCR / AI 结构化：支持
+  - 审核页展示：支持
+  - 练习入口消费：支持
+- `ESSAY`
+  - 数据模型：支持
+  - 网页抓取：支持
+  - OCR / AI 结构化：支持
+  - 审核页展示：支持
+  - 练习入口消费：当前不作为 `Smart Drill / Chapter Drill / Mock Arena` 的正式题池
+- `TRUE_FALSE`
+  - 数据模型：支持
+  - 网页抓取：当前 `Examcoo` 支持
+  - OCR / AI 结构化：当前不是最稳定主路径，需要额外规范化
+  - 审核页展示：支持
+  - 练习入口消费：支持
+- `MCQ`
+  - 数据模型：支持
+  - 网页抓取：不作为当前主导入类型
+  - OCR / AI 结构化：不作为当前主导入类型
+  - 审核页展示：支持
+  - 练习入口消费：作为 legacy 兼容类型支持
+
+当前正式练习入口的题型消费口径：
+
+- `Smart Drill / Chapter Drill / Mock Arena` 当前只消费前台已支持完整作答的题型：
+  - `SINGLE_CHOICE`
+  - `MULTIPLE_CHOICE`
+  - `FILL_BLANK`
+  - `TRUE_FALSE`
+  - `MCQ`
+- `ESSAY` 当前可以导入、审核、发布，但不应进入上面这 3 个入口
+
+## 当前图片处理口径
+
+本节用于明确“含图题”当前是如何抓、如何存、哪里还不稳定。
+
+当前网页抓取导入的图片处理方式：
+
+- 以 `Examcoo` 为例，当前抓取器会从题干 HTML 的 `<img>` 标签中提取图片 URL
+- 会把相对路径规范化成绝对 URL
+- 导入后写入题目字段：
+  - `assetUrl`
+  - `imageUrls`
+
+当前保存位置：
+
+- 当前默认是“保存远端图片引用”
+- 也就是把图片 URL 存到 `questions.assetUrl / questions.imageUrls`
+- 目前没有把这些网页图片统一下载、转存到我们自己的对象存储
+
+这意味着：
+
+- 当前含图题“能保留图片链接”
+- 但图片可用性仍依赖上游站点资源是否继续可访问
+
+当前稳定度判断：
+
+- 稳定：
+  - HTML 里直接 `<img src>` 或 Examcoo 的 `_djrealurl` 图片
+- 相对不稳定：
+  - CSS 背景图
+  - JS 动态拼出来的图片
+  - 题图不在题干 HTML 内、而是在额外资源层里的站点
+  - 极复杂版式或多图组合题
+
+当前执行口径：
+
+- 含图题可以导入
+- 但每批导入后要抽样检查图片是否仍可打开
+- 在把图片转存到我们自己的存储之前，不把“网页含图题完全稳定”当成既成事实
+
+## 衍生分析入口当前口径
+
+本节用于同步 `知识蜂巢 / 考试预测 / 薄弱点快修 / Error Wiper` 的当前实现边界，避免误以为这些已经是最终版。
+
+### 1. 知识蜂巢
+
+当前逻辑：
+
+- 基于用户在某科目叶子章节上的历史 `user_attempts`
+- 统计每个叶子章节的：
+  - 正确率
+  - 作答次数
+  - 掌握度
+  - 状态（strong / fair / weak / locked）
+
+当前判断：
+
+- 结构上可用
+- 但它依赖：
+  - 题目先有正确的叶子 `chapterId`
+  - 用户已经在这些章节上产生足够 attempts
+- 所以它当前不是“不完整不能跑”，而是“强依赖前置数据质量和题量”
+
+### 2. 考试预测
+
+当前逻辑：
+
+- 基于近 30 天答题记录、课程完成度、连续活跃天数
+- 当前算法是启发式加权：
+  - 正确率 60%
+  - 完成度 30%
+  - streak 加成 10 分上限
+
+当前判断：
+
+- 可以运行
+- 但当前更像“轻量预测卡片”，不是高精度预测模型
+- 后续如果要增强可信度，需要更多真实样本与更稳定的题池覆盖
+
+### 3. 薄弱点快修
+
+当前逻辑：
+
+- 基于章节统计
+- 筛选条件：
+  - `totalAttempts >= 5`
+  - `masteryLevel < 70`
+- 点击后直接跳对应 `Chapter Drill`
+
+当前判断：
+
+- 结构上可用
+- 但依赖：
+  - 章节打标正确
+  - 章节题池足够
+  - 用户在该章节已有足够 attempts
+
+### 4. Error Wiper
+
+当前逻辑：
+
+- 不是独立题池
+- 是基于用户历史错题 attempts 聚合出来的修复视图
+- 主要筛选：
+  - 最近仍然做错
+  - 或整体正确率偏低
+
+当前判断：
+
+- 在这几个衍生入口里，`Error Wiper` 的定义目前最清晰
+- 但它同样依赖历史 attempts 量，而不是依赖“新导入多少题”
+
+整体结论：
+
+- 这 4 个入口目前都不是“完全空壳”
+- 但严格来说，真正决定它们质量的前提还是：
+  - `chapterId`
+  - 非真题题池规模
+  - 用户真实作答量
+
+## 后台刷新与操作日志当前口径
+
+### 1. 批量导入页右上角“刷新”
+
+当前状态：
+
+- 可用
+- 手动点击会触发 `router.refresh()`
+- 页面存在处理中批次时，也会自动轮询刷新
+- 空闲状态下不再固定 5 秒刷新
+
+### 2. 批量导入页右上角“操作日志”
+
+当前状态：
+
+- 不是完整审计日志
+- 当前只是基于最近导入任务历史拼出来的“近似日志视图”
+- 当前限制包括：
+  - 默认用户写死为 `System`
+  - 搜索框未接真实搜索
+  - “查看更多历史记录”未接真实分页
+  - 不是从一张独立 audit log 表里拉出来的完整操作审计
+
+结论：
+
+- 现在它更像“任务事件侧边栏”
+- 还不能当成正式、完整、可检索的后台操作日志
+
+### 3. 内容审核页右上角
+
+当前状态：
+
+- 当前没有与批量导入页同级别的“刷新 / 操作日志”入口
+- 如果要补，应该归到 `Task 5`
+
+## 当前新增待处理补充项
+
+下面这些项已经正式纳入当前主任务，不再是散点需求：
+
+1. 练习模式退出时保留科目上下文
+- 归属：`Task 6`
+
+2. 题型支持矩阵与练习入口消费边界
+- 归属：`Task 3 + Task 6`
+
+3. 含图题的抓取、存储与稳定性收口
+- 归属：`Task 3`
+
+4. 知识蜂巢 / 考试预测 / 薄弱点快修 / Error Wiper 的完整性复核
+- 归属：`Task 6`
+
+5. 考试预测卡片暗色模式对比度修复
+- 归属：`Task 6`
+
+6. 批量导入 / 内容审核右上角“刷新 / 操作日志”完整度补齐
+- 归属：`Task 5`
 
 ## 结论
 

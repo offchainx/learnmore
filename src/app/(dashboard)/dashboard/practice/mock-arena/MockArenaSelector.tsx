@@ -91,7 +91,9 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
             startTime: Date.now()
           }))
         }
-        router.push(`/dashboard/practice/mock-arena/${result.examRecordId}`)
+        router.push(
+          `/dashboard/practice/mock-arena/${result.examRecordId}?subjectId=${encodeURIComponent(subjectId)}`
+        )
       } else {
         setError(result.error || 'Failed to start exam')
       }

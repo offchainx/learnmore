@@ -137,6 +137,7 @@ const MOCK_SMART_DRILL_QUESTIONS: Question[] = [
 
 export default function SmartDrillSession({ userId, subjectId, enableMockPreview = false, autoStart = false }: SmartDrillSessionProps) {
   const router = useRouter()
+  const practiceCenterHref = `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -249,7 +250,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
             setHasStarted(false)
           }}
           secondaryActionLabel="返回练习中心"
-          secondaryAction={() => router.push('/dashboard/practice')}
+          secondaryAction={() => router.push(practiceCenterHref)}
           tertiaryActionLabel={previewMode ? '切回真实题组' : '刷新推荐题组'}
           tertiaryAction={() => {
             if (previewMode) {
@@ -389,7 +390,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
         onRestart={() => {
           setHasStarted(false)
         }}
-        onExit={() => router.push('/dashboard/practice')}
+        onExit={() => router.push(practiceCenterHref)}
       />
     </PracticeModeShell>
   )

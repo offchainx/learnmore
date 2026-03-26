@@ -16,15 +16,19 @@ interface PageProps {
   params: Promise<{
     paperId: string
   }>
+  searchParams: Promise<{
+    subjectId?: string
+  }>
 }
 
-export default async function PastPaperPage({ params }: PageProps) {
+export default async function PastPaperPage({ params, searchParams }: PageProps) {
   const user = await getCurrentUser()
   if (!user) {
     redirect('/login')
   }
 
   const { paperId } = await params
+  const resolvedSearchParams = await searchParams
 
   const questions = await prisma.question.findMany({
     where: {
@@ -40,7 +44,12 @@ export default async function PastPaperPage({ params }: PageProps) {
   }
 
   const chapterId = questions.find((question) => question.chapterId)?.chapterId
-  const subjectId = questions.find((q) => q.subjectId)?.subjectId
+  const subjectId =
+    resolvedSearchParams.subjectId ||
+    questions.find((q) => q.subjectId)?.subjectId
+  const practiceCenterHref = subjectId
+    ? `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
+    : '/dashboard/practice'
   const subject = subjectId
     ? await prisma.subject.findUnique({ where: { id: subjectId }, select: { name: true } })
     : null
@@ -53,7 +62,7 @@ export default async function PastPaperPage({ params }: PageProps) {
         <div className="rounded-xl border border-borderTone dark:border-slate-800 p-6 bg-surface-subtle dark:bg-slate-900 space-y-4">
           <p className="text-sm text-text-secondary dark:text-slate-300">当前这套真题还没有可用题目。</p>
           <Button asChild variant="outline">
-            <Link href="/dashboard/practice">返回练习中心</Link>
+            <Link href={practiceCenterHref}>返回练习中心</Link>
           </Button>
         </div>
       ) : (

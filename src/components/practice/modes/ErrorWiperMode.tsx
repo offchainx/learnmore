@@ -18,6 +18,7 @@ export interface ErrorBookEntry {
 interface ErrorWiperSessionProps {
   initialSession: ErrorBookEntry[];
   autoStart?: boolean;
+  subjectId?: string;
   onSessionComplete: (results: { wiped: number; remaining: number }) => void;
   onSubmitSession: (input: {
     attempts: Array<{ questionId: string; isCorrect: boolean }>;
@@ -60,10 +61,14 @@ function isCorrectAnswer(question: Question, userAnswer: string | string[] | und
 export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
   initialSession,
   autoStart = false,
+  subjectId,
   onSessionComplete,
   onSubmitSession,
 }) => {
   const router = useRouter();
+  const practiceCenterHref = subjectId
+    ? `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
+    : '/dashboard/practice';
   const reloadPage = () => window.location.reload();
   const [hasStarted, setHasStarted] = useState(autoStart);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,7 +183,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
           </button>
           <button
             className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 font-bold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900"
-            onClick={() => router.push('/dashboard/practice')}
+            onClick={() => router.push(practiceCenterHref)}
           >
             返回练习中心
           </button>
@@ -195,7 +200,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
       questions={workspaceQuestions}
       onSubmit={handleSubmit}
       onRefresh={reloadPage}
-      onExit={() => router.push('/dashboard/practice')}
+      onExit={() => router.push(practiceCenterHref)}
       submitLabel="提交错题修复"
       refreshLabel="刷新错题组"
       exitLabel="退出 Error Wiper"

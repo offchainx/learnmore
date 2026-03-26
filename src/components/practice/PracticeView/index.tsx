@@ -39,6 +39,7 @@ import { parseStructuredChapterTitle } from './chapterDisplay'
 interface PracticeCenterScreenProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any
+  initialSubjectId?: string
 }
 
 function createEmptySubjectData(): PracticeSubjectData {
@@ -517,6 +518,7 @@ const GEOGRAPHY_CHAPTER_PREVIEW_NOTES: Record<
 
 export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   t,
+  initialSubjectId,
 }) => {
   const { lang } = useApp()
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('')
@@ -569,18 +571,24 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
             ? result.data.defaultSubjectId
             : ''
         const safeDefaultSubjectId = normalizedSubjects[0]?.id || ''
+        const requestedSubjectId =
+          typeof initialSubjectId === 'string' &&
+          normalizedSubjects.some((subject) => subject.id === initialSubjectId)
+            ? initialSubjectId
+            : ''
+        const nextSelectedSubjectId = requestedSubjectId || safeDefaultSubjectId
         const bootstrapSubjectData = result.data
           .subjectData as PracticeSubjectData | null
 
         setDbSubjects(normalizedSubjects)
-        setSelectedSubjectId(safeDefaultSubjectId)
+        setSelectedSubjectId(nextSelectedSubjectId)
         if (
-          safeDefaultSubjectId &&
+          nextSelectedSubjectId &&
           bootstrapSubjectData &&
-          safeDefaultSubjectId === defaultSubjectId
+          nextSelectedSubjectId === defaultSubjectId
         ) {
           setSubjectData(bootstrapSubjectData)
-          setLoadedSubjectId(safeDefaultSubjectId)
+          setLoadedSubjectId(nextSelectedSubjectId)
         } else {
           setSubjectData(createEmptySubjectData())
           setLoadedSubjectId('')
@@ -609,7 +617,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       cancelled = true
       controller.abort()
     }
-  }, [])
+  }, [initialSubjectId])
 
   useEffect(() => {
     if (!selectedSubjectId) {

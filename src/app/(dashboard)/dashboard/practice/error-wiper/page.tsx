@@ -22,6 +22,9 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams
   const subjectId = resolvedSearchParams.subjectId
   const autoStart = resolvedSearchParams.autostart === '1'
+  const practiceCenterHref = subjectId
+    ? `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
+    : '/dashboard/practice'
   
   const session = await getErrorWiperSession(subjectId);
 
@@ -35,7 +38,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
         <p className="text-slate-400 mb-8 max-w-md text-lg">
           你的错题簿暂时已经清空，当前没有需要继续擦除的历史错题。
         </p>
-        <Link href="/dashboard/practice">
+        <Link href={practiceCenterHref}>
           <Button size="xl" variant="primary" className="rounded-2xl font-black tracking-widest">
             <ArrowLeft className="w-4 h-4 mr-2" />
             返回练习中心
@@ -47,7 +50,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
 
   async function handleSessionComplete() {
     'use server';
-    redirect('/dashboard/practice');
+    redirect(practiceCenterHref);
   }
 
   // Wrapper to match expected Promise<void> return type
@@ -84,6 +87,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
       <ErrorWiperSession
         initialSession={formattedSession}
         autoStart={autoStart}
+        subjectId={subjectId}
         onSubmitSession={handleSubmitWiperSession}
         onSessionComplete={handleSessionComplete}
       />

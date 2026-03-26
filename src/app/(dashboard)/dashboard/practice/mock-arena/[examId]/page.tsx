@@ -13,9 +13,15 @@ interface PageProps {
   params: Promise<{
     examId: string
   }>
+  searchParams: Promise<{
+    subjectId?: string
+  }>
 }
 
-export default async function MockArenaExamPage({ params }: PageProps) {
+export default async function MockArenaExamPage({
+  params,
+  searchParams,
+}: PageProps) {
   const user = await getCurrentUser()
 
   if (!user) {
@@ -23,8 +29,16 @@ export default async function MockArenaExamPage({ params }: PageProps) {
   }
 
   const resolvedParams = await params
+  const resolvedSearchParams = await searchParams
   const examId = resolvedParams.examId
   const effectiveTier = getEffectiveTier(user)
 
-  return <MockArenaExam examId={examId} userId={user.id} userTier={effectiveTier} />
+  return (
+    <MockArenaExam
+      examId={examId}
+      userId={user.id}
+      userTier={effectiveTier}
+      subjectId={resolvedSearchParams.subjectId}
+    />
+  )
 }

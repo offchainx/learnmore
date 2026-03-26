@@ -9,9 +9,13 @@ import { User } from '@prisma/client'
 
 interface PracticeClientWrapperProps {
   user: User
+  initialSubjectId?: string
 }
 
-export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
+export function PracticeClientWrapper({
+  user,
+  initialSubjectId,
+}: PracticeClientWrapperProps) {
   const router = useRouter()
   const { t } = useApp()
 
@@ -28,7 +32,7 @@ export function PracticeClientWrapper({ user }: PracticeClientWrapperProps) {
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <PracticeCenterScreen t={t} />
+      <PracticeCenterScreen t={t} initialSubjectId={initialSubjectId} />
     </DashboardLayout>
   )
 }

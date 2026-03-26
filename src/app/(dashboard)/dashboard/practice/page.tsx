@@ -8,12 +8,25 @@ export const metadata: Metadata = {
   description: 'Practice questions and exercises.',
 }
 
-export default async function PracticePage() {
+interface PracticePageProps {
+  searchParams: Promise<{
+    subjectId?: string
+  }>
+}
+
+export default async function PracticePage({ searchParams }: PracticePageProps) {
   const profile = await getDashboardShellProfile()
 
   if (!profile) {
     redirect('/login')
   }
 
-  return <PracticeClientWrapper user={profile} />
+  const resolvedSearchParams = await searchParams
+
+  return (
+    <PracticeClientWrapper
+      user={profile}
+      initialSubjectId={resolvedSearchParams.subjectId}
+    />
+  )
 }

@@ -112,6 +112,8 @@ export default async function ChapterDrillPage({ params }: PageProps) {
     redirect('/dashboard/practice');
   }
 
+  const practiceCenterHref = `/dashboard/practice?subjectId=${encodeURIComponent(chapter.subjectId)}`
+
   const [subject, questions] = previewChapter
     ? await Promise.all([
         Promise.resolve({ name: '练习预览' }),
@@ -160,7 +162,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
           descriptionClassName="max-w-lg text-sm leading-6 text-amber-700 dark:text-amber-200"
           actions={
             <Button asChild variant="outline" className="rounded-2xl">
-              <Link href="/dashboard/practice">返回练习中心</Link>
+              <Link href={practiceCenterHref}>返回练习中心</Link>
             </Button>
           }
         />

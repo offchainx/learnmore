@@ -22,6 +22,7 @@ interface ExamData {
 interface MockArenaExamProps {
   examId: string
   userId: string
+  subjectId?: string
   userTier?: TierKey
 }
 
@@ -36,8 +37,15 @@ function formatQuestion(question: PrismaQuestion): Question {
   }
 }
 
-export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
+export default function MockArenaExam({
+  examId,
+  userId,
+  subjectId,
+}: MockArenaExamProps) {
   const router = useRouter()
+  const practiceCenterHref = subjectId
+    ? `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
+    : '/dashboard/practice'
   const reloadPage = () => window.location.reload()
   const [isPending, startTransition] = useTransition()
   const [examData, setExamData] = useState<ExamData | null>(null)
@@ -130,7 +138,7 @@ export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
 
   if (result) {
     return (
-      <PracticeResultPanel
+        <PracticeResultPanel
         title="Mock Arena 完成"
         subtitle="这一场模拟考试已经完成，下面是整卷结果摘要。"
         score={Math.round(result.score)}
@@ -144,9 +152,9 @@ export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
         recommendation="先看整卷稳定性和时间分配，如果中段波动较大，建议回到 Smart Drill 或 Error Wiper 做针对性补强。"
         questionStates={result.questions.map((question) => question.isCorrect)}
         primaryActionLabel="返回练习中心"
-        primaryAction={() => router.push('/dashboard/practice')}
+        primaryAction={() => router.push(practiceCenterHref)}
         secondaryActionLabel="再开一场"
-        secondaryAction={() => router.push('/dashboard/practice/mock-arena')}
+        secondaryAction={() => router.push(subjectId ? `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(subjectId)}` : '/dashboard/practice/mock-arena')}
       />
     )
   }
@@ -159,7 +167,7 @@ export default function MockArenaExam({ examId, userId }: MockArenaExamProps) {
       questions={workspaceQuestions}
       onSubmit={handleSubmit}
       onRefresh={reloadPage}
-      onExit={() => router.push('/dashboard/practice')}
+      onExit={() => router.push(practiceCenterHref)}
       submitLabel="提交模拟卷"
       refreshLabel="刷新页面"
       exitLabel="退出模拟考场"

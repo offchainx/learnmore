@@ -64,6 +64,9 @@ export function QuizView({
   onComplete,
 }: QuizViewProps) {
   const router = useRouter();
+  const practiceCenterHref = subjectId
+    ? `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
+    : '/dashboard/practice';
   const reloadPage = () => window.location.reload();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -148,7 +151,7 @@ export function QuizView({
         note={submitError}
         questionStates={questions.map((question) => Boolean(result.results[question.id]))}
         primaryActionLabel="返回练习中心"
-        primaryAction={() => router.push('/dashboard/practice')}
+        primaryAction={() => router.push(practiceCenterHref)}
         secondaryActionLabel="再做一轮"
         secondaryAction={reloadPage}
       />
@@ -163,7 +166,7 @@ export function QuizView({
       questions={workspaceQuestions}
       onSubmit={handleSubmit}
       onRefresh={reloadPage}
-      onExit={() => router.push('/dashboard/practice')}
+      onExit={() => router.push(practiceCenterHref)}
       submitLabel={submitLabel}
       refreshLabel={refreshLabel}
       exitLabel={exitLabel}
