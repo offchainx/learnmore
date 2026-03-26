@@ -18,6 +18,7 @@ import { PastPaperLibrarySection } from './PastPapersSection'
 import { PracticeCoachPanel } from './AnalyticsSidebar'
 import {
   PracticeModePreviewDialog,
+  type MockArenaDifficulty,
   type PracticeModePreviewConfig,
 } from './PracticeModePreviewDialog'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
@@ -533,7 +534,18 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   const [isSubjectBarPinned, setIsSubjectBarPinned] = useState(false)
   const [previewConfig, setPreviewConfig] =
     useState<PracticeModePreviewConfig | null>(null)
+  const [mockArenaQuestionCount, setMockArenaQuestionCount] = useState(20)
+  const [mockArenaDifficulty, setMockArenaDifficulty] =
+    useState<MockArenaDifficulty>('MEDIUM')
   const subjectSentinelRef = useRef<HTMLDivElement | null>(null)
+
+  const mockArenaEstimatedMinutes = Math.ceil(mockArenaQuestionCount * 1.5)
+  const mockArenaDifficultyLabel =
+    mockArenaDifficulty === 'EASY'
+      ? '简单'
+      : mockArenaDifficulty === 'HARD'
+        ? '困难'
+        : '标准'
 
   useEffect(() => {
     let cancelled = false
@@ -712,6 +724,45 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
         currentDbSubject.name
       )
     : 'Practice Center'
+
+  useEffect(() => {
+    setPreviewConfig((current) => {
+      if (!current || current.mode !== 'MOCK_ARENA' || !selectedSubjectId) {
+        return current
+      }
+
+      return {
+        ...current,
+        subtitle: `${currentSubjectTitle} 模拟考试`,
+        primaryStatValue: `${mockArenaQuestionCount} 题`,
+        secondaryStatValue: `${mockArenaEstimatedMinutes} 分钟`,
+        tertiaryStatValue: mockArenaDifficultyLabel,
+        startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}`,
+        mockArenaOptions: {
+          questionCount: mockArenaQuestionCount,
+          difficulty: mockArenaDifficulty,
+          questionCountOptions: [20, 30, 40, 50],
+          difficultyOptions: [
+            { value: 'EASY', label: '简单' },
+            { value: 'MEDIUM', label: '标准' },
+            { value: 'HARD', label: '困难' },
+          ],
+          onQuestionCountChange: (questionCount) =>
+            setMockArenaQuestionCount(questionCount),
+          onDifficultyChange: (difficulty) =>
+            setMockArenaDifficulty(difficulty),
+        },
+      }
+    })
+  }, [
+    currentSubjectTitle,
+    mockArenaDifficulty,
+    mockArenaDifficultyLabel,
+    mockArenaEstimatedMinutes,
+    mockArenaQuestionCount,
+    selectedSubjectId,
+  ])
+
   const isLoadingSubjectData = isBootstrapLoading || isSubjectDataLoading
   const weakChapters = useMemo(
     () =>
@@ -813,11 +864,11 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       description:
         '会用默认配置直接生成一套卷，进入统一答题页后整卷完成再提交。',
       primaryStatLabel: '题量',
-      primaryStatValue: '20 题',
+      primaryStatValue: `${mockArenaQuestionCount} 题`,
       secondaryStatLabel: '时间',
-      secondaryStatValue: '30 分钟',
+      secondaryStatValue: `${mockArenaEstimatedMinutes} 分钟`,
       tertiaryStatLabel: '难度',
-      tertiaryStatValue: '标准 MEDIUM',
+      tertiaryStatValue: mockArenaDifficultyLabel,
       reasons: [
         '更适合在日常训练之后检查真实考试节奏和时间分配。',
         '作答时不会展示答案，保持更接近正式考试的状态。',
@@ -828,8 +879,22 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
         { label: '右侧面板', value: '剩余时间 + 已答题数 + 交卷' },
         { label: '进入方式', value: '直接生成试卷并开始' },
       ],
-      startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1`,
+      startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}`,
       startLabel: '开始 Mock Arena',
+      mockArenaOptions: {
+        questionCount: mockArenaQuestionCount,
+        difficulty: mockArenaDifficulty,
+        questionCountOptions: [20, 30, 40, 50],
+        difficultyOptions: [
+          { value: 'EASY', label: '简单' },
+          { value: 'MEDIUM', label: '标准' },
+          { value: 'HARD', label: '困难' },
+        ],
+        onQuestionCountChange: (questionCount) =>
+          setMockArenaQuestionCount(questionCount),
+        onDifficultyChange: (difficulty) =>
+          setMockArenaDifficulty(difficulty),
+      },
     })
   }
 

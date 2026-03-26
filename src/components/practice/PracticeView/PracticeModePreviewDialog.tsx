@@ -19,6 +19,22 @@ export type PracticePreviewMode =
   | 'CHAPTER_MAP'
   | 'PAST_PAPER'
 
+export type MockArenaDifficulty = 'EASY' | 'MEDIUM' | 'HARD'
+
+interface MockArenaPreviewOption {
+  value: MockArenaDifficulty
+  label: string
+}
+
+interface MockArenaPreviewOptions {
+  questionCount: number
+  difficulty: MockArenaDifficulty
+  questionCountOptions: number[]
+  difficultyOptions: MockArenaPreviewOption[]
+  onQuestionCountChange: (questionCount: number) => void
+  onDifficultyChange: (difficulty: MockArenaDifficulty) => void
+}
+
 export interface PracticeModePreviewConfig {
   mode: PracticePreviewMode
   title: string
@@ -34,6 +50,7 @@ export interface PracticeModePreviewConfig {
   details: Array<{ label: string; value: string }>
   startHref: string
   startLabel: string
+  mockArenaOptions?: MockArenaPreviewOptions
 }
 
 interface PracticeModePreviewDialogProps {
@@ -159,6 +176,70 @@ export function PracticeModePreviewDialog({
                 <div className="mt-3 text-lg font-black text-text-primary dark:text-white">{config.tertiaryStatValue}</div>
               </div>
             </div>
+
+            {config.mode === 'MOCK_ARENA' && config.mockArenaOptions ? (
+              <div className="mt-5 grid gap-4 rounded-3xl border border-borderTone bg-surface/90 p-4 shadow-surface dark:border-white/10 dark:bg-slate-950/40 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${theme.accent}`}>
+                    题量
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {config.mockArenaOptions.questionCountOptions.map((count) => {
+                      const active = count === config.mockArenaOptions?.questionCount
+                      return (
+                        <Button
+                          key={count}
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            'rounded-2xl border-borderTone bg-surface px-0 text-sm font-bold text-text-primary hover:bg-surface-subtle dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10',
+                            active && 'border-transparent bg-primary text-white hover:bg-primary/90 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100'
+                          )}
+                          onClick={() =>
+                            config.mockArenaOptions?.onQuestionCountChange(count)
+                          }
+                        >
+                          {count}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                  <p className="text-xs text-text-secondary dark:text-slate-400">
+                    每题按 1.5 分钟估算，总时长会随题量自动变化。
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${theme.accent}`}>
+                    难度
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {config.mockArenaOptions.difficultyOptions.map((option) => {
+                      const active =
+                        option.value === config.mockArenaOptions?.difficulty
+                      return (
+                        <Button
+                          key={option.value}
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            'rounded-2xl border-borderTone bg-surface px-0 text-sm font-bold text-text-primary hover:bg-surface-subtle dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10',
+                            active && 'border-transparent bg-primary text-white hover:bg-primary/90 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100'
+                          )}
+                          onClick={() =>
+                            config.mockArenaOptions?.onDifficultyChange(
+                              option.value
+                            )
+                          }
+                        >
+                          {option.label}
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-borderTone bg-surface/90 p-5 shadow-surface dark:border-white/10 dark:bg-slate-950/40">

@@ -27,25 +27,40 @@ interface MockArenaSetupProps {
 const DIFFICULTY_OPTIONS: { value: ExamDifficulty; label: string; description: string; color: string }[] = [
   {
     value: 'EASY',
-    label: 'Easy',
-    description: '50% easy, 40% medium, 10% hard',
+    label: '简单',
+    description: '以基础题为主，适合热身与建立信心',
     color: 'text-green-600 bg-green-100 dark:bg-green-900/30'
   },
   {
     value: 'MEDIUM',
-    label: 'Medium',
-    description: '30% easy, 50% medium, 20% hard',
+    label: '标准',
+    description: '难度分布更均衡，适合常规模拟',
     color: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30'
   },
   {
     value: 'HARD',
-    label: 'Hard',
-    description: '10% easy, 40% medium, 50% hard',
+    label: '困难',
+    description: '高压强练，更接近冲刺状态',
     color: 'text-red-600 bg-red-100 dark:bg-red-900/30'
   },
 ]
 
-const QUESTION_COUNT_OPTIONS = [10, 15, 20, 25, 30]
+const QUESTION_COUNT_OPTIONS = [20, 30, 40, 50]
+
+function parseDifficulty(value: string | null): ExamDifficulty | null {
+  if (value === 'EASY' || value === 'MEDIUM' || value === 'HARD') {
+    return value
+  }
+  return null
+}
+
+function parseQuestionCount(value: string | null): number | null {
+  const parsed = Number(value)
+  if (QUESTION_COUNT_OPTIONS.includes(parsed)) {
+    return parsed
+  }
+  return null
+}
 
 export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockArenaSetupProps) {
   const router = useRouter()
@@ -53,8 +68,12 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
   const [isPending, startTransition] = useTransition()
 
   const [subjectId, setSubjectId] = useState<string>(searchParams.get('subjectId') || '')
-  const [difficulty, setDifficulty] = useState<ExamDifficulty>('MEDIUM')
-  const [questionCount, setQuestionCount] = useState(20)
+  const [difficulty, setDifficulty] = useState<ExamDifficulty>(
+    parseDifficulty(searchParams.get('difficulty')) || 'MEDIUM'
+  )
+  const [questionCount, setQuestionCount] = useState(
+    parseQuestionCount(searchParams.get('questionCount')) || 20
+  )
   const [error, setError] = useState<string | null>(null)
   const autoStart = searchParams.get('autostart') === '1'
   const autoStartedRef = useRef(false)
@@ -69,7 +88,7 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
     }
 
     if (!subjectId) {
-      setError('Please select a subject')
+      setError('请选择科目')
       return
     }
 
@@ -95,7 +114,7 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
           `/dashboard/practice/mock-arena/${result.examRecordId}?subjectId=${encodeURIComponent(subjectId)}`
         )
       } else {
-        setError(result.error || 'Failed to start exam')
+        setError(result.error || '创建模拟卷失败')
       }
     })
   }
@@ -137,13 +156,13 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
                <Lock className="h-6 w-6 text-red-600 dark:text-red-200" />
              </div>
              <div>
-               <h3 className="font-semibold text-red-800 dark:text-red-200">Weekly Limit Reached</h3>
+               <h3 className="font-semibold text-red-800 dark:text-red-200">本周模拟次数已用完</h3>
                <p className="text-sm text-red-600 dark:text-red-300">
-                 You have used {quotaStatus.used}/{quotaStatus.limit} exam attempts this week. 
+                 本周已使用 {quotaStatus.used}/{quotaStatus.limit} 次模拟。
                  <Button variant="link" className="px-1 h-auto text-red-700 font-bold underline" onClick={() => router.push('/pricing')}>
-                   Upgrade to PRO
+                   升级套餐
                  </Button> 
-                 for more.
+                 后可继续使用。
                </p>
              </div>
           </CardContent>
@@ -160,22 +179,22 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
 
       {/* Exam Configuration Card */}
       <Card className={cn(!quotaStatus.canProceed && "opacity-60 pointer-events-none")}>
-        <CardHeader>
+          <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Configure Your Exam
+            配置模拟卷
           </CardTitle>
           <CardDescription>
-            Customize your practice test settings
+            先确认题量、难度和科目，再开始整卷模拟
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Subject Selection */}
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <Label htmlFor="subject">科目</Label>
             <Select value={subjectId} onValueChange={setSubjectId}>
               <SelectTrigger id="subject">
-                <SelectValue placeholder="Select a subject" />
+                <SelectValue placeholder="选择科目" />
               </SelectTrigger>
               <SelectContent>
                 {subjects.map((subject) => (
@@ -189,7 +208,7 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
 
           {/* Difficulty Selection */}
           <div className="space-y-3">
-            <Label>Difficulty Level</Label>
+            <Label>难度</Label>
             <div className="grid grid-cols-3 gap-3">
               {DIFFICULTY_OPTIONS.map((option) => (
                 <button
@@ -213,7 +232,7 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
 
           {/* Question Count Selection */}
           <div className="space-y-2">
-            <Label htmlFor="questionCount">Number of Questions</Label>
+            <Label htmlFor="questionCount">题量</Label>
             <Select
               value={questionCount.toString()}
               onValueChange={(v) => setQuestionCount(parseInt(v))}
@@ -224,7 +243,7 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
               <SelectContent>
                 {QUESTION_COUNT_OPTIONS.map((count) => (
                   <SelectItem key={count} value={count.toString()}>
-                    {count} questions
+                    {count} 题
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -244,28 +263,30 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1 text-muted-foreground">
                 <Brain className="h-4 w-4" />
-                <span className="text-sm">Questions</span>
+                <span className="text-sm">题量</span>
               </div>
               <p className="text-2xl font-bold">{questionCount}</p>
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1 text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span className="text-sm">Time Limit</span>
+                <span className="text-sm">时长</span>
               </div>
-              <p className="text-2xl font-bold">{estimatedMinutes} min</p>
+              <p className="text-2xl font-bold">{estimatedMinutes} 分钟</p>
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1 text-muted-foreground">
                 <Zap className="h-4 w-4" />
-                <span className="text-sm">Difficulty</span>
+                <span className="text-sm">难度</span>
               </div>
-              <p className="text-2xl font-bold capitalize">{difficulty.toLowerCase()}</p>
+              <p className="text-2xl font-bold">
+                {DIFFICULTY_OPTIONS.find((option) => option.value === difficulty)?.label || '标准'}
+              </p>
             </div>
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1 text-muted-foreground">
                 <Trophy className="h-4 w-4" />
-                <span className="text-sm">Max Score</span>
+                <span className="text-sm">满分</span>
               </div>
               <p className="text-2xl font-bold">100</p>
             </div>
@@ -283,11 +304,11 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
         {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Preparing Exam...
+            正在生成试卷...
           </>
         ) : (
           <>
-            Start Exam
+            开始模拟
           </>
         )}
       </Button>
@@ -296,13 +317,13 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
       <Card className="border-orange-200 bg-orange-50/50 dark:border-orange-900 dark:bg-orange-950/20">
         <CardContent className="pt-6">
           <h4 className="font-semibold text-orange-700 dark:text-orange-400 mb-2">
-            Important Notes
+            开始前提醒
           </h4>
           <ul className="text-sm text-orange-600 dark:text-orange-300 space-y-1 list-disc list-inside">
-            <li>No instant feedback during the exam - just like a real test</li>
-            <li>You can navigate between questions and mark them for review</li>
-            <li>The exam will auto-submit when time runs out</li>
-            <li>Results and explanations will be shown after submission</li>
+            <li>模拟过程中不会即时显示答案，更接近正式考试</li>
+            <li>可以自由切题，也可以先标记后回看</li>
+            <li>时间结束后系统会自动交卷</li>
+            <li>提交后再统一查看得分和解析</li>
           </ul>
         </CardContent>
       </Card>
