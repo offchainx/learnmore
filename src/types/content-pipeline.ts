@@ -31,6 +31,15 @@ export interface ImportFailedQuestionDiagnostic {
   reason: string
 }
 
+export interface ImportStageDurations {
+  crawlMs?: number
+  imagePersistMs?: number
+  chapterTaggingMs?: number
+  saveMs?: number
+  reviewSubmitMs?: number
+  totalMs?: number
+}
+
 export interface ImportDiagnostics {
   adapterName?: string
   adapterVersion?: string
@@ -53,6 +62,7 @@ export interface ImportDiagnostics {
   duplicatedRawQuestionIds?: string[]
   failedQuestionCount?: number
   failedQuestions?: ImportFailedQuestionDiagnostic[]
+  stageDurations?: ImportStageDurations
 }
 
 /**

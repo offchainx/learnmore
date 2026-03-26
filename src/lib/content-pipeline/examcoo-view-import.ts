@@ -40,6 +40,17 @@ export interface ExamcooImportResult {
   questions: ExamcooImportQuestion[]
 }
 
+function extractMarkdownImageUrls(markdown = ''): string[] {
+  const urls: string[] = []
+  const imageRegex = /!\[[^\]]*]\(([^)]+)\)/g
+  let match: RegExpExecArray | null = null
+  while ((match = imageRegex.exec(markdown)) !== null) {
+    const url = match[1]?.trim()
+    if (url) urls.push(url)
+  }
+  return urls
+}
+
 interface CrawlExamcooViewOptions {
   url: string
   limit?: number
@@ -523,9 +534,17 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
     const numericId = questionId.split('_')[1] || ''
     const type = mapQuestionType(questionId)
     const stemHtml = String(item.a ?? '')
-    const imageUrls = extractImageUrls(stemHtml)
+    const stemImageUrls = extractImageUrls(stemHtml)
     const optionsObj = parseOptions(item.b)
     const safeOptions = type === QuestionType.TRUE_FALSE ? ensureTrueFalseOptions(optionsObj) : optionsObj
+    const optionImageUrls = safeOptions
+      ? Array.from(
+          new Set(
+            Object.values(safeOptions).flatMap((value) => extractMarkdownImageUrls(value))
+          )
+        )
+      : []
+    const imageUrls = Array.from(new Set([...stemImageUrls, ...optionImageUrls]))
     const answer = parseAnswer(type, item.c, safeOptions ? Object.keys(safeOptions).length : 0)
 
     let explanation: string | null = null

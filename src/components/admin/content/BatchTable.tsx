@@ -175,6 +175,16 @@ function buildMissingQuestionPreview(batch: BatchData): string | null {
   return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
 }
 
+function formatDurationMs(value?: number): string {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return '-'
+  if (value < 1000) return `${value}ms`
+  const seconds = value / 1000
+  if (seconds < 60) return `${seconds.toFixed(seconds >= 10 ? 1 : 2)}s`
+  const minutes = Math.floor(seconds / 60)
+  const remainSeconds = seconds % 60
+  return `${minutes}m ${remainSeconds.toFixed(remainSeconds >= 10 ? 0 : 1)}s`
+}
+
 export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -783,6 +793,34 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                   )}
                 </div>
               </div>
+
+              {diagnosticsData.stageDurations ? (
+                <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
+                  <div className="text-sm font-medium text-text-primary">
+                    阶段耗时
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      ['网页抓取', diagnosticsData.stageDurations.crawlMs],
+                      ['图片转存', diagnosticsData.stageDurations.imagePersistMs],
+                      ['章节打标', diagnosticsData.stageDurations.chapterTaggingMs],
+                      ['批量入库', diagnosticsData.stageDurations.saveMs],
+                      ['提交审核', diagnosticsData.stageDurations.reviewSubmitMs],
+                      ['总耗时', diagnosticsData.stageDurations.totalMs],
+                    ].map(([label, value]) => (
+                      <div
+                        key={String(label)}
+                        className="rounded-xl border border-borderTone/70 bg-background/40 p-3"
+                      >
+                        <div className="text-xs text-text-secondary">{label}</div>
+                        <div className="mt-1 text-sm font-medium text-text-primary">
+                          {formatDurationMs(typeof value === 'number' ? value : undefined)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="rounded-2xl border border-borderTone bg-surface-subtle p-6 text-sm text-text-secondary">

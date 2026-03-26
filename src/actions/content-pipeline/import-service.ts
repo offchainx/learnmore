@@ -219,10 +219,25 @@ function buildWebImportDiagnostics(
 
 type StemImagePersistResult = {
   content: string
+  options: Record<string, string> | null
   assetUrl: string | null
   imageUrls: string[]
   uploadedCount: number
   skippedCount: number
+}
+
+function replaceImageUrlInOptions(
+  options: Record<string, string> | null,
+  originalUrl: string,
+  replacementUrl: string
+): Record<string, string> | null {
+  if (!options) return options
+  return Object.fromEntries(
+    Object.entries(options).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? value.split(originalUrl).join(replacementUrl) : value,
+    ])
+  )
 }
 
 function inferImageExtension(contentType: string | null): string {
@@ -235,11 +250,12 @@ function inferImageExtension(contentType: string | null): string {
   return 'jpg'
 }
 
-async function persistStemImagesToSupabase(params: {
+async function persistQuestionImagesToSupabase(params: {
   pageUrl: string
   adapterName: string
   paperId?: string | null
   content: string
+  options: Record<string, string> | null
   assetUrl: string | null
   imageUrls: string[]
   supabase?: SupabaseClient
@@ -249,6 +265,7 @@ async function persistStemImagesToSupabase(params: {
   if (params.adapterName !== 'examcoo-view') {
     return {
       content: params.content,
+      options: params.options,
       assetUrl: params.assetUrl,
       imageUrls: params.imageUrls,
       uploadedCount: 0,
@@ -259,6 +276,7 @@ async function persistStemImagesToSupabase(params: {
   if (params.imageUrls.length === 0) {
     return {
       content: params.content,
+      options: params.options,
       assetUrl: params.assetUrl,
       imageUrls: params.imageUrls,
       uploadedCount: 0,
@@ -347,6 +365,7 @@ async function persistStemImagesToSupabase(params: {
   }
 
   let content = params.content
+  let options = params.options
   const newUrls: string[] = []
   let uploadedCount = 0
   let skippedCount = 0
@@ -362,10 +381,12 @@ async function persistStemImagesToSupabase(params: {
     newUrls.push(uploadedUrl)
     // content 是 markdown，直接做字符串替换即可（避免 regex 转义风险）
     content = content.split(originalUrl).join(uploadedUrl)
+    options = replaceImageUrlInOptions(options, originalUrl, uploadedUrl)
   }
 
   return {
     content,
+    options,
     assetUrl: newUrls[0] ?? params.assetUrl,
     imageUrls: newUrls,
     uploadedCount,
@@ -811,6 +832,7 @@ export async function importFromWebUrl(
 
   let sourceFileId: string | null = null
   let pendingImportDiagnostics: ImportDiagnostics | null = null
+  const stageDurations: NonNullable<ImportDiagnostics['stageDurations']> = {}
 
   try {
     const sourceFile = await prisma.sourceFile.create({
@@ -829,6 +851,7 @@ export async function importFromWebUrl(
     })
     sourceFileId = sourceFile.id
 
+    const crawlStartTime = Date.now()
     const webImportResult = await runWebImport({
       pageUrl,
       subjectId: input.subjectId,
@@ -836,6 +859,7 @@ export async function importFromWebUrl(
       chapterId: input.chapterId,
       maxQuestions: input.maxQuestions,
     })
+    stageDurations.crawlMs = Date.now() - crawlStartTime
     if (!webImportResult.success || !webImportResult.data) {
       throw new Error(webImportResult.error || '网页导入失败')
     }
@@ -845,12 +869,14 @@ export async function importFromWebUrl(
       webImportResult.data.adapterName === 'examcoo-view' ? await createSupabaseClient() : null
     const stemImageUrlCache = new Map<string, Promise<string | null>>()
 
+    const imagePersistStartTime = Date.now()
     for (const question of webImportResult.data.normalized.questions) {
-      const persisted = await persistStemImagesToSupabase({
+      const persisted = await persistQuestionImagesToSupabase({
         pageUrl,
         adapterName: webImportResult.data.adapterName,
         paperId: question.paperId ?? null,
         content: question.content,
+        options: question.options ?? null,
         assetUrl: question.assetUrl,
         imageUrls:
           question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
@@ -866,7 +892,7 @@ export async function importFromWebUrl(
         grade: null,
         subjectId: input.subjectId,
         chapterId: input.chapterId ?? null,
-        options: question.options ?? null,
+        options: persisted.options,
         answer: question.answer,
         explanation: question.explanation,
         sourceFileId,
@@ -883,16 +909,23 @@ export async function importFromWebUrl(
         createdBy: currentUser.id,
       })
     }
+    stageDurations.imagePersistMs = Date.now() - imagePersistStartTime
+
+    const chapterTaggingStartTime = Date.now()
     const questionsToCreate = await autoAssignQuestionChapters(
       questionsToCreateDraft
     )
+    stageDurations.chapterTaggingMs = Date.now() - chapterTaggingStartTime
 
+    const saveStartTime = Date.now()
     const bulkResult = await bulkCreateQuestions({
       questions: questionsToCreate,
       sourceFileId,
       createdBy: currentUser.id,
     })
+    stageDurations.saveMs = Date.now() - saveStartTime
 
+    const reviewSubmitStartTime = Date.now()
     pendingImportDiagnostics = stripUndefinedDeep({
       adapterName: webImportResult.data.adapterName,
       adapterVersion: webImportResult.data.adapterVersion,
@@ -905,6 +938,7 @@ export async function importFromWebUrl(
           error: result.error,
         }))
       ),
+      stageDurations,
     })
 
     const questionsCreated = bulkResult.results.filter((r) => r.success).length
@@ -916,6 +950,11 @@ export async function importFromWebUrl(
       .filter((r) => r.success && r.data)
       .map((r) => r.data!.id)
     await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
+    stageDurations.reviewSubmitMs = Date.now() - reviewSubmitStartTime
+    stageDurations.totalMs = Date.now() - startTime
+    if (pendingImportDiagnostics) {
+      pendingImportDiagnostics.stageDurations = stageDurations
+    }
 
     // 两段式写回：先确保批次状态落成 COMPLETED（避免 diagnostics 写入失败导致卡在 PROCESSING）
     await prisma.sourceFile.update({
@@ -1919,6 +1958,10 @@ export async function recomputeImportDiagnosticsForTask(input: {
       assetCount: webImportResult.data.diagnostics.assetCount,
       flaggedQuestionCount: webImportResult.data.diagnostics.flaggedQuestionCount,
       createdQuestionCount: createdCount,
+      stageDurations:
+        ((sourceFile.importDiagnostics as ImportDiagnostics | null | undefined)?.stageDurations as
+          | ImportDiagnostics['stageDurations']
+          | undefined) ?? undefined,
     })
 
     const now = new Date()
