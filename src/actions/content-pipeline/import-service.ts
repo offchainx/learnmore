@@ -18,6 +18,8 @@ import { autoAssignQuestionChapters } from '@/lib/content-pipeline/chapter-taggi
 import { resolveWebImportAdapter, runWebImport } from '@/lib/content-pipeline/web-import'
 import { bulkCreateQuestions } from './question-service'
 import { getCurrentUser } from '@/actions/user/auth'
+import { createClient as createSupabaseClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ImportDiagnostics } from '@/types/content-pipeline'
 import type {
   ImportFromPDFInput,
@@ -39,6 +41,7 @@ import {
   convertToCreateInput,
   calculateQualityScore
 } from '@/lib/content-pipeline/import-utils'
+import { createHash } from 'node:crypto'
 
 interface ImportFromWebUrlInput {
   pageUrl: string
@@ -212,6 +215,162 @@ function buildWebImportDiagnostics(
     failedQuestionCount: failedQuestions.length,
     failedQuestions,
   })
+}
+
+type StemImagePersistResult = {
+  content: string
+  assetUrl: string | null
+  imageUrls: string[]
+  uploadedCount: number
+  skippedCount: number
+}
+
+function inferImageExtension(contentType: string | null): string {
+  const ct = (contentType || '').toLowerCase()
+  if (ct.includes('image/png')) return 'png'
+  if (ct.includes('image/webp')) return 'webp'
+  if (ct.includes('image/gif')) return 'gif'
+  if (ct.includes('image/svg')) return 'svg'
+  if (ct.includes('image/jpeg') || ct.includes('image/jpg')) return 'jpg'
+  return 'jpg'
+}
+
+async function persistStemImagesToSupabase(params: {
+  pageUrl: string
+  adapterName: string
+  paperId?: string | null
+  content: string
+  assetUrl: string | null
+  imageUrls: string[]
+  supabase?: SupabaseClient
+  urlCache?: Map<string, Promise<string | null>>
+}): Promise<StemImagePersistResult> {
+  // 只对 Examcoo 这类“公共网页导入”先落地题干图转存；后续如有更多站点再扩。
+  if (params.adapterName !== 'examcoo-view') {
+    return {
+      content: params.content,
+      assetUrl: params.assetUrl,
+      imageUrls: params.imageUrls,
+      uploadedCount: 0,
+      skippedCount: params.imageUrls.length,
+    }
+  }
+
+  if (params.imageUrls.length === 0) {
+    return {
+      content: params.content,
+      assetUrl: params.assetUrl,
+      imageUrls: params.imageUrls,
+      uploadedCount: 0,
+      skippedCount: 0,
+    }
+  }
+
+  const supabase = params.supabase ?? (await createSupabaseClient())
+
+  // bucket 优先使用更语义化的 bucket；若未创建则回退到现有 source-files bucket，保证功能可用。
+  const primaryBucket = 'question-assets'
+  const fallbackBucket = 'source-files'
+
+  const urlCache = params.urlCache ?? new Map<string, Promise<string | null>>() // 同一批次内去重
+
+  async function uploadOne(originalUrl: string): Promise<string | null> {
+    const cached = urlCache.get(originalUrl)
+    if (cached) return cached
+
+    const task = (async () => {
+      // 更“礼貌”的 headers：带 referer，避免部分站点防盗链
+      const res = await fetch(originalUrl, {
+        headers: {
+          'user-agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          referer: params.pageUrl,
+          accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        },
+      })
+
+      if (!res.ok) {
+        console.warn(`[StemImage] 下载失败 ${res.status} url=${originalUrl}`)
+        return null
+      }
+
+      const contentType = res.headers.get('content-type')
+      const ext = inferImageExtension(contentType)
+      const buf = Buffer.from(await res.arrayBuffer())
+
+      // 只做基础兜底，避免单张图把导入卡死
+      const MAX_BYTES = 8 * 1024 * 1024
+      if (buf.byteLength > MAX_BYTES) {
+        console.warn(`[StemImage] 图片过大已跳过 size=${buf.byteLength} url=${originalUrl}`)
+        return null
+      }
+
+      const urlHash = createHash('sha1').update(originalUrl).digest('hex')
+      const paperSeg = params.paperId ? `paper_${params.paperId}` : 'paper_unknown'
+      const objectPath = `practice/questions/stem/examcoo/${paperSeg}/${urlHash}.${ext}`
+
+      async function tryUpload(bucket: string): Promise<string | null> {
+        const { error: uploadError } = await supabase.storage.from(bucket).upload(objectPath, buf, {
+          cacheControl: '31536000',
+          upsert: false,
+          contentType: contentType || undefined,
+        })
+
+        // 已存在视为成功（可复用），避免重复写入
+        if (uploadError && !/already exists/i.test(uploadError.message)) {
+          // bucket 不存在或无权限时，交给上层 fallback 处理
+          throw uploadError
+        }
+
+        const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath)
+        return data.publicUrl || null
+      }
+
+      try {
+        return await tryUpload(primaryBucket)
+      } catch (primaryError) {
+        try {
+          return await tryUpload(fallbackBucket)
+        } catch (fallbackError) {
+          console.warn(
+            `[StemImage] 上传失败 url=${originalUrl} primary=${String(
+              (primaryError as Error)?.message ?? primaryError
+            )} fallback=${String((fallbackError as Error)?.message ?? fallbackError)}`
+          )
+          return null
+        }
+      }
+    })()
+
+    urlCache.set(originalUrl, task)
+    return task
+  }
+
+  let content = params.content
+  const newUrls: string[] = []
+  let uploadedCount = 0
+  let skippedCount = 0
+
+  for (const originalUrl of params.imageUrls) {
+    const uploadedUrl = await uploadOne(originalUrl)
+    if (!uploadedUrl) {
+      newUrls.push(originalUrl)
+      skippedCount += 1
+      continue
+    }
+    uploadedCount += 1
+    newUrls.push(uploadedUrl)
+    // content 是 markdown，直接做字符串替换即可（避免 regex 转义风险）
+    content = content.split(originalUrl).join(uploadedUrl)
+  }
+
+  return {
+    content,
+    assetUrl: newUrls[0] ?? params.assetUrl,
+    imageUrls: newUrls,
+    uploadedCount,
+    skippedCount,
+  }
 }
 
 function buildImportDiagnosticsSummaryText(diagnostics?: ImportDiagnostics | null): string | undefined {
@@ -681,30 +840,49 @@ export async function importFromWebUrl(
       throw new Error(webImportResult.error || '网页导入失败')
     }
 
-    const questionsToCreateDraft: CreateQuestionInput[] = webImportResult.data.normalized.questions.map((question) => ({
-      content: question.content,
-      type: question.type,
-      difficulty: 3,
-      curriculum: 'UEC',
-      grade: null,
-      subjectId: input.subjectId,
-      chapterId: input.chapterId ?? null,
-      options: question.options ?? null,
-      answer: question.answer,
-      explanation: question.explanation,
-      sourceFileId,
-      source: buildWebImportQuestionSource(
-        input,
-        typeof question.sourceMeta?.sourceTag === 'string' ? question.sourceMeta.sourceTag : null
-      ),
-      tags: [question.sourceSite, 'web-import'],
-      assetUrl: question.assetUrl,
-      imageUrls: question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
-      isPastPaper: input.isPastPaper ?? false,
-      paperId: input.isPastPaper ? input.paperId ?? question.paperId ?? null : null,
-      qualityScore: null,
-      createdBy: currentUser.id,
-    }))
+    const questionsToCreateDraft: CreateQuestionInput[] = []
+    const stemImageSupabase =
+      webImportResult.data.adapterName === 'examcoo-view' ? await createSupabaseClient() : null
+    const stemImageUrlCache = new Map<string, Promise<string | null>>()
+
+    for (const question of webImportResult.data.normalized.questions) {
+      const persisted = await persistStemImagesToSupabase({
+        pageUrl,
+        adapterName: webImportResult.data.adapterName,
+        paperId: question.paperId ?? null,
+        content: question.content,
+        assetUrl: question.assetUrl,
+        imageUrls:
+          question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
+        supabase: stemImageSupabase ?? undefined,
+        urlCache: stemImageUrlCache,
+      })
+
+      questionsToCreateDraft.push({
+        content: persisted.content,
+        type: question.type,
+        difficulty: 3,
+        curriculum: 'UEC',
+        grade: null,
+        subjectId: input.subjectId,
+        chapterId: input.chapterId ?? null,
+        options: question.options ?? null,
+        answer: question.answer,
+        explanation: question.explanation,
+        sourceFileId,
+        source: buildWebImportQuestionSource(
+          input,
+          typeof question.sourceMeta?.sourceTag === 'string' ? question.sourceMeta.sourceTag : null
+        ),
+        tags: [question.sourceSite, 'web-import'],
+        assetUrl: persisted.assetUrl,
+        imageUrls: persisted.imageUrls,
+        isPastPaper: input.isPastPaper ?? false,
+        paperId: input.isPastPaper ? input.paperId ?? question.paperId ?? null : null,
+        qualityScore: null,
+        createdBy: currentUser.id,
+      })
+    }
     const questionsToCreate = await autoAssignQuestionChapters(
       questionsToCreateDraft
     )
