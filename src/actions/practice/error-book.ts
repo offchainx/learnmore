@@ -2,11 +2,19 @@
 
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '../user/auth'
-import { PracticeMode, Prisma } from '@prisma/client'
+import { PracticeMode, Prisma, QuestionType } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 import { persistPracticeSession } from './submission-core'
 import { applyPracticeSubmissionEffects } from './submission-effects'
+
+const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
+  QuestionType.SINGLE_CHOICE,
+  QuestionType.MULTIPLE_CHOICE,
+  QuestionType.FILL_BLANK,
+  QuestionType.TRUE_FALSE,
+  QuestionType.MCQ,
+]
 
 function streakToMastery(streak: number): number {
   if (streak >= 3) return 3
@@ -40,7 +48,13 @@ export async function getErrorBookQuestions(subjectId?: string) {
       where: {
         userId: user.id,
         createdAt: { gte: minDate },
-        ...(subjectId && { question: { subjectId } }),
+        question: {
+          ...(subjectId ? { subjectId } : {}),
+          status: { in: ['PUBLISHED', 'VERIFIED'] },
+          isPastPaper: false,
+          deletedAt: null,
+          type: { in: PRACTICE_SUPPORTED_TYPES },
+        },
       },
       include: {
         question: {
@@ -121,7 +135,13 @@ export async function getErrorWiperSession(subjectId?: string) {
       where: {
         userId: user.id,
         createdAt: { gte: minDate },
-        ...(subjectId && { question: { subjectId } }),
+        question: {
+          ...(subjectId ? { subjectId } : {}),
+          status: { in: ['PUBLISHED', 'VERIFIED'] },
+          isPastPaper: false,
+          deletedAt: null,
+          type: { in: PRACTICE_SUPPORTED_TYPES },
+        },
       },
       include: {
         question: {
