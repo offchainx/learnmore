@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { DbSubject, PracticeSubjectData } from './types'
 import {
   fetchWithTimeout,
@@ -36,6 +36,9 @@ import {
 } from '@/components/shared/pageSpacing'
 import { pageHeroEyebrowClass } from '@/components/shared/pageTypography'
 import { parseStructuredChapterTitle } from './chapterDisplay'
+
+const MOCK_ARENA_QUESTION_COUNTS = [20, 30, 40, 50] as const
+const MOCK_ARENA_DIFFICULTIES: MockArenaDifficulty[] = ['EASY', 'MEDIUM', 'HARD']
 
 interface PracticeCenterScreenProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -546,6 +549,28 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       : mockArenaDifficulty === 'HARD'
         ? '困难'
         : '标准'
+  const cycleMockArenaQuestionCount = useCallback(() => {
+    setMockArenaQuestionCount((current) => {
+      const currentIndex = MOCK_ARENA_QUESTION_COUNTS.indexOf(
+        current as (typeof MOCK_ARENA_QUESTION_COUNTS)[number]
+      )
+      const nextIndex =
+        currentIndex === -1
+          ? 0
+          : (currentIndex + 1) % MOCK_ARENA_QUESTION_COUNTS.length
+      return MOCK_ARENA_QUESTION_COUNTS[nextIndex]
+    })
+  }, [])
+  const cycleMockArenaDifficulty = useCallback(() => {
+    setMockArenaDifficulty((current) => {
+      const currentIndex = MOCK_ARENA_DIFFICULTIES.indexOf(current)
+      const nextIndex =
+        currentIndex === -1
+          ? 0
+          : (currentIndex + 1) % MOCK_ARENA_DIFFICULTIES.length
+      return MOCK_ARENA_DIFFICULTIES[nextIndex]
+    })
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -739,22 +764,14 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
         tertiaryStatValue: mockArenaDifficultyLabel,
         startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}`,
         mockArenaOptions: {
-          questionCount: mockArenaQuestionCount,
-          difficulty: mockArenaDifficulty,
-          questionCountOptions: [20, 30, 40, 50],
-          difficultyOptions: [
-            { value: 'EASY', label: '简单' },
-            { value: 'MEDIUM', label: '标准' },
-            { value: 'HARD', label: '困难' },
-          ],
-          onQuestionCountChange: (questionCount) =>
-            setMockArenaQuestionCount(questionCount),
-          onDifficultyChange: (difficulty) =>
-            setMockArenaDifficulty(difficulty),
+          onQuestionCountCycle: cycleMockArenaQuestionCount,
+          onDifficultyCycle: cycleMockArenaDifficulty,
         },
       }
     })
   }, [
+    cycleMockArenaDifficulty,
+    cycleMockArenaQuestionCount,
     currentSubjectTitle,
     mockArenaDifficulty,
     mockArenaDifficultyLabel,
@@ -882,18 +899,8 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}`,
       startLabel: '开始 Mock Arena',
       mockArenaOptions: {
-        questionCount: mockArenaQuestionCount,
-        difficulty: mockArenaDifficulty,
-        questionCountOptions: [20, 30, 40, 50],
-        difficultyOptions: [
-          { value: 'EASY', label: '简单' },
-          { value: 'MEDIUM', label: '标准' },
-          { value: 'HARD', label: '困难' },
-        ],
-        onQuestionCountChange: (questionCount) =>
-          setMockArenaQuestionCount(questionCount),
-        onDifficultyChange: (difficulty) =>
-          setMockArenaDifficulty(difficulty),
+        onQuestionCountCycle: cycleMockArenaQuestionCount,
+        onDifficultyCycle: cycleMockArenaDifficulty,
       },
     })
   }
