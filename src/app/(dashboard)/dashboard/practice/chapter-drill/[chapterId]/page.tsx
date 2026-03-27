@@ -93,6 +93,9 @@ function createPreviewQuestion(
     tags: ['chapter-preview'],
     isPastPaper: false,
     paperId: null,
+    deletedAt: null,
+    deletedBy: null,
+    deleteReason: null,
     ...rest,
   };
 }

@@ -28,7 +28,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
@@ -38,6 +38,15 @@ import { uploadSourceFile } from '@/actions/storage'
 import { importFromPDF, importFromWebUrl } from '@/actions/content-pipeline/import-service'
 import { MAX_PDF_SIZE } from '@/lib/content-pipeline/import-utils'
 import type { BatchData } from '@/types/content-pipeline'
+
+type ImportFormValues = {
+  importMethod: 'FILE_UPLOAD' | 'WEB_URL'
+  subjectId: string
+  source: string
+  isPastPaper: boolean
+  pageUrl?: string
+  maxQuestions?: string
+}
 
 const importSchema = z
   .object({
@@ -81,8 +90,6 @@ const importSchema = z
     }
   })
 
-type ImportFormValues = z.infer<typeof importSchema>
-
 interface NewBatchImportModalProps {
   isOpen: boolean
   onClose: () => void
@@ -118,7 +125,7 @@ export function NewBatchImportModal({
   const [isUploading, setIsUploading] = useState(false)
 
   const form = useForm<ImportFormValues>({
-    resolver: zodResolver(importSchema),
+    resolver: zodResolver(importSchema) as unknown as Resolver<ImportFormValues>,
     defaultValues: {
       importMethod: 'FILE_UPLOAD',
       subjectId: '',

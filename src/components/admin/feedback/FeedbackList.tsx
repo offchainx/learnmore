@@ -17,7 +17,7 @@ import {
   MessageSquare,
   Search,
 } from 'lucide-react'
-import { FeedbackCategory, FeedbackStatus } from '@/types/feedback'
+import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 import { toast } from 'sonner'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'

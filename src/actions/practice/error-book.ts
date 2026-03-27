@@ -115,7 +115,7 @@ export async function updateErrorBookMastery(questionId: string, isCorrect: bool
 
     if (!result.success) return result
 
-    const level = result.levels[questionId] ?? 0
+    const level = result.levels?.[questionId] ?? 0
     if (level >= 3) return { success: true, mastered: true, message: 'Problem Mastered!' }
     return { success: true, mastered: false, level }
   } catch (error) {
@@ -326,6 +326,6 @@ export async function updateErrorWiperProgress(questionId: string, isCorrect: bo
 
   if (!result.success) return result
 
-  const level = result.levels[questionId] ?? 0
+  const level = result.levels?.[questionId] ?? 0
   return { success: true, wiped: level >= 3, level }
 }

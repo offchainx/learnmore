@@ -8,6 +8,10 @@ type ReportsI18nBundle = {
     range7d: string
     range30d: string
     rangeAll: string
+    export: string
+    searchPlaceholder: string
+    filter: string
+    sort: string
   }
   stats: {
     openQueue: string
@@ -19,6 +23,11 @@ type ReportsI18nBundle = {
     answerWrong: string
     answerWrongHint: string
     hours: string
+    pendingReports: string
+    sinceYesterday: string
+    resolvedToday: string
+    resolutionRate: string
+    fromLastWeek: string
   }
   filters: {
     queueTitle: string
@@ -75,6 +84,10 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       range7d: '7 Days',
       range30d: '30 Days',
       rangeAll: 'All Time',
+      export: 'Export',
+      searchPlaceholder: 'Search reports...',
+      filter: 'Filter',
+      sort: 'Sort',
     },
     stats: {
       openQueue: 'Open Reports',
@@ -86,6 +99,11 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       answerWrong: 'Answer Wrong',
       answerWrongHint: 'Most critical learning impact',
       hours: 'hrs',
+      pendingReports: 'Pending Reports',
+      sinceYesterday: 'Since yesterday',
+      resolvedToday: 'Resolved Today',
+      resolutionRate: 'Resolution rate',
+      fromLastWeek: 'From last week',
     },
     filters: {
       queueTitle: 'Report Queue',
@@ -141,6 +159,10 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       range7d: '7 Days',
       range30d: '30 Days',
       rangeAll: 'All Time',
+      export: '导出',
+      searchPlaceholder: '搜索报错...',
+      filter: '筛选',
+      sort: '排序',
     },
     stats: {
       openQueue: '待处理报错',
@@ -152,6 +174,11 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       answerWrong: '答案错误',
       answerWrongHint: '优先影响学习结果',
       hours: '小时',
+      pendingReports: '待处理报错',
+      sinceYesterday: '较昨日',
+      resolvedToday: '今日已解决',
+      resolutionRate: '解决率',
+      fromLastWeek: '较上周',
     },
     filters: {
       queueTitle: '报错队列',
@@ -207,6 +234,10 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       range7d: '7 Days',
       range30d: '30 Days',
       rangeAll: 'All Time',
+      export: 'Eksport',
+      searchPlaceholder: 'Cari laporan...',
+      filter: 'Tapis',
+      sort: 'Susun',
     },
     stats: {
       openQueue: 'Laporan Terbuka',
@@ -218,6 +249,11 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       answerWrong: 'Jawapan Salah',
       answerWrongHint: 'Paling memberi kesan kepada pembelajaran',
       hours: 'jam',
+      pendingReports: 'Laporan Tertunggak',
+      sinceYesterday: 'Berbanding semalam',
+      resolvedToday: 'Selesai hari ini',
+      resolutionRate: 'Kadar penyelesaian',
+      fromLastWeek: 'Berbanding minggu lalu',
     },
     filters: {
       queueTitle: 'Barisan Laporan',

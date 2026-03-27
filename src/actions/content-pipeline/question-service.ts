@@ -103,6 +103,20 @@ function mapReviewActionLabel(action: ReviewAction): string {
   }
 }
 
+function extractAggregateCount(
+  count:
+    | number
+    | true
+    | {
+        _all?: number
+      }
+    | undefined
+): number {
+  if (typeof count === 'number') return count
+  if (!count || count === true) return 0
+  return count._all ?? 0
+}
+
 function mapReviewActionType(action: ReviewAction): AuditLogEntry['type'] {
   switch (action) {
     case ReviewAction.APPROVE:
@@ -415,12 +429,13 @@ export async function bulkUpdateQuestionStatus(
   const results: BulkOperationResult<QuestionWithRelations>['results'] = []
   let succeeded = 0
   let failed = 0
+  const reviewerId = await resolveReviewerId(input.reviewerId)
 
   for (let i = 0; i < input.questionIds.length; i++) {
     const result = await updateQuestionStatus({
       questionId: input.questionIds[i],
       newStatus: input.newStatus,
-      reviewerId: input.reviewerId,
+      reviewerId,
       comment: input.comment,
     })
 
@@ -1218,11 +1233,13 @@ export async function getContentStats(
       }),
       prisma.question.groupBy({
         by: ['status'],
+        orderBy: { status: 'asc' },
         where: questionWhere,
         _count: true,
       }),
       prisma.question.groupBy({
         by: ['type'],
+        orderBy: { type: 'asc' },
         where: questionWhere,
         _count: true,
       }),
@@ -1234,7 +1251,7 @@ export async function getContentStats(
 
     const byStatus = statusCounts.reduce(
       (acc, item) => {
-        acc[item.status] = item._count
+        acc[item.status] = extractAggregateCount(item._count)
         return acc
       },
       {} as Record<ContentStatus, number>
@@ -1242,7 +1259,7 @@ export async function getContentStats(
 
     const byType = typeCounts.reduce(
       (acc, item) => {
-        acc[item.type] = item._count
+        acc[item.type] = extractAggregateCount(item._count)
         return acc
       },
       {} as Record<QuestionType, number>

@@ -521,6 +521,7 @@ export async function getUserDetail(
       avatarColor: buildAvatarColor(`${dbUser.id}:${dbUser.email}`),
       status: mapDbStatusToAdmin(dbUser.status),
       tier: mapDbTierToAdmin(dbUser.subscriptionTier),
+      subscriptionEnd: dbUser.subscriptionEnd?.toISOString() || null,
       lastActive: lastActiveDate.toISOString(),
       lastActiveLabel: formatRelativeTime(lastActiveDate),
       grade: dbUser.grade ? `${dbUser.grade}年级` : '未设置',

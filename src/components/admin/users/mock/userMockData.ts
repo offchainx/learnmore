@@ -93,6 +93,12 @@ function generateUser(index: number): Admin.User {
     avatarColor: getRandomElement(AVATAR_COLORS),
     status,
     tier,
+    subscriptionEnd:
+      tier === Admin.SubscriptionTier.STARTER
+        ? null
+        : new Date(
+            Date.now() + Math.random() * 1000 * 60 * 60 * 24 * 180
+          ).toISOString(),
     lastActive: timeInfo.iso,
     lastActiveLabel: timeInfo.label,
     grade: getRandomElement(GRADES),
@@ -163,14 +169,20 @@ export function fetchMockUsers(
   // 2. 排序
   const { sortField, sortDirection } = pagination
   result.sort((a, b) => {
-    const aValue = a[sortField]
-    const bValue = b[sortField]
-
     if (sortField === 'lastActive') {
       const dateA = new Date(a.lastActive).getTime()
       const dateB = new Date(b.lastActive).getTime()
       return sortDirection === 'asc' ? dateA - dateB : dateB - dateA
     }
+
+    if (sortField === 'subscriptionEnd') {
+      const dateA = a.subscriptionEnd ? new Date(a.subscriptionEnd).getTime() : 0
+      const dateB = b.subscriptionEnd ? new Date(b.subscriptionEnd).getTime() : 0
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA
+    }
+
+    const aValue = String(a[sortField] ?? '')
+    const bValue = String(b[sortField] ?? '')
 
     if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
@@ -189,8 +201,10 @@ export function fetchMockUsers(
     name: u.name,
     email: u.email,
     avatarColor: u.avatarColor,
+    role: u.role,
     status: u.status,
     tier: u.tier,
+    subscriptionEnd: u.subscriptionEnd,
     lastActive: u.lastActive,
     lastActiveLabel: u.lastActiveLabel,
     grade: u.grade,

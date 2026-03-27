@@ -120,6 +120,8 @@
 
 | 2026-03-27 | Admin 内容导入与审核后台改造收口 | 完善网页导入诊断、导入列表与题目审核交互，并整理相关 SOP | 已完成导入任务诊断展示、批量导入与审核页交互改造，待提交推送 | 先补后端诊断数据，再补管理端查看入口与交互组件，改动链路较稳定 | 提交前未先更新 iteration log，触发 pre-commit 阻断 | 涉及代码提交的会话，先执行 pnpm codex:close 回填 iteration log，再进行 git add 和 git commit，避免被 pre-commit 拦截。 | 提交并推送当前改动，然后定位最近一次 Vercel build 失败的根因并决定是否直接修复 |
 
+| 2026-03-27 | 修复 main 分支 Vercel production build 阻塞 | 根据 Vercel build logs 与本地 tsc/build 结果，修复导致 Next.js 构建失败的类型错误并验证完整构建通过 | 已修复 admin user detail、content pipeline、practice、feedback、content reports、import modal 与 mock user 数据相关类型问题；本地 pnpm exec tsc --noEmit 与 pnpm run build 均通过 | 先用 Vercel 日志定位首个阻塞点，再用 tsc 一次性拉齐剩余错误清单，按文件簇批量修复更高效 | 仅修复日志里的首个错误不足以恢复部署，main 上还有多处后续 TS 断点被前置错误掩盖 | 遇到 Vercel TypeScript 构建失败时，先取线上首个报错确认入口，再运行 pnpm exec tsc --noEmit 拉齐剩余错误列表，按模块分组修复后用 pnpm run build 做最终闭环。 | 提交并推送本轮 build 修复，等待新的 Vercel deployment 验证为 Ready；后续再单独处理 baseline-browser-mapping、middleware/proxy 与 metadataBase 等非阻塞告警 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

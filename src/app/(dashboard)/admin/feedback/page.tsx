@@ -29,7 +29,13 @@ export default async function AdminFeedbackPage() {
         <div className="mx-auto w-full max-w-[1820px] rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
           <FeedbackList
             initialData={
-              initialData.success && initialData.data ? initialData.data : []
+              initialData.success && initialData.data
+                ? initialData.data.map((item) => ({
+                    ...item,
+                    createdAt: item.createdAt.toISOString(),
+                    email: item.email ?? item.user?.email ?? '未提供邮箱',
+                  }))
+                : []
             }
             totalCount={initialData.success ? initialData.total || 0 : 0}
             initialOverview={

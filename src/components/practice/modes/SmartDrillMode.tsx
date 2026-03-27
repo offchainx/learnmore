@@ -59,6 +59,9 @@ function createMockQuestion(overrides: Partial<Question> & Pick<Question, 'id' |
     tags: ['smart-drill', 'mock-preview'],
     isPastPaper: false,
     paperId: null,
+    deletedAt: null,
+    deletedBy: null,
+    deleteReason: null,
     ...restOverrides,
   }
 }
