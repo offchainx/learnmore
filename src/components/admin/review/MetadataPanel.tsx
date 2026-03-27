@@ -9,13 +9,26 @@ interface MetadataPanelProps {
   onUpdate: (data: QuestionReviewData) => void
   onApprove: (feedback?: string) => void
   onReject: (reason: string) => void
+  isProcessing?: boolean
+  reviewCompletedAction?: 'approved' | 'rejected' | null
+  onNextQuestion?: () => void
+  hasNextQuestion?: boolean
 }
 
 /**
  * 元数据和审核操作面板（右侧）
  * 包含元数据编辑、标签管理、审核历史、审核操作
  */
-export function MetadataPanel({ data, onUpdate, onApprove, onReject }: MetadataPanelProps) {
+export function MetadataPanel({
+  data,
+  onUpdate,
+  onApprove,
+  onReject,
+  isProcessing = false,
+  reviewCompletedAction = null,
+  onNextQuestion,
+  hasNextQuestion = false,
+}: MetadataPanelProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [tempData, setTempData] = useState<QuestionReviewData>(data)
   const [feedback, setFeedback] = useState('')
@@ -36,8 +49,8 @@ export function MetadataPanel({ data, onUpdate, onApprove, onReject }: MetadataP
   }
 
   return (
-    <aside className="w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col z-20 shadow-xl overflow-hidden h-full">
-      <div className="flex-1 overflow-y-auto p-5 space-y-6">
+    <aside className="z-20 flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden border-t border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 xl:w-[400px] xl:border-l xl:border-t-0">
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6 lg:px-6 xl:px-5">
         {/* 元数据网格 */}
         <div className="group relative">
           <div className="flex justify-between items-center mb-3">
@@ -291,8 +304,24 @@ export function MetadataPanel({ data, onUpdate, onApprove, onReject }: MetadataP
       </div>
 
       {/* 审核操作区 */}
-      <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
-        {data.status === 'VERIFIED' || data.status === 'PUBLISHED' ? (
+      <div className="border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950 lg:px-6 xl:px-5">
+        {reviewCompletedAction ? (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">
+              {reviewCompletedAction === 'approved'
+                ? '当前题目已通过，可继续处理下一题。'
+                : '当前题目已驳回，可继续处理下一题。'}
+            </div>
+            <button
+              type="button"
+              onClick={onNextQuestion}
+              className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              {hasNextQuestion ? '下一题' : '返回审核列表'}
+            </button>
+          </div>
+        ) : data.status === 'VERIFIED' || data.status === 'PUBLISHED' ? (
           // 已审核状态：显示灰色禁用按钮
           <button
             type="button"
@@ -325,20 +354,22 @@ export function MetadataPanel({ data, onUpdate, onApprove, onReject }: MetadataP
                     onReject(feedback || '审核未通过')
                   }
                 }}
+                disabled={isProcessing}
                 className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
               >
                 <X className="h-4 w-4 mr-2" />
-                拒绝
+                {isProcessing ? '处理中...' : '拒绝'}
               </button>
               <button
                 type="button"
                 onClick={() => {
                   onApprove(feedback || undefined)
                 }}
+                disabled={isProcessing}
                 className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
               >
                 <Check className="h-4 w-4 mr-2" />
-                通过
+                {isProcessing ? '处理中...' : '通过'}
               </button>
             </div>
           </>

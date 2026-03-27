@@ -63,6 +63,16 @@ function normalizeImageUrls(
   }
 }
 
+function normalizeSupplementalImageUrls(imageUrls: string[] | null | undefined): string[] {
+  return Array.from(
+    new Set(
+      (Array.isArray(imageUrls) ? imageUrls : [])
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+        .map((value) => value.trim())
+    )
+  )
+}
+
 function normalizeLetterList(value: JsonValue, validKeys: string[]): string[] {
   const parsed = Array.isArray(value)
     ? value
@@ -149,11 +159,13 @@ function normalizeQuestion(question: NormalizedWebImportQuestion): NormalizedWeb
   const options = normalizeOptions(question.options)
   const normalizedAnswer = normalizeAnswer(question.type, question.answer, options)
   const normalizedImages = normalizeImageUrls(question.imageUrls, question.assetUrl)
+  const normalizedExplanationImageUrls = normalizeSupplementalImageUrls(question.explanationImageUrls)
 
   const normalizedQuestion: NormalizedWebImportQuestion = {
     ...question,
     content,
     explanation,
+    explanationImageUrls: normalizedExplanationImageUrls,
     options,
     answer: normalizedAnswer,
     assetUrl: normalizedImages.assetUrl,

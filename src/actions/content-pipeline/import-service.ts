@@ -53,6 +53,79 @@ interface ImportFromWebUrlInput {
   paperId?: string | null
 }
 
+const WEB_IMPORT_IMAGE_CONCURRENCY = 2
+
+function clampPercentage(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(100, Math.round(value)))
+}
+
+function buildWebImportProgressState(input: {
+  stage: NonNullable<ImportDiagnostics['currentStage']>
+  stageLabel: string
+  statusSummary: string
+  overallProgress: number
+  stageProgress: number
+  totalQuestionCount?: number
+  processedQuestionCount?: number
+  totalAssetCount?: number
+  processedAssetCount?: number
+}): ImportDiagnostics {
+  return {
+    currentStage: input.stage,
+    currentStageLabel: input.stageLabel,
+    statusSummary: input.statusSummary,
+    overallProgress: clampPercentage(input.overallProgress),
+    stageProgress: clampPercentage(input.stageProgress),
+    totalQuestionCount: input.totalQuestionCount,
+    processedQuestionCount: input.processedQuestionCount,
+    totalAssetCount: input.totalAssetCount,
+    processedAssetCount: input.processedAssetCount,
+  }
+}
+
+async function updateSourceFileImportDiagnostics(
+  sourceFileId: string,
+  diagnostics: ImportDiagnostics
+): Promise<void> {
+  try {
+    await prisma.sourceFile.update({
+      where: { id: sourceFileId },
+      data: {
+        importDiagnostics: stripUndefinedDeep(diagnostics) as Prisma.InputJsonValue,
+      },
+    })
+  } catch (error) {
+    console.warn('更新网页导入进度失败（已忽略）:', error)
+  }
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  if (items.length === 0) return []
+  const limit = Math.max(1, Math.floor(concurrency))
+  const results = new Array<R>(items.length)
+  let nextIndex = 0
+
+  async function runWorker(): Promise<void> {
+    while (true) {
+      const currentIndex = nextIndex
+      nextIndex += 1
+      if (currentIndex >= items.length) return
+      results[currentIndex] = await worker(items[currentIndex], currentIndex)
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => runWorker())
+  )
+
+  return results
+}
+
 function buildSourceLabel(input: ImportFromWebUrlInput, fallback: string): string {
   const base = input.source?.trim()
   return base || fallback
@@ -219,6 +292,7 @@ function buildWebImportDiagnostics(
 
 type StemImagePersistResult = {
   content: string
+  explanation: string | null
   options: Record<string, string> | null
   assetUrl: string | null
   imageUrls: string[]
@@ -255,9 +329,11 @@ async function persistQuestionImagesToSupabase(params: {
   adapterName: string
   paperId?: string | null
   content: string
+  explanation: string | null
   options: Record<string, string> | null
   assetUrl: string | null
   imageUrls: string[]
+  explanationImageUrls: string[]
   supabase?: SupabaseClient
   urlCache?: Map<string, Promise<string | null>>
 }): Promise<StemImagePersistResult> {
@@ -265,17 +341,21 @@ async function persistQuestionImagesToSupabase(params: {
   if (params.adapterName !== 'examcoo-view') {
     return {
       content: params.content,
+      explanation: params.explanation,
       options: params.options,
       assetUrl: params.assetUrl,
       imageUrls: params.imageUrls,
       uploadedCount: 0,
-      skippedCount: params.imageUrls.length,
+      skippedCount: params.imageUrls.length + params.explanationImageUrls.length,
     }
   }
 
-  if (params.imageUrls.length === 0) {
+  const allImageUrls = Array.from(new Set([...params.imageUrls, ...params.explanationImageUrls]))
+
+  if (allImageUrls.length === 0) {
     return {
       content: params.content,
+      explanation: params.explanation,
       options: params.options,
       assetUrl: params.assetUrl,
       imageUrls: params.imageUrls,
@@ -365,27 +445,34 @@ async function persistQuestionImagesToSupabase(params: {
   }
 
   let content = params.content
+  let explanation = params.explanation
   let options = params.options
   const newUrls: string[] = []
   let uploadedCount = 0
   let skippedCount = 0
 
-  for (const originalUrl of params.imageUrls) {
+  for (const originalUrl of allImageUrls) {
     const uploadedUrl = await uploadOne(originalUrl)
     if (!uploadedUrl) {
-      newUrls.push(originalUrl)
+      if (params.imageUrls.includes(originalUrl)) {
+        newUrls.push(originalUrl)
+      }
       skippedCount += 1
       continue
     }
     uploadedCount += 1
-    newUrls.push(uploadedUrl)
+    if (params.imageUrls.includes(originalUrl)) {
+      newUrls.push(uploadedUrl)
+    }
     // content 是 markdown，直接做字符串替换即可（避免 regex 转义风险）
     content = content.split(originalUrl).join(uploadedUrl)
+    explanation = explanation?.split(originalUrl).join(uploadedUrl) ?? null
     options = replaceImageUrlInOptions(options, originalUrl, uploadedUrl)
   }
 
   return {
     content,
+    explanation,
     options,
     assetUrl: newUrls[0] ?? params.assetUrl,
     imageUrls: newUrls,
@@ -833,6 +920,7 @@ export async function importFromWebUrl(
   let sourceFileId: string | null = null
   let pendingImportDiagnostics: ImportDiagnostics | null = null
   const stageDurations: NonNullable<ImportDiagnostics['stageDurations']> = {}
+  let lastProgressWriteAt = 0
 
   try {
     const sourceFile = await prisma.sourceFile.create({
@@ -851,6 +939,28 @@ export async function importFromWebUrl(
     })
     sourceFileId = sourceFile.id
 
+    const writeProgress = async (
+      diagnostics: ImportDiagnostics,
+      options?: { force?: boolean }
+    ) => {
+      if (!sourceFileId) return
+      const now = Date.now()
+      if (!options?.force && now - lastProgressWriteAt < 1200) return
+      lastProgressWriteAt = now
+      await updateSourceFileImportDiagnostics(sourceFileId, diagnostics)
+    }
+
+    await writeProgress(
+      buildWebImportProgressState({
+        stage: 'CRAWLING',
+        stageLabel: '网页抓取',
+        statusSummary: '正在解析试卷结构...',
+        overallProgress: 5,
+        stageProgress: 0,
+      }),
+      { force: true }
+    )
+
     const crawlStartTime = Date.now()
     const webImportResult = await runWebImport({
       pageUrl,
@@ -858,32 +968,129 @@ export async function importFromWebUrl(
       source: input.source,
       chapterId: input.chapterId,
       maxQuestions: input.maxQuestions,
+      onProgress: async (progress) => {
+        if (progress.stage !== 'CRAWLING') return
+        const total = Math.max(progress.totalQuestionCount, 1)
+        const stageProgress = (progress.processedQuestionCount / total) * 100
+        await writeProgress(
+          buildWebImportProgressState({
+            stage: 'CRAWLING',
+            stageLabel: '网页抓取',
+            statusSummary:
+              progress.processedQuestionCount < total
+                ? `正在抓取题目 ${progress.processedQuestionCount}/${total}`
+                : `网页抓取完成 ${total}/${total}`,
+            overallProgress: 5 + stageProgress * 0.57,
+            stageProgress,
+            totalQuestionCount: total,
+            processedQuestionCount: progress.processedQuestionCount,
+          }),
+          {
+            force:
+              progress.processedQuestionCount === 0 ||
+              progress.processedQuestionCount === total ||
+              progress.processedQuestionCount % 4 === 0,
+          }
+        )
+      },
     })
     stageDurations.crawlMs = Date.now() - crawlStartTime
     if (!webImportResult.success || !webImportResult.data) {
       throw new Error(webImportResult.error || '网页导入失败')
     }
+    const webImportData = webImportResult.data
 
     const questionsToCreateDraft: CreateQuestionInput[] = []
     const stemImageSupabase =
-      webImportResult.data.adapterName === 'examcoo-view' ? await createSupabaseClient() : null
+      webImportData.adapterName === 'examcoo-view' ? await createSupabaseClient() : null
     const stemImageUrlCache = new Map<string, Promise<string | null>>()
+    const totalQuestionCount = webImportData.normalized.questions.length
+    const totalAssetCount = webImportData.diagnostics.assetCount ?? 0
+
+    await writeProgress(
+      buildWebImportProgressState({
+        stage: 'PERSISTING_IMAGES',
+        stageLabel: '图片转存',
+        statusSummary:
+          totalAssetCount > 0
+            ? `正在转存图片 0/${totalAssetCount}`
+            : `正在整理题目 0/${totalQuestionCount}`,
+        overallProgress: 62,
+        stageProgress: 0,
+        totalQuestionCount,
+        processedQuestionCount: 0,
+        totalAssetCount,
+        processedAssetCount: 0,
+      }),
+      { force: true }
+    )
 
     const imagePersistStartTime = Date.now()
-    for (const question of webImportResult.data.normalized.questions) {
-      const persisted = await persistQuestionImagesToSupabase({
-        pageUrl,
-        adapterName: webImportResult.data.adapterName,
-        paperId: question.paperId ?? null,
-        content: question.content,
-        options: question.options ?? null,
-        assetUrl: question.assetUrl,
-        imageUrls:
-          question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
-        supabase: stemImageSupabase ?? undefined,
-        urlCache: stemImageUrlCache,
-      })
+    let processedImageQuestions = 0
+    let processedAssets = 0
+    const draftResults = await mapWithConcurrency(
+      webImportData.normalized.questions,
+      WEB_IMPORT_IMAGE_CONCURRENCY,
+      async (question) => {
+        const persisted = await persistQuestionImagesToSupabase({
+          pageUrl,
+          adapterName: webImportData.adapterName,
+          paperId: question.paperId ?? null,
+          content: question.content,
+          explanation: question.explanation ?? null,
+          options: question.options ?? null,
+          assetUrl: question.assetUrl ?? null,
+          imageUrls:
+            question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
+          explanationImageUrls: question.explanationImageUrls ?? [],
+          supabase: stemImageSupabase ?? undefined,
+          urlCache: stemImageUrlCache,
+        })
 
+        processedImageQuestions += 1
+        const questionAssetCount = Array.from(
+          new Set([
+            ...(question.imageUrls.length > 0
+              ? question.imageUrls
+              : question.assetUrl
+                ? [question.assetUrl]
+                : []),
+            ...(question.explanationImageUrls ?? []),
+          ])
+        ).length
+        processedAssets += questionAssetCount
+        const stageProgress =
+          totalQuestionCount > 0 ? (processedImageQuestions / totalQuestionCount) * 100 : 100
+        await writeProgress(
+          buildWebImportProgressState({
+            stage: 'PERSISTING_IMAGES',
+            stageLabel: '图片转存',
+            statusSummary:
+              totalAssetCount > 0
+                ? `正在转存图片 ${Math.min(processedAssets, totalAssetCount)}/${totalAssetCount}`
+                : `正在整理题目 ${processedImageQuestions}/${totalQuestionCount}`,
+            overallProgress: 62 + stageProgress * 0.3,
+            stageProgress,
+            totalQuestionCount,
+            processedQuestionCount: processedImageQuestions,
+            totalAssetCount,
+            processedAssetCount: Math.min(processedAssets, totalAssetCount),
+          }),
+          {
+            force:
+              processedImageQuestions === totalQuestionCount ||
+              processedImageQuestions % 3 === 0,
+          }
+        )
+
+        return {
+          question,
+          persisted,
+        }
+      }
+    )
+
+    for (const { question, persisted } of draftResults) {
       questionsToCreateDraft.push({
         content: persisted.content,
         type: question.type,
@@ -894,7 +1101,7 @@ export async function importFromWebUrl(
         chapterId: input.chapterId ?? null,
         options: persisted.options,
         answer: question.answer,
-        explanation: question.explanation,
+        explanation: persisted.explanation,
         sourceFileId,
         source: buildWebImportQuestionSource(
           input,
@@ -912,12 +1119,40 @@ export async function importFromWebUrl(
     stageDurations.imagePersistMs = Date.now() - imagePersistStartTime
 
     const chapterTaggingStartTime = Date.now()
+    await writeProgress(
+      buildWebImportProgressState({
+        stage: 'TAGGING_CHAPTERS',
+        stageLabel: '章节打标',
+        statusSummary: `正在打标章节 ${questionsToCreateDraft.length} 题`,
+        overallProgress: 93,
+        stageProgress: 0,
+        totalQuestionCount,
+        processedQuestionCount: questionsToCreateDraft.length,
+        totalAssetCount,
+        processedAssetCount: Math.min(processedAssets, totalAssetCount),
+      }),
+      { force: true }
+    )
     const questionsToCreate = await autoAssignQuestionChapters(
       questionsToCreateDraft
     )
     stageDurations.chapterTaggingMs = Date.now() - chapterTaggingStartTime
 
     const saveStartTime = Date.now()
+    await writeProgress(
+      buildWebImportProgressState({
+        stage: 'SAVING',
+        stageLabel: '批量入库',
+        statusSummary: `正在写入题库 ${questionsToCreate.length} 题`,
+        overallProgress: 96,
+        stageProgress: 0,
+        totalQuestionCount,
+        processedQuestionCount: questionsToCreate.length,
+        totalAssetCount,
+        processedAssetCount: Math.min(processedAssets, totalAssetCount),
+      }),
+      { force: true }
+    )
     const bulkResult = await bulkCreateQuestions({
       questions: questionsToCreate,
       sourceFileId,
@@ -926,12 +1161,26 @@ export async function importFromWebUrl(
     stageDurations.saveMs = Date.now() - saveStartTime
 
     const reviewSubmitStartTime = Date.now()
+    await writeProgress(
+      buildWebImportProgressState({
+        stage: 'SUBMITTING_REVIEW',
+        stageLabel: '提交审核',
+        statusSummary: `正在提交审核 ${bulkResult.results.filter((r) => r.success).length} 题`,
+        overallProgress: 99,
+        stageProgress: 0,
+        totalQuestionCount,
+        processedQuestionCount: questionsToCreate.length,
+        totalAssetCount,
+        processedAssetCount: Math.min(processedAssets, totalAssetCount),
+      }),
+      { force: true }
+    )
     pendingImportDiagnostics = stripUndefinedDeep({
       adapterName: webImportResult.data.adapterName,
       adapterVersion: webImportResult.data.adapterVersion,
       ...buildWebImportDiagnostics(
-        webImportResult.data.diagnostics,
-        webImportResult.data.normalized.questions,
+        webImportData.diagnostics,
+        webImportData.normalized.questions,
         bulkResult.results.map((result) => ({
           index: result.index,
           success: result.success,
@@ -939,6 +1188,15 @@ export async function importFromWebUrl(
         }))
       ),
       stageDurations,
+      currentStage: undefined,
+      currentStageLabel: undefined,
+      statusSummary: undefined,
+      overallProgress: 100,
+      stageProgress: 100,
+      totalQuestionCount,
+      processedQuestionCount: questionsToCreate.length,
+      totalAssetCount,
+      processedAssetCount: Math.min(processedAssets, totalAssetCount),
     })
 
     const questionsCreated = bulkResult.results.filter((r) => r.success).length
@@ -1921,6 +2179,13 @@ export async function recomputeImportDiagnosticsForTask(input: {
       return {
         success: false,
         error: '当前仅支持网页导入任务的诊断重算',
+        code: 'INVALID_PDF',
+      }
+    }
+    if (!sourceFile.subjectId) {
+      return {
+        success: false,
+        error: '当前任务缺少 subjectId，无法重算网页导入诊断',
         code: 'INVALID_PDF',
       }
     }

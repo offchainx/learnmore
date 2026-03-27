@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import {
   Table,
   TableBody,
@@ -42,6 +41,7 @@ import {
   bulkUpdateQuestionStatus,
   deleteQuestion,
 } from '@/actions/content-pipeline/question-service'
+import { QuestionReviewDrawer } from './QuestionReviewDrawer'
 import { useToast } from '@/components/ui/use-toast'
 import {
   pageSectionHeaderBandClass,
@@ -69,6 +69,13 @@ export function QuestionReviewTable({
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
   const isDeletedView = currentTab === 'deleted'
+  const selectedQuestionId = searchParams.get('questionId')
+  const reviewActionParam = searchParams.get('reviewAction')
+  const reviewCompletedAction =
+    reviewActionParam === 'approved' || reviewActionParam === 'rejected'
+      ? reviewActionParam
+      : null
+  const nextQuestionId = searchParams.get('nextQuestionId')
 
   useEffect(() => {
     setMounted(true)
@@ -250,7 +257,44 @@ export function QuestionReviewTable({
   const goToPage = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', newPage.toString())
+    params.delete('questionId')
+    params.delete('reviewAction')
+    params.delete('nextQuestionId')
     router.push(`?${params.toString()}`)
+  }
+
+  const openReviewDrawer = (questionId: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('questionId', questionId)
+    params.delete('reviewAction')
+    params.delete('nextQuestionId')
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
+
+  const closeReviewDrawer = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('questionId')
+    params.delete('reviewAction')
+    params.delete('nextQuestionId')
+    const query = params.toString()
+    router.replace(query ? `?${query}` : '?', { scroll: false })
+  }
+
+  const markReviewCompleted = (
+    action: 'approved' | 'rejected',
+    resolvedNextQuestionId: string | null
+  ) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (selectedQuestionId) {
+      params.set('questionId', selectedQuestionId)
+    }
+    params.set('reviewAction', action)
+    if (resolvedNextQuestionId) {
+      params.set('nextQuestionId', resolvedNextQuestionId)
+    } else {
+      params.delete('nextQuestionId')
+    }
+    router.replace(`?${params.toString()}`, { scroll: false })
   }
 
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
@@ -291,6 +335,15 @@ export function QuestionReviewTable({
     if (question.assetUrl) return question.assetUrl
     const match = question.content.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/i)
     return match?.[1] || null
+  }
+
+  const getQuestionPreview = (content: string) => {
+    return content
+      .replace(/!\[[^\]]*]\(([^)]+)\)/g, '[图片]')
+      .replace(/\[([^\]]+)]\(([^)]+)\)/g, '$1')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
   }
 
   const formatDateTime = (value: Date | string | null | undefined) => {
@@ -397,7 +450,7 @@ export function QuestionReviewTable({
 
       {/* Table */}
       <div className={cn(pageTableShellClass, 'rounded-[24px]')}>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow className={cn(pageSectionHeaderBandClass, 'border-b border-borderTone hover:bg-surface-subtle dark:border-borderTone dark:hover:bg-surface-subtle')}>
               <TableHead className="h-12 w-[50px] text-text-secondary dark:text-text-secondary">
@@ -411,7 +464,7 @@ export function QuestionReviewTable({
                 />
               </TableHead>
               <TableHead className="w-[90px] text-text-secondary dark:text-text-secondary">题图</TableHead>
-              <TableHead className="w-[300px] text-text-secondary dark:text-text-secondary">
+              <TableHead className="w-[340px] text-text-secondary dark:text-text-secondary">
                 题目内容
               </TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">题型</TableHead>
@@ -460,13 +513,17 @@ export function QuestionReviewTable({
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="max-w-[300px]">
-                    <div
-                      className="truncate text-sm font-medium text-text-primary dark:text-text-primary"
-                      title={question.content}
+                  <TableCell className="w-[340px] max-w-[340px] align-top">
+                    <button
+                      type="button"
+                      onClick={() => openReviewDrawer(question.id)}
+                      className="block w-full overflow-hidden text-left text-sm font-medium leading-6 text-text-primary transition-colors hover:text-blue-600 dark:text-text-primary dark:hover:text-blue-400"
+                      title={getQuestionPreview(question.content)}
                     >
-                      {question.content.substring(0, 50)}...
-                    </div>
+                      <span className="line-clamp-2 break-words">
+                        {getQuestionPreview(question.content) || '题干为空'}
+                      </span>
+                    </button>
                     <div className="mt-1 text-xs text-text-secondary dark:text-text-secondary">
                       ID: {question.id.substring(0, 8)}
                     </div>
@@ -534,14 +591,11 @@ export function QuestionReviewTable({
                           复制ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={`/admin/content/review/${question.id}`}
-                            className="flex cursor-pointer items-center"
-                          >
-                            <ClipboardCheck className="mr-2 h-4 w-4" />
-                            查看题目/审核
-                          </Link>
+                        <DropdownMenuItem
+                          onClick={() => openReviewDrawer(question.id)}
+                        >
+                          <ClipboardCheck className="mr-2 h-4 w-4" />
+                          查看题目/审核
                         </DropdownMenuItem>
                         {!isDeletedView ? (
                           <>
@@ -602,6 +656,16 @@ export function QuestionReviewTable({
           </TableFooter>
         </Table>
       </div>
+      <QuestionReviewDrawer
+        open={Boolean(selectedQuestionId)}
+        questionId={selectedQuestionId}
+        orderedQuestionIds={questions.map((question) => question.id)}
+        onClose={closeReviewDrawer}
+        onOpenQuestion={openReviewDrawer}
+        reviewCompletedActionFromUrl={reviewCompletedAction}
+        nextQuestionIdFromUrl={nextQuestionId}
+        onMarkReviewCompleted={markReviewCompleted}
+      />
     </div>
   )
 }

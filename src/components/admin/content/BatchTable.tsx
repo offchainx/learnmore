@@ -38,6 +38,10 @@ import {
   Link2,
   FileSearch,
   Sparkles,
+  Loader2,
+  ImageIcon,
+  Database,
+  ScanSearch,
 } from 'lucide-react'
 import { BatchData, BatchStatusUI } from '@/types/content-pipeline'
 import { format } from 'date-fns'
@@ -60,10 +64,14 @@ import {
 
 interface BatchTableProps {
   batches: BatchData[]
+  currentPage: number
+  totalPages: number
+  totalItems: number
   onDataChanged?: () => void
+  onPageChange?: (page: number) => void
+  isAutoRefreshing?: boolean
+  lastSyncedAt?: Date | null
 }
-
-const ITEMS_PER_PAGE = 8
 
 function getStatusBadge(status: BatchStatusUI) {
   switch (status) {
@@ -185,7 +193,56 @@ function formatDurationMs(value?: number): string {
   return `${minutes}m ${remainSeconds.toFixed(remainSeconds >= 10 ? 0 : 1)}s`
 }
 
-export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
+function getProcessingStageIcon(stage?: string) {
+  switch (stage) {
+    case 'QUEUING':
+      return <Loader2 className="h-3.5 w-3.5 animate-spin" />
+    case 'CRAWLING':
+      return <ScanSearch className="h-3.5 w-3.5" />
+    case 'PERSISTING_IMAGES':
+      return <ImageIcon className="h-3.5 w-3.5" />
+    case 'SAVING':
+    case 'SUBMITTING_REVIEW':
+      return <Database className="h-3.5 w-3.5" />
+    default:
+      return <Loader2 className="h-3.5 w-3.5 animate-spin" />
+  }
+}
+
+function buildProcessingMeta(batch: BatchData): string | null {
+  const diagnostics = batch.importDiagnostics
+  if (!diagnostics || batch.status !== 'Processing') return null
+
+  if (
+    typeof diagnostics.processedAssetCount === 'number' &&
+    typeof diagnostics.totalAssetCount === 'number' &&
+    diagnostics.totalAssetCount > 0 &&
+    diagnostics.currentStage === 'PERSISTING_IMAGES'
+  ) {
+    return `图片 ${diagnostics.processedAssetCount}/${diagnostics.totalAssetCount}`
+  }
+
+  if (
+    typeof diagnostics.processedQuestionCount === 'number' &&
+    typeof diagnostics.totalQuestionCount === 'number' &&
+    diagnostics.totalQuestionCount > 0
+  ) {
+    return `题目 ${diagnostics.processedQuestionCount}/${diagnostics.totalQuestionCount}`
+  }
+
+  return null
+}
+
+export function BatchTable({
+  batches,
+  currentPage,
+  totalPages,
+  totalItems,
+  onDataChanged,
+  onPageChange,
+  isAutoRefreshing = false,
+  lastSyncedAt = null,
+}: BatchTableProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
@@ -198,7 +255,6 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
   const [diagnosticsData, setDiagnosticsData] = useState<BatchData['importDiagnostics'] | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
 
   React.useEffect(() => {
     setMounted(true)
@@ -231,18 +287,16 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
     }),
     [filteredBatches]
   )
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredBatches.length / ITEMS_PER_PAGE)
+  const processingBatches = useMemo(
+    () =>
+      filteredBatches.filter(
+        (batch) => batch.status === 'Processing' || batch.status === 'Pending'
+      ),
+    [filteredBatches]
   )
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
-  const endIndex = startIndex + ITEMS_PER_PAGE
-  const paginatedBatches = filteredBatches.slice(startIndex, endIndex)
-
-  React.useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery])
+  const leadProcessingBatch = processingBatches[0] ?? null
+  const startIndex = (currentPage - 1) * 10
+  const endIndex = startIndex + filteredBatches.length
 
   const refreshData = () => {
     onDataChanged?.()
@@ -427,10 +481,64 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-secondary dark:text-text-secondary">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <span>结果集 {statusCounts.total} 条</span>
+          <span>
+            当前页 {filteredBatches.length} 条 / 总计 {totalItems} 条
+          </span>
           <span className="text-text-tertiary dark:text-text-tertiary">•</span>
           <span>支持按来源备注、任务 ID、科目、课程搜索</span>
+          {lastSyncedAt ? (
+            <>
+              <span className="text-text-tertiary dark:text-text-tertiary">•</span>
+              <span>
+                上次同步{' '}
+                {format(lastSyncedAt, 'HH:mm:ss', {
+                  locale: zhCN,
+                })}
+              </span>
+            </>
+          ) : null}
+          {isAutoRefreshing ? (
+            <>
+              <span className="text-text-tertiary dark:text-text-tertiary">•</span>
+              <span className="inline-flex items-center gap-1 text-primary">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                自动刷新中
+              </span>
+            </>
+          ) : null}
         </div>
+
+        {leadProcessingBatch ? (
+          <div className="mt-4 rounded-2xl border border-[hsl(var(--state-info-bg))] bg-[hsl(var(--state-info-bg))]/50 px-4 py-3 text-sm text-text-primary dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/20 dark:text-text-primary">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-[11px] font-medium text-[hsl(var(--state-info-fg))] dark:bg-surface-subtle dark:text-[hsl(var(--state-info-fg))]">
+                {getProcessingStageIcon(
+                  leadProcessingBatch.importDiagnostics?.currentStage
+                )}
+                {leadProcessingBatch.importDiagnostics?.currentStageLabel ||
+                  (leadProcessingBatch.status === 'Pending'
+                    ? '任务创建'
+                    : '处理中')}
+              </span>
+              <span className="font-medium">
+                {leadProcessingBatch.name}
+              </span>
+              <span className="text-text-secondary dark:text-text-secondary">
+                {leadProcessingBatch.statusMessage || '正在处理...'}
+              </span>
+              {buildProcessingMeta(leadProcessingBatch) ? (
+                <span className="text-text-secondary dark:text-text-secondary">
+                  · {buildProcessingMeta(leadProcessingBatch)}
+                </span>
+              ) : null}
+              {processingBatches.length > 1 ? (
+                <span className="text-text-secondary dark:text-text-secondary">
+                  · 另有 {processingBatches.length - 1} 个任务同步处理中
+                </span>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="overflow-x-auto">
@@ -455,7 +563,7 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedBatches.length === 0 ? (
+            {filteredBatches.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-40 px-6 text-center">
                   <div className="flex flex-col items-center justify-center gap-2 text-text-secondary dark:text-text-secondary">
@@ -472,7 +580,7 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedBatches.map((batch, index) => (
+              filteredBatches.map((batch, index) => (
                 <TableRow
                   key={batch.id}
                   className="group border-borderTone transition-colors hover:bg-surface-subtle dark:border-borderTone dark:hover:bg-surface-subtle"
@@ -540,6 +648,20 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                           {buildImportDiagnosticsSummary(batch)}
                         </div>
                       )}
+                      {batch.status === 'Processing' &&
+                      batch.importDiagnostics?.currentStageLabel ? (
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-secondary dark:text-text-secondary">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-borderTone bg-surface px-2 py-0.5 font-medium text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-surface-subtle dark:text-[hsl(var(--state-info-fg))]">
+                            {getProcessingStageIcon(
+                              batch.importDiagnostics.currentStage
+                            )}
+                            {batch.importDiagnostics.currentStageLabel}
+                          </span>
+                          {buildProcessingMeta(batch) ? (
+                            <span>{buildProcessingMeta(batch)}</span>
+                          ) : null}
+                        </div>
+                      ) : null}
                       {buildMissingQuestionPreview(batch) && (
                         <div className="text-[11px] text-text-tertiary dark:text-text-tertiary">
                           {buildMissingQuestionPreview(batch)}
@@ -653,11 +775,11 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
               </span>{' '}
               到{' '}
               <span className="font-medium text-text-primary dark:text-text-primary">
-                {Math.min(endIndex, filteredBatches.length)}
+                {Math.min(endIndex, totalItems)}
               </span>{' '}
               共{' '}
               <span className="font-medium text-text-primary dark:text-text-primary">
-                {filteredBatches.length}
+                {totalItems}
               </span>{' '}
               批次
             </p>
@@ -671,14 +793,14 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                 variant="outline"
                 size="icon"
                 className="h-9 w-9 rounded-xl border-0 bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                onClick={() => onPageChange?.(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <Button
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <Button
                     key={page}
                     variant="outline"
                     className={`h-9 rounded-xl border-0 px-4 ${
@@ -686,7 +808,7 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                         ? 'bg-primary text-white shadow-[0_10px_20px_rgba(29,78,216,0.18)] dark:bg-primary dark:text-primary-foreground'
                         : 'bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary'
                     }`}
-                    onClick={() => setCurrentPage(page)}
+                    onClick={() => onPageChange?.(page)}
                   >
                     {page}
                   </Button>
@@ -696,9 +818,7 @@ export function BatchTable({ batches, onDataChanged }: BatchTableProps) {
                 variant="outline"
                 size="icon"
                 className="h-9 w-9 rounded-xl border-0 bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
+                onClick={() => onPageChange?.(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
               >
                 <ChevronRight className="h-4 w-4" />

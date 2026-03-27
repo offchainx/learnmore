@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Plus, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -15,6 +15,11 @@ import { BatchTable } from '@/components/admin/content/BatchTable'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 import { NewBatchImportModal } from '@/components/admin/content/NewBatchImportModal'
 import { getSubjectLabel, type UiLang } from '@/lib/subjects'
+import {
+  getImportDashboardStats,
+  getImportTasks,
+} from '@/actions/content-pipeline/import-service'
+import { mapImportTaskToBatchData } from '@/lib/content-pipeline/mappers'
 import type {
   AuditLogEntry,
   BatchData,
@@ -41,11 +46,21 @@ function toDate(value: unknown): Date {
   return value instanceof Date ? value : new Date(String(value))
 }
 
+function normalizeBatches(rawBatches: BatchData[]): BatchData[] {
+  return (rawBatches || []).map((batch) => ({
+    ...batch,
+    createdAt: toDate(batch.createdAt),
+  }))
+}
+
 interface ImportClientProps {
   userRole: string
   userLanguage: UiLang
   initialSubjects: RawSubject[]
   initialBatches: BatchData[]
+  initialPage: number
+  initialPageSize: number
+  initialTotalTasks: number
   initialTasksError?: string | null
   initialStats: StatsData
   initialAuditLogs: AuditLogEntry[]
@@ -56,18 +71,18 @@ export function ImportClient({
   userLanguage,
   initialSubjects,
   initialBatches,
+  initialPage,
+  initialPageSize,
+  initialTotalTasks,
   initialTasksError,
   initialStats,
   initialAuditLogs,
 }: ImportClientProps) {
   const router = useRouter()
-
-  const batches = useMemo<BatchData[]>(
-    () =>
-      (initialBatches || []).map((batch) => ({
-        ...batch,
-        createdAt: toDate(batch.createdAt),
-      })),
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const normalizedInitialBatches = useMemo(
+    () => normalizeBatches(initialBatches || []),
     [initialBatches]
   )
 
@@ -76,7 +91,24 @@ export function ImportClient({
     [initialSubjects, userLanguage]
   )
 
-  const stats = useMemo<StatsData>(() => initialStats, [initialStats])
+  const [batches, setBatches] = useState<BatchData[]>(normalizedInitialBatches)
+  const [totalTasks, setTotalTasks] = useState(initialTotalTasks)
+  const [stats, setStats] = useState<StatsData>(initialStats)
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false)
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date())
+
+  useEffect(() => {
+    setBatches(normalizedInitialBatches)
+  }, [normalizedInitialBatches])
+
+  useEffect(() => {
+    setTotalTasks(initialTotalTasks)
+  }, [initialTotalTasks])
+
+  useEffect(() => {
+    setStats(initialStats)
+  }, [initialStats])
+
   const auditLogs = useMemo<AuditLogEntry[]>(
     () => initialAuditLogs || [],
     [initialAuditLogs]
@@ -91,19 +123,111 @@ export function ImportClient({
   )
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const totalPages = Math.max(1, Math.ceil(totalTasks / initialPageSize))
+
+  const handleImportQueued = (optimisticBatch: BatchData) => {
+    if (initialPage === 1) {
+      setBatches((prev) => {
+        const next = [optimisticBatch, ...prev.filter((batch) => !batch.id.startsWith('temp-'))]
+        return next.slice(0, initialPageSize)
+      })
+    } else {
+      router.push(pathname)
+    }
+    setTotalTasks((prev) => prev + 1)
+    setStats((prev) => ({
+      ...prev,
+      activeBatches: prev.activeBatches + 1,
+      tasksToday: prev.tasksToday + 1,
+    }))
+    setLastSyncedAt(new Date())
+  }
 
   useEffect(() => {
     if (!hasActiveBatches) return undefined
 
-    const timer = setInterval(() => {
-      router.refresh()
-    }, 5000)
+    let disposed = false
 
-    return () => clearInterval(timer)
-  }, [hasActiveBatches, router])
+    const syncLiveImportData = async () => {
+      if (disposed) return
+      setIsAutoRefreshing(true)
+      try {
+        const [tasksResult, statsResult] = await Promise.all([
+          getImportTasks({
+            limit: initialPageSize,
+            offset: (initialPage - 1) * initialPageSize,
+          }),
+          getImportDashboardStats(),
+        ])
+
+        if (!disposed && tasksResult.success && tasksResult.data) {
+          const nextBatches = normalizeBatches(
+            tasksResult.data.tasks.map(mapImportTaskToBatchData)
+          )
+          setBatches(nextBatches)
+          setTotalTasks(tasksResult.data.total)
+        }
+
+        if (!disposed && statsResult.success && statsResult.data) {
+          setStats(statsResult.data)
+        }
+
+        if (!disposed) {
+          setLastSyncedAt(new Date())
+        }
+      } finally {
+        if (!disposed) {
+          setIsAutoRefreshing(false)
+        }
+      }
+    }
+
+    void syncLiveImportData()
+
+    const timer = setInterval(() => {
+      void syncLiveImportData()
+    }, 3000)
+
+    return () => {
+      disposed = true
+      if (timer) clearInterval(timer)
+    }
+  }, [hasActiveBatches])
 
   const handleImportSuccess = () => {
-    router.refresh()
+    void (async () => {
+      const [tasksResult, statsResult] = await Promise.all([
+        getImportTasks({
+          limit: initialPageSize,
+          offset: (initialPage - 1) * initialPageSize,
+        }),
+        getImportDashboardStats(),
+      ])
+
+      if (tasksResult.success && tasksResult.data) {
+        setBatches(
+          normalizeBatches(tasksResult.data.tasks.map(mapImportTaskToBatchData))
+        )
+        setTotalTasks(tasksResult.data.total)
+      } else {
+        router.refresh()
+      }
+
+      if (statsResult.success && statsResult.data) {
+        setStats(statsResult.data)
+      }
+      setLastSyncedAt(new Date())
+    })()
+  }
+
+  const handlePageChange = (nextPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (nextPage <= 1) {
+      params.delete('page')
+    } else {
+      params.set('page', String(nextPage))
+    }
+    router.push(params.toString() ? `${pathname}?${params.toString()}` : pathname)
   }
 
   return (
@@ -170,7 +294,13 @@ export function ImportClient({
             <div className="p-4 sm:p-5">
               <BatchTable
                 batches={batches}
+                currentPage={initialPage}
+                totalPages={totalPages}
+                totalItems={totalTasks}
                 onDataChanged={handleImportSuccess}
+                onPageChange={handlePageChange}
+                isAutoRefreshing={isAutoRefreshing}
+                lastSyncedAt={lastSyncedAt}
               />
             </div>
           </div>
@@ -181,6 +311,7 @@ export function ImportClient({
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         subjects={subjects}
+        onImportQueued={handleImportQueued}
         onImportSuccess={handleImportSuccess}
       />
     </AdminClientWrapper>

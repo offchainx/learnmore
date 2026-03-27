@@ -11,6 +11,7 @@ export interface NormalizedWebImportQuestion {
   options?: Record<string, string> | null
   answer: JsonValue
   explanation?: string | null
+  explanationImageUrls: string[]
   assetUrl?: string | null
   imageUrls: string[]
   isPastPaper: boolean

@@ -40,10 +40,27 @@ export interface ImportStageDurations {
   totalMs?: number
 }
 
+export type WebImportProcessingStage =
+  | 'QUEUING'
+  | 'CRAWLING'
+  | 'PERSISTING_IMAGES'
+  | 'TAGGING_CHAPTERS'
+  | 'SAVING'
+  | 'SUBMITTING_REVIEW'
+
 export interface ImportDiagnostics {
   adapterName?: string
   adapterVersion?: string
   mode?: string
+  currentStage?: WebImportProcessingStage
+  currentStageLabel?: string
+  statusSummary?: string
+  overallProgress?: number
+  stageProgress?: number
+  processedQuestionCount?: number
+  totalQuestionCount?: number
+  processedAssetCount?: number
+  totalAssetCount?: number
   expectedQuestionCount?: number
   expectedRawQuestionIds?: string[]
   selectedQuestionCount?: number

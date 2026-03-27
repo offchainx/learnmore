@@ -12,16 +12,30 @@ import { toast } from 'sonner'
 
 interface QuestionReviewClientProps {
   question: QuestionReviewData
+  returnTo?: string
+}
+
+function resolveSafeReturnTo(input?: string): string {
+  if (!input) return '/admin/content/review'
+  const trimmed = input.trim()
+  if (!trimmed.startsWith('/admin/content/review')) {
+    return '/admin/content/review'
+  }
+  return trimmed
 }
 
 /**
  * 题目审核客户端容器组件
  * 整合 QuestionPanel 和 MetadataPanel，提供左右分栏布局
  */
-export function QuestionReviewClient({ question: initialQuestion }: QuestionReviewClientProps) {
+export function QuestionReviewClient({
+  question: initialQuestion,
+  returnTo,
+}: QuestionReviewClientProps) {
   const router = useRouter()
   const [question, setQuestion] = useState<QuestionReviewData>(initialQuestion)
   const [isSaving, setIsSaving] = useState(false)
+  const reviewReturnUrl = resolveSafeReturnTo(returnTo)
 
   // 更新题目数据
   const handleUpdate = async (newData: QuestionReviewData) => {
@@ -46,7 +60,7 @@ export function QuestionReviewClient({ question: initialQuestion }: QuestionRevi
       toast.success('审核通过！')
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
-        router.push('/admin/content/import')
+        router.push(reviewReturnUrl)
       }, 1000)
     } catch (error) {
       console.error('审核失败:', error)
@@ -62,7 +76,7 @@ export function QuestionReviewClient({ question: initialQuestion }: QuestionRevi
       await rejectQuestion(question.id, reason)
       toast.error('已拒绝该题目')
       setTimeout(() => {
-        router.push('/admin/content/import')
+        router.push(reviewReturnUrl)
       }, 1000)
     } catch (error) {
       console.error('拒绝操作失败:', error)
@@ -78,7 +92,7 @@ export function QuestionReviewClient({ question: initialQuestion }: QuestionRevi
         <div className="flex items-center justify-between max-w-full">
           <div className="flex items-center gap-4">
             <Link
-              href="/admin/content/import"
+              href={reviewReturnUrl}
               className="flex items-center justify-center w-10 h-10 rounded-xl bg-surface-subtle dark:bg-slate-800 border border-borderTone dark:border-slate-700 hover:bg-surface-muted dark:hover:bg-slate-700 transition-colors"
             >
               <ArrowLeft className="h-5 w-5 text-text-secondary dark:text-slate-400" />

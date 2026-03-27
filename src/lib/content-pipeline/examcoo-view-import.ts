@@ -2,7 +2,8 @@ import { QuestionType } from '@prisma/client'
 import { request as httpRequest } from 'node:http'
 import { request as httpsRequest } from 'node:https'
 
-const DEFAULT_DELAY_MS = 1200
+const DEFAULT_DELAY_MS = 700
+const DEFAULT_DELAY_JITTER_MS = 120
 export const EXAMCOO_VIEW_URL_PATTERN = /^https?:\/\/www\.examcoo\.com\/editor\/do\/view\/id\/\d+/i
 
 interface CookieJarStore {
@@ -22,6 +23,7 @@ export interface ExamcooImportQuestion {
   options: Record<string, string> | null
   answer: string | string[] | null
   explanation: string | null
+  explanationImageUrls: string[]
   assetUrl: string | null
   imageUrls: string[]
 }
@@ -55,6 +57,12 @@ interface CrawlExamcooViewOptions {
   url: string
   limit?: number
   delayMs?: number
+  onProgress?: (progress: {
+    stage: 'CRAWLING'
+    processedQuestionCount: number
+    totalQuestionCount: number
+    currentQuestionId?: string | null
+  }) => Promise<void> | void
 }
 
 interface RawExamcooQuestion {
@@ -398,13 +406,25 @@ function mapQuestionType(rawId: string): QuestionType {
   return QuestionType.SINGLE_CHOICE
 }
 
-function extractExplanation(commentHtml: string): string | null {
+function extractExplanation(commentHtml: string): {
+  explanation: string | null
+  explanationImageUrls: string[]
+} {
   const match = commentHtml.match(
     /试题解析：<\/div><div>([\s\S]*?)<\/div><div class="marginTop8 bold">纠错或评论：/
   )
-  if (!match) return null
-  const cleaned = decodeHtml(match[1]).replace(/<[^>]+>/g, '').trim()
-  return cleaned || null
+  if (!match) {
+    return {
+      explanation: null,
+      explanationImageUrls: [],
+    }
+  }
+
+  const explanation = htmlToMarkdownWithImages(match[1])
+  return {
+    explanation: explanation || null,
+    explanationImageUrls: extractMarkdownImageUrls(explanation),
+  }
 }
 
 async function httpGet(url: string, jar: CookieJar, referer?: string): Promise<string> {
@@ -497,7 +517,7 @@ function ensureTrueFalseOptions(options: Record<string, string> | null): Record<
 }
 
 export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): Promise<ExamcooImportResult> {
-  const { url, limit, delayMs = DEFAULT_DELAY_MS } = options
+  const { url, limit, delayMs = DEFAULT_DELAY_MS, onProgress } = options
   const jar = new CookieJar()
 
   const viewHtml = await httpGet(url, jar)
@@ -527,6 +547,12 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
   )
 
   const questions: ExamcooImportQuestion[] = []
+  await onProgress?.({
+    stage: 'CRAWLING',
+    processedQuestionCount: 0,
+    totalQuestionCount: targetQuestions.length,
+    currentQuestionId: null,
+  })
 
   for (let i = 0; i < targetQuestions.length; i++) {
     const item = targetQuestions[i]
@@ -548,6 +574,7 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
     const answer = parseAnswer(type, item.c, safeOptions ? Object.keys(safeOptions).length : 0)
 
     let explanation: string | null = null
+    let explanationImageUrls: string[] = []
     try {
       const commentHtml = await httpPostForm(
         'https://www.examcoo.com/editor/comment/index',
@@ -566,7 +593,9 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
         jar,
         url
       )
-      explanation = extractExplanation(commentHtml)
+      const explanationPayload = extractExplanation(commentHtml)
+      explanation = explanationPayload.explanation
+      explanationImageUrls = explanationPayload.explanationImageUrls
     } catch (error) {
       console.warn(`[Examcoo] 解析抓取失败 questionId=${questionId}:`, error)
     }
@@ -578,12 +607,20 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
       options: safeOptions,
       answer,
       explanation,
+      explanationImageUrls,
       assetUrl: imageUrls[0] || null,
       imageUrls,
     })
 
+    await onProgress?.({
+      stage: 'CRAWLING',
+      processedQuestionCount: i + 1,
+      totalQuestionCount: targetQuestions.length,
+      currentQuestionId: questionId,
+    })
+
     if (i < targetQuestions.length - 1) {
-      const jitter = Math.floor(Math.random() * 300)
+      const jitter = Math.floor(Math.random() * DEFAULT_DELAY_JITTER_MS)
       await sleep(delayMs + jitter)
     }
   }

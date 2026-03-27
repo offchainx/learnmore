@@ -27,6 +27,15 @@ function buildExamcooAssets(questions: ExamcooImportQuestion[]): WebImportRawRes
         source: question.questionId,
       })
     }
+    for (const imageUrl of question.explanationImageUrls) {
+      if (seen.has(imageUrl)) continue
+      seen.add(imageUrl)
+      assets.push({
+        url: imageUrl,
+        kind: 'explanation_image',
+        source: question.questionId,
+      })
+    }
   }
 
   return assets
@@ -81,6 +90,7 @@ export const examcooViewAdapter: WebImportAdapter = {
     const crawled = await crawlExamcooViewPaper({
       url: context.pageUrl,
       limit: context.maxQuestions,
+      onProgress: context.onProgress,
     })
 
     return {
@@ -124,6 +134,7 @@ export const examcooViewAdapter: WebImportAdapter = {
         options: question.options,
         answer: question.answer,
         explanation: question.explanation,
+        explanationImageUrls: question.explanationImageUrls,
         assetUrl: question.assetUrl,
         imageUrls: question.imageUrls,
         metadata: {
@@ -150,6 +161,7 @@ export const examcooViewAdapter: WebImportAdapter = {
         options: question.options,
         answer: question.answer,
         explanation: question.explanation,
+        explanationImageUrls: question.explanationImageUrls ?? [],
         assetUrl: question.assetUrl,
         imageUrls: question.imageUrls ?? [],
         isPastPaper: extracted.isPastPaper,

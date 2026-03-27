@@ -6,18 +6,22 @@ import { getProfile } from "@/actions/user/profile"
 
 interface PageProps {
   params: Promise<{ questionId: string }>
+  searchParams: Promise<{
+    returnTo?: string
+  }>
 }
 
 /**
  * 题目审核详情页（Server Component）
  */
-export default async function QuestionReviewPage({ params }: PageProps) {
+export default async function QuestionReviewPage({ params, searchParams }: PageProps) {
   const profile = await getProfile()
   if (!profile) {
     redirect('/login')
   }
 
   const { questionId } = await params
+  const resolvedSearchParams = await searchParams
   const question = await getQuestionForReview(questionId)
 
   if (!question) {
@@ -26,7 +30,10 @@ export default async function QuestionReviewPage({ params }: PageProps) {
 
   return (
     <AdminClientWrapper userRole={profile.role}>
-      <QuestionReviewClient question={question} />
+      <QuestionReviewClient
+        question={question}
+        returnTo={resolvedSearchParams.returnTo}
+      />
     </AdminClientWrapper>
   )
 }

@@ -16,6 +16,14 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+const defaultAppContext: AppContextType = {
+  lang: 'zh',
+  setLang: () => {},
+  theme: undefined,
+  setThemePreference: () => {},
+  toggleTheme: () => {},
+  t: translations.zh,
+};
 
 const isValidLang = (value: string | null | undefined): value is Lang => {
   return value === 'en' || value === 'zh' || value === 'ms';
@@ -76,7 +84,10 @@ export const AppProvider = ({
 export const useApp = () => {
   const context = useContext(AppContext);
   if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('useApp fallback: missing AppProvider, using default zh context');
+    }
+    return defaultAppContext;
   }
   return context;
 };

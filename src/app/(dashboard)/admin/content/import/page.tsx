@@ -14,7 +14,13 @@ export const metadata: Metadata = {
   title: '批量导入 - 内容管理',
 }
 
-export default async function ImportPage() {
+interface ImportPageProps {
+  searchParams?: Promise<{
+    page?: string
+  }>
+}
+
+export default async function ImportPage({ searchParams }: ImportPageProps) {
   const profile = await getProfile()
   if (!profile) {
     redirect('/login')
@@ -29,10 +35,19 @@ export default async function ImportPage() {
   const subjectsResult = await getImportSubjects()
   const subjects = subjectsResult.success ? subjectsResult.data || [] : []
 
+  const resolvedSearchParams = (await searchParams) || {}
+  const parsedPage = Number(resolvedSearchParams.page)
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1
+  const pageSize = 10
+
   // Fetch import history
-  const tasksResult = await getImportTasks({ limit: 10 })
+  const tasksResult = await getImportTasks({
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
+  })
   const tasks = tasksResult.success ? tasksResult.data?.tasks || [] : []
   const batches = tasks.map(mapImportTaskToBatchData)
+  const totalTasks = tasksResult.success ? tasksResult.data?.total || 0 : 0
   const tasksError = tasksResult.success ? null : tasksResult.error || '导入任务查询失败'
 
   // Fetch dashboard stats
@@ -62,6 +77,9 @@ export default async function ImportPage() {
       userLanguage={userLanguage}
       initialSubjects={subjects}
       initialBatches={batches}
+      initialPage={page}
+      initialPageSize={pageSize}
+      initialTotalTasks={totalTasks}
       initialTasksError={tasksError}
       initialStats={stats}
       initialAuditLogs={auditLogs}

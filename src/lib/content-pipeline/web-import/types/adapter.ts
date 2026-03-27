@@ -8,6 +8,12 @@ export interface WebImportContext {
   source?: string
   chapterId?: string
   maxQuestions?: number
+  onProgress?: (progress: {
+    stage: 'CRAWLING'
+    processedQuestionCount: number
+    totalQuestionCount: number
+    currentQuestionId?: string | null
+  }) => Promise<void> | void
 }
 
 export interface ExtractedWebImportQuestion {
@@ -17,6 +23,7 @@ export interface ExtractedWebImportQuestion {
   options?: Record<string, string> | null
   answer: JsonValue
   explanation?: string | null
+  explanationImageUrls?: string[]
   assetUrl?: string | null
   imageUrls?: string[]
   metadata?: Record<string, JsonValue>

@@ -37,6 +37,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { uploadSourceFile } from '@/actions/storage'
 import { importFromPDF, importFromWebUrl } from '@/actions/content-pipeline/import-service'
 import { MAX_PDF_SIZE } from '@/lib/content-pipeline/import-utils'
+import type { BatchData } from '@/types/content-pipeline'
 
 const importSchema = z
   .object({
@@ -86,6 +87,7 @@ interface NewBatchImportModalProps {
   isOpen: boolean
   onClose: () => void
   subjects: Array<{ id: string; name: string }>
+  onImportQueued?: (batch: BatchData) => void
   onImportSuccess?: () => void
 }
 
@@ -108,6 +110,7 @@ export function NewBatchImportModal({
   isOpen,
   onClose,
   subjects,
+  onImportQueued,
   onImportSuccess,
 }: NewBatchImportModalProps) {
   const { toast } = useToast()
@@ -127,6 +130,35 @@ export function NewBatchImportModal({
   })
 
   const importMethod = form.watch('importMethod')
+
+  const createOptimisticBatch = (values: ImportFormValues): BatchData => {
+    const subjectName =
+      subjects.find((subject) => subject.id === values.subjectId)?.name || '未知科目'
+
+    return {
+      id: `temp-${Date.now()}`,
+      name: values.source,
+      fileCount: 1,
+      subject: subjectName,
+      curriculum: 'UEC',
+      progress: 2,
+      status: 'Processing',
+      statusMessage: '正在创建导入任务...',
+      createdAt: new Date(),
+      questionsCount: 0,
+      sourceRemark: values.source,
+      sourceFileUrl:
+        values.importMethod === 'WEB_URL' ? values.pageUrl?.trim() || undefined : undefined,
+      events: ['IMPORT_TASK_CREATED'],
+      importDiagnostics: {
+        currentStage: 'QUEUING',
+        currentStageLabel: '任务创建',
+        statusSummary: '正在创建导入任务...',
+        overallProgress: 2,
+        stageProgress: 0,
+      },
+    }
+  }
 
   const resetState = () => {
     form.reset({
@@ -177,9 +209,9 @@ export function NewBatchImportModal({
           maxQuestions: values.maxQuestions?.trim() ? Number(values.maxQuestions) : undefined,
         }
         // 网页导入点击后直接返回任务列表，状态在列表中查看
+        onImportQueued?.(createOptimisticBatch(values))
         onClose()
         resetState()
-        onImportSuccess?.()
         toast({
           title: '任务已提交',
           description: '请在批量任务管理查看导入进度和状态。',
@@ -219,9 +251,9 @@ export function NewBatchImportModal({
       }
 
       // 文件导入点击后也直接返回任务列表，进度统一在批量任务管理中查看
+      onImportQueued?.(createOptimisticBatch(values))
       onClose()
       resetState()
-      onImportSuccess?.()
       toast({
         title: '任务已提交',
         description: '请在批量任务管理查看导入进度和状态。',

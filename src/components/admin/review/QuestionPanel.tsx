@@ -76,8 +76,8 @@ export function QuestionPanel({ data, onUpdate }: QuestionPanelProps) {
   const questionImages = Array.from(new Set([...(data.questionImageUrls || []), ...stemImageUrls]))
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 scroll-smooth bg-page dark:bg-slate-950">
-      <div className="max-w-4xl mx-auto space-y-6 pb-20">
+    <div className="min-h-0 min-w-0 overflow-y-auto bg-page px-4 py-5 scroll-smooth dark:bg-slate-950 lg:px-7 lg:py-6 xl:px-8">
+      <div className="mx-auto max-w-5xl space-y-6 pb-20">
         {/* 题干部分 */}
         <EditableSection
           title="题目题干"
