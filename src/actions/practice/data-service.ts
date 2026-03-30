@@ -20,6 +20,10 @@ import type {
 import { QUOTA_CONFIGS } from '@/lib/practice/types'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
+import {
+  practiceQuestionWithGroupInclude,
+  type PracticeQuestionRecord,
+} from '@/lib/practice/question-groups'
 
 const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
   QuestionType.SINGLE_CHOICE,
@@ -381,7 +385,7 @@ export async function getWeaknessAnalysis(
  */
 export async function getRandomQuestions(
   filters: QuestionFilter
-): Promise<Question[]> {
+): Promise<PracticeQuestionRecord[]> {
   const {
     chapterIds,
     subjectId,
@@ -484,7 +488,8 @@ export async function getRandomQuestions(
   const questions = await prisma.question.findMany({
     where: {
       id: { in: shuffled }
-    }
+    },
+    include: practiceQuestionWithGroupInclude,
   })
 
   // 保持随机顺序

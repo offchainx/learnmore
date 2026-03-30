@@ -2,11 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel';
+import { PracticeReviewWorkspace } from '@/components/practice/modes/shared/PracticeReviewWorkspace';
 import UnifiedPracticeWorkspace, {
   type UnifiedPracticeQuestion,
 } from '@/components/practice/session/UnifiedPracticeWorkspace';
 import { Question } from '@/components/business/question';
+import type { TierKey } from '@/lib/permissions/types';
 
 export interface ErrorBookEntry {
   id: string;
@@ -19,6 +20,7 @@ interface ErrorWiperSessionProps {
   initialSession: ErrorBookEntry[];
   autoStart?: boolean;
   subjectId?: string;
+  userTier?: TierKey;
   onSessionComplete: (results: { wiped: number; remaining: number }) => void;
   onSubmitSession: (input: {
     attempts: Array<{ questionId: string; isCorrect: boolean }>;
@@ -62,6 +64,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
   initialSession,
   autoStart = false,
   subjectId,
+  userTier = 'STARTER',
   onSessionComplete,
   onSubmitSession,
 }) => {
@@ -73,6 +76,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
   const [hasStarted, setHasStarted] = useState(autoStart);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [summary, setSummary] = useState<{ wiped: number; remaining: number; states: boolean[] } | null>(null);
+  const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, string | string[]>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [clientSessionId] = useState(() => crypto.randomUUID());
 
@@ -100,6 +104,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
     const nextStates = initialSession.map((entry) =>
       isCorrectAnswer(entry.question, answers[entry.questionId] ?? answers[entry.id]),
     );
+    setSubmittedAnswers(answers);
 
     const submitResult = await onSubmitSession({
       attempts: initialSession.map((entry, index) => ({
@@ -124,9 +129,9 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
 
   if (summary) {
     return (
-      <PracticeResultPanel
+      <PracticeReviewWorkspace
         title="Error Wiper 完成"
-        subtitle="这一轮错题修复已经完成，下面是本轮结果摘要。"
+        subtitle="这一轮错题修复已经完成，下面直接进入逐题复盘。"
         score={initialSession.length > 0 ? Math.round((summary.wiped / initialSession.length) * 100) : 0}
         theme="rose"
         stats={[
@@ -141,11 +146,19 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
             : '这轮已经把当前错题基本收干净，可以回到练习中心切到 Smart Drill 或 Mock Arena 继续。'
         }
         note={submitError}
-        questionStates={summary.states}
+        items={initialSession.map((entry, index) => ({
+          id: entry.id,
+          order: index + 1,
+          userAnswer: submittedAnswers[entry.questionId] ?? submittedAnswers[entry.id] ?? null,
+          isCorrect: summary.states[index] ?? false,
+          question: entry.question,
+          emphasisNote: `当前修复进度 ${entry.masteryLevel} / 3`,
+        }))}
         primaryActionLabel="返回练习中心"
         primaryAction={() => onSessionComplete({ wiped: summary.wiped, remaining: summary.remaining })}
         secondaryActionLabel="再来一轮"
         secondaryAction={reloadPage}
+        userTier={userTier}
       />
     );
   }

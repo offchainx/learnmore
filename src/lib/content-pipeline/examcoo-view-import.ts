@@ -26,6 +26,20 @@ export interface ExamcooImportQuestion {
   explanationImageUrls: string[]
   assetUrl: string | null
   imageUrls: string[]
+  groupId?: string | null
+  groupTitle?: string | null
+  sharedMaterial?: string | null
+  sharedMaterialImageUrls?: string[]
+}
+
+export interface ExamcooImportQuestionGroup {
+  groupId: string
+  title: string | null
+  material: string
+  materialImageUrls: string[]
+  questionIds: string[]
+  selectedQuestionIds: string[]
+  blockIndex: number
 }
 
 export interface ExamcooImportResult {
@@ -40,6 +54,7 @@ export interface ExamcooImportResult {
   collectedQuestionCount: number
   collectedRawQuestionIds: string[]
   questions: ExamcooImportQuestion[]
+  questionGroups: ExamcooImportQuestionGroup[]
 }
 
 function extractMarkdownImageUrls(markdown = ''): string[] {
@@ -70,6 +85,32 @@ interface RawExamcooQuestion {
   a?: string
   b?: string
   c?: string
+  d?: string | number
+  e?: string | number
+  f?: string | number
+  g?: string | number
+  h?: string | number
+  i?: string | number
+  l?: string | number
+  m?: string | number
+  n?: string | number
+  o?: string
+  p?: string | number
+}
+
+interface RawExamcooBlockSegment {
+  c?: string
+  p?: string | number
+}
+
+interface RawExamcooGroupCandidate {
+  groupId: string
+  title: string | null
+  material: string
+  materialImageUrls: string[]
+  questionIds: string[]
+  selectedQuestionIds: string[]
+  blockIndex: number
 }
 
 export function isExamcooViewPaperUrl(url: string): boolean {
@@ -302,6 +343,141 @@ function htmlToMarkdownWithImages(html = ''): string {
   })
   const plain = decodeHtml(withImageMd).replace(/<[^>]+>/g, '')
   return plain.replace(/\n{3,}/g, '\n\n').trim()
+}
+
+function stripMarkdownToText(input = ''): string {
+  return input
+    .replace(/!\[[^\]]*]\(([^)]+)\)/g, ' ')
+    .replace(/\[(.*?)\]\(([^)]+)\)/g, '$1')
+    .replace(/[*_~`>#-]/g, ' ')
+    .replace(/[ \t\u00a0]{2,}/g, ' ')
+    .replace(/\n{2,}/g, '\n')
+    .trim()
+}
+
+function isLikelySectionHeading(text: string): boolean {
+  const normalized = text.replace(/[ \t\u00a0]/g, '').trim()
+  if (!normalized) return true
+  if (/^[一二三四五六七八九十]+、/.test(normalized)) return true
+  if (/^[（(][一二三四五六七八九十]+[）)]/.test(normalized)) return true
+  if (/^[【\[][^】\]]+[】\]]$/.test(normalized) && normalized.length <= 10) return true
+  if (/^\(?\d+\)?[、.．]/.test(normalized) && normalized.length <= 12) return true
+  return false
+}
+
+function buildQuestionGroupCandidate(
+  block: RawExamcooQuestion,
+  blockIndex: number
+): RawExamcooGroupCandidate | null {
+  const segments = Array.isArray((block as { c?: unknown }).c)
+    ? ((block as { c?: RawExamcooBlockSegment[] }).c ?? [])
+    : []
+
+  const normalizedSegments = segments
+    .map((segment) => {
+      const markdown = htmlToMarkdownWithImages(String(segment.c ?? ''))
+      const text = stripMarkdownToText(markdown)
+      return {
+        markdown,
+        text,
+        partType: String(segment.p ?? '0'),
+      }
+    })
+    .filter((segment) => segment.markdown.length > 0)
+
+  if (normalizedSegments.length < 3) return null
+
+  const substantiveSegments = normalizedSegments.filter(
+    (segment) => segment.text.length >= 12
+  )
+  const substantiveLength = substantiveSegments.reduce(
+    (sum, segment) => sum + segment.text.length,
+    0
+  )
+
+  if (substantiveSegments.length < 3 || substantiveLength < 120) {
+    return null
+  }
+
+  const contentSegments = normalizedSegments.filter(
+    (segment) => !isLikelySectionHeading(segment.text)
+  )
+
+  if (contentSegments.length < 2) return null
+
+  let title: string | null = null
+  const materialSegments: string[] = []
+
+  for (const segment of contentSegments) {
+    if (!title && segment.text.length <= 24) {
+      title = segment.text
+      continue
+    }
+    materialSegments.push(segment.markdown)
+  }
+
+  const material = materialSegments.join('\n\n').trim()
+  const materialTextLength = stripMarkdownToText(material).length
+  if (materialTextLength < 80) return null
+
+  const materialImageUrls = Array.from(
+    new Set(materialSegments.flatMap((segment) => extractMarkdownImageUrls(segment)))
+  )
+
+  return {
+    groupId: `examcoo-block-${blockIndex + 1}`,
+    title,
+    material,
+    materialImageUrls,
+    questionIds: [],
+    selectedQuestionIds: [],
+    blockIndex,
+  }
+}
+
+export function deriveExamcooQuestionGroups(
+  payload: RawExamcooQuestion[],
+  selectedRawQuestionIds: string[]
+): ExamcooImportQuestionGroup[] {
+  const groups: RawExamcooGroupCandidate[] = []
+  let currentGroup: RawExamcooGroupCandidate | null = null
+
+  for (let index = 0; index < payload.length; index += 1) {
+    const item = payload[index]
+    const rawId = String(item.id ?? '')
+
+    if (rawId === 'b') {
+      currentGroup = buildQuestionGroupCandidate(item, index)
+      if (currentGroup) {
+        groups.push(currentGroup)
+      }
+      continue
+    }
+
+    if (!/^s[1-5]_/.test(rawId)) {
+      currentGroup = null
+      continue
+    }
+
+    if (currentGroup) {
+      currentGroup.questionIds.push(rawId)
+      if (selectedRawQuestionIds.includes(rawId)) {
+        currentGroup.selectedQuestionIds.push(rawId)
+      }
+    }
+  }
+
+  return groups
+    .filter((group) => group.questionIds.length > 0)
+    .map((group) => ({
+      groupId: group.groupId,
+      title: group.title,
+      material: group.material,
+      materialImageUrls: group.materialImageUrls,
+      questionIds: group.questionIds,
+      selectedQuestionIds: group.selectedQuestionIds,
+      blockIndex: group.blockIndex,
+    }))
 }
 
 function parseViewPageInfo(html: string): { pid: string; tokenpid: string; paperTitle: string } {
@@ -542,6 +718,20 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
   const selectedRawQuestionIds = targetQuestions
     .map((item) => item.id)
     .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  const questionGroups = deriveExamcooQuestionGroups(payload, selectedRawQuestionIds)
+  const selectedGroupMap = new Map(
+    questionGroups.flatMap((group) =>
+      group.selectedQuestionIds.map((questionId) => [
+        questionId,
+        {
+          groupId: group.groupId,
+          groupTitle: group.title,
+          sharedMaterial: group.material,
+          sharedMaterialImageUrls: group.materialImageUrls,
+        },
+      ] as const)
+    )
+  )
   const skippedByLimitRawQuestionIds = expectedRawQuestionIds.filter(
     (questionId) => !selectedRawQuestionIds.includes(questionId)
   )
@@ -610,6 +800,11 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
       explanationImageUrls,
       assetUrl: imageUrls[0] || null,
       imageUrls,
+      groupId: selectedGroupMap.get(questionId)?.groupId ?? null,
+      groupTitle: selectedGroupMap.get(questionId)?.groupTitle ?? null,
+      sharedMaterial: selectedGroupMap.get(questionId)?.sharedMaterial ?? null,
+      sharedMaterialImageUrls:
+        selectedGroupMap.get(questionId)?.sharedMaterialImageUrls ?? [],
     })
 
     await onProgress?.({
@@ -637,5 +832,6 @@ export async function crawlExamcooViewPaper(options: CrawlExamcooViewOptions): P
     collectedQuestionCount: questions.length,
     collectedRawQuestionIds: questions.map((question) => question.questionId),
     questions,
+    questionGroups,
   }
 }

@@ -1,10 +1,12 @@
 import { getErrorWiperSession, submitErrorWiperSession } from '@/actions/practice/error-book';
+import { getCurrentUser } from '@/actions/user/auth';
 import { ErrorWiperSession, ErrorBookEntry } from '@/components/practice/modes/ErrorWiperMode';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, Brain } from 'lucide-react';
 import { QuestionType } from '@/components/business/question';
+import { getEffectiveTier } from '@/lib/permissions/engine';
 
 export const metadata = {
   title: 'Error Wiper | LearnMore',
@@ -19,9 +21,15 @@ interface PageProps {
 }
 
 export default async function ErrorWiperPage({ searchParams }: PageProps) {
+  const user = await getCurrentUser()
+  if (!user) {
+    redirect('/login')
+  }
+
   const resolvedSearchParams = await searchParams
   const subjectId = resolvedSearchParams.subjectId
   const autoStart = resolvedSearchParams.autostart === '1'
+  const effectiveTier = getEffectiveTier(user)
   const practiceCenterHref = subjectId
     ? `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
     : '/dashboard/practice'
@@ -79,6 +87,16 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
       options: entry.question.options as Record<string, string> | null,
       answer: entry.question.answer as string | string[] | null,
       explanation: entry.question.explanation,
+      group: entry.question.group
+        ? {
+            id: entry.question.group.id,
+            title: entry.question.group.title ?? null,
+            material: entry.question.group.material,
+            imageUrls: Array.isArray(entry.question.group.imageUrls)
+              ? entry.question.group.imageUrls
+              : [],
+          }
+        : null,
     }
   }));
 
@@ -88,6 +106,7 @@ export default async function ErrorWiperPage({ searchParams }: PageProps) {
         initialSession={formattedSession}
         autoStart={autoStart}
         subjectId={subjectId}
+        userTier={effectiveTier}
         onSubmitSession={handleSubmitWiperSession}
         onSessionComplete={handleSessionComplete}
       />

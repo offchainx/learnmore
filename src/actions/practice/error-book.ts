@@ -61,6 +61,14 @@ export async function getErrorBookQuestions(subjectId?: string) {
           include: {
             chapter: { include: { subject: true } },
             subject: true,
+            group: {
+              select: {
+                id: true,
+                title: true,
+                material: true,
+                imageUrls: true,
+              },
+            },
           },
         },
       },
@@ -147,6 +155,14 @@ export async function getErrorWiperSession(subjectId?: string) {
         question: {
           include: {
             chapter: { include: { subject: true } },
+            group: {
+              select: {
+                id: true,
+                title: true,
+                material: true,
+                imageUrls: true,
+              },
+            },
           },
         },
       },

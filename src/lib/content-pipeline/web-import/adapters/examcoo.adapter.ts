@@ -3,6 +3,7 @@ import {
   crawlExamcooViewPaper,
   isExamcooViewPaperUrl,
   type ExamcooImportQuestion,
+  type ExamcooImportQuestionGroup,
   type ExamcooImportResult,
 } from '@/lib/content-pipeline/examcoo-view-import'
 import type {
@@ -41,12 +42,33 @@ function buildExamcooAssets(questions: ExamcooImportQuestion[]): WebImportRawRes
   return assets
 }
 
+function buildExamcooGroupAssets(questionGroups: ExamcooImportQuestionGroup[]): WebImportRawResult['assets'] {
+  const seen = new Set<string>()
+  const assets: WebImportRawResult['assets'] = []
+
+  for (const group of questionGroups) {
+    for (const imageUrl of group.materialImageUrls) {
+      if (seen.has(imageUrl)) continue
+      seen.add(imageUrl)
+      assets.push({
+        url: imageUrl,
+        kind: 'question_image',
+        source: group.groupId,
+      })
+    }
+  }
+
+  return assets
+}
+
 function getExamcooMetadata(raw: WebImportRawResult): ExamcooImportResult {
   const metadata = raw.metadata ?? {}
   const paperId = String(metadata.examcooPaperId ?? '')
   const paperTitle = String(metadata.examcooPaperTitle ?? '')
   const sourceTag = String(metadata.examcooSourceTag ?? '')
   const questions = (metadata.examcooQuestions as unknown as ExamcooImportQuestion[] | undefined) ?? []
+  const questionGroups =
+    (metadata.examcooQuestionGroups as unknown as ExamcooImportQuestionGroup[] | undefined) ?? []
   const expectedQuestionCount = Number(metadata.examcooExpectedQuestionCount ?? questions.length)
   const expectedRawQuestionIds =
     (metadata.examcooExpectedRawQuestionIds as unknown as string[] | undefined) ?? []
@@ -75,6 +97,7 @@ function getExamcooMetadata(raw: WebImportRawResult): ExamcooImportResult {
     collectedQuestionCount,
     collectedRawQuestionIds,
     questions,
+    questionGroups,
   }
 }
 
@@ -100,7 +123,10 @@ export const examcooViewAdapter: WebImportAdapter = {
       pageTitle: crawled.paperTitle,
       html: null,
       text: null,
-      assets: buildExamcooAssets(crawled.questions),
+      assets: [
+        ...buildExamcooAssets(crawled.questions),
+        ...buildExamcooGroupAssets(crawled.questionGroups),
+      ],
       networkEntries: [],
       metadata: {
         examcooPaperId: crawled.paperId,
@@ -114,6 +140,7 @@ export const examcooViewAdapter: WebImportAdapter = {
         examcooCollectedQuestionCount: crawled.collectedQuestionCount,
         examcooCollectedRawQuestionIds: crawled.collectedRawQuestionIds as unknown as JsonValue,
         examcooQuestions: crawled.questions as unknown as JsonValue,
+        examcooQuestionGroups: crawled.questionGroups as unknown as JsonValue,
       },
     }
   },
@@ -139,6 +166,23 @@ export const examcooViewAdapter: WebImportAdapter = {
         imageUrls: question.imageUrls,
         metadata: {
           sourceTag: crawled.sourceTag,
+          groupId: question.groupId ?? null,
+          groupTitle: question.groupTitle ?? null,
+          sharedMaterial: question.sharedMaterial ?? null,
+          sharedMaterialImageUrls:
+            question.sharedMaterialImageUrls as unknown as JsonValue,
+        },
+      })),
+      questionGroups: crawled.questionGroups.map((group) => ({
+        rawGroupId: group.groupId,
+        title: group.title,
+        material: group.material,
+        materialImageUrls: group.materialImageUrls,
+        questionIds: group.questionIds,
+        selectedQuestionIds: group.selectedQuestionIds,
+        metadata: {
+          sourceTag: crawled.sourceTag,
+          blockIndex: group.blockIndex,
         },
       })),
     }
@@ -167,6 +211,23 @@ export const examcooViewAdapter: WebImportAdapter = {
         isPastPaper: extracted.isPastPaper,
         sourceMeta: {
           ...question.metadata,
+          sourceOverride: context.source ?? null,
+          chapterIdHint: context.chapterId ?? null,
+        },
+      })),
+      questionGroups: (extracted.questionGroups ?? []).map((group) => ({
+        sourceUrl: extracted.sourceUrl,
+        sourceSite: extracted.sourceSite,
+        rawGroupId: group.rawGroupId,
+        paperId: extracted.paperId,
+        paperTitle: extracted.paperTitle,
+        title: group.title ?? null,
+        material: group.material,
+        materialImageUrls: group.materialImageUrls ?? [],
+        questionIds: group.questionIds,
+        selectedQuestionIds: group.selectedQuestionIds,
+        sourceMeta: {
+          ...group.metadata,
           sourceOverride: context.source ?? null,
           chapterIdHint: context.chapterId ?? null,
         },

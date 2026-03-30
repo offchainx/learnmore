@@ -171,6 +171,9 @@ function buildImportDiagnosticsSummary(batch: BatchData): string | null {
   if ((diagnostics.failedQuestions?.length || 0) > 0) {
     summaryParts.push(`失败 ${diagnostics.failedQuestions!.length} 题`)
   }
+  if ((diagnostics.detectedQuestionGroupCount ?? 0) > 0) {
+    summaryParts.push(`组合题 ${diagnostics.detectedQuestionGroupCount} 组`)
+  }
 
   return summaryParts.length > 0 ? summaryParts.join(' / ') : null
 }
@@ -178,9 +181,20 @@ function buildImportDiagnosticsSummary(batch: BatchData): string | null {
 function buildMissingQuestionPreview(batch: BatchData): string | null {
   if (batch.diagnosticsPreview) return batch.diagnosticsPreview
   const missingIds = batch.importDiagnostics?.missingRawQuestionIds ?? []
-  if (missingIds.length === 0) return null
-  const preview = missingIds.slice(0, 3).join(', ')
-  return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
+  if (missingIds.length > 0) {
+    const preview = missingIds.slice(0, 3).join(', ')
+    return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
+  }
+
+  const detectedGroupIds = batch.importDiagnostics?.detectedQuestionGroupIds ?? []
+  if (detectedGroupIds.length > 0) {
+    const preview = detectedGroupIds.slice(0, 2).join(', ')
+    return detectedGroupIds.length > 2
+      ? `识别到组合题组：${preview} 等`
+      : `识别到组合题组：${preview}`
+  }
+
+  return null
 }
 
 function formatDurationMs(value?: number): string {
@@ -414,6 +428,7 @@ export function BatchTable({
   const diagnosticsMissingIds = diagnosticsData?.missingRawQuestionIds ?? []
   const diagnosticsDuplicateIds = diagnosticsData?.duplicatedRawQuestionIds ?? []
   const diagnosticsFailedQuestions = diagnosticsData?.failedQuestions ?? []
+  const diagnosticsDetectedGroupIds = diagnosticsData?.detectedQuestionGroupIds ?? []
 
   if (!mounted) {
     return (
@@ -860,6 +875,7 @@ export function BatchTable({
                   ['解析题数', diagnosticsData.normalizedQuestionCount ?? 0],
                   ['入库题数', diagnosticsData.createdQuestionCount ?? 0],
                   ['缺失题数', diagnosticsMissingIds.length],
+                  ['组合题组', diagnosticsData.detectedQuestionGroupCount ?? 0],
                 ].map(([label, value]) => (
                   <div
                     key={String(label)}
@@ -873,7 +889,7 @@ export function BatchTable({
                 ))}
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-4 lg:grid-cols-3">
                 <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
                   <div className="text-sm font-medium text-text-primary">
                     缺失题号
@@ -893,6 +909,17 @@ export function BatchTable({
                     {diagnosticsDuplicateIds.length > 0
                       ? diagnosticsDuplicateIds.join(', ')
                       : '当前没有重复题号'}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
+                  <div className="text-sm font-medium text-text-primary">
+                    组合题分组
+                  </div>
+                  <div className="mt-2 text-sm text-text-secondary">
+                    {diagnosticsDetectedGroupIds.length > 0
+                      ? diagnosticsDetectedGroupIds.join(', ')
+                      : '当前未识别到组合题分组'}
                   </div>
                 </div>
               </div>

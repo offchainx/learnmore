@@ -26,13 +26,13 @@ export const FillBlank: React.FC<FillBlankProps> = ({
 
   return (
     <div className="space-y-3">
-      <Label htmlFor={`fill-blank-answer-${question.id}`}>Your Answer</Label>
+      <Label htmlFor={`fill-blank-answer-${question.id}`}>你的答案</Label>
       <Input
         id={`fill-blank-answer-${question.id}`}
         value={value || ''}
         onChange={(e) => onChange?.(e.target.value)}
         disabled={disabled}
-        placeholder="Type your answer here..."
+        placeholder="请输入答案"
         className={cn(
             "max-w-md",
             showResult && (
@@ -42,13 +42,6 @@ export const FillBlank: React.FC<FillBlankProps> = ({
             )
         )}
       />
-      {showResult && !isCorrect && question.answer && (
-          <div className="text-sm text-muted-foreground">
-              Correct Answer: <span className="font-medium text-foreground">
-                {Array.isArray(question.answer) ? question.answer.join(' or ') : question.answer}
-              </span>
-          </div>
-      )}
     </div>
   );
 };

@@ -23,6 +23,19 @@ function sanitizeTextBlock(input: string | null | undefined): string {
   return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
 }
 
+function materializeFillBlankMarkers(input: string | null | undefined): string {
+  if (!input) return ''
+
+  return input
+    .replace(/[　\u00a0]/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ____ ')
+    .replace(/﹍{2,}|＿{2,}/g, '____')
+    .replace(/_{2,}/g, '____')
+    .replace(/【\s*】/g, '【____】')
+    .replace(/（\s*）/g, '（____）')
+    .replace(/\(\s*\)/g, '(____)')
+}
+
 function normalizeOptions(
   options: Record<string, string> | null | undefined
 ): Record<string, string> | null {
@@ -154,7 +167,11 @@ function detectCleanupIssues(question: NormalizedWebImportQuestion): string[] {
 }
 
 function normalizeQuestion(question: NormalizedWebImportQuestion): NormalizedWebImportQuestion {
-  const content = sanitizeTextBlock(question.content)
+  const rawContent =
+    question.type === QuestionType.FILL_BLANK
+      ? materializeFillBlankMarkers(question.content)
+      : question.content
+  const content = sanitizeTextBlock(rawContent)
   const explanation = question.explanation ? sanitizeTextBlock(question.explanation) : null
   const options = normalizeOptions(question.options)
   const normalizedAnswer = normalizeAnswer(question.type, question.answer, options)
@@ -190,5 +207,13 @@ export function normalizeWebImportResult(
   return {
     ...result,
     questions: result.questions.map(normalizeQuestion),
+    questionGroups: result.questionGroups?.map((group) => ({
+      ...group,
+      title: group.title ? sanitizeTextBlock(group.title) : null,
+      material: sanitizeTextBlock(group.material),
+      materialImageUrls: normalizeSupplementalImageUrls(group.materialImageUrls),
+      questionIds: Array.from(new Set(group.questionIds.filter(Boolean))),
+      selectedQuestionIds: Array.from(new Set(group.selectedQuestionIds.filter(Boolean))),
+    })),
   }
 }

@@ -6,6 +6,7 @@ import { Pencil, Save, X } from 'lucide-react'
 interface EditableSectionProps {
   title: string
   isEditing: boolean
+  editable?: boolean
   onEdit: () => void
   onSave: () => void
   onCancel: () => void
@@ -19,6 +20,7 @@ interface EditableSectionProps {
 export function EditableSection({
   title,
   isEditing,
+  editable = true,
   onEdit,
   onSave,
   onCancel,
@@ -40,6 +42,7 @@ export function EditableSection({
           {title}
         </h3>
         {!isEditing ? (
+          editable ? (
           <button
             type="button"
             onClick={onEdit}
@@ -48,6 +51,7 @@ export function EditableSection({
             <Pencil className="h-3 w-3 mr-1" />
             编辑
           </button>
+          ) : <div />
         ) : (
           <div className="flex items-center space-x-2">
             <button

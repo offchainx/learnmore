@@ -30,6 +30,9 @@ export async function runWebImport(
   const flaggedQuestionCount = normalized.questions.filter(
     (question) => question.sourceMeta?.needsAttention === true
   ).length
+  const detectedQuestionGroupIds = (normalized.questionGroups ?? [])
+    .map((group) => group.rawGroupId)
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
   const normalizedRawQuestionIds = normalized.questions
     .map((question) => question.rawQuestionId)
     .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
@@ -71,6 +74,8 @@ export async function runWebImport(
         normalizedQuestionCount: normalized.questions.length,
         normalizedRawQuestionIds,
         missingRawQuestionIds,
+        detectedQuestionGroupCount: detectedQuestionGroupIds.length,
+        detectedQuestionGroupIds,
         assetCount: raw.assets.length,
         flaggedQuestionCount,
       },

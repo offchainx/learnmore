@@ -17,6 +17,7 @@ import { QuestionCard } from '@/components/business/question'
 import type { Question } from '@/components/business/question'
 import CountdownTimer from '@/components/practice/session/CountdownTimer'
 import { cn } from '@/lib/utils'
+import { QuestionContent } from '@/components/business/question'
 
 export interface UnifiedPracticeQuestion {
   id: string
@@ -49,6 +50,16 @@ interface UnifiedPracticeWorkspaceProps {
 function hasAnswer(value: string | string[] | undefined) {
   if (Array.isArray(value)) return value.length > 0
   return Boolean(value && value.trim().length > 0)
+}
+
+function shouldRenderSharedMaterial(
+  questions: UnifiedPracticeQuestion[],
+  index: number
+) {
+  const currentGroupId = questions[index]?.question.group?.id
+  if (!currentGroupId) return false
+  const previousGroupId = questions[index - 1]?.question.group?.id
+  return currentGroupId !== previousGroupId
 }
 
 export default function UnifiedPracticeWorkspace({
@@ -188,50 +199,70 @@ export default function UnifiedPracticeWorkspace({
 
       <main className="space-y-5">
         {questions.map((item, index) => (
-          <section
-            key={item.id}
-            ref={(node) => {
-              questionRefs.current[item.id] = node
-            }}
-            data-question-id={item.id}
-            className="scroll-mt-28"
-          >
-            <Card className="overflow-hidden rounded-[28px]">
-              <CardHeader className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
-                      Question {String(index + 1).padStart(2, '0')}
+          <div key={item.id} className="space-y-4">
+            {shouldRenderSharedMaterial(questions, index) ? (
+              <Card className="overflow-hidden rounded-[28px] border-primary/10 bg-cyan-50/60 shadow-[0_18px_48px_rgba(6,182,212,0.08)] dark:border-cyan-900/40 dark:bg-cyan-950/20">
+                <CardHeader className="border-b border-primary/10 bg-cyan-100/60 px-5 py-4 sm:px-6 dark:border-cyan-900/40 dark:bg-cyan-950/30">
+                  <div className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+                    共享材料
+                  </div>
+                  <div className="mt-1 text-sm text-cyan-900 dark:text-cyan-100">
+                    {item.question.group?.title || '当前子题共用同一段材料，请先阅读材料再继续作答。'}
+                  </div>
+                </CardHeader>
+                <CardContent className="px-5 py-5 sm:px-6">
+                  <QuestionContent
+                    content={item.question.group?.material || ''}
+                    className="text-base leading-7 text-text-primary dark:text-slate-100"
+                  />
+                </CardContent>
+              </Card>
+            ) : null}
+
+            <section
+              ref={(node) => {
+                questionRefs.current[item.id] = node
+              }}
+              data-question-id={item.id}
+              className="scroll-mt-28"
+            >
+              <Card className="overflow-hidden rounded-[28px]">
+                <CardHeader className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                        Question {String(index + 1).padStart(2, '0')}
+                      </div>
+                      <div className="mt-1 text-sm text-text-secondary dark:text-text-secondary">
+                        {item.meta || '按顺序完成整组题目后统一交卷'}
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm text-text-secondary dark:text-text-secondary">
-                      {item.meta || '按顺序完成整组题目后统一交卷'}
+
+                    <div className="rounded-full border border-borderTone bg-surface px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
+                      难度 {item.difficulty ?? 3} / 5
                     </div>
                   </div>
+                </CardHeader>
 
-                  <div className="rounded-full border border-borderTone bg-surface px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-text-tertiary dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
-                    难度 {item.difficulty ?? 3} / 5
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="px-5 py-5 sm:px-6">
-                <QuestionCard
-                  question={item.question}
-                  userAnswer={answers[item.id]}
-                  onAnswerChange={(value) => {
-                    setActiveQuestionId(item.id)
-                    setAnswers((prev) => ({
-                      ...prev,
-                      [item.id]: value,
-                    }))
-                  }}
-                  showResult={false}
-                  readOnly={false}
-                  className="border-none shadow-none"
-                />
-              </CardContent>
-            </Card>
-          </section>
+                <CardContent className="px-5 py-5 sm:px-6">
+                  <QuestionCard
+                    question={item.question}
+                    userAnswer={answers[item.id]}
+                    onAnswerChange={(value) => {
+                      setActiveQuestionId(item.id)
+                      setAnswers((prev) => ({
+                        ...prev,
+                        [item.id]: value,
+                      }))
+                    }}
+                    showResult={false}
+                    readOnly={false}
+                    className="border-none shadow-none"
+                  />
+                </CardContent>
+              </Card>
+            </section>
+          </div>
         ))}
       </main>
 

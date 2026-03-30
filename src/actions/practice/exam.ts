@@ -7,8 +7,13 @@
 
 import prisma from '@/lib/prisma'
 import { QuestionType } from '@prisma/client'
-import type { Question, PracticeMode, Prisma } from '@prisma/client'
+import type { PracticeMode, Prisma } from '@prisma/client'
 import { applyPracticeSubmissionEffects } from './submission-effects'
+import { recalibrateQuestionDifficulties } from './submission-core'
+import {
+  practiceQuestionWithGroupInclude,
+  type PracticeQuestionRecord,
+} from '@/lib/practice/question-groups'
 
 // ============ 类型定义 ============
 
@@ -21,7 +26,7 @@ export interface ExamConfig {
   timeLimitMinutes: number // 考试时长（分钟）
 }
 
-export type ExamQuestion = Question
+export type ExamQuestion = PracticeQuestionRecord
 
 export interface ExamResult {
   examRecordId: string
@@ -88,7 +93,7 @@ export async function generateMockExam(
   subjectId: string,
   difficulty: ExamDifficulty = 'MEDIUM',
   totalQuestions: number = 20
-): Promise<Question[]> {
+): Promise<PracticeQuestionRecord[]> {
   // 1. 获取难度分布
   const distribution = DIFFICULTY_DISTRIBUTION[difficulty]
 
@@ -148,7 +153,7 @@ async function getQuestionsByDifficulty(
   chapterIds: string[],
   difficultyLevels: number[],
   count: number
-): Promise<Question[]> {
+): Promise<PracticeQuestionRecord[]> {
   if (count <= 0) return []
 
   // 查询所有符合条件的题目ID
@@ -175,7 +180,8 @@ async function getQuestionsByDifficulty(
 
   // 查询完整题目
   const questions = await prisma.question.findMany({
-    where: { id: { in: shuffled } }
+    where: { id: { in: shuffled } },
+    include: practiceQuestionWithGroupInclude,
   })
 
   return questions
@@ -216,7 +222,7 @@ export async function startExam(
     if (questions.length === 0) {
       return {
         success: false,
-        error: 'No questions available for this subject'
+        error: '当前科目暂无可用于 Mock Arena 的题目'
       }
     }
 
@@ -244,7 +250,7 @@ export async function startExam(
     return {
       success: true,
       examRecordId: examRecord.id,
-      questions: questions as ExamQuestion[]
+      questions
     }
   } catch (error) {
     console.error('Failed to start exam:', error)
@@ -381,6 +387,11 @@ export async function submitExam(
         await tx.userAttempt.createMany({
           data: attemptData,
         })
+
+        await recalibrateQuestionDifficulties(
+          tx,
+          attemptData.map((attempt) => attempt.questionId)
+        )
       }
 
       return { created: true as const }

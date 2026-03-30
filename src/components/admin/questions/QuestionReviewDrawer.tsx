@@ -114,8 +114,17 @@ export function QuestionReviewDrawer({
     if (!questionId) return
     setIsSaving(true)
     try {
-      await updateQuestion(questionId, newData)
-      setQuestion(newData)
+      const result = await updateQuestion(questionId, newData)
+      if (!result.success) {
+        toast.error(result.error || '保存失败，请重试')
+        return
+      }
+      const refreshed = await getQuestionForReview(questionId)
+      if (refreshed) {
+        setQuestion(refreshed)
+      } else {
+        setQuestion(newData)
+      }
       toast.success('题目已保存')
       router.refresh()
     } catch (error) {
@@ -186,7 +195,7 @@ export function QuestionReviewDrawer({
     <Sheet open={open} onOpenChange={(nextOpen) => (!nextOpen ? handleClose() : undefined)}>
       <SheetContent
         side="right"
-        className="w-full max-w-none overflow-hidden border-l border-borderTone bg-page p-0 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7] sm:w-[100vw] lg:w-[94vw] xl:w-[1460px] 2xl:w-[1560px]"
+        className="!w-[100vw] sm:!w-[96vw] sm:!max-w-none xl:!w-[1460px] 2xl:!w-[1560px] flex h-full flex-col overflow-hidden border-l border-borderTone bg-page p-0 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7]"
       >
         <SheetHeader className="border-b border-borderTone bg-surface/95 px-5 py-4 backdrop-blur dark:border-[#24324D] dark:bg-[#0F172A]/95 lg:px-7">
           <div className="pr-10">
@@ -203,15 +212,15 @@ export function QuestionReviewDrawer({
         </SheetHeader>
 
         {isLoading || !question ? (
-          <div className="flex h-full min-h-0 items-center justify-center bg-page dark:bg-slate-950">
+          <div className="flex flex-1 min-h-0 items-center justify-center bg-page dark:bg-slate-950">
             <div className="flex items-center gap-3 rounded-xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-secondary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
               <Loader2 className="h-4 w-4 animate-spin" />
               正在加载题目详情...
             </div>
           </div>
         ) : (
-          <div className="grid h-full min-h-0 grid-cols-1 overflow-hidden bg-page dark:bg-slate-950 xl:grid-cols-[minmax(0,1.55fr)_400px]">
-            <QuestionPanel data={question} onUpdate={handleUpdate} />
+          <div className="grid flex-1 min-h-0 grid-cols-1 overflow-hidden bg-page dark:bg-slate-950 xl:grid-cols-[minmax(0,1.45fr)_380px] 2xl:grid-cols-[minmax(0,1.6fr)_420px]">
+            <QuestionPanel data={question} onUpdate={handleUpdate} onOpenQuestion={onOpenQuestion} />
             <MetadataPanel
               data={question}
               onUpdate={handleUpdate}

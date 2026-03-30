@@ -7,6 +7,7 @@ import { QuestionReviewData } from '@/types/content-pipeline'
 import { QuestionPanel } from '@/components/admin/review/QuestionPanel'
 import { MetadataPanel } from '@/components/admin/review/MetadataPanel'
 import { updateQuestion, approveQuestion, rejectQuestion } from '@/actions/content-pipeline/review-service'
+import { getQuestionForReview } from '@/actions/content-pipeline/review-service'
 import { ArrowLeft, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -41,8 +42,17 @@ export function QuestionReviewClient({
   const handleUpdate = async (newData: QuestionReviewData) => {
     setIsSaving(true)
     try {
-      await updateQuestion(question.id, newData)
-      setQuestion(newData)
+      const result = await updateQuestion(question.id, newData)
+      if (!result.success) {
+        toast.error(result.error || '保存失败，请重试')
+        return
+      }
+      const refreshed = await getQuestionForReview(question.id)
+      if (refreshed) {
+        setQuestion(refreshed)
+      } else {
+        setQuestion(newData)
+      }
       toast.success('题目已保存')
     } catch (error) {
       console.error('保存失败:', error)

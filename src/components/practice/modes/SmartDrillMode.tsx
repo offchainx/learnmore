@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ContentStatus, Question, QuestionType } from '@prisma/client'
+import { ContentStatus, QuestionType } from '@prisma/client'
 import { getSmartDrillQuestions } from '@/actions/practice/recommendation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,15 +12,21 @@ import { PracticeModeShell } from '@/components/practice/modes/shared/PracticeMo
 import { PracticeHeader } from '@/components/practice/modes/shared/PracticeHeader'
 import { PracticeEmptyState } from '@/components/practice/modes/shared/PracticeEmptyState'
 import SmartDrillContinuousSession from '@/components/practice/modes/SmartDrillContinuousSession'
+import type { TierKey } from '@/lib/permissions/types'
+import type { PracticeQuestionRecord } from '@/lib/practice/question-groups'
 
 interface SmartDrillSessionProps {
   userId: string
   subjectId: string
   enableMockPreview?: boolean
   autoStart?: boolean
+  userTier?: TierKey
 }
 
-function createMockQuestion(overrides: Partial<Question> & Pick<Question, 'id' | 'content' | 'type' | 'answer'>): Question {
+function createMockQuestion(
+  overrides: Partial<PracticeQuestionRecord> &
+    Pick<PracticeQuestionRecord, 'id' | 'content' | 'type' | 'answer'>
+): PracticeQuestionRecord {
   const {
     id,
     type,
@@ -35,6 +41,7 @@ function createMockQuestion(overrides: Partial<Question> & Pick<Question, 'id' |
     grade: 8,
     chapterId: 'mock-smart-chapter',
     subjectId: 'mock-smart-subject',
+    groupId: null,
     difficulty: 3,
     type,
     content,
@@ -62,11 +69,12 @@ function createMockQuestion(overrides: Partial<Question> & Pick<Question, 'id' |
     deletedAt: null,
     deletedBy: null,
     deleteReason: null,
+    group: null,
     ...restOverrides,
   }
 }
 
-const MOCK_SMART_DRILL_QUESTIONS: Question[] = [
+const MOCK_SMART_DRILL_QUESTIONS: PracticeQuestionRecord[] = [
   createMockQuestion({
     id: 'mock-smart-1',
     type: QuestionType.SINGLE_CHOICE,
@@ -138,10 +146,10 @@ const MOCK_SMART_DRILL_QUESTIONS: Question[] = [
   }),
 ]
 
-export default function SmartDrillSession({ userId, subjectId, enableMockPreview = false, autoStart = false }: SmartDrillSessionProps) {
+export default function SmartDrillSession({ userId, subjectId, enableMockPreview = false, autoStart = false, userTier = 'STARTER' }: SmartDrillSessionProps) {
   const router = useRouter()
   const practiceCenterHref = `/dashboard/practice?subjectId=${encodeURIComponent(subjectId)}`
-  const [questions, setQuestions] = useState<Question[]>([])
+  const [questions, setQuestions] = useState<PracticeQuestionRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasStarted, setHasStarted] = useState(false)
@@ -390,6 +398,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
         title="Smart Drill"
         persistSession={!previewMode}
         previewMode={previewMode}
+        userTier={userTier}
         onRestart={() => {
           setHasStarted(false)
         }}

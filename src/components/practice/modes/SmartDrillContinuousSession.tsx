@@ -1,16 +1,21 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Question as PrismaQuestion, QuestionType } from '@prisma/client'
+import { QuestionType } from '@prisma/client'
 import { submitPracticeSession } from '@/actions/practice/session'
 import type { Question } from '@/components/business/question'
 import UnifiedPracticeWorkspace, {
   type UnifiedPracticeQuestion,
 } from '@/components/practice/session/UnifiedPracticeWorkspace'
-import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel'
+import { PracticeReviewWorkspace } from '@/components/practice/modes/shared/PracticeReviewWorkspace'
+import type { TierKey } from '@/lib/permissions/types'
+import {
+  type PracticeQuestionRecord,
+  toQuestionMaterialGroup,
+} from '@/lib/practice/question-groups'
 
 interface SmartDrillContinuousSessionProps {
-  questions: PrismaQuestion[]
+  questions: PracticeQuestionRecord[]
   userId: string
   subjectId: string
   title?: string
@@ -18,9 +23,10 @@ interface SmartDrillContinuousSessionProps {
   onExit: () => void
   onRestart?: () => void
   previewMode?: boolean
+  userTier?: TierKey
 }
 
-function isCorrectAnswer(question: PrismaQuestion, userAnswer: string | string[] | undefined) {
+function isCorrectAnswer(question: PracticeQuestionRecord, userAnswer: string | string[] | undefined) {
   const correctAnswer = question.answer as string | string[] | null
 
   if (!userAnswer || !correctAnswer) return false
@@ -48,7 +54,7 @@ function isCorrectAnswer(question: PrismaQuestion, userAnswer: string | string[]
   return false
 }
 
-function formatQuestion(question: PrismaQuestion): Question {
+function formatQuestion(question: PracticeQuestionRecord): Question {
   return {
     id: question.id,
     type: question.type as QuestionType,
@@ -56,6 +62,7 @@ function formatQuestion(question: PrismaQuestion): Question {
     options: question.options as Record<string, string> | null,
     answer: question.answer as string | string[] | null,
     explanation: question.explanation || null,
+    group: toQuestionMaterialGroup(question.group),
   }
 }
 
@@ -68,6 +75,7 @@ export default function SmartDrillContinuousSession({
   onExit,
   onRestart,
   previewMode = false,
+  userTier = 'STARTER',
 }: SmartDrillContinuousSessionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -75,6 +83,7 @@ export default function SmartDrillContinuousSession({
   const [savedCorrectCount, setSavedCorrectCount] = useState<number | null>(null)
   const [savedSession, setSavedSession] = useState(false)
   const [questionStates, setQuestionStates] = useState<boolean[]>([])
+  const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, string | string[]>>({})
   const [isFinished, setIsFinished] = useState(false)
   const [clientSessionId] = useState(() => crypto.randomUUID())
 
@@ -117,6 +126,7 @@ export default function SmartDrillContinuousSession({
     const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0
 
     setQuestionStates(orderedQuestionStates)
+    setSubmittedAnswers(answers)
 
     if (!persistSession) {
       setSavedScore(score)
@@ -163,12 +173,12 @@ export default function SmartDrillContinuousSession({
     const finalCorrect = savedCorrectCount ?? 0
 
     return (
-      <PracticeResultPanel
+      <PracticeReviewWorkspace
         title="Smart Drill 完成"
         subtitle={
           previewMode
-            ? '当前展示的是 Mock 预览结果摘要，用来确认 Smart Drill 最终渲染效果。'
-            : '本轮智能训练已结束，下面是这一组题的结果摘要。'
+            ? '当前展示的是 Mock 预览逐题复盘，用来确认 Smart Drill 最终渲染效果。'
+            : '本轮智能训练已结束，下面直接进入逐题复盘。'
         }
         score={finalScore}
         theme="cyan"
@@ -180,11 +190,18 @@ export default function SmartDrillContinuousSession({
         ]}
         recommendation={recommendation}
         note={submitError}
-        questionStates={questionStates}
+        items={questions.map((question, index) => ({
+          id: question.id,
+          order: index + 1,
+          userAnswer: submittedAnswers[question.id] ?? null,
+          isCorrect: questionStates[index] ?? false,
+          question: formatQuestion(question),
+        }))}
         primaryActionLabel="返回练习中心"
         primaryAction={onExit}
         secondaryActionLabel="再来一轮"
         secondaryAction={onRestart ?? onExit}
+        userTier={userTier}
       />
     )
   }

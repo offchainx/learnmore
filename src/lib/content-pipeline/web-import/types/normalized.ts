@@ -18,10 +18,25 @@ export interface NormalizedWebImportQuestion {
   sourceMeta?: Record<string, JsonValue>
 }
 
+export interface NormalizedWebImportQuestionGroup {
+  sourceUrl: string
+  sourceSite: string
+  rawGroupId: string
+  paperId?: string | null
+  paperTitle?: string | null
+  title?: string | null
+  material: string
+  materialImageUrls: string[]
+  questionIds: string[]
+  selectedQuestionIds: string[]
+  sourceMeta?: Record<string, JsonValue>
+}
+
 export interface NormalizedWebImportResult {
   sourceSite: string
   sourceUrl: string
   paperId?: string | null
   paperTitle?: string | null
   questions: NormalizedWebImportQuestion[]
+  questionGroups?: NormalizedWebImportQuestionGroup[]
 }

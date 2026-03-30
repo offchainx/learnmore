@@ -42,8 +42,13 @@ export interface ImportStageDurations {
 
 export type WebImportProcessingStage =
   | 'QUEUING'
+  | 'INIT'
+  | 'UPLOADING'
+  | 'OCR_PROCESSING'
   | 'CRAWLING'
   | 'PERSISTING_IMAGES'
+  | 'STRUCTURING'
+  | 'QUALITY_CHECK'
   | 'TAGGING_CHAPTERS'
   | 'SAVING'
   | 'SUBMITTING_REVIEW'
@@ -52,6 +57,8 @@ export interface ImportDiagnostics {
   adapterName?: string
   adapterVersion?: string
   mode?: string
+  queuePayload?: Record<string, unknown>
+  lastProgressAt?: string
   currentStage?: WebImportProcessingStage
   currentStageLabel?: string
   statusSummary?: string
@@ -71,6 +78,8 @@ export interface ImportDiagnostics {
   normalizedQuestionCount?: number
   normalizedRawQuestionIds?: string[]
   missingRawQuestionIds?: string[]
+  detectedQuestionGroupCount?: number
+  detectedQuestionGroupIds?: string[]
   assetCount?: number
   flaggedQuestionCount?: number
   createdQuestionCount?: number
@@ -193,13 +202,27 @@ export interface QuestionExplanation {
  * 题目元数据
  */
 export interface QuestionMetadata {
+  subjectId?: string | null
   subject: string
+  chapterId?: string | null
   topic: string
   type: string
   difficulty: string // L1-L5
   difficultyLabel: string
   points: number
   tags: string[]
+}
+
+export interface ReviewSubjectOption {
+  id: string
+  name: string
+}
+
+export interface ReviewChapterOption {
+  id: string
+  subjectId: string
+  title: string
+  pathLabel: string
 }
 
 /**
@@ -210,6 +233,7 @@ export interface ReviewHistoryEntry {
   date: string
   user: string
   color: string // Tailwind 背景色类名
+  comment?: string
 }
 
 /**
@@ -219,13 +243,29 @@ export interface QuestionReviewData {
   id: string
   variant?: string
   title: string
+  group?: {
+    id: string
+    title?: string | null
+    material: string
+    imageUrls: string[]
+    subQuestions?: Array<{
+      id: string
+      title: string
+      type: string
+      status: string
+      isCurrent?: boolean
+    }>
+  } | null
   stem: string // 题干（Markdown + LaTeX）
   stemEquation?: string // 独立展示的公式
   stemFooter?: string // 题干补充内容
   options: QuestionOption[]
+  answerValue?: string | string[] | null
   explanation: QuestionExplanation
   metadata: QuestionMetadata
   history: ReviewHistoryEntry[]
+  availableSubjects?: ReviewSubjectOption[]
+  availableChapters?: ReviewChapterOption[]
   questionImageUrls?: string[] // 题目中的图片资源（可多张）
   sourceImageUrl?: string // OCR 原始扫描图
   status?: string // 题目状态 (DRAFT, REVIEW_PENDING, VERIFIED, PUBLISHED, etc.)

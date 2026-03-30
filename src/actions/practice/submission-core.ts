@@ -3,6 +3,62 @@
 import prisma from '@/lib/prisma'
 import { Prisma, type PracticeMode } from '@prisma/client'
 
+const MIN_ATTEMPTS_FOR_DYNAMIC_DIFFICULTY = 20
+
+function deriveDifficultyFromAccuracy(accuracy: number): number {
+  if (accuracy >= 0.85) return 1
+  if (accuracy >= 0.7) return 2
+  if (accuracy >= 0.45) return 3
+  if (accuracy >= 0.25) return 4
+  return 5
+}
+
+export async function recalibrateQuestionDifficulties(
+  tx: Prisma.TransactionClient,
+  questionIds: string[]
+): Promise<void> {
+  const uniqueQuestionIds = Array.from(new Set(questionIds.filter(Boolean)))
+  if (uniqueQuestionIds.length === 0) return
+
+  const groupedAttempts = await tx.userAttempt.groupBy({
+    by: ['questionId', 'isCorrect'],
+    where: {
+      questionId: { in: uniqueQuestionIds },
+    },
+    _count: {
+      _all: true,
+    },
+  })
+
+  const statsMap = new Map<string, { total: number; correct: number }>()
+  for (const row of groupedAttempts) {
+    const current = statsMap.get(row.questionId) ?? { total: 0, correct: 0 }
+    current.total += row._count._all
+    if (row.isCorrect) {
+      current.correct += row._count._all
+    }
+    statsMap.set(row.questionId, current)
+  }
+
+  for (const questionId of uniqueQuestionIds) {
+    const stats = statsMap.get(questionId)
+    if (!stats || stats.total < MIN_ATTEMPTS_FOR_DYNAMIC_DIFFICULTY) continue
+
+    const accuracy = stats.correct / stats.total
+    const nextDifficulty = deriveDifficultyFromAccuracy(accuracy)
+
+    await tx.question.updateMany({
+      where: {
+        id: questionId,
+        difficulty: { not: nextDifficulty },
+      },
+      data: {
+        difficulty: nextDifficulty,
+      },
+    })
+  }
+}
+
 export interface PersistedAttemptInput {
   questionId: string
   userAnswer: Prisma.InputJsonValue
@@ -112,6 +168,11 @@ export async function persistPracticeSession(
             duration: attempt.duration ?? null,
           })),
         })
+
+        await recalibrateQuestionDifficulties(
+          tx,
+          input.attempts.map((attempt) => attempt.questionId)
+        )
       }
 
       return {

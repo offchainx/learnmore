@@ -103,6 +103,12 @@ export interface QuestionWithRelations extends Question {
     id: string
     name: string
   } | null
+  group?: {
+    id: string
+    title: string | null
+    material: string
+    imageUrls: string[]
+  } | null
   sourceFile?: SourceFile | null
   _count?: {
     attempts: number
@@ -119,6 +125,7 @@ export interface CreateQuestionInput {
   curriculum?: string
   grade?: number | null
   subjectId?: string | null
+  groupId?: string | null
   options?: Record<string, string> | null
   answer: JsonValue
   explanation?: string | null
@@ -145,6 +152,7 @@ export interface UpdateQuestionInput {
   curriculum?: string
   grade?: number | null
   subjectId?: string | null
+  groupId?: string | null
   options?: Record<string, string> | null
   answer?: JsonValue
   explanation?: string | null

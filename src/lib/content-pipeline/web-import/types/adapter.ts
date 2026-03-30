@@ -29,6 +29,16 @@ export interface ExtractedWebImportQuestion {
   metadata?: Record<string, JsonValue>
 }
 
+export interface ExtractedWebImportQuestionGroup {
+  rawGroupId: string
+  title?: string | null
+  material: string
+  materialImageUrls?: string[]
+  questionIds: string[]
+  selectedQuestionIds: string[]
+  metadata?: Record<string, JsonValue>
+}
+
 export interface ExtractedWebImportResult {
   sourceSite: string
   sourceUrl: string
@@ -36,6 +46,7 @@ export interface ExtractedWebImportResult {
   paperTitle?: string | null
   isPastPaper: boolean
   questions: ExtractedWebImportQuestion[]
+  questionGroups?: ExtractedWebImportQuestionGroup[]
 }
 
 export interface WebImportAdapter {
@@ -68,6 +79,8 @@ export interface WebImportRunResult {
     normalizedQuestionCount: number
     normalizedRawQuestionIds: string[]
     missingRawQuestionIds: string[]
+    detectedQuestionGroupCount?: number
+    detectedQuestionGroupIds?: string[]
     assetCount: number
     flaggedQuestionCount: number
   }

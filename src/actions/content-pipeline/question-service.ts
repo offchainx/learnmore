@@ -176,6 +176,7 @@ function selectQuestionRelations(): Prisma.QuestionSelect {
   return {
     id: true,
     chapterId: true,
+    groupId: true,
     subjectId: true,
     sourceFileId: true,
     type: true,
@@ -207,6 +208,14 @@ function selectQuestionRelations(): Prisma.QuestionSelect {
     deletedAt: true,
     deleteReason: true,
     chapter: { include: { subject: true } },
+    group: {
+      select: {
+        id: true,
+        title: true,
+        material: true,
+        imageUrls: true,
+      },
+    },
     subject: true,
     sourceFile: true,
   }
@@ -241,6 +250,7 @@ export async function createQuestion(
         curriculum: data.curriculum ?? 'UEC',
         grade: data.grade ?? null,
         subjectId: data.subjectId ?? null,
+        groupId: data.groupId ?? null,
         options: data.options ?? undefined,
         answer: data.answer as Prisma.InputJsonValue,
         explanation: data.explanation,
@@ -304,6 +314,7 @@ export async function bulkCreateQuestions(
           curriculum: q.curriculum ?? 'UEC',
           grade: q.grade ?? null,
           subjectId: q.subjectId ?? null,
+          groupId: q.groupId ?? null,
           options: q.options ?? undefined,
           answer: q.answer as Prisma.InputJsonValue,
           explanation: q.explanation,

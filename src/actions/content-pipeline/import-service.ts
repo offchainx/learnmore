@@ -51,9 +51,136 @@ interface ImportFromWebUrlInput {
   maxQuestions?: number
   isPastPaper?: boolean
   paperId?: string | null
+  _sourceFileId?: string
+  _uploadedBy?: string
+  _skipAuthCheck?: boolean
 }
 
 const WEB_IMPORT_IMAGE_CONCURRENCY = 2
+
+type QueuedWebImportPayload = {
+  pageUrl: string
+  subjectId: string
+  source?: string
+  chapterId?: string
+  maxQuestions?: number
+  isPastPaper?: boolean
+  paperId?: string | null
+}
+
+type QueuedFileImportPayload = {
+  pdfUrl: string
+  subjectId: string
+  source?: string
+  sourceYear?: number
+  sourcePaper?: string
+  chapterId?: string
+  isPastPaper?: boolean
+  paperId?: string | null
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __importQueueRunner: Promise<void> | undefined
+}
+
+function toQueuedWebImportPayload(input: ImportFromWebUrlInput): QueuedWebImportPayload {
+  return stripUndefinedDeep({
+    pageUrl: input.pageUrl.trim(),
+    subjectId: input.subjectId,
+    source: input.source?.trim() || undefined,
+    chapterId: input.chapterId,
+    maxQuestions: input.maxQuestions,
+    isPastPaper: input.isPastPaper ?? false,
+    paperId: input.paperId ?? null,
+  })
+}
+
+function buildQueuedWebImportDiagnostics(payload: QueuedWebImportPayload): ImportDiagnostics {
+  return {
+    mode: 'web-url-queue',
+    queuePayload: payload as Record<string, unknown>,
+    lastProgressAt: new Date().toISOString(),
+    currentStage: 'QUEUING',
+    currentStageLabel: '等待处理',
+    statusSummary: '任务已入队，等待前序抓取任务完成...',
+    overallProgress: 1,
+    stageProgress: 0,
+  }
+}
+
+function toQueuedFileImportPayload(input: ImportFromPDFInput): QueuedFileImportPayload {
+  return stripUndefinedDeep({
+    pdfUrl: input.pdfUrl.trim(),
+    subjectId: input.subjectId,
+    source: input.source?.trim() || undefined,
+    sourceYear: input.sourceYear,
+    sourcePaper: input.sourcePaper?.trim() || undefined,
+    chapterId: input.chapterId,
+    isPastPaper: input.isPastPaper ?? false,
+    paperId: input.paperId ?? null,
+  })
+}
+
+function buildQueuedFileImportDiagnostics(payload: QueuedFileImportPayload): ImportDiagnostics {
+  return {
+    mode: 'file-upload-queue',
+    queuePayload: payload as Record<string, unknown>,
+    lastProgressAt: new Date().toISOString(),
+    currentStage: 'QUEUING',
+    currentStageLabel: '等待处理',
+    statusSummary: '任务已入队，等待前序导入任务完成...',
+    overallProgress: 1,
+    stageProgress: 0,
+  }
+}
+
+function parseQueuedWebImportPayload(
+  diagnostics: Prisma.JsonValue | null | undefined
+): QueuedWebImportPayload | null {
+  if (!diagnostics || typeof diagnostics !== 'object' || Array.isArray(diagnostics)) return null
+  const queuePayload = (diagnostics as Record<string, unknown>).queuePayload
+  if (!queuePayload || typeof queuePayload !== 'object' || Array.isArray(queuePayload)) return null
+  const payload = queuePayload as Record<string, unknown>
+  if (typeof payload.pageUrl !== 'string' || typeof payload.subjectId !== 'string') return null
+
+  return stripUndefinedDeep({
+    pageUrl: payload.pageUrl,
+    subjectId: payload.subjectId,
+    source: typeof payload.source === 'string' ? payload.source : undefined,
+    chapterId: typeof payload.chapterId === 'string' ? payload.chapterId : undefined,
+    maxQuestions: typeof payload.maxQuestions === 'number' ? payload.maxQuestions : undefined,
+    isPastPaper: typeof payload.isPastPaper === 'boolean' ? payload.isPastPaper : false,
+    paperId:
+      typeof payload.paperId === 'string' || payload.paperId === null
+        ? (payload.paperId as string | null)
+        : undefined,
+  })
+}
+
+function parseQueuedFileImportPayload(
+  diagnostics: Prisma.JsonValue | null | undefined
+): QueuedFileImportPayload | null {
+  if (!diagnostics || typeof diagnostics !== 'object' || Array.isArray(diagnostics)) return null
+  const queuePayload = (diagnostics as Record<string, unknown>).queuePayload
+  if (!queuePayload || typeof queuePayload !== 'object' || Array.isArray(queuePayload)) return null
+  const payload = queuePayload as Record<string, unknown>
+  if (typeof payload.pdfUrl !== 'string' || typeof payload.subjectId !== 'string') return null
+
+  return stripUndefinedDeep({
+    pdfUrl: payload.pdfUrl,
+    subjectId: payload.subjectId,
+    source: typeof payload.source === 'string' ? payload.source : undefined,
+    sourceYear: typeof payload.sourceYear === 'number' ? payload.sourceYear : undefined,
+    sourcePaper: typeof payload.sourcePaper === 'string' ? payload.sourcePaper : undefined,
+    chapterId: typeof payload.chapterId === 'string' ? payload.chapterId : undefined,
+    isPastPaper: typeof payload.isPastPaper === 'boolean' ? payload.isPastPaper : false,
+    paperId:
+      typeof payload.paperId === 'string' || payload.paperId === null
+        ? (payload.paperId as string | null)
+        : undefined,
+  })
+}
 
 function clampPercentage(value: number): number {
   if (!Number.isFinite(value)) return 0
@@ -72,6 +199,7 @@ function buildWebImportProgressState(input: {
   processedAssetCount?: number
 }): ImportDiagnostics {
   return {
+    lastProgressAt: new Date().toISOString(),
     currentStage: input.stage,
     currentStageLabel: input.stageLabel,
     statusSummary: input.statusSummary,
@@ -98,6 +226,305 @@ async function updateSourceFileImportDiagnostics(
   } catch (error) {
     console.warn('更新网页导入进度失败（已忽略）:', error)
   }
+}
+
+async function markQueuedWebImportFailed(
+  sourceFileId: string,
+  message: string,
+  existingDiagnostics?: Prisma.JsonValue | null
+): Promise<void> {
+  const payload = parseQueuedWebImportPayload(existingDiagnostics)
+  await prisma.sourceFile.update({
+    where: { id: sourceFileId },
+    data: {
+      status: ProcessingStatus.FAILED,
+      processedAt: new Date(),
+      importDiagnostics: stripUndefinedDeep({
+        ...(payload ? buildQueuedWebImportDiagnostics(payload) : {}),
+        lastProgressAt: new Date().toISOString(),
+        currentStage: 'QUEUING',
+        currentStageLabel: '等待处理',
+        statusSummary: message,
+        overallProgress: 0,
+        stageProgress: 0,
+        queuePayload: payload as Record<string, unknown> | undefined,
+      }) as unknown as Prisma.InputJsonValue,
+    },
+  })
+}
+
+async function markQueuedFileImportFailed(
+  sourceFileId: string,
+  message: string,
+  existingDiagnostics?: Prisma.JsonValue | null
+): Promise<void> {
+  const payload = parseQueuedFileImportPayload(existingDiagnostics)
+  await prisma.sourceFile.update({
+    where: { id: sourceFileId },
+    data: {
+      status: ProcessingStatus.FAILED,
+      processedAt: new Date(),
+      importDiagnostics: stripUndefinedDeep({
+        ...(payload ? buildQueuedFileImportDiagnostics(payload) : {}),
+        lastProgressAt: new Date().toISOString(),
+        currentStage: 'QUEUING',
+        currentStageLabel: '等待处理',
+        statusSummary: message,
+        overallProgress: 0,
+        stageProgress: 0,
+        queuePayload: payload as Record<string, unknown> | undefined,
+      }) as unknown as Prisma.InputJsonValue,
+    },
+  })
+}
+
+function resolveImportProgressTimestamp(
+  diagnostics: Prisma.JsonValue | null | undefined,
+  fallback: Date
+): Date {
+  if (
+    diagnostics &&
+    typeof diagnostics === 'object' &&
+    !Array.isArray(diagnostics) &&
+    typeof (diagnostics as Record<string, unknown>).lastProgressAt === 'string'
+  ) {
+    const parsed = new Date((diagnostics as Record<string, string>).lastProgressAt)
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed
+    }
+  }
+
+  return fallback
+}
+
+async function recoverStaleQueuedImportTasks(): Promise<void> {
+  const now = new Date()
+  const completedCutoff = new Date(now.getTime() - 3 * 60 * 1000)
+  const failedCutoff = new Date(now.getTime() - 15 * 60 * 1000)
+
+  const candidates = await prisma.sourceFile.findMany({
+    where: {
+      fileType: 'html',
+      status: ProcessingStatus.PROCESSING,
+      processedAt: null,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      importDiagnostics: true,
+      _count: {
+        select: { questions: true },
+      },
+    },
+  })
+
+  for (const task of candidates) {
+    const diagnostics =
+      typeof task.importDiagnostics === 'object' &&
+      task.importDiagnostics &&
+      !Array.isArray(task.importDiagnostics)
+        ? (task.importDiagnostics as Record<string, unknown>)
+        : {}
+    const mode = typeof diagnostics.mode === 'string' ? diagnostics.mode : undefined
+    const lastProgressAt = resolveImportProgressTimestamp(
+      task.importDiagnostics,
+      task.createdAt
+    )
+
+    if (task._count.questions > 0 && lastProgressAt < completedCutoff) {
+      await prisma.sourceFile.updateMany({
+        where: {
+          id: task.id,
+          status: ProcessingStatus.PROCESSING,
+          processedAt: null,
+        },
+        data: {
+          status: ProcessingStatus.COMPLETED,
+          processedAt: now,
+          importDiagnostics: stripUndefinedDeep({
+            ...diagnostics,
+            lastProgressAt: now.toISOString(),
+            statusSummary: '任务已自动恢复完成状态（检测到题目已入库）',
+            overallProgress: 100,
+            stageProgress: 100,
+          }) as Prisma.InputJsonValue,
+        },
+      })
+      continue
+    }
+
+    if (task._count.questions === 0 && lastProgressAt < failedCutoff) {
+      if (mode === 'web-url-queue') {
+        await markQueuedWebImportFailed(
+          task.id,
+          '任务长时间无进度更新，已自动标记失败，可手动重试',
+          task.importDiagnostics
+        )
+      } else if (mode === 'file-upload-queue') {
+        await markQueuedFileImportFailed(
+          task.id,
+          '任务长时间无进度更新，已自动标记失败，可手动重试',
+          task.importDiagnostics
+        )
+      }
+    }
+  }
+}
+
+async function consumePendingImportQueue(): Promise<void> {
+  while (true) {
+    await recoverStaleQueuedImportTasks()
+
+    const nextTask = await prisma.sourceFile.findFirst({
+      where: {
+        status: ProcessingStatus.PENDING,
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        fileType: true,
+        uploadedBy: true,
+        importDiagnostics: true,
+      },
+    })
+
+    if (!nextTask) return
+
+    const diagnostics =
+      typeof nextTask.importDiagnostics === 'object' &&
+      nextTask.importDiagnostics &&
+      !Array.isArray(nextTask.importDiagnostics)
+        ? (nextTask.importDiagnostics as Record<string, unknown>)
+        : {}
+    const mode = typeof diagnostics.mode === 'string' ? diagnostics.mode : undefined
+
+    let claimed = { count: 0 }
+
+    if (mode === 'web-url-queue') {
+      const queuedPayload = parseQueuedWebImportPayload(nextTask.importDiagnostics)
+      if (!queuedPayload) {
+        await markQueuedWebImportFailed(
+          nextTask.id,
+          '队列任务缺少抓取参数，已标记失败',
+          nextTask.importDiagnostics
+        )
+        continue
+      }
+
+      claimed = await prisma.sourceFile.updateMany({
+        where: {
+          id: nextTask.id,
+          status: ProcessingStatus.PENDING,
+        },
+        data: {
+          status: ProcessingStatus.PROCESSING,
+          ocrStatus: ProcessingStatus.SKIPPED,
+          importDiagnostics: stripUndefinedDeep({
+            ...buildQueuedWebImportDiagnostics(queuedPayload),
+            currentStage: 'CRAWLING',
+            currentStageLabel: '网页抓取',
+            statusSummary: '队列已启动，准备抓取试卷结构...',
+            overallProgress: 3,
+            stageProgress: 0,
+          }) as unknown as Prisma.InputJsonValue,
+        },
+      })
+
+      if (claimed.count === 0) {
+        continue
+      }
+
+      const result = await importFromWebUrl({
+        ...queuedPayload,
+        _sourceFileId: nextTask.id,
+        _uploadedBy: nextTask.uploadedBy,
+        _skipAuthCheck: true,
+      })
+
+      if (!result.success) {
+        console.error('网页导入队列任务执行失败:', nextTask.id, result.error)
+      }
+      continue
+    }
+
+    if (mode === 'file-upload-queue') {
+      const queuedPayload = parseQueuedFileImportPayload(nextTask.importDiagnostics)
+      if (!queuedPayload) {
+        await markQueuedFileImportFailed(
+          nextTask.id,
+          '队列任务缺少导入参数，已标记失败',
+          nextTask.importDiagnostics
+        )
+        continue
+      }
+
+      claimed = await prisma.sourceFile.updateMany({
+        where: {
+          id: nextTask.id,
+          status: ProcessingStatus.PENDING,
+        },
+        data: {
+          status: ProcessingStatus.PROCESSING,
+          ocrStatus: ProcessingStatus.PENDING,
+          importDiagnostics: stripUndefinedDeep({
+            ...buildQueuedFileImportDiagnostics(queuedPayload),
+            currentStage: 'OCR_PROCESSING',
+            currentStageLabel: 'OCR 识别',
+            statusSummary: '队列已启动，准备进行 OCR 识别...',
+            overallProgress: 3,
+            stageProgress: 0,
+          }) as unknown as Prisma.InputJsonValue,
+        },
+      })
+
+      if (claimed.count === 0) {
+        continue
+      }
+
+      const result = await importFromPDF({
+        ...queuedPayload,
+        _sourceFileId: nextTask.id,
+        _uploadedBy: nextTask.uploadedBy,
+        _skipAuthCheck: true,
+      })
+
+      if (!result.success) {
+        console.error('文件导入队列任务执行失败:', nextTask.id, result.error)
+      }
+      continue
+    }
+
+    if (nextTask.fileType === 'html') {
+      await markQueuedWebImportFailed(
+        nextTask.id,
+        '队列任务缺少网页抓取参数，已标记失败',
+        nextTask.importDiagnostics
+      )
+    } else {
+      await markQueuedFileImportFailed(
+        nextTask.id,
+        '队列任务缺少文件导入参数，已标记失败',
+        nextTask.importDiagnostics
+      )
+    }
+  }
+}
+
+export function triggerPendingWebImportQueue(): void {
+  if (globalThis.__importQueueRunner) return
+
+  globalThis.__importQueueRunner = consumePendingImportQueue()
+    .catch((error) => {
+      console.error('导入队列消费失败:', error)
+    })
+    .finally(() => {
+      globalThis.__importQueueRunner = undefined
+    })
+}
+
+export async function ensurePendingWebImportQueueRunning(): Promise<void> {
+  await recoverStaleQueuedImportTasks()
+  triggerPendingWebImportQueue()
 }
 
 async function mapWithConcurrency<T, R>(
@@ -241,6 +668,14 @@ function stripUndefinedDeep<T>(value: T): T {
   return value
 }
 
+function safeRevalidatePath(path: string): void {
+  try {
+    revalidatePath(path)
+  } catch (error) {
+    console.warn(`Skip revalidatePath(${path}):`, error)
+  }
+}
+
 function buildWebImportDiagnostics(
   diagnostics: NonNullable<Awaited<ReturnType<typeof runWebImport>>['data']>['diagnostics'],
   normalizedQuestions: Array<{ rawQuestionId?: string | null }>,
@@ -279,6 +714,8 @@ function buildWebImportDiagnostics(
     normalizedQuestionCount: diagnostics.normalizedQuestionCount,
     normalizedRawQuestionIds,
     missingRawQuestionIds: toStringArray(diagnostics.missingRawQuestionIds),
+    detectedQuestionGroupCount: diagnostics.detectedQuestionGroupCount,
+    detectedQuestionGroupIds: toStringArray(diagnostics.detectedQuestionGroupIds),
     assetCount: diagnostics.assetCount,
     flaggedQuestionCount: diagnostics.flaggedQuestionCount,
     createdQuestionCount: createdRawQuestionIds.length,
@@ -298,6 +735,19 @@ type StemImagePersistResult = {
   imageUrls: string[]
   uploadedCount: number
   skippedCount: number
+}
+
+type PersistedQuestionGroupDraft = {
+  rawGroupId: string
+  title: string | null
+  material: string
+  materialImageUrls: string[]
+  questionIds: string[]
+  selectedQuestionIds: string[]
+  persistedMaterial: string
+  persistedImageUrls: string[]
+  assetUrl: string | null
+  sourceMeta?: Record<string, unknown>
 }
 
 function replaceImageUrlInOptions(
@@ -481,6 +931,24 @@ async function persistQuestionImagesToSupabase(params: {
   }
 }
 
+function generateQuestionGroupContentHash(input: {
+  material: string
+  title?: string | null
+  paperId?: string | null
+  sourceSite?: string | null
+}): string {
+  return createHash('md5')
+    .update(
+      [
+        input.sourceSite?.trim().toLowerCase() || '',
+        input.paperId?.trim().toLowerCase() || '',
+        input.title?.trim().toLowerCase() || '',
+        input.material.trim().toLowerCase(),
+      ].join('|')
+    )
+    .digest('hex')
+}
+
 function buildImportDiagnosticsSummaryText(diagnostics?: ImportDiagnostics | null): string | undefined {
   if (!diagnostics) return undefined
   const parts: string[] = []
@@ -503,15 +971,29 @@ function buildImportDiagnosticsSummaryText(diagnostics?: ImportDiagnostics | nul
   if ((diagnostics.failedQuestions?.length ?? 0) > 0) {
     parts.push(`失败 ${diagnostics.failedQuestions!.length} 题`)
   }
+  if ((diagnostics.detectedQuestionGroupCount ?? 0) > 0) {
+    parts.push(`组合题 ${diagnostics.detectedQuestionGroupCount} 组`)
+  }
 
   return parts.length > 0 ? parts.join(' / ') : undefined
 }
 
 function buildImportDiagnosticsPreviewText(diagnostics?: ImportDiagnostics | null): string | undefined {
   const missingIds = diagnostics?.missingRawQuestionIds ?? []
-  if (missingIds.length === 0) return undefined
-  const preview = missingIds.slice(0, 3).join(', ')
-  return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
+  if (missingIds.length > 0) {
+    const preview = missingIds.slice(0, 3).join(', ')
+    return missingIds.length > 3 ? `缺失题号：${preview} 等` : `缺失题号：${preview}`
+  }
+
+  const detectedGroupIds = diagnostics?.detectedQuestionGroupIds ?? []
+  if (detectedGroupIds.length > 0) {
+    const preview = detectedGroupIds.slice(0, 2).join(', ')
+    return detectedGroupIds.length > 2
+      ? `识别到组合题组：${preview} 等`
+      : `识别到组合题组：${preview}`
+  }
+
+  return undefined
 }
 
 // ==================== 主要导入函数 ====================
@@ -548,6 +1030,8 @@ export async function importFromPDF(
   let ocrDuration = 0
   let structureDuration = 0
   let estimatedCost = 0
+  const isQueuedExecution =
+    Boolean(input._sourceFileId) && Boolean(input._uploadedBy) && input._skipAuthCheck === true
 
   // 进度回调封装
   const reportProgress = (progress: ImportProgress) => {
@@ -556,13 +1040,24 @@ export async function importFromPDF(
     }
   }
 
+  let sourceFileId: string | null = input._sourceFileId ?? null
+
+  const writeQueuedFileProgress = async (
+    diagnostics: ImportDiagnostics
+  ): Promise<void> => {
+    if (!sourceFileId) return
+    await updateSourceFileImportDiagnostics(sourceFileId, diagnostics)
+  }
+
   try {
     // ==================== 阶段 1: 初始化 ====================
     reportProgress(createProgress('INIT', '正在初始化导入任务...'))
 
+    const currentUserId = isQueuedExecution ? input._uploadedBy! : null
+
     // 获取当前用户
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
+    const currentUser = isQueuedExecution ? null : await getCurrentUser()
+    if (!isQueuedExecution && !currentUser) {
       return {
         success: false,
         error: '用户未登录',
@@ -592,7 +1087,14 @@ export async function importFromPDF(
     const existingFile = await prisma.sourceFile.findFirst({
       where: {
         fileUrl: input.pdfUrl,
-        status: { in: [ProcessingStatus.COMPLETED, ProcessingStatus.PROCESSING] },
+        status: { in: [ProcessingStatus.COMPLETED, ProcessingStatus.PROCESSING, ProcessingStatus.PENDING] },
+        ...(input._sourceFileId
+          ? {
+              NOT: {
+                id: input._sourceFileId,
+              },
+            }
+          : {}),
       },
     })
 
@@ -604,31 +1106,67 @@ export async function importFromPDF(
       }
     }
 
-    // 创建源文件记录（使用当前登录用户 ID）
     const sourceFileType = getSourceFileTypeByUrl(input.pdfUrl)
-    const sourceFile = await prisma.sourceFile.create({
-      data: {
-        filename,
-        sourceNote: input.source?.trim() || null,
-        fileUrl: input.pdfUrl,
-        fileType: sourceFileType,
-        fileSize: 0, // TODO: 获取实际文件大小
-        subjectId: input.subjectId,
-        uploadedBy: currentUser.id,
-        status: ProcessingStatus.PROCESSING,
-        ocrStatus: ProcessingStatus.PENDING,
-      },
-    })
+    let sourceFileRef: { id: string } | null = null
+
+    if (!isQueuedExecution) {
+      const queuePayload = toQueuedFileImportPayload(input)
+      const sourceFile = await prisma.sourceFile.create({
+        data: {
+          filename,
+          sourceNote: input.source?.trim() || null,
+          fileUrl: input.pdfUrl,
+          fileType: sourceFileType,
+          fileSize: 0, // TODO: 获取实际文件大小
+          subjectId: input.subjectId,
+          uploadedBy: currentUser!.id,
+          status: ProcessingStatus.PENDING,
+          ocrStatus: ProcessingStatus.PENDING,
+          importDiagnostics: buildQueuedFileImportDiagnostics(queuePayload) as Prisma.InputJsonValue,
+        },
+      })
+      sourceFileId = sourceFile.id
+      sourceFileRef = { id: sourceFile.id }
+      triggerPendingWebImportQueue()
+
+      return {
+        success: true,
+        data: {
+          success: true,
+          sourceFileId,
+          questionsCreated: 0,
+          questionsDuplicated: 0,
+          questionsFailed: 0,
+          questionIds: [],
+          ocrDuration: 0,
+          structureDuration: 0,
+          totalDuration: Date.now() - startTime,
+          estimatedCost: 0,
+        },
+      }
+    }
+
+    sourceFileRef = {
+      id: sourceFileId!,
+    }
 
     try {
       // ==================== 阶段 3: OCR 处理 ====================
       reportProgress(createProgress('OCR_PROCESSING', '正在进行 OCR 识别...', { stageProgress: 0 }))
+      await writeQueuedFileProgress({
+        ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+        currentStage: 'OCR_PROCESSING',
+        currentStageLabel: 'OCR 识别',
+        statusSummary: '正在进行 OCR 识别...',
+        overallProgress: 12,
+        stageProgress: 0,
+      })
 
       const ocrStartTime = Date.now()
 
       // 更新 OCR 状态
       await prisma.sourceFile.update({
-        where: { id: sourceFile.id },
+        where: { id: sourceFileRef.id },
         data: { ocrStatus: ProcessingStatus.PROCESSING },
       })
 
@@ -661,10 +1199,18 @@ export async function importFromPDF(
       } catch (ocrError) {
         // OCR 失败，更新状态
         await prisma.sourceFile.update({
-          where: { id: sourceFile.id },
+          where: { id: sourceFileRef.id },
           data: {
             status: ProcessingStatus.FAILED,
             ocrStatus: ProcessingStatus.FAILED,
+            importDiagnostics: stripUndefinedDeep({
+              ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+              currentStage: 'OCR_PROCESSING',
+              currentStageLabel: 'OCR 识别',
+            statusSummary: 'OCR 识别失败',
+            overallProgress: 0,
+            stageProgress: 0,
+            }) as unknown as Prisma.InputJsonValue,
           },
         })
 
@@ -677,7 +1223,7 @@ export async function importFromPDF(
       const allowMockImport = process.env.OCR_ENABLE_MOCK === 'true'
       if (usedMockProvider && !allowMockImport) {
         await prisma.sourceFile.update({
-          where: { id: sourceFile.id },
+          where: { id: sourceFileRef.id },
           data: {
             status: ProcessingStatus.FAILED,
             ocrStatus: ProcessingStatus.FAILED,
@@ -707,17 +1253,25 @@ export async function importFromPDF(
 
       // 更新源文件 OCR 结果
       await prisma.sourceFile.update({
-        where: { id: sourceFile.id },
+        where: { id: sourceFileRef.id },
         data: {
           ocrStatus: ProcessingStatus.COMPLETED,
           ocrRawText: fullOcrText.substring(0, 100000), // 限制长度
+          importDiagnostics: stripUndefinedDeep({
+            ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+            currentStage: 'OCR_PROCESSING',
+            currentStageLabel: 'OCR 识别',
+            statusSummary: 'OCR 已完成，准备结构化题目...',
+            overallProgress: 38,
+            stageProgress: 100,
+          }) as unknown as Prisma.InputJsonValue,
         },
       })
 
       // 检查 OCR 结果
       if (!fullOcrText || fullOcrText.trim().length < 10) {
         await prisma.sourceFile.update({
-          where: { id: sourceFile.id },
+          where: { id: sourceFileRef.id },
           data: { status: ProcessingStatus.FAILED },
         })
 
@@ -730,6 +1284,14 @@ export async function importFromPDF(
 
       // ==================== 阶段 4: AI 结构化 ====================
       reportProgress(createProgress('STRUCTURING', '正在使用 AI 分析题目结构...'))
+      await writeQueuedFileProgress({
+        ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+        currentStage: 'STRUCTURING',
+        currentStageLabel: 'AI 结构化',
+        statusSummary: '正在使用 AI 分析题目结构...',
+        overallProgress: 48,
+        stageProgress: 0,
+      })
 
       const structureStartTime = Date.now()
 
@@ -743,7 +1305,7 @@ export async function importFromPDF(
 
       if (!structureResult.success || !structureResult.questions || structureResult.questions.length === 0) {
         await prisma.sourceFile.update({
-          where: { id: sourceFile.id },
+          where: { id: sourceFileRef.id },
           data: { status: ProcessingStatus.FAILED },
         })
 
@@ -757,6 +1319,14 @@ export async function importFromPDF(
       // ==================== 阶段 5: 质量检查 ====================
       if (!options?.skipQualityCheck) {
         reportProgress(createProgress('QUALITY_CHECK', '正在进行质量检查...'))
+        await writeQueuedFileProgress({
+          ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+          currentStage: 'QUALITY_CHECK',
+          currentStageLabel: '质量检查',
+          statusSummary: '正在进行质量检查...',
+          overallProgress: 66,
+          stageProgress: 0,
+        })
       }
 
       // 转换为创建输入并计算质量分数
@@ -766,7 +1336,7 @@ export async function importFromPDF(
         return convertToCreateInput(q, {
           chapterId: input.chapterId,
           subjectId: input.subjectId,
-          sourceFileId: sourceFile.id,
+          sourceFileId: sourceFileRef.id,
           source: input.source,
           isPastPaper: input.isPastPaper ?? false,
           paperId: input.isPastPaper ? input.paperId ?? null : null,
@@ -779,11 +1349,19 @@ export async function importFromPDF(
 
       // ==================== 阶段 6: 保存入库 ====================
       reportProgress(createProgress('SAVING', `正在保存 ${questionsToCreate.length} 道题目...`))
+      await writeQueuedFileProgress({
+        ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+        currentStage: 'SAVING',
+        currentStageLabel: '保存入库',
+        statusSummary: `正在保存 ${questionsToCreate.length} 道题目...`,
+        overallProgress: 82,
+        stageProgress: 0,
+      })
 
       const bulkResult = await bulkCreateQuestions({
         questions: questionsToCreate,
-        sourceFileId: sourceFile.id,
-        createdBy: currentUser.id,
+        sourceFileId: sourceFileRef.id,
+        createdBy: currentUserId ?? currentUser!.id,
       })
 
       // 统计结果
@@ -795,14 +1373,25 @@ export async function importFromPDF(
       const questionIds = bulkResult.results
         .filter((r) => r.success && r.data)
         .map((r) => r.data!.id)
-      await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
+      await moveImportedQuestionsToReviewPending(questionIds, currentUserId ?? currentUser!.id)
 
       // 更新源文件状态
       await prisma.sourceFile.update({
-        where: { id: sourceFile.id },
+        where: { id: sourceFileRef.id },
         data: {
           status: ProcessingStatus.COMPLETED,
           processedAt: new Date(),
+          importDiagnostics: stripUndefinedDeep({
+            ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+            currentStage: 'SAVING',
+            currentStageLabel: '保存入库',
+            statusSummary: `导入完成，共 ${questionsCreated} 道题目`,
+            overallProgress: 100,
+            stageProgress: 100,
+            createdQuestionCount: questionsCreated,
+            duplicatedQuestionCount: questionsDuplicated,
+            failedQuestionCount: questionsFailed,
+          }) as unknown as Prisma.InputJsonValue,
         },
       })
 
@@ -811,14 +1400,14 @@ export async function importFromPDF(
 
       reportProgress(createProgress('COMPLETED', `导入完成，共 ${questionsCreated} 道题目`))
 
-      revalidatePath('/admin/content/review')
-      revalidatePath('/admin/content/import')
+      safeRevalidatePath('/admin/content/review')
+      safeRevalidatePath('/admin/content/import')
 
       return {
         success: true,
         data: {
           success: true,
-          sourceFileId: sourceFile.id,
+          sourceFileId: sourceFileRef.id,
           questionsCreated,
           questionsDuplicated,
           questionsFailed,
@@ -832,8 +1421,18 @@ export async function importFromPDF(
     } catch (error) {
       // 处理失败，更新源文件状态
       await prisma.sourceFile.update({
-        where: { id: sourceFile.id },
-        data: { status: ProcessingStatus.FAILED },
+        where: { id: sourceFileRef.id },
+        data: {
+          status: ProcessingStatus.FAILED,
+          importDiagnostics: stripUndefinedDeep({
+            ...buildQueuedFileImportDiagnostics(toQueuedFileImportPayload(input)),
+            currentStage: 'SAVING',
+            currentStageLabel: '保存入库',
+            statusSummary: error instanceof Error ? `导入失败：${error.message}` : '导入失败',
+            overallProgress: 0,
+            stageProgress: 0,
+          }) as unknown as Prisma.InputJsonValue,
+        },
       })
 
       throw error
@@ -859,6 +1458,10 @@ export async function importFromWebUrl(
 ): Promise<ServiceResult<ImportResult>> {
   const startTime = Date.now()
   const pageUrl = input.pageUrl?.trim()
+  const isQueuedExecution =
+    Boolean(input._sourceFileId) &&
+    Boolean(input._uploadedBy) &&
+    input._skipAuthCheck === true
 
   if (!pageUrl) {
     return {
@@ -877,21 +1480,25 @@ export async function importFromWebUrl(
     }
   }
 
-  const currentUser = await getCurrentUser()
-  if (!currentUser) {
-    return {
-      success: false,
-      error: '用户未登录',
-      code: 'UNAUTHORIZED',
+  let currentUserId = input._uploadedBy ?? ''
+  if (!isQueuedExecution) {
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      return {
+        success: false,
+        error: '用户未登录',
+        code: 'UNAUTHORIZED',
+      }
     }
-  }
 
-  if (!['ADMIN', 'TEACHER'].includes(currentUser.role)) {
-    return {
-      success: false,
-      error: '仅管理员或教师可以执行网页导入',
-      code: 'UNAUTHORIZED',
+    if (!['ADMIN', 'TEACHER'].includes(currentUser.role)) {
+      return {
+        success: false,
+        error: '仅管理员或教师可以执行网页导入',
+        code: 'UNAUTHORIZED',
+      }
     }
+    currentUserId = currentUser.id
   }
 
   const subject = await prisma.subject.findUnique({ where: { id: input.subjectId } })
@@ -906,7 +1513,14 @@ export async function importFromWebUrl(
   const existingFile = await prisma.sourceFile.findFirst({
     where: {
       fileUrl: pageUrl,
-      status: { in: [ProcessingStatus.COMPLETED, ProcessingStatus.PROCESSING] },
+      status: { in: [ProcessingStatus.COMPLETED, ProcessingStatus.PROCESSING, ProcessingStatus.PENDING] },
+      ...(input._sourceFileId
+        ? {
+            NOT: {
+              id: input._sourceFileId,
+            },
+          }
+        : {}),
     },
   })
   if (existingFile) {
@@ -917,27 +1531,48 @@ export async function importFromWebUrl(
     }
   }
 
-  let sourceFileId: string | null = null
+  let sourceFileId: string | null = input._sourceFileId ?? null
   let pendingImportDiagnostics: ImportDiagnostics | null = null
   const stageDurations: NonNullable<ImportDiagnostics['stageDurations']> = {}
   let lastProgressWriteAt = 0
 
   try {
-    const sourceFile = await prisma.sourceFile.create({
-      data: {
-        filename: extractFilename(pageUrl) || `${resolvedAdapter.data.name}.html`,
-        sourceNote: input.source?.trim() || null,
-        fileUrl: pageUrl,
-        fileType: 'html',
-        fileSize: 0,
-        subjectId: input.subjectId,
-        uploadedBy: currentUser.id,
-        status: ProcessingStatus.PROCESSING,
-        ocrStatus: ProcessingStatus.SKIPPED,
-      },
-      select: { id: true },
-    })
-    sourceFileId = sourceFile.id
+    if (!isQueuedExecution) {
+      const queuePayload = toQueuedWebImportPayload(input)
+      const sourceFile = await prisma.sourceFile.create({
+        data: {
+          filename: extractFilename(pageUrl) || `${resolvedAdapter.data.name}.html`,
+          sourceNote: input.source?.trim() || null,
+          fileUrl: pageUrl,
+          fileType: 'html',
+          fileSize: 0,
+          subjectId: input.subjectId,
+          uploadedBy: currentUserId,
+          status: ProcessingStatus.PENDING,
+          ocrStatus: ProcessingStatus.SKIPPED,
+          importDiagnostics: buildQueuedWebImportDiagnostics(queuePayload) as Prisma.InputJsonValue,
+        },
+        select: { id: true },
+      })
+      sourceFileId = sourceFile.id
+      triggerPendingWebImportQueue()
+
+      return {
+        success: true,
+        data: {
+          success: true,
+          sourceFileId,
+          questionsCreated: 0,
+          questionsDuplicated: 0,
+          questionsFailed: 0,
+          questionIds: [],
+          ocrDuration: 0,
+          structureDuration: 0,
+          totalDuration: Date.now() - startTime,
+          estimatedCost: 0,
+        },
+      }
+    }
 
     const writeProgress = async (
       diagnostics: ImportDiagnostics,
@@ -1001,6 +1636,7 @@ export async function importFromWebUrl(
     const webImportData = webImportResult.data
 
     const questionsToCreateDraft: CreateQuestionInput[] = []
+    const questionGroupsToCreateDraft: PersistedQuestionGroupDraft[] = []
     const stemImageSupabase =
       webImportData.adapterName === 'examcoo-view' ? await createSupabaseClient() : null
     const stemImageUrlCache = new Map<string, Promise<string | null>>()
@@ -1028,6 +1664,39 @@ export async function importFromWebUrl(
     const imagePersistStartTime = Date.now()
     let processedImageQuestions = 0
     let processedAssets = 0
+
+    for (const group of webImportData.normalized.questionGroups ?? []) {
+      const persistedGroupMaterial = await persistQuestionImagesToSupabase({
+        pageUrl,
+        adapterName: webImportData.adapterName,
+        paperId: group.paperId ?? null,
+        content: group.material,
+        explanation: null,
+        options: null,
+        assetUrl: group.materialImageUrls[0] ?? null,
+        imageUrls: group.materialImageUrls ?? [],
+        explanationImageUrls: [],
+        supabase: stemImageSupabase ?? undefined,
+        urlCache: stemImageUrlCache,
+      })
+
+      questionGroupsToCreateDraft.push({
+        rawGroupId: group.rawGroupId,
+        title: group.title ?? null,
+        material: group.material,
+        materialImageUrls: group.materialImageUrls ?? [],
+        questionIds: group.questionIds,
+        selectedQuestionIds: group.selectedQuestionIds,
+        persistedMaterial: persistedGroupMaterial.content,
+        persistedImageUrls: persistedGroupMaterial.imageUrls,
+        assetUrl: persistedGroupMaterial.assetUrl,
+        sourceMeta:
+          group.sourceMeta && typeof group.sourceMeta === 'object'
+            ? (group.sourceMeta as Record<string, unknown>)
+            : undefined,
+      })
+    }
+
     const draftResults = await mapWithConcurrency(
       webImportData.normalized.questions,
       WEB_IMPORT_IMAGE_CONCURRENCY,
@@ -1090,15 +1759,77 @@ export async function importFromWebUrl(
       }
     )
 
+    const questionGroupIdMap = new Map<string, string>()
+    for (const group of questionGroupsToCreateDraft) {
+      const contentHash = generateQuestionGroupContentHash({
+        material: group.persistedMaterial,
+        title: group.title,
+        paperId: webImportData.normalized.paperId ?? null,
+        sourceSite: webImportData.normalized.sourceSite,
+      })
+
+      const existingGroup = await prisma.questionGroup.findUnique({
+        where: { contentHash },
+        select: { id: true },
+      })
+
+      const targetGroupId =
+        existingGroup?.id ??
+        (
+          await prisma.questionGroup.create({
+            data: {
+              subjectId: input.subjectId,
+              chapterId: input.chapterId ?? null,
+              sourceFileId,
+              curriculum: 'UEC',
+              grade: null,
+              title: group.title,
+              material: group.persistedMaterial,
+              assetUrl: group.assetUrl,
+              imageUrls: group.persistedImageUrls,
+              source: buildWebImportQuestionSource(
+                input,
+                typeof group.sourceMeta?.sourceTag === 'string'
+                  ? group.sourceMeta.sourceTag
+                  : typeof group.sourceMeta?.sourceOverride === 'string'
+                    ? group.sourceMeta.sourceOverride
+                    : null
+              ),
+              tags: [webImportData.normalized.sourceSite, 'web-import', 'question-group'],
+              isPastPaper: input.isPastPaper ?? false,
+              paperId:
+                input.isPastPaper
+                  ? input.paperId ?? webImportData.normalized.paperId ?? null
+                  : null,
+              contentHash,
+              status: ContentStatus.DRAFT,
+              createdBy: currentUserId,
+            },
+            select: { id: true },
+          })
+        ).id
+
+      questionGroupIdMap.set(group.rawGroupId, targetGroupId)
+    }
+
     for (const { question, persisted } of draftResults) {
-      questionsToCreateDraft.push({
-        content: persisted.content,
-        type: question.type,
+      const sourceMeta =
+        question.sourceMeta && typeof question.sourceMeta === 'object'
+          ? (question.sourceMeta as Record<string, unknown>)
+          : undefined
+      const rawGroupId =
+        typeof sourceMeta?.groupId === 'string' && sourceMeta.groupId.trim().length > 0
+          ? sourceMeta.groupId
+          : null
+        questionsToCreateDraft.push({
+          content: persisted.content,
+          type: question.type,
         difficulty: 3,
-        curriculum: 'UEC',
-        grade: null,
-        subjectId: input.subjectId,
-        chapterId: input.chapterId ?? null,
+          curriculum: 'UEC',
+          grade: null,
+          subjectId: input.subjectId,
+          groupId: rawGroupId ? questionGroupIdMap.get(rawGroupId) ?? null : null,
+          chapterId: input.chapterId ?? null,
         options: persisted.options,
         answer: question.answer,
         explanation: persisted.explanation,
@@ -1113,7 +1844,7 @@ export async function importFromWebUrl(
         isPastPaper: input.isPastPaper ?? false,
         paperId: input.isPastPaper ? input.paperId ?? question.paperId ?? null : null,
         qualityScore: null,
-        createdBy: currentUser.id,
+        createdBy: currentUserId,
       })
     }
     stageDurations.imagePersistMs = Date.now() - imagePersistStartTime
@@ -1155,8 +1886,8 @@ export async function importFromWebUrl(
     )
     const bulkResult = await bulkCreateQuestions({
       questions: questionsToCreate,
-      sourceFileId,
-      createdBy: currentUser.id,
+      sourceFileId: sourceFileId!,
+      createdBy: currentUserId,
     })
     stageDurations.saveMs = Date.now() - saveStartTime
 
@@ -1207,7 +1938,7 @@ export async function importFromWebUrl(
     const questionIds = bulkResult.results
       .filter((r) => r.success && r.data)
       .map((r) => r.data!.id)
-    await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
+    await moveImportedQuestionsToReviewPending(questionIds, currentUserId)
     stageDurations.reviewSubmitMs = Date.now() - reviewSubmitStartTime
     stageDurations.totalMs = Date.now() - startTime
     if (pendingImportDiagnostics) {
@@ -1216,7 +1947,7 @@ export async function importFromWebUrl(
 
     // 两段式写回：先确保批次状态落成 COMPLETED（避免 diagnostics 写入失败导致卡在 PROCESSING）
     await prisma.sourceFile.update({
-      where: { id: sourceFileId },
+      where: { id: sourceFileId! },
       data: {
         status: ProcessingStatus.COMPLETED,
         processedAt: new Date(),
@@ -1226,7 +1957,7 @@ export async function importFromWebUrl(
     // diagnostics 是增强信息，写入失败不应阻塞主流程
     try {
       await prisma.sourceFile.update({
-        where: { id: sourceFileId },
+        where: { id: sourceFileId! },
         data: {
           importDiagnostics: pendingImportDiagnostics as Prisma.InputJsonValue,
         },
@@ -1235,14 +1966,14 @@ export async function importFromWebUrl(
       console.warn('写入导入诊断失败（已忽略）:', diagnosticsError)
     }
 
-    revalidatePath('/admin/content/review')
-    revalidatePath('/admin/content/import')
+    safeRevalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/import')
 
     return {
       success: true,
       data: {
         success: true,
-        sourceFileId,
+        sourceFileId: sourceFileId!,
         questionsCreated,
         questionsDuplicated,
         questionsFailed,
@@ -1503,8 +2234,8 @@ async function resumeFromStructuring(
 
     reportProgress(createProgress('COMPLETED', `导入完成，共 ${questionsCreated} 道题目`))
 
-    revalidatePath('/admin/content/review')
-    revalidatePath('/admin/content/import')
+    safeRevalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/import')
 
     return {
       success: true,
@@ -2220,6 +2951,8 @@ export async function recomputeImportDiagnosticsForTask(input: {
       normalizedQuestionCount: webImportResult.data.diagnostics.normalizedQuestionCount,
       normalizedRawQuestionIds: toStringArray(webImportResult.data.diagnostics.normalizedRawQuestionIds),
       missingRawQuestionIds: toStringArray(webImportResult.data.diagnostics.missingRawQuestionIds),
+      detectedQuestionGroupCount: webImportResult.data.diagnostics.detectedQuestionGroupCount,
+      detectedQuestionGroupIds: toStringArray(webImportResult.data.diagnostics.detectedQuestionGroupIds),
       assetCount: webImportResult.data.diagnostics.assetCount,
       flaggedQuestionCount: webImportResult.data.diagnostics.flaggedQuestionCount,
       createdQuestionCount: createdCount,
@@ -2311,8 +3044,8 @@ export async function deleteImportTask(
       where: { id: sourceFileId },
     })
 
-    revalidatePath('/admin/content/review')
-    revalidatePath('/admin/content/import')
+    safeRevalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/import')
 
     return {
       success: true,

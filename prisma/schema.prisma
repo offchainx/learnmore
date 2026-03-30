@@ -233,6 +233,7 @@ model Subject {
   posts       Post[]
   examRecords ExamRecord[] // 🆕 练习记录关联 (Story-043)
   questions   Question[]
+  questionGroups QuestionGroup[]
   sourceFiles SourceFile[]
 
   @@map("subjects")
@@ -265,6 +266,7 @@ model Chapter {
   children  Chapter[]  @relation("ChapterTree")
   lessons   Lesson[]
   questions Question[]
+  questionGroups QuestionGroup[]
 
   @@index([subjectId])
   @@index([parentId])
@@ -340,12 +342,12 @@ model UserProgress {
   @@map("user_progress")
 }
 
-// ============ 题库模块 ============
 model Question {
   // 归属字段
   id        String  @id @default(uuid()) @db.Uuid
   subjectId String? @map("subject_id") @db.Uuid
   chapterId String? @map("chapter_id") @db.Uuid // 改为可选，支持未分类题目
+  groupId   String? @map("group_id") @db.Uuid
 
   // 内容字段
   curriculum  String       @default("UEC")
@@ -384,12 +386,14 @@ model Question {
 
   // Relations
   chapter    Chapter?         @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  group      QuestionGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
   subject    Subject?         @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   sourceFile SourceFile?      @relation(fields: [sourceFileId], references: [id], onDelete: SetNull)
   attempts   UserAttempt[]
   reports    QuestionReport[]
 
   @@index([chapterId])
+  @@index([groupId])
   @@index([subjectId])
   @@index([sourceFileId])
   @@index([curriculum])
@@ -403,6 +407,60 @@ model Question {
   @@index([paperId])
   @@index([subjectId, curriculum, grade, status, isPastPaper])
   @@map("questions")
+}
+
+model QuestionGroup {
+  // 归属字段
+  id           String  @id @default(uuid()) @db.Uuid
+  subjectId    String? @map("subject_id") @db.Uuid
+  chapterId    String? @map("chapter_id") @db.Uuid
+  sourceFileId String? @map("source_file_id") @db.Uuid
+
+  // 内容字段
+  curriculum String  @default("UEC")
+  grade      Int?
+  title      String?
+  material   String  @db.Text
+  assetUrl   String?  @map("asset_url")
+  imageUrls  String[] @default([]) @map("image_urls")
+
+  // 来源 / 标签字段
+  source      String?
+  tags        String[] @default([])
+  isPastPaper Boolean  @default(false) @map("is_past_paper")
+  paperId     String?  @map("paper_id")
+  contentHash String?  @unique @map("content_hash")
+
+  // 状态 / 审核字段
+  status       ContentStatus @default(DRAFT)
+  createdBy    String?       @map("created_by") @db.Uuid
+  reviewedBy   String?       @map("reviewed_by") @db.Uuid
+  publishedBy  String?       @map("published_by") @db.Uuid
+  deletedBy    String?       @map("deleted_by") @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at")
+  reviewedAt   DateTime?     @map("reviewed_at")
+  publishedAt  DateTime?     @map("published_at")
+  deletedAt    DateTime?     @map("deleted_at")
+  deleteReason String?       @map("delete_reason") @db.Text
+
+  // Relations
+  chapter    Chapter?    @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  questions  Question[]
+  subject    Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  sourceFile SourceFile? @relation(fields: [sourceFileId], references: [id], onDelete: SetNull)
+
+  @@index([chapterId])
+  @@index([subjectId])
+  @@index([sourceFileId])
+  @@index([curriculum])
+  @@index([grade])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([paperId])
+  @@index([contentHash])
+  @@index([subjectId, curriculum, grade, status, isPastPaper])
+  @@map("question_groups")
 }
 
 enum QuestionType {
@@ -736,9 +794,10 @@ model SourceFile {
   processedAt DateTime?        @map("processed_at")
 
   // Relations
-  questions Question[]
-  subject   Subject?   @relation(fields: [subjectId], references: [id], onDelete: SetNull)
-  uploader  User       @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
+  questions      Question[]
+  questionGroups QuestionGroup[]
+  subject        Subject?   @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  uploader       User       @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
 
   @@index([uploadedBy])
   @@index([status])

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { DbSubject, PracticeSubjectData } from './types'
 import {
   fetchWithTimeout,
@@ -18,7 +18,6 @@ import { PastPaperLibrarySection } from './PastPapersSection'
 import { PracticeCoachPanel } from './AnalyticsSidebar'
 import {
   PracticeModePreviewDialog,
-  type MockArenaDifficulty,
   type PracticeModePreviewConfig,
 } from './PracticeModePreviewDialog'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
@@ -36,9 +35,6 @@ import {
 } from '@/components/shared/pageSpacing'
 import { pageHeroEyebrowClass } from '@/components/shared/pageTypography'
 import { parseStructuredChapterTitle } from './chapterDisplay'
-
-const MOCK_ARENA_QUESTION_COUNTS = [20, 30, 40, 50] as const
-const MOCK_ARENA_DIFFICULTIES: MockArenaDifficulty[] = ['EASY', 'MEDIUM', 'HARD']
 
 interface PracticeCenterScreenProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -524,6 +520,9 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   t,
   initialSubjectId,
 }) => {
+  const MOCK_ARENA_QUESTION_COUNTS = [20, 30, 40, 50] as const
+  const MOCK_ARENA_DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD'] as const
+
   const { lang } = useApp()
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('')
   const [dbSubjects, setDbSubjects] = useState<DbSubject[]>([])
@@ -537,40 +536,13 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   const [isSubjectBarPinned, setIsSubjectBarPinned] = useState(false)
   const [previewConfig, setPreviewConfig] =
     useState<PracticeModePreviewConfig | null>(null)
-  const [mockArenaQuestionCount, setMockArenaQuestionCount] = useState(20)
-  const [mockArenaDifficulty, setMockArenaDifficulty] =
-    useState<MockArenaDifficulty>('MEDIUM')
+  const [mockArenaQuestionCount, setMockArenaQuestionCount] = useState<
+    (typeof MOCK_ARENA_QUESTION_COUNTS)[number]
+  >(20)
+  const [mockArenaDifficulty, setMockArenaDifficulty] = useState<
+    (typeof MOCK_ARENA_DIFFICULTIES)[number]
+  >('MEDIUM')
   const subjectSentinelRef = useRef<HTMLDivElement | null>(null)
-
-  const mockArenaEstimatedMinutes = Math.ceil(mockArenaQuestionCount * 1.5)
-  const mockArenaDifficultyLabel =
-    mockArenaDifficulty === 'EASY'
-      ? '简单'
-      : mockArenaDifficulty === 'HARD'
-        ? '困难'
-        : '标准'
-  const cycleMockArenaQuestionCount = useCallback(() => {
-    setMockArenaQuestionCount((current) => {
-      const currentIndex = MOCK_ARENA_QUESTION_COUNTS.indexOf(
-        current as (typeof MOCK_ARENA_QUESTION_COUNTS)[number]
-      )
-      const nextIndex =
-        currentIndex === -1
-          ? 0
-          : (currentIndex + 1) % MOCK_ARENA_QUESTION_COUNTS.length
-      return MOCK_ARENA_QUESTION_COUNTS[nextIndex]
-    })
-  }, [])
-  const cycleMockArenaDifficulty = useCallback(() => {
-    setMockArenaDifficulty((current) => {
-      const currentIndex = MOCK_ARENA_DIFFICULTIES.indexOf(current)
-      const nextIndex =
-        currentIndex === -1
-          ? 0
-          : (currentIndex + 1) % MOCK_ARENA_DIFFICULTIES.length
-      return MOCK_ARENA_DIFFICULTIES[nextIndex]
-    })
-  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -750,36 +722,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       )
     : 'Practice Center'
 
-  useEffect(() => {
-    setPreviewConfig((current) => {
-      if (!current || current.mode !== 'MOCK_ARENA' || !selectedSubjectId) {
-        return current
-      }
-
-      return {
-        ...current,
-        subtitle: `${currentSubjectTitle} 模拟考试`,
-        primaryStatValue: `${mockArenaQuestionCount} 题`,
-        secondaryStatValue: `${mockArenaEstimatedMinutes} 分钟`,
-        tertiaryStatValue: mockArenaDifficultyLabel,
-        startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}`,
-        mockArenaOptions: {
-          onQuestionCountCycle: cycleMockArenaQuestionCount,
-          onDifficultyCycle: cycleMockArenaDifficulty,
-        },
-      }
-    })
-  }, [
-    cycleMockArenaDifficulty,
-    cycleMockArenaQuestionCount,
-    currentSubjectTitle,
-    mockArenaDifficulty,
-    mockArenaDifficultyLabel,
-    mockArenaEstimatedMinutes,
-    mockArenaQuestionCount,
-    selectedSubjectId,
-  ])
-
   const isLoadingSubjectData = isBootstrapLoading || isSubjectDataLoading
   const weakChapters = useMemo(
     () =>
@@ -799,7 +741,83 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       ? '先做首轮训练建立掌握基线'
       : lang === 'ms'
         ? 'Mulakan satu pusingan untuk bina garis asas'
-        : 'Start one round to build a baseline'
+      : 'Start one round to build a baseline'
+
+  const mockArenaDifficultyLabel =
+    mockArenaDifficulty === 'EASY'
+      ? '简单'
+      : mockArenaDifficulty === 'HARD'
+        ? '困难'
+        : '标准'
+  const mockArenaEstimatedMinutes = Math.round(mockArenaQuestionCount * 1.5)
+
+  const cycleMockArenaQuestionCount = () => {
+    setMockArenaQuestionCount((current) => {
+      const currentIndex = MOCK_ARENA_QUESTION_COUNTS.indexOf(current)
+      const nextIndex = (currentIndex + 1) % MOCK_ARENA_QUESTION_COUNTS.length
+      return MOCK_ARENA_QUESTION_COUNTS[nextIndex]
+    })
+  }
+
+  const cycleMockArenaDifficulty = () => {
+    setMockArenaDifficulty((current) => {
+      const currentIndex = MOCK_ARENA_DIFFICULTIES.indexOf(current)
+      const nextIndex = (currentIndex + 1) % MOCK_ARENA_DIFFICULTIES.length
+      return MOCK_ARENA_DIFFICULTIES[nextIndex]
+    })
+  }
+
+  const buildMockArenaPreviewConfig = (): PracticeModePreviewConfig | null => {
+    if (!selectedSubjectId) return null
+
+    return {
+      mode: 'MOCK_ARENA',
+      title: '先看这一场 Mock Arena 预览',
+      subtitle: `${currentSubjectTitle} 的限时整卷演练`,
+      description:
+        '在预览里直接切换题量和难度，确认后会立刻生成模拟卷并进入统一答题页。',
+      primaryStatLabel: '题量',
+      primaryStatValue: `${mockArenaQuestionCount} 题`,
+      secondaryStatLabel: '时长',
+      secondaryStatValue: `${mockArenaEstimatedMinutes} 分钟`,
+      tertiaryStatLabel: '难度',
+      tertiaryStatValue: mockArenaDifficultyLabel,
+      reasons: [
+        '更适合在章节训练或 Smart Drill 之后做一次综合限时检验。',
+        '点击题量卡片可在 20 / 30 / 40 / 50 题之间切换。',
+        '点击难度卡片可在 简单 / 标准 / 困难 之间切换，并同步更新整卷时长。',
+        '确认后会直接开始整卷作答，不再额外进入选择页。',
+        '交卷后会进入逐题复盘页，而不是只有一张简短摘要卡。',
+      ],
+      details: [
+        { label: '进入方式', value: 'preview 内直接配置后开始' },
+        { label: '答题布局', value: '统一三栏作答页' },
+        { label: '提交方式', value: '整卷完成后一次性交卷' },
+        { label: '结果页', value: '整卷摘要 + 逐题复盘' },
+      ],
+      startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}&autostart=1`,
+      startLabel: '开始 Mock Arena',
+      mockArenaOptions: {
+        onQuestionCountCycle: cycleMockArenaQuestionCount,
+        onDifficultyCycle: cycleMockArenaDifficulty,
+      },
+    }
+  }
+
+  useEffect(() => {
+    if (previewConfig?.mode !== 'MOCK_ARENA') return
+    const nextConfig = buildMockArenaPreviewConfig()
+    if (!nextConfig) return
+    setPreviewConfig(nextConfig)
+  }, [
+    previewConfig?.mode,
+    selectedSubjectId,
+    currentSubjectTitle,
+    mockArenaQuestionCount,
+    mockArenaEstimatedMinutes,
+    mockArenaDifficulty,
+    mockArenaDifficultyLabel,
+  ])
 
   const openSmartDrillPreview = () => {
     if (!selectedSubjectId) return
@@ -872,37 +890,9 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   }
 
   const openMockArenaPreview = () => {
-    if (!selectedSubjectId) return
-
-    setPreviewConfig({
-      mode: 'MOCK_ARENA',
-      title: '先看这一场 Mock Arena 预览',
-      subtitle: `${currentSubjectTitle} 模拟考试`,
-      description:
-        '会用默认配置直接生成一套卷，进入统一答题页后整卷完成再提交。',
-      primaryStatLabel: '题量',
-      primaryStatValue: `${mockArenaQuestionCount} 题`,
-      secondaryStatLabel: '时间',
-      secondaryStatValue: `${mockArenaEstimatedMinutes} 分钟`,
-      tertiaryStatLabel: '难度',
-      tertiaryStatValue: mockArenaDifficultyLabel,
-      reasons: [
-        '更适合在日常训练之后检查真实考试节奏和时间分配。',
-        '作答时不会展示答案，保持更接近正式考试的状态。',
-        '提交后会统一给出得分、正确率和整卷表现。',
-      ],
-      details: [
-        { label: '答题布局', value: '统一三栏作答页' },
-        { label: '右侧面板', value: '剩余时间 + 已答题数 + 交卷' },
-        { label: '进入方式', value: '直接生成试卷并开始' },
-      ],
-      startHref: `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}&autostart=1&questionCount=${mockArenaQuestionCount}&difficulty=${mockArenaDifficulty}`,
-      startLabel: '开始 Mock Arena',
-      mockArenaOptions: {
-        onQuestionCountCycle: cycleMockArenaQuestionCount,
-        onDifficultyCycle: cycleMockArenaDifficulty,
-      },
-    })
+    const nextConfig = buildMockArenaPreviewConfig()
+    if (!nextConfig) return
+    setPreviewConfig(nextConfig)
   }
 
   const openChapterPreview = (
@@ -1078,8 +1068,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
               <PracticeModeGrid
                 selectedSubjectId={selectedSubjectId}
                 currentSubjectTitle={currentSubjectTitle}
-                chapterCount={subjectData.chapters.length}
-                pastPaperCount={subjectData.pastPapers.length}
                 weakChapterCount={weakChapters.length}
                 strongestSignal={strongestSignal}
                 onOpenSmartDrillPreview={openSmartDrillPreview}

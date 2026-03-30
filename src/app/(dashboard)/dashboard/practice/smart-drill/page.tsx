@@ -2,6 +2,7 @@
 import { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/actions/user/auth"
+import { getEffectiveTier } from "@/lib/permissions/engine"
 import SmartDrillSession from "@/components/practice/modes/SmartDrillMode"
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default async function SmartDrillPage({ searchParams }: PageProps) {
   const subjectId = resolvedSearchParams.subjectId
   const enableMockPreview = resolvedSearchParams.preview === 'mock'
   const autoStart = resolvedSearchParams.autostart === '1'
+  const effectiveTier = getEffectiveTier(user)
 
   if (!subjectId) {
     // 如果没有科目ID，重定向回练习中心首页 (假设路由)
@@ -40,6 +42,7 @@ export default async function SmartDrillPage({ searchParams }: PageProps) {
       subjectId={subjectId}
       enableMockPreview={enableMockPreview}
       autoStart={autoStart}
+      userTier={effectiveTier}
     />
   )
 }

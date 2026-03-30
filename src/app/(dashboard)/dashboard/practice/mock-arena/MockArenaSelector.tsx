@@ -146,6 +146,47 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
     )
   }
 
+  if (autoStart) {
+    return (
+      <div className="flex min-h-[55vh] items-center justify-center">
+        <Card className="w-full max-w-2xl rounded-[30px] border-slate-200/80 bg-white/95 shadow-[0_24px_60px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-950/80">
+          <CardContent className="flex flex-col items-center gap-4 px-8 py-12 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-300">
+              <Lock className="h-7 w-7" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                当前无法直接开始 Mock Arena
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                {error || '当前配置下未能生成可用试卷。'}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                onClick={() => router.push('/dashboard/practice')}
+                className="rounded-2xl px-6"
+              >
+                返回练习中心
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.replace(
+                    `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(subjectId)}&difficulty=${difficulty}&questionCount=${questionCount}`
+                  )
+                }
+                className="rounded-2xl px-6"
+              >
+                改成手动配置
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Quota Status Alert */}

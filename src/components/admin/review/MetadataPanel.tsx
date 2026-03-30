@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { QuestionReviewData } from '@/types/content-pipeline'
 import { Pencil, X, Check } from 'lucide-react'
 
@@ -32,6 +32,17 @@ export function MetadataPanel({
   const [isEditing, setIsEditing] = useState(false)
   const [tempData, setTempData] = useState<QuestionReviewData>(data)
   const [feedback, setFeedback] = useState('')
+
+  const availableSubjects = data.availableSubjects ?? []
+  const availableChapters = data.availableChapters ?? []
+  const selectedSubjectId = tempData.metadata.subjectId ?? ''
+  const chapterOptions = useMemo(
+    () =>
+      availableChapters.filter((chapter) =>
+        selectedSubjectId ? chapter.subjectId === selectedSubjectId : false
+      ),
+    [availableChapters, selectedSubjectId]
+  )
 
   useEffect(() => {
     if (isEditing) {
@@ -94,37 +105,58 @@ export function MetadataPanel({
                 </label>
                 <select
                   className="w-full text-xs p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-                  value={tempData.metadata.subject}
-                  onChange={(e) =>
+                  value={tempData.metadata.subjectId ?? ''}
+                  onChange={(e) => {
+                    const nextSubjectId = e.target.value || null
+                    const selectedSubject = availableSubjects.find((subject) => subject.id === nextSubjectId)
                     setTempData({
                       ...tempData,
-                      metadata: { ...tempData.metadata, subject: e.target.value },
+                      metadata: {
+                        ...tempData.metadata,
+                        subjectId: nextSubjectId,
+                        subject: selectedSubject?.name || '未分类',
+                        chapterId: null,
+                        topic: '未分类',
+                      },
                     })
-                  }
+                  }}
                 >
-                  <option>数学</option>
-                  <option>物理</option>
-                  <option>化学</option>
-                  <option>英语</option>
-                  <option>语文</option>
-                  <option>生物</option>
+                  <option value="">未分类</option>
+                  {availableSubjects.map((subject) => (
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
-                  知识点
+                  章节
                 </label>
-                <input
-                  type="text"
+                <select
                   className="w-full text-xs p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded text-slate-900 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-                  value={tempData.metadata.topic}
-                  onChange={(e) =>
+                  value={tempData.metadata.chapterId ?? ''}
+                  disabled={!selectedSubjectId}
+                  onChange={(e) => {
+                    const nextChapterId = e.target.value || null
+                    const selectedChapter = chapterOptions.find((chapter) => chapter.id === nextChapterId)
                     setTempData({
                       ...tempData,
-                      metadata: { ...tempData.metadata, topic: e.target.value },
+                      metadata: {
+                        ...tempData.metadata,
+                        chapterId: nextChapterId,
+                        topic: selectedChapter?.pathLabel || '未分类',
+                      },
                     })
-                  }
-                />
+                  }}
+                >
+                  <option value="">{selectedSubjectId ? '未分类' : '请先选择科目'}</option>
+                  {chapterOptions.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.pathLabel}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -178,7 +210,7 @@ export function MetadataPanel({
               </div>
               <div>
                 <span className="block text-xs text-slate-500 dark:text-slate-400 mb-0.5">
-                  知识点
+                  章节
                 </span>
                 <span className="font-medium text-slate-900 dark:text-slate-200">
                   {data.metadata.topic}
@@ -297,6 +329,11 @@ export function MetadataPanel({
                 <p className="text-[10px] text-slate-400 mt-0.5">
                   {item.date} • {item.user}
                 </p>
+                {item.comment ? (
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                    {item.comment}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -304,7 +341,7 @@ export function MetadataPanel({
       </div>
 
       {/* 审核操作区 */}
-      <div className="border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950 lg:px-6 xl:px-5">
+      <div className="sticky bottom-0 border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950 lg:px-6 xl:px-5">
         {reviewCompletedAction ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">
@@ -322,15 +359,21 @@ export function MetadataPanel({
             </button>
           </div>
         ) : data.status === 'VERIFIED' || data.status === 'PUBLISHED' ? (
-          // 已审核状态：显示灰色禁用按钮
-          <button
-            type="button"
-            disabled
-            className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-slate-400 bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
-          >
-            <Check className="h-4 w-4 mr-2" />
-            已审核
-          </button>
+          <div className="space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              {data.status === 'PUBLISHED'
+                ? '当前题目已发布，不再提供通过 / 驳回操作。'
+                : '当前题目已审核完成，不再提供通过 / 驳回操作。'}
+            </div>
+            <button
+              type="button"
+              disabled
+              className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-slate-400 bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              {data.status === 'PUBLISHED' ? '已发布' : '已审核'}
+            </button>
+          </div>
         ) : (
           // 待审核状态：显示通过和拒绝按钮
           <>

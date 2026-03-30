@@ -109,6 +109,18 @@ export function ImportClient({
     setStats(initialStats)
   }, [initialStats])
 
+  useEffect(() => {
+    if (!['ADMIN', 'TEACHER'].includes(userRole)) return
+
+    void fetch('/api/admin/content/import/consume', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ trigger: 'import-page-mount' }),
+    }).catch(() => undefined)
+  }, [userRole])
+
   const auditLogs = useMemo<AuditLogEntry[]>(
     () => initialAuditLogs || [],
     [initialAuditLogs]
@@ -128,7 +140,7 @@ export function ImportClient({
   const handleImportQueued = (optimisticBatch: BatchData) => {
     if (initialPage === 1) {
       setBatches((prev) => {
-        const next = [optimisticBatch, ...prev.filter((batch) => !batch.id.startsWith('temp-'))]
+        const next = [optimisticBatch, ...prev]
         return next.slice(0, initialPageSize)
       })
     } else {
@@ -139,6 +151,17 @@ export function ImportClient({
       ...prev,
       activeBatches: prev.activeBatches + 1,
       tasksToday: prev.tasksToday + 1,
+    }))
+    setLastSyncedAt(new Date())
+  }
+
+  const handleImportQueueFailed = (batchId: string) => {
+    setBatches((prev) => prev.filter((batch) => batch.id !== batchId))
+    setTotalTasks((prev) => Math.max(0, prev - 1))
+    setStats((prev) => ({
+      ...prev,
+      activeBatches: Math.max(0, prev.activeBatches - 1),
+      tasksToday: Math.max(0, prev.tasksToday - 1),
     }))
     setLastSyncedAt(new Date())
   }
@@ -307,13 +330,14 @@ export function ImportClient({
         </div>
       </div>
 
-      <NewBatchImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        subjects={subjects}
-        onImportQueued={handleImportQueued}
-        onImportSuccess={handleImportSuccess}
-      />
+        <NewBatchImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          subjects={subjects}
+          onImportQueued={handleImportQueued}
+          onImportQueueFailed={handleImportQueueFailed}
+          onImportSuccess={handleImportSuccess}
+        />
     </AdminClientWrapper>
   )
 }

@@ -15,11 +15,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onAnswerChange,
   showResult = false,
   readOnly = false,
+  showExplanation = true,
   className
 }) => {
   const isCorrect = React.useMemo(() => {
     if (!showResult) return undefined;
-    if (question.type === 'SINGLE_CHOICE') {
+    if (question.type === 'SINGLE_CHOICE' || question.type === 'TRUE_FALSE' || question.type === 'MCQ') {
       return userAnswer === question.answer;
     }
     if (question.type === 'MULTIPLE_CHOICE') {
@@ -53,10 +54,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         <QuestionContent content={question.content} className="text-lg font-medium" />
       </CardHeader>
       <CardContent>
-        {question.type === 'SINGLE_CHOICE' && (
+        {(question.type === 'SINGLE_CHOICE' || question.type === 'TRUE_FALSE' || question.type === 'MCQ') && (
           <SingleChoice 
             question={question} 
-            value={userAnswer as string} 
+            value={typeof userAnswer === 'string' ? userAnswer : undefined} 
             onChange={onAnswerChange as (v: string) => void}
             disabled={readOnly || showResult}
             showResult={showResult}
@@ -65,7 +66,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {question.type === 'MULTIPLE_CHOICE' && (
           <MultiChoice
             question={question}
-            value={userAnswer as string[]}
+            value={Array.isArray(userAnswer) ? userAnswer : null}
             onChange={onAnswerChange as (v: string[]) => void}
             disabled={readOnly || showResult}
             showResult={showResult}
@@ -74,7 +75,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {question.type === 'FILL_BLANK' && (
             <FillBlank
                 question={question}
-                value={userAnswer as string}
+                value={typeof userAnswer === 'string' ? userAnswer : undefined}
                 onChange={onAnswerChange as (v: string) => void}
                 disabled={readOnly || showResult}
                 showResult={showResult}
@@ -92,21 +93,46 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 {isCorrect ? (
                     <span className="flex items-center gap-2 text-green-600 dark:text-green-500">
                         <CircleCheck className="h-5 w-5" />
-                        Correct
+                        回答正确
                     </span>
                 ) : (
                     <span className="flex items-center gap-2 text-destructive">
                         <CircleX className="h-5 w-5" />
-                        Incorrect
+                        回答错误
                     </span>
                 )}
             </div>
+
+            <div className="grid w-full gap-3 md:grid-cols-2">
+                <div className="rounded-xl border border-borderTone bg-background/70 p-4">
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        你的答案
+                    </div>
+                    <div className="mt-2 text-sm font-medium text-foreground">
+                        {Array.isArray(userAnswer)
+                          ? userAnswer.join('、') || '未作答'
+                          : userAnswer || '未作答'}
+                    </div>
+                </div>
+                {question.answer !== undefined && question.answer !== null ? (
+                    <div className="rounded-xl border border-borderTone bg-background/70 p-4">
+                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                            标准答案
+                        </div>
+                        <div className="mt-2 text-sm font-medium text-foreground">
+                            {Array.isArray(question.answer)
+                              ? question.answer.join('、')
+                              : String(question.answer)}
+                        </div>
+                    </div>
+                ) : null}
+            </div>
             
-            {question.explanation && (
+            {showExplanation && question.explanation && (
                 <div className="w-full space-y-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                         <HelpCircle className="h-4 w-4" />
-                        Explanation
+                        题目解析
                     </div>
                     <QuestionContent content={question.explanation} className="text-sm text-muted-foreground" />
                 </div>

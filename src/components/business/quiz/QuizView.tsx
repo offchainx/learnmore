@@ -1,15 +1,20 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { PracticeMode, Question as PrismaQuestion, QuestionType } from '@prisma/client';
+import { PracticeMode, QuestionType } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { submitPracticeSession } from '@/actions/practice/session';
 import type { Question } from '@/components/business/question';
-import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel';
+import { PracticeReviewWorkspace } from '@/components/practice/modes/shared/PracticeReviewWorkspace';
 import type { PracticeModeTheme } from '@/components/practice/modes/shared/theme';
 import UnifiedPracticeWorkspace, {
   type UnifiedPracticeQuestion,
 } from '@/components/practice/session/UnifiedPracticeWorkspace';
+import type { TierKey } from '@/lib/permissions/types';
+import {
+  type PracticeQuestionRecord,
+  toQuestionMaterialGroup,
+} from '@/lib/practice/question-groups';
 
 interface QuizViewProps {
   userId: string;
@@ -17,7 +22,7 @@ interface QuizViewProps {
   modeLabel: string;
   subtitle: string;
   mode: PracticeMode;
-  questions: PrismaQuestion[];
+  questions: PracticeQuestionRecord[];
   chapterId?: string;
   subjectId?: string;
   submitLabel?: string;
@@ -30,9 +35,10 @@ interface QuizViewProps {
   timeLimitSeconds?: number | null;
   rightPanelNote?: string;
   onComplete?: () => void;
+  userTier?: TierKey;
 }
 
-function formatQuestion(question: PrismaQuestion): Question {
+function formatQuestion(question: PracticeQuestionRecord): Question {
   return {
     id: question.id,
     type: question.type as QuestionType,
@@ -40,6 +46,7 @@ function formatQuestion(question: PrismaQuestion): Question {
     options: question.options as Record<string, string> | null,
     answer: question.answer as string | string[] | null,
     explanation: question.explanation || null,
+    group: toQuestionMaterialGroup(question.group),
   };
 }
 
@@ -56,12 +63,13 @@ export function QuizView({
   refreshLabel = '刷新题目',
   exitLabel = '退出练习',
   resultTitle = '练习完成',
-  resultSubtitle = '下面是这一轮练习的结果摘要。',
+  resultSubtitle = '下面直接进入这一轮的逐题复盘。',
   recommendation = '先看错题分布，再决定是继续加练还是回到练习中心切换模式。',
   theme = 'amber',
   timeLimitSeconds = null,
   rightPanelNote,
   onComplete,
+  userTier = 'STARTER',
 }: QuizViewProps) {
   const router = useRouter();
   const practiceCenterHref = subjectId
@@ -76,6 +84,7 @@ export function QuizView({
     correctCount: number;
     totalQuestions: number;
     results: Record<string, boolean>;
+    answers: Record<string, string | string[]>;
   } | null>(null);
 
   const workspaceQuestions = useMemo<UnifiedPracticeQuestion[]>(
@@ -121,6 +130,7 @@ export function QuizView({
         correctCount: submitResult.correctCount ?? 0,
         totalQuestions: submitResult.totalQuestions ?? questions.length,
         results: submitResult.results ?? {},
+        answers,
       });
       onComplete?.();
     } else {
@@ -136,7 +146,7 @@ export function QuizView({
 
   if (result) {
     return (
-      <PracticeResultPanel
+      <PracticeReviewWorkspace
         title={resultTitle}
         subtitle={resultSubtitle}
         score={result.score}
@@ -149,11 +159,18 @@ export function QuizView({
         ]}
         recommendation={recommendation}
         note={submitError}
-        questionStates={questions.map((question) => Boolean(result.results[question.id]))}
+        items={questions.map((question, index) => ({
+          id: question.id,
+          order: index + 1,
+          userAnswer: result.answers[question.id] ?? null,
+          isCorrect: Boolean(result.results[question.id]),
+          question: formatQuestion(question),
+        }))}
         primaryActionLabel="返回练习中心"
         primaryAction={() => router.push(practiceCenterHref)}
         secondaryActionLabel="再做一轮"
         secondaryAction={reloadPage}
+        userTier={userTier}
       />
     );
   }

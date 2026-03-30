@@ -3,9 +3,11 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ContentStatus } from '@prisma/client'
 import { getCurrentUser } from '@/actions/user/auth'
+import { getEffectiveTier } from '@/lib/permissions/engine'
 import prisma from '@/lib/prisma'
 import { QuizView } from '@/components/business/quiz/QuizView'
 import { Button } from '@/components/ui/button'
+import { practiceQuestionWithGroupInclude } from '@/lib/practice/question-groups'
 
 export const metadata: Metadata = {
   title: 'Past Year Paper | LearnMore',
@@ -29,6 +31,7 @@ export default async function PastPaperPage({ params, searchParams }: PageProps)
 
   const { paperId } = await params
   const resolvedSearchParams = await searchParams
+  const effectiveTier = getEffectiveTier(user)
 
   const questions = await prisma.question.findMany({
     where: {
@@ -36,6 +39,7 @@ export default async function PastPaperPage({ params, searchParams }: PageProps)
       isPastPaper: true,
       status: ContentStatus.PUBLISHED,
     },
+    include: practiceQuestionWithGroupInclude,
     orderBy: { createdAt: 'asc' },
   })
 
@@ -79,9 +83,10 @@ export default async function PastPaperPage({ params, searchParams }: PageProps)
           refreshLabel="重载真题"
           exitLabel="退出真题"
           resultTitle="真题练习完成"
-          resultSubtitle="这一套真题已经完成，下面是整卷结果摘要。"
+          resultSubtitle="这一套真题已经完成，下面直接进入整卷逐题复盘。"
           recommendation="先看整卷错题分布，再决定是否回到章节地图补薄弱章节。"
           theme="indigo"
+          userTier={effectiveTier}
           rightPanelNote="历年真题更适合按整套卷完成，先做完整卷再回看结果，会更接近真实考试体验。"
         />
       )}

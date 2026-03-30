@@ -2,19 +2,23 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Question as PrismaQuestion, QuestionType as PrismaQuestionType } from '@prisma/client'
+import type { QuestionType as PrismaQuestionType } from '@prisma/client'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { submitExam, type ExamResult, type UserAnswerSubmission } from '@/actions/practice/exam'
 import type { Question } from '@/components/business/question'
-import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel'
+import { PracticeReviewWorkspace } from '@/components/practice/modes/shared/PracticeReviewWorkspace'
 import UnifiedPracticeWorkspace, {
   type UnifiedPracticeQuestion,
 } from '@/components/practice/session/UnifiedPracticeWorkspace'
 import { TierKey } from '@/lib/permissions/types'
+import {
+  type PracticeQuestionRecord,
+  toQuestionMaterialGroup,
+} from '@/lib/practice/question-groups'
 
 interface ExamData {
-  questions: PrismaQuestion[]
+  questions: PracticeQuestionRecord[]
   timeLimit: number
   startTime: number
 }
@@ -26,7 +30,7 @@ interface MockArenaExamProps {
   userTier?: TierKey
 }
 
-function formatQuestion(question: PrismaQuestion): Question {
+function formatQuestion(question: PracticeQuestionRecord): Question {
   return {
     id: question.id,
     type: question.type as PrismaQuestionType,
@@ -34,6 +38,7 @@ function formatQuestion(question: PrismaQuestion): Question {
     options: question.options as Record<string, string> | null,
     answer: null,
     explanation: null,
+    group: toQuestionMaterialGroup(question.group),
   }
 }
 
@@ -41,6 +46,7 @@ export default function MockArenaExam({
   examId,
   userId,
   subjectId,
+  userTier = 'STARTER',
 }: MockArenaExamProps) {
   const router = useRouter()
   const practiceCenterHref = subjectId
@@ -138,9 +144,9 @@ export default function MockArenaExam({
 
   if (result) {
     return (
-        <PracticeResultPanel
+        <PracticeReviewWorkspace
         title="Mock Arena 完成"
-        subtitle="这一场模拟考试已经完成，下面是整卷结果摘要。"
+        subtitle="这一场模拟考试已经完成，下面直接进入整卷逐题复盘。"
         score={Math.round(result.score)}
         theme="indigo"
         stats={[
@@ -150,11 +156,30 @@ export default function MockArenaExam({
           { label: '用时', value: `${Math.max(1, Math.round(result.duration / 60))} 分钟` },
         ]}
         recommendation="先看整卷稳定性和时间分配，如果中段波动较大，建议回到 Smart Drill 或 Error Wiper 做针对性补强。"
-        questionStates={result.questions.map((question) => question.isCorrect)}
+        items={questions.map((question, index) => {
+          const review = result.questions.find((item) => item.questionId === question.id)
+
+          return {
+            id: question.id,
+            order: index + 1,
+            userAnswer: review?.userAnswer ?? null,
+            isCorrect: review?.isCorrect ?? false,
+            question: {
+              id: question.id,
+              type: question.type as PrismaQuestionType,
+              content: question.content,
+              options: question.options as Record<string, string> | null,
+              answer: (review?.correctAnswer as string | string[] | undefined) ?? null,
+              explanation: review?.explanation || null,
+              group: toQuestionMaterialGroup(question.group),
+            },
+          }
+        })}
         primaryActionLabel="返回练习中心"
         primaryAction={() => router.push(practiceCenterHref)}
         secondaryActionLabel="再开一场"
         secondaryAction={() => router.push(subjectId ? `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(subjectId)}` : '/dashboard/practice/mock-arena')}
+        userTier={userTier}
       />
     )
   }

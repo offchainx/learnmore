@@ -122,6 +122,8 @@
 
 | 2026-03-27 | 修复 main 分支 Vercel production build 阻塞 | 根据 Vercel build logs 与本地 tsc/build 结果，修复导致 Next.js 构建失败的类型错误并验证完整构建通过 | 已修复 admin user detail、content pipeline、practice、feedback、content reports、import modal 与 mock user 数据相关类型问题；本地 pnpm exec tsc --noEmit 与 pnpm run build 均通过 | 先用 Vercel 日志定位首个阻塞点，再用 tsc 一次性拉齐剩余错误清单，按文件簇批量修复更高效 | 仅修复日志里的首个错误不足以恢复部署，main 上还有多处后续 TS 断点被前置错误掩盖 | 遇到 Vercel TypeScript 构建失败时，先取线上首个报错确认入口，再运行 pnpm exec tsc --noEmit 拉齐剩余错误列表，按模块分组修复后用 pnpm run build 做最终闭环。 | 提交并推送本轮 build 修复，等待新的 Vercel deployment 验证为 Ready；后续再单独处理 baseline-browser-mapping、middleware/proxy 与 metadataBase 等非阻塞告警 |
 
+| 2026-03-30 | 批量导入队列收口、组合题正式版第一轮闭环与审核台/练习页联动 | 将网页导入与文件上传统一到队列模型，补组合题 question_group/groupId 正式入库，并让审核台与练习前台都能识别共享材料和同组子题。 | 已完成网页+文件上传导入统一排队、组合题正式入库、审核台共享材料与同组子题切换、练习页与复盘页共享材料渲染；并修复导入队列收尾阶段 revalidatePath 误判失败问题。 | - | - | - | - |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

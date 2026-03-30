@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 
 interface MultiChoiceProps {
   question: Question;
-  value?: string[];
+  value?: string[] | null;
   onChange?: (value: string[]) => void;
   disabled?: boolean;
   showResult?: boolean;
@@ -15,19 +15,20 @@ interface MultiChoiceProps {
 
 export const MultiChoice: React.FC<MultiChoiceProps> = ({
   question,
-  value = [],
+  value,
   onChange,
   disabled,
   showResult
 }) => {
   if (!question.options) return null;
+  const selectedValues = Array.isArray(value) ? value : [];
 
   const handleCheckedChange = (checked: boolean, key: string) => {
     if (!onChange) return;
     if (checked) {
-      onChange([...value, key]);
+      onChange([...selectedValues, key]);
     } else {
-      onChange(value.filter((v) => v !== key));
+      onChange(selectedValues.filter((v) => v !== key));
     }
   };
 
@@ -35,7 +36,7 @@ export const MultiChoice: React.FC<MultiChoiceProps> = ({
     <div className="grid gap-3">
       {Object.entries(question.options).map(([key, label]) => {
         const optionId = `question-${question.id}-option-${key}`;
-        const isSelected = value.includes(key);
+        const isSelected = selectedValues.includes(key);
         // Assuming question.answer is string[] for Multi Choice, or we need to parse it if it comes as string (should be handled by parent or types)
         // In types.ts: answer?: string | string[] | null;
         // We assume here that for MULTIPLE_CHOICE it's an array or we treat it as one.

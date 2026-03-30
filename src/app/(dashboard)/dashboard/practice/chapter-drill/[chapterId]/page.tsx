@@ -5,10 +5,12 @@ import { getChapterWithStats, getRandomQuestions } from '@/actions/practice/data
 import { QuizView } from '@/components/business/quiz/QuizView';
 import prisma from '@/lib/prisma';
 import type { ChapterWithStats } from '@/lib/practice/types';
+import { getEffectiveTier } from '@/lib/permissions/engine';
 import { PageEmptyState } from '@/components/shared/PageEmptyState';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { BookOpen } from 'lucide-react';
+import { type PracticeQuestionRecord } from '@/lib/practice/question-groups';
 
 interface PageProps {
   params: Promise<{
@@ -60,7 +62,7 @@ function buildPreviewChapter(chapterId: string): ChapterWithStats {
 function createPreviewQuestion(
   chapterId: string,
   overrides: Partial<Question> & Pick<Question, 'id' | 'content' | 'type' | 'answer'>,
-): Question {
+): PracticeQuestionRecord {
   const { id, type, content, answer, ...rest } = overrides;
 
   return {
@@ -69,6 +71,7 @@ function createPreviewQuestion(
     grade: 8,
     chapterId,
     subjectId: 'preview',
+    groupId: null,
     difficulty: 3,
     type,
     content,
@@ -96,6 +99,7 @@ function createPreviewQuestion(
     deletedAt: null,
     deletedBy: null,
     deleteReason: null,
+    group: null,
     ...rest,
   };
 }
@@ -110,6 +114,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
 
   const previewChapter = isPreviewChapterId(chapterId) ? buildPreviewChapter(chapterId) : null;
   const chapter = previewChapter ?? (await getChapterWithStats(chapterId, user.id));
+  const effectiveTier = getEffectiveTier(user)
 
   if (!chapter) {
     redirect('/dashboard/practice');
@@ -120,7 +125,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
   const [subject, questions] = previewChapter
     ? await Promise.all([
         Promise.resolve({ name: '练习预览' }),
-        Promise.resolve<Question[]>([
+        Promise.resolve<PracticeQuestionRecord[]>([
           createPreviewQuestion(chapterId, {
             id: `${chapterId}-preview-1`,
             type: QuestionType.SINGLE_CHOICE,
@@ -188,7 +193,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
         refreshLabel="换一组题"
         exitLabel="退出章节练习"
         resultTitle="章节练习完成"
-        resultSubtitle="当前章节这一轮已经完成，下面是本轮结果摘要。"
+        resultSubtitle="当前章节这一轮已经完成，下面直接进入逐题复盘。"
         recommendation={
           previewChapter
             ? '这是薄弱点快修/知识蜂巢的 mock 章节预览，主要用于确认进入章节练习后的统一答题流程。'
@@ -197,6 +202,7 @@ export default async function ChapterDrillPage({ params }: PageProps) {
             : '这一章整体表现已经稳定，可以回到练习中心切到 Smart Drill 或历年真题继续。'
         }
         theme="amber"
+        userTier={effectiveTier}
         rightPanelNote={
           previewChapter
             ? '当前入口来自右侧分析卡片，这里先用 mock 题承接预览章节，避免 preview id 进入真实 Prisma 查询。'

@@ -1,9 +1,13 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { Question, QuestionType } from '@prisma/client'
+import { QuestionType } from '@prisma/client'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
+import {
+  practiceQuestionWithGroupInclude,
+  type PracticeQuestionRecord,
+} from '@/lib/practice/question-groups'
 
 const SUBJECT_KEY_MAP: Record<string, string> = {
   math: 'math',
@@ -52,7 +56,7 @@ export async function getSmartDrillQuestions(
   userId: string,
   subjectIdentifier: string,
   limit: number = 10
-): Promise<Question[]> {
+): Promise<PracticeQuestionRecord[]> {
   try {
     const subjectId = await resolveSubjectId(subjectIdentifier)
     if (!subjectId) return []
@@ -116,7 +120,7 @@ export async function getSmartDrillQuestions(
       .slice(0, 3)
       .map(([chapterId]) => chapterId)
 
-    const selected: Question[] = []
+    const selected: PracticeQuestionRecord[] = []
 
     if (weakChapterIds.length > 0) {
       const weakQuestions = await prisma.question.findMany({
@@ -129,6 +133,7 @@ export async function getSmartDrillQuestions(
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
         },
+        include: practiceQuestionWithGroupInclude,
         take: Math.floor(limit * 0.6),
       })
       for (const q of weakQuestions) {
@@ -155,6 +160,7 @@ export async function getSmartDrillQuestions(
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: [...attemptedIds, ...Array.from(excludeIds)] },
         },
+        include: practiceQuestionWithGroupInclude,
         take: remaining,
       })
 
@@ -174,6 +180,7 @@ export async function getSmartDrillQuestions(
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: Array.from(excludeIds) },
         },
+        include: practiceQuestionWithGroupInclude,
         take: limit - selected.length,
       })
       selected.push(...fallback)
@@ -189,6 +196,7 @@ export async function getSmartDrillQuestions(
           status: { in: ['PUBLISHED', 'VERIFIED'] },
           id: { notIn: selected.map((question) => question.id) },
         },
+        include: practiceQuestionWithGroupInclude,
         take: limit - selected.length,
       })
       selected.push(...finalFallback)

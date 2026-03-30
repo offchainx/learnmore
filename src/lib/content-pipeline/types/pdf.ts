@@ -28,6 +28,12 @@ export interface ImportFromPDFInput {
   isPastPaper?: boolean
   /** 真题卷号（可选） */
   paperId?: string | null
+  /** 内部队列执行时复用现有 source_file */
+  _sourceFileId?: string
+  /** 内部队列执行时复用上传者 */
+  _uploadedBy?: string
+  /** 内部队列执行时跳过登录态检查 */
+  _skipAuthCheck?: boolean
 }
 
 /**

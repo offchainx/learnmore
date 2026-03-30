@@ -95,6 +95,7 @@ interface NewBatchImportModalProps {
   onClose: () => void
   subjects: Array<{ id: string; name: string }>
   onImportQueued?: (batch: BatchData) => void
+  onImportQueueFailed?: (batchId: string) => void
   onImportSuccess?: () => void
 }
 
@@ -118,6 +119,7 @@ export function NewBatchImportModal({
   onClose,
   subjects,
   onImportQueued,
+  onImportQueueFailed,
   onImportSuccess,
 }: NewBatchImportModalProps) {
   const { toast } = useToast()
@@ -148,9 +150,9 @@ export function NewBatchImportModal({
       fileCount: 1,
       subject: subjectName,
       curriculum: 'UEC',
-      progress: 2,
-      status: 'Processing',
-      statusMessage: '正在创建导入任务...',
+      progress: 1,
+      status: 'Queued',
+      statusMessage: '任务已入队，等待开始抓取...',
       createdAt: new Date(),
       questionsCount: 0,
       sourceRemark: values.source,
@@ -159,9 +161,9 @@ export function NewBatchImportModal({
       events: ['IMPORT_TASK_CREATED'],
       importDiagnostics: {
         currentStage: 'QUEUING',
-        currentStageLabel: '任务创建',
-        statusSummary: '正在创建导入任务...',
-        overallProgress: 2,
+        currentStageLabel: '等待处理',
+        statusSummary: '任务已入队，等待前序抓取任务完成...',
+        overallProgress: 1,
         stageProgress: 0,
       },
     }
@@ -208,6 +210,7 @@ export function NewBatchImportModal({
     try {
       if (values.importMethod === 'WEB_URL') {
         setIsUploading(true)
+        const optimisticBatch = createOptimisticBatch(values)
         const payload = {
           pageUrl: values.pageUrl!.trim(),
           subjectId: values.subjectId,
@@ -216,35 +219,32 @@ export function NewBatchImportModal({
           maxQuestions: values.maxQuestions?.trim() ? Number(values.maxQuestions) : undefined,
         }
         // 网页导入点击后直接返回任务列表，状态在列表中查看
-        onImportQueued?.(createOptimisticBatch(values))
+        onImportQueued?.(optimisticBatch)
         onClose()
         resetState()
-        toast({
-          title: '任务已提交',
-          description: '请在批量任务管理查看导入进度和状态。',
-        })
-
-        void (async () => {
-          try {
-            const importRes = await importFromWebUrl(payload)
-            if (!importRes.success || !importRes.data) {
-              throw new Error(importRes.error || '网页导入失败')
-            }
-            toast({
-              title: '导入完成',
-              description: `成功 ${importRes.data.questionsCreated} 题，重复 ${importRes.data.questionsDuplicated} 题，失败 ${importRes.data.questionsFailed} 题。`,
-            })
-          } catch (error) {
-            const message = error instanceof Error ? error.message : '未知错误'
-            toast({
-              variant: 'destructive',
-              title: '导入失败',
-              description: message,
-            })
-          } finally {
-            onImportSuccess?.()
+        try {
+          const importRes = await importFromWebUrl(payload)
+          if (!importRes.success || !importRes.data) {
+            throw new Error(importRes.error || '网页导入失败')
           }
-        })()
+
+          toast({
+            title: '任务已入队',
+            description: '请在批量任务管理查看排队与抓取进度。',
+          })
+          onImportSuccess?.()
+
+          void fetch('/api/admin/content/import/consume', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({ trigger: 'web-import-queue' }),
+          }).catch(() => undefined)
+        } catch (error) {
+          onImportQueueFailed?.(optimisticBatch.id)
+          throw error
+        }
 
         return
       }
@@ -256,9 +256,10 @@ export function NewBatchImportModal({
         source: values.source,
         isPastPaper: values.isPastPaper,
       }
+      const optimisticBatch = createOptimisticBatch(values)
 
       // 文件导入点击后也直接返回任务列表，进度统一在批量任务管理中查看
-      onImportQueued?.(createOptimisticBatch(values))
+      onImportQueued?.(optimisticBatch)
       onClose()
       resetState()
       toast({
@@ -288,10 +289,19 @@ export function NewBatchImportModal({
           }
 
           toast({
-            title: '导入完成',
-            description: `成功 ${importRes.data.questionsCreated} 题，重复 ${importRes.data.questionsDuplicated} 题，失败 ${importRes.data.questionsFailed} 题。`,
+            title: '任务已入队',
+            description: '请在批量任务管理查看排队与导入进度。',
           })
+
+          void fetch('/api/admin/content/import/consume', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify({ trigger: 'file-import-queue' }),
+          }).catch(() => undefined)
         } catch (error) {
+          onImportQueueFailed?.(optimisticBatch.id)
           const message = error instanceof Error ? error.message : '未知错误'
           toast({
             variant: 'destructive',

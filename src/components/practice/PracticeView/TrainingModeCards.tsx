@@ -4,8 +4,8 @@ import {
   ArrowRight,
   BrainCircuit,
   Eraser,
+  Flag,
   TimerReset,
-  Trophy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,8 +20,6 @@ import { useApp } from '@/providers'
 interface PracticeModeGridProps {
   selectedSubjectId: string
   currentSubjectTitle: string
-  chapterCount: number
-  pastPaperCount: number
   weakChapterCount: number
   strongestSignal: string
   onOpenSmartDrillPreview?: () => void
@@ -168,8 +166,6 @@ function PrimaryModeCard({
 export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
   selectedSubjectId,
   currentSubjectTitle,
-  chapterCount,
-  pastPaperCount,
   weakChapterCount,
   strongestSignal,
   onOpenSmartDrillPreview,
@@ -186,7 +182,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       badge: '核心模式',
       heading: '三种主要练习模式',
       subheading:
-        '首屏只保留最核心的三个入口，先开始练习，再向下看章节和真题。',
+        '首屏先保留最核心的三个入口，先开始训练，再向下看章节和真题。',
       smart: {
         title: 'Smart Drill',
         subtitle: hasSubject
@@ -209,11 +205,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       },
       mock: {
         title: 'Mock Arena',
-        subtitle: '进入完整模拟考场',
+        subtitle: '限时整卷演练',
         description:
-          '在限时氛围里完成整套模拟卷，检查真实考试中的节奏、时间分配和稳定性。',
-        compactMeta:
-          pastPaperCount > 0 ? `${pastPaperCount} 套可开始` : '等待卷库数据',
+          '按题量和难度组一套完整模拟卷，更适合在阶段训练后做一次综合检验。',
+        compactMeta: hasSubject ? '整卷限时训练' : '先选科目再开始',
         action: '进入模拟考场',
       },
     },
@@ -247,13 +242,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       },
       mock: {
         title: 'Mock Arena',
-        subtitle: 'Full exam simulation',
+        subtitle: 'Timed full-paper simulation',
         description:
-          'Complete a timed paper and check pacing, exam rhythm, and final stability under pressure.',
-        compactMeta:
-          pastPaperCount > 0
-            ? `${pastPaperCount} papers ready`
-            : 'Paper bank pending',
+          'Generate a complete timed paper by question count and difficulty for a more exam-like check.',
+        compactMeta: hasSubject ? 'Full-paper timed run' : 'Pick a subject first',
         action: 'Enter Mock Arena',
       },
     },
@@ -287,13 +279,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       },
       mock: {
         title: 'Mock Arena',
-        subtitle: 'Simulasi peperiksaan penuh',
+        subtitle: 'Simulasi kertas penuh berjadual',
         description:
-          'Lengkapkan kertas berhad masa untuk semak rentak, pengurusan masa dan kestabilan prestasi sebenar.',
-        compactMeta:
-          pastPaperCount > 0
-            ? `${pastPaperCount} kertas sedia`
-            : 'Bank kertas belum ada',
+          'Bina satu set peperiksaan lengkap mengikut jumlah soalan dan tahap kesukaran untuk semakan menyeluruh.',
+        compactMeta: hasSubject ? 'Latihan berjadual penuh' : 'Pilih subjek dahulu',
         action: 'Masuk Mock Arena',
       },
     },
@@ -334,10 +323,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
     },
     {
       ...copy.mock,
-      icon: Trophy,
-      modeLabel: 'Exam',
+      icon: Flag,
+      modeLabel: 'Timed',
       visualClassName:
-        'bg-[hsl(var(--state-warning-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-warning-fg))_0%,transparent_28%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_60%,hsl(var(--page-bg-elevated))_100%)]',
+        'bg-[hsl(var(--state-warning-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-warning-fg))_0%,transparent_25%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
         if (onOpenMockArenaPreview) {
           onOpenMockArenaPreview()

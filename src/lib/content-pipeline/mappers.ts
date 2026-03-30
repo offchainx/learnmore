@@ -37,6 +37,12 @@ export function mapImportTaskToBatchData(task: ImportTask): BatchData {
       ? Math.max(0, Math.min(99, Math.round(task.importDiagnostics.overallProgress)))
       : 50
   const processingStatusMessage = task.importDiagnostics?.statusSummary?.trim()
+  const displayProgress =
+    task.status === 'COMPLETED'
+      ? 100
+      : task.status === 'PROCESSING' || task.status === 'PENDING'
+        ? processingProgress
+        : 0
 
   return {
     id: task.id,
@@ -44,10 +50,10 @@ export function mapImportTaskToBatchData(task: ImportTask): BatchData {
     fileCount: 1,
     subject: task.subject?.name || '未知科目',
     curriculum: task.curriculum || 'UEC',
-    progress: task.status === 'COMPLETED' ? 100 : task.status === 'PROCESSING' ? processingProgress : 0,
+    progress: displayProgress,
     status: mapProcessingStatusToBatchStatus(task.status),
     statusMessage:
-      task.status === 'PROCESSING'
+      task.status === 'PROCESSING' || task.status === 'PENDING'
         ? processingStatusMessage || getStatusMessage(task.status)
         : getStatusMessage(task.status),
     createdAt: task.createdAt,
