@@ -124,6 +124,8 @@
 
 | 2026-03-30 | 批量导入队列收口、组合题正式版第一轮闭环与审核台/练习页联动 | 将网页导入与文件上传统一到队列模型，补组合题 question_group/groupId 正式入库，并让审核台与练习前台都能识别共享材料和同组子题。 | 已完成网页+文件上传导入统一排队、组合题正式入库、审核台共享材料与同组子题切换、练习页与复盘页共享材料渲染；并修复导入队列收尾阶段 revalidatePath 误判失败问题。 | - | - | - | - |
 
+| 2026-03-30 | Task 7.20 sidebar 遮挡修复 | 将 sidebar 改成三段式结构，解决展开多个手风琴时升级套餐卡被底部账户区遮挡 | 已完成 sidebar 三段式重构，升级套餐卡不再被遮挡，SOP 已同步为 7.20 完成 | flex 三段式布局 + 中部 min-h-0 overflow-y-auto 比 padding-bottom 腾空间稳定 | 提交前未同步 iteration log，被 pre-commit 阻断 | 涉及代码提交前，先补 iteration log 再执行 git commit | 开始 7.19，优先收共用壳层与 dashboard/courses/import/review 四个页面的中窄视窗响应式 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

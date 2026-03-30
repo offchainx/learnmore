@@ -303,7 +303,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 h-full w-72 transform border-r transition-transform duration-300 ease-out lg:relative lg:block lg:translate-x-0 lg:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 transform flex-col border-r transition-transform duration-300 ease-out lg:relative lg:flex lg:translate-x-0 lg:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
         <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
           <div
@@ -325,7 +325,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Nav Items - Scrollable Area */}
-        <div className="h-[calc(100vh-5rem)] overflow-y-auto px-4 pb-56 pt-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           <div className="space-y-1">
             {menuItems.map((item) => (
               <SidebarItem
@@ -443,7 +443,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Bottom Section - ABSOLUTELY POSITIONED */}
-        <div className="absolute bottom-0 left-0 z-20 w-full border-t border-borderTone/70 bg-page p-4 dark:border-borderTone/70 dark:bg-page">
+        <div className="z-20 shrink-0 border-t border-borderTone/70 bg-page p-4 dark:border-borderTone/70 dark:bg-page">
           <SectionLabel label={copy('账户', 'Account', 'Akaun')} />
           {!isParent && (
             <div
