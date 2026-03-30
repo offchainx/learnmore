@@ -55,7 +55,7 @@ export function QuestionPreview({ question, className }: QuestionPreviewProps) {
 
       {/* 答案与解析 */}
       <div className="space-y-4 pt-4 border-t">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2">
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-muted-foreground">正确答案</h4>
             <div className="p-3 rounded-md bg-muted font-medium font-mono text-lg text-primary">

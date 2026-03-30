@@ -225,10 +225,10 @@ const ProductTourPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
         {/* Flexbox Layout for Sticky Sidebar */}
         {/* items-start is critical for sticky behavior */}
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start relative">
+        <div className="relative flex flex-col items-start gap-12 desktop:flex-row desktop:gap-20">
           
           {/* Sticky Sidebar */}
-          <div className="hidden lg:block w-64 shrink-0 sticky top-32 z-20 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <div className="sticky top-32 z-20 hidden w-64 shrink-0 animate-fade-in-up desktop:block" style={{ animationDelay: '0.2s' }}>
              <div className="relative pl-4">
                {/* Progress Line */}
                <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-slate-800/50">
@@ -269,7 +269,7 @@ const ProductTourPage: React.FC = () => {
           </div>
 
           {/* Mobile Sticky Header */}
-          <div className="lg:hidden sticky top-16 z-30 bg-[#050b14]/90 backdrop-blur-xl py-4 border-b border-slate-800 -mx-4 px-4 flex justify-between overflow-x-auto whitespace-nowrap scrollbar-hide w-full">
+          <div className="scrollbar-hide -mx-4 sticky top-16 z-30 flex w-full justify-between overflow-x-auto whitespace-nowrap border-b border-slate-800 bg-[#050b14]/90 px-4 py-4 backdrop-blur-xl desktop:hidden">
              {steps.map((step, i) => (
                 <button 
                   key={i}
@@ -282,11 +282,11 @@ const ProductTourPage: React.FC = () => {
           </div>
 
           {/* Main Content Sections - Compact Spacing */}
-          <div className="flex-1 min-w-0 space-y-24 lg:space-y-32 pt-4 lg:pt-0">
+          <div className="min-w-0 flex-1 space-y-24 pt-4 desktop:space-y-32 desktop:pt-0">
             
             {/* Step 1: Assess */}
-            <section ref={el => { stepRefs.current[0] = el }} className="scroll-mt-32 grid lg:grid-cols-2 gap-12 items-center min-h-[40vh]">
-               <div className="order-2 lg:order-1 animate-fade-in-up">
+            <section ref={el => { stepRefs.current[0] = el }} className="grid min-h-[40vh] scroll-mt-32 items-center gap-12 desktop:grid-cols-2">
+               <div className="order-2 animate-fade-in-up desktop:order-1">
                   <div className="text-blue-500 font-mono text-sm font-bold mb-3 flex items-center gap-2">
                      <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> {t.s1.step}
                   </div>
@@ -300,7 +300,7 @@ const ProductTourPage: React.FC = () => {
                   </div>
                </div>
                
-               <div className="order-1 lg:order-2">
+               <div className="order-1 desktop:order-2">
                   <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl group">
                      {/* Radar Chart */}
                      <div className="flex-1 relative flex items-center justify-center">
@@ -341,8 +341,8 @@ const ProductTourPage: React.FC = () => {
             </section>
 
             {/* Step 2: Plan */}
-            <section ref={el => { stepRefs.current[1] = el }} className="scroll-mt-32 grid lg:grid-cols-2 gap-12 items-center min-h-[40vh]">
-               <div className="order-2 lg:order-2 animate-fade-in-up">
+            <section ref={el => { stepRefs.current[1] = el }} className="grid min-h-[40vh] scroll-mt-32 items-center gap-12 desktop:grid-cols-2">
+               <div className="order-2 animate-fade-in-up">
                   <div className="text-indigo-500 font-mono text-sm font-bold mb-3 flex items-center gap-2">
                      <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> {t.s2.step}
                   </div>
@@ -359,7 +359,7 @@ const ProductTourPage: React.FC = () => {
                   </div>
                </div>
 
-               <div className="order-1 lg:order-1">
+               <div className="order-1">
                   <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl">
                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:30px_30px]"></div>
                      <div className="relative w-full h-full">
@@ -383,8 +383,8 @@ const ProductTourPage: React.FC = () => {
             </section>
 
             {/* Step 3: Learn */}
-            <section ref={el => { stepRefs.current[2] = el }} className="scroll-mt-32 grid lg:grid-cols-2 gap-12 items-center min-h-[40vh]">
-               <div className="order-2 lg:order-1 animate-fade-in-up">
+            <section ref={el => { stepRefs.current[2] = el }} className="grid min-h-[40vh] scroll-mt-32 items-center gap-12 desktop:grid-cols-2">
+               <div className="order-2 animate-fade-in-up desktop:order-1">
                   <div className="text-purple-500 font-mono text-sm font-bold mb-3 flex items-center gap-2">
                      <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span> {t.s3.step}
                   </div>
@@ -399,7 +399,7 @@ const ProductTourPage: React.FC = () => {
                   </div>
                </div>
 
-               <div className="order-1 lg:order-2">
+               <div className="order-1 desktop:order-2">
                   <div className="relative h-[360px] bg-slate-900 rounded-3xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl">
                      <div className="h-10 border-b border-slate-800 flex items-center px-4 justify-between bg-slate-800/30">
                         <div className="flex gap-1.5">
@@ -432,8 +432,8 @@ const ProductTourPage: React.FC = () => {
             </section>
 
             {/* Step 4: Practice */}
-            <section ref={el => { stepRefs.current[3] = el }} className="scroll-mt-32 grid lg:grid-cols-2 gap-12 items-center min-h-[40vh]">
-               <div className="order-2 lg:order-2 animate-fade-in-up">
+            <section ref={el => { stepRefs.current[3] = el }} className="grid min-h-[40vh] scroll-mt-32 items-center gap-12 desktop:grid-cols-2">
+               <div className="order-2 animate-fade-in-up">
                   <div className="text-emerald-500 font-mono text-sm font-bold mb-3 flex items-center gap-2">
                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {t.s4.step}
                   </div>
@@ -452,7 +452,7 @@ const ProductTourPage: React.FC = () => {
                   </div>
                </div>
 
-               <div className="order-1 lg:order-1">
+               <div className="order-1">
                   <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl p-6">
                      <div className="w-full h-full relative">
                         <div className="absolute left-0 bottom-0 w-full h-[1px] bg-slate-700"></div>
@@ -492,8 +492,8 @@ const ProductTourPage: React.FC = () => {
             </section>
 
             {/* Step 5: Review */}
-            <section ref={el => { stepRefs.current[4] = el }} className="scroll-mt-32 grid lg:grid-cols-2 gap-12 items-center min-h-[40vh] pb-12">
-               <div className="order-2 lg:order-1 animate-fade-in-up">
+            <section ref={el => { stepRefs.current[4] = el }} className="grid min-h-[40vh] scroll-mt-32 items-center gap-12 pb-12 desktop:grid-cols-2">
+               <div className="order-2 animate-fade-in-up desktop:order-1">
                   <div className="text-orange-500 font-mono text-sm font-bold mb-3 flex items-center gap-2">
                      <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span> {t.s5.step}
                   </div>
@@ -506,7 +506,7 @@ const ProductTourPage: React.FC = () => {
                   </Button>
                </div>
 
-               <div className="order-1 lg:order-2">
+               <div className="order-1 desktop:order-2">
                   <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl p-6">
                      <div className="w-full h-full relative">
                         <div className="absolute left-0 bottom-0 w-full h-[1px] bg-slate-700"></div>

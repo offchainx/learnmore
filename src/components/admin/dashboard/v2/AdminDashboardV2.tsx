@@ -384,14 +384,14 @@ function KpiRow({
 }) {
   return (
     <section className="space-y-2.5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
         <SectionBlockHeader
           title="管理概览"
           description="保留后台当下最关键的业务体量、推进效率和处理压力指标。"
           className="flex-1"
         />
 
-        <div className="flex flex-wrap items-center gap-3 md:justify-end">
+        <div className="flex flex-wrap items-center gap-3 tablet:justify-end">
           <div className={pageSegmentedControlCompactClass}>
             {windowOptions.map((option) => {
               const isActive = option.key === window
@@ -429,7 +429,7 @@ function KpiRow({
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-4">
         {items.map((item) => {
           const visual = getKpiVisual(item)
           const trend = getTrendDisplay(item.trend)
@@ -972,7 +972,7 @@ export default function AdminDashboardV2({
           onWindowChange={handleWindowChange}
         />
 
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 desktop:grid-cols-3">
           <PriorityQueue items={visibleWorkQueue} />
           {role === 'ADMIN' ? (
             <RiskPanel items={visibleRisks} />

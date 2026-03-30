@@ -11,7 +11,7 @@ export const StatsCards: React.FC = () => {
   const text = getReportsI18n(lang).stats;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="mb-8 grid grid-cols-1 gap-6 tablet:grid-cols-3">
       {/* Pending Reports */}
       <Card className="group relative overflow-hidden rounded-[28px] border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default)),hsl(var(--state-danger-bg)))] hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:bg-surface">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">

@@ -343,14 +343,14 @@ export function FeedbackList({
       />
 
       <section className="space-y-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
           <SectionBlockHeader
             title="反馈概览"
             description="以时间范围为基准查看反馈体量、待办压力与处理闭环效率。"
             className="flex-1"
           />
 
-          <div className="flex flex-wrap items-center gap-3 md:justify-end">
+          <div className="flex flex-wrap items-center gap-3 tablet:justify-end">
             <div className={pageSegmentedControlCompactClass}>
               {windowOptions.map((option) => {
                 const isActive = option.key === overviewWindow
@@ -380,7 +380,7 @@ export function FeedbackList({
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-4">
           {overviewCards.map((card) => {
             const Icon = card.icon
             const trend = getTrendDisplay(card.trend)
@@ -454,9 +454,9 @@ export function FeedbackList({
               description="按状态、分类和关键词筛选反馈，进入详情页继续处理与回复。"
             />
 
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <div className="group relative w-full md:w-80">
+            <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+              <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center">
+                <div className="group relative w-full tablet:w-80">
                   <Search
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
                     size={18}
@@ -473,7 +473,7 @@ export function FeedbackList({
                   />
                 </div>
 
-                <div className="flex flex-row gap-3 overflow-x-auto pb-1 md:pb-0">
+                <div className="flex flex-row gap-3 overflow-x-auto pb-1 tablet:pb-0">
                   <div className="relative min-w-[150px]">
                     <select
                       value={statusFilter}
@@ -533,7 +533,7 @@ export function FeedbackList({
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+              <div className="flex flex-wrap items-center gap-3 desktop:justify-end">
                 <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                   当前命中{' '}
                   <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">

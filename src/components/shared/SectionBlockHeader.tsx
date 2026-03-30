@@ -26,11 +26,11 @@ export function SectionBlockHeader({
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 md:flex-row md:items-start md:justify-between',
+        'flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between',
         className
       )}
     >
-      <div className="space-y-1">
+      <div className="min-w-0 space-y-1">
         <h2 className={cn(pageSectionTitleClass, titleClassName)}>{title}</h2>
         {description ? (
           <p className={cn(pageSectionDescriptionClass, descriptionClassName)}>
@@ -39,7 +39,7 @@ export function SectionBlockHeader({
         ) : null}
       </div>
 
-      {actions ? <div className="shrink-0">{actions}</div> : null}
+      {actions ? <div className="w-full min-w-0 md:w-auto md:shrink-0">{actions}</div> : null}
     </div>
   )
 }

@@ -28,7 +28,7 @@ export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
   errorMessage,
 }) => {
   return (
-    <div className={`${pageSectionGapCompactClass} xl:sticky xl:top-2.5`}>
+    <div className={`${pageSectionGapCompactClass} 2xl:sticky 2xl:top-2.5`}>
       <KnowledgeHive
         subjectName={currentSubjectTitle || undefined}
         nodes={knowledgeHive}

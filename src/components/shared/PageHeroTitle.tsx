@@ -19,11 +19,11 @@ export function PageHeroTitle({
   return (
     <span
       className={cn(
-        'inline-flex max-w-full flex-wrap items-center gap-3 align-middle',
+        'flex w-full min-w-0 flex-wrap items-center gap-3 align-middle',
         className
       )}
     >
-      <span className={cn('min-w-0', titleClassName)}>{title}</span>
+      <span className={cn('min-w-0 break-words', titleClassName)}>{title}</span>
       <HeroCapsule label={capsuleLabel} />
     </span>
   )

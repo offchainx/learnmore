@@ -195,9 +195,9 @@ export function QuestionReviewDrawer({
     <Sheet open={open} onOpenChange={(nextOpen) => (!nextOpen ? handleClose() : undefined)}>
       <SheetContent
         side="right"
-        className="!w-[100vw] sm:!w-[96vw] sm:!max-w-none xl:!w-[1460px] 2xl:!w-[1560px] flex h-full flex-col overflow-hidden border-l border-borderTone bg-page p-0 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7]"
+        className="!w-[100vw] sm:!w-[96vw] sm:!max-w-none desktop:!w-[1460px] 2xl:!w-[1560px] flex h-full flex-col overflow-hidden border-l border-borderTone bg-page p-0 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7]"
       >
-        <SheetHeader className="border-b border-borderTone bg-surface/95 px-5 py-4 backdrop-blur dark:border-[#24324D] dark:bg-[#0F172A]/95 lg:px-7">
+        <SheetHeader className="border-b border-borderTone bg-surface/95 px-5 py-4 backdrop-blur dark:border-[#24324D] dark:bg-[#0F172A]/95 desktop:px-7">
           <div className="pr-10">
             <SheetTitle className="flex items-center gap-2 text-left text-xl font-bold text-text-primary dark:text-white">
               <ClipboardCheck className="h-5 w-5 text-blue-500" />
@@ -219,7 +219,7 @@ export function QuestionReviewDrawer({
             </div>
           </div>
         ) : (
-          <div className="grid flex-1 min-h-0 grid-cols-1 overflow-hidden bg-page dark:bg-slate-950 xl:grid-cols-[minmax(0,1.45fr)_380px] 2xl:grid-cols-[minmax(0,1.6fr)_420px]">
+          <div className="grid flex-1 min-h-0 grid-cols-1 overflow-hidden bg-page dark:bg-slate-950 desktop:grid-cols-[minmax(0,1.45fr)_380px] 2xl:grid-cols-[minmax(0,1.6fr)_420px]">
             <QuestionPanel data={question} onUpdate={handleUpdate} onOpenQuestion={onOpenQuestion} />
             <MetadataPanel
               data={question}

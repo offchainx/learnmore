@@ -21,7 +21,7 @@ export const Header = () => {
 
       <div className="flex items-center gap-4">
         {/* Date Filter */}
-        <div className="hidden md:flex items-center bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl p-1">
+        <div className="hidden tablet:flex items-center bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl p-1">
           <button className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm transition-all">
             7 Days
           </button>

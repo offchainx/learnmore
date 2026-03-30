@@ -755,11 +755,11 @@ export function CommunityView({
         />
 
         <div
-          className={`grid grid-cols-1 xl:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] ${pageGridGapClass}`}
+          className={`grid grid-cols-1 desktop:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] ${pageGridGapClass}`}
         >
           <div className={pageSectionGapCompactClass}>
             <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
                 <div
                   className={`flex flex-wrap items-center gap-2 ${pageSegmentedControlClass}`}
                 >

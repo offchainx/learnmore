@@ -34,10 +34,10 @@ export function CookieConsent() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-6"
+          className="fixed bottom-0 left-0 right-0 z-[100] p-4 tablet:p-6"
         >
-          <div className="max-w-7xl mx-auto bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl shadow-2xl p-6 md:flex md:items-center md:justify-between gap-6">
-            <div className="flex-1 mb-4 md:mb-0">
+          <div className="mx-auto max-w-7xl gap-6 rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl backdrop-blur-md tablet:flex tablet:items-center tablet:justify-between">
+            <div className="mb-4 flex-1 tablet:mb-0">
               <h3 className="text-lg font-semibold text-white mb-2">We use cookies</h3>
               <p className="text-slate-400 text-sm leading-relaxed">
                 We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. 

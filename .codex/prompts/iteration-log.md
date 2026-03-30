@@ -126,6 +126,8 @@
 
 | 2026-03-30 | Task 7.20 sidebar 遮挡修复 | 将 sidebar 改成三段式结构，解决展开多个手风琴时升级套餐卡被底部账户区遮挡 | 已完成 sidebar 三段式重构，升级套餐卡不再被遮挡，SOP 已同步为 7.20 完成 | flex 三段式布局 + 中部 min-h-0 overflow-y-auto 比 padding-bottom 腾空间稳定 | 提交前未同步 iteration log，被 pre-commit 阻断 | 涉及代码提交前，先补 iteration log 再执行 git commit | 开始 7.19，优先收共用壳层与 dashboard/courses/import/review 四个页面的中窄视窗响应式 |
 
+| 2026-03-30 | Task 7.19 全站响应式第一轮收口与外链噪点资源移除 | 统一 dashboard/admin/marketing/auth 主要页面在中窄视窗下的收缩与重排，并移除失败的外部 noise.svg 资源引用 | 已完成主要页面壳层断点统一、局部横向滚动与卡片重排，移除了 study-guides 与 podium 中的 `grainy-gradients.vercel.app/noise.svg` 外链；定向 eslint 与 `tsc --noEmit` 通过 | 先修壳层断点与 `min-w-0`，再做页面级重排，最后清理外链资源，能避免反复打补丁 | 提交时被 codex pre-commit 强制要求补 iteration log，且此前外链资源失败会在浏览器控制台制造噪音 | 遇到布局大扫除类改动时，先统一壳层断点和容器约束，再逐页补栅格/滚动策略；提交前同步更新 iteration log，避免被钩子拦截 | 提交当前响应式收口改动，然后继续按用户手动验收结果补剩余页面细节 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

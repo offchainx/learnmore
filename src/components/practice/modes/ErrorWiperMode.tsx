@@ -172,7 +172,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
           本轮会把最近不稳定的错题完整铺开，统一在三栏答题页里做完后再一次性交卷。
         </p>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
+        <div className="mt-6 grid gap-3 tablet:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
             <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">待修复</div>
             <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{initialSession.length} 题</div>

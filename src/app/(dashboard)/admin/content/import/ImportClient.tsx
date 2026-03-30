@@ -255,8 +255,8 @@ export function ImportClient({
 
   return (
     <AdminClientWrapper userRole={userRole}>
-      <div className="px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
+      <div className="min-w-0 px-3 py-2 sm:px-4 sm:py-3">
+        <div className="mx-auto w-full max-w-[1820px] min-w-0 space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
           <PageHeroShell
             className="sm:py-4.5 px-4 py-4 sm:px-5"
             title={

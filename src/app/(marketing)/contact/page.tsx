@@ -11,7 +11,7 @@ export default function ContactPage() {
   return (
     <div className="dark min-h-screen bg-[#020617] text-white font-sans">
       <Navbar />
-      <main className="pt-32 pb-20 px-4 max-w-6xl mx-auto">
+      <main className="mx-auto max-w-6xl min-w-0 px-4 pb-20 pt-32">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Contact Us</h1>
           <p className="text-slate-400 max-w-2xl mx-auto">
@@ -19,7 +19,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 gap-12 desktop:grid-cols-2">
           {/* Contact Info */}
           <div className="space-y-8">
             <h2 className="text-2xl font-bold text-white mb-6">Get in Touch</h2>
@@ -61,7 +61,7 @@ export default function ContactPage() {
           {/* Contact Form */}
           <Card className="bg-[#0a0a0a] border-white/10 p-8">
             <form className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300">First name</label>
                   <Input placeholder="Jane" className="bg-[#111] border-white/10 focus:border-blue-500" />

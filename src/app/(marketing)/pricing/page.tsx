@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
+import { ShineBorder } from '@/components/ui/shine-border';
+import { cn } from '@/lib/utils';
 import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/providers';
 import { prepareCheckoutAction } from '@/actions/billing/checkout';
@@ -276,21 +278,18 @@ const PricingPage: React.FC = () => {
       key: 'starter' as const,
       monthlyPrice: 0,
       annualPrice: 0,
-      color: "border-cyan-400",
       btnVariant: "outline" as const,
     },
     {
       key: 'standard' as const,
       monthlyPrice: 60,
       annualPrice: 54, // 10% off
-      color: "border-blue-500",
       btnVariant: "outline" as const,
     },
     {
       key: 'smart_plus' as const,
       monthlyPrice: 150,
       annualPrice: 135, // 10% off
-      color: "border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.15)]",
       btnVariant: "glow" as const,
       highlight: true,
     },
@@ -298,7 +297,6 @@ const PricingPage: React.FC = () => {
       key: 'premier' as const,
       monthlyPrice: 260,
       annualPrice: 234, // 10% off
-      color: "border-amber-500",
       btnVariant: "solid-gold" as const,
     }
   ];
@@ -417,6 +415,20 @@ const PricingPage: React.FC = () => {
     }
   ];
 
+  const planAccentClasses = [
+    'border-cyan-400/22 hover:border-cyan-400/38',
+    'border-blue-500/22 hover:border-blue-500/38',
+    'border-fuchsia-400/50 shadow-[0_26px_80px_rgba(168,85,247,0.22)]',
+    'border-amber-500/22 hover:border-amber-500/38',
+  ];
+
+  const shineGradients = [
+    'linear-gradient(135deg, rgba(34,211,238,0.2), rgba(34,211,238,0.04))',
+    'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(59,130,246,0.04))',
+    'conic-gradient(from 90deg, rgba(99,102,241,0.96), rgba(168,85,247,1), rgba(45,212,191,0.88), rgba(236,72,153,0.92), rgba(99,102,241,0.96))',
+    'linear-gradient(135deg, rgba(245,158,11,0.22), rgba(249,115,22,0.04))',
+  ];
+
   return (
     <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-blue-500/30 selection:text-blue-100 overflow-x-hidden">
       <Navbar lang={lang === 'ms' ? 'en' : lang} onToggleLang={toggleLang} />
@@ -448,81 +460,104 @@ const PricingPage: React.FC = () => {
 
         {/* Pricing Cards */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
-           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
+           <div className="grid grid-cols-1 items-stretch gap-6 tablet:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.18fr)_minmax(0,1fr)]">
               {plans.map((plan, idx) => (
-                 <div
-                   key={idx}
-                   className={`relative flex flex-col p-6 rounded-2xl bg-[#0a0a0a]/50 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-2 group ${plan.color} ${plan.highlight ? 'z-10 bg-[#0f111a] shadow-2xl scale-105 md:scale-100 xl:scale-105' : 'border-opacity-30 hover:border-opacity-60'}`}
+                 <ShineBorder
+                   key={plan.key}
+                   borderWidth={plan.highlight ? 2 : 1}
+                   duration={plan.highlight ? 4 : 0}
+                   gradient={shineGradients[idx]}
+                   glowOpacity={plan.highlight ? 1 : 0.42}
+                   className={cn(
+                     'group h-full transition-transform duration-300 hover:-translate-y-2',
+                     plan.highlight ? 'z-20 pt-5 tablet:scale-[1.03] 2xl:scale-[1.04]' : ''
+                   )}
+                   contentClassName="h-full"
                  >
-                    {plan.highlight && (
-                       <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-purple-900/40 whitespace-nowrap">
-                          {currentT.mostPopular}
+                   <div
+                     className={cn(
+                       'relative flex h-full flex-col rounded-[26px] border bg-[#0a0a0a]/70 p-6 backdrop-blur-sm transition-all duration-300',
+                       planAccentClasses[idx],
+                       plan.highlight
+                         ? 'bg-[linear-gradient(180deg,rgba(20,22,34,0.98),rgba(8,10,18,0.98))] px-7 pb-7 pt-8 shadow-[0_32px_110px_rgba(91,33,182,0.32)]'
+                         : 'bg-[#0a0a0a]/55'
+                     )}
+                   >
+                     {plan.highlight && (
+                       <div className="absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 px-4 py-1.5 text-xs font-extrabold tracking-[0.18em] text-white shadow-[0_12px_32px_rgba(139,92,246,0.45)] whitespace-nowrap">
+                         {currentT.mostPopular}
                        </div>
-                    )}
+                     )}
 
-                    <div className="mb-6">
-                       <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                     {plan.highlight && (
+                       <>
+                         <div className="pointer-events-none absolute inset-x-6 -top-2 h-28 rounded-full bg-fuchsia-500/24 blur-3xl" />
+                         <div className="pointer-events-none absolute inset-x-10 bottom-8 h-24 rounded-full bg-indigo-500/18 blur-3xl" />
+                       </>
+                     )}
+
+                     <div className="mb-6">
+                       <h3 className={cn('mb-2 text-xl font-bold text-white', plan.highlight && 'text-[1.8rem] leading-none')}>{plan.name}</h3>
                        <p className="text-slate-400 text-sm h-10">{plan.desc}</p>
-                    </div>
+                     </div>
 
-                    <div className="mb-8">
+                     <div className="mb-8">
                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold text-white">
-                             {idx === 0
-                               ? isZh ? "永久免费" : "Forever Free"
-                               : plan.price === 0 ? 'RM0' : `RM${plan.price}`
-                             }
-                          </span>
-                          {idx !== 0 && plan.price !== 0 && <span className="text-slate-500 text-sm">{currentT.perMo}</span>}
+                         <span className={cn('text-3xl font-bold text-white', plan.highlight && 'text-5xl')}>
+                           {idx === 0
+                             ? isZh ? "永久免费" : "Forever Free"
+                             : plan.price === 0 ? 'RM0' : `RM${plan.price}`
+                           }
+                         </span>
+                         {idx !== 0 && plan.price !== 0 && <span className={cn('text-slate-500 text-sm', plan.highlight && 'text-base')}>{currentT.perMo}</span>}
                        </div>
                        {isAnnual && plan.price !== 0 && (
-                          <div className="text-xs text-green-400 mt-1">{currentT.billed(plan.annualPrice * 12)}</div>
+                         <div className="text-xs text-green-400 mt-1">{currentT.billed(plan.annualPrice * 12)}</div>
                        )}
-                    </div>
+                     </div>
 
-                    <div className="mb-8 flex-1">
+                     <div className="mb-8 flex-1">
                        <ul className="space-y-3">
-                          {plan.features.map((feat, i) => {
-                            // 检测是否是 "包含...功能，另外还有：" 这样的 header 行
-                            const isHeader = (feat.includes('包含') && feat.includes('另外还有')) || feat.includes('Everything in');
-                            // 检测是否是 "社区数据贡献者" 需要 tooltip
-                            const isContributorBadge = feat === '社区数据贡献者';
-                            const tooltipText = isContributorBadge ? '你的学习数据帮助我们改进题库质量' : undefined;
+                         {plan.features.map((feat, i) => {
+                           const isHeader = (feat.includes('包含') && feat.includes('另外还有')) || feat.includes('Everything in');
+                           const isContributorBadge = feat === '社区数据贡献者';
+                           const tooltipText = isContributorBadge ? '你的学习数据帮助我们改进题库质量' : undefined;
 
-                            return (
-                              <li
-                                key={i}
-                                className={`flex items-start gap-3 text-sm ${
-                                  isHeader
-                                    ? 'text-slate-400 italic mb-1 mt-2 text-xs'
-                                    : `text-slate-300 ${i < 2 ? 'text-white' : ''}`
-                                }`}
-                              >
-                                {!isHeader && (
-                                   <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlight ? 'text-purple-400' : 'text-slate-500'}`} />
-                                )}
-                                <span title={tooltipText || ''}>{feat}</span>
-                              </li>
-                            );
-                          })}
+                           return (
+                             <li
+                               key={i}
+                               className={`flex items-start gap-3 text-sm ${
+                                 isHeader
+                                   ? 'text-slate-400 italic mb-1 mt-2 text-xs'
+                                   : `text-slate-300 ${i < 2 ? 'text-white' : ''}`
+                               }`}
+                             >
+                               {!isHeader && (
+                                 <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.highlight ? 'text-purple-400' : 'text-slate-500'}`} />
+                               )}
+                               <span title={tooltipText || ''}>{feat}</span>
+                             </li>
+                           );
+                         })}
                        </ul>
-                    </div>
+                     </div>
 
-                    <Button
+                     <Button
                        fullWidth
                        className={`
-                          ${plan.btnVariant === 'outline' ? 'border-slate-700 hover:bg-slate-800 text-white bg-transparent border' : ''}
-                          ${plan.btnVariant === 'glow' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-lg shadow-purple-500/25 border-none' : ''}
-                          ${plan.btnVariant === 'solid-gold' ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg shadow-amber-500/25 border-none' : ''}
+                         ${plan.btnVariant === 'outline' ? 'border-slate-700 hover:bg-slate-800 text-white bg-transparent border' : ''}
+                         ${plan.btnVariant === 'glow' ? 'h-14 rounded-[1.1rem] bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 text-base font-bold text-white shadow-[0_18px_45px_rgba(124,58,237,0.48)] hover:from-fuchsia-400 hover:via-violet-400 hover:to-indigo-400 border-none' : ''}
+                         ${plan.btnVariant === 'solid-gold' ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg shadow-amber-500/25 border-none' : ''}
                        `}
-                      onClick={() => handleSubscribe(plan.name, plan.key)}
+                       onClick={() => handleSubscribe(plan.name, plan.key)}
                        disabled={loadingPlan !== null}
-                    >
+                     >
                        {loadingPlan === plan.name ? (
-                           <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
+                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
                        ) : plan.btnText}
-                    </Button>
-                 </div>
+                     </Button>
+                   </div>
+                 </ShineBorder>
               ))}
            </div>
         </div>
@@ -531,7 +566,7 @@ const PricingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
            <h2 className="text-2xl font-bold text-center mb-12">{currentT.compareTitle}</h2>
            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="min-w-[760px] w-full border-collapse text-left">
                  <thead>
                     <tr className="border-b border-slate-800">
                        <th className="p-4 text-slate-400 font-medium min-w-[200px]"></th>
@@ -586,7 +621,7 @@ const PricingPage: React.FC = () => {
         {/* Referral Section */}
         <div className="max-w-4xl mx-auto px-4">
            <div className="relative rounded-3xl p-1 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500">
-              <div className="bg-[#0f111a] rounded-[22px] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 text-center md:text-left relative overflow-hidden">
+              <div className="relative flex flex-col items-center gap-8 overflow-hidden rounded-[22px] bg-[#0f111a] p-8 text-center tablet:flex-row tablet:p-12 tablet:text-left">
                  {/* Bg Glow */}
                  <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/20 rounded-full blur-[80px]"></div>
 

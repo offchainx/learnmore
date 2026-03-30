@@ -1,5 +1,5 @@
 export const pageShellFrameClass =
-  'rounded-[32px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_42%,hsl(var(--surface-muted))_100%)] p-2 text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_38%,hsl(var(--surface-muted))_100%)] dark:text-text-primary dark:shadow-[0_22px_50px_rgba(2,8,23,0.34)]'
+  'min-w-0 rounded-[32px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_42%,hsl(var(--surface-muted))_100%)] p-2 text-text-primary shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--page-bg-elevated))_0%,hsl(var(--surface-default))_38%,hsl(var(--surface-muted))_100%)] dark:text-text-primary dark:shadow-[0_22px_50px_rgba(2,8,23,0.34)]'
 
 export const pagePanelClass =
   'rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] text-text-primary shadow-surface-md dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:text-text-primary dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)]'
@@ -55,7 +55,7 @@ export const pageKpiCardClass =
   'relative overflow-hidden rounded-[24px] border border-borderTone bg-surface p-4 shadow-surface dark:bg-[linear-gradient(180deg,rgba(17,26,46,0.98),rgba(11,18,32,0.96))] dark:shadow-[0_18px_40px_rgba(2,8,23,0.38)]'
 
 export const pageTableShellClass =
-  'overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-surface-md'
+  'min-w-0 overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-surface-md'
 
 export const pageSectionHeaderBandClass =
   'border-b border-borderTone bg-surface-subtle px-5 py-5 sm:px-6 dark:border-borderTone dark:bg-surface-subtle'

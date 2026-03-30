@@ -550,7 +550,7 @@ export const UserTable: React.FC<UserTableProps> = ({
       </section>
 
       <section className="space-y-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold text-text-primary dark:text-[#E6EDF7]">
               用户概览
@@ -560,7 +560,7 @@ export const UserTable: React.FC<UserTableProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 md:justify-end">
+          <div className="flex flex-wrap items-center gap-3 tablet:justify-end">
             <div className="inline-flex items-center rounded-2xl border border-borderTone bg-surface-subtle p-1 dark:border-[#24324D] dark:bg-[#121C32]">
               {overviewWindowOptions.map((option) => {
                 const isActive = option.key === overviewWindow
@@ -590,7 +590,7 @@ export const UserTable: React.FC<UserTableProps> = ({
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-5">
           {overviewCards.map((card) => {
             const Icon = card.icon
             const trend = getTrendDisplay(card.trend)
@@ -666,9 +666,9 @@ export const UserTable: React.FC<UserTableProps> = ({
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                <div className="group relative w-full md:w-80">
+            <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+              <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center">
+                <div className="group relative w-full tablet:w-80">
                   <Search
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
                     size={18}
@@ -684,7 +684,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                   />
                 </div>
 
-                <div className="flex flex-row gap-3 overflow-x-auto pb-1 md:pb-0">
+                <div className="flex flex-row gap-3 overflow-x-auto pb-1 tablet:pb-0">
                   <div className="relative min-w-[150px]">
                     <select
                       value={filters.status}
@@ -746,7 +746,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+              <div className="flex flex-wrap items-center gap-3 desktop:justify-end">
                 <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                   当前命中{' '}
                   <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">

@@ -97,7 +97,7 @@ export const ActivityTab: React.FC<ActivityTabProps> = ({ user }) => {
   if (!data) return <div className="p-8 text-center text-slate-500">无法加载数据</div>;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 desktop:grid-cols-2">
       {/* Left Col (55% rough) */}
       <div className="space-y-6">
         {/* 2x2 Stats */}

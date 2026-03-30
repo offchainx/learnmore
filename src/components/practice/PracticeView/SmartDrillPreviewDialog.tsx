@@ -83,7 +83,7 @@ export function SmartDrillPreviewDialog({
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 tablet:grid-cols-2">
               <div className="rounded-2xl border border-borderTone bg-surface/90 p-5 shadow-surface dark:border-white/10 dark:bg-slate-950/40">
                 <div className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-700/80 dark:text-cyan-300/80">为什么推荐这组题</div>
                 <ul className="mt-4 space-y-3 text-sm leading-6 text-text-secondary dark:text-slate-300">

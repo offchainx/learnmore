@@ -91,7 +91,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
   return (
     <AdminClientWrapper userRole={userRole}>
       <div className="container mx-auto py-8 space-y-8 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 tablet:flex-row tablet:items-center">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-text-primary dark:text-white">
               数据看板
@@ -103,7 +103,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 tablet:grid-cols-2 desktop:grid-cols-4">
           <Card className="border-none shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white overflow-hidden relative group">
             <div className="absolute right-0 top-0 h-32 w-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 transition-transform group-hover:scale-110" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -172,7 +172,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 desktop:grid-cols-2">
           
           {/* Status Distribution */}
           <Card className="border-borderTone dark:border-none shadow-surface dark:shadow-lg bg-surface dark:bg-slate-900 rounded-[2rem]">

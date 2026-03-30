@@ -20,7 +20,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ stats, chapterTitle, subjectName, chapters = [] }) => {
   return (
-    <aside className="hidden h-full w-72 flex-col gap-8 border-r border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] p-6 text-text-primary shadow-[inset_-1px_0_0_rgba(255,255,255,0.22)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary lg:flex">
+    <aside className="hidden h-full w-72 flex-col gap-8 border-r border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] p-6 text-text-primary shadow-[inset_-1px_0_0_rgba(255,255,255,0.22)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary desktop:flex">
       <div className="flex flex-col gap-1">
         <p className="text-xs font-bold uppercase tracking-widest text-text-secondary dark:text-text-secondary">Academic Mode</p>
         <h1 className="text-lg font-bold text-text-primary dark:text-text-primary">Mission: {subjectName}</h1>

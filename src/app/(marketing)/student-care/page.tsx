@@ -113,10 +113,10 @@ const StudentCarePage: React.FC = () => {
 
       <main>
         {/* --- 1. Hero Section --- */}
-        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <section className="relative overflow-hidden pb-20 pt-28 desktop:pb-32 desktop:pt-44">
            {/* Warm Background Effects */}
-           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-rose-600/20 rounded-full blur-[120px] pointer-events-none opacity-50"></div>
-           <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-amber-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen"></div>
+           <div className="absolute top-0 left-1/2 h-[320px] w-[min(92vw,760px)] -translate-x-1/2 rounded-full bg-rose-600/20 blur-[88px] pointer-events-none opacity-50 sm:h-[420px] desktop:h-[600px] desktop:w-[1000px] desktop:blur-[120px]"></div>
+           <div className="absolute bottom-0 right-0 h-[360px] w-[min(82vw,560px)] rounded-full bg-amber-600/10 blur-[88px] pointer-events-none mix-blend-screen sm:h-[480px] sm:w-[min(78vw,680px)] desktop:h-[800px] desktop:w-[800px] desktop:blur-[120px]"></div>
 
            <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-bold uppercase tracking-widest mb-6 animate-fade-in-up">
@@ -150,13 +150,13 @@ const StudentCarePage: React.FC = () => {
                  <p className="text-slate-400 text-lg">{currentT.program.desc}</p>
               </div>
 
-              <div className="grid lg:grid-cols-2 gap-12 items-start">
+              <div className="grid items-start gap-12 desktop:grid-cols-2">
                  {/* Info Card */}
                  <div className="relative rounded-3xl overflow-hidden group">
                     <img 
                        src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop" 
                        alt="Students learning" 
-                       className="w-full h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+                       className="h-[380px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[440px] desktop:h-[500px]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-8 flex flex-col justify-end">
                        <h3 className="text-2xl font-bold text-white mb-2">{currentT.program.cardTitle}</h3>
@@ -228,8 +228,8 @@ const StudentCarePage: React.FC = () => {
 
       <footer className="bg-[#020617] border-t border-slate-900 pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
-            <div className="col-span-2 lg:col-span-2">
+          <div className="mb-16 grid grid-cols-2 gap-8 tablet:grid-cols-4 desktop:grid-cols-5">
+            <div className="col-span-2 desktop:col-span-2">
                <div className="flex items-center gap-2 mb-6">
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><BookOpen className="w-4 h-4 text-white" /></div>
                   <span className="text-xl font-bold text-white">LearnMore</span>
@@ -270,7 +270,7 @@ const StudentCarePage: React.FC = () => {
             </div>
           </div>
           
-          <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-900 pt-8 text-sm text-slate-600 tablet:flex-row">
              <div>{currentT.footer.rights}</div>
              <div className="flex gap-6">
                 <a href="#" className="hover:text-slate-400">Privacy Policy</a>

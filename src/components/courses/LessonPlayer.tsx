@@ -174,7 +174,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col gap-8 desktop:flex-row">
         {/* Main Content Column */}
         <div className="flex-1 space-y-8">
           
@@ -299,7 +299,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
         </div>
 
         {/* Right Sidebar - Sticky */}
-        <div className="lg:w-80 shrink-0 space-y-6">
+        <div className="shrink-0 space-y-6 desktop:w-80">
            <Card className="p-0 border-none shadow-lg bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 sticky top-4 overflow-hidden">
               <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                  <h3 className="font-bold text-slate-900 dark:text-white mb-1">Session Progress</h3>

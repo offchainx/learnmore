@@ -364,7 +364,7 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
         </p>
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-3">
+      <div className="grid gap-3 2xl:grid-cols-3">
         {modes.map((mode, index) => (
           <PrimaryModeCard
             key={mode.title}

@@ -12,7 +12,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     : redirectToParam
 
   return (
-    <div className="container flex items-center justify-center min-h-screen py-12">
+    <div className="container flex min-h-screen min-w-0 items-center justify-center py-12">
       <LoginForm redirectTo={redirectTo} />
     </div>
   )

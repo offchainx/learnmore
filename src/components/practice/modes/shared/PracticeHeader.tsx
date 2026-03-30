@@ -46,7 +46,7 @@ export function PracticeHeader({
         )}
       >
         <CardContent className="p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-4 desktop:flex-row desktop:items-end desktop:justify-between">
             <div className="min-w-0">
               <div className={cn('inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em]', themeStyle.badge)}>
                 <Icon className={cn('h-3.5 w-3.5', themeStyle.icon)} />
@@ -57,7 +57,7 @@ export function PracticeHeader({
             </div>
 
             {stats.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[280px]">
+              <div className="grid gap-3 sm:grid-cols-2 desktop:min-w-[280px]">
                 {stats.map((stat) => {
                   const StatIcon = stat.icon
                   return (
@@ -88,7 +88,7 @@ export function PracticeHeader({
       )}
     >
       <CardContent className="p-6 sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-6 desktop:flex-row desktop:items-end desktop:justify-between">
           <div className="max-w-2xl">
             <div className={cn('inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em]', themeStyle.badge)}>
               <Icon className={cn('h-3.5 w-3.5', themeStyle.icon)} />
@@ -99,7 +99,7 @@ export function PracticeHeader({
           </div>
 
           {stats.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+            <div className="grid gap-3 sm:grid-cols-3 desktop:min-w-[420px]">
               {stats.map((stat) => {
                 const StatIcon = stat.icon
                 return (

@@ -190,11 +190,11 @@ export function PracticeReviewWorkspace({
 
   return (
     <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-4 desktop:grid-cols-[minmax(0,1fr)_360px]">
         <main className="space-y-4">
           <Card className={cn('overflow-hidden rounded-[32px] border-white/10 shadow-[0_24px_70px_rgba(15,23,42,0.18)]', themeStyle.shell)}>
             <CardHeader className="space-y-5 px-5 py-6 sm:px-7">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-col gap-3 desktop:flex-row desktop:items-end desktop:justify-between">
                 <div>
                   <div className={cn('inline-flex rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]', themeStyle.badge)}>
                     提交后复盘
@@ -208,7 +208,7 @@ export function PracticeReviewWorkspace({
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-4">
                 {stats.map((stat) => (
                   <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{stat.label}</div>
@@ -352,7 +352,7 @@ export function PracticeReviewWorkspace({
           </div>
         </main>
 
-        <aside className="space-y-4 xl:sticky xl:top-3 xl:self-start">
+        <aside className="space-y-4 desktop:sticky desktop:top-3 desktop:self-start">
           <Card className={cn('rounded-[28px] border-white/10 shadow-[0_18px_48px_rgba(15,23,42,0.12)]', themeStyle.shell)}>
             <CardHeader className="pb-4">
               <CardTitle className="text-xl font-black text-white">题号导航</CardTitle>

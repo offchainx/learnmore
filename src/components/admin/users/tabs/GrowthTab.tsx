@@ -63,7 +63,7 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6 tablet:grid-cols-2">
       {/* Stats Card */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 flex flex-col justify-center gap-8">
         <div>

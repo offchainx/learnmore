@@ -22,7 +22,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 export const ReviewersList = () => {
   return (
     <section className="glass-card rounded-2xl overflow-hidden flex flex-col">
-      <div className="px-6 py-5 border-b border-gray-100 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 border-b border-gray-100 px-6 py-5 dark:border-white/5 tablet:flex-row tablet:items-center">
         <div>
           <h4 className="text-lg font-bold text-gray-900 dark:text-white">Review Team</h4>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Real-time contributor performance</p>
@@ -30,7 +30,7 @@ export const ReviewersList = () => {
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={18} />
           <input 
-            className="bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary w-full md:w-64 transition-all" 
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm text-gray-900 transition-all placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 dark:border-white/10 dark:bg-black/20 dark:text-white tablet:w-64" 
             placeholder="Search reviewers..." 
             type="text"
           />

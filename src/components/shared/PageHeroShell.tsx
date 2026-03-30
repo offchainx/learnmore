@@ -72,7 +72,7 @@ export function PageHeroShell({
           ) : null}
         </div>
 
-        {actions ? <div className="shrink-0">{actions}</div> : null}
+        {actions ? <div className="w-full min-w-0 lg:w-auto lg:shrink-0">{actions}</div> : null}
       </div>
 
       {children ? <div className="relative mt-4">{children}</div> : null}

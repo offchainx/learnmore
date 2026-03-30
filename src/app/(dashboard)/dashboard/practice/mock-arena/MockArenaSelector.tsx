@@ -300,7 +300,7 @@ export default function MockArenaSetup({ userId, subjects, quotaStatus }: MockAr
       {/* Exam Preview Card */}
       <Card className="bg-muted/30">
         <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center tablet:grid-cols-4">
             <div className="space-y-1">
               <div className="flex items-center justify-center gap-1 text-muted-foreground">
                 <Brain className="h-4 w-4" />

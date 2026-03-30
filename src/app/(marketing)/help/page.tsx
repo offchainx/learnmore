@@ -34,8 +34,8 @@ export default function HelpPage() {
         </div>
       </section>
 
-      <main className="max-w-4xl mx-auto px-4 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <main className="max-w-4xl mx-auto min-w-0 px-4 pb-20">
+        <div className="grid grid-cols-1 gap-12 desktop:grid-cols-2">
           {/* FAQ Section */}
           <div>
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function HelpPage() {
         {/* Categories */}
         <section className="mt-20">
           <h2 className="text-2xl font-bold mb-8 text-center">Browse by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 desktop:grid-cols-4">
             {['Getting Started', 'Account & Security', 'Study Guides', 'Billing & Plans'].map((cat) => (
               <div key={cat} className="p-6 bg-slate-900/30 border border-slate-800 rounded-2xl text-center hover:bg-slate-800/50 transition-all cursor-pointer">
                 <p className="font-medium text-slate-300">{cat}</p>

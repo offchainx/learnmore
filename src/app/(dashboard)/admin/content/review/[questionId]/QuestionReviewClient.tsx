@@ -132,7 +132,7 @@ export function QuestionReviewClient({
             type="button"
             onClick={() => handleApprove()}
             disabled={isSaving}
-            className="hidden md:flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-medium transition-colors shadow-sm"
+            className="hidden tablet:flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-medium text-white shadow-sm transition-colors hover:bg-green-700 disabled:bg-green-400"
           >
             <CheckCircle className="h-4 w-4" />
             快速通过

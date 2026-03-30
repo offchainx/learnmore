@@ -136,7 +136,7 @@ const SubjectsPage: React.FC = () => {
                 {/* Connecting Line */}
                 <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-800 -translate-y-1/2 hidden md:block"></div>
                 
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+                <div className="relative z-10 flex flex-col items-center justify-between gap-8 tablet:flex-row">
                     {[
                         { label: currentT.timeline.primary, icon: Rocket, status: 'past' },
                         { label: currentT.timeline.junior, icon: Layers, status: 'active' },
@@ -174,7 +174,7 @@ const SubjectsPage: React.FC = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-white">{currentT.currentFocus.title}</h2>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div className="grid grid-cols-1 gap-6 animate-fade-in-up sm:grid-cols-2 desktop:grid-cols-4" style={{ animationDelay: '0.1s' }}>
                 {subjectsList.map((sub, i) => (
                     <Card key={i} className={`p-6 bg-[#0f111a] hover:bg-[#151824] border border-slate-800 hover:border-slate-700 transition-all duration-300 group relative overflow-hidden`}>
                         <div className={`absolute top-0 right-0 px-3 py-1 bg-slate-800 rounded-bl-xl text-[10px] font-bold text-slate-400 border-l border-b border-slate-700`}>
@@ -202,7 +202,7 @@ const SubjectsPage: React.FC = () => {
 
         {/* 3. Knowledge Continuum */}
         <section className="relative py-24 bg-slate-900/30 border-y border-slate-800 mb-24">
-            <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+            <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 desktop:grid-cols-2">
                 <div className="animate-fade-in-up">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-6">
                         <Sparkles className="w-3 h-3" /> Lifecycle Learning
@@ -226,7 +226,7 @@ const SubjectsPage: React.FC = () => {
                 </div>
 
                 {/* Visual: Core + Shell */}
-                <div className="relative h-[400px] flex items-center justify-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <div className="relative flex h-[320px] items-center justify-center animate-fade-in-up sm:h-[360px] desktop:h-[400px]" style={{ animationDelay: '0.2s' }}>
                     {/* The Core (Knowledge) */}
                     <div className="absolute w-40 h-40 bg-indigo-600 rounded-full blur-[60px] opacity-40 animate-pulse"></div>
                     <div className="relative z-10 w-48 h-48 bg-slate-900 rounded-full border-4 border-indigo-500 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.3)]">
@@ -256,7 +256,7 @@ const SubjectsPage: React.FC = () => {
         <section className="max-w-7xl mx-auto px-6 text-center">
             <h2 className="text-2xl font-bold text-white mb-12">{currentT.roadmap.title}</h2>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 tablet:grid-cols-4">
                 {['IGCSE', 'SPM', 'A-Levels', 'STPM'].map((item, i) => (
                     <div key={i} className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 flex flex-col items-center justify-center gap-3 group hover:border-slate-700 transition-all">
                         <span className="text-xl font-bold text-slate-500 group-hover:text-slate-300 transition-colors">{item}</span>

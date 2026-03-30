@@ -437,12 +437,12 @@
     - 列表顶部能立即看到新任务
     - 后台不会并发抓多个导入任务
     - 前一个任务完成后，下一个任务会自动启动
-- 工作包 7.19【未开始】：收口 Dashboard 全站在中窄视窗下的自适应收缩与重排
+- 工作包 7.19【已完成】：收口全站主要页面在中窄视窗下的自适应收缩与重排
   - 问题定义：
     - 当前多个 Dashboard 页面在浏览器宽度缩小到约半屏时，没有像 YouTube 那样随视窗变化自动重排
     - 页面不是“等比例缩放”，而是因为部分容器仍维持桌面最小宽度、固定列宽与固定栅格，导致文案竖排、卡片挤压、主内容横向空间不足
   - 目标：
-    - 在 `lg -> md -> sm` 之间建立统一的 Dashboard 响应式收缩规则
+    - 在 `desktop -> tablet -> mobile` 之间建立统一的 Dashboard 响应式收缩规则
     - 先让内容优先“重排”，再考虑必要的局部横向滚动，避免出现内容被压成长竖列或固定卡宽撑破布局
   - 第一阶段范围：
     - 优先覆盖：
@@ -455,6 +455,29 @@
     - 不做整页 `scale()` 缩放
     - 以“容器宽度约束 + 栅格断点重排 + 子组件 `min-w-0` / 文案截断 / 横向滚动兜底”为主
     - 主内容区需要在中等宽度下优先从多列切到单列或 `1fr` 弹性布局
+  - 当前进展：
+    - 已完成共用壳层修复：
+      - `DashboardLayout` 主内容区补齐 `min-w-0`
+      - `PageHeroShell / PageHeroTitle / SectionBlockHeader` 补齐 `min-w-0` 与可换行行为
+      - 共用 `pageShellFrame / pageTableShell` 增加 `min-w-0`
+      - `DashboardLayout` 的桌面壳层断点统一切回真实 `desktop=1024`，修复中窄宽度下桌面 Sidebar 与底部移动导航同时出现的问题
+    - 已完成页面级收口：
+      - Dashboard 首页、Courses 页、Practice Center 的主双栏布局与右侧分析栏改为更晚启用，避免半屏宽度下仍强行双列
+      - 导入页 KPI 卡从过早的 6 列布局改成分阶段重排
+      - 内容导入 / 内容审核表格改为局部横向滚动，不再优先把整页内容挤坏
+    - 已完成 marketing / auth 页面收口：
+      - Landing、Pricing、登录 / 注册页已补断点后移与可收缩容器
+      - Help、Contact、About Us、Student Care、Success Stories、Subjects、How It Works 已补关键断点重排
+      - Landing / Pricing 的对比区域已优先改成局部横向滚动或更晚启用多列，避免中窄视窗直接挤坏整页
+    - 已完成第二轮页面级收口：
+      - Dashboard 次级页与 admin 子页已统一把布局切换断点从默认 `md/lg/xl` 收回到项目真实的 `tablet/desktop/2xl`
+      - 已覆盖 `/dashboard/settings`、`/dashboard/community`、`/dashboard/community/new`、`/admin/users`、`/admin/feedback`、`/admin/referrals`、`/admin/content/statistics`
+      - 练习深层页与配置页已覆盖 `Mock Arena`、`Smart Drill`、`Error Wiper`、`Chapter Drill`、答题工作区与复盘工作区
+    - 已完成浏览器回归：
+      - 已用浏览器在中窄视窗下检查 `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/settings`、`/dashboard/community`、`/dashboard/community/new`
+      - 已检查 `/admin`、`/admin/users`、`/admin/feedback`、`/admin/referrals`、`/admin/content/import`、`/admin/content/review`、`/admin/content/statistics`
+      - 已检查 `/`、`/pricing`、`/subjects`、`/how-it-works`、`/about-us`、`/student-care`、`/success-stories`、`/study-guides`、`/help`、`/contact`
+      - 练习中心已确认修复“半屏宽度下桌面 Sidebar 与底部移动导航同时出现”的断点冲突
   - 完成判定：
     - 浏览器宽度收窄时，主内容不再出现大段竖排文字或卡片被挤成细长条
     - 核心页面能在约半屏宽度下保持可读、可操作

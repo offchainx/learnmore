@@ -461,7 +461,7 @@ export const CoursesView = ({ t }: { t: any }) => {
 
   const renderSmartReview = () => (
     <div className={`animate-fade-in-up ${pageSectionGapClass}`}>
-      <div className={`grid md:grid-cols-3 ${pageGridGapClass}`}>
+      <div className={`grid tablet:grid-cols-3 ${pageGridGapClass}`}>
         {[
           {
             label: copy('低信心', 'Low Confidence'),
@@ -700,7 +700,7 @@ export const CoursesView = ({ t }: { t: any }) => {
   )
 
   return (
-    <div className="relative px-3 py-1.5 sm:px-4 sm:py-2">
+    <div className="relative min-w-0 px-3 py-1.5 sm:px-4 sm:py-2">
       {isReviewSessionOpen ? (
         <div className="fixed inset-0 z-[100] flex animate-fade-in-up flex-col bg-page/95 backdrop-blur-sm dark:bg-page/95">
           <div className="flex items-center justify-between border-b border-borderTone px-6 py-5 dark:border-borderTone">
@@ -763,7 +763,7 @@ export const CoursesView = ({ t }: { t: any }) => {
       ) : null}
 
       <div
-        className={`mx-auto w-full max-w-[1820px] ${pageShellFrameClass} sm:p-2.5`}
+        className={`mx-auto w-full max-w-[1820px] min-w-0 ${pageShellFrameClass} sm:p-2.5`}
       >
         <div className={pageSectionGapClass}>
           <PageHeroShell
@@ -784,7 +784,7 @@ export const CoursesView = ({ t }: { t: any }) => {
           {renderSubjectSelector()}
 
           <section
-            className={`grid xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)] ${pageGridGapClass}`}
+            className={`grid min-w-0 2xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)] ${pageGridGapClass}`}
           >
             <div className={pageSectionGapClass}>
               <Card
@@ -800,7 +800,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                   <div className="absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-[hsl(var(--state-warning-bg))]/55 blur-3xl" />
                   {currentHeroTheme.patternImage ? (
                     <div
-                      className="pointer-events-none absolute inset-0 hidden xl:block"
+                      className="pointer-events-none absolute inset-0 hidden desktop:block"
                       style={{
                         backgroundImage: [
                           'linear-gradient(90deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.92) 28%, rgba(255,255,255,0.74) 46%, rgba(255,255,255,0.34) 66%, rgba(255,255,255,0.16) 100%)',
@@ -815,7 +815,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     />
                   ) : null}
                   <div
-                    className="bg-right-center pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] bg-no-repeat xl:block"
+                    className="bg-right-center pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] bg-no-repeat desktop:block"
                     style={{
                       backgroundImage: currentHeroTheme.patternImage
                         ? 'none'
@@ -824,7 +824,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     }}
                   />
 
-                  <div className="relative flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="relative flex min-w-0 flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
                     <div className="min-w-0">
                       <div className="inline-flex items-center rounded-full border border-borderTone bg-surface-selected px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary backdrop-blur-sm dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse">
                         {getSubjectLabel(
@@ -850,7 +850,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     </div>
 
                     <div
-                      className={`grid grid-cols-2 xl:w-[420px] ${pageGridGapClass}`}
+                      className={`grid grid-cols-2 2xl:w-[420px] ${pageGridGapClass}`}
                     >
                       <div
                         className={`${pageSoftInsetClass} px-4 py-3 backdrop-blur-sm ${currentHeroTheme.statBorderClass}`}

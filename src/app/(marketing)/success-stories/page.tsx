@@ -139,7 +139,7 @@ const SuccessStoriesPage: React.FC = () => {
 
         {/* Impact Stats */}
         <section className="py-12 border-y border-slate-900 bg-[#050b14]">
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 text-center desktop:grid-cols-3">
                 <div className="p-6">
                     <div className="text-5xl md:text-6xl font-bold text-blue-500 mb-2">92%</div>
                     <div className="text-sm font-bold uppercase tracking-widest text-slate-500">{currentT.stats.confidence}</div>
@@ -159,8 +159,8 @@ const SuccessStoriesPage: React.FC = () => {
         <section className="py-24 max-w-7xl mx-auto px-6 space-y-32">
             
             {/* Story 1: The Epiphany */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center group">
-                <div className="relative order-2 lg:order-1">
+            <div className="grid items-center gap-16 group desktop:grid-cols-2">
+                <div className="relative order-2 desktop:order-1">
                     <div className="absolute inset-0 bg-blue-600 rounded-2xl rotate-3 group-hover:rotate-1 transition-transform duration-500 opacity-20"></div>
                     <div className="relative rounded-2xl overflow-hidden aspect-[4/5] shadow-2xl">
                          <img src={currentT.stories.s1.img} alt="Student learning" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -173,7 +173,7 @@ const SuccessStoriesPage: React.FC = () => {
                          </div>
                     </div>
                 </div>
-                <div className="order-1 lg:order-2">
+                <div className="order-1 desktop:order-2">
                     <div className="text-blue-500 font-bold uppercase tracking-wider text-sm mb-4 flex items-center gap-2">
                         <Sparkles className="w-4 h-4" /> {currentT.stories.s1.tag}
                     </div>
@@ -190,7 +190,7 @@ const SuccessStoriesPage: React.FC = () => {
             </div>
 
             {/* Story 2: Family Harmony */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center group">
+            <div className="grid items-center gap-16 group desktop:grid-cols-2">
                 <div className="order-1">
                     <div className="text-rose-500 font-bold uppercase tracking-wider text-sm mb-4 flex items-center gap-2">
                         <Heart className="w-4 h-4" /> {currentT.stories.s2.tag}
@@ -221,8 +221,8 @@ const SuccessStoriesPage: React.FC = () => {
             </div>
 
             {/* Story 3: Self Driven */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center group">
-                <div className="relative order-2 lg:order-1">
+            <div className="grid items-center gap-16 group desktop:grid-cols-2">
+                <div className="relative order-2 desktop:order-1">
                     <div className="absolute inset-0 bg-yellow-600 rounded-2xl rotate-2 group-hover:rotate-1 transition-transform duration-500 opacity-20"></div>
                     <div className="relative rounded-2xl overflow-hidden aspect-[4/5] shadow-2xl">
                          <img src={currentT.stories.s3.img} alt="Student Achievement" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -235,7 +235,7 @@ const SuccessStoriesPage: React.FC = () => {
                          </div>
                     </div>
                 </div>
-                <div className="order-1 lg:order-2">
+                <div className="order-1 desktop:order-2">
                     <div className="text-yellow-500 font-bold uppercase tracking-wider text-sm mb-4 flex items-center gap-2">
                         <TrendingUp className="w-4 h-4" /> {currentT.stories.s3.tag}
                     </div>
@@ -261,7 +261,7 @@ const SuccessStoriesPage: React.FC = () => {
                   <p className="text-slate-400 text-lg">{currentT.videos.subtitle}</p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid gap-8 desktop:grid-cols-3">
                  {[ 
                     "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=800&auto=format&fit=crop",
                     "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=800&auto=format&fit=crop",

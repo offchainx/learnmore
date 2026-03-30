@@ -195,7 +195,7 @@ export function PracticeModePreviewDialog({
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 tablet:grid-cols-2">
               <div className="rounded-2xl border border-borderTone bg-surface/90 p-5 shadow-surface dark:border-white/10 dark:bg-slate-950/40">
                 <div className={`text-[11px] font-black uppercase tracking-[0.2em] ${theme.accent}`}>
                   为什么推荐这次练习

@@ -240,7 +240,7 @@ const AboutUsPage: React.FC = () => {
         
         {/* Section 1: Mission (Hero) */}
         <section className="relative py-20 px-6 max-w-5xl mx-auto text-center animate-fade-in-up">
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+           <div className="absolute top-1/2 left-1/2 h-[240px] w-[min(88vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/10 blur-[72px] pointer-events-none sm:h-[320px] sm:blur-[88px] desktop:h-[400px] desktop:w-[800px] desktop:blur-[100px]"></div>
            
            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold uppercase tracking-widest mb-8 relative z-10">
               <Globe className="w-3 h-3" /> {currentT.hero.title}
@@ -256,7 +256,7 @@ const AboutUsPage: React.FC = () => {
 
         {/* Section 2: Our Story */}
         <section className="py-24 bg-slate-900/30 border-y border-slate-800">
-           <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+           <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 desktop:grid-cols-2">
               <div className="relative">
                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl blur-2xl opacity-20 transform rotate-3"></div>
                  <img 
@@ -285,7 +285,7 @@ const AboutUsPage: React.FC = () => {
                     {currentT.story.p2}
                  </p>
 
-                 <div className="grid grid-cols-3 gap-8 pt-8 border-t border-slate-800 mt-8">
+                 <div className="mt-8 grid grid-cols-1 gap-6 border-t border-slate-800 pt-8 sm:grid-cols-3">
                     {currentT.story.stats.map((stat, i) => (
                        <div key={i}>
                           <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
@@ -381,7 +381,7 @@ const AboutUsPage: React.FC = () => {
               <p className="text-slate-400">{currentT.team.subtitle}</p>
            </div>
 
-           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+           <div className="grid gap-8 tablet:grid-cols-2 2xl:grid-cols-4">
               {currentT.team.members.map((member, i) => (
                  <Card key={i} className="group bg-slate-900 border-slate-800 overflow-hidden hover:border-slate-600 transition-colors">
                     <div className="h-64 overflow-hidden relative">

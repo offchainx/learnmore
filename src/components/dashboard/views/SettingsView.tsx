@@ -291,7 +291,7 @@ function SettingsSection({
     >
       <div
         ref={headerRef}
-        className="flex flex-col gap-4 border-b border-borderTone pb-5 dark:border-borderTone lg:flex-row lg:items-start lg:justify-between"
+        className="flex flex-col gap-4 border-b border-borderTone pb-5 dark:border-borderTone desktop:flex-row desktop:items-start desktop:justify-between"
       >
         <div className="space-y-3">
           <div className={pageBadgeClass}>
@@ -420,7 +420,7 @@ function ReferralSection({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 xl:grid-cols-2">
+      <div className="mt-5 grid gap-4 desktop:grid-cols-2">
         <div className={`${insetCardClassName} p-4`}>
           <div className="mb-2 text-[12px] font-medium uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
             {copy.code}
@@ -1239,7 +1239,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           subtitleClassName="text-[13px] leading-6 text-text-secondary dark:text-text-secondary"
           actions={
             <div
-              className={`grid sm:grid-cols-2 xl:min-w-[360px] ${pageGridGapClass}`}
+              className={`grid sm:grid-cols-2 desktop:min-w-[360px] ${pageGridGapClass}`}
             >
               <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
                 <div className={pageKickerClass}>{copy.accountSummary}</div>
@@ -1265,8 +1265,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           }
         />
 
-        <div className="grid grid-cols-1 gap-6 xl:h-[calc(100vh-14.5rem)] xl:grid-cols-[260px_minmax(0,1fr)] xl:overflow-hidden">
-          <div className={`xl:self-start ${pageSectionGapClass}`}>
+        <div className="grid grid-cols-1 gap-6 desktop:h-[calc(100vh-14.5rem)] desktop:grid-cols-[260px_minmax(0,1fr)] desktop:overflow-hidden">
+          <div className={`desktop:self-start ${pageSectionGapClass}`}>
             <Card className={`${surfaceClassName} ${pageCardPaddingClass}`}>
               <div className="space-y-2">
                 {menuItems.map((item) => (
@@ -1305,7 +1305,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
           <div
             ref={scrollContainerRef}
-            className={`xl:h-full xl:overflow-y-auto xl:pb-[42rem] xl:pr-2 xl:pt-7 ${pageSectionGapClass}`}
+            className={`desktop:h-full desktop:overflow-y-auto desktop:pb-[42rem] desktop:pr-2 desktop:pt-7 ${pageSectionGapClass}`}
           >
             <SettingsSection
               id="profile"
@@ -1349,7 +1349,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                 ) : null}
 
                 <div
-                  className={`grid xl:grid-cols-[300px_minmax(0,1fr)] ${pageGridGapClass}`}
+                  className={`grid desktop:grid-cols-[300px_minmax(0,1fr)] ${pageGridGapClass}`}
                 >
                   <div className={`${insetCardClassName} p-5`}>
                     <div className={`mb-4 ${pageCardTitleClass}`}>
@@ -1377,7 +1377,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
                   <div className={`grid ${pageGridGapClass}`}>
                     <div
-                      className={`${insetCardClassName} grid p-5 md:grid-cols-2 ${pageGridGapClass}`}
+                      className={`${insetCardClassName} grid p-5 tablet:grid-cols-2 ${pageGridGapClass}`}
                     >
                       <Input
                         label={t.settings.profile.displayName}
@@ -1398,12 +1398,12 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                         label={copy.emailLabel}
                         defaultValue={user?.email || ''}
                         disabled
-                        className="bg-surface-subtle text-text-tertiary dark:bg-surface-subtle md:col-span-2"
+                        className="bg-surface-subtle text-text-tertiary dark:bg-surface-subtle tablet:col-span-2"
                       />
                     </div>
 
                     <div
-                      className={`${insetCardClassName} grid p-5 md:grid-cols-2 ${pageGridGapClass}`}
+                      className={`${insetCardClassName} grid p-5 tablet:grid-cols-2 ${pageGridGapClass}`}
                     >
                       <div>
                         <div className={`mb-3 ${pageCardTitleClass}`}>
@@ -1483,7 +1483,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                         </div>
                       </div>
 
-                      <div className="md:col-span-2">
+                    <div className="tablet:col-span-2">
                         <p className={pageMetaTextClass}>
                           {copy.preferenceSaveHint}
                         </p>
@@ -1539,7 +1539,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   </div>
                 ) : null}
 
-                <div className={`grid xl:grid-cols-3 ${pageGridGapClass}`}>
+                <div className={`grid desktop:grid-cols-3 ${pageGridGapClass}`}>
                   {tutorCards.map((tutor) => (
                     <button
                       key={tutor.id}
@@ -1576,7 +1576,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   ))}
                 </div>
 
-                <div className={`grid xl:grid-cols-2 ${pageGridGapClass}`}>
+                <div className={`grid desktop:grid-cols-2 ${pageGridGapClass}`}>
                   <div className={`${insetCardClassName} p-5`}>
                     <div className="mb-4 flex items-center justify-between">
                       <div className={pageCardTitleClass}>
@@ -1750,7 +1750,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               <div className="space-y-4">
                 {user?.role === 'STUDENT' ? (
                   <div className={`${surfaceClassName} p-5`}>
-                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="flex flex-col gap-5 desktop:flex-row desktop:items-center desktop:justify-between">
                       <div className="max-w-2xl">
                         <div className={pageBadgeClass}>
                           <Sparkles className="h-3.5 w-3.5 text-sky-600 dark:text-sky-300" />
@@ -1829,7 +1829,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               }}
             >
               <div className="space-y-4">
-                <div className={`grid xl:grid-cols-3 ${pageGridGapClass}`}>
+                <div className={`grid desktop:grid-cols-3 ${pageGridGapClass}`}>
                   <div className={`${insetCardClassName} p-5`}>
                     <div className={pageKickerClass}>{copy.currentPlan}</div>
                     <div className={pageNumericValueClass}>{tierLabel}</div>

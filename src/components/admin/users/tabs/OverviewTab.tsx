@@ -28,9 +28,9 @@ interface OverviewTabProps {
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ user }) => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 desktop:grid-cols-3">
       {/* Left Column - Identity & Security */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6 desktop:col-span-2">
         {/* Identity Card */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
@@ -39,7 +39,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ user }) => {
           </div>
 
           <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2">
               <InfoItem
                 icon={<Mail className="w-4 h-4" />}
                 label="邮箱"
@@ -100,7 +100,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ user }) => {
       </div>
 
       {/* Right Column - Admin Notes */}
-      <div className="lg:col-span-1">
+      <div className="desktop:col-span-1">
         <AdminNoteList userId={user.id} notes={user.notes} />
       </div>
     </div>

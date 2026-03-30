@@ -6,7 +6,7 @@ import Link from 'next/link';
 export const Footer = () => {
   return (
     <footer className="py-8 border-t border-white/5 text-center text-sm text-slate-600 bg-black">
-      <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 tablet:flex-row">
         <p>© 2026 LearnMore Edu. All rights reserved.</p>
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
           <Link href="/help" className="hover:text-slate-400 transition-colors">Help Center</Link>

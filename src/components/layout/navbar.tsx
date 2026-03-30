@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
         scrolled ? 'py-3' : 'py-5'
       }`}
     >
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8`}>
         <div className={`
           relative flex justify-between h-14 items-center px-6 rounded-full transition-all duration-300
           ${scrolled ? 'bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl' : 'bg-transparent border border-transparent'}
@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden desktop:flex items-center space-x-1">
             {navLinks.map((item) => (
               <Link 
                 key={item.name}
@@ -113,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
           </div>
 
           {/* Auth Buttons & Lang Toggle */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden desktop:flex items-center space-x-3">
             {onToggleLang && (
               <button
                 onClick={onToggleLang}
@@ -163,7 +163,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden gap-4">
+          <div className="flex items-center desktop:hidden gap-4">
              {onToggleLang && (
               <button 
                 onClick={onToggleLang}
@@ -184,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 px-4 md:hidden animate-fade-in-up z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 px-4 desktop:hidden animate-fade-in-up z-50">
           <div className="p-4 space-y-2 bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl">
             {navLinks.map((item) => (
               <Link 

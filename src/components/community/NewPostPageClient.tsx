@@ -211,8 +211,8 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <div className={`${fieldCardClassName} xl:col-span-2`}>
+          <div className="grid grid-cols-1 gap-4 desktop:grid-cols-2">
+            <div className={`${fieldCardClassName} desktop:col-span-2`}>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <div className="text-[15px] font-medium text-white">

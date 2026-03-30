@@ -125,7 +125,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
 
         {/* Profile Section */}
         <div className="p-6">
-          <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col gap-6 tablet:flex-row">
             {/* Avatar & Basic Info */}
             <div className="flex items-start gap-4">
               <div className={`h-20 w-20 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg ${user.avatarColor}`}>
@@ -163,7 +163,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
             </div>
 
             {/* Quick Actions */}
-            <div className="md:ml-auto flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 tablet:ml-auto">
               {isBanned ? (
                 <button
                   onClick={() => openConfirmDialog('unban')}
@@ -201,7 +201,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
           </div>
 
           {/* Stats Row */}
-          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-borderTone pt-6 dark:border-borderTone md:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-borderTone pt-6 dark:border-borderTone tablet:grid-cols-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-text-primary dark:text-white">{user.learningStats.totalQuestions}</p>
               <p className="text-xs text-text-secondary dark:text-text-secondary">答题总数</p>

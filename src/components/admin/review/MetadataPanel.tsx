@@ -60,8 +60,8 @@ export function MetadataPanel({
   }
 
   return (
-    <aside className="z-20 flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden border-t border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 xl:w-[400px] xl:border-l xl:border-t-0">
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6 lg:px-6 xl:px-5">
+    <aside className="z-20 flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden border-t border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 desktop:w-[400px] desktop:border-l desktop:border-t-0">
+      <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5 desktop:px-5 desktop:py-5 2xl:px-6">
         {/* 元数据网格 */}
         <div className="group relative">
           <div className="flex justify-between items-center mb-3">
@@ -341,7 +341,7 @@ export function MetadataPanel({
       </div>
 
       {/* 审核操作区 */}
-      <div className="sticky bottom-0 border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950 lg:px-6 xl:px-5">
+      <div className="sticky bottom-0 border-t border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950 desktop:px-5 2xl:px-6">
         {reviewCompletedAction ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">

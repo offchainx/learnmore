@@ -124,7 +124,7 @@ export const ParentDashboardView = () => {
   return (
     <div className="space-y-8 animate-fade-in-up pb-12">
       {/* Parent Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-3">
             Parent Dashboard
@@ -160,12 +160,12 @@ export const ParentDashboardView = () => {
       </div>
 
       {studentStats ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-6 desktop:grid-cols-12">
           {/* Left Column: Stats Cards (8 cols) */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="space-y-6 desktop:col-span-8">
             
             {/* Quick Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 tablet:grid-cols-4">
                <StatCard 
                 icon={<Clock className="text-blue-500" />} 
                 label="Study Time" 
@@ -227,7 +227,7 @@ export const ParentDashboardView = () => {
           </div>
 
           {/* Right Column: Sidebar Widgets (4 cols) */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="space-y-6 desktop:col-span-4">
              {/* Progress Summary Card */}
              <Card className="p-6 border-slate-200 dark:border-slate-700 bg-gradient-to-br from-indigo-500/5 to-purple-500/5">
                 <h3 className="font-bold mb-4">Academic Health</h3>

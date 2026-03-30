@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
         </h2>
       </div>
       <div className="flex items-center gap-6">
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden tablet:flex items-center gap-6">
           <span className="text-sm font-medium text-text-secondary dark:text-text-secondary">Focus Mode</span>
         </div>
         <div className="flex gap-2">

@@ -118,7 +118,7 @@ export default function ChapterDrillSession({
           chapters={sidebarChapters}
         />
 
-        <main className="scrollbar-hide flex flex-1 flex-col items-center overflow-y-auto bg-transparent p-4 md:p-10">
+        <main className="scrollbar-hide flex flex-1 flex-col items-center overflow-y-auto bg-transparent p-4 tablet:p-10">
           <div className="max-w-[840px] w-full">
             
             {/* Header / Progress */}
@@ -146,7 +146,7 @@ export default function ChapterDrillSession({
             {/* Main Problem Card */}
             <div className="relative group">
               <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-[hsl(var(--state-info-bg))]/90 to-[hsl(var(--state-warning-bg))]/80 blur opacity-50 transition duration-1000 group-hover:opacity-70 dark:from-[hsl(var(--state-info-bg))]/30 dark:to-[hsl(var(--state-warning-bg))]/18"></div>
-              <div className="relative rounded-2xl border border-borderTone bg-surface p-8 shadow-[0_24px_70px_rgba(148,163,184,0.16)] dark:border-borderTone dark:bg-surface md:p-12 dark:shadow-[0_20px_50px_rgba(2,8,23,0.36)]">
+              <div className="relative rounded-2xl border border-borderTone bg-surface p-8 shadow-[0_24px_70px_rgba(148,163,184,0.16)] dark:border-borderTone dark:bg-surface tablet:p-12 dark:shadow-[0_20px_50px_rgba(2,8,23,0.36)]">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-2 rounded-full border border-borderTone bg-[hsl(var(--state-info-bg))] px-3 py-1 dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]">
                     <span className="size-2 animate-pulse rounded-full bg-[hsl(var(--state-info-fg))] dark:bg-[hsl(var(--state-info-fg))]"></span>
@@ -157,19 +157,19 @@ export default function ChapterDrillSession({
                   </div>
                 </div>
 
-                <h2 className="mb-8 text-2xl font-bold leading-tight text-text-primary dark:text-text-primary md:text-3xl">
+                <h2 className="mb-8 text-2xl font-bold leading-tight text-text-primary dark:text-text-primary tablet:text-3xl">
                   {currentProblem.question}
                 </h2>
 
                 {currentProblem.equation && (
                   <div className="mb-10 flex items-center justify-center rounded-xl border border-borderTone bg-surface-subtle p-8 dark:border-borderTone dark:bg-surface-subtle">
-                    <code className="select-all font-mono text-3xl text-primary drop-shadow-[0_0_15px_rgba(59,130,246,0.16)] dark:text-primary md:text-5xl">
+                    <code className="select-all font-mono text-3xl text-primary drop-shadow-[0_0_15px_rgba(59,130,246,0.16)] dark:text-primary tablet:text-5xl">
                       {currentProblem.equation}
                     </code>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2">
                   {currentOptions.map((option, idx) => (
                     <button
                       key={idx}

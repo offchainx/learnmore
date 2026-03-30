@@ -117,9 +117,9 @@ export function FeedbackDetailView({ initialData }: { initialData: any }) {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 desktop:grid-cols-3">
         {/* 主要内容区 */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-6 desktop:col-span-2">
           <Card className="overflow-hidden border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/40 backdrop-blur-md">
             <CardHeader className="border-b border-borderTone dark:border-slate-800 bg-surface/50 dark:bg-slate-900/50">
               <div className="flex items-start justify-between">

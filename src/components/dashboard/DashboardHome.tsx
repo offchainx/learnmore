@@ -275,15 +275,15 @@ export const DashboardHome = ({
   ]
 
   return (
-    <div className="animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
+    <div className="animate-fade-in-up min-w-0 px-3 py-1.5 sm:px-4 sm:py-2">
       <div
-        className={`mx-auto flex w-full max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 xl:h-[calc(100vh-1rem)] xl:overflow-hidden`}
+        className={`mx-auto flex w-full max-w-[1820px] min-w-0 flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
       >
         <section
-          className={`grid xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
+          className={`grid 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
         >
           <div
-            className={`xl:min-h-0 xl:overflow-hidden ${pageSectionGapClass}`}
+            className={`min-w-0 2xl:min-h-0 2xl:overflow-hidden ${pageSectionGapClass}`}
           >
             <PageHeroShell
               className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
@@ -322,7 +322,7 @@ export const DashboardHome = ({
               }
             >
               <section
-                className={`grid grid-cols-2 2xl:grid-cols-4 ${pageGridGapClass}`}
+                className={`grid gap-3 sm:grid-cols-2 2xl:grid-cols-4 ${pageGridGapClass}`}
               >
                 {overviewCards.map((card) => (
                   <OverviewCard
@@ -338,7 +338,7 @@ export const DashboardHome = ({
             <DailyMissions tasks={dailyTasks} user={user} />
 
             <section
-              className={`grid lg:grid-cols-2 xl:min-h-0 ${pageGridGapClass}`}
+              className={`grid desktop:grid-cols-2 2xl:min-h-0 ${pageGridGapClass}`}
             >
               <Card
                 className={`${pagePanelClass} min-h-0 shadow-none ${pageCardPaddingClass}`}
@@ -585,7 +585,7 @@ export const DashboardHome = ({
           </div>
 
           <div
-            className={`xl:min-h-0 xl:overflow-hidden ${pageSectionGapClass}`}
+            className={`min-w-0 2xl:min-h-0 2xl:overflow-hidden ${pageSectionGapClass}`}
           >
             <Card
               className={`${pagePanelClass} overflow-hidden rounded-[30px] bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_30%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] shadow-none dark:bg-[radial-gradient(circle_at_top_right,hsl(var(--state-info-bg))_0%,transparent_28%),linear-gradient(145deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--surface-subtle))_100%)] dark:text-text-primary ${pageCardPaddingClass}`}

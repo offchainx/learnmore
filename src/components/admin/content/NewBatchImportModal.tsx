@@ -336,8 +336,8 @@ export function NewBatchImportModal({
           <DialogDescription>支持文件导入（PDF/图像）与网页链接抓取，两种方式可切换。</DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 pt-4 desktop:grid-cols-3">
+          <div className="space-y-6 desktop:col-span-2">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -547,7 +547,7 @@ export function NewBatchImportModal({
             </Form>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="desktop:col-span-1">
             <Card className="bg-gradient-to-br from-surface to-surface-muted dark:from-surface dark:to-surface-subtle text-text-primary dark:text-text-primary border-borderTone dark:border-borderTone shadow-surface-md">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">

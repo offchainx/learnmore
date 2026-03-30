@@ -225,7 +225,7 @@ export const ReportsClient: React.FC = () => {
         />
 
         <section className="space-y-3">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
             <SectionBlockHeader
               title="报错概览"
               description="按时间范围查看待处理队列、关闭效率和高影响问题类型。"
@@ -257,7 +257,7 @@ export const ReportsClient: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-4">
             {statCards.map((card) => {
               const Icon = card.icon
               return (
@@ -310,8 +310,8 @@ export const ReportsClient: React.FC = () => {
                 description={text.filters.queueDescription}
               />
 
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <div className="relative w-full xl:max-w-[460px]">
+              <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+                <div className="relative w-full desktop:max-w-[460px]">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
                   <input
                     type="text"
@@ -322,7 +322,7 @@ export const ReportsClient: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                <div className="flex flex-wrap items-center gap-2 desktop:justify-end">
                   <Select
                     value={issueFilter}
                     onValueChange={(value) =>

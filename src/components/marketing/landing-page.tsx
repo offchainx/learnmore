@@ -371,15 +371,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
       <Navbar lang={lang} onToggleLang={toggleLang} isLoggedIn={resolvedIsLoggedIn} />
 
       {/* --- 1. Hero Section --- */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+      <section className="relative overflow-hidden pb-20 pt-28 desktop:pb-28 desktop:pt-40">
         {/* Abstract Background Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none opacity-50 animate-pulse-slow"></div>
-        <div className="absolute bottom-0 right-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen"></div>
+        <div className="absolute left-1/2 top-0 h-[320px] w-[min(92vw,760px)] -translate-x-1/2 rounded-full bg-blue-600/20 opacity-50 blur-[88px] pointer-events-none animate-pulse-slow sm:h-[420px] sm:blur-[104px] desktop:h-[600px] desktop:w-[1000px] desktop:blur-[120px]"></div>
+        <div className="absolute bottom-0 right-0 h-[360px] w-[min(82vw,560px)] rounded-full bg-indigo-600/10 blur-[88px] pointer-events-none mix-blend-screen sm:h-[480px] sm:w-[min(78vw,680px)] desktop:h-[800px] desktop:w-[800px] desktop:blur-[120px]"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid items-center gap-12 desktop:grid-cols-2">
             {/* Text Content */}
-            <div className="text-center lg:text-left relative z-20">
+            <div className="relative z-20 text-center desktop:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-medium mb-6 animate-fade-in-up">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -393,11 +393,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                   {t.hero.headline.split('\n')[1]}
                 </span>
               </h1>
-              <p className="text-lg text-slate-400 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-slate-400 animate-fade-in-up desktop:mx-0" style={{ animationDelay: '0.2s' }}>
                 {t.hero.subheadline}
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <div className="flex flex-col justify-center gap-4 animate-fade-in-up sm:flex-row desktop:justify-start" style={{ animationDelay: '0.3s' }}>
                 <Button size="xl" variant="glow" onClick={handleCTAClick} type="button" className="h-14 px-8 text-base shadow-blue-500/25 cursor-pointer relative z-30">
                   {t.hero.ctaPrimary}
                 </Button>
@@ -406,7 +406,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                 </Button>
               </div>
 
-              <div className="mt-10 flex items-center justify-center lg:justify-start gap-8 text-sm text-slate-500 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500 animate-fade-in-up desktop:justify-start" style={{ animationDelay: '0.4s' }}>
                 <div className="flex flex-col">
                   <span className="text-2xl font-bold text-white">{formatNumber(stats.activeStudents)}</span>
                   <span>{t.hero.stat1}</span>
@@ -420,7 +420,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
             </div>
 
             {/* Visual / 3D Abstract Graph Placeholder */}
-            <div className="relative h-[400px] lg:h-[500px] w-full animate-float hidden lg:block">
+            <div className="relative hidden h-[400px] w-full animate-float desktop:block desktop:h-[500px]">
                {/* Central Node */}
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-600 rounded-full blur-[60px] opacity-40"></div>
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-slate-900 border border-blue-500/50 rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.3)] z-20">
@@ -469,7 +469,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
             <p className="text-slate-400 text-lg">{t.painPoints.subtitle}</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid gap-8 desktop:grid-cols-3">
             {[ 
               { title: t.painPoints.card1Title, desc: t.painPoints.card1Desc, icon: Activity, color: "text-red-400", bg: "bg-red-400/10", border: "hover:border-red-500/50" },
               { title: t.painPoints.card2Title, desc: t.painPoints.card2Desc, icon: Users, color: "text-orange-400", bg: "bg-orange-400/10", border: "hover:border-orange-500/50" },
@@ -496,7 +496,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-32">
           
           {/* Feature 1: Adaptive Learning */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid items-center gap-16 desktop:grid-cols-2">
             <div>
               <div className="inline-block text-blue-400 font-bold tracking-wider uppercase text-sm mb-2">{t.features.f1Tag}</div>
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">{t.features.f1Title}</h3>
@@ -511,7 +511,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                 ))}
               </ul>
             </div>
-            <div className="relative rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-8 h-[400px] flex items-center justify-center group overflow-hidden">
+            <div className="relative flex h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 group sm:h-[360px] sm:p-8 desktop:h-[400px]">
                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
                {/* Visual: Animated Nodes */}
                <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
@@ -534,8 +534,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
           </div>
 
           {/* Feature 2: Radar Chart */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center lg:flex-row-reverse">
-            <div className="order-2 lg:order-1 relative rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-8 h-[400px] flex items-center justify-center">
+          <div className="grid items-center gap-16 desktop:grid-cols-2">
+            <div className="order-2 relative flex h-[320px] items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:h-[360px] sm:p-8 desktop:order-1 desktop:h-[400px]">
                {/* Visual: Animated Radar Chart */}
                <div className="relative w-64 h-64">
                   {/* Grid Lines */}
@@ -557,7 +557,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                   <div className="absolute top-1/2 -right-12 -translate-y-1/2 text-xs font-bold text-emerald-400">Stats</div>
                </div>
             </div>
-            <div className="order-1 lg:order-2">
+            <div className="order-1 desktop:order-2">
               <div className="inline-block text-emerald-400 font-bold tracking-wider uppercase text-sm mb-2">{t.features.f2Tag}</div>
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">{t.features.f2Title}</h3>
               <p className="text-slate-400 text-lg leading-relaxed mb-8">
@@ -570,7 +570,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
           </div>
 
           {/* Feature 3: Parent Dashboard */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid items-center gap-16 desktop:grid-cols-2">
             <div>
               <div className="inline-block text-purple-400 font-bold tracking-wider uppercase text-sm mb-2">{t.features.f3Tag}</div>
               <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">{t.features.f3Title}</h3>
@@ -590,7 +590,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
                  <span className="text-sm text-slate-400 self-center">{t.features.f3Trusted}</span>
               </div>
             </div>
-            <div className="relative rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-8 h-[400px] flex items-center justify-center">
+            <div className="relative flex h-[320px] items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:h-[360px] sm:p-8 desktop:h-[400px]">
                {/* Visual: Mobile Notification Animation */}
                <div className="w-48 h-80 bg-black border-4 border-slate-700 rounded-3xl p-3 relative shadow-2xl overflow-hidden">
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-20 bg-slate-800 rounded-b-xl z-20"></div>
@@ -623,8 +623,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
             <h2 className="text-3xl font-bold text-white mb-4">{t.comparison.title}</h2>
           </div>
           
-          <div className="bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl ring-1 ring-white/5">
-            <div className="grid grid-cols-3 p-6 border-b border-slate-800 bg-slate-900/50 text-sm md:text-base font-bold text-slate-300">
+          <div className="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl ring-1 ring-white/5">
+            <div className="grid min-w-[720px] grid-cols-3 border-b border-slate-800 bg-slate-900/50 p-6 text-sm font-bold text-slate-300 md:text-base">
                <div className="col-span-1"></div>
                <div className="col-span-1 text-center opacity-50 text-xs md:text-sm uppercase tracking-wider">{t.comparison.col1}</div>
                <div className="col-span-1 text-center text-blue-400 flex items-center justify-center gap-2 text-xs md:text-sm uppercase tracking-wider">
@@ -638,7 +638,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
               { label: t.comparison.row3, bad: t.comparison.row3bad, good: t.comparison.row3good, icon: CircleX },
               { label: t.comparison.row4, bad: t.comparison.row4bad, good: t.comparison.row4good, icon: null }
             ].map((row, i) => (
-              <div key={i} className={`grid grid-cols-3 p-6 items-center border-b border-slate-800/50 last:border-none hover:bg-white/5 transition-colors ${i % 2 === 1 ? 'bg-slate-900/20' : ''}`}>
+              <div key={i} className={`grid min-w-[720px] grid-cols-3 items-center border-b border-slate-800/50 p-6 transition-colors hover:bg-white/5 last:border-none ${i % 2 === 1 ? 'bg-slate-900/20' : ''}`}>
                  <div className="font-medium text-slate-300 text-sm md:text-base">{row.label}</div>
                  <div className="text-center text-slate-500 flex flex-col items-center gap-1 opacity-70">
                     {row.icon && <row.icon className="w-5 h-5 text-red-900/50" />}
@@ -714,8 +714,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
 
       <footer className="bg-[#020617] border-t border-slate-900 pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-16">
-            <div className="col-span-2 lg:col-span-2">
+          <div className="mb-16 grid grid-cols-2 gap-8 tablet:grid-cols-4 desktop:grid-cols-5">
+            <div className="col-span-2 desktop:col-span-2">
                <div className="flex items-center gap-2 mb-6">
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><BookOpen className="w-4 h-4 text-white" /></div>
                   <span className="text-xl font-bold text-white">LearnMore</span>
@@ -757,7 +757,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
             </div>
           </div>
           
-          <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-600">
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-900 pt-8 text-sm text-slate-600 tablet:flex-row">
              <div>{t.footer.rights}</div>
              <div className="flex gap-6">
                 <button onClick={() => router.push('/terms')} className="hover:text-slate-400 transition-colors">Terms</button>

@@ -63,7 +63,7 @@ export const StatCard: React.FC<StatItem> = ({
         </div>
 
         <div className="flex items-baseline gap-2">
-            <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</h3>
+            <h3 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white desktop:text-3xl">{value}</h3>
         </div>
 
         {trend && (

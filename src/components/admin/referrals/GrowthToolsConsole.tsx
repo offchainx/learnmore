@@ -480,7 +480,7 @@ export function GrowthToolsConsole({
       </section>
 
       <section className="space-y-3">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold text-text-primary">
               增长概览
@@ -517,7 +517,7 @@ export function GrowthToolsConsole({
         </div>
 
         <div
-          className={`grid gap-3 md:grid-cols-2 ${isAdmin ? 'xl:grid-cols-5' : 'xl:grid-cols-3'}`}
+          className={`grid gap-3 tablet:grid-cols-2 ${isAdmin ? 'desktop:grid-cols-5' : 'desktop:grid-cols-3'}`}
         >
           {kpiCards.map((card) => {
             const Icon = card.icon
@@ -621,9 +621,9 @@ export function GrowthToolsConsole({
         {activeTab === 'referrals' ? (
           <>
             <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                  <div className="group relative w-full md:w-80">
+              <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+                <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center">
+                  <div className="group relative w-full tablet:w-80">
                     <Search
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary transition-colors group-focus-within:text-primary"
                       size={18}
@@ -793,9 +793,9 @@ export function GrowthToolsConsole({
         ) : (
           <>
             <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
-              <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div className="md:col-span-2">
+              <div className="grid gap-4 desktop:grid-cols-[1.2fr_1fr]">
+                <div className="grid gap-3 tablet:grid-cols-2">
+                  <div className="tablet:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-text-primary">
                       Code
                     </label>
@@ -877,7 +877,7 @@ export function GrowthToolsConsole({
                       className="w-full rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="tablet:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-text-primary">
                       Stripe Coupon ID
                     </label>
@@ -922,9 +922,9 @@ export function GrowthToolsConsole({
             </div>
 
             <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                  <div className="group relative w-full md:w-80">
+              <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+                <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center">
+                  <div className="group relative w-full tablet:w-80">
                     <Search
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary transition-colors group-focus-within:text-primary"
                       size={18}

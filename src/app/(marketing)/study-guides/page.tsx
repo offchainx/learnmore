@@ -87,7 +87,6 @@ const StudyGuidePage: React.FC = () => {
         <div className="fixed inset-0 pointer-events-none">
            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px]"></div>
-           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
         </div>
 
         {/* Hero Header */}
@@ -113,7 +112,7 @@ const StudyGuidePage: React.FC = () => {
         <div className="max-w-5xl mx-auto px-6 relative z-10">
            
            {/* Center Line connecting the cards */}
-           <div className="absolute left-1/2 top-0 bottom-32 w-1 bg-gradient-to-b from-blue-500/0 via-blue-500/20 to-blue-500/0 -translate-x-1/2 hidden md:block"></div>
+           <div className="absolute bottom-32 left-1/2 top-0 hidden w-1 -translate-x-1/2 bg-gradient-to-b from-blue-500/0 via-blue-500/20 to-blue-500/0 tablet:block"></div>
 
            <div className="space-y-32">
               {currentT.days.map((item, index) => {
@@ -122,14 +121,14 @@ const StudyGuidePage: React.FC = () => {
                     <div 
                       key={index} 
                       id={`day-${item.day}`}
-                      className={`relative flex flex-col md:flex-row items-center gap-12 md:gap-24 ${isEven ? '' : 'md:flex-row-reverse'}`}
+                      className={`relative flex flex-col items-center gap-12 tablet:flex-row tablet:gap-24 ${isEven ? '' : 'tablet:flex-row-reverse'}`}
                     >
                        
                        {/* The Card */}
-                       <div className="w-full md:w-1/2 group perspective-1000">
+                       <div className="group perspective-1000 w-full tablet:w-1/2">
                           <div className={`
                              relative bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 transition-all duration-500 hover:scale-105 hover:bg-slate-800/60 hover:border-white/20 hover:shadow-2xl
-                             ${isEven ? 'text-left' : 'text-left md:text-right'}
+                             ${isEven ? 'text-left' : 'text-left tablet:text-right'}
                           `}>
                              {/* Floating Number Behind */}
                              <div className={`
@@ -150,7 +149,7 @@ const StudyGuidePage: React.FC = () => {
                                 <p className="text-slate-400 text-lg leading-relaxed mb-8">
                                    {item.desc}
                                 </p>
-                                <div className={`flex ${isEven ? 'justify-start' : 'justify-start md:justify-end'}`}>
+                                <div className={`flex ${isEven ? 'justify-start' : 'justify-start tablet:justify-end'}`}>
                                    <Button 
                                       variant="outline"
                                       onClick={() => router.push(item.link)} 
@@ -172,12 +171,12 @@ const StudyGuidePage: React.FC = () => {
                           </div>
                           {/* Connector Line for Mobile */}
                           {index !== currentT.days.length - 1 && (
-                             <div className="absolute top-20 left-1/2 w-0.5 h-32 bg-gradient-to-b from-white/20 to-transparent -translate-x-1/2 md:hidden"></div>
+                             <div className="absolute left-1/2 top-20 h-32 w-0.5 -translate-x-1/2 bg-gradient-to-b from-white/20 to-transparent tablet:hidden"></div>
                           )}
                        </div>
 
                        {/* Empty Spacer for layout balance */}
-                       <div className="hidden md:block w-1/2"></div>
+                       <div className="hidden w-1/2 tablet:block"></div>
 
                     </div>
                  );

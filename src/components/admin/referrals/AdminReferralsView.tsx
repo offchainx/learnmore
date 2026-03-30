@@ -294,7 +294,7 @@ export function AdminReferralsView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2 desktop:grid-cols-4">
         {metrics.map((metric) => {
           const trend = metric.trend || 'flat'
 
@@ -321,9 +321,9 @@ export function AdminReferralsView({
 
       <Card className="border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <CardContent className="pt-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="relative sm:col-span-2 lg:col-span-1">
+          <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+            <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 desktop:grid-cols-4">
+              <div className="relative sm:col-span-2 desktop:col-span-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <Input
                   value={keyword}

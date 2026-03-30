@@ -209,8 +209,8 @@ export default async function AdminContentPage({
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
-      <div className="px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7] sm:p-3">
+      <div className="min-w-0 px-3 py-2 sm:px-4 sm:py-3">
+        <div className="mx-auto w-full max-w-[1820px] min-w-0 space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7] sm:p-3">
           <PageHeroShell
             className="sm:py-4.5 px-4 py-4 sm:px-5"
             title={
@@ -231,7 +231,7 @@ export default async function AdminContentPage({
           />
 
           <section className="space-y-3">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
               <SectionBlockHeader
                 title="审核概览"
                 description="聚焦审核积压、驳回回流、用户报错与当前时间范围内的入库量。"
@@ -260,7 +260,7 @@ export default async function AdminContentPage({
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 tablet:grid-cols-2 2xl:grid-cols-4">
               {reviewOverview.map((item) => {
                 const Icon = item.icon
                 return (
@@ -307,13 +307,13 @@ export default async function AdminContentPage({
 
           <Card className={pageTableShellClass}>
             <CardHeader className={pageSectionHeaderBandClass}>
-              <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+              <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-end 2xl:justify-between">
                 <SectionBlockHeader
                   title="题目列表"
                   description="统一处理题目审核、发布与驳回动作，优先消化批量导入待审核项。"
                 />
 
-                <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                <div className="flex flex-wrap items-center gap-2 2xl:justify-end">
                   <div className="flex items-center gap-2">
                     <SubjectFilter
                       subjects={subjects}

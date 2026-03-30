@@ -1060,8 +1060,8 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
           />
         </div>
 
-        <div className={`grid xl:grid-cols-3 ${pageGridGapClass}`}>
-          <div className={`xl:col-span-2 ${pageSectionGapClass}`}>
+        <div className={`grid 2xl:grid-cols-3 ${pageGridGapClass}`}>
+          <div className={`2xl:col-span-2 ${pageSectionGapClass}`}>
             <div
               className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
             >
@@ -1076,7 +1076,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
               />
             </div>
 
-            <div className={`grid xl:grid-cols-2 ${pageGridGapClass}`}>
+            <div className={`grid 2xl:grid-cols-2 ${pageGridGapClass}`}>
               <div
                 className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
               >
@@ -1099,7 +1099,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
             </div>
           </div>
 
-          <div className="xl:col-span-1">
+          <div className="2xl:col-span-1">
             <PracticeCoachPanel
               selectedSubjectId={selectedSubjectId}
               currentSubjectTitle={currentSubjectTitle}

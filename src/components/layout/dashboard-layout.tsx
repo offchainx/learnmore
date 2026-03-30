@@ -286,8 +286,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div className="dashboard-shell flex h-screen overflow-hidden font-sans text-text-primary transition-colors duration-300 dark:text-white">
-      <div className="pointer-events-none fixed right-4 top-4 z-[70] hidden lg:block xl:right-6">
+    <div className="dashboard-shell flex h-screen min-w-0 overflow-hidden font-sans text-text-primary transition-colors duration-300 dark:text-white">
+      <div className="pointer-events-none fixed right-4 top-4 z-[70] hidden desktop:block desktop:right-6">
         <div className="pointer-events-auto rounded-2xl border border-borderTone bg-surface p-1.5 shadow-surface-md backdrop-blur-xl dark:border-borderTone dark:bg-surface dark:shadow-none">
           <NotificationBell />
         </div>
@@ -296,14 +296,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm desktop:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 transform flex-col border-r transition-transform duration-300 ease-out lg:relative lg:flex lg:translate-x-0 lg:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r transition-transform duration-300 ease-out desktop:relative desktop:flex desktop:translate-x-0 desktop:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
         <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
           <div
@@ -502,11 +502,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Main Content Area */}
       <main
-        className={`flex-1 overflow-y-auto scroll-smooth ${
+        className={`min-w-0 flex-1 overflow-y-auto scroll-smooth ${
           isAnyAdminRoute
             ? 'p-2 sm:p-4'
             : isPracticeRoute
-              ? 'px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-4'
+              ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
               : 'p-4 sm:p-8'
         } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}
       >
@@ -517,7 +517,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Top Header Bar */}
         {isPracticeRoute ? (
-          <div className="mb-2 flex items-center justify-between lg:hidden">
+          <div className="mb-2 flex items-center justify-between desktop:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
                 className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none"
@@ -542,14 +542,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         ) : (
           <div
             className={
-              isAnyAdminRoute ? 'mb-2 flex lg:mb-3' : 'mb-2 flex items-center'
+              isAnyAdminRoute
+                ? 'mb-2 flex desktop:mb-3'
+                : 'mb-2 flex items-center'
             }
           >
             <div className="flex items-center gap-4">
               {/* Mobile Menu Trigger */}
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none lg:hidden"
+                className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none desktop:hidden"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

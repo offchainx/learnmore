@@ -61,9 +61,9 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 w-full min-h-[700px]">
+    <div className="flex min-h-[700px] w-full flex-col gap-6 desktop:flex-row">
       {/* Left Column: Image Preview */}
-      <div className="lg:w-1/3 bg-slate-100 rounded-xl border border-slate-200 flex flex-col h-[700px]">
+      <div className="flex h-[700px] flex-col rounded-xl border border-slate-200 bg-slate-100 desktop:w-1/3">
         <div className="p-3 border-b bg-white flex items-center justify-between">
           <span className="text-sm font-medium text-slate-600">原始试题</span>
           <div className="flex items-center gap-2">
@@ -280,7 +280,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                 </div>
 
                 {Object.keys(formData.options || {}).length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                  <div className="mb-6 grid grid-cols-1 gap-3 tablet:grid-cols-2">
                     {Object.entries(formData.options || {}).map(([key, val]) => (
                       <div key={key} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200">
                         <span className="font-bold text-indigo-600">{key}.</span>

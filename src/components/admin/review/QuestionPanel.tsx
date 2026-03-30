@@ -131,10 +131,10 @@ export function QuestionPanel({ data, onUpdate, onOpenQuestion }: QuestionPanelP
     : tempData.answerValue ?? ''
 
   return (
-    <div className="min-h-0 min-w-0 overflow-y-auto bg-page px-4 py-5 scroll-smooth dark:bg-slate-950 lg:px-7 lg:py-6 xl:px-8">
+    <div className="min-h-0 min-w-0 overflow-y-auto bg-page px-4 py-5 scroll-smooth dark:bg-slate-950 desktop:px-7 desktop:py-6 2xl:px-8">
       <div className="mx-auto max-w-5xl space-y-6 pb-20">
         <section className="rounded-2xl border border-borderTone bg-surface/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
             <div>
               <div className="text-xs font-black uppercase tracking-[0.18em] text-text-tertiary dark:text-slate-400">
                 审核工作台视图
@@ -218,7 +218,7 @@ export function QuestionPanel({ data, onUpdate, onOpenQuestion }: QuestionPanelP
             ) : null}
 
             <section className="rounded-2xl border border-borderTone bg-surface/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
-              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div className="flex flex-col gap-2 tablet:flex-row tablet:items-start tablet:justify-between">
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-[0.16em] text-text-tertiary dark:text-slate-400">
                     用户端答题态预览
@@ -459,7 +459,7 @@ export function QuestionPanel({ data, onUpdate, onOpenQuestion }: QuestionPanelP
           ) : (
             <>
               {data.options.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2">
                   {data.options.map((opt) => (
                     <div
                       key={opt.id}
@@ -564,7 +564,7 @@ export function QuestionPanel({ data, onUpdate, onOpenQuestion }: QuestionPanelP
             题目图像
           </h3>
           {questionImages.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 tablet:grid-cols-2">
               {questionImages.map((url) => (
                 <a
                   key={url}

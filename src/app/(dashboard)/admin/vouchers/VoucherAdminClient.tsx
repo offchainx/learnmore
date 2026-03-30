@@ -113,7 +113,7 @@ export function VoucherAdminClient({ vouchers }: VoucherAdminClientProps) {
         <p className="text-sm text-muted-foreground mb-4">
           本期支持金额减免（AMOUNT）与百分比折扣（PERCENT）。
         </p>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 tablet:grid-cols-2">
           <Input
             label="Code"
             value={code}

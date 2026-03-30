@@ -239,7 +239,7 @@ export function PostDetailClient({ initialPost }: PostDetailClientProps) {
           {copy.threadLabel}
         </div>
 
-        <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="mt-4 flex flex-col gap-4 desktop:flex-row desktop:items-start desktop:justify-between">
           <div className="min-w-0">
             <h1 className="text-[28px] font-semibold tracking-tight text-white">
               {post.title}

@@ -232,7 +232,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
       <PracticeModeShell maxWidthClassName="max-w-4xl">
         <div className="space-y-4">
           <Skeleton className="h-[260px] w-full rounded-[30px]" />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 tablet:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
               <Skeleton key={index} className="h-[132px] w-full rounded-[26px]" />
             ))}
@@ -295,7 +295,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
             { label: 'Focus', value: trainingFocusLabel, icon: BrainCircuit },
           ]}
         >
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 tablet:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-5">
               <div className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-300/80">Why this pack</div>
               <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
@@ -355,7 +355,7 @@ export default function SmartDrillSession({ userId, subjectId, enableMockPreview
           </div>
         </PracticeHeader>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 tablet:grid-cols-3">
           <Card className="rounded-[26px] border-slate-200/80 dark:border-slate-800">
             <CardContent className="p-5">
               <div className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Recommended Use</div>

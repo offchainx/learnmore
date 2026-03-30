@@ -33,7 +33,7 @@ export const LandingPageNavbar: React.FC = () => {
         scrolled ? 'py-3' : 'py-5'
       }`}
     >
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`}>
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8`}>
         <div className={`
           relative flex justify-between h-14 items-center px-6 rounded-full transition-all duration-300
           ${scrolled ? 'bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl' : 'bg-transparent border border-transparent'}
@@ -52,7 +52,7 @@ export const LandingPageNavbar: React.FC = () => {
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden desktop:flex items-center space-x-1">
             {navLinks.map((item) => (
               <Link 
                 key={item.name}
@@ -69,7 +69,7 @@ export const LandingPageNavbar: React.FC = () => {
           </div>
 
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden desktop:flex items-center space-x-3">
             <Button variant="ghost" size="sm" onClick={() => router.push('/login')} className="text-slate-300 hover:text-white hover:bg-white/10">
               Log in
             </Button>
@@ -79,7 +79,7 @@ export const LandingPageNavbar: React.FC = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center desktop:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors focus:outline-none"
@@ -92,7 +92,7 @@ export const LandingPageNavbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 px-4 md:hidden animate-fade-in-up">
+        <div className="absolute top-full left-0 right-0 mt-2 px-4 desktop:hidden animate-fade-in-up">
           <div className="p-4 space-y-2 bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl">
             {navLinks.map((item) => (
               <Link 

@@ -35,7 +35,6 @@ export function Podium({ topThree }: PodiumProps) {
           <Crown className="w-8 h-8 text-yellow-400 absolute -top-10 animate-bounce" />
           <img src={topThree[0].avatar} className="w-20 h-20 rounded-full border-4 border-yellow-400 shadow-[0_0_25px_rgba(250,204,21,0.4)] mb-4 object-cover" alt="Rank 1" />
           <div className="w-full h-32 bg-gradient-to-b from-yellow-600 to-yellow-800 rounded-t-lg border-t border-yellow-400/50 flex flex-col items-center pt-2 relative overflow-hidden shadow-xl shadow-yellow-900/20">
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
             {/* Promotion Hint */}
             <div className="absolute top-0 w-full h-1 bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]"></div>
             <div className="text-4xl font-black text-white/30 relative z-10">1</div>

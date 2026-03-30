@@ -99,7 +99,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
   ] as const
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+    <div className="grid gap-3 sm:grid-cols-2 desktop:grid-cols-3 2xl:grid-cols-6">
       {cardConfigs.map((card, index) => {
         const Icon = card.icon
 
@@ -152,9 +152,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
                       </span>
                     </div>
                   </div>
-                  <p
-                    className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
-                  >
+                  <p className={`line-clamp-2 max-w-full ${pageMetaTextClass}`}>
                     {card.meta}
                   </p>
                 </div>

@@ -442,8 +442,8 @@ export function BatchTable({
   return (
     <div className="overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface">
       <div className="border-b border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="group relative w-full xl:max-w-[26rem]">
+        <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
+          <div className="group relative w-full 2xl:max-w-[26rem]">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <Search className="h-5 w-5 text-text-tertiary transition-colors group-focus-within:text-primary dark:text-text-tertiary dark:group-focus-within:text-primary" />
             </div>
@@ -557,7 +557,7 @@ export function BatchTable({
       </div>
 
       <div className="overflow-x-auto">
-        <Table className="table-fixed">
+        <Table className="min-w-[920px] table-fixed">
           <TableHeader className="bg-surface-subtle dark:bg-surface-subtle">
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-[39%] text-text-tertiary dark:text-text-tertiary">
@@ -781,7 +781,7 @@ export function BatchTable({
       </div>
 
       <div className="border-t border-borderTone bg-surface-subtle px-4 py-4 dark:border-borderTone dark:bg-surface-subtle sm:px-6">
-        <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 flex-col gap-4 desktop:flex-row desktop:items-center desktop:justify-between">
           <div>
             <p className="text-sm text-text-secondary dark:text-text-secondary">
               显示{' '}
@@ -869,7 +869,7 @@ export function BatchTable({
             </div>
           ) : diagnosticsData ? (
             <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 sm:grid-cols-2 desktop:grid-cols-4">
                 {[
                   ['预期题数', diagnosticsData.expectedQuestionCount ?? 0],
                   ['解析题数', diagnosticsData.normalizedQuestionCount ?? 0],
@@ -889,7 +889,7 @@ export function BatchTable({
                 ))}
               </div>
 
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 desktop:grid-cols-3">
                 <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4">
                   <div className="text-sm font-medium text-text-primary">
                     缺失题号
@@ -946,7 +946,7 @@ export function BatchTable({
                   <div className="text-sm font-medium text-text-primary">
                     阶段耗时
                   </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2 desktop:grid-cols-3">
                     {[
                       ['网页抓取', diagnosticsData.stageDurations.crawlMs],
                       ['图片转存', diagnosticsData.stageDurations.imagePersistMs],
