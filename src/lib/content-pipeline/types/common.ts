@@ -204,7 +204,14 @@ export interface QuestionFilter {
  * 题目排序选项
  */
 export interface QuestionSortOptions {
-  field: 'createdAt' | 'updatedAt' | 'difficulty' | 'qualityScore' | 'reportCount'
+  field:
+    | 'createdAt'
+    | 'updatedAt'
+    | 'reviewedAt'
+    | 'sourceFileCreatedAt'
+    | 'difficulty'
+    | 'qualityScore'
+    | 'reportCount'
   order: 'asc' | 'desc'
 }
 

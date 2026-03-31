@@ -128,6 +128,8 @@
 
 | 2026-03-30 | Task 7.19 全站响应式第一轮收口与外链噪点资源移除 | 统一 dashboard/admin/marketing/auth 主要页面在中窄视窗下的收缩与重排，并移除失败的外部 noise.svg 资源引用 | 已完成主要页面壳层断点统一、局部横向滚动与卡片重排，移除了 study-guides 与 podium 中的 `grainy-gradients.vercel.app/noise.svg` 外链；定向 eslint 与 `tsc --noEmit` 通过 | 先修壳层断点与 `min-w-0`，再做页面级重排，最后清理外链资源，能避免反复打补丁 | 提交时被 codex pre-commit 强制要求补 iteration log，且此前外链资源失败会在浏览器控制台制造噪音 | 遇到布局大扫除类改动时，先统一壳层断点和容器约束，再逐页补栅格/滚动策略；提交前同步更新 iteration log，避免被钩子拦截 | 提交当前响应式收口改动，然后继续按用户手动验收结果补剩余页面细节 |
 
+| 2026-03-31 | T-022 feedback 收口、开发环境告警修复与当前工作区 checkpoint | 完成 feedback 入口真实化、补浏览器验证、修复 dev 启动告警，并在提交前统一做工作区 checkpoint | 已完成 T-022.1~T-022.6、修复 proxy/middleware 与 baseline-browser-mapping/Tailwind 告警，并准备提交当前所有改动 | 先按 task 分步落地，再把验证与文档同步回写；对开发环境告警直接用启动日志回归 | 提交前漏更 iteration-log，触发 pre-commit 阻断 | 涉及代码提交的会话，先执行 pnpm codex:close 补 iteration-log，再 git add/commit；开发环境告警类问题优先以实际 pnpm run dev 启动日志作为验收依据 | 提交当前工作区 checkpoint，随后进入 T-023 /admin/content/reports 真数据收口 |
+
 ## 约束
 
 - 每次会话结束至少追加一条记录

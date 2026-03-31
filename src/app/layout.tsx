@@ -15,6 +15,7 @@ import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
 import type { Lang } from '@/providers/app-provider'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { getCurrentUser } from '@/actions/user/auth'
 
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
@@ -71,6 +72,7 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies()
   const initialLang = parseLangCookie(cookieStore.get('lm_lang')?.value)
+  const currentUser = await getCurrentUser()
 
   return (
     <html lang="zh-CN" suppressHydrationWarning className={fonts.className}>
@@ -90,10 +92,10 @@ export default async function RootLayout({
               {children}
             </div>
             <BottomTabBar />
+            <FeedbackWidget viewerEmail={currentUser?.email ?? null} />
           </AppProvider>
         </ThemeProvider>
         <CookieConsent />
-        <FeedbackWidget />
         <Toaster />
         <Sonner position="top-center" />
         <SpeedInsights />

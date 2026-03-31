@@ -270,7 +270,7 @@ export async function createQuestion(
       select: selectQuestionRelations(),
     })
 
-    revalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/review')
     return { success: true, data: question as QuestionWithRelations }
   } catch (error) {
     return {
@@ -350,7 +350,7 @@ export async function bulkCreateQuestions(
     }
   }
 
-  revalidatePath('/admin/content/review')
+  safeRevalidatePath('/admin/content/review')
   return {
     success: failed === 0,
     total: input.questions.length,
@@ -423,7 +423,7 @@ export async function updateQuestionStatus(
       }),
     ])
 
-    revalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/review')
     return { success: true, data: updatedQuestion as QuestionWithRelations }
   } catch (error) {
     return {
@@ -614,7 +614,7 @@ export async function deleteQuestion(
 
     if (options?.hardDelete) {
       await prisma.question.delete({ where: { id } })
-      revalidatePath('/admin/content/review')
+      safeRevalidatePath('/admin/content/review')
       return { success: true, data: { deleted: true, hardDeleted: true } }
     }
 
@@ -642,7 +642,7 @@ export async function deleteQuestion(
       }),
     ])
 
-    revalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/review')
     return { success: true, data: { deleted: true, hardDeleted: false } }
   } catch (error) {
     return {
@@ -891,7 +891,7 @@ export async function updateQuestion(
       select: selectQuestionRelations(),
     })
 
-    revalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/review')
     return { success: true, data: updated as QuestionWithRelations }
   } catch (error) {
     return {
@@ -913,13 +913,23 @@ export async function getQuestions(
   const pageSize = Math.min(params.pageSize ?? 20, MAX_PAGE_SIZE)
   const skip = (page - 1) * pageSize
   const where = buildQuestionWhere(filter)
+  const orderBy: Prisma.QuestionOrderByWithRelationInput[] =
+    sort.field === 'sourceFileCreatedAt'
+      ? [
+          { sourceFile: { createdAt: sort.order } },
+          { createdAt: 'desc' },
+        ]
+      : [
+          { [sort.field]: sort.order } as Prisma.QuestionOrderByWithRelationInput,
+          { createdAt: 'desc' },
+        ]
 
   const [total, data] = await prisma.$transaction([
     prisma.question.count({ where }),
     prisma.question.findMany({
       where,
       select: selectQuestionRelations(),
-      orderBy: { [sort.field]: sort.order },
+      orderBy,
       skip,
       take: pageSize,
     }),
@@ -1139,8 +1149,8 @@ export async function resolveReport(
       })
     }
 
-    revalidatePath('/admin/content/review')
-    revalidatePath('/admin/content/reports')
+    safeRevalidatePath('/admin/content/review')
+    safeRevalidatePath('/admin/content/reports')
     return { success: true, data: { resolved: true } }
   } catch (error) {
     return {

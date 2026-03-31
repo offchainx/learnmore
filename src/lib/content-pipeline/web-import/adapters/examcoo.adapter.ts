@@ -14,6 +14,35 @@ import type {
   WebImportRawResult,
 } from '../types'
 
+function extractAnswerImageUrls(answer: JsonValue): string[] {
+  const extractFromString = (value: string): string[] => {
+    const urls: string[] = []
+    const imageRegex = /!\[[^\]]*]\(([^)]+)\)/g
+    let match: RegExpExecArray | null = null
+    while ((match = imageRegex.exec(value)) !== null) {
+      const url = match[1]?.trim()
+      if (url) urls.push(url)
+    }
+    return urls
+  }
+
+  if (typeof answer === 'string') {
+    return extractFromString(answer)
+  }
+
+  if (Array.isArray(answer)) {
+    return Array.from(
+      new Set(
+        answer.flatMap((item) =>
+          typeof item === 'string' ? extractFromString(item) : []
+        )
+      )
+    )
+  }
+
+  return []
+}
+
 function buildExamcooAssets(questions: ExamcooImportQuestion[]): WebImportRawResult['assets'] {
   const seen = new Set<string>()
   const assets: WebImportRawResult['assets'] = []
@@ -29,6 +58,15 @@ function buildExamcooAssets(questions: ExamcooImportQuestion[]): WebImportRawRes
       })
     }
     for (const imageUrl of question.explanationImageUrls) {
+      if (seen.has(imageUrl)) continue
+      seen.add(imageUrl)
+      assets.push({
+        url: imageUrl,
+        kind: 'explanation_image',
+        source: question.questionId,
+      })
+    }
+    for (const imageUrl of extractAnswerImageUrls(question.answer as JsonValue)) {
       if (seen.has(imageUrl)) continue
       seen.add(imageUrl)
       assets.push({

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { usePathname } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,8 @@ import { submitFeedback } from '@/actions/support/ticket';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Sparkles } from 'lucide-react';
 import { FeedbackCategory } from '@/types/feedback';
+import { createClient } from '@/lib/supabase/client';
+import { useApp } from '@/providers';
 
 const feedbackSchema = z.object({
   category: z.nativeEnum(FeedbackCategory),
@@ -49,11 +52,33 @@ interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultCategory?: FeedbackCategory;
+  sourceType?: 'floating-widget' | 'help-page';
+  viewerEmail?: string | null;
 }
 
-export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCategory.SUGGESTION }: FeedbackModalProps) {
+export function FeedbackModal({
+  isOpen,
+  onClose,
+  defaultCategory = FeedbackCategory.SUGGESTION,
+  sourceType = 'floating-widget',
+  viewerEmail = null,
+}: FeedbackModalProps) {
+  const initialViewerEmail = viewerEmail?.trim() ?? '';
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [accountEmail, setAccountEmail] = useState(initialViewerEmail);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    Boolean(initialViewerEmail)
+  );
   const { toast } = useToast();
+  const pathname = usePathname();
+  const { t } = useApp();
+  const supabase = useMemo(() => {
+    try {
+      return createClient();
+    } catch {
+      return null;
+    }
+  }, []);
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
@@ -65,6 +90,74 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
     },
   });
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const hydrateViewer = async () => {
+      if (!isOpen) return;
+
+      if (initialViewerEmail) {
+        if (isCancelled) return;
+
+        setAccountEmail(initialViewerEmail);
+        setIsAuthenticated(true);
+        form.reset({
+          category: defaultCategory,
+          title: '',
+          content: '',
+          email: initialViewerEmail,
+        });
+        return;
+      }
+
+      if (!isOpen || !supabase) return;
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (isCancelled) return;
+
+      const email = user?.email ?? '';
+      setAccountEmail(email);
+      setIsAuthenticated(Boolean(user));
+
+      form.reset({
+        category: defaultCategory,
+        title: '',
+        content: '',
+        email,
+      });
+    };
+
+    void hydrateViewer();
+
+    if (!isOpen) {
+      setAccountEmail(initialViewerEmail);
+      setIsAuthenticated(Boolean(initialViewerEmail));
+      form.reset({
+        category: defaultCategory,
+        title: '',
+        content: '',
+        email: initialViewerEmail,
+      });
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [defaultCategory, form, initialViewerEmail, isOpen, supabase]);
+
+  const handleClose = () => {
+    form.reset({
+      category: defaultCategory,
+      title: '',
+      content: '',
+      email: accountEmail,
+    });
+    onClose();
+  };
+
   async function onSubmit(values: FeedbackFormValues) {
     setIsSubmitting(true);
     try {
@@ -73,26 +166,27 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
         title: values.title,
         content: values.content,
         email: values.email || undefined,
+        sourceType,
+        sourcePath: pathname || undefined,
       });
 
-      if (result.success) {
+	      if (result.success) {
         toast({
-          title: '提交成功 ✨',
-          description: "感谢您的反馈！我们将尽快审阅您的建议。",
+          title: t.support.successTitle,
+          description: t.support.successDescription,
         });
-        form.reset();
-        onClose();
+        handleClose();
       } else {
         toast({
-          title: '提交失败',
-          description: result.error as string || '无法提交反馈，请稍后再试。',
+          title: t.support.errorTitle,
+          description: result.error as string || t.support.errorFallback,
           variant: 'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: '错误',
-        description: '发生未知错误，请重试。',
+        title: t.support.unknownErrorTitle,
+        description: t.support.unknownErrorDescription,
         variant: 'destructive',
       });
     } finally {
@@ -101,7 +195,14 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          handleClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[500px] bg-[#0f172a] border-slate-800 text-white shadow-2xl p-0 overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         
@@ -111,11 +212,11 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
                <Sparkles className="h-5 w-5" />
             </div>
             <DialogTitle className="text-2xl font-bold tracking-tight">
-              分享您的想法
+              {t.support.modalTitle}
             </DialogTitle>
           </div>
           <DialogDescription className="text-slate-400">
-            您的反馈是我们不断进步的动力。无论是 Bug 报告还是功能建议，我们都非常重视。
+            {t.support.modalDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -127,19 +228,19 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-sm font-medium">反馈类型</FormLabel>
+                    <FormLabel className="text-slate-300 text-sm font-medium">{t.support.categoryLabel}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-slate-950/50 border-slate-800 text-slate-200 h-11">
-                          <SelectValue placeholder="选择一个分类" />
+                          <SelectValue placeholder={t.support.categoryPlaceholder} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="bg-slate-900 border-slate-800 text-white">
-                        <SelectItem value={FeedbackCategory.BUG}>🐞 Bug 报告</SelectItem>
-                        <SelectItem value={FeedbackCategory.SUGGESTION}>💡 功能建议</SelectItem>
-                        <SelectItem value={FeedbackCategory.CONTENT_ISSUE}>📖 内容纠错</SelectItem>
-                        <SelectItem value={FeedbackCategory.BILLING}>💳 账单/支付</SelectItem>
-                        <SelectItem value={FeedbackCategory.OTHER}>✨ 其他</SelectItem>
+                        <SelectItem value={FeedbackCategory.BUG}>🐞 {t.support.categories.bug}</SelectItem>
+                        <SelectItem value={FeedbackCategory.SUGGESTION}>💡 {t.support.categories.suggestion}</SelectItem>
+                        <SelectItem value={FeedbackCategory.CONTENT_ISSUE}>📖 {t.support.categories.contentIssue}</SelectItem>
+                        <SelectItem value={FeedbackCategory.BILLING}>💳 {t.support.categories.billing}</SelectItem>
+                        <SelectItem value={FeedbackCategory.OTHER}>✨ {t.support.categories.other}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -152,10 +253,10 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-sm font-medium">标题</FormLabel>
+                    <FormLabel className="text-slate-300 text-sm font-medium">{t.support.titleLabel}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="简要概括您的问题或建议"
+                        placeholder={t.support.titlePlaceholder}
                         {...field}
                         className="bg-slate-950/50 border-slate-800 text-slate-200 h-11 focus:ring-blue-500/20"
                       />
@@ -170,16 +271,27 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-sm font-medium">联系邮箱 (选填)</FormLabel>
+                    <FormLabel className="text-slate-300 text-sm font-medium">
+                      {isAuthenticated
+                        ? t.support.emailLabelAuthenticated
+                        : t.support.emailLabelGuest}
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="方便我们向您反馈处理进展"
+                        placeholder={
+                          isAuthenticated
+                            ? t.support.emailPlaceholderAuthenticated
+                            : t.support.emailPlaceholderGuest
+                        }
                         {...field}
+                        disabled={isAuthenticated}
                         className="bg-slate-950/50 border-slate-800 text-slate-200 h-11 focus:ring-blue-500/20"
                       />
                     </FormControl>
                     <FormDescription className="text-slate-500 text-[11px]">
-                      如果您已登录，我们将优先使用您的账号邮箱。
+                      {isAuthenticated
+                        ? `${t.support.emailHintAuthenticated}${accountEmail ? ` ${accountEmail}` : ''}`
+                        : t.support.emailHintGuest}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -191,10 +303,10 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-300 text-sm font-medium">详细描述</FormLabel>
+                    <FormLabel className="text-slate-300 text-sm font-medium">{t.support.contentLabel}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="请尽可能详细地描述您的问题，以便我们更好地为您提供帮助..."
+                        placeholder={t.support.contentPlaceholder}
                         className="min-h-[120px] bg-slate-950/50 border-slate-800 text-slate-200 focus:ring-blue-500/20 p-3 leading-relaxed"
                         {...field}
                       />
@@ -209,10 +321,10 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
               <Button
                 type="button"
                 variant="ghost"
-                onClick={onClose}
+                onClick={handleClose}
                 className="text-slate-400 hover:text-white hover:bg-slate-800 flex-1 sm:flex-none"
               >
-                取消
+                {t.common.cancel || t.support.cancel}
               </Button>
               <Button
                 type="submit"
@@ -220,7 +332,7 @@ export function FeedbackModal({ isOpen, onClose, defaultCategory = FeedbackCateg
                 className="bg-blue-600 hover:bg-blue-500 text-white px-8 h-11 font-semibold shadow-lg shadow-blue-900/20 flex-1 sm:flex-none transition-all active:scale-95"
               >
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                发送反馈
+                {t.support.submit}
               </Button>
             </DialogFooter>
           </form>

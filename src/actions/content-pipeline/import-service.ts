@@ -28,6 +28,7 @@ import type {
   ImportOptions,
   ResumeFailedImportInput,
   CreateQuestionInput,
+  JsonValue,
   ServiceResult,
   ImportStage
 } from '@/lib/content-pipeline/types'
@@ -311,6 +312,7 @@ async function recoverStaleQueuedImportTasks(): Promise<void> {
     select: {
       id: true,
       createdAt: true,
+      uploadedBy: true,
       importDiagnostics: true,
       _count: {
         select: { questions: true },
@@ -332,23 +334,10 @@ async function recoverStaleQueuedImportTasks(): Promise<void> {
     )
 
     if (task._count.questions > 0 && lastProgressAt < completedCutoff) {
-      await prisma.sourceFile.updateMany({
-        where: {
-          id: task.id,
-          status: ProcessingStatus.PROCESSING,
-          processedAt: null,
-        },
-        data: {
-          status: ProcessingStatus.COMPLETED,
-          processedAt: now,
-          importDiagnostics: stripUndefinedDeep({
-            ...diagnostics,
-            lastProgressAt: now.toISOString(),
-            statusSummary: '任务已自动恢复完成状态（检测到题目已入库）',
-            overallProgress: 100,
-            stageProgress: 100,
-          }) as Prisma.InputJsonValue,
-        },
+      await recoverImportedBatchToCompleted({
+        sourceFileId: task.id,
+        preferredReviewerId: task.uploadedBy,
+        statusSummary: '任务已自动恢复完成状态（检测到题目已入库）',
       })
       continue
     }
@@ -565,20 +554,34 @@ function buildWebImportQuestionSource(
   return buildSourceLabel(input, fallbackMeta?.trim() || 'web-import')
 }
 
-async function moveImportedQuestionsToReviewPending(questionIds: string[], reviewerId: string): Promise<void> {
-  if (questionIds.length === 0) return
+async function moveImportedQuestionsToReviewPending(
+  questionIds: string[],
+  reviewerId: string
+): Promise<string[]> {
+  if (questionIds.length === 0) return []
+
+  const draftQuestions = await prisma.question.findMany({
+    where: {
+      id: { in: questionIds },
+      status: ContentStatus.DRAFT,
+    },
+    select: { id: true },
+  })
+
+  const draftQuestionIds = draftQuestions.map((question) => question.id)
+  if (draftQuestionIds.length === 0) return []
 
   const now = new Date()
   await prisma.$transaction([
     prisma.question.updateMany({
       where: {
-        id: { in: questionIds },
+        id: { in: draftQuestionIds },
         status: ContentStatus.DRAFT,
       },
       data: { status: ContentStatus.REVIEW_PENDING },
     }),
     prisma.contentReviewLog.createMany({
-      data: questionIds.map((questionId) => ({
+      data: draftQuestionIds.map((questionId) => ({
         contentType: 'question',
         contentId: questionId,
         action: ReviewAction.SUBMIT_REVIEW,
@@ -590,6 +593,98 @@ async function moveImportedQuestionsToReviewPending(questionIds: string[], revie
       })),
     }),
   ])
+
+  return draftQuestionIds
+}
+
+async function resolveImportReviewerId(preferredReviewerId?: string | null): Promise<string> {
+  if (preferredReviewerId) {
+    const preferred = await prisma.user.findUnique({
+      where: { id: preferredReviewerId },
+      select: { id: true },
+    })
+    if (preferred?.id) return preferred.id
+  }
+
+  const admin = await prisma.user.findFirst({
+    where: { role: 'ADMIN' },
+    select: { id: true },
+  })
+  if (admin?.id) return admin.id
+
+  const fallback = await prisma.user.findFirst({
+    select: { id: true },
+  })
+  if (fallback?.id) return fallback.id
+
+  throw new Error('没有可用的导入审核人')
+}
+
+async function recoverImportedBatchToCompleted(params: {
+  sourceFileId: string
+  preferredReviewerId?: string | null
+  diagnostics?: ImportDiagnostics | null
+  statusSummary: string
+}): Promise<{
+  recovered: boolean
+  questionIds: string[]
+}> {
+  const questions = await prisma.question.findMany({
+    where: { sourceFileId: params.sourceFileId },
+    select: { id: true },
+  })
+
+  const questionIds = questions.map((question) => question.id)
+  if (questionIds.length === 0) {
+    return { recovered: false, questionIds: [] }
+  }
+
+  const reviewerId = await resolveImportReviewerId(params.preferredReviewerId)
+  await moveImportedQuestionsToReviewPending(questionIds, reviewerId)
+
+  const sourceFile = await prisma.sourceFile.findUnique({
+    where: { id: params.sourceFileId },
+    select: {
+      importDiagnostics: true,
+    },
+  })
+
+  const existingDiagnostics =
+    sourceFile?.importDiagnostics &&
+    typeof sourceFile.importDiagnostics === 'object' &&
+    !Array.isArray(sourceFile.importDiagnostics)
+      ? (sourceFile.importDiagnostics as Record<string, unknown>)
+      : {}
+
+  const now = new Date()
+  const mergedDiagnostics = stripUndefinedDeep({
+    ...existingDiagnostics,
+    ...(params.diagnostics ?? {}),
+    lastProgressAt: now.toISOString(),
+    currentStage: undefined,
+    currentStageLabel: undefined,
+    statusSummary: params.statusSummary,
+    overallProgress: 100,
+    stageProgress: 100,
+    createdQuestionCount:
+      typeof existingDiagnostics.createdQuestionCount === 'number'
+        ? existingDiagnostics.createdQuestionCount
+        : questionIds.length,
+  })
+
+  await prisma.sourceFile.update({
+    where: { id: params.sourceFileId },
+    data: {
+      status: ProcessingStatus.COMPLETED,
+      processedAt: now,
+      importDiagnostics: mergedDiagnostics as unknown as Prisma.InputJsonValue,
+    },
+  })
+
+  safeRevalidatePath('/admin/content/review')
+  safeRevalidatePath('/admin/content/import')
+
+  return { recovered: true, questionIds }
 }
 
 function getSourceFileTypeByUrl(url: string): 'pdf' | 'image' | 'docx' | 'html' {
@@ -729,6 +824,7 @@ function buildWebImportDiagnostics(
 
 type StemImagePersistResult = {
   content: string
+  answer: JsonValue
   explanation: string | null
   options: Record<string, string> | null
   assetUrl: string | null
@@ -764,6 +860,53 @@ function replaceImageUrlInOptions(
   )
 }
 
+function extractMarkdownImageUrls(markdown = ''): string[] {
+  const urls: string[] = []
+  const imageRegex = /!\[[^\]]*]\(([^)]+)\)/g
+  let match: RegExpExecArray | null = null
+  while ((match = imageRegex.exec(markdown)) !== null) {
+    const url = match[1]?.trim()
+    if (url) urls.push(url)
+  }
+  return urls
+}
+
+function extractAnswerImageUrls(answer: JsonValue): string[] {
+  if (typeof answer === 'string') {
+    return extractMarkdownImageUrls(answer)
+  }
+
+  if (Array.isArray(answer)) {
+    return Array.from(
+      new Set(
+        answer.flatMap((item) =>
+          typeof item === 'string' ? extractMarkdownImageUrls(item) : []
+        )
+      )
+    )
+  }
+
+  return []
+}
+
+function replaceImageUrlInAnswer(
+  answer: JsonValue,
+  originalUrl: string,
+  replacementUrl: string
+): JsonValue {
+  if (typeof answer === 'string') {
+    return answer.split(originalUrl).join(replacementUrl)
+  }
+
+  if (Array.isArray(answer)) {
+    return answer.map((item) =>
+      typeof item === 'string' ? item.split(originalUrl).join(replacementUrl) : item
+    )
+  }
+
+  return answer
+}
+
 function inferImageExtension(contentType: string | null): string {
   const ct = (contentType || '').toLowerCase()
   if (ct.includes('image/png')) return 'png'
@@ -779,10 +922,12 @@ async function persistQuestionImagesToSupabase(params: {
   adapterName: string
   paperId?: string | null
   content: string
+  answer: JsonValue
   explanation: string | null
   options: Record<string, string> | null
   assetUrl: string | null
   imageUrls: string[]
+  answerImageUrls: string[]
   explanationImageUrls: string[]
   supabase?: SupabaseClient
   urlCache?: Map<string, Promise<string | null>>
@@ -791,20 +936,31 @@ async function persistQuestionImagesToSupabase(params: {
   if (params.adapterName !== 'examcoo-view') {
     return {
       content: params.content,
+      answer: params.answer,
       explanation: params.explanation,
       options: params.options,
       assetUrl: params.assetUrl,
       imageUrls: params.imageUrls,
       uploadedCount: 0,
-      skippedCount: params.imageUrls.length + params.explanationImageUrls.length,
+      skippedCount:
+        params.imageUrls.length +
+        params.answerImageUrls.length +
+        params.explanationImageUrls.length,
     }
   }
 
-  const allImageUrls = Array.from(new Set([...params.imageUrls, ...params.explanationImageUrls]))
+  const allImageUrls = Array.from(
+    new Set([
+      ...params.imageUrls,
+      ...params.answerImageUrls,
+      ...params.explanationImageUrls,
+    ])
+  )
 
   if (allImageUrls.length === 0) {
     return {
       content: params.content,
+      answer: params.answer,
       explanation: params.explanation,
       options: params.options,
       assetUrl: params.assetUrl,
@@ -895,6 +1051,7 @@ async function persistQuestionImagesToSupabase(params: {
   }
 
   let content = params.content
+  let answer = params.answer
   let explanation = params.explanation
   let options = params.options
   const newUrls: string[] = []
@@ -916,12 +1073,14 @@ async function persistQuestionImagesToSupabase(params: {
     }
     // content 是 markdown，直接做字符串替换即可（避免 regex 转义风险）
     content = content.split(originalUrl).join(uploadedUrl)
+    answer = replaceImageUrlInAnswer(answer, originalUrl, uploadedUrl)
     explanation = explanation?.split(originalUrl).join(uploadedUrl) ?? null
     options = replaceImageUrlInOptions(options, originalUrl, uploadedUrl)
   }
 
   return {
     content,
+    answer,
     explanation,
     options,
     assetUrl: newUrls[0] ?? params.assetUrl,
@@ -1671,10 +1830,12 @@ export async function importFromWebUrl(
         adapterName: webImportData.adapterName,
         paperId: group.paperId ?? null,
         content: group.material,
+        answer: '',
         explanation: null,
         options: null,
         assetUrl: group.materialImageUrls[0] ?? null,
         imageUrls: group.materialImageUrls ?? [],
+        answerImageUrls: [],
         explanationImageUrls: [],
         supabase: stemImageSupabase ?? undefined,
         urlCache: stemImageUrlCache,
@@ -1706,11 +1867,13 @@ export async function importFromWebUrl(
           adapterName: webImportData.adapterName,
           paperId: question.paperId ?? null,
           content: question.content,
+          answer: question.answer,
           explanation: question.explanation ?? null,
           options: question.options ?? null,
           assetUrl: question.assetUrl ?? null,
           imageUrls:
             question.imageUrls.length > 0 ? question.imageUrls : question.assetUrl ? [question.assetUrl] : [],
+          answerImageUrls: extractAnswerImageUrls(question.answer),
           explanationImageUrls: question.explanationImageUrls ?? [],
           supabase: stemImageSupabase ?? undefined,
           urlCache: stemImageUrlCache,
@@ -1724,6 +1887,7 @@ export async function importFromWebUrl(
               : question.assetUrl
                 ? [question.assetUrl]
                 : []),
+            ...extractAnswerImageUrls(question.answer),
             ...(question.explanationImageUrls ?? []),
           ])
         ).length
@@ -1831,7 +1995,7 @@ export async function importFromWebUrl(
           groupId: rawGroupId ? questionGroupIdMap.get(rawGroupId) ?? null : null,
           chapterId: input.chapterId ?? null,
         options: persisted.options,
-        answer: question.answer,
+        answer: persisted.answer,
         explanation: persisted.explanation,
         sourceFileId,
         source: buildWebImportQuestionSource(
@@ -1986,6 +2150,31 @@ export async function importFromWebUrl(
     }
   } catch (error) {
     if (sourceFileId) {
+      const recovered = await recoverImportedBatchToCompleted({
+        sourceFileId,
+        preferredReviewerId: currentUserId,
+        diagnostics: pendingImportDiagnostics,
+        statusSummary: '导入已自动恢复完成（入库成功，收尾阶段已补偿）',
+      })
+
+      if (recovered.recovered) {
+        return {
+          success: true,
+          data: {
+            success: true,
+            sourceFileId,
+            questionsCreated: recovered.questionIds.length,
+            questionsDuplicated: 0,
+            questionsFailed: 0,
+            questionIds: recovered.questionIds,
+            ocrDuration: 0,
+            structureDuration: 0,
+            totalDuration: Date.now() - startTime,
+            estimatedCost: 0,
+          },
+        }
+      }
+
       // 优先把状态落成 FAILED，diagnostics 写入失败不影响状态落库
       try {
         await prisma.sourceFile.update({

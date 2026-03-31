@@ -8,9 +8,9 @@ import {
 } from '@/actions/content-pipeline/question-service'
 import { getAllSubjects } from '@/actions/courses/subject'
 import { QuestionReviewTable } from '@/components/admin/questions'
-import { SubjectFilter } from '@/components/admin/common'
+import { ReviewSortControl, SubjectFilter } from '@/components/admin/common'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { QuestionFilter } from '@/lib/content-pipeline/types'
+import { QuestionFilter, QuestionSortOptions } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { getProfile } from '@/actions/user/profile'
@@ -44,6 +44,8 @@ interface AdminContentPageProps {
     status?: string
     tab?: string
     range?: string
+    sortField?: string
+    sortOrder?: string
   }>
 }
 
@@ -65,6 +67,21 @@ export default async function AdminContentPage({
     resolvedSearchParams.range === '30d' || resolvedSearchParams.range === 'all'
       ? resolvedSearchParams.range
       : '7d'
+  const sortField = resolvedSearchParams.sortField
+  const sortOrder = resolvedSearchParams.sortOrder
+  const currentSort: QuestionSortOptions = {
+    field:
+      sortField === 'sourceFileCreatedAt' ||
+      sortField === 'reviewedAt' ||
+      sortField === 'createdAt' ||
+      sortField === 'updatedAt' ||
+      sortField === 'difficulty' ||
+      sortField === 'qualityScore' ||
+      sortField === 'reportCount'
+        ? sortField
+        : 'sourceFileCreatedAt',
+    order: sortOrder === 'asc' ? 'asc' : 'desc',
+  }
 
   // Determine status filter based on tab or param
   let statusFilter: ContentStatus[] | undefined = undefined
@@ -89,8 +106,8 @@ export default async function AdminContentPage({
   const [questionsResult, subjectsResult, contentStatsResult, activityLogsResult] =
     await Promise.all([
       currentTab === 'pending'
-        ? getPendingReviewQuestions({ page, pageSize: 20 }, filter)
-        : getQuestions({ page, pageSize: 20 }, filter),
+        ? getPendingReviewQuestions({ page, pageSize: 20 }, filter, currentSort)
+        : getQuestions({ page, pageSize: 20 }, filter, currentSort),
       getAllSubjects(),
       getContentStats(currentRange, { subjectId }),
       getContentReviewActivityLogs({ limit: 40, subjectId }),
@@ -103,6 +120,8 @@ export default async function AdminContentPage({
       subjectId: string
       page: string
       range: string
+      sortField: string
+      sortOrder: string
     }>
   ) => {
     const params = new URLSearchParams()
@@ -110,11 +129,23 @@ export default async function AdminContentPage({
     const nextSubjectId = overrides.subjectId ?? subjectId
     const nextPage = overrides.page ?? String(page)
     const nextRange = overrides.range ?? currentRange
+    const nextSortField = overrides.sortField ?? currentSort.field
+    const nextSortOrder = overrides.sortOrder ?? currentSort.order
 
     params.set('tab', nextTab)
     if (nextSubjectId) params.set('subjectId', nextSubjectId)
     if (nextPage && nextPage !== '1') params.set('page', nextPage)
     if (nextRange && nextRange !== '7d') params.set('range', nextRange)
+    if (nextSortField && nextSortField !== 'sourceFileCreatedAt') {
+      params.set('sortField', nextSortField)
+    } else {
+      params.delete('sortField')
+    }
+    if (nextSortOrder && nextSortOrder !== 'desc') {
+      params.set('sortOrder', nextSortOrder)
+    } else {
+      params.delete('sortOrder')
+    }
 
     return `?${params.toString()}`
   }
@@ -314,10 +345,14 @@ export default async function AdminContentPage({
                 />
 
                 <div className="flex flex-wrap items-center gap-2 2xl:justify-end">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <SubjectFilter
                       subjects={subjects}
                       triggerClassName="w-[200px] rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
+                      contentClassName="border-borderTone bg-surface text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7]"
+                    />
+                    <ReviewSortControl
+                      triggerClassName="w-[220px] rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
                       contentClassName="border-borderTone bg-surface text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7]"
                     />
                   </div>

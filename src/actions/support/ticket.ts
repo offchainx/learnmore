@@ -6,6 +6,9 @@ import { getCurrentUser } from '../user/auth'
 import { sendEmail } from '@/lib/email/resend'
 import { createInAppNotification } from '../notification/core'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
+import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
+import { createClient as createSupabaseServerClient } from '@/lib/supabase/server'
 
 export interface SubmitFeedbackParams {
   category: FeedbackCategory
@@ -13,6 +16,8 @@ export interface SubmitFeedbackParams {
   content: string
   email?: string // For anonymous users
   attachments?: string[]
+  sourceType?: string
+  sourcePath?: string
 }
 
 export type FeedbackOverviewWindow = '7D' | '30D' | 'ALL'
@@ -33,32 +38,136 @@ export interface FeedbackOverview {
   lastUpdated: string
 }
 
+type FeedbackActor = {
+  id: string
+  email: string | null
+} | null
+
+async function resolveFeedbackActor(): Promise<FeedbackActor> {
+  try {
+    const requestHeaders = await headers()
+    const forwardedUserId =
+      requestHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+
+    if (forwardedUserId) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: forwardedUserId },
+        select: { id: true, email: true },
+      })
+
+      if (dbUser) {
+        return dbUser
+      }
+    }
+
+    const supabase = await createSupabaseServerClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return null
+    }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, email: true },
+    })
+
+    if (dbUser) {
+      return dbUser
+    }
+
+    return {
+      id: user.id,
+      email: user.email ?? null,
+    }
+  } catch (error) {
+    console.warn('[Feedback] Failed to resolve viewer from request context:', error)
+    return null
+  }
+}
+
 /**
  * 提交用户反馈
  */
 export async function submitFeedback(params: SubmitFeedbackParams) {
   try {
-    const user = await getCurrentUser()
-    const userId = user?.id
-    const userEmail = user?.email || params.email
+    const actor = await resolveFeedbackActor()
+    const userId = actor?.id
+    const normalizedTitle = params.title.trim()
+    const normalizedContent = params.content.trim()
+    const normalizedEmail = params.email?.trim().toLowerCase()
+    const userEmail = actor?.email || normalizedEmail
+
+    if (normalizedTitle.length < 2) {
+      return {
+        success: false,
+        error: '标题至少需要 2 个字符',
+      }
+    }
+
+    if (normalizedContent.length < 5) {
+      return {
+        success: false,
+        error: '反馈内容至少需要 5 个字符',
+      }
+    }
 
     if (!userEmail) {
       return {
         success: false,
-        error: 'Email is required for feedback submission',
+        error: '未登录提交时必须填写联系邮箱',
+      }
+    }
+
+    const duplicateWindowStart = new Date(Date.now() - 2 * 60 * 1000)
+    const existingFeedback = await prisma.userFeedback.findFirst({
+      where: {
+        category: params.category,
+        title: normalizedTitle,
+        content: normalizedContent,
+        createdAt: {
+          gte: duplicateWindowStart,
+        },
+        ...(userId
+          ? { userId }
+          : {
+              email: userEmail,
+              userId: null,
+            }),
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    if (existingFeedback) {
+      return {
+        success: true,
+        data: existingFeedback,
+        deduplicated: true,
       }
     }
 
     // 1. 创建反馈记录
     const feedback = await prisma.userFeedback.create({
       data: {
-        userId: userId || null,
         email: userEmail,
         category: params.category,
-        title: params.title,
-        content: params.content,
+        title: normalizedTitle,
+        content: normalizedContent,
         attachments: params.attachments || [],
+        sourceType: params.sourceType,
+        sourcePath: params.sourcePath,
         status: FeedbackStatus.PENDING,
+        ...(userId
+          ? {
+              user: {
+                connect: { id: userId },
+              },
+            }
+          : {}),
       },
     })
 
@@ -76,7 +185,6 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
         type: 'SYSTEM',
         title: 'Feedback Received',
         content: `Your feedback "${params.title}" has been received. Thank you for helping us improve!`,
-        link: `/dashboard/settings?tab=feedback`, // Assuming there's a feedback tab in settings or similar
       })
     }
 
@@ -85,7 +193,13 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
     return { success: true, data: feedback }
   } catch (error) {
     console.error('Error submitting feedback:', error)
-    return { success: false, error: 'Failed to submit feedback' }
+    return {
+      success: false,
+      error:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : 'Failed to submit feedback',
+    }
   }
 }
 
@@ -383,7 +497,6 @@ export async function replyToFeedback(
         type: 'FEEDBACK_REPLY',
         title: 'Feedback Replied',
         content: `Your feedback "${feedback.title}" has been replied to by our support team.`,
-        link: `/dashboard/settings?tab=feedback`,
       })
     }
 

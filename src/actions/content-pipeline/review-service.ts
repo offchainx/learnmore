@@ -8,6 +8,7 @@ import {
   updateQuestion as updateQuestionCore,
   updateQuestionStatus,
 } from '@/actions/content-pipeline/question-service'
+import { normalizeExamcooImageUrl } from '@/lib/content-pipeline/examcoo-image'
 
 function toDifficultyInfo(difficulty: number): { level: string; label: string } {
   const map: Record<number, { level: string; label: string }> = {
@@ -295,19 +296,24 @@ export async function getQuestionForReview(questionId: string): Promise<Question
       : []
 
     const storedImageUrls = Array.isArray(question.imageUrls)
-      ? question.imageUrls.filter((url): url is string => typeof url === 'string' && url.length > 0)
+      ? question.imageUrls
+          .filter((url): url is string => typeof url === 'string' && url.length > 0)
+          .map((url) => normalizeExamcooImageUrl(url) || url)
       : []
     const stemImageUrls = Array.from(
       new Set(
         (question.content.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/gi) || [])
-          .map((item) => item.match(/\((https?:\/\/[^)]+)\)/i)?.[1])
+          .map((item) => {
+            const rawUrl = item.match(/\((https?:\/\/[^)]+)\)/i)?.[1]
+            return normalizeExamcooImageUrl(rawUrl) || rawUrl
+          })
           .filter((x): x is string => Boolean(x))
       )
     )
     const questionImageUrls = Array.from(
       new Set([
         ...storedImageUrls,
-        ...(question.assetUrl ? [question.assetUrl] : []),
+        ...(question.assetUrl ? [normalizeExamcooImageUrl(question.assetUrl) || question.assetUrl] : []),
         ...stemImageUrls,
       ])
     )

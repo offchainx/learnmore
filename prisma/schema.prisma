@@ -1035,6 +1035,8 @@ model UserFeedback {
   title       String
   content     String           @db.Text
   attachments String[] // 附件图片 URL 列表
+  sourceType  String?          @map("source_type")
+  sourcePath  String?          @map("source_path")
   priority    Int              @default(0) // 优先级 0-3
 
   // 状态 / 审核字段

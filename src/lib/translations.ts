@@ -122,6 +122,63 @@ export const translations = {
         forecast: 'Exam Forecast',
       },
     },
+    support: {
+      widgetLabel: 'Share feedback',
+      modalTitle: 'Share your thoughts',
+      modalDescription:
+        'Your feedback helps us improve. Whether it is a bug report or a feature idea, we take it seriously.',
+      categoryLabel: 'Feedback type',
+      categoryPlaceholder: 'Select a category',
+      categories: {
+        bug: 'Bug report',
+        suggestion: 'Feature suggestion',
+        contentIssue: 'Content issue',
+        billing: 'Billing / payment',
+        other: 'Other',
+      },
+      titleLabel: 'Title',
+      titlePlaceholder: 'Summarize your issue or suggestion',
+      emailLabelAuthenticated: 'Contact email (account email)',
+      emailLabelGuest: 'Contact email (required)',
+      emailPlaceholderAuthenticated: 'We will use your current account email',
+      emailPlaceholderGuest: 'So we can follow up on the progress',
+      emailHintAuthenticated:
+        'We will use your signed-in email as the reply address.',
+      emailHintGuest:
+        'When submitting without signing in, a valid email is required so we can follow up.',
+      contentLabel: 'Details',
+      contentPlaceholder:
+        'Describe the issue in as much detail as possible so we can help effectively...',
+      cancel: 'Cancel',
+      submit: 'Send feedback',
+      successTitle: 'Submitted',
+      successDescription:
+        'Thanks for the feedback. We will review it as soon as possible.',
+      errorTitle: 'Submission failed',
+      errorFallback: 'Unable to submit feedback. Please try again later.',
+      unknownErrorTitle: 'Error',
+      unknownErrorDescription: 'An unexpected error occurred. Please try again.',
+      helpTitle: 'How can we help you?',
+      helpSearchPlaceholder: 'Search for articles, guides...',
+      faqTitle: 'Frequently Asked Questions',
+      contactTitle: 'Contact Support',
+      sendMessageTitle: 'Send a Message',
+      sendMessageDescription:
+        'Fill out our feedback form and we will get back to you within 24 hours.',
+      emailSupportTitle: 'Email Support',
+      emailSupportDescriptionPrefix: 'Drop us an email at',
+      emailSupportDescriptionSuffix: 'for direct assistance.',
+      phoneSupportTitle: 'Phone Support',
+      phoneSupportDescription:
+        'Available only for Premium Plus subscribers.',
+      browseTitle: 'Browse by Category',
+      categoriesList: [
+        'Getting Started',
+        'Account & Security',
+        'Study Guides',
+        'Billing & Plans',
+      ],
+    },
   },
   zh: {
     common: {
@@ -246,6 +303,55 @@ export const translations = {
         forecast: '考试预测',
       },
     },
+    support: {
+      widgetLabel: '提交反馈',
+      modalTitle: '分享您的想法',
+      modalDescription:
+        '您的反馈是我们不断进步的动力。无论是 Bug 报告还是功能建议，我们都非常重视。',
+      categoryLabel: '反馈类型',
+      categoryPlaceholder: '选择一个分类',
+      categories: {
+        bug: 'Bug 报告',
+        suggestion: '功能建议',
+        contentIssue: '内容纠错',
+        billing: '账单 / 支付',
+        other: '其他',
+      },
+      titleLabel: '标题',
+      titlePlaceholder: '简要概括您的问题或建议',
+      emailLabelAuthenticated: '联系邮箱（账号邮箱）',
+      emailLabelGuest: '联系邮箱（必填）',
+      emailPlaceholderAuthenticated: '将使用当前登录账号邮箱',
+      emailPlaceholderGuest: '方便我们向您反馈处理进展',
+      emailHintAuthenticated: '我们将使用您当前登录的账号邮箱作为回执地址。',
+      emailHintGuest:
+        '未登录提交时必须填写有效邮箱，便于我们跟进处理结果。',
+      contentLabel: '详细描述',
+      contentPlaceholder:
+        '请尽可能详细地描述您的问题，以便我们更好地为您提供帮助...',
+      cancel: '取消',
+      submit: '发送反馈',
+      successTitle: '提交成功',
+      successDescription: '感谢您的反馈！我们将尽快审阅您的建议。',
+      errorTitle: '提交失败',
+      errorFallback: '无法提交反馈，请稍后再试。',
+      unknownErrorTitle: '错误',
+      unknownErrorDescription: '发生未知错误，请重试。',
+      helpTitle: '我们可以如何帮助您？',
+      helpSearchPlaceholder: '搜索文章、指南...',
+      faqTitle: '常见问题',
+      contactTitle: '联系支持团队',
+      sendMessageTitle: '发送消息',
+      sendMessageDescription:
+        '填写反馈表单后，我们会在 24 小时内尽快回复您。',
+      emailSupportTitle: '邮件支持',
+      emailSupportDescriptionPrefix: '您也可以发送邮件到',
+      emailSupportDescriptionSuffix: '获取直接协助。',
+      phoneSupportTitle: '电话支持',
+      phoneSupportDescription: '仅对 Premium Plus 订阅用户开放。',
+      browseTitle: '按分类浏览',
+      categoriesList: ['新手入门', '账号与安全', '学习指南', '账单与套餐'],
+    },
   },
   ms: {
     common: {
@@ -369,6 +475,66 @@ export const translations = {
         hive: 'Sarang Pengetahuan',
         forecast: 'Ramalan Peperiksaan',
       },
+    },
+    support: {
+      widgetLabel: 'Hantar maklum balas',
+      modalTitle: 'Kongsi pandangan anda',
+      modalDescription:
+        'Maklum balas anda membantu kami menambah baik. Sama ada laporan pepijat atau cadangan ciri, kami mengambilnya dengan serius.',
+      categoryLabel: 'Jenis maklum balas',
+      categoryPlaceholder: 'Pilih satu kategori',
+      categories: {
+        bug: 'Laporan pepijat',
+        suggestion: 'Cadangan ciri',
+        contentIssue: 'Isu kandungan',
+        billing: 'Bil / pembayaran',
+        other: 'Lain-lain',
+      },
+      titleLabel: 'Tajuk',
+      titlePlaceholder: 'Ringkaskan isu atau cadangan anda',
+      emailLabelAuthenticated: 'E-mel hubungan (e-mel akaun)',
+      emailLabelGuest: 'E-mel hubungan (wajib)',
+      emailPlaceholderAuthenticated:
+        'Kami akan menggunakan e-mel akaun semasa anda',
+      emailPlaceholderGuest:
+        'Supaya kami boleh memaklumkan perkembangan kepada anda',
+      emailHintAuthenticated:
+        'Kami akan menggunakan e-mel akaun anda yang sedang log masuk sebagai alamat balasan.',
+      emailHintGuest:
+        'Apabila menghantar tanpa log masuk, e-mel yang sah diperlukan supaya kami boleh membuat susulan.',
+      contentLabel: 'Butiran',
+      contentPlaceholder:
+        'Terangkan isu ini dengan seberapa terperinci yang mungkin supaya kami dapat membantu dengan lebih berkesan...',
+      cancel: 'Batal',
+      submit: 'Hantar maklum balas',
+      successTitle: 'Berjaya dihantar',
+      successDescription:
+        'Terima kasih atas maklum balas anda. Kami akan menyemaknya secepat mungkin.',
+      errorTitle: 'Penghantaran gagal',
+      errorFallback: 'Tidak dapat menghantar maklum balas. Sila cuba lagi nanti.',
+      unknownErrorTitle: 'Ralat',
+      unknownErrorDescription:
+        'Ralat yang tidak dijangka telah berlaku. Sila cuba lagi.',
+      helpTitle: 'Bagaimana kami boleh membantu anda?',
+      helpSearchPlaceholder: 'Cari artikel, panduan...',
+      faqTitle: 'Soalan Lazim',
+      contactTitle: 'Hubungi Sokongan',
+      sendMessageTitle: 'Hantar mesej',
+      sendMessageDescription:
+        'Isi borang maklum balas dan kami akan membalas dalam masa 24 jam.',
+      emailSupportTitle: 'Sokongan E-mel',
+      emailSupportDescriptionPrefix: 'Hantar e-mel kepada',
+      emailSupportDescriptionSuffix: 'untuk bantuan terus.',
+      phoneSupportTitle: 'Sokongan Telefon',
+      phoneSupportDescription:
+        'Hanya tersedia untuk pelanggan Premium Plus.',
+      browseTitle: 'Semak mengikut kategori',
+      categoriesList: [
+        'Permulaan',
+        'Akaun & Keselamatan',
+        'Panduan Belajar',
+        'Bil & Pelan',
+      ],
     },
   },
 }

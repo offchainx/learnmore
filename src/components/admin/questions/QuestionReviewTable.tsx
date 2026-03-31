@@ -48,6 +48,7 @@ import {
   pageTableShellClass,
 } from '@/components/shared/pageSurfaces'
 import { cn } from '@/lib/utils'
+import { normalizeExamcooImageUrl } from '@/lib/content-pipeline/examcoo-image'
 
 interface QuestionReviewTableProps {
   questions: QuestionWithRelations[]
@@ -332,9 +333,9 @@ export function QuestionReviewTable({
   }
 
   const getQuestionImage = (question: QuestionWithRelations): string | null => {
-    if (question.assetUrl) return question.assetUrl
+    if (question.assetUrl) return normalizeExamcooImageUrl(question.assetUrl)
     const match = question.content.match(/!\[[^\]]*]\((https?:\/\/[^)]+)\)/i)
-    return match?.[1] || null
+    return normalizeExamcooImageUrl(match?.[1]) || null
   }
 
   const getQuestionPreview = (content: string) => {
@@ -451,7 +452,7 @@ export function QuestionReviewTable({
       {/* Table */}
       <div className={cn(pageTableShellClass, 'rounded-[24px]')}>
         <div className="overflow-x-auto">
-        <Table className="min-w-[1220px] table-fixed">
+        <Table className="min-w-[1360px] table-fixed">
           <TableHeader>
             <TableRow className={cn(pageSectionHeaderBandClass, 'border-b border-borderTone hover:bg-surface-subtle dark:border-borderTone dark:hover:bg-surface-subtle')}>
               <TableHead className="h-12 w-[50px] text-text-secondary dark:text-text-secondary">
@@ -470,6 +471,7 @@ export function QuestionReviewTable({
               </TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">题型</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">科目/章节</TableHead>
+              <TableHead className="text-text-secondary dark:text-text-secondary">批次名称</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">时间</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">难度</TableHead>
               <TableHead className="text-text-secondary dark:text-text-secondary">质量分</TableHead>
@@ -481,7 +483,7 @@ export function QuestionReviewTable({
             {questions.length === 0 ? (
               <TableRow className="border-b border-borderTone hover:bg-transparent dark:border-borderTone">
                 <TableCell
-                  colSpan={10}
+                  colSpan={11}
                   className="h-24 text-center text-text-secondary dark:text-text-secondary"
                 >
                   没有找到相关题目
@@ -548,11 +550,28 @@ export function QuestionReviewTable({
                       {question.chapter?.title || '-'}
                     </div>
                   </TableCell>
+                  <TableCell className="align-top">
+                    <div
+                      className="max-w-[190px] truncate text-sm text-text-primary dark:text-text-primary"
+                      title={question.sourceFile?.sourceNote || undefined}
+                    >
+                      {question.sourceFile?.sourceNote || '-'}
+                    </div>
+                    <div className="mt-1 text-xs text-text-secondary dark:text-text-secondary">
+                      {question.sourceFileId
+                        ? `批次 ${question.sourceFileId.substring(0, 8)}`
+                        : '无批次'}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="space-y-1 text-xs text-text-secondary dark:text-text-secondary">
                       <div>
                         <span className="mr-1 text-text-tertiary dark:text-text-tertiary">导入:</span>
-                        <span>{formatDateTime(question.createdAt)}</span>
+                        <span>
+                          {formatDateTime(
+                            question.sourceFile?.createdAt ?? question.createdAt
+                          )}
+                        </span>
                       </div>
                       <div>
                         <span className="mr-1 text-text-tertiary dark:text-text-tertiary">审核:</span>
@@ -625,7 +644,7 @@ export function QuestionReviewTable({
           </TableBody>
           <TableFooter className="border-t border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary">
             <TableRow className="border-b-0 hover:bg-transparent">
-              <TableCell colSpan={10}>
+              <TableCell colSpan={11}>
                 <div className="flex w-full items-center justify-between">
                   <div className="text-xs text-text-secondary dark:text-text-secondary">
                     第 {page} 页 / 共 {totalPages} 页

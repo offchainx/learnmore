@@ -3,6 +3,7 @@
 import React from 'react'
 import 'katex/dist/katex.min.css'
 import katex from 'katex'
+import { normalizeExamcooImageUrl, replaceExamcooLegacyUploadsInMarkdown } from '@/lib/content-pipeline/examcoo-image'
 
 interface MathRendererProps {
   content: string
@@ -18,8 +19,10 @@ export function MathRenderer({ content, block = false, className = '' }: MathRen
   const renderMath = (text: string) => {
     if (!text) return text
 
+    let processed = replaceExamcooLegacyUploadsInMarkdown(text)
+
     // 处理 block 模式 ($$...$$)
-    let processed = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+    processed = processed.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
       try {
         const html = katex.renderToString(formula.trim(), {
           displayMode: true,
@@ -45,6 +48,12 @@ export function MathRenderer({ content, block = false, className = '' }: MathRen
         return `<code class="text-red-500">${match}</code>`
       }
     })
+
+    processed = processed.replace(
+      /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g,
+      (_match, altText: string, url: string) =>
+        `<img src="${normalizeExamcooImageUrl(url) || url}" alt="${altText || '题目图片'}" class="my-4 max-h-[420px] w-auto max-w-full rounded-lg border border-borderTone object-contain" loading="lazy" />`
+    )
 
     return processed
   }

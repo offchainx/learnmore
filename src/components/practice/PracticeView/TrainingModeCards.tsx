@@ -73,7 +73,8 @@ function PrimaryModeCard({
           onDeactivate()
         }
       }}
-      className={`ease-[cubic-bezier(0.22,1,0.36,1)] group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))]/40 dark:text-text-primary ${
+      style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
+      className={`group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))]/40 dark:text-text-primary ${
         active
           ? 'z-10 -translate-y-1 scale-[1.015] border-borderTone shadow-[0_28px_58px_rgba(2,8,23,0.12)] dark:border-borderTone dark:shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
           : 'hover:-translate-y-0.5 border-borderTone shadow-surface hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:shadow-[0_14px_28px_rgba(2,8,23,0.22)] dark:hover:border-[hsl(var(--border-strong))]'

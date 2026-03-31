@@ -8,7 +8,39 @@ const JWT_SECRET =
 const jwtSecret = new TextEncoder().encode(JWT_SECRET)
 const DEFAULT_POST_LOGIN_REDIRECT = '/dashboard'
 
-export async function middleware(request: NextRequest) {
+async function safeGetSupabaseUser(
+  request: NextRequest,
+  supabase: ReturnType<typeof createServerClient>
+) {
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error) {
+      // AuthSessionMissingError 对游客是正常情况，不需要刷开发日志。
+      if (error.name !== 'AuthSessionMissingError' && process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `[proxy] Failed to resolve Supabase user for ${request.nextUrl.pathname}: ${error.message}`
+        )
+      }
+      return null
+    }
+
+    return user ?? null
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      const message = error instanceof Error ? error.message : String(error)
+      console.warn(
+        `[proxy] Supabase auth fetch failed for ${request.nextUrl.pathname}; continuing as guest. ${message}`
+      )
+    }
+    return null
+  }
+}
+
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const requestHeaders = new Headers(request.headers)
 
@@ -110,9 +142,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { 
-    data: { user }, 
-  } = await supabase.auth.getUser()
+  const user = await safeGetSupabaseUser(request, supabase)
 
   if (user?.id) {
     requestHeaders.set(INTERNAL_AUTH_USER_ID_HEADER, user.id)

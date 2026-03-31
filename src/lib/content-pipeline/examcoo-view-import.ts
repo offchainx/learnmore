@@ -681,7 +681,8 @@ function parseAnswer(type: QuestionType, rawAnswer: unknown, optionCount: number
     return parseFillBlankAnswers(rawAnswer)
   }
 
-  return decodeHtml(String(rawAnswer ?? ''))
+  const normalized = htmlToMarkdownWithImages(String(rawAnswer ?? '')).trim()
+  return normalized || null
 }
 
 function ensureTrueFalseOptions(options: Record<string, string> | null): Record<string, string> {
