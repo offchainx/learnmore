@@ -543,6 +543,8 @@
 - 未执行通知 UI 点击验证：本步确认的是数据库中的通知 `link` 已为空，不再生成失效深链；尚未在通知中心 UI 中实际点击该条通知。
 - 未执行 `/admin/feedback/[id]` 详情页验证：本步只验证了列表可见性，未继续点入详情页核对来源字段展示。
 
+## 2026-03-31 补充验证与运行修复记录
+
 ### T-022 浏览器补充验证（2026-03-31）
 - 多语言浏览器验证：
 - 使用 Playwright headless 分别在 `zh/en/ms` 三种语言 cookie + localStorage 状态下打开 `/help`。
@@ -592,6 +594,11 @@
 - 验证结果：
 - 执行 `pnpm exec eslint scripts/patch-baseline-browser-mapping.mjs src/components/practice/PracticeView/TrainingModeCards.tsx` 通过。
 - 执行全仓检索 `rg -n "ease-\\[cubic-bezier\\(" src` 无命中，确认歧义类名已彻底移除。
+- `PageHeroShell` hydration 错误修复：
+- `src/components/shared/PageHeroShell.tsx` 现在会在 `title/subtitle` 为纯文本时使用语义化 `h1/p`，在传入复杂节点（例如 loading skeleton）时自动改用 `div` / `role=heading` 容器，避免 `div` 被渲染进 `h1/p` 导致 hydration 报错。
+- 验证结果：
+- 执行 `pnpm exec eslint src/components/shared/PageHeroShell.tsx src/components/loading/dashboard-route-loading.tsx src/components/ui/skeleton.tsx` 通过。
+- 执行 `pnpm exec tsc --noEmit --pretty false 2>&1 | rg "src/components/shared/PageHeroShell.tsx|src/components/loading/dashboard-route-loading.tsx|src/components/ui/skeleton.tsx"` 无命中。
 - 浏览器级留证未完成：
 - 当前 Playwright 在本机现有 Chrome session 影响下无法启动独立持久上下文，因此本次未补到 `/dashboard/practice` 页面级浏览器编译留证；本轮以 `dev` 启动日志消失 + 代码检索无残留作为完成依据。
 
@@ -608,12 +615,227 @@
 ## T-024 `/admin/feedback` 管理闭环收口
 | id | description | owner | status |
 |---|---|---|---|
-| T-024.1 | 盘点 `/admin/feedback`、`/admin/feedback/[id]` 的列表、概览、详情、回复动作与当前前台 Feedback 提交字段映射 | codex | todo |
-| T-024.2 | 建立反馈管理字段矩阵：状态、分类、提交人、邮箱、来源、回复内容、回复人、回复时间、通知/邮件副作用与权限边界 | codex | todo |
-| T-024.3 | 对齐读取链路：列表筛选、概览卡、详情回显、来源定位、前台提交记录回流与空态/越权态 | codex | todo |
+| T-024.1 | 盘点 `/admin/feedback`、`/admin/feedback/[id]` 的列表、概览、详情、回复动作与当前前台 Feedback 提交字段映射 | codex | done |
+| T-024.2 | 建立反馈管理字段矩阵：状态、分类、提交人、邮箱、来源、回复内容、回复人、回复时间、通知/邮件副作用与权限边界 | codex | done |
+| T-024.3 | 对齐读取链路：列表筛选、概览卡、详情回显、来源定位、前台提交记录回流与空态/越权态 | codex | done |
 | T-024.4 | 对齐写链路：回复、状态流转、重复回复语义、通知与邮件副作用、权限校验与幂等 | codex | todo |
 | T-024.5 | 清理假状态流、假成功提示、未定义来源字段与不完整详情态，补齐错误态、空态与越权态 | codex | todo |
 | T-024.6 | 完成闭环验证：前台提交 -> 后台可见 -> 后台处理 -> 状态/通知/邮件回显一致性验证 | codex | todo |
+
+### T-024.2 反馈管理字段矩阵（v1）
+> 本节用于统一后台反馈详情页、列表页、处理时间线与写链路的字段口径。规则分为四类：`展示字段`、`可编辑字段`、`内部存储字段`、`副作用与权限边界`。
+
+- `status` 工单状态
+  - 值域：`PENDING / IN_PROGRESS / RESOLVED / REJECTED / CLOSED`
+  - 展示：列表、详情顶部状态、时间线、处理工作台 `Next Status`
+  - 可编辑：管理员可改；用户不可改
+  - 存储：`user_feedbacks.status`
+  - 副作用：每次变更都要写 `user_feedback_events`
+
+- `category` 反馈分类
+  - 值域：`BUG / FEATURE / SUGGESTION / BILLING / CONTENT_ISSUE / OTHER`
+  - 展示：列表、详情顶部标签、筛选条件
+  - 可编辑：提交后不可改
+  - 存储：`user_feedbacks.category`
+  - 副作用：提交时写入 `SUBMITTED` 事件 metadata
+
+- `user` 提交人信息
+  - 展示：用户名、角色、头像、用户 ID
+  - 可编辑：不可改
+  - 存储：`user_feedbacks.userId` + `user` relation
+  - 副作用：登录态提交时用于自动识别身份；匿名用户则为空
+
+- `email` 联系邮箱
+  - 展示：列表、详情、回复发送目标
+  - 可编辑：
+    - 登录用户：前台自动预填且禁止修改
+    - 匿名用户：前台必填
+    - 后台管理员：只读，不直接编辑原始反馈邮箱
+  - 存储：`user_feedbacks.email`
+  - 副作用：提交确认邮件、管理员回复邮件都发送到该地址
+
+- `sourceType / sourcePath` 来源
+  - 值域：例如 `floating-widget / help-page`
+  - 展示：作为内部定位信息保留在详情数据中，当前详情 UI 不作为主视觉字段展示
+  - 可编辑：提交时写入，后续只读
+  - 存储：`user_feedbacks.sourceType`、`user_feedbacks.sourcePath`
+  - 副作用：提交事件 `metadata` 需要同步记录来源，便于排查入口问题
+
+- `title` 标题
+  - 展示：列表主标题、详情顶部标题
+  - 可编辑：提交后不可改
+  - 存储：`user_feedbacks.title`
+  - 副作用：管理员回复邮件主题、通知文案可引用
+
+- `content` 反馈正文
+  - 展示：列表摘要、详情原文、历史事件快照
+  - 可编辑：提交后不可改
+  - 存储：`user_feedbacks.content`
+  - 副作用：提交确认邮件、回复邮件正文可引用
+
+- `adminReply` 回复内容
+  - 展示：详情时间线、回复回显、回复邮件正文
+  - 可编辑：管理员回复时写入；后续以事件流为准，不做手工直接修改
+  - 存储：`user_feedbacks.adminReply`
+  - 副作用：回复后创建 `REPLIED` / `CLOSED` 事件，并触发邮件与站内通知
+
+- `repliedBy / responder` 回复人
+  - 展示：详情页与时间线中的操作者
+  - 可编辑：不可改
+  - 存储：`user_feedbacks.repliedBy` + `responder` relation
+  - 副作用：用于审计与时间线归因
+
+- `repliedAt` 回复时间
+  - 展示：详情页时间线、状态轨迹
+  - 可编辑：不可改
+  - 存储：`user_feedbacks.repliedAt`
+  - 副作用：用于旧数据补合成 timeline
+
+- `events` 处理历史
+  - 展示：详情页时间线
+  - 可编辑：不可直接改，只能通过动作生成
+  - 存储：`user_feedback_events`
+  - 副作用：提交、状态变更、回复、关闭都必须生成对应事件
+
+- `attachments` 附件
+  - 展示：本轮不做上传 UI
+  - 可编辑：暂不开放
+  - 存储：`user_feedbacks.attachments`
+  - 副作用：保留字段口径，但不进入当前处理闭环
+
+- 通知 / 邮件副作用
+  - 提交时：发送确认邮件；登录用户额外创建站内 `Feedback Received` 通知
+  - 回复时：发送回复邮件；登录用户额外创建站内 `FEEDBACK_REPLY` 通知
+  - 权限边界：
+    - 用户可提交自己的反馈；匿名可提交但必须提供邮箱
+    - `ADMIN` 可查看列表、详情、执行回复与状态变更
+    - 非 `ADMIN` 只能查看自己的反馈详情
+    - 后台工作台的读取接口对管理员使用专用加载器，避免作者可见性误拦截
+
+### T-024.3 读取链路对齐（已完成）
+> 本节聚焦列表筛选、概览卡、详情回显、来源定位、前台提交记录回流与空态 / 越权态的统一口径。
+
+- 列表筛选：
+  - 状态筛选、分类筛选、关键词搜索均走真实查询，分页参数已接入首屏与交互更新。
+  - 列表行点击后进入右侧抽屉，保持处理流在同一工作区内完成。
+  - 当前列表页首屏读取已经改为同步解析 `search / status / category / page` 查询参数，筛选条件会回写到 URL，便于刷新、分享和前进/后退保持同一视图。
+
+- 概览卡：
+  - `7D / 30D / ALL` 时间窗已真实联动。
+  - 概览卡当前使用真实统计值，不再依赖 mock。
+
+- 详情回显：
+  - 详情页加载时返回 `user / responder / events`，并按真实事件流回显处理时间线。
+  - 顶部保留标题、ticket ID、提交时间、提交者信息、提交者身份，避免信息重复。
+
+- 来源定位：
+  - `sourceType / sourcePath` 已进入详情数据与提交事件 metadata。
+  - 详情页会以低优先级元信息展示来源，便于排查入口来源，但不占用主状态栏。
+
+- 前台提交记录回流：
+  - 用户在前台提交后的记录会通过真实列表/详情读取链路回流到 `/admin/feedback`。
+  - 登录用户在前台提交时同步创建站内通知，便于用户侧确认反馈已受理。
+
+- 空态 / 越权态：
+  - 列表空态、详情空态、管理员越权态、非管理员访问态需要保持明确反馈。
+  - 管理后台抽屉详情使用专用管理员加载器，避免作者可见性逻辑误拦截。
+
+- 收口记录：
+  - `T-024.3` 已完成并收口，列表筛选、概览卡、详情回显、来源定位、空态/越权态与 URL 读写链路均已对齐，且详情页来源信息已在次级元信息中可见。
+
+### T-024.7 详情页工作台与刷新入口（2026-03-31）
+> 颗粒度对齐：本轮重点是把 `/admin/feedback/[id]` 的“处理工作台”做成可直接用于管理流的右侧弹出卡片 UI（从队列点击触发），并确保 Public Reply / Internal Note 的表单语义与回显/时间线口径一致。
+>
+> 注意：本轮“附件功能明确延期”已被你确认暂不纳入处理工作（因此此条不再作为 UI 必改项）。
+
+- 详情页交互载体调整纳入本轮：
+  - 点击 `/admin/feedback` 反馈队列中的任意一条记录后，不再整页跳转到 `/admin/feedback/[id]`
+  - 改为在页面**右侧弹出卡片**承载该 `id` 的详情内容（参考截图1）
+  - 队列最右侧“操作”列取消，整行点击即进入处理抽屉
+  - 右侧弹出卡片宽度比第一版进一步加大，以容纳更清晰的状态栏、时间线和工作台布局
+
+- 弹出卡片内信息结构（从上到下三段式）纳入本轮：
+  - 顶部状态栏包含：标题、ticket ID、提交时间、提交者信息、提交者身份（参考截图2）
+  - 状态栏下为：处理时间线
+  - 时间线下为：处理工作台
+
+- 处理工作台表单与控件纳入本轮（参考截图2/3）：
+  - 输入内容：支持管理员输入（Public Reply / Internal Note 模式切换后 placeholder 与按钮文案变化）
+  - 工单状态（可变更）：必须可选择变更（下拉/按钮切换，和截图2一致）
+  - 模版：必须提供 Templates 入口/选择器（和截图2一致）
+  - 控件布局需要避免文字重叠与视觉挤压，分区必须清晰可读
+
+- Public Reply / Internal Note 模式纳入本轮：
+  - Public Reply：placeholder 为 `Type a public reply...`，主按钮为 `Send Reply`
+  - Internal Note：placeholder 为 `Type an internal note (only visible to admins)...`，主按钮为 `Add Note`
+  - 模式切换需有明确选中态，切换后表单语义与文案一致
+
+- 状态变更行为口径纳入本轮：
+  - 选项B：Internal Note 提交也需要带上 Next Status，并会改变工单状态（与 Public Reply 一致的状态流转机制）
+
+- Refresh 行为纳入本轮：
+  - 详情卡需要支持“刷新/重载”以拉取最新状态与最新时间线（后续与具体实现细节对齐）
+
+> 说明：本轮不涉及附件上传/附件存储链路（已由你确认暂不纳入）。
+
+- 收口记录：
+  - `T-024.7` 已完成并收口，右侧抽屉详情页、字体层级、刷新行为、数据入口/出口、时间线与工作台均已通过浏览器回归验证。
+
+### T-024.8 处理历史模型与写链路（2026-03-31）
+- 处理历史改为真实时间线：
+- 当前“处理历史”仅根据 `repliedAt` 伪造单条已回复/待处理提示，不满足管理闭环要求；本轮需落地真实事件时间线，至少覆盖提交、状态变化、回复、关闭等操作。
+- 写链路补充事件留痕：
+- 管理员更新状态或发送回复时，除了更新 `user_feedbacks` 当前态，还必须写入独立历史事件，保留 `fromStatus -> toStatus`、操作者、时间与回复快照，避免历史被覆盖。
+
+- 收口记录：
+  - `T-024.8` 已完成并收口，真实事件表、提交/回复/改状态写链路、旧记录补合成 timeline、以及详情数据类型与 Prisma 枚举对齐都已完成并通过定向校验。
+
+### T-024.9 第一轮实现进展（2026-03-31）
+- 已完成 `T-024.1` 盘点收口：
+- `src/app/(dashboard)/admin/feedback/page.tsx`、`src/components/admin/feedback/FeedbackList.tsx`、`src/components/admin/feedback/FeedbackDetailView.tsx` 与相关 API / action 已完成真实数据盘点与路径映射，列表、概览、详情、回复动作、来源字段、分页与刷新入口均已明确。
+- 已完成列表页真数据分页：
+- `src/app/(dashboard)/admin/feedback/page.tsx` 现在会读取 `searchParams.page`，按页服务端拉取首屏真实数据；`src/components/admin/feedback/FeedbackList.tsx` 已按 `page -> offset` 对接真实分页，并补齐上一页/下一页控件。
+- 已完成详情页工作台重设计：
+- `src/components/admin/feedback/FeedbackDetailView.tsx` 已重构为“顶部状态带 + 原始反馈 + 处理时间线 + 处理工作台”的单列右侧抽屉结构，并在 header 增加手动刷新按钮。
+- `src/components/admin/feedback/FeedbackList.tsx` 的队列记录已改为整行可点击，右侧“操作”列已移除，点击任意记录即可打开处理抽屉。
+- `src/components/ui/sheet.tsx` 对应的抽屉内容已补齐无障碍标题口径；`FeedbackList` 打开的抽屉已放入隐藏 `SheetTitle` / `SheetDescription`，避免 Radix Dialog 报错。
+- `src/app/api/admin/feedback/detail/[id]/route.ts` 已切换为后台工作台专用详情加载器，避免抽屉加载时被旧的作者可见性逻辑误拦截。
+- 已完成列表页刷新入口补齐：
+- `src/components/admin/feedback/FeedbackList.tsx` 的概览区右上角新增手动刷新按钮，和详情页保持一致，便于管理员主动拉取最新反馈概览与队列数据。
+- 已完成处理历史数据模型：
+- `prisma/schema.prisma` 新增 `FeedbackEventType` 与 `UserFeedbackEvent`；`UserFeedback` 新增 responder / events 关系，用于承载真实处理时间线。
+- 已完成本地数据库迁移：
+- 新增 `supabase/migrations/020_t024_feedback_events.sql`，并已在本地数据库执行成功；`user_feedback_events` 表当前列结构已核对通过。
+- 已完成后台写链路拆分：
+- `src/actions/support/ticket.ts` 新增 `updateFeedbackStatus`，用于单独保存状态。
+- `replyToFeedback` 改为在回复时同步写入事件历史，不再只覆盖当前态字段。
+- `submitFeedback` 也会在新建 feedback 时自动写入 `SUBMITTED` 事件。
+- 已完成详情读取链路补充：
+- `getFeedbackDetail` 现在会返回 responder、events，并对无历史的旧记录补合成 timeline，避免详情页完全空白。
+
+- 收口记录：
+  - `T-024.9` 已完成并收口，`T-024.7` / `T-024.8` 已形成最终可执行实现，列表、详情抽屉、时间线、回复/状态写链路、站内通知、邮件副作用与浏览器回归均已对齐。
+
+### T-024.10 第一轮验证步骤
+- 分页代码校验：
+- 执行 `pnpm exec eslint 'src/app/(dashboard)/admin/feedback/page.tsx' src/components/admin/feedback/FeedbackList.tsx`，结果通过。
+- 执行 `pnpm exec tsc --noEmit --pretty false 2>&1 | rg "src/app/\\(dashboard\\)/admin/feedback/page.tsx|src/components/admin/feedback/FeedbackList.tsx"`，结果无命中。
+- Prisma 校验：
+- 执行 `pnpm prisma generate`，结果通过。
+- 代码校验：
+- 执行 `pnpm exec eslint src/actions/support/ticket.ts src/components/admin/feedback/FeedbackDetailView.tsx scripts/patch-baseline-browser-mapping.mjs`，结果通过。
+- 类型校验：
+- 执行 `pnpm exec tsc --noEmit --pretty false 2>&1 | rg "src/actions/support/ticket.ts|src/components/admin/feedback/FeedbackDetailView.tsx|FeedbackEvent"`，结果无命中，未发现本轮相关 TypeScript 错误。
+- 数据库核验：
+- 通过 `information_schema.columns` 核对 `public.user_feedback_events`，确认已存在 `event_type / from_status / to_status / message / metadata / created_at` 等字段。
+- 浏览器回归：
+- 使用 Playwright 完成管理员登录、进入 `/admin/feedback`、点击队列打开右侧抽屉、刷新详情、切换 Public Reply / Internal Note、选择状态、发送回复、写入内部备注与重新加载时间线的验证。
+- 回查结果确认：详情接口返回 200，列表行数正常，右侧抽屉正常渲染，时间线、状态回写、回复回写与通知创建均成功落库。
+
+### T-024.11 第一轮未覆盖项
+- 本轮未覆盖项已清零：
+- 先前未完成的浏览器级 admin 详情页验收、真实管理员交互核账，均已在本轮通过 Playwright 与数据库回查完成。
+- 当前 `T-024` 在反馈管理闭环层面暂无新增未覆盖项。
 
 ## T-025 每步完成即更新文档与测试
 | id | description | owner | status |
@@ -628,12 +850,12 @@
 |---|---|---|---|
 | T-026.1 | 建立性能基线与热点清单：盘点高频入口页、慢路由、慢交互、慢接口、冷启动风险点，形成“首屏 / 切页 / 点击 / API / 数据源”五段延迟地图 | codex | done |
 | T-026.2 | 建立统一优化目标与验收口径：明确首屏可见反馈、路由切换反馈、点击反馈、函数耗时、数据库往返的目标值与采样方式，并写入工作底稿 | codex | done |
-| T-026.3 | 对齐即时反馈层：为关键 CTA、表单、切换、提交、删除、保存补齐 `pending`、禁用态、按钮文案变化、spinner、toast 或 optimistic UI，避免“点了没反应” | codex | todo |
-| T-026.4 | 对齐路由即时加载层：为高频页面族补齐或细化 `loading.tsx`、`Suspense`、骨架屏与分段流式渲染，避免整页等待慢数据后才出首屏 | codex | todo |
-| T-026.5 | 对齐缓存与预渲染层：评估并落地 `cacheComponents`、`use cache`、`cacheLife`、`cacheTag`、静态壳 + 动态岛策略，优先缓存可复用聚合与公开内容 | codex | todo |
-| T-026.6 | 收缩动态边界：审计 `cookies()`、`headers()`、`searchParams`、鉴权与个性化读取位置，下沉到更小的边界，避免根布局或整页被不必要地拉成 request-time 动态渲染 | codex | todo |
-| T-026.7 | 优化导航与预取：梳理高频跳转入口、侧边栏、卡片 CTA、分页与深链，补齐 `Link` 预取、手动 `router.prefetch()` 或等价策略，降低切页等待感 | codex | todo |
-| T-026.8 | 优化服务端与数据源延迟：核对 Vercel Functions region、Supabase/数据库 region、Prisma 查询热点、串行 await、重复请求与 N+1 风险，优先压缩跨区 RTT 与后端阻塞时间 | codex | todo |
+| T-026.3 | 对齐即时反馈层：为关键 CTA、表单、切换、提交、删除、保存补齐 `pending`、禁用态、按钮文案变化、spinner、toast 或 optimistic UI，避免“点了没反应” | codex | done |
+| T-026.4 | 对齐路由即时加载层：为高频页面族补齐或细化 `loading.tsx`、`Suspense`、骨架屏与分段流式渲染，避免整页等待慢数据后才出首屏 | codex | done |
+| T-026.5 | 对齐缓存与预渲染层：评估并落地 `use cache`、`cacheLife`、`cacheTag`、静态壳 + 动态岛策略，优先缓存可复用聚合与公开内容；`cacheComponents` 已评估但因现有 `force-dynamic` 路由兼容性改用 `experimental.useCache` | codex | done |
+| T-026.6 | 收缩动态边界：审计 `cookies()`、`headers()`、`searchParams`、鉴权与个性化读取位置，下沉到更小的边界，避免根布局或整页被不必要地拉成 request-time 动态渲染 | codex | done |
+| T-026.7 | 优化导航与预取：梳理高频跳转入口、侧边栏、卡片 CTA、分页与深链，补齐 `Link` 预取、手动 `router.prefetch()` 或等价策略，降低切页等待感 | codex | done |
+| T-026.8 | 优化服务端与数据源延迟：核对 Vercel Functions region、Supabase/数据库 region、Prisma 查询热点、串行 await、重复请求与 N+1 风险，优先压缩跨区 RTT 与后端阻塞时间；已统一热 API 的 `preferredRegion`，并把实践统计中的用户权限作用域读取收紧为复用 helper | codex | done |
 | T-026.9 | 迁移非阻塞副作用：将日志、审计、通知、回执、统计、低优先级同步等从主响应链路剥离，改为响应后处理或后台执行，确保用户先看到成功反馈 | codex | todo |
 | T-026.10 | 优化静态资源与首屏载荷：复核字体、图片、远程资源缓存、脚本加载顺序、首屏 bundle、按需加载与第三方组件引入，减少首屏阻塞与 hydration 压力 | codex | todo |
 | T-026.11 | 补齐观测与留证：利用 `SpeedInsights`、Vercel Runtime Logs、必要的结构化日志与本地性能记录，建立优化前后对照证据，避免凭体感判断 | codex | todo |
@@ -646,4 +868,4 @@
 - `T-025` 为本轮开发流程约束；后续每完成一段实现，都应先更新文档和测试结果，再进入下一段开发。
 - `T-026` 是新增的站点性能收口任务，覆盖“用户点击后立即有反馈”的感知速度，以及首屏渲染、路由切换、函数执行、数据源访问等真实耗时优化。
 - `T-026` 的执行必须受 `T-025` 约束：每完成一个子任务，立即验证、留证、更新本文件与关联工作底稿后，才能继续下一步。
-- `T-026` 工作底稿见 `t-026-performance-workbook.md`；`T-026.1` 已完成测量范围、首轮基线与热点名单，`T-026.2` 已基于真实浏览器结果补齐目标值与验收口径，后续每轮优化结果继续回写到该文件。
+- `T-026` 工作底稿见 `t-026-performance-workbook.md`；`T-026.1` 已完成测量范围、首轮基线与热点名单，`T-026.2` 已基于真实浏览器结果补齐目标值与验收口径，`T-026.3` 已完成统一按钮 loading 与 Dashboard 导航 pending，`T-026.4` 已完成高频 student/admin 路由的共享 `loading.tsx` 壳与 Settings 通知 skeleton，`T-026.5` 已完成共享缓存层与 `use cache` 兼容落地，`T-026.6` 已完成动态边界收缩，`T-026.7` 已完成导航与预取统一收口，`T-026.8` 已统一热 API 的 region 与实践统计权限作用域读取，对应真实浏览器留证已回写到工作底稿。

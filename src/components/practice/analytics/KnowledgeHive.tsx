@@ -12,6 +12,7 @@ import {
   pageCardTitleClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
+import { useRoutePrefetcher } from '@/lib/hooks'
 import type { HiveNode, HiveNodeStatus } from '@/lib/practice/types'
 import { cn } from '@/lib/utils'
 
@@ -79,11 +80,15 @@ const HiveCell = memo(function HiveCell({
   node,
   slotWidth,
   slotHeight,
+  onMouseEnter,
+  onFocus,
   onClick,
 }: {
   node: HiveNode
   slotWidth: number
   slotHeight: number
+  onMouseEnter: () => void
+  onFocus: () => void
   onClick: () => void
 }) {
   const [showTooltip, setShowTooltip] = useState(false)
@@ -107,9 +112,15 @@ const HiveCell = memo(function HiveCell({
     <div className="relative inline-block">
       <button
         onClick={onClick}
-        onMouseEnter={() => setShowTooltip(true)}
+        onMouseEnter={() => {
+          onMouseEnter()
+          setShowTooltip(true)
+        }}
         onMouseLeave={() => setShowTooltip(false)}
-        onFocus={() => setShowTooltip(true)}
+        onFocus={() => {
+          onFocus()
+          setShowTooltip(true)
+        }}
         onBlur={() => setShowTooltip(false)}
         className={cn(
           'transform rounded transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary/50',
@@ -301,6 +312,7 @@ function KnowledgeHiveInner({
   error = null,
 }: KnowledgeHiveProps) {
   const router = useRouter()
+  const prefetchRoute = useRoutePrefetcher()
   const layoutMode = resolveHiveLayoutMode(nodes)
   const layoutConfig = HIVE_LAYOUT_CONFIGS[layoutMode]
 
@@ -308,6 +320,11 @@ function KnowledgeHiveInner({
     if (node.status === 'locked') return
     // 跳转到章节练习页面
     router.push(`/dashboard/practice/chapter-drill/${node.chapterId}`)
+  }
+
+  const handleNodePrefetch = (node: HiveNode) => {
+    if (node.status === 'locked') return
+    prefetchRoute(`/dashboard/practice/chapter-drill/${node.chapterId}`)
   }
 
   if (loading) {
@@ -505,6 +522,8 @@ function KnowledgeHiveInner({
                         node={slot.node}
                         slotWidth={layoutConfig.slotWidth}
                         slotHeight={layoutConfig.slotHeight}
+                        onMouseEnter={() => handleNodePrefetch(slot.node)}
+                        onFocus={() => handleNodePrefetch(slot.node)}
                         onClick={() => handleNodeClick(slot.node)}
                       />
                     ) : (

@@ -12,6 +12,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/labeled-input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { useApp } from '@/providers'
 import type { Lang } from '@/providers/app-provider'
@@ -256,10 +257,54 @@ function SectionSubmitButton({
     <Button
       type="submit"
       className="h-11 rounded-full px-5 text-sm font-semibold"
-      disabled={pending}
+      isLoading={pending}
+      loadingText={pendingLabel}
     >
-      {pending ? pendingLabel : idleLabel}
+      {idleLabel}
     </Button>
+  )
+}
+
+function NotificationPreferencesSkeleton() {
+  return (
+    <div
+      className="space-y-4"
+      data-settings-section-loading="notifications"
+    >
+      <div className="overflow-hidden rounded-[28px] border border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle">
+        <div className="grid grid-cols-[minmax(0,1fr)_88px_88px] border-b border-borderTone px-5 py-3 dark:border-borderTone">
+          <Skeleton className="h-3 w-28 rounded-full" />
+          <Skeleton className="mx-auto h-3 w-10 rounded-full" />
+          <Skeleton className="mx-auto h-3 w-10 rounded-full" />
+        </div>
+        {Array.from({ length: NOTIFICATION_MATRIX.length }).map((_, index) => (
+          <div
+            key={`notif-skeleton-${index}`}
+            className={cn(
+              'grid grid-cols-[minmax(0,1fr)_88px_88px] items-center px-5 py-4',
+              index !== NOTIFICATION_MATRIX.length - 1 &&
+                'border-b border-borderTone dark:border-borderTone'
+            )}
+          >
+            <div className="space-y-2 pr-4">
+              <Skeleton className="h-4 w-28 rounded-full" />
+              <Skeleton className="h-3 w-40 rounded-full" />
+            </div>
+            <div className="flex items-center justify-center">
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+            <div className="flex items-center justify-center">
+              <Skeleton className="h-6 w-11 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-4 w-48 rounded-full" />
+        <Skeleton className="h-11 w-32 rounded-full" />
+      </div>
+    </div>
   )
 }
 
@@ -1643,12 +1688,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               }}
             >
               {isNotifLoading ? (
-                <div className="flex min-h-[240px] flex-col items-center justify-center gap-4">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-                  <div className="text-sm text-text-secondary dark:text-text-secondary">
-                    {t.common.loading}
-                  </div>
-                </div>
+                <NotificationPreferencesSkeleton />
               ) : (
                 <div className="space-y-4">
                   <div className={`${insetCardClassName} overflow-hidden`}>
@@ -1727,8 +1767,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                       className="h-11 rounded-full px-5 text-sm font-semibold"
                       onClick={handleSaveNotificationPreferences}
                       disabled={isNotifSaving || !notifDirty}
+                      isLoading={isNotifSaving}
+                      loadingText={copy.notifSaving}
                     >
-                      {isNotifSaving ? copy.notifSaving : copy.notifSave}
+                      {copy.notifSave}
                     </Button>
                   </div>
                 </div>
@@ -1794,11 +1836,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                           className="h-11 rounded-full px-5 text-sm font-semibold"
                           onClick={handleGenerateCode}
                           disabled={isGenerating}
+                          isLoading={isGenerating}
+                          loadingText={copy.generating}
                         >
                           <LinkIcon className="mr-2 h-4 w-4" />
-                          {isGenerating
-                            ? copy.generating
-                            : copy.generateInviteCode}
+                          {copy.generateInviteCode}
                         </Button>
                       )}
                     </div>
@@ -1905,8 +1947,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                       normalizedStatus === 'CANCELED' ||
                       !!user?.cancelAtPeriodEnd
                     }
+                    isLoading={isCanceling}
+                    loadingText={copy.canceling}
                   >
-                    {isCanceling ? copy.canceling : copy.cancelPlan}
+                    {copy.cancelPlan}
                   </Button>
                 </div>
               </div>

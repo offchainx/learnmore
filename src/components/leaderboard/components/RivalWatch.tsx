@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, Sword } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 
 interface RivalWatchProps {
   title: string
@@ -34,14 +34,15 @@ export function RivalWatch({
         <p className="text-blue-100/68 mt-3 text-sm leading-6">
           {emptyDescription}
         </p>
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-          className="mt-4 border-slate-700 bg-black/30 text-slate-100 hover:bg-slate-900 hover:text-white"
+        <Link
+          href="/dashboard/practice"
+          className={`${buttonVariants({
+            variant: 'outline',
+            size: 'sm',
+          })} mt-4 border-slate-700 bg-black/30 text-slate-100 hover:bg-slate-900 hover:text-white`}
         >
-          <Link href="/dashboard/practice">{emptyCta}</Link>
-        </Button>
+          {emptyCta}
+        </Link>
       </Card>
     )
   }
@@ -76,17 +77,16 @@ export function RivalWatch({
         </div>
       </div>
 
-      <Button
-        asChild
-        size="sm"
-        variant="outline"
-        className="bg-red-500/6 hover:bg-red-500/12 mt-4 border-red-500/30 text-red-100 hover:text-white"
+      <Link
+        href={rival.href}
+        className={`${buttonVariants({
+          variant: 'outline',
+          size: 'sm',
+        })} bg-red-500/6 hover:bg-red-500/12 mt-4 border-red-500/30 text-red-100 hover:text-white`}
       >
-        <Link href={rival.href}>
-          {rival.cta}
-          <ArrowUpRight className="h-3.5 w-3.5" />
-        </Link>
-      </Button>
+        {rival.cta}
+        <ArrowUpRight className="h-3.5 w-3.5" />
+      </Link>
     </Card>
   )
 }

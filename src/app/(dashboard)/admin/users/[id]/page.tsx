@@ -11,8 +11,6 @@ import { getUserDetail } from '@/actions/admin/user-ops'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { UserDetailClient } from './UserDetailClient'
 
-export const dynamic = 'force-dynamic'
-
 interface Props {
   params: Promise<{ id: string }>
 }

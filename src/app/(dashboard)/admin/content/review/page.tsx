@@ -35,8 +35,6 @@ import {
 import { AlertCircle, Clock3, FolderKanban, RefreshCcw } from 'lucide-react'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 
-export const dynamic = 'force-dynamic'
-
 interface AdminContentPageProps {
   searchParams: Promise<{
     page?: string

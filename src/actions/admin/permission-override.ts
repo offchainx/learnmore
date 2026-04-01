@@ -1,9 +1,9 @@
 'use server'
 
-import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
 import { SubscriptionTier, SecurityAction, UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
 
 export type PermissionSearchUser = {
   id: string
@@ -48,9 +48,8 @@ export async function applyAdminOverride(data: {
   reason: string
   duration?: string // '7_days' | '30_days' | '90_days' | 'permanent'
 }) {
-  const currentUser = await getCurrentUser()
-
-  if (!currentUser || currentUser.role !== 'ADMIN') {
+  const currentUser = await resolveRequestAdminIdentity()
+  if (!currentUser) {
     throw new Error('Unauthorized: Only admins can perform this action')
   }
 
@@ -110,9 +109,8 @@ export async function applyAdminOverride(data: {
  * 搜索用户以便进行权限覆写
  */
 export async function searchUsersForOverride(query: string): Promise<PermissionSearchUser[]> {
-  const currentUser = await getCurrentUser()
-
-  if (!currentUser || currentUser.role !== 'ADMIN') {
+  const currentUser = await resolveRequestAdminIdentity()
+  if (!currentUser) {
     throw new Error('Unauthorized')
   }
 
@@ -156,9 +154,8 @@ export async function searchUsersForOverride(query: string): Promise<PermissionS
  * 获取用户的权限覆写历史
  */
 export async function getOverrideHistory(userId: string): Promise<OverrideHistoryItem[]> {
-  const currentUser = await getCurrentUser()
-
-  if (!currentUser || currentUser.role !== 'ADMIN') {
+  const currentUser = await resolveRequestAdminIdentity()
+  if (!currentUser) {
     throw new Error('Unauthorized')
   }
 

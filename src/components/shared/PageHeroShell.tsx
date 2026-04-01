@@ -6,6 +6,14 @@ import {
 } from '@/components/shared/pageTypography'
 import { cn } from '@/lib/utils'
 
+function isTextLikeNode(node: React.ReactNode) {
+  return (
+    typeof node === 'string' ||
+    typeof node === 'number' ||
+    typeof node === 'bigint'
+  )
+}
+
 interface PageHeroShellProps {
   eyebrow?: React.ReactNode
   title: React.ReactNode
@@ -29,6 +37,9 @@ export function PageHeroShell({
   titleClassName,
   subtitleClassName,
 }: PageHeroShellProps) {
+  const titleIsTextLike = isTextLikeNode(title)
+  const subtitleIsTextLike = isTextLikeNode(subtitle)
+
   return (
     <div
       className={cn(
@@ -56,19 +67,39 @@ export function PageHeroShell({
       >
         <div className="min-w-0">
           {eyebrow ? <div>{eyebrow}</div> : null}
-          <h1
-            className={cn(
-              pageHeroTitleClass,
-              eyebrow ? 'mt-2' : '',
-              titleClassName
-            )}
-          >
-            {title}
-          </h1>
+          {titleIsTextLike ? (
+            <h1
+              className={cn(
+                pageHeroTitleClass,
+                eyebrow ? 'mt-2' : '',
+                titleClassName
+              )}
+            >
+              {title}
+            </h1>
+          ) : (
+            <div
+              role="heading"
+              aria-level={1}
+              className={cn(
+                pageHeroTitleClass,
+                eyebrow ? 'mt-2' : '',
+                titleClassName
+              )}
+            >
+              {title}
+            </div>
+          )}
           {subtitle ? (
-            <p className={cn(pageHeroSubtitleClass, subtitleClassName)}>
-              {subtitle}
-            </p>
+            subtitleIsTextLike ? (
+              <p className={cn(pageHeroSubtitleClass, subtitleClassName)}>
+                {subtitle}
+              </p>
+            ) : (
+              <div className={cn(pageHeroSubtitleClass, subtitleClassName)}>
+                {subtitle}
+              </div>
+            )
           ) : null}
         </div>
 

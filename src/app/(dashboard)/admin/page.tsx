@@ -6,9 +6,7 @@ import type {
   AdminDashboardRole,
   AdminDashboardWindow,
 } from '@/types/admin-dashboard'
-import { getAdminDashboardOverview } from '@/actions/admin/dashboard-overview'
-
-export const dynamic = 'force-dynamic'
+import { getCachedAdminDashboardOverview } from '@/lib/cache/sitewide'
 
 function normalizeDashboardWindow(raw?: string | null): AdminDashboardWindow {
   if (raw === 'TODAY' || raw === 'WEEK' || raw === 'MONTH') return raw
@@ -40,7 +38,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const initialWindow: AdminDashboardWindow =
     normalizeDashboardWindow(rawWindow)
 
-  const overview = await getAdminDashboardOverview(initialWindow)
+  const overview = await getCachedAdminDashboardOverview(initialWindow)
 
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>

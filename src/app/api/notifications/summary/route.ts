@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/user/auth'
+import { resolveRequestUserId } from '@/lib/auth/request-user'
+
+export const preferredRegion = 'sin1'
 
 const DEFAULT_LIMIT = 10
 const MAX_LIMIT = 50
@@ -21,8 +23,8 @@ function parseOffset(raw: string | null): number {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
+    const userId = await resolveRequestUserId(request.headers)
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
     const [notifications, unreadCount] = await Promise.all([
       prisma.notification.findMany({
         where: {
-          userId: user.id,
+          userId,
           isArchived: false,
           ...(onlyUnread ? { isRead: false } : {}),
         },
@@ -45,7 +47,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.notification.count({
         where: {
-          userId: user.id,
+          userId,
           isRead: false,
           isArchived: false,
         },

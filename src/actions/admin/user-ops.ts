@@ -8,11 +8,11 @@
  */
 
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
 import { Admin } from '@/types'
 import { SecurityAction, SubscriptionTier } from '@prisma/client'
+import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
 
 const AVATAR_COLOR_PALETTE = [
   'bg-red-500',
@@ -89,7 +89,7 @@ const USER_OVERVIEW_WINDOW_CONFIG: Record<
 // ============ 权限检查 ============
 
 async function requireAdmin() {
-  const user = await getCurrentUser()
+  const user = await resolveRequestAdminIdentity()
   if (!user) {
     throw new Error('未登录')
   }
@@ -100,7 +100,7 @@ async function requireAdmin() {
 }
 
 async function requireAdminOrTeacher() {
-  const user = await getCurrentUser()
+  const user = await resolveRequestAdminIdentity(undefined, true)
   if (!user) {
     throw new Error('未登录')
   }

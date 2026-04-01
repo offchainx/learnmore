@@ -11,8 +11,6 @@ import { getAdminUserOverview, listAdminUsers } from '@/actions/admin/user-ops'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { UserTable } from '@/components/admin/users/UserTable'
 
-export const dynamic = 'force-dynamic'
-
 export default async function AdminUsersPage() {
   const profile = await getProfile()
 

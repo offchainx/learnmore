@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Admin } from '@/types'
 import { getAdminUserOverview } from '@/actions/admin/user-ops'
 
+export const preferredRegion = 'sin1'
+
 function parseWindow(raw: string | null): Admin.UserOverviewWindow {
   if (raw === '7D' || raw === '30D' || raw === 'ALL') return raw
   return '30D'

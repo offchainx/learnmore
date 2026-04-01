@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getPlatformStats } from '@/actions/marketing/campaign';
+import { getCachedPlatformStats } from '@/lib/cache/sitewide';
 import { LandingPage } from '@/components/marketing/landing-page';
 
 export const preferredRegion = 'sin1';
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const stats = await getPlatformStats();
+  const stats = await getCachedPlatformStats();
 
   return (
     <LandingPage

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/actions/user/auth'
 import { getSubjectChapters } from '@/actions/practice/data-service'
+import { resolveRequestUserId } from '@/lib/auth/request-user'
+
+export const preferredRegion = 'sin1'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
+    const userId = await resolveRequestUserId(request.headers)
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -14,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Missing subjectId' }, { status: 400 })
     }
 
-    const data = await getSubjectChapters(subjectId, user.id)
+    const data = await getSubjectChapters(subjectId, userId)
     if (!data) {
       return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 })
     }

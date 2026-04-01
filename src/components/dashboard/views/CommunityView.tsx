@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   Bookmark,
@@ -740,16 +740,16 @@ export function CommunityView({
                   className={`${pageInputClass} pl-10 pr-4`}
                 />
               </div>
-              <Button
-                asChild
-                variant="primary"
-                className="h-11 rounded-full px-5 text-sm font-semibold shadow-none"
+              <Link
+                href="/dashboard/community/new"
+                className={`${buttonVariants({
+                  variant: 'primary',
+                  size: 'default',
+                })} h-11 rounded-full px-5 text-sm font-semibold shadow-none`}
               >
-                <Link href="/dashboard/community/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  {copy.publish}
-                </Link>
-              </Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {copy.publish}
+              </Link>
             </div>
           }
         />
@@ -1126,15 +1126,15 @@ export function CommunityView({
                 ))}
               </div>
 
-              <Button
-                asChild
-                variant="outline"
-                className="mt-4 h-9 w-full rounded-full text-sm"
+              <Link
+                href="/dashboard/leaderboard"
+                className={`${buttonVariants({
+                  variant: 'outline',
+                  size: 'default',
+                })} mt-4 h-9 w-full rounded-full text-sm`}
               >
-                <Link href="/dashboard/leaderboard">
-                  {copy.viewLeaderboard}
-                </Link>
-              </Button>
+                {copy.viewLeaderboard}
+              </Link>
             </Card>
 
             <Card className={`${surfaceClassName} p-5`}>

@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Star, Flame, AlertOctagon } from 'lucide-react'
+import { useRoutePrefetcher } from '@/lib/hooks'
 import {
   pageCardTitleClass,
   pageHeroEyebrowClass,
@@ -26,6 +27,7 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({
   onPreview,
 }) => {
   const router = useRouter()
+  const prefetchRoute = useRoutePrefetcher()
   const mastery = chapter.stats.masteryLevel
   const stars = mastery >= 80 ? 3 : mastery >= 50 ? 2 : mastery > 0 ? 1 : 0
   const parsedTitle = parseStructuredChapterTitle(chapter.title)
@@ -33,6 +35,7 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({
   const displayTitle = parsedTitle
     ? parsedTitle.combinedTitle
     : chapter.title
+  const drillHref = `/dashboard/practice/chapter-drill/${chapter.id}`
 
   // HOT: 7天内 > 10次答题且正确率 < 70%
   const isHotspot =
@@ -101,13 +104,23 @@ export const ChapterCard: React.FC<ChapterCardProps> = ({
       </div>
 
       <Button
+        onMouseEnter={() => {
+          if (!isPreview && !onPreview) {
+            prefetchRoute(drillHref)
+          }
+        }}
+        onFocus={() => {
+          if (!isPreview && !onPreview) {
+            prefetchRoute(drillHref)
+          }
+        }}
         onClick={() => {
           if (!isPreview) {
             if (onPreview) {
               onPreview(chapter)
               return
             }
-            router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)
+            router.push(drillHref)
           }
         }}
         size="sm"

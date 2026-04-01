@@ -45,6 +45,9 @@ export const AppProvider = ({
 
     const savedLang = localStorage.getItem('lang');
     if (isValidLang(savedLang)) {
+      if (savedLang !== lang) {
+        setLang(savedLang);
+      }
       // Keep cookie and localStorage in sync for server-first language rendering.
       document.cookie = `lm_lang=${savedLang}; path=/; max-age=31536000; samesite=lax`;
     } else {

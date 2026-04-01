@@ -4,7 +4,7 @@ import { VoucherDiscountType } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/user/auth'
+import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
 
 const createVoucherInputSchema = z.object({
   code: z.string().trim().min(3).max(32),
@@ -29,8 +29,8 @@ function normalizeVoucherCode(code: string): string {
 }
 
 async function ensureAdmin() {
-  const currentUser = await getCurrentUser()
-  if (!currentUser || currentUser.role !== 'ADMIN') {
+  const currentUser = await resolveRequestAdminIdentity()
+  if (!currentUser) {
     return null
   }
   return currentUser

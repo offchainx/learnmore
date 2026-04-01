@@ -1,6 +1,24 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  cacheLife: {
+    quick: {
+      stale: 15,
+      revalidate: 45,
+      expire: 300,
+    },
+    standard: {
+      stale: 60,
+      revalidate: 300,
+      expire: 1800,
+    },
+    long: {
+      stale: 300,
+      revalidate: 900,
+      expire: 86400,
+    },
+  },
+
   // 图片优化配置
   images: {
     remotePatterns: [
@@ -42,6 +60,7 @@ const nextConfig: NextConfig = {
 
   // 实验性功能
   experimental: {
+    useCache: true,
     serverActions: {
       bodySizeLimit: '10mb',
     },

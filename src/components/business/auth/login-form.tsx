@@ -12,8 +12,13 @@ import Link from 'next/link'
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? '登录中...' : '登录'}
+    <Button
+      type="submit"
+      className="w-full"
+      isLoading={pending}
+      loadingText="登录中..."
+    >
+      登录
     </Button>
   )
 }

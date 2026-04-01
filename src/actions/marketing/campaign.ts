@@ -3,7 +3,6 @@
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { z } from 'zod';
-import { unstable_cache } from 'next/cache';
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -91,12 +90,6 @@ async function queryPlatformStats(): Promise<PlatformStats> {
   };
 }
 
-const getCachedPlatformStats = unstable_cache(
-  async () => queryPlatformStats(),
-  ['platform-stats:v1'],
-  { revalidate: 300, tags: ['platform-stats'] }
-);
-
 function isPrismaConnectivityError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
 
@@ -115,7 +108,7 @@ function isPrismaConnectivityError(error: unknown): boolean {
 
 export async function getPlatformStats(): Promise<PlatformStats> {
   try {
-    return await getCachedPlatformStats();
+    return await queryPlatformStats();
   } catch (error) {
     if (isPrismaConnectivityError(error)) {
       console.warn('[PlatformStats] Database unavailable, fallback to zero stats.');

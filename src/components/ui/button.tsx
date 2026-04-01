@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { Loader2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -44,17 +45,50 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
   fullWidth?: boolean
+  isLoading?: boolean
+  loadingText?: React.ReactNode
+  loadingIcon?: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, fullWidth, asChild = false, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      fullWidth,
+      asChild = false,
+      isLoading = false,
+      loadingText,
+      loadingIcon,
+      disabled,
+      children,
+      ...props
+    },
+    ref
+    ) => {
     const Comp = asChild ? Slot : 'button'
+    const isDisabled = disabled || isLoading
+    const content = asChild ? children : isLoading ? (loadingText ?? children) : children
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }), fullWidth && "w-full")}
+        aria-busy={isLoading || undefined}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          fullWidth && 'w-full',
+          isLoading && 'cursor-wait',
+          asChild && isLoading && 'pointer-events-none opacity-70'
+        )}
+        data-loading={isLoading ? 'true' : undefined}
+        disabled={!asChild ? isDisabled : undefined}
         ref={ref}
         {...props}
-      />
+      >
+        {!asChild && isLoading ? (
+          loadingIcon ?? <Loader2 className="animate-spin" aria-hidden="true" />
+        ) : null}
+        {content}
+      </Comp>
     )
   }
 )

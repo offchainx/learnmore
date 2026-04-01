@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
+import { revalidateTag } from 'next/cache'
 import type {
   AchievementOverview,
   BadgeWithUnlockStatus,
@@ -223,6 +224,9 @@ export async function awardBadgeIfEligible(
       skipDuplicates: false,
     })
   })
+
+  revalidateTag(`achievement-overview:${userId}`, 'quick')
+  revalidateTag(`user-badges:${userId}`, 'quick')
 
   return { awardedCodes: newBadges.map((badge) => badge.code) }
 }

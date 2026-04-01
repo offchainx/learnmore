@@ -1,21 +1,17 @@
 import { NextResponse } from 'next/server'
 import { getPracticeBootstrapData } from '@/app/api/practice/_lib/subject-data'
-import { createClient } from '@/lib/supabase/server'
+import { resolveRequestUserId } from '@/lib/auth/request-user'
 
 export const preferredRegion = 'sin1'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const userId = await resolveRequestUserId()
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await getPracticeBootstrapData(user.id, { includeSubjectData: false })
+    const data = await getPracticeBootstrapData(userId, { includeSubjectData: false })
     return NextResponse.json(
       { success: true, data },
       { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' } },

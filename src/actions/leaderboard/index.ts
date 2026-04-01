@@ -2,7 +2,7 @@
 
 import { PgLeaderboardAdapter } from '@/lib/leaderboard/pg-adapter'
 import { LeaderboardPeriod } from '@prisma/client'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 const adapter = new PgLeaderboardAdapter()
 
@@ -21,6 +21,7 @@ export async function updateLeaderboardScore(userId: string, points: number) {
   await adapter.updateScore(userId, points)
   // Revalidate the leaderboard page to show fresh data
   revalidatePath('/dashboard/leaderboard')
+  revalidateTag('leaderboard-entries', 'quick')
 }
 
 export async function getLeaderboard(

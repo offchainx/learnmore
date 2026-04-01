@@ -4,8 +4,6 @@ import { AdminClientWrapper } from '@/components/admin/common'
 import { getFeedbackDetail } from '@/actions/support/ticket'
 import { FeedbackDetailView } from '@/components/admin/feedback/FeedbackDetailView'
 
-export const dynamic = 'force-dynamic'
-
 export default async function AdminFeedbackDetailPage({
   params,
 }: {

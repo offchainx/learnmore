@@ -5,6 +5,7 @@ import { ensureDailyTasks, trackDailyProgress } from '@/actions/gamification/dai
 import { checkAndRefreshStreak } from '@/actions/gamification/streak'
 import { updateLeaderboardScore } from '@/actions/leaderboard'
 import { incrementTotalStudyTime } from '@/actions/user/study-metrics'
+import { revalidateTag } from 'next/cache'
 import { DailyTaskType, PracticeMode } from '@prisma/client'
 
 interface ApplyPracticeSubmissionEffectsInput {
@@ -45,4 +46,6 @@ export async function applyPracticeSubmissionEffects(
   }
 
   await Promise.all(sideEffects)
+  revalidateTag(`achievement-overview:${input.userId}`, 'quick')
+  revalidateTag(`user-badges:${input.userId}`, 'quick')
 }

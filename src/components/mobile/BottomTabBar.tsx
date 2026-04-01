@@ -39,6 +39,7 @@ export function BottomTabBar() {
             <Link
               key={tab.id}
               href={tab.path}
+              prefetch
               className={cn(
                 'flex flex-col items-center justify-center gap-1',
                 'w-full h-full transition-all duration-200',

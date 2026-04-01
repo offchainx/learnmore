@@ -1,14 +1,19 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
-import { getCurrentUser } from '../user/auth'
+import {
+  FeedbackCategory,
+  FeedbackEventType,
+  FeedbackStatus,
+  Prisma,
+} from '@prisma/client'
 import { sendEmail } from '@/lib/email/resend'
 import { createInAppNotification } from '../notification/core'
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
-import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
-import { createClient as createSupabaseServerClient } from '@/lib/supabase/server'
+import {
+  resolveRequestAdminIdentity,
+  resolveRequestUserIdentity,
+} from '@/lib/auth/request-user'
 
 export interface SubmitFeedbackParams {
   category: FeedbackCategory
@@ -43,44 +48,72 @@ type FeedbackActor = {
   email: string | null
 } | null
 
-async function resolveFeedbackActor(): Promise<FeedbackActor> {
-  try {
-    const requestHeaders = await headers()
-    const forwardedUserId =
-      requestHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+type FeedbackEventInput = {
+  actorId?: string | null
+  eventType: FeedbackEventType
+  feedbackId: string
+  fromStatus?: FeedbackStatus | null
+  toStatus?: FeedbackStatus | null
+  message?: string | null
+  metadata?: Prisma.InputJsonValue
+}
 
-    if (forwardedUserId) {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: forwardedUserId },
-        select: { id: true, email: true },
-      })
-
-      if (dbUser) {
-        return dbUser
+type FeedbackDetailRecord = Prisma.UserFeedbackGetPayload<{
+  include: {
+    user: {
+      select: {
+        username: true
+        email: true
+        avatar: true
+        role: true
       }
     }
-
-    const supabase = await createSupabaseServerClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return null
+    responder: {
+      select: {
+        username: true
+        email: true
+        role: true
+      }
     }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { id: true, email: true },
-    })
-
-    if (dbUser) {
-      return dbUser
+    events: {
+      include: {
+        actor: {
+          select: {
+            username: true
+            email: true
+            role: true
+          }
+        }
+      }
     }
+  }
+}>
+
+async function createFeedbackEvent(
+  tx: Prisma.TransactionClient,
+  input: FeedbackEventInput
+) {
+  return tx.userFeedbackEvent.create({
+    data: {
+      feedbackId: input.feedbackId,
+      actorId: input.actorId ?? null,
+      eventType: input.eventType,
+      fromStatus: input.fromStatus ?? null,
+      toStatus: input.toStatus ?? null,
+      message: input.message ?? null,
+      metadata: input.metadata,
+    },
+  })
+}
+
+async function resolveFeedbackActor(): Promise<FeedbackActor> {
+  try {
+    const identity = await resolveRequestUserIdentity()
+    if (!identity) return null
 
     return {
-      id: user.id,
-      email: user.email ?? null,
+      id: identity.id,
+      email: identity.email,
     }
   } catch (error) {
     console.warn('[Feedback] Failed to resolve viewer from request context:', error)
@@ -150,25 +183,40 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
       }
     }
 
-    // 1. 创建反馈记录
-    const feedback = await prisma.userFeedback.create({
-      data: {
-        email: userEmail,
-        category: params.category,
-        title: normalizedTitle,
-        content: normalizedContent,
-        attachments: params.attachments || [],
-        sourceType: params.sourceType,
-        sourcePath: params.sourcePath,
-        status: FeedbackStatus.PENDING,
-        ...(userId
-          ? {
-              user: {
-                connect: { id: userId },
-              },
-            }
-          : {}),
-      },
+    const feedback = await prisma.$transaction(async (tx) => {
+      const createdFeedback = await tx.userFeedback.create({
+        data: {
+          email: userEmail,
+          category: params.category,
+          title: normalizedTitle,
+          content: normalizedContent,
+          attachments: params.attachments || [],
+          sourceType: params.sourceType,
+          sourcePath: params.sourcePath,
+          status: FeedbackStatus.PENDING,
+          ...(userId
+            ? {
+                user: {
+                  connect: { id: userId },
+                },
+              }
+            : {}),
+        },
+      })
+
+      await createFeedbackEvent(tx, {
+        feedbackId: createdFeedback.id,
+        actorId: userId,
+        eventType: FeedbackEventType.SUBMITTED,
+        toStatus: FeedbackStatus.PENDING,
+        metadata: {
+          category: params.category,
+          sourceType: params.sourceType ?? null,
+          sourcePath: params.sourcePath ?? null,
+        },
+      })
+
+      return createdFeedback
     })
 
     // 2. 发送确认邮件给用户 (fire-and-forget, 不阻塞主流程 — ADR-004)
@@ -214,8 +262,8 @@ export async function getFeedbackList(params: {
   offset?: number
 }) {
   try {
-    const user = await getCurrentUser()
-    if (user?.role !== 'ADMIN') {
+    const admin = await resolveRequestAdminIdentity()
+    if (!admin) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -275,8 +323,8 @@ export async function getFeedbackList(params: {
 
 export async function getFeedbackOverview(window: FeedbackOverviewWindow) {
   try {
-    const user = await getCurrentUser()
-    if (user?.role !== 'ADMIN') {
+    const admin = await resolveRequestAdminIdentity()
+    if (!admin) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -459,8 +507,8 @@ export async function replyToFeedback(
   status: FeedbackStatus = FeedbackStatus.RESOLVED
 ) {
   try {
-    const admin = await getCurrentUser()
-    if (admin?.role !== 'ADMIN') {
+    const admin = await resolveRequestAdminIdentity()
+    if (!admin) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -472,22 +520,43 @@ export async function replyToFeedback(
       return { success: false, error: 'Feedback not found' }
     }
 
-    // 1. 更新反馈状态和回复
-    const updatedFeedback = await prisma.userFeedback.update({
-      where: { id: feedbackId },
-      data: {
-        status,
-        adminReply: reply,
-        repliedAt: new Date(),
-        repliedBy: admin.id,
-      },
+    const normalizedReply = reply.trim()
+    if (!normalizedReply) {
+      return { success: false, error: 'Reply cannot be empty' }
+    }
+
+    const now = new Date()
+    const updatedFeedback = await prisma.$transaction(async (tx) => {
+      const nextFeedback = await tx.userFeedback.update({
+        where: { id: feedbackId },
+        data: {
+          status,
+          adminReply: normalizedReply,
+          repliedAt: now,
+          repliedBy: admin.id,
+        },
+      })
+
+      await createFeedbackEvent(tx, {
+        feedbackId,
+        actorId: admin.id,
+        eventType:
+          status === FeedbackStatus.CLOSED
+            ? FeedbackEventType.CLOSED
+            : FeedbackEventType.REPLIED,
+        fromStatus: feedback.status,
+        toStatus: status,
+        message: normalizedReply,
+      })
+
+      return nextFeedback
     })
 
     // 2. 发送邮件通知用户 (fire-and-forget, 不阻塞主流程 — ADR-004)
     sendEmail({
       to: feedback.email || '',
       subject: `Update on your feedback: ${feedback.title}`,
-      text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${reply}\n\nStatus: ${status}\n\nThank you for being part of LearnMore.\n\nBest regards,\nLearnMore Support Team`,
+      text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${normalizedReply}\n\nStatus: ${status}\n\nThank you for being part of LearnMore.\n\nBest regards,\nLearnMore Support Team`,
     }).catch((err) => console.error('Feedback reply email failed:', err))
 
     // 3. 如果是登录用户，发送站内通知
@@ -510,27 +579,72 @@ export async function replyToFeedback(
   }
 }
 
+export async function updateFeedbackStatus(
+  feedbackId: string,
+  status: FeedbackStatus,
+  note?: string
+) {
+  try {
+    const admin = await resolveRequestAdminIdentity()
+    if (!admin) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    const feedback = await prisma.userFeedback.findUnique({
+      where: { id: feedbackId },
+    })
+
+    if (!feedback) {
+      return { success: false, error: 'Feedback not found' }
+    }
+
+    if (feedback.status === status) {
+      return { success: false, error: 'Status is already up to date' }
+    }
+
+    const normalizedNote = note?.trim() || null
+    const updatedFeedback = await prisma.$transaction(async (tx) => {
+      const nextFeedback = await tx.userFeedback.update({
+        where: { id: feedbackId },
+        data: {
+          status,
+        },
+      })
+
+      await createFeedbackEvent(tx, {
+        feedbackId,
+        actorId: admin.id,
+        eventType:
+          status === FeedbackStatus.CLOSED
+            ? FeedbackEventType.CLOSED
+            : FeedbackEventType.STATUS_CHANGED,
+        fromStatus: feedback.status,
+        toStatus: status,
+        message: normalizedNote,
+      })
+
+      return nextFeedback
+    })
+
+    revalidatePath('/admin/feedback')
+    revalidatePath(`/admin/feedback/${feedbackId}`)
+
+    return { success: true, data: updatedFeedback }
+  } catch (error) {
+    console.error('Error updating feedback status:', error)
+    return { success: false, error: 'Failed to update feedback status' }
+  }
+}
+
 /**
  * 获取反馈详情
  */
 export async function getFeedbackDetail(id: string) {
   try {
-    const user = await getCurrentUser()
+    const user = await resolveRequestUserIdentity()
     if (!user) return { success: false, error: 'Unauthorized' }
 
-    const feedback = await prisma.userFeedback.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            username: true,
-            email: true,
-            avatar: true,
-            role: true,
-          },
-        },
-      },
-    })
+    const feedback = await loadFeedbackDetailRecord(id)
 
     if (!feedback) return { success: false, error: 'Feedback not found' }
 
@@ -539,11 +653,136 @@ export async function getFeedbackDetail(id: string) {
       return { success: false, error: 'Forbidden' }
     }
 
-    return { success: true, data: feedback }
+    return {
+      success: true,
+      data: {
+        ...feedback,
+        events: buildFeedbackTimeline(feedback),
+      },
+    }
   } catch (error) {
     console.error('Error fetching feedback detail:', error)
     return { success: false, error: 'Failed to fetch feedback' }
   }
+}
+
+export async function getAdminFeedbackDetail(id: string) {
+  try {
+    const admin = await resolveRequestAdminIdentity()
+    if (!admin) return { success: false, error: 'Unauthorized' }
+
+    const feedback = await loadFeedbackDetailRecord(id)
+    if (!feedback) return { success: false, error: 'Feedback not found' }
+
+    return {
+      success: true,
+      data: {
+        ...feedback,
+        events: buildFeedbackTimeline(feedback),
+      },
+    }
+  } catch (error) {
+    console.error('Error fetching admin feedback detail:', error)
+    return { success: false, error: 'Failed to fetch feedback' }
+  }
+}
+
+function buildFeedbackTimeline(feedback: FeedbackDetailRecord) {
+  const events = [...feedback.events]
+
+  if (!events.some((event) => event.eventType === FeedbackEventType.SUBMITTED)) {
+    events.unshift({
+      id: `legacy-submitted-${feedback.id}`,
+      feedbackId: feedback.id,
+      actorId: feedback.userId,
+      eventType: FeedbackEventType.SUBMITTED,
+      fromStatus: null,
+      toStatus: FeedbackStatus.PENDING,
+      message: null,
+      metadata: null,
+      createdAt: feedback.createdAt,
+      actor: feedback.user
+        ? {
+            username: feedback.user.username,
+            email: feedback.user.email,
+            role: feedback.user.role,
+          }
+        : null,
+    })
+  }
+
+  if (
+    feedback.repliedAt &&
+    feedback.adminReply &&
+    !events.some(
+      (event) =>
+        event.eventType === FeedbackEventType.REPLIED &&
+        event.createdAt.getTime() === feedback.repliedAt?.getTime()
+    )
+  ) {
+    events.push({
+      id: `legacy-replied-${feedback.id}`,
+      feedbackId: feedback.id,
+      actorId: feedback.repliedBy,
+      eventType:
+        feedback.status === FeedbackStatus.CLOSED
+          ? FeedbackEventType.CLOSED
+          : FeedbackEventType.REPLIED,
+      fromStatus: null,
+      toStatus: feedback.status,
+      message: feedback.adminReply,
+      metadata: null,
+      createdAt: feedback.repliedAt,
+      actor: feedback.responder
+        ? {
+            username: feedback.responder.username,
+            email: feedback.responder.email,
+            role: feedback.responder.role,
+          }
+        : null,
+    })
+  }
+
+  return events.sort((left, right) => {
+    return left.createdAt.getTime() - right.createdAt.getTime()
+  })
+}
+
+async function loadFeedbackDetailRecord(id: string) {
+  return prisma.userFeedback.findUnique({
+    where: { id },
+    include: {
+      user: {
+        select: {
+          username: true,
+          email: true,
+          avatar: true,
+          role: true,
+        },
+      },
+      responder: {
+        select: {
+          username: true,
+          email: true,
+          role: true,
+        },
+      },
+      events: {
+        include: {
+          actor: {
+            select: {
+              username: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      },
+    },
+  })
 }
 
 function getFeedbackWindowConfig(window: FeedbackOverviewWindow) {

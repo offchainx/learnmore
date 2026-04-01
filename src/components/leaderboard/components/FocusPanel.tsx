@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, Flame, LucideIcon, Sword } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { cn } from '@/lib/utils'
 import {
@@ -128,14 +128,15 @@ export function FocusPanel({
                       +{challenge.xp} XP
                     </div>
                   </div>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="secondary"
-                    className="h-9 shrink-0 px-4 text-[13px]"
+                  <Link
+                    href={challenge.href}
+                    className={`${buttonVariants({
+                      variant: 'secondary',
+                      size: 'sm',
+                    })} h-9 shrink-0 px-4 text-[13px]`}
                   >
-                    <Link href={challenge.href}>{challenge.cta}</Link>
-                  </Button>
+                    {challenge.cta}
+                  </Link>
                 </div>
 
                 <div className="mt-3 flex items-center gap-3">
@@ -184,17 +185,16 @@ export function FocusPanel({
             </div>
           </div>
 
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="mt-4 border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-500/30 dark:bg-red-500/6 dark:text-red-100 dark:hover:bg-red-500/12 dark:hover:text-white"
+          <Link
+            href={rival.href}
+            className={`${buttonVariants({
+              variant: 'outline',
+              size: 'sm',
+            })} mt-4 border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 dark:border-red-500/30 dark:bg-red-500/6 dark:text-red-100 dark:hover:bg-red-500/12 dark:hover:text-white`}
           >
-            <Link href={rival.href}>
-              {rival.cta}
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
+            {rival.cta}
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       ) : (
         <PageEmptyState
@@ -205,9 +205,12 @@ export function FocusPanel({
           className="px-4 py-4"
           iconClassName="text-red-400"
           actions={
-            <Button asChild size="sm" variant="secondary">
-              <Link href="/dashboard/practice">{rivalEmptyCta}</Link>
-            </Button>
+            <Link
+              href="/dashboard/practice"
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+            >
+              {rivalEmptyCta}
+            </Link>
           }
         />
       )}

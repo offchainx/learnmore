@@ -1,13 +1,13 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/user/auth'
 import { Admin } from '@/types'
+import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
 
 // ============ 权限检查 ============
 
 async function requireAdmin() {
-  const user = await getCurrentUser()
+  const user = await resolveRequestAdminIdentity()
   if (!user) {
     throw new Error('未登录')
   }

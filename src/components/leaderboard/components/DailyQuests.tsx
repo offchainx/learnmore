@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Flame, LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 
 interface Quest {
   title: string
@@ -62,14 +62,15 @@ export function DailyQuests({ quests, title, badge }: DailyQuestsProps) {
                     +{quest.xp} XP
                   </div>
                 </div>
-                <Button
-                  asChild
-                  size="sm"
-                  variant="outline"
-                  className="h-9 shrink-0 border-slate-700 bg-black/30 px-4 text-sm text-slate-100 hover:bg-slate-900 hover:text-white"
+                <Link
+                  href={quest.href}
+                  className={`${buttonVariants({
+                    variant: 'outline',
+                    size: 'sm',
+                  })} h-9 shrink-0 border-slate-700 bg-black/30 px-4 text-sm text-slate-100 hover:bg-slate-900 hover:text-white`}
                 >
-                  <Link href={quest.href}>{quest.cta}</Link>
-                </Button>
+                  {quest.cta}
+                </Link>
               </div>
 
               <div className="mt-3 flex items-center gap-3">

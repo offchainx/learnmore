@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Admin } from '@/types'
 import { listAdminUsers } from '@/actions/admin/user-ops'
 
+export const preferredRegion = 'sin1'
+
 function parseSortField(raw: string | null): keyof Admin.UserSummary {
   const fallback: keyof Admin.UserSummary = 'lastActive'
   if (!raw) return fallback

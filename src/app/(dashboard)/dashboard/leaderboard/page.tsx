@@ -3,9 +3,9 @@ import { getDashboardShellProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { LeaderboardClientWrapper } from './client-wrapper'
 import {
-  getAchievementOverview,
-  listUserBadges,
-} from '@/actions/gamification/achievements'
+  getCachedAchievementOverview,
+  getCachedUserBadges,
+} from '@/lib/cache/sitewide'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 
 function buildMockLeaderboardEntries(profile: {
@@ -138,8 +138,8 @@ export default async function LeaderboardPage() {
   }
 
   const [overview, badges] = await Promise.all([
-    getAchievementOverview(profile.id),
-    listUserBadges(profile.id),
+    getCachedAchievementOverview(profile.id),
+    getCachedUserBadges(profile.id),
   ])
 
   const mockEntries = buildMockLeaderboardEntries({

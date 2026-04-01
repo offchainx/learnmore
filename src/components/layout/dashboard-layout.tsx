@@ -17,16 +17,19 @@ import {
   ChevronDown,
   Users,
   Rocket,
+  Loader2,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import { logoutAction } from '@/actions/user/auth'
 import { TrialBanner } from './TrialBanner'
 import { NotificationBell } from '../notification/NotificationBell'
 import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
+import { usePendingNavigation, useRoutePrefetch } from '@/lib/hooks'
 import {
   type DashboardView,
   getDashboardRoute,
   isDashboardViewActive,
+  dashboardViewRoutes,
   normalizeDashboardView,
   parentDashboardNavItems,
   studentDashboardNavItems,
@@ -38,6 +41,8 @@ interface SidebarItemProps {
   active?: boolean
   onClick?: () => void
   indent?: boolean
+  pending?: boolean
+  disabled?: boolean
 }
 
 function getSidebarIconHoverClass(Icon: React.ElementType) {
@@ -62,32 +67,41 @@ const SidebarItem = ({
   active = false,
   onClick,
   indent = false,
+  pending = false,
+  disabled = false,
 }: SidebarItemProps) => (
   <button
+    type="button"
     onClick={onClick}
+    disabled={disabled}
+    aria-busy={pending || undefined}
     className={`flex w-full items-center ${indent ? 'pl-8 pr-4' : 'px-4'} group relative overflow-hidden rounded-2xl py-3 text-sm font-medium transition-all duration-200 ${
       active
         ? 'bg-surface-selected text-primary shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-surface-inverse dark:text-text-inverse'
         : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-text-primary'
-    }`}
+    } ${disabled ? 'cursor-not-allowed' : ''}`}
   >
     {active && (
       <div className="absolute inset-0 border-l-4 border-primary bg-gradient-to-r from-[hsl(var(--state-info-bg))]/80 to-transparent dark:from-[hsl(var(--state-info-bg))]/20 dark:to-transparent" />
     )}
     <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
-      <Icon
-        className={`h-full w-full transition-all duration-200 ${
-          active
-            ? 'text-primary dark:text-text-inverse'
-            : `text-text-tertiary group-hover:scale-105 dark:text-text-tertiary ${getSidebarIconHoverClass(Icon)}`
-        } ${
-          Icon === Settings
-            ? 'group-hover:rotate-12'
-            : Icon === LogOut
-              ? 'group-hover:translate-x-0.5'
-              : 'group-hover:-translate-y-0.5'
-        }`}
-      />
+      {pending ? (
+        <Loader2 className="h-full w-full animate-spin text-primary dark:text-text-inverse" />
+      ) : (
+        <Icon
+          className={`h-full w-full transition-all duration-200 ${
+            active
+              ? 'text-primary dark:text-text-inverse'
+              : `text-text-tertiary group-hover:scale-105 dark:text-text-tertiary ${getSidebarIconHoverClass(Icon)}`
+          } ${
+            Icon === Settings
+              ? 'group-hover:rotate-12'
+              : Icon === LogOut
+                ? 'group-hover:translate-x-0.5'
+                : 'group-hover:-translate-y-0.5'
+          }`}
+        />
+      )}
     </div>
     <span className="relative z-10">{label}</span>
   </button>
@@ -106,6 +120,7 @@ interface SidebarSectionProps {
   isExpanded: boolean
   onToggle: () => void
   isActive: boolean
+  disabled?: boolean
 }
 
 const SidebarSection = ({
@@ -115,15 +130,18 @@ const SidebarSection = ({
   isExpanded,
   onToggle,
   isActive,
+  disabled = false,
 }: SidebarSectionProps) => (
   <div className="space-y-1">
     <button
+      type="button"
       onClick={onToggle}
+      disabled={disabled}
       className={`group relative flex w-full items-center overflow-hidden rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
         isActive
           ? 'bg-surface-selected text-primary shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-surface-inverse dark:text-text-inverse'
           : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-text-primary'
-      }`}
+      } ${disabled ? 'cursor-not-allowed' : ''}`}
     >
       {isActive && (
         <div className="absolute inset-0 border-l-4 border-primary bg-gradient-to-r from-[hsl(var(--state-info-bg))]/80 to-transparent dark:from-[hsl(var(--state-info-bg))]/20 dark:to-transparent" />
@@ -180,14 +198,33 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [isSidebarOpen, setSidebarOpen] = useState(false)
   const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false)
   const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(false)
-  const [, startTransition] = useTransition()
+  const [isLogoutPending, startLogoutTransition] = useTransition()
+  const {
+    isPending: isNavPending,
+    pendingTarget,
+    runNavigation,
+  } = usePendingNavigation()
   const effectiveUserAdminExpanded = isUserAdminRoute || isUserAdminExpanded
   const effectiveContentAdminExpanded =
     isContentAdminRoute || isContentAdminExpanded
 
   const handleLogout = () => {
-    startTransition(async () => {
+    startLogoutTransition(async () => {
       await logoutAction()
+    })
+  }
+
+  const handleViewNavigation = (view: DashboardView) => {
+    runNavigation(`view:${view}`, () => {
+      onNavigate(view)
+      setSidebarOpen(false)
+    })
+  }
+
+  const handleRouteNavigation = (href: string) => {
+    runNavigation(`route:${href}`, () => {
+      router.push(href)
+      setSidebarOpen(false)
     })
   }
 
@@ -217,6 +254,26 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     return en
   }
   const normalizedCurrentView = normalizeDashboardView(currentView)
+  const isSidebarLocked = isNavPending || isLogoutPending
+  useRoutePrefetch({
+    routes: [
+      dashboardViewRoutes.dashboard,
+      dashboardViewRoutes.courses,
+      dashboardViewRoutes.practice,
+      dashboardViewRoutes.community,
+      dashboardViewRoutes.leaderboard,
+      dashboardViewRoutes.achievements,
+      dashboardViewRoutes.settings,
+      !isParent ? '/pricing' : null,
+      isAdmin ? '/admin' : null,
+      isAdmin ? '/admin/users' : null,
+      isAdmin ? '/admin/feedback' : null,
+      isAdmin ? '/admin/referrals' : null,
+      isAdmin ? '/admin/content/import' : null,
+      isAdmin ? '/admin/content/review' : null,
+      isAdmin ? '/admin/content/reports' : null,
+    ],
+  })
 
   // Check if any admin route is active
   const isAdminDashboardActive = pathname === '/admin'
@@ -306,12 +363,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r transition-transform duration-300 ease-out desktop:relative desktop:flex desktop:translate-x-0 desktop:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
         <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
-          <div
+          <button
+            type="button"
             className="flex cursor-pointer items-center gap-3"
-            onClick={() => onNavigate(isParent ? 'parent' : 'dashboard')}
+            onClick={() =>
+              handleViewNavigation(isParent ? 'parent' : 'dashboard')
+            }
+            disabled={isSidebarLocked}
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/20">
-              <BookOpen className="h-4 w-4 text-primary-foreground" />
+              {pendingTarget === `view:${isParent ? 'parent' : 'dashboard'}` ? (
+                <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
+              ) : (
+                <BookOpen className="h-4 w-4 text-primary-foreground" />
+              )}
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-text-primary dark:text-text-primary">
@@ -321,7 +386,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 {tierLabel}
               </span>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* Nav Items - Scrollable Area */}
@@ -337,10 +402,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   pathname,
                   normalizedCurrentView
                 )}
-                onClick={() => {
-                  onNavigate(item.id)
-                  setSidebarOpen(false)
-                }}
+                onClick={() => handleViewNavigation(item.id as DashboardView)}
+                pending={pendingTarget === `view:${item.id}`}
+                disabled={isSidebarLocked}
               />
             ))}
           </div>
@@ -354,10 +418,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 icon={LayoutDashboard}
                 label={t.sidebar.adminDashboard}
                 active={isAdminDashboardActive}
-                onClick={() => {
-                  router.push('/admin')
-                  setSidebarOpen(false)
-                }}
+                onClick={() => handleRouteNavigation('/admin')}
+                pending={pendingTarget === 'route:/admin'}
+                disabled={isSidebarLocked}
               />
 
               <SidebarSection
@@ -368,6 +431,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   setIsUserAdminExpanded(!effectiveUserAdminExpanded)
                 }
                 isActive={isUserAdminActive}
+                disabled={isSidebarLocked}
               >
                 {adminUserSubItems.map((subItem) => (
                   <SidebarItem
@@ -375,11 +439,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     icon={subItem.icon}
                     label={subItem.label}
                     active={pathname === subItem.href}
-                    onClick={() => {
-                      router.push(subItem.href)
-                      setSidebarOpen(false)
-                    }}
+                    onClick={() => handleRouteNavigation(subItem.href)}
                     indent
+                    pending={pendingTarget === `route:${subItem.href}`}
+                    disabled={isSidebarLocked}
                   />
                 ))}
               </SidebarSection>
@@ -392,6 +455,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   setIsContentAdminExpanded(!effectiveContentAdminExpanded)
                 }
                 isActive={isContentAdminActive}
+                disabled={isSidebarLocked}
               >
                 {adminContentSubItems.map((subItem) => (
                   <SidebarItem
@@ -399,11 +463,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     icon={subItem.icon}
                     label={subItem.label}
                     active={pathname === subItem.href}
-                    onClick={() => {
-                      router.push(subItem.href)
-                      setSidebarOpen(false)
-                    }}
+                    onClick={() => handleRouteNavigation(subItem.href)}
                     indent
+                    pending={pendingTarget === `route:${subItem.href}`}
+                    disabled={isSidebarLocked}
                   />
                 ))}
               </SidebarSection>
@@ -413,15 +476,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {!isParent && (
             <div className="mt-5 border-t border-borderTone/70 pt-3 dark:border-borderTone/70">
               <button
-                onClick={() => {
-                  router.push('/pricing')
-                  setSidebarOpen(false)
-                }}
-                className="group w-full rounded-2xl border border-borderTone bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] px-4 py-3.5 text-left shadow-surface transition-all hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] dark:hover:border-[hsl(var(--border-strong))]"
+                type="button"
+                onClick={() => handleRouteNavigation('/pricing')}
+                disabled={isSidebarLocked}
+                className="group w-full rounded-2xl border border-borderTone bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] px-4 py-3.5 text-left shadow-surface transition-all hover:border-[hsl(var(--border-strong))] disabled:cursor-not-allowed dark:border-borderTone dark:bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] dark:hover:border-[hsl(var(--border-strong))]"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-state-info-bg text-state-info-fg dark:bg-state-info-bg dark:text-state-info-fg">
-                    <Rocket className="h-4 w-4" />
+                    {pendingTarget === 'route:/pricing' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Rocket className="h-4 w-4" />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-text-primary dark:text-text-primary">
@@ -446,12 +512,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="z-20 shrink-0 border-t border-borderTone/70 bg-page p-4 dark:border-borderTone/70 dark:bg-page">
           <SectionLabel label={copy('账户', 'Account', 'Akaun')} />
           {!isParent && (
-            <div
-              onClick={() => {
-                router.push(getDashboardRoute('leaderboard'))
-                setSidebarOpen(false)
-              }}
-              className={`group mb-3 mt-1 shrink-0 cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 shadow-lg transition-all ${
+            <button
+              type="button"
+              onClick={() => handleRouteNavigation(getDashboardRoute('leaderboard'))}
+              disabled={isSidebarLocked}
+              className={`group mb-3 mt-1 w-full cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 text-left shadow-lg transition-all ${
                 isDashboardViewActive(
                   'leaderboard',
                   pathname,
@@ -459,14 +524,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 )
                   ? 'border-primary/40 from-surface to-surface-selected shadow-surface-md dark:from-surface-selected dark:to-surface-subtle dark:shadow-surface-md'
                   : 'border-borderTone from-surface to-surface-muted shadow-surface hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:from-surface dark:to-surface-subtle dark:shadow-none dark:hover:border-[hsl(var(--border-strong))]'
-              }`}
+              } ${isSidebarLocked ? 'cursor-not-allowed' : ''}`}
+              aria-busy={
+                pendingTarget === `route:${getDashboardRoute('leaderboard')}`
+                  ? true
+                  : undefined
+              }
             >
               <div className="relative z-10">
                 <div className="mb-1 flex items-center justify-between">
                   <h4 className="text-sm font-bold text-text-primary dark:text-text-primary">
                     {t.dashboard.level} {resolvedLevel}
                   </h4>
-                  <ChevronRight className="h-3 w-3 text-text-tertiary transition-colors group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white" />
+                  {pendingTarget === `route:${getDashboardRoute('leaderboard')}` ? (
+                    <Loader2 className="h-3 w-3 animate-spin text-primary dark:text-white" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3 text-text-tertiary transition-colors group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white" />
+                  )}
                 </div>
                 <div className="mb-2 flex items-center justify-between text-xs text-text-secondary dark:text-text-secondary">
                   <span>{resolvedXp.toLocaleString()} XP</span>
@@ -479,22 +553,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   />
                 </div>
               </div>
-            </div>
+            </button>
           )}
           <div className="space-y-1">
           <SidebarItem
             icon={Settings}
             label={t.sidebar.settings}
             active={isSettingsActive}
-            onClick={() => {
-              router.push('/dashboard/settings')
-              setSidebarOpen(false)
-            }}
+            onClick={() => handleRouteNavigation('/dashboard/settings')}
+            pending={pendingTarget === 'route:/dashboard/settings'}
+            disabled={isSidebarLocked}
           />
           <SidebarItem
             icon={LogOut}
             label={t.sidebar.logout}
             onClick={handleLogout}
+            pending={isLogoutPending}
+            disabled={isSidebarLocked}
           />
           </div>
         </div>

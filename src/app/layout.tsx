@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { cookies } from 'next/headers'
 import './globals.css'
 import '@/lib/suppress-warnings' // 抑制已知的框架警告
 import { ThemeProvider, AppProvider } from '@/providers'
@@ -13,9 +12,7 @@ import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBa
 import { CookieConsent } from '@/components/layout/CookieConsent'
 import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
-import type { Lang } from '@/providers/app-provider'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { getCurrentUser } from '@/actions/user/auth'
 
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
@@ -57,23 +54,11 @@ export const viewport: Viewport = {
   viewportFit: 'cover', // 支持刘海屏/药丸屏
 }
 
-const parseLangCookie = (value: string | undefined): Lang => {
-  if (value === 'en' || value === 'zh' || value === 'ms') {
-    return value
-  }
-
-  return 'zh'
-}
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const cookieStore = await cookies()
-  const initialLang = parseLangCookie(cookieStore.get('lm_lang')?.value)
-  const currentUser = await getCurrentUser()
-
   return (
     <html lang="zh-CN" suppressHydrationWarning className={fonts.className}>
       <body className="antialiased">
@@ -83,7 +68,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProvider initialLang={initialLang}>
+          <AppProvider>
             <ImpersonateBannerWrapper />
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />
@@ -92,7 +77,7 @@ export default async function RootLayout({
               {children}
             </div>
             <BottomTabBar />
-            <FeedbackWidget viewerEmail={currentUser?.email ?? null} />
+            <FeedbackWidget />
           </AppProvider>
         </ThemeProvider>
         <CookieConsent />

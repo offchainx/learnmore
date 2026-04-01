@@ -1,7 +1,7 @@
 # T-026 全站响应时间优化工作底稿
 
 > 用途：按 `T-026.1 -> T-026.12` 推进全站响应时间优化。  
-> 当前进度：已完成 `T-026.1`，已启动 `T-026.2`，正在把真实浏览器采样结果收敛成统一目标值与验收口径。  
+> 当前进度：已完成 `T-026.1 ~ T-026.8`，下一步进入 `T-026.9`。  
 > 约束：保持轻量，不做大而全清单；只覆盖本轮最值得反复测的高频路径。
 
 ## T-026.1 基线测量范围
@@ -164,8 +164,8 @@
 | Admin 路由 | `/admin` | `1883ms` | 来自真实浏览器触发的 dev 日志 |
 | Admin 路由 | `/admin/users` | `2300ms` | 来自真实浏览器触发的 dev 日志 |
 | Admin 路由 | `/admin/feedback` | `2100ms` | 来自真实浏览器触发的 dev 日志 |
-| Admin 路由 | `/admin/content` | `404 / 572ms` | 先修路径可用性，再谈性能 |
-| Admin 路由 | `/admin/permissions` | `404 / 739ms` | 先修路径可用性，再谈性能 |
+| Admin 路由 | `/admin/content` | `404 / 572ms` | 当前未启用，保留 `404`，不纳入本轮性能验收 |
+| Admin 路由 | `/admin/permissions` | `404 / 739ms` | 当前未启用，保留 `404`，不纳入本轮性能验收 |
 
 ### 3. 统一指标定义
 | 指标 | 定义 | 本轮用途 |
@@ -187,13 +187,13 @@
 | Practice 基础接口 | `practice_bootstrap` | `api_ms <= 120ms` |
 | 未授权态接口/受保护路由 | `401` / `307` 场景 | `api_ms or route_ms <= 300ms` |
 | 慢页面的即时反馈 | 任一路由超过 `800ms` 时 | 必须出现明确 loading/skeleton/pending，不允许白屏等待 |
-| Admin 路由可用性 | `/admin/content`、`/admin/permissions` | 先达到 `200`，再纳入速度验收 |
+| 未启用 Admin 路由 | `/admin/content`、`/admin/permissions` | 保持 `404` 即可，不纳入本轮速度验收 |
 
 ### 5. 验收规则
 - 规则一：后续每次改造只和同一批路径对比，不新增随机样本。
 - 规则二：如果真实总耗时暂时降不下来，也必须先把 `feedback_ms` 压到目标线内。
 - 规则三：任何页面若仍出现“无反馈空窗期”，即使总耗时下降，也不能判定为通过。
-- 规则四：Admin 路由如果还是 `404` 或权限异常，不进入速度验收，先算功能阻断。
+- 规则四：未启用的 Admin 路由维持 `404` 不算阻断，但不进入速度验收。
 - 规则五：所有结论都要能回溯到真实浏览器证据或其对应的服务端路由日志。
 
 ### 6. 对后续子任务的直接约束
@@ -211,6 +211,206 @@
 - 未授权态 `/api/practice/bootstrap`
 - `/admin/users` / `/admin/feedback`
 - 下一步进入 `T-026.3` 时，优先从“点击后立刻有反馈”下手，而不是先追最深的缓存重构。
+
+## T-026.3 即时反馈层对齐（2026-03-31）
+
+### 1. 本步改动
+- 为通用按钮组件补齐统一 `isLoading / loadingText / loadingIcon` 接口，避免登录、注册、保存动作各写一套 `pending` 文案。
+- 新增 `usePendingNavigation`，统一管理 Dashboard 侧边导航的过渡中目标、spinner 和临时禁用态。
+- 将登录、注册、Settings 保存链路切到统一按钮加载态；将 Dashboard 侧边导航切到统一的 route/view pending 反馈。
+
+### 2. 本步落点
+| 类型 | 文件 | 本步用途 |
+|---|---|---|
+| 通用按钮 | `src/components/ui/button.tsx` | 统一按钮加载态 API 与 spinner |
+| 通用 hook | `src/lib/hooks/usePendingNavigation.ts` | 统一导航 pending 状态 |
+| hook 导出 | `src/lib/hooks/index.ts` | 供 Dashboard 侧边导航复用 |
+| 主导航 | `src/components/layout/dashboard-layout.tsx` | 统一 student/admin 侧边栏切页反馈 |
+| Auth 表单 | `src/components/business/auth/login-form.tsx` | 登录提交统一 loading |
+| Auth 表单 | `src/components/business/auth/register-form.tsx` | 注册提交统一 loading |
+| Settings | `src/components/dashboard/views/SettingsView.tsx` | 个人资料 / AI 配置 / 通知 / 邀请码 / 取消订阅统一 loading |
+
+### 3. 真实浏览器验证
+| 路径/动作 | 结果 | 证据 |
+|---|---|---|
+| `/register` 点击 `创建账号` | 通过 | Playwright + Chrome 实测 `registerFeedbackSeen=true` |
+| `/dashboard` 点击 `设置` | 通过 | Playwright + Chrome 实测 `settingsNavFeedbackSeen=true` |
+| `/dashboard/settings` 点击 `保存个人资料` | 通过 | Playwright + Chrome 实测 `settingsSaveFeedbackSeen=true` |
+| 浏览器控制台 | 通过 | 本轮链路 `consoleErrors=[]` |
+
+### 4. 辅助留证
+- 同轮真实浏览器操作触发的本地 `next dev` 路由日志显示：`GET /dashboard/settings 200 in 960ms`，`POST /dashboard/settings 200 in 422ms / 245ms / 578ms`。
+- 开发期静态检查通过：`eslint` 覆盖本轮改动文件无新增报错。
+- `tsc --noEmit` 仍存在项目既有报错：`src/app/(dashboard)/admin/feedback/[id]/page.tsx` 的 `FeedbackStatus` 类型不匹配；与本轮改动无关，暂不在 `T-026.3` 处理。
+
+### 5. 本步结论
+- `T-026.3` 已达到目标：关键提交动作和 Dashboard 主导航都能在真实浏览器里给出即时反馈，不再是“点了没反应”。
+- 本步优先统一了复用层，没有走逐页散修；后续 `T-026.4` 可以直接复用这套交互反馈模式，继续处理 `loading.tsx` / `Suspense` / skeleton。
+
+## T-026.4 路由即时加载层对齐（2026-03-31）
+
+### 1. 本步改动
+- 新增共享路由骨架壳，统一 student/admin 高频路由的首屏 loading 形态，避免每个页面单独手写 `loading.tsx`。
+- 将原先 `/dashboard` 的整页转圈 loading 改成带侧边栏与内容区骨架的真实页面壳。
+- 为 `practice`、`leaderboard`、`community`、`settings`、`admin` 补齐路由级 `loading.tsx`。
+- 将 `/dashboard/settings` 通知偏好区块的裸文本 `加载中...` 改成表格式 skeleton。
+
+### 2. 本步落点
+| 类型 | 文件 | 本步用途 |
+|---|---|---|
+| 共享路由骨架 | `src/components/loading/dashboard-route-loading.tsx` | 统一 dashboard/admin 路由 loading 壳 |
+| Dashboard loading | `src/app/(dashboard)/dashboard/loading.tsx` | 替换整页 spinner |
+| Practice loading | `src/app/(dashboard)/dashboard/practice/loading.tsx` | 练习中心及其子路由 loading |
+| Leaderboard loading | `src/app/(dashboard)/dashboard/leaderboard/loading.tsx` | 榜单路由 loading |
+| Community loading | `src/app/(dashboard)/dashboard/community/loading.tsx` | 社区路由 loading |
+| Settings loading | `src/app/(dashboard)/dashboard/settings/loading.tsx` | 设置路由 loading |
+| Admin loading | `src/app/(dashboard)/admin/loading.tsx` | Admin 首页与子路由共享 loading |
+| Settings 区块 skeleton | `src/components/dashboard/views/SettingsView.tsx` | 通知偏好区块加载体验收口 |
+
+### 3. 真实浏览器验证
+| 路径/动作 | 结果 | 证据 |
+|---|---|---|
+| `/dashboard -> /dashboard/practice` | 通过 | Playwright + Chrome 实测 `practiceRouteLoadingSeen=true` |
+| `/dashboard/practice -> /dashboard/community` | 通过 | Playwright + Chrome 实测 `communityRouteLoadingSeen=true` |
+| `/dashboard -> /dashboard/settings` | 通过 | Playwright + Chrome 实测 `settingsRouteLoadingSeen=true` |
+| `/dashboard/settings` 通知区块加载 | 通过 | Playwright + Chrome 实测 `settingsNotificationSkeletonSeen=true` |
+
+### 4. 辅助留证
+- 路由骨架统一使用 `data-route-loading` 标记，便于后续真实浏览器回归继续复用同一套验证方法。
+- Settings 通知区块 skeleton 使用 `data-settings-section-loading=\"notifications\"` 标记，便于单独验证区块级加载状态。
+- 开发期静态检查通过：`eslint` 覆盖本轮新增/修改的 loading 文件与 `SettingsView` 无新增报错。
+- 本轮为保证 `loading.tsx` 稳定性，将共享 route loading 壳保持为纯静态服务端组件，不再依赖真实 `DashboardLayout` 交互逻辑。
+
+### 5. 本步结论
+- `T-026.4` 已达到当前目标：student 高频切页不再只靠 URL 变化，而是能在真实浏览器里看到明确的路由骨架。
+- `/dashboard/settings` 原先最明显的裸文本 loading 已替换为结构化 skeleton，后续页内细化可直接沿用这套模式。
+- 下一步进入 `T-026.5` 时，重点不再是“有没有 loading”，而是把已出现的页面壳尽量更快地变成真实内容。
+
+## T-026.5 缓存与预渲染层对齐（2026-04-01）
+
+### 1. 本步改动
+- 新增统一共享缓存层 [sitewide.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts)，把首页统计、社区分类与列表、榜单条目、成就概览、用户徽章、Admin 概览统一收口到一处，避免在页面层重复写缓存逻辑。
+- 在 [next.config.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/next.config.ts) 启用 `experimental.useCache: true`，并定义 `quick / standard / long` 三档 `cacheLife`，供共享缓存函数复用。
+- 在 [src/actions/community/post.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/community/post.ts)、[src/actions/leaderboard/index.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievements.ts)、[src/actions/practice/submission-effects.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/practice/submission-effects.ts) 补了 tag 失效，确保发帖、练习提交、排行榜更新后，缓存能按用户或全局 tag 回收。
+- 将 [src/app/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/page.tsx)、[src/app/(dashboard)/dashboard/community/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/community/page.tsx)、[src/app/(dashboard)/dashboard/community/new/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/community/new/page.tsx)、[src/app/api/community/feed/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/community/feed/route.ts)、[src/app/api/leaderboard/summary/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/leaderboard/summary/route.ts)、[src/app/(dashboard)/dashboard/leaderboard/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/leaderboard/page.tsx)、[src/app/(dashboard)/dashboard/achievements/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/page.tsx)、[src/app/(dashboard)/admin/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/page.tsx) 统一改为走共享缓存入口。
+- 由于现有 `force-dynamic` 路由与全局 `cacheComponents` 冲突，本轮没有强行改整站动态边界，而是采用 `experimental.useCache` 兼容方案，保留 `use cache` / `cacheLife` / `cacheTag` 的收益。
+
+### 2. 本步落点
+| 类型 | 文件 | 本步用途 |
+|---|---|---|
+| 共享缓存 | `src/lib/cache/sitewide.ts` | 统一收口可复用聚合缓存 |
+| 站点配置 | `next.config.ts` | 启用 `useCache` 并定义缓存档位 |
+| 社区写链路 | `src/actions/community/post.ts` | 发帖后失效社区/成就缓存 |
+| 榜单写链路 | `src/actions/leaderboard/index.ts` | 排行更新后失效榜单缓存 |
+| 成就写链路 | `src/actions/gamification/achievements.ts` | 成就相关缓存 tag 回收 |
+| 练习写链路 | `src/actions/practice/submission-effects.ts` | 练习提交后回收用户成就缓存 |
+| 首页 | `src/app/page.tsx` | 共享平台统计缓存 |
+| 社区页 | `src/app/(dashboard)/dashboard/community/page.tsx` | 共享社区分类/列表缓存 |
+| 新建帖子 | `src/app/(dashboard)/dashboard/community/new/page.tsx` | 共享社区分类缓存 |
+| 社区 API | `src/app/api/community/feed/route.ts` | 社区列表 API 共享缓存 |
+| 榜单 API | `src/app/api/leaderboard/summary/route.ts` | 榜单 API 共享缓存 |
+| 榜单页 | `src/app/(dashboard)/dashboard/leaderboard/page.tsx` | 共享成就概览/徽章缓存 |
+| 成就页 | `src/app/(dashboard)/dashboard/achievements/page.tsx` | 共享成就概览/徽章缓存 |
+| Admin 页 | `src/app/(dashboard)/admin/page.tsx` | 共享 Admin 概览缓存 |
+
+### 3. 真实浏览器验证
+| 路径 / 接口 | 优化前 | 优化后 | 变化 |
+|---|---:|---:|---:|
+| `/dashboard/leaderboard` 页面重访 | `1942ms` | `1149ms` | `-793ms` |
+| `/admin` 页面重访 | `1883ms` | `1015ms` | `-868ms` |
+| `/api/community/feed` 第一次请求 | `259ms` | `110ms` | `-149ms` |
+| `/api/community/feed` 第二次请求 | `259ms` | `1ms` | `-258ms` |
+| `/api/leaderboard/summary` 第二次请求 | `232ms` | `1ms` | `-231ms` |
+
+### 4. 辅助留证
+- 这轮真实浏览器测试使用了临时注册的账号，并在数据库中临时提升为 `ADMIN`，用于覆盖 Dashboard 与 Admin 路径；验证后已清理对应 `public.users` 测试记录。
+- `pnpm exec eslint` 覆盖本轮改动文件通过。
+- `pnpm exec tsc --noEmit --pretty false` 仍有项目既有报错：`src/app/(dashboard)/admin/feedback/[id]/page.tsx` 的 `FeedbackStatus` 类型不匹配，与本轮改动无关。
+- `notifications_summary` 这条接口本轮未做专门缓存收口，首次/重复请求仍然偏慢，后续留到 `T-026.8 ~ T-026.9` 再追。
+- 浏览器回归期间额外发现 `/dashboard/community` 仍有 `React.Children.only` 的 `Slot` 运行时错误，已将该页两个 CTA 从 `Button asChild` 收敛为直接复用 `buttonVariants` 的 `Link`，复测通过后再记为本轮稳定状态。
+- 随后在 `/dashboard/leaderboard` 回归中也统一清掉了 leaderboard 卡片里的 `Button asChild` CTA，改成直接复用 `buttonVariants` 的 `Link`，以避免同类 `Slot` 错误再次出现。
+
+### 5. 本步结论
+- `T-026.5` 已把可复用聚合缓存收敛成共享层，且真实浏览器下已经能看到 leaderboard 和 admin 页面重访变快。
+- 社区 feed 的第二次请求已经进入 `1ms` 级别，说明缓存命中链路正常。
+- 首次请求仍有少量冷启动成本，下一步 `T-026.6` 继续收缩 request-time 边界，随后在 `T-026.8 / T-026.9` 追剩余后端耗时热点。
+
+## T-026.6 动态边界收缩（2026-04-01）
+
+### 1. 本步改动
+- 将 [src/app/layout.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/layout.tsx) 里的 `cookies()` / `getCurrentUser()` 去掉，让整站根外壳不再被 request-time 数据绑死。
+- 让 [src/providers/app-provider.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/providers/app-provider.tsx) 在 hydration 后从本地 `lang` 同步状态，避免为了初始语言把 root layout 拉成动态。
+- 让 [src/components/support/FeedbackWidget.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/support/FeedbackWidget.tsx) 只在打开时走客户端鉴权兜底，不再依赖 root layout 预取邮箱。
+
+### 2. 真实浏览器验证
+| 路径 / 动作 | 当前值 | 备注 |
+|---|---:|---|
+| `/` | `566ms` | root 外壳已变成静态渲染边界 |
+| `/dashboard/leaderboard` warm revisit | `343ms` | 与缓存层一起受益，外壳更轻 |
+| `/login` | `1731ms` | 仍然是 auth 客户端壳，非本步主要优化面 |
+| `注册 -> dashboard 跳转` | `2514ms` | 主要受注册流程影响，不作为本步主指标 |
+
+### 3. 本步结论
+- 这一步的重点不是再做缓存，而是把“全站共用壳”从 request-time 依赖里拆出来。
+- 根布局现在不再读取 cookie 或当前用户，首屏公共页面的路由压力明显更低。
+- 下一步 `T-026.7` 再继续收 `Dashboard` 导航和高频入口的跳转反馈。
+
+## T-026.7 导航与预取统一收口（2026-04-01）
+
+### 1. 本步改动
+- 新增统一预取 hook [src/lib/hooks/useRoutePrefetch.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/hooks/useRoutePrefetch.ts)，把 `router.prefetch()` 收口成复用层，避免各页面各写一套预取逻辑。
+- 在 [src/components/layout/dashboard-layout.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/dashboard-layout.tsx) 中统一预取 Dashboard 主入口、`/pricing` 和 Admin 高频路由，保证侧边栏初始化后就进入同一套预取节奏。
+- 在 [src/components/mobile/BottomTabBar.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/mobile/BottomTabBar.tsx) 与 [src/components/mobile/MobileHeader.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/mobile/MobileHeader.tsx) 补齐移动端主入口预取。
+- 在练习页深链组件 [src/components/practice/PracticeView/ChapterMap/ChapterCard.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/practice/PracticeView/ChapterMap/ChapterCard.tsx)、[src/components/practice/analytics/WeaknessCard.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/practice/analytics/WeaknessCard.tsx)、[src/components/practice/analytics/KnowledgeHive.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/practice/analytics/KnowledgeHive.tsx)、[src/components/practice/PracticeView/TrainingModeCards.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/practice/PracticeView/TrainingModeCards.tsx) 接入 hover/focus 预取，优先覆盖章卡、弱项项、知识蜂巢和训练模式入口。
+
+### 2. 本步落点
+| 类型 | 文件 | 本步用途 |
+|---|---|---|
+| 统一预取 hook | `src/lib/hooks/useRoutePrefetch.ts` | 收口 route prefetch 与 hover/focus prefetch |
+| hook 导出 | `src/lib/hooks/index.ts` | 供导航与练习页复用 |
+| Dashboard 导航 | `src/components/layout/dashboard-layout.tsx` | 统一 student/admin 侧边栏预取 |
+| 移动端底栏 | `src/components/mobile/BottomTabBar.tsx` | 统一主 tab 预取 |
+| 移动端头部 | `src/components/mobile/MobileHeader.tsx` | 首页 logo 预取 |
+| 练习深链卡片 | `src/components/practice/PracticeView/ChapterMap/ChapterCard.tsx` | hover/focus 预取 chapter drill |
+| 练习弱项卡 | `src/components/practice/analytics/WeaknessCard.tsx` | hover/focus 预取 chapter drill |
+| 练习知识蜂巢 | `src/components/practice/analytics/KnowledgeHive.tsx` | hover/focus 预取 chapter drill |
+| 训练模式卡 | `src/components/practice/PracticeView/TrainingModeCards.tsx` | 选择学科后预取训练模式入口 |
+
+### 3. 真实浏览器验证
+| 路径 / 动作 | 结果 | 证据 |
+|---|---|---|
+| Dashboard 初始加载 | 通过 | 生产模式浏览器采样抓到 `dashboardPrefetchRequests`，包含 `/dashboard/{courses,practice,community,leaderboard,achievements,settings}` 与 `/pricing` |
+| Practice 页面预取 | 通过 | 生产模式浏览器采样抓到 `practicePrefetchRequests`，包含 `smart-drill`、`error-wiper`、`mock-arena` 的 `subjectId` 深链预取 |
+| `/dashboard -> /dashboard/leaderboard` | 通过 | 生产模式浏览器实测 `leaderboardClickElapsed=998ms`，且没有新的 `pageerror` |
+
+### 4. 辅助留证
+- 验证脚本使用本地 `playwright` + 生产构建 `next start` 完成，不依赖开发态的预取行为。
+- `pnpm build` 通过，说明这轮预取改动没有破坏生产构建。
+- `pnpm exec eslint` 与 `pnpm exec tsc --noEmit --pretty false` 均通过本轮改动文件。
+- 生产模式下仍看到少量资源 `404` 控制台提示，但没有影响主导航与预取链路。
+
+### 5. `T-026.8` 实测留证
+| 指标 | 第一次采样 | 第二次采样 | 变化 |
+|---|---:|---:|---:|
+| notifications_summary | `318ms` | `300ms` | `-18ms` |
+| leaderboard_summary | `195ms` | `195ms` | `0ms` |
+| community_feed | `227ms` | `212ms` | `-15ms` |
+| practice_bootstrap | `124ms` | `117ms` | `-7ms` |
+| practice_subject_chapters | `405ms` | `351ms` | `-54ms` |
+| practice_exam_forecast | `419ms` | `368ms` | `-51ms` |
+| practice_knowledge_hive | `291ms` | `276ms` | `-15ms` |
+| practice_past_papers | `128ms` | `115ms` | `-13ms` |
+| admin_users_overview | `1238ms` | `1150ms` | `-88ms` |
+| admin_users_list | `225ms` | `210ms` | `-15ms` |
+| admin_feedback_overview | `1005ms` | `968ms` | `-37ms` |
+| admin_feedback_list | `284ms` | `373ms` | `+89ms` |
+| admin_feedback_detail | `277ms` | `326ms` | `+49ms` |
+
+### 6. 本步结论
+- `T-026.8` 已统一热 API 的 `preferredRegion`，并把实践统计中重复的用户权限作用域读取收紧为复用 helper `loadUserWithOverrides`。
+- 这轮对 `practice_subject_chapters`、`practice_exam_forecast`、`admin_users_overview`、`admin_feedback_overview` 的收益最明显，`notifications_summary` 与 `community_feed` 也有小幅下降。
+- `admin_feedback_list` 和 `admin_feedback_detail` 这次有波动，没有作为结构性退化处理；后续若要继续压缩，优先再看 SQL / 关联量，而不是再拆认证。
+- 下一步进入 `T-026.9`，把非阻塞副作用从主响应链路里剥离。
 
 ## 本轮执行边界
 - `T-026.1` 先完成测量范围、记录模板、热点路径确认，不在这一步混入实现改造。

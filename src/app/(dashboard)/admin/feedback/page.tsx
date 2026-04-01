@@ -3,11 +3,53 @@ import { getProfile } from '@/actions/user/profile'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { FeedbackList } from '@/components/admin/feedback/FeedbackList'
 import { getFeedbackList, getFeedbackOverview } from '@/actions/support/ticket'
+import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 
-export const dynamic = 'force-dynamic'
+const PAGE_SIZE = 20
 
-export default async function AdminFeedbackPage() {
+function parsePage(raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const page = Number.parseInt(value || '1', 10)
+  if (Number.isNaN(page)) return 1
+  return Math.max(1, page)
+}
+
+function parseStatus(raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  if (!value || value === 'ALL') return undefined
+  if (value in FeedbackStatus) {
+    return FeedbackStatus[value as keyof typeof FeedbackStatus]
+  }
+  return undefined
+}
+
+function parseCategory(raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  if (!value || value === 'ALL') return undefined
+  if (value in FeedbackCategory) {
+    return FeedbackCategory[value as keyof typeof FeedbackCategory]
+  }
+  return undefined
+}
+
+export default async function AdminFeedbackPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    page?: string | string[]
+    search?: string | string[]
+    status?: string | string[]
+    category?: string | string[]
+  }>
+}) {
   const profile = await getProfile()
+  const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const page = parsePage(resolvedSearchParams?.page)
+  const search = Array.isArray(resolvedSearchParams?.search)
+    ? resolvedSearchParams?.search[0]
+    : resolvedSearchParams?.search || ''
+  const status = parseStatus(resolvedSearchParams?.status)
+  const category = parseCategory(resolvedSearchParams?.category)
 
   if (!profile) {
     redirect('/login')
@@ -19,7 +61,13 @@ export default async function AdminFeedbackPage() {
   }
 
   const [initialData, initialOverview] = await Promise.all([
-    getFeedbackList({ limit: 20 }),
+    getFeedbackList({
+      limit: PAGE_SIZE,
+      offset: (page - 1) * PAGE_SIZE,
+      search,
+      status,
+      category,
+    }),
     getFeedbackOverview('30D'),
   ])
 
@@ -38,6 +86,11 @@ export default async function AdminFeedbackPage() {
                 : []
             }
             totalCount={initialData.success ? initialData.total || 0 : 0}
+            initialPage={page}
+            pageSize={PAGE_SIZE}
+            initialSearch={search}
+            initialStatus={status ?? 'ALL'}
+            initialCategory={category ?? 'ALL'}
             initialOverview={
               initialOverview.success ? initialOverview.data : undefined
             }

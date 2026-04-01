@@ -2,7 +2,10 @@ import { Metadata } from 'next'
 import { getDashboardShellProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { AchievementsClientWrapper } from './client-wrapper'
-import { getAchievementOverview, listUserBadges } from '@/actions/gamification/achievements'
+import {
+  getCachedAchievementOverview,
+  getCachedUserBadges,
+} from '@/lib/cache/sitewide'
 
 export const metadata: Metadata = {
   title: 'Achievements - LearnMore',
@@ -17,8 +20,8 @@ export default async function AchievementsPage() {
   }
 
   const [overview, badges] = await Promise.all([
-    getAchievementOverview(profile.id),
-    listUserBadges(profile.id),
+    getCachedAchievementOverview(profile.id),
+    getCachedUserBadges(profile.id),
   ])
 
   return (

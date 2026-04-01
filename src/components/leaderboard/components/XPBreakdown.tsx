@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, Award, Flame, Target, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
   pageBadgeClass,
@@ -87,17 +87,16 @@ export function XPBreakdown({
           </div>
         </div>
 
-        <Button
-          asChild
-          size="sm"
-          variant="secondary"
-          className="h-9 shrink-0 px-3 text-[13px]"
+        <Link
+          href="/dashboard/achievements"
+          className={`${buttonVariants({
+            variant: 'secondary',
+            size: 'sm',
+          })} h-9 shrink-0 px-3 text-[13px]`}
         >
-          <Link href="/dashboard/achievements">
-            {viewAllLabel}
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
-        </Button>
+          {viewAllLabel}
+          <ArrowUpRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       <div className="mt-4">

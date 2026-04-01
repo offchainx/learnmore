@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 import { getFeedbackList } from '@/actions/support/ticket'
 
+export const preferredRegion = 'sin1'
+
 function parseStatus(raw: string | null): FeedbackStatus | undefined {
   if (!raw || raw === 'ALL') return undefined
   if (raw in FeedbackStatus)

@@ -19,6 +19,7 @@ import {
   pageListGapClass,
   pageListItemMinHeightClass,
 } from '@/components/shared/pageSpacing'
+import { useRoutePrefetcher } from '@/lib/hooks'
 import type { ChapterWithStats } from '@/lib/practice/types'
 
 interface WeaknessCardProps {
@@ -29,6 +30,7 @@ const WEAKNESS_PER_PAGE = 4
 
 export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
   const router = useRouter()
+  const prefetchRoute = useRoutePrefetcher()
 
   const weaknesses = chapters
     .filter(
@@ -106,6 +108,12 @@ export const WeaknessCard = ({ chapters }: WeaknessCardProps) => {
               <button
                 key={chapter.id}
                 type="button"
+                onMouseEnter={() =>
+                  prefetchRoute(`/dashboard/practice/chapter-drill/${chapter.id}`)
+                }
+                onFocus={() =>
+                  prefetchRoute(`/dashboard/practice/chapter-drill/${chapter.id}`)
+                }
                 onClick={() =>
                   router.push(`/dashboard/practice/chapter-drill/${chapter.id}`)
                 }

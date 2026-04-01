@@ -3,7 +3,10 @@ import { getDashboardShellProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
 import { CommunityClientWrapper } from './client-wrapper'
 import { CommunityView } from '@/components/dashboard/views/CommunityView'
-import { getCategories, getPosts } from '@/actions/community/post'
+import {
+  getCachedCommunityCategories,
+  getCachedCommunityFeed,
+} from '@/lib/cache/sitewide'
 
 export const metadata: Metadata = {
   title: 'Community - LearnMore',
@@ -18,8 +21,8 @@ export default async function CommunityPage() {
   }
 
   const [categories, postResult] = await Promise.all([
-    getCategories(),
-    getPosts({ page: 1, limit: 20 }),
+    getCachedCommunityCategories(),
+    getCachedCommunityFeed({ page: 1, limit: 20 }),
   ])
 
   return (

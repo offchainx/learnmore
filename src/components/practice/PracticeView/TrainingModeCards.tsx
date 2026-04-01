@@ -8,6 +8,7 @@ import {
   TimerReset,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useRoutePrefetch } from '@/lib/hooks'
 import {
   pageDisplayTitleClass,
   pageHeroEyebrowClass,
@@ -177,6 +178,16 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
   const { lang } = useApp()
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const hasSubject = Boolean(selectedSubjectId)
+  useRoutePrefetch({
+    enabled: hasSubject,
+    routes: hasSubject
+      ? [
+          `/dashboard/practice/smart-drill?subjectId=${encodeURIComponent(selectedSubjectId)}`,
+          `/dashboard/practice/error-wiper?subjectId=${encodeURIComponent(selectedSubjectId)}`,
+          `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(selectedSubjectId)}`,
+        ]
+      : [],
+  })
 
   const copy = {
     zh: {

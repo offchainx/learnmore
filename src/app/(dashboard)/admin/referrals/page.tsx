@@ -4,8 +4,6 @@ import prisma from '@/lib/prisma'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { GrowthToolsConsole } from '@/components/admin/referrals/GrowthToolsConsole'
 
-export const dynamic = 'force-dynamic'
-
 const statusOrder = [
   'PENDING',
   'DEFERRED',

@@ -20,6 +20,7 @@ import type {
 import { QUOTA_CONFIGS } from '@/lib/practice/types'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
+import { loadUserWithOverrides } from '@/lib/permissions/load-user-scope'
 import {
   practiceQuestionWithGroupInclude,
   type PracticeQuestionRecord,
@@ -55,19 +56,7 @@ export async function getChapterWithStats(
   }
 
   // 1. 获取用户等级和数据保留期 (C3)
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      permissionOverrides: {
-        where: {
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
-          ]
-        }
-      }
-    }
-  })
+  const user = await loadUserWithOverrides(userId)
 
   if (!user) return null
 
@@ -156,19 +145,7 @@ export async function getSubjectChapters(
   userId: string
 ): Promise<SubjectChaptersResult | null> {
   // 1. 获取用户等级和数据保留期 (C3)
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      permissionOverrides: {
-        where: {
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
-          ]
-        }
-      }
-    }
-  })
+  const user = await loadUserWithOverrides(userId)
 
   if (!user) return null
 

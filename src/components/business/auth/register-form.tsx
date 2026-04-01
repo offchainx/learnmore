@@ -13,8 +13,13 @@ import { useSearchParams } from 'next/navigation'
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? '注册中...' : '创建账号'}
+    <Button
+      type="submit"
+      className="w-full"
+      isLoading={pending}
+      loadingText="注册中..."
+    >
+      创建账号
     </Button>
   )
 }

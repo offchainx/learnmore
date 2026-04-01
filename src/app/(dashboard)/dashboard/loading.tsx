@@ -1,10 +1,5 @@
+import { DashboardRouteLoading } from '@/components/loading/dashboard-route-loading'
+
 export default function DashboardLoading() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">加载中...</p>
-      </div>
-    </div>
-  )
+  return <DashboardRouteLoading currentView="dashboard" variant="dashboard" />
 }

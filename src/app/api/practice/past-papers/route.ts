@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/actions/user/auth'
 import { getPastPapersBySubject } from '@/actions/practice/past-papers'
+import { resolveRequestUserId } from '@/lib/auth/request-user'
+
+export const preferredRegion = 'sin1'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
+    const userId = await resolveRequestUserId(request.headers)
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 

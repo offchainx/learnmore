@@ -1,6 +1,5 @@
 'use server'
 
-import { getCurrentUser } from '@/actions/user/auth'
 import prisma from '@/lib/prisma'
 import {
   FeedbackStatus,
@@ -17,8 +16,9 @@ import type {
   AdminDashboardWindow,
   AdminDashboardWorkItem,
 } from '@/types/admin-dashboard'
+import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
 
-type DashboardOverview = {
+export type AdminDashboardOverview = {
   window: AdminDashboardWindow
   kpis: AdminDashboardMetric[]
   workQueue: AdminDashboardWorkItem[]
@@ -63,11 +63,18 @@ const QUICK_ACTIONS: AdminDashboardQuickAction[] = [
   { id: 'qa5', label: '优惠券管理', icon: 'vouchers', href: '/admin/vouchers', visibleTo: ['ADMIN'] },
 ]
 
-export async function getAdminDashboardOverview(window: AdminDashboardWindow): Promise<DashboardOverview> {
-  const currentUser = await getCurrentUser()
-  if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'TEACHER')) {
+export async function getAdminDashboardOverview(window: AdminDashboardWindow): Promise<AdminDashboardOverview> {
+  const currentUser = await resolveRequestAdminIdentity(undefined, true)
+  if (!currentUser) {
     throw new Error('Unauthorized')
   }
+
+  return buildAdminDashboardOverview(window)
+}
+
+export async function buildAdminDashboardOverview(
+  window: AdminDashboardWindow,
+): Promise<AdminDashboardOverview> {
 
   const now = new Date()
   const config = WINDOW_CONFIG[window]

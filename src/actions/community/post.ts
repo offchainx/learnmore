@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client'
 import { getCurrentUser } from '@/actions/user/auth'
 import { triggerSocialReplyNotification } from '../notification/triggers'
 import { awardBadgeIfEligible } from '@/actions/gamification/achievements'
+import { revalidateTag } from 'next/cache'
 
 export type PostWithAuthor = Prisma.PostGetPayload<{
   include: {
@@ -211,6 +212,10 @@ export async function createPost({
       },
     })
     await awardBadgeIfEligible(user.id, 'COMMUNITY')
+    revalidateTag('community-feed', 'quick')
+    revalidateTag('community-categories', 'quick')
+    revalidateTag(`achievement-overview:${user.id}`, 'quick')
+    revalidateTag(`user-badges:${user.id}`, 'quick')
     return { success: true, post: newPost }
   } catch (error: unknown) {
     console.error('Error creating post:', error)

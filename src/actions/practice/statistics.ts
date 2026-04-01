@@ -13,6 +13,7 @@ import { getHiveStatus, HIVE_STATUS_COLORS } from '@/lib/practice/types'
 import { calculateExamForecast } from '@/lib/practice/algorithms'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
+import { loadUserWithOverrides } from '@/lib/permissions/load-user-scope'
 
 // ============ C1: Knowledge Hive (知识蜂巢) ============
 
@@ -32,19 +33,7 @@ export async function getKnowledgeHiveData(
 
   try {
     // 0. 获取用户等级和数据保留期 (C3)
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        permissionOverrides: {
-          where: {
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } }
-            ]
-          }
-        }
-      }
-    })
+    const user = await loadUserWithOverrides(userId)
 
     if (!user) return []
 
@@ -156,19 +145,7 @@ export async function getExamForecastData(
   subjectId?: string
 ): Promise<ExamForecast | null> {
   // 0. 获取用户等级和数据保留期 (C3)
-  const userRecord = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      permissionOverrides: {
-        where: {
-          OR: [
-            { expiresAt: null },
-            { expiresAt: { gt: new Date() } }
-          ]
-        }
-      }
-    }
-  })
+  const userRecord = await loadUserWithOverrides(userId)
 
   if (!userRecord) return null
 

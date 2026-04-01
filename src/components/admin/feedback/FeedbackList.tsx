@@ -1,7 +1,13 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
+import React, { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import {
   AlertCircle,
@@ -9,13 +15,16 @@ import {
   ArrowUp,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Clock3,
   Filter,
   Inbox,
   Loader2,
   MessageSquare,
+  RefreshCw,
   Search,
+  X,
 } from 'lucide-react'
 import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 import { toast } from 'sonner'
@@ -34,6 +43,8 @@ import {
   pageKickerClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
+import type { FeedbackDetailData } from './FeedbackDetailView'
+import { FeedbackDetailView } from './FeedbackDetailView'
 
 const statusStyles: Record<
   FeedbackStatus,
@@ -112,21 +123,34 @@ type FeedbackOverview = {
 interface FeedbackListProps {
   initialData: FeedbackListItem[]
   totalCount: number
+  initialPage: number
+  pageSize: number
+  initialSearch?: string
+  initialStatus?: 'ALL' | FeedbackStatus
+  initialCategory?: 'ALL' | FeedbackCategory
   initialOverview?: FeedbackOverview
 }
 
 export function FeedbackList({
   initialData,
   totalCount,
+  initialPage,
+  pageSize,
+  initialSearch = '',
+  initialStatus = 'ALL',
+  initialCategory = 'ALL',
   initialOverview,
 }: FeedbackListProps) {
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'ALL' | FeedbackStatus>(
-    'ALL'
-  )
-  const [categoryFilter, setCategoryFilter] = useState<
-    'ALL' | FeedbackCategory
-  >('ALL')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null)
+  const [isFeedbackSheetOpen, setIsFeedbackSheetOpen] = useState(false)
+  const [sheetData, setSheetData] = useState<FeedbackDetailData | null>(null)
+  const [isSheetLoading, setIsSheetLoading] = useState(false)
+  const [search, setSearch] = useState(initialSearch)
+  const [statusFilter, setStatusFilter] = useState<'ALL' | FeedbackStatus>(initialStatus)
+  const [categoryFilter, setCategoryFilter] = useState<'ALL' | FeedbackCategory>(initialCategory)
   const [overviewWindow, setOverviewWindow] = useState<FeedbackOverviewWindow>(
     initialOverview?.window || '30D'
   )
@@ -137,21 +161,101 @@ export function FeedbackList({
   )
   const [isListLoading, setIsListLoading] = useState(false)
   const [isOverviewLoading, setIsOverviewLoading] = useState(!initialOverview)
-  const initialQueryKey = 'search=&status=ALL&category=ALL&limit=20&offset=0'
+  const [isRefreshing, startRefresh] = useTransition()
+
+  const currentPage = Math.max(
+    1,
+    Number.parseInt(searchParams.get('page') || String(initialPage), 10) || 1
+  )
+  const initialQueryKey = `search=${encodeURIComponent(initialSearch)}&status=${initialStatus}&category=${initialCategory}&limit=${pageSize}&offset=${
+    (initialPage - 1) * pageSize
+  }`
   const lastLoadedListKey = React.useRef<string>(
     initialData.length > 0 || totalCount >= 0 ? initialQueryKey : ''
   )
   const lastLoadedOverviewWindow = React.useRef<FeedbackOverviewWindow | ''>(
     initialOverview?.window || ''
   )
+  const totalPages = Math.max(1, Math.ceil(currentTotal / pageSize))
+
+  const updateQueryInUrl = useCallback(
+    (
+      nextValues: {
+        search?: string
+        status?: 'ALL' | FeedbackStatus
+        category?: 'ALL' | FeedbackCategory
+        page?: number
+      },
+      mode: 'push' | 'replace' = 'push'
+    ) => {
+      const params = new URLSearchParams(searchParams.toString())
+      const nextSearch = nextValues.search ?? search
+      const nextStatus = nextValues.status ?? statusFilter
+      const nextCategory = nextValues.category ?? categoryFilter
+      const nextPage = nextValues.page ?? currentPage
+
+      if (nextSearch.trim()) {
+        params.set('search', nextSearch.trim())
+      } else {
+        params.delete('search')
+      }
+
+      if (nextStatus !== 'ALL') {
+        params.set('status', nextStatus)
+      } else {
+        params.delete('status')
+      }
+
+      if (nextCategory !== 'ALL') {
+        params.set('category', nextCategory)
+      } else {
+        params.delete('category')
+      }
+
+      if (nextPage <= 1) {
+        params.delete('page')
+      } else {
+        params.set('page', nextPage.toString())
+      }
+
+      const query = params.toString()
+      const target = query ? `?${query}` : '?'
+      if (mode === 'replace') {
+        router.replace(target, { scroll: false })
+      } else {
+        router.push(target, { scroll: false })
+      }
+    },
+    [categoryFilter, currentPage, router, search, searchParams, statusFilter]
+  )
+
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || ''
+    const urlStatus = searchParams.get('status')
+    const urlCategory = searchParams.get('category')
+
+    const nextStatus =
+      urlStatus && urlStatus !== 'ALL' && urlStatus in FeedbackStatus
+        ? FeedbackStatus[urlStatus as keyof typeof FeedbackStatus]
+        : 'ALL'
+    const nextCategory =
+      urlCategory && urlCategory !== 'ALL' && urlCategory in FeedbackCategory
+        ? FeedbackCategory[urlCategory as keyof typeof FeedbackCategory]
+        : 'ALL'
+
+    setSearch(urlSearch)
+    setStatusFilter(nextStatus)
+    setCategoryFilter(nextCategory)
+  }, [searchParams])
 
   const loadFeedbackList = useCallback(async () => {
+    const offset = (currentPage - 1) * pageSize
     const queryParams = new URLSearchParams({
       search,
       status: statusFilter,
       category: categoryFilter,
-      limit: '20',
-      offset: '0',
+      limit: pageSize.toString(),
+      offset: offset.toString(),
     })
     const queryKey = queryParams.toString()
 
@@ -178,8 +282,16 @@ export function FeedbackList({
         throw new Error(result.error || '加载反馈列表失败')
       }
 
+      const nextTotal = result.total || 0
+      const nextTotalPages = Math.max(1, Math.ceil(nextTotal / pageSize))
+      if (currentPage > nextTotalPages) {
+        lastLoadedListKey.current = ''
+        updateQueryInUrl({ page: nextTotalPages }, 'push')
+        return
+      }
+
       setItems(result.data || [])
-      setCurrentTotal(result.total || 0)
+      setCurrentTotal(nextTotal)
     } catch (error) {
       console.error('[FeedbackList] loadFeedbackList error:', error)
       lastLoadedListKey.current = ''
@@ -187,7 +299,14 @@ export function FeedbackList({
     } finally {
       setIsListLoading(false)
     }
-  }, [categoryFilter, search, statusFilter])
+  }, [
+    categoryFilter,
+    currentPage,
+    pageSize,
+    search,
+    statusFilter,
+    updateQueryInUrl,
+  ])
 
   const loadOverview = useCallback(async () => {
     if (lastLoadedOverviewWindow.current === overviewWindow) {
@@ -226,6 +345,32 @@ export function FeedbackList({
     }
   }, [overviewWindow])
 
+  const loadFeedbackDetailForSheet = useCallback(async (id: string) => {
+    setIsSheetLoading(true)
+    try {
+      const response = await fetch(`/api/admin/feedback/detail/${id}`, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      })
+      const result = await response.json()
+
+      if (!response.ok || !result.success || !result.data) {
+        throw new Error(result.error || '加载反馈详情失败')
+      }
+
+      setSheetData(result.data)
+    } catch (error) {
+      console.error('[FeedbackList] loadFeedbackDetailForSheet error:', error)
+      toast.error(error instanceof Error ? error.message : '加载反馈详情失败')
+      setIsFeedbackSheetOpen(false)
+      setSelectedFeedbackId(null)
+      setSheetData(null)
+    } finally {
+      setIsSheetLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     void loadFeedbackList()
   }, [loadFeedbackList])
@@ -233,6 +378,14 @@ export function FeedbackList({
   useEffect(() => {
     void loadOverview()
   }, [loadOverview])
+
+  useEffect(() => {
+    if (!isFeedbackSheetOpen || !selectedFeedbackId) {
+      return
+    }
+
+    void loadFeedbackDetailForSheet(selectedFeedbackId)
+  }, [isFeedbackSheetOpen, loadFeedbackDetailForSheet, selectedFeedbackId])
 
   const hasFilters =
     search.trim() !== '' || statusFilter !== 'ALL' || categoryFilter !== 'ALL'
@@ -242,6 +395,40 @@ export function FeedbackList({
     setStatusFilter('ALL')
     setCategoryFilter('ALL')
     lastLoadedListKey.current = ''
+    updateQueryInUrl({ search: '', status: 'ALL', category: 'ALL', page: 1 }, 'replace')
+  }
+
+  const refreshAll = () => {
+    lastLoadedListKey.current = ''
+    lastLoadedOverviewWindow.current = ''
+    startRefresh(() => {
+      router.refresh()
+    })
+  }
+
+  const refreshSheet = useCallback(() => {
+    if (!selectedFeedbackId) return
+    void loadFeedbackDetailForSheet(selectedFeedbackId)
+  }, [loadFeedbackDetailForSheet, selectedFeedbackId])
+
+  const handleAfterSheetSubmit = useCallback(() => {
+    lastLoadedListKey.current = ''
+    lastLoadedOverviewWindow.current = ''
+    void loadFeedbackList()
+    void loadOverview()
+  }, [loadFeedbackList, loadOverview])
+
+  const goToPage = (nextPage: number) => {
+    const safePage = Math.min(Math.max(nextPage, 1), totalPages)
+    if (safePage === currentPage) return
+    lastLoadedListKey.current = ''
+    updateQueryInUrl({ page: safePage }, 'push')
+  }
+
+  const openFeedback = (id: string) => {
+    setSelectedFeedbackId(id)
+    setSheetData(null)
+    setIsFeedbackSheetOpen(true)
   }
 
   const overviewCards = (overview?.metrics || []).map((metric) => {
@@ -331,332 +518,424 @@ export function FeedbackList({
     }
   }
 
+  const sheetTitle = useMemo(() => {
+    if (!sheetData) return 'Feedback Detail'
+    return `${sheetData.title}`
+  }, [sheetData])
+
   return (
-    <div className="space-y-3 text-foreground">
-      <PageHeroShell
-        className="sm:py-4.5 px-4 py-4 sm:px-5"
-        title={
-          <PageHeroTitle title="反馈中心" capsuleLabel="Inbox Console" />
-        }
-        subtitle="集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。"
-        titleClassName="font-semibold"
-      />
+    <>
+      <div className="space-y-3 text-foreground">
+        <PageHeroShell
+          className="sm:py-4.5 px-4 py-4 sm:px-5"
+          title={
+            <PageHeroTitle title="反馈中心" capsuleLabel="Inbox Console" />
+          }
+          subtitle="集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。"
+          titleClassName="font-semibold"
+        />
 
-      <section className="space-y-3">
-        <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
-          <SectionBlockHeader
-            title="反馈概览"
-            description="以时间范围为基准查看反馈体量、待办压力与处理闭环效率。"
-            className="flex-1"
-          />
-
-          <div className="flex flex-wrap items-center gap-3 tablet:justify-end">
-            <div className={pageSegmentedControlCompactClass}>
-              {windowOptions.map((option) => {
-                const isActive = option.key === overviewWindow
-                return (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setOverviewWindow(option.key)}
-                    className={`${pageSegmentedButtonCompactClass} ${
-                      isActive
-                        ? 'dark:bg-white/12 bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] dark:text-white'
-                        : 'text-text-secondary hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {overview?.lastUpdated ? (
-              <span className="font-mono text-xs text-text-secondary dark:text-[#9FB0C9]">
-                更新于{' '}
-                {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
-              </span>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-4">
-          {overviewCards.map((card) => {
-            const Icon = card.icon
-            const trend = getTrendDisplay(card.trend)
-            const TrendIcon = trend.icon
-            return (
-              <div
-                key={card.key}
-                className={`${pageKpiCardClass} ${card.borderClassName}`}
-              >
-                <div
-                  className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
-                />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-70" />
-
-                <div className="relative flex h-full items-start justify-between gap-4">
-                  <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
-                    <div className="space-y-1.5">
-                      <p className={pageKickerClass}>{card.title}</p>
-                      <div className="flex items-end gap-2">
-                        <p className={pageHeroNumericValueClass}>
-                          {card.value}
-                        </p>
-                        <span className={`pb-1 ${pageMetaTextClass}`}>
-                          {card.caption}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={pageMetaTextClass}>
-                        {card.trendLabel}
-                      </span>
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium ${trend.className}`}
-                      >
-                        {TrendIcon ? <TrendIcon className="h-3 w-3" /> : null}
-                        {trend.text}
-                      </span>
-                    </div>
-
-                    <p
-                      className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
-                    >
-                      {card.meta}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-gray-200 dark:border-white/10 ${card.iconBgClassName}`}
-                  >
-                    <Icon className={`h-5 w-5 ${card.iconClassName}`} />
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {isOverviewLoading ? (
-          <p className="text-xs text-text-secondary dark:text-[#8FA4C2]">
-            正在刷新反馈概览...
-          </p>
-        ) : null}
-      </section>
-
-      <div className={`${pageTableShellClass} flex min-h-[500px] flex-col`}>
-        <div className={pageSectionHeaderBandClass}>
-          <div className="flex flex-col gap-3">
+        <section className="space-y-3">
+          <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
             <SectionBlockHeader
-              title="反馈队列"
-              description="按状态、分类和关键词筛选反馈，进入详情页继续处理与回复。"
+              title="反馈概览"
+              description="以时间范围为基准查看反馈体量、待办压力与处理闭环效率。"
+              className="flex-1"
             />
 
-            <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
-              <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center">
-                <div className="group relative w-full tablet:w-80">
-                  <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    placeholder="搜索标题、内容、邮箱或用户名..."
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value)
-                      lastLoadedListKey.current = ''
-                    }}
-                    className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#6F86A8] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
-                  />
-                </div>
+            <div className="flex flex-wrap items-center gap-3 tablet:justify-end">
+              <button
+                type="button"
+                onClick={refreshAll}
+                disabled={isRefreshing}
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-borderTone bg-surface px-4 text-sm font-medium text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                />
+                刷新
+              </button>
 
-                <div className="flex flex-row gap-3 overflow-x-auto pb-1 tablet:pb-0">
-                  <div className="relative min-w-[150px]">
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => {
-                        setStatusFilter(
-                          e.target.value as 'ALL' | FeedbackStatus
-                        )
-                        lastLoadedListKey.current = ''
-                      }}
-                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
+              <div className={pageSegmentedControlCompactClass}>
+                {windowOptions.map((option) => {
+                  const isActive = option.key === overviewWindow
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() => setOverviewWindow(option.key)}
+                      className={`${pageSegmentedButtonCompactClass} ${
+                        isActive
+                          ? 'dark:bg-white/12 bg-primary/10 text-primary shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] dark:text-white'
+                          : 'text-text-secondary hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white'
+                      }`}
                     >
-                      <option value="ALL">状态: 全部</option>
-                      {Object.entries(statusStyles).map(([value, config]) => (
-                        <option key={value} value={value}>
-                          {config.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
-                      size={16}
-                    />
-                  </div>
-
-                  <div className="relative min-w-[150px]">
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => {
-                        setCategoryFilter(
-                          e.target.value as 'ALL' | FeedbackCategory
-                        )
-                        lastLoadedListKey.current = ''
-                      }}
-                      className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
-                    >
-                      <option value="ALL">分类: 全部</option>
-                      {Object.entries(categoryLabels).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
-                      size={16}
-                    />
-                  </div>
-                </div>
-
-                {hasFilters ? (
-                  <button
-                    onClick={resetFilters}
-                    className="text-sm text-text-secondary transition-colors hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white"
-                  >
-                    重置筛选
-                  </button>
-                ) : null}
+                      {option.label}
+                    </button>
+                  )
+                })}
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 desktop:justify-end">
-                <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
-                  当前命中{' '}
-                  <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">
-                    {currentTotal}
-                  </span>{' '}
-                  条反馈
+              {overview?.lastUpdated ? (
+                <span className="font-mono text-xs text-text-secondary dark:text-[#9FB0C9]">
+                  更新于 {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
                 </span>
-                <span className="text-xs text-text-tertiary dark:text-[#6F86A8]">
-                  展示最近 20 条
-                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="grid gap-3 tablet:grid-cols-2 desktop:grid-cols-4">
+            {overviewCards.map((card) => {
+              const Icon = card.icon
+              const trend = getTrendDisplay(card.trend)
+              const TrendIcon = trend.icon
+              return (
+                <div key={card.key} className={`${pageKpiCardClass} ${card.borderClassName}`}>
+                  <div
+                    className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
+                  />
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-70" />
+
+                  <div className="relative flex h-full items-start justify-between gap-4">
+                    <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
+                      <div className="space-y-1.5">
+                        <p className={pageKickerClass}>{card.title}</p>
+                        <div className="flex items-end gap-2">
+                          <p className={pageHeroNumericValueClass}>{card.value}</p>
+                          <span className={`pb-1 ${pageMetaTextClass}`}>{card.caption}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={pageMetaTextClass}>{card.trendLabel}</span>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium ${trend.className}`}
+                        >
+                          {TrendIcon ? <TrendIcon className="h-3 w-3" /> : null}
+                          {trend.text}
+                        </span>
+                      </div>
+
+                      <p className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}>
+                        {card.meta}
+                      </p>
+                    </div>
+
+                    <div
+                      className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-gray-200 dark:border-white/10 ${card.iconBgClassName}`}
+                    >
+                      <Icon className={`h-5 w-5 ${card.iconClassName}`} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {isOverviewLoading ? (
+            <p className="text-xs text-text-secondary dark:text-[#8FA4C2]">
+              正在刷新反馈概览...
+            </p>
+          ) : null}
+        </section>
+
+        <div className={`${pageTableShellClass} flex min-h-[500px] flex-col`}>
+          <div className={pageSectionHeaderBandClass}>
+            <div className="flex flex-col gap-3">
+              <SectionBlockHeader
+                title="反馈队列"
+                description="按状态、分类和关键词筛选反馈，在右侧工作台内继续处理与回复。"
+              />
+
+              <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+                <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center">
+                  <div className="group relative w-full tablet:w-80">
+                    <Search
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#556B8A] transition-colors group-focus-within:text-[#60A5FA]"
+                      size={18}
+                    />
+                    <input
+                      type="text"
+                      placeholder="搜索标题、内容、邮箱或用户名..."
+                      value={search}
+                      onChange={(e) => {
+                        lastLoadedListKey.current = ''
+                        const nextSearch = e.target.value
+                        setSearch(nextSearch)
+                        updateQueryInUrl(
+                          {
+                            search: nextSearch,
+                            status: statusFilter,
+                            category: categoryFilter,
+                            page: 1,
+                          },
+                          'replace'
+                        )
+                      }}
+                      className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#6F86A8] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
+                    />
+                  </div>
+
+                  <div className="flex flex-row gap-3 overflow-x-auto pb-1 tablet:pb-0">
+                    <div className="relative min-w-[150px]">
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => {
+                          lastLoadedListKey.current = ''
+                          const nextStatus = e.target.value as 'ALL' | FeedbackStatus
+                          setStatusFilter(nextStatus)
+                          updateQueryInUrl(
+                            {
+                              search,
+                              status: nextStatus,
+                              category: categoryFilter,
+                              page: 1,
+                            },
+                            'replace'
+                          )
+                        }}
+                        className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
+                      >
+                        <option value="ALL">状态: 全部</option>
+                        {Object.entries(statusStyles).map(([value, config]) => (
+                          <option key={value} value={value}>
+                            {config.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                        size={16}
+                      />
+                    </div>
+
+                    <div className="relative min-w-[150px]">
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => {
+                          lastLoadedListKey.current = ''
+                          const nextCategory = e.target.value as 'ALL' | FeedbackCategory
+                          setCategoryFilter(nextCategory)
+                          updateQueryInUrl(
+                            {
+                              search,
+                              status: statusFilter,
+                              category: nextCategory,
+                              page: 1,
+                            },
+                            'replace'
+                          )
+                        }}
+                        className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
+                      >
+                        <option value="ALL">分类: 全部</option>
+                        {Object.entries(categoryLabels).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
+                        size={16}
+                      />
+                    </div>
+                  </div>
+
+                  {hasFilters ? (
+                    <button
+                      onClick={resetFilters}
+                      className="text-sm text-text-secondary transition-colors hover:text-text-primary dark:text-[#8FA4C2] dark:hover:text-white"
+                    >
+                      重置筛选
+                    </button>
+                  ) : null}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 desktop:justify-end">
+                  <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
+                    当前命中 <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">{currentTotal}</span> 条反馈
+                  </span>
+                  <span className="text-xs text-text-tertiary dark:text-[#6F86A8]">
+                    第 {currentPage} 页 / 共 {totalPages} 页，每页 {pageSize} 条
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1040px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
-                  用户信息
-                </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
-                  分类
-                </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
-                  反馈内容
-                </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
-                  状态
-                </th>
-                <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
-                  提交时间
-                </th>
-                <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-borderTone dark:divide-[#1B2840]">
-              {isListLoading ? (
-                <tr>
-                  <td colSpan={6} className="h-48">
-                    <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-[#60A5FA]" />
-                      <p className="text-sm">加载反馈列表...</p>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1040px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">用户信息</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">分类</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">反馈内容</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">状态</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">提交时间</th>
                 </tr>
-              ) : items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="h-56">
-                    <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
-                      <MessageSquare className="h-10 w-10 opacity-30" />
-                      <div className="space-y-1 text-center">
-                        <p className="text-sm font-medium text-text-primary dark:text-[#D5E0F0]">
-                          当前筛选下暂无反馈
-                        </p>
-                        <p className="text-xs text-text-tertiary dark:text-[#6F86A8]">
-                          可以尝试切换状态、分类或清空关键词后重试。
-                        </p>
+              </thead>
+              <tbody className="divide-y divide-borderTone dark:divide-[#1B2840]">
+                {isListLoading ? (
+                  <tr>
+                    <td colSpan={5} className="h-48">
+                      <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-[#60A5FA]" />
+                        <p className="text-sm">加载反馈列表...</p>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => {
-                  const status = statusStyles[item.status]
-                  return (
-                    <tr
-                      key={item.id}
-                      className="group transition-colors hover:bg-surface-subtle dark:hover:bg-[#131F35]"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-text-primary dark:text-[#F4F7FB]">
-                            {item.user?.username || '匿名用户'}
-                          </span>
-                          <span className="font-mono text-xs text-text-secondary dark:text-[#8FA4C2]">
-                            {item.email}
-                          </span>
+                    </td>
+                  </tr>
+                ) : items.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="h-56">
+                      <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
+                        <MessageSquare className="h-10 w-10 opacity-30" />
+                        <div className="space-y-1 text-center">
+                          <p className="text-sm font-medium text-text-primary dark:text-[#D5E0F0]">当前筛选下暂无反馈</p>
+                          <p className="text-xs text-text-tertiary dark:text-[#6F86A8]">可以尝试切换状态、分类或清空关键词后重试。</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center rounded-full border border-borderTone bg-surface-subtle px-2.5 py-1 text-xs text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#D5E0F0]">
-                          {categoryLabels[item.category]}
-                        </span>
-                      </td>
-                      <td className="max-w-[420px] px-6 py-4">
-                        <p className="truncate text-sm font-medium text-text-primary dark:text-[#F4F7FB]">
-                          {item.title}
-                        </p>
-                        <p className="mt-1 truncate text-xs text-text-secondary dark:text-[#8FA4C2]">
-                          {item.content}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}
-                        >
-                          {status.icon}
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-xs text-text-secondary dark:text-[#8FA4C2]">
-                        {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link href={`/admin/feedback/${item.id}`}>
-                          <button className="inline-flex items-center gap-1 rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]">
-                            处理
-                            <ChevronRight className="h-4 w-4" />
-                          </button>
-                        </Link>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((item) => {
+                    const status = statusStyles[item.status]
+                    return (
+                      <tr
+                        key={item.id}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`处理反馈 ${item.title}`}
+                        onClick={() => openFeedback(item.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            openFeedback(item.id)
+                          }
+                        }}
+                        className="group cursor-pointer transition-colors hover:bg-surface-subtle focus-visible:bg-surface-subtle focus-visible:outline-none dark:hover:bg-[#131F35] dark:focus-visible:bg-[#131F35]"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-text-primary dark:text-[#F4F7FB]">
+                              {item.user?.username || '匿名用户'}
+                            </span>
+                            <span className="font-mono text-xs text-text-secondary dark:text-[#8FA4C2]">
+                              {item.email}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center rounded-full border border-borderTone bg-surface-subtle px-2.5 py-1 text-xs text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#D5E0F0]">
+                            {categoryLabels[item.category]}
+                          </span>
+                        </td>
+                        <td className="max-w-[420px] px-6 py-4">
+                          <p className="truncate text-sm font-medium text-text-primary dark:text-[#F4F7FB]">
+                            {item.title}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-text-secondary dark:text-[#8FA4C2]">
+                            {item.content}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}>
+                            {status.icon}
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-text-secondary dark:text-[#8FA4C2]">
+                          {format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm')}
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-borderTone bg-surface-subtle px-6 py-4 text-sm dark:border-[#1B2840] dark:bg-[#101A2D]">
+            <div className="text-xs text-text-secondary dark:text-[#8FA4C2]">
+              第 {currentPage} 页 / 共 {totalPages} 页
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage <= 1 || isListLoading}
+                className="inline-flex h-9 items-center gap-1 rounded-xl border border-borderTone bg-surface px-3 text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                上一页
+              </button>
+              <button
+                type="button"
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage >= totalPages || isListLoading}
+                className="inline-flex h-9 items-center gap-1 rounded-xl border border-borderTone bg-surface px-3 text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
+              >
+                下一页
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <Sheet
+        open={isFeedbackSheetOpen}
+        onOpenChange={(open) => {
+          setIsFeedbackSheetOpen(open)
+          if (!open) {
+            setSelectedFeedbackId(null)
+            setSheetData(null)
+          }
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto border-l border-[#24324D] bg-[#08101D] p-0 text-[#E6EDF7] sm:max-w-none lg:max-w-[min(92vw,760px)]"
+        >
+          <SheetTitle className="sr-only">反馈处理抽屉</SheetTitle>
+          <SheetDescription className="sr-only">
+            从反馈队列打开的详情和处理工作台
+          </SheetDescription>
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#16233A] bg-[#08101D]/95 px-5 py-4 backdrop-blur">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-[0.18em] text-[#7F94B3]">
+                反馈处理
+              </p>
+              <h2 className="truncate text-lg font-semibold text-[#E6EDF7]">
+                {sheetTitle}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsFeedbackSheetOpen(false)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#24324D] bg-[#101A30] text-[#C8D4E7] transition hover:bg-[#16233A] hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="p-5">
+            {isSheetLoading || !sheetData ? (
+              <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+                <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
+                <p className="text-sm">正在加载反馈详情...</p>
+              </div>
+            ) : (
+              <FeedbackDetailView
+                initialData={sheetData}
+                embedded
+                onRefresh={refreshSheet}
+                onAfterSubmit={handleAfterSheetSubmit}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }

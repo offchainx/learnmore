@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPosts } from '@/actions/community/post'
-import { createClient } from '@/lib/supabase/server'
+import { getCachedCommunityFeed } from '@/lib/cache/sitewide'
+import { resolveRequestUserId } from '@/lib/auth/request-user'
 
 export const preferredRegion = 'sin1'
 
@@ -18,12 +18,8 @@ function parseLimit(raw: string | null): number {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const userId = await resolveRequestUserId(request.headers)
+    if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -31,7 +27,7 @@ export async function GET(request: NextRequest) {
     const page = parsePage(request.nextUrl.searchParams.get('page'))
     const limit = parseLimit(request.nextUrl.searchParams.get('limit'))
 
-    const result = await getPosts({
+    const result = await getCachedCommunityFeed({
       unanswered: tab === 'unanswered',
       page,
       limit,

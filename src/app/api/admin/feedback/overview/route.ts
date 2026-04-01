@@ -4,6 +4,8 @@ import {
   getFeedbackOverview,
 } from '@/actions/support/ticket'
 
+export const preferredRegion = 'sin1'
+
 function parseWindow(raw: string | null): FeedbackOverviewWindow {
   if (raw === '7D' || raw === '30D' || raw === 'ALL') return raw
   return '30D'
