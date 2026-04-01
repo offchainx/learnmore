@@ -607,10 +607,11 @@
 |---|---|---|---|
 | T-023.1 | 盘点 `/admin/content/reports` 当前图表、筛选、列表、抽屉、CTA 与 `MOCK_REPORTS` 占位点，映射到真实服务 `getQuestionReports` / `getContentStats` / `resolveReport` / `bulkResolveReports` | codex | done |
 | T-023.2 | 建立页面字段与权威数据源矩阵：报错状态、问题类型、题目信息、提交人信息、时间窗口、待处理数、处理时效、统计卡口径 | codex | doing |
-| T-023.3 | 对齐读取链路：服务端首屏数据、客户端筛选/搜索、时间窗口、统计聚合、空态与无权限态，替换 `MOCK_REPORTS` | codex | todo |
-| T-023.4 | 对齐写链路：单条处理、批量处理、状态流转、`reportCount` 增减语义、幂等与重复处理提示 | codex | todo |
-| T-023.5 | 清理假图表、假统计、假详情抽屉、前端硬编码状态枚举与时间文案，补齐错误态、空态、权限态与处理中反馈 | codex | todo |
-| T-023.6 | 完成页面验证：列表/统计核账、筛选搜索验证、处理动作核账、重复处理验证与前后端状态一致性验证 | codex | todo |
+| T-023.3 | 细拆用户侧报错入口：明确 reports 应挂载的路由/组件、前台提交入口、做题场景触发点与 `reportQuestion` 调用边界 | codex | doing |
+| T-023.4 | 对齐读取链路：服务端首屏数据、客户端筛选/搜索、时间窗口、统计聚合、空态与无权限态，替换 `MOCK_REPORTS` | codex | todo |
+| T-023.5 | 对齐写链路：单条处理、批量处理、状态流转、`reportCount` 增减语义、幂等与重复处理提示 | codex | todo |
+| T-023.6 | 清理假图表、假统计、假详情抽屉、前端硬编码状态枚举与时间文案，补齐错误态、空态、权限态与处理中反馈 | codex | todo |
+| T-023.7 | 完成页面验证：列表/统计核账、筛选搜索验证、处理动作核账、重复处理验证与前后端状态一致性验证 | codex | todo |
 
 ### T-023.1 盘点结论（已完成）
 - 当前 `/admin/content/reports` 页面仍然是 client-only 结构，首屏由 `ReportsClient` 自己维护筛选、统计和抽屉状态，没有接入服务端首屏数据。
@@ -655,7 +656,32 @@
   - 详情抽屉的处理按钮必须直连真实写链路，避免 UI 和数据不同步。
 
 - 下一步：
-  - 先补一层 `admin/content/reports` 读取接口还是直接服务端取数，需要在 `T-023.3` 前定稿。
+  - 先把用户侧报错入口、路由归属和组件挂载点定清楚，再决定 `reports` 页面是否需要单独读取层。
+
+### T-023.3 用户侧报错入口映射（进行中）
+- 入口语义：
+  - `reports` 不是全站通用反馈，不应该从 `/help` 或右下角 feedback 浮标提交。
+  - 它属于“题目报错 / 纠错”链路，提交前必须带题目上下文与报错类型。
+
+- 目标路由 / 页面：
+  - 当前应挂在做题相关页面，而不是 Admin 页面或 Help 页面。
+  - 候选位置包括题目作答页、章节练习页、训练结果页中的题目卡片。
+  - 入口必须能拿到 `questionId`、`issueType`、`reportedBy`、`description` 这些最小提交上下文。
+
+- 组件挂载点：
+  - 题目卡片本体、题目操作菜单、移动端长按菜单，都是可行挂载点。
+  - 目前仓库里只有 `src/components/mobile/LongPressMenu.tsx` 预留了“举报”菜单项，但没有真正接入题目组件。
+  - 需要继续检查 `QuestionCard`、`QuestionContent`、`QuestionReviewDrawer`、`Practice` 相关容器，决定正式入口挂在哪里最合理。
+
+- 当前代码结论：
+  - 后端写入函数 `reportQuestion(...)` 已存在于 `src/actions/content-pipeline/question-service.ts`。
+  - 前台还没有找到任何地方真正调用它。
+  - 所以这一子任务的目标不是写后台，而是先把前台入口和路由边界理清楚。
+
+- 收口目标：
+  - 明确 `reports` 的用户侧入口应该落在哪些页面。
+  - 明确前台组件层级怎么接 `reportQuestion(...)`。
+  - 明确这条链路和 `feedback` 的区别，避免未来重复做一套通用反馈入口。
 
 ## T-024 `/admin/feedback` 管理闭环收口
 | id | description | owner | status |
