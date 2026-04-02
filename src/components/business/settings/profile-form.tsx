@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Switch } from '@/components/ui/switch'
 import { Loader2 } from 'lucide-react'
 import type { User, UserSettings } from '@prisma/client'
+import { useHandleAvailability } from '@/lib/hooks/useHandleAvailability'
 
 interface ProfileFormProps {
   user: User & { settings: UserSettings | null }
@@ -23,7 +24,18 @@ const initialState: ProfileFormState = {}
 export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
   const [state, formAction, isPending] = useActionState(updateProfile, initialState)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(user.avatar)
+  const [handleValue, setHandleValue] = useState(user.handle || '')
   const { toast } = useToast()
+  const handleAvailability = useHandleAvailability(handleValue, user.handle)
+
+  const handleHelperText =
+    handleAvailability.status === 'checking'
+      ? '正在检查账号标识是否可用...'
+      : handleAvailability.status === 'available'
+        ? `可用，将保存为 @${handleAvailability.normalizedHandle}`
+        : handleAvailability.status === 'unavailable'
+          ? handleAvailability.reason
+          : '用于后续社区 @提及，系统会自动转成小写并校验保留词。'
 
   useEffect(() => {
     if (state.success) {
@@ -75,6 +87,30 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
                   defaultValue={user.username || ''}
                   minLength={2}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="handle">Handle</Label>
+                <Input
+                  id="handle"
+                  name="handle"
+                  placeholder="@yourname"
+                  value={handleValue}
+                  onChange={(event) => setHandleValue(event.target.value)}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  aria-invalid={handleAvailability.status === 'unavailable'}
+                />
+                <p
+                  className={
+                    handleAvailability.status === 'unavailable'
+                      ? 'text-xs text-destructive'
+                      : 'text-xs text-muted-foreground'
+                  }
+                >
+                  {handleHelperText}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -158,7 +194,14 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
 
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isPending}>
+          <Button
+            type="submit"
+            disabled={
+              isPending ||
+              handleAvailability.status === 'checking' ||
+              handleAvailability.status === 'unavailable'
+            }
+          >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>

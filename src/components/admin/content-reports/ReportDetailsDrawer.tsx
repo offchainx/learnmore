@@ -1,150 +1,776 @@
-"use client"
+'use client'
 
-import React from 'react';
-import { Report, IssueType } from './types';
-import { X, BarChart3, Star, HelpCircle, Check, CheckCircle2, XCircle, Wrench } from 'lucide-react';
-import { useApp } from '@/providers';
-import { getReportsI18n } from './i18n';
+import React, { useEffect, useMemo, useState, useTransition } from 'react'
+import { format } from 'date-fns'
+import {
+  BadgeCheck,
+  Clock3,
+  Loader2,
+  MessageSquareText,
+  RefreshCw,
+  Send,
+  X,
+} from 'lucide-react'
+import { resolveReport } from '@/actions/content-pipeline/question-service'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import { cn } from '@/lib/utils'
+import { getReportsI18n, type ReportsLang } from './i18n'
+import type { ReportRecord, ReportStatus } from './types'
 
-interface ReportDetailsDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  report: Report | null;
+type ReportTimelineEntry = {
+  id: string
+  action: string
+  actor: string
+  time: string
+  statusLabel: string
+  note: string | null
+  icon: React.ElementType
+  tone: 'violet' | 'sky' | 'emerald' | 'amber'
 }
 
-export const ReportDetailsDrawer: React.FC<ReportDetailsDrawerProps> = ({ isOpen, onClose, report }) => {
-  const { lang } = useApp();
-  const text = getReportsI18n(lang);
+type ProcessingTemplate = {
+  id: string
+  label: string
+  status: ReportStatus
+  content: string
+}
 
-  if (!report) return null;
+interface ReportDetailsDrawerProps {
+  isOpen: boolean
+  onClose: () => void
+  report: ReportRecord | null
+  lang: ReportsLang
+  reviewerId: string
+  reviewerLabel: string
+  onRefresh?: () => void
+}
 
-  const systemAnswerId = report.systemCorrectOptionId;
-  const userAnswerId = report.userSuggestedOptionId;
+const STATUS_META: Record<
+  ReportStatus,
+  {
+    tone: 'warning' | 'info' | 'success' | 'neutral'
+    badgeClass: string
+    dotClass: string
+  }
+> = {
+  PENDING: {
+    tone: 'warning',
+    badgeClass: 'border-amber-500/25 bg-amber-500/10 text-amber-300',
+    dotClass: 'bg-amber-400',
+  },
+  REVIEWING: {
+    tone: 'info',
+    badgeClass: 'border-sky-500/25 bg-sky-500/10 text-sky-300',
+    dotClass: 'bg-sky-400',
+  },
+  RESOLVED: {
+    tone: 'success',
+    badgeClass: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300',
+    dotClass: 'bg-emerald-400',
+  },
+  REJECTED: {
+    tone: 'neutral',
+    badgeClass: 'border-slate-500/25 bg-slate-500/10 text-slate-300',
+    dotClass: 'bg-slate-400',
+  },
+}
 
-  const getOptionClasses = (optionId: string) => {
-    if (optionId === systemAnswerId) {
-        return "border-borderTone bg-[hsl(var(--state-success-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]";
+const PROCESSING_TEMPLATES: Record<ReportsLang, ProcessingTemplate[]> = {
+  zh: [
+    {
+      id: 'triage',
+      label: '进入复核',
+      status: 'REVIEWING',
+      content: '已收到报错，正在复核题目内容与用户描述，待进一步确认。',
+    },
+    {
+      id: 'resolved',
+      label: '确认修复',
+      status: 'RESOLVED',
+      content: '问题已确认并完成处理，后续会继续观察相关题目的反馈变化。',
+    },
+    {
+      id: 'rejected',
+      label: '误报驳回',
+      status: 'REJECTED',
+      content: '经核查题目本身无误，本次报错判定为误报，不纳入修复队列。',
+    },
+  ],
+  en: [
+    {
+      id: 'triage',
+      label: 'Triage',
+      status: 'REVIEWING',
+      content:
+        'We have received this report and are reviewing the issue together with the user description.',
+    },
+    {
+      id: 'resolved',
+      label: 'Resolved',
+      status: 'RESOLVED',
+      content:
+        'The issue has been confirmed and handled. We will keep monitoring related feedback.',
+    },
+    {
+      id: 'rejected',
+      label: 'Reject as false report',
+      status: 'REJECTED',
+      content:
+        'After review, the question is correct. This report is treated as a false report and will not enter the fix queue.',
+    },
+  ],
+  ms: [
+    {
+      id: 'triage',
+      label: 'Saring',
+      status: 'REVIEWING',
+      content:
+        'Kami telah menerima laporan ini dan sedang menyemak isu bersama penerangan pengguna.',
+    },
+    {
+      id: 'resolved',
+      label: 'Selesai',
+      status: 'RESOLVED',
+      content:
+        'Isu telah disahkan dan diselesaikan. Kami akan terus memantau maklum balas berkaitan.',
+    },
+    {
+      id: 'rejected',
+      label: 'Tolak sebagai laporan palsu',
+      status: 'REJECTED',
+      content:
+        'Selepas semakan, soalan ini didapati betul. Laporan ini dianggap laporan palsu dan tidak akan dimasukkan ke barisan pembetulan.',
+    },
+  ],
+}
+
+const LOCALE_COPY: Record<
+  ReportsLang,
+  {
+    reportSubmitted: string
+    reportProcessing: string
+    reportProcessed: string
+    reportStatus: string
+    reportStatusUpdate: string
+    ticketPrefix: string
+    processingLocked: string
+    processingLockedHint: string
+    defaultTimelineNote: string
+  }
+> = {
+  zh: {
+    reportSubmitted: '用户提交报错',
+    reportProcessing: '处理状态更新',
+    reportProcessed: '处理结果已记录',
+    reportStatus: '报错状态',
+    reportStatusUpdate: '状态更新',
+    ticketPrefix: '工单',
+    processingLocked: '该报错已进入终态',
+    processingLockedHint: 'RESOLVED / REJECTED 状态不再允许重复提交处理结果。',
+    defaultTimelineNote: '尚未填写处理说明',
+  },
+  en: {
+    reportSubmitted: 'User submitted a report',
+    reportProcessing: 'Status updated',
+    reportProcessed: 'Processing result recorded',
+    reportStatus: 'Report status',
+    reportStatusUpdate: 'Status change',
+    ticketPrefix: 'Ticket',
+    processingLocked: 'This report is already in a final state',
+    processingLockedHint:
+      'RESOLVED / REJECTED reports cannot be submitted again.',
+    defaultTimelineNote: 'No processing note yet',
+  },
+  ms: {
+    reportSubmitted: 'Pengguna menghantar laporan',
+    reportProcessing: 'Status dikemas kini',
+    reportProcessed: 'Hasil pemprosesan direkodkan',
+    reportStatus: 'Status laporan',
+    reportStatusUpdate: 'Kemas kini status',
+    ticketPrefix: 'Tiket',
+    processingLocked: 'Laporan ini sudah berada dalam status akhir',
+    processingLockedHint:
+      'Laporan RESOLVED / REJECTED tidak boleh dihantar semula.',
+    defaultTimelineNote: 'Tiada nota pemprosesan lagi',
+  },
+}
+
+function asDate(value: string | Date | null | undefined) {
+  if (!value) return null
+  return value instanceof Date ? value : new Date(value)
+}
+
+function formatDateTime(value: string | Date | null | undefined) {
+  const date = asDate(value)
+  if (!date) return '—'
+  return format(date, 'yyyy-MM-dd HH:mm')
+}
+
+function getReporterInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function getStatusLabel(status: ReportStatus, text: ReturnType<typeof getReportsI18n>) {
+  switch (status) {
+    case 'PENDING':
+      return text.table.pending
+    case 'REVIEWING':
+      return text.table.reviewing
+    case 'RESOLVED':
+      return text.table.resolved
+    case 'REJECTED':
+      return text.table.rejected
+    default:
+      return status
+  }
+}
+
+function getTitle(report: ReportRecord, text: ReturnType<typeof getReportsI18n>) {
+  const issueLabel = text.issueType[report.issueType]
+  const subject = report.question.subject?.trim()
+  return subject ? `${issueLabel} · ${subject}` : issueLabel
+}
+
+function getAdminLabel(lang: ReportsLang) {
+  if (lang === 'ms') return 'Pentadbir'
+  if (lang === 'en') return 'Admin'
+  return '管理员'
+}
+
+function getTimelineEntries(
+  report: ReportRecord,
+  lang: ReportsLang,
+  text: ReturnType<typeof getReportsI18n>,
+  reviewerId: string,
+  reviewerLabel: string
+): ReportTimelineEntry[] {
+  const copy = LOCALE_COPY[lang]
+  const reporterActor = report.reporter.name || report.reporter.email
+  const reviewerActor =
+    report.reviewedBy && report.reviewedBy === reviewerId
+      ? reviewerLabel
+      : getAdminLabel(lang)
+  const processedTime = report.reviewedAt ?? report.createdAt
+  const entries: ReportTimelineEntry[] = [
+    {
+      id: 'submitted',
+      action: copy.reportSubmitted,
+      actor: reporterActor,
+      time: formatDateTime(report.createdAt),
+      statusLabel: text.table.pending,
+      note: report.description,
+      icon: MessageSquareText,
+      tone: 'violet',
+    },
+  ]
+
+  if (report.reviewedAt || report.status !== 'PENDING') {
+    entries.push({
+      id: 'status-updated',
+      action: copy.reportProcessing,
+      actor: reviewerActor,
+      time: formatDateTime(processedTime),
+      statusLabel: getStatusLabel(report.status, text),
+      note: `${copy.reportStatusUpdate}：${getStatusLabel(report.status, text)}`,
+      icon: Clock3,
+      tone: 'sky',
+    })
+  }
+
+  if (report.resolution) {
+    entries.push({
+      id: 'processed',
+      action: copy.reportProcessed,
+      actor: reviewerActor,
+      time: formatDateTime(report.reviewedAt ?? report.createdAt),
+      statusLabel: getStatusLabel(report.status, text),
+      note: report.resolution,
+      icon: BadgeCheck,
+      tone: 'emerald',
+    })
+  }
+
+  return entries
+}
+
+export function ReportDetailsDrawer({
+  isOpen,
+  onClose,
+  report,
+  lang,
+  reviewerId,
+  reviewerLabel,
+  onRefresh,
+}: ReportDetailsDrawerProps) {
+  const { toast } = useToast()
+  const text = getReportsI18n(lang)
+  const localeCopy = LOCALE_COPY[lang]
+  const templates = PROCESSING_TEMPLATES[lang]
+
+  const [nextStatus, setNextStatus] = useState<ReportStatus>('PENDING')
+  const [templateId, setTemplateId] = useState<string>('custom')
+  const [resolution, setResolution] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRefreshing, startRefresh] = useTransition()
+
+  useEffect(() => {
+    if (!report) return
+
+    setNextStatus(report.status)
+    setResolution(report.resolution || '')
+    setTemplateId('custom')
+  }, [report?.id, report?.resolution, report?.status])
+
+  const timelineEntries = useMemo(() => {
+    if (!report) return []
+    return getTimelineEntries(report, lang, text, reviewerId, reviewerLabel)
+  }, [lang, report, reviewerId, reviewerLabel, text])
+
+  const isLocked = report?.status === 'RESOLVED' || report?.status === 'REJECTED'
+
+  const handleRefresh = () => {
+    startRefresh(() => {
+      if (onRefresh) {
+        onRefresh()
+        return
+      }
+
+      window.location.reload()
+    })
+  }
+
+  const handleTemplateChange = (value: string) => {
+    setTemplateId(value)
+
+    if (value === 'custom') return
+
+    const template = templates.find((item) => item.id === value)
+    if (!template) return
+
+    setNextStatus(template.status)
+    setResolution(template.content)
+  }
+
+  const handleSubmit = async () => {
+    if (!report) return
+
+    if (isLocked) {
+      toast({
+        title: localeCopy.processingLocked,
+        description: localeCopy.processingLockedHint,
+        variant: 'destructive',
+      })
+      return
     }
-    if (optionId === userAnswerId && report.issueType === IssueType.ANSWER_WRONG) {
-        return "border-borderTone bg-[hsl(var(--state-danger-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))]";
+
+    setIsSubmitting(true)
+
+    const result = await resolveReport({
+      reportId: report.id,
+      status: nextStatus,
+      reviewedBy: reviewerId,
+      resolution: resolution.trim() || undefined,
+    })
+
+    if (result.success) {
+      toast({
+        title: '处理已提交',
+        description: `${getStatusLabel(nextStatus, text)} 已写入处理结果。`,
+      })
+      onRefresh?.()
+    } else {
+      toast({
+        title: '提交失败',
+        description: result.error || '处理结果提交失败，请稍后重试。',
+        variant: 'destructive',
+      })
     }
-    return "border-transparent hover:bg-surface-subtle dark:hover:bg-surface-subtle";
-  };
 
-  const getOptionBadgeClasses = (optionId: string) => {
-      if (optionId === systemAnswerId) return "bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))]";
-      if (optionId === userAnswerId) return "bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]";
-      return "bg-surface-subtle text-text-secondary dark:bg-surface-subtle dark:text-text-secondary";
-  };
+    setIsSubmitting(false)
+  }
 
-  const getOptionIcon = (optionId: string) => {
-      if (optionId === systemAnswerId) return <Check className="text-[hsl(var(--state-success-fg))]" size={18} />;
-      if (optionId === userAnswerId) return <X className="text-[hsl(var(--state-danger-fg))]" size={18} />;
-      return null;
-  };
+  if (!isOpen || !report) {
+    if (!isOpen) return null
 
-  return (
-    <div className={`drawer-glass fixed inset-y-0 right-0 z-50 flex w-full transform flex-col overflow-hidden border-l border-borderTone bg-surface shadow-2xl transition-transform duration-300 ease-in-out dark:border-borderTone dark:bg-page sm:w-[500px] ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-      {/* Background Blobs inside drawer */}
-      <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-[hsl(var(--state-warning-bg))] blur-[100px] -mr-32 -mt-32"></div>
-      <div className="pointer-events-none absolute bottom-0 left-0 h-80 w-80 rounded-full bg-[hsl(var(--state-info-bg))] blur-[100px] -ml-20 -mb-20"></div>
+    return (
+      <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-full flex-col border-l border-borderTone bg-page shadow-[0_32px_80px_rgba(2,8,23,0.36)] sm:w-[720px] xl:w-[860px]">
+        <div className="flex items-start justify-between gap-4 border-b border-borderTone px-5 py-4">
+          <div className="space-y-2">
+            <Badge
+              variant="outline"
+              className="border-rose-500/20 bg-rose-500/10 text-rose-200"
+            >
+              {text.drawer.reportDetails}
+            </Badge>
+            <h2 className="text-[26px] font-semibold tracking-tight text-text-primary sm:text-[30px]">
+              {text.drawer.reportUnavailable}
+            </h2>
+            <p className="max-w-[44rem] text-sm leading-6 text-text-secondary">
+              {text.drawer.reportUnavailableHint}
+            </p>
+          </div>
 
-      <div className="relative z-10 flex items-center justify-between border-b border-borderTone bg-surface/80 p-6 backdrop-blur-md dark:border-borderTone dark:bg-surface/70">
-        <h2 className="flex items-center gap-2 text-xl font-bold text-text-primary dark:text-text-primary">
-          <BarChart3 className="text-primary" size={24} />
-          {text.drawer.reportDetails}
-        </h2>
-        <button onClick={onClose} className="rounded-full p-1 text-text-tertiary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:hover:bg-surface-subtle dark:hover:text-text-primary">
-          <X size={20} />
-        </button>
-      </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-10 w-10 rounded-full border border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+        </div>
 
-      <div className="custom-scrollbar relative z-10 flex-1 space-y-6 overflow-y-auto p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              {report.user.avatar ? (
-                 <img src={report.user.avatar} alt="User" className="h-12 w-12 rounded-full border-2 border-surface object-cover dark:border-surface" />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-surface bg-[linear-gradient(135deg,hsl(var(--state-danger-bg)),hsl(var(--state-warning-bg)))] text-lg font-bold text-text-primary dark:border-surface">
-                    {report.user.name.split(' ').map(n => n[0]).join('')}
-                </div>
-              )}
-              <div className="absolute -bottom-1 -right-1 rounded-full bg-surface p-0.5 dark:bg-surface">
-                <Star className="text-[hsl(var(--state-warning-fg))]" size={14} fill="currentColor" />
+        <div className="flex flex-1 items-center justify-center px-5 py-6">
+          <Card className="w-full max-w-[560px] border-borderTone bg-surface-subtle shadow-surface-sm">
+            <div className="space-y-4 px-5 py-5 text-sm text-text-secondary">
+              <div className="rounded-2xl border border-dashed border-borderTone bg-surface px-4 py-4">
+                {text.drawer.noTimeline}
+              </div>
+              <div className="rounded-2xl border border-dashed border-borderTone bg-surface px-4 py-4">
+                {text.drawer.noWork}
+              </div>
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRefresh}
+                  className="h-11 rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle"
+                >
+                  <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+                  {text.drawer.refresh}
+                </Button>
               </div>
             </div>
-            <div>
-              <h3 className="font-medium text-text-primary dark:text-text-primary">{report.user.name}</h3>
-              <p className="text-xs text-text-secondary dark:text-text-secondary">{text.drawer.student} • {report.question.subject}</p>
-            </div>
+          </Card>
+        </div>
+      </aside>
+    )
+  }
+
+  const reporterName = report.reporter.name || '匿名用户'
+  const reporterRole = report.reporter.role || 'GUEST'
+  const title = getTitle(report, text)
+  const statusMeta = STATUS_META[report.status]
+  const ticketShortId = report.id.slice(0, 8).toUpperCase()
+
+  return (
+    <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-full flex-col border-l border-borderTone bg-page shadow-[0_32px_80px_rgba(2,8,23,0.36)] transition-transform duration-300 sm:w-[720px] xl:w-[860px]">
+      <div className="flex items-start justify-between gap-4 border-b border-borderTone px-5 py-4">
+        <div className="min-w-0 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-sky-500/20 bg-sky-500/10 text-sky-300"
+            >
+              {text.drawer.reportDetails}
+            </Badge>
+            <Badge className={cn('border font-medium', statusMeta.badgeClass)}>
+              {getStatusLabel(report.status, text)}
+            </Badge>
           </div>
-          <div className="flex flex-col items-end">
-            <span className="mb-1 text-nowrap rounded-full border border-borderTone bg-[hsl(var(--state-danger-bg))] px-3 py-1 text-xs font-semibold text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]">
-              {text.issueType[report.issueType]}
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-text-tertiary">
+              <span className="truncate">
+                {localeCopy.ticketPrefix} / #{ticketShortId}
+              </span>
+              <span className="text-borderTone">•</span>
+              <span className="truncate">{formatDateTime(report.createdAt)}</span>
+            </div>
+            <h2 className="truncate text-[26px] font-semibold tracking-tight text-text-primary sm:text-[30px]">
+              {title}
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-[13px] text-text-secondary">
+            <span className="inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface px-3 py-1.5">
+              <span className="text-text-tertiary">{text.drawer.reporterInfo}</span>
+              <span className="font-medium text-text-primary">
+                {reporterName}
+              </span>
+              <span className="text-text-tertiary">· {report.reporter.email}</span>
             </span>
-            <span className="text-xs text-text-tertiary dark:text-text-tertiary">{text.drawer.idPrefix}: #{report.id}</span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface px-3 py-1.5">
+              <span className="text-text-tertiary">
+                {text.drawer.reporterIdentity}
+              </span>
+              <span className="font-medium text-text-primary">{reporterRole}</span>
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-borderTone bg-surface px-3 py-1.5">
+              <span className="text-text-tertiary">{text.drawer.reportedAt}</span>
+              <span className="font-medium text-text-primary">
+                {formatDateTime(report.createdAt)}
+              </span>
+            </span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
-          <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-text-tertiary dark:text-text-tertiary">{text.drawer.userComment}</h4>
-          <p className="text-sm italic text-text-secondary dark:text-text-secondary">&ldquo;{report.comment}&rdquo;</p>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="h-10 rounded-full border-borderTone bg-surface px-4 text-text-primary hover:bg-surface-subtle"
+          >
+            <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+            {text.drawer.refresh}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="h-10 w-10 rounded-full border border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
         </div>
+      </div>
 
-        <div>
-          <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary dark:text-text-primary">
-            <HelpCircle className="text-primary" size={18} />
-            {text.drawer.questionContent}
-          </h4>
-          <div className="overflow-hidden rounded-xl border border-borderTone bg-surface shadow-sm dark:border-borderTone dark:bg-surface">
-            <div className="border-b border-borderTone p-4 dark:border-borderTone">
-              <p className="text-sm font-medium leading-relaxed text-text-primary dark:text-text-primary">
-                {report.question.text}
-              </p>
+      <div className="flex-1 overflow-y-auto px-5 py-5">
+        <div className="space-y-5">
+          <section className="rounded-[28px] border border-borderTone bg-surface-subtle p-4 shadow-surface-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className="border-borderTone bg-surface text-text-secondary"
+              >
+                {text.drawer.topStatus}
+              </Badge>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-borderTone bg-surface px-2.5 py-1 text-xs text-text-secondary">
+                <span className="font-medium text-text-primary">
+                  {text.drawer.idPrefix}
+                </span>
+                <span className="font-mono text-text-primary">#{ticketShortId}</span>
+                <span className="text-text-tertiary">{report.id}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-borderTone bg-surface px-2.5 py-1 text-xs text-text-secondary">
+                <Clock3 className="h-3.5 w-3.5 text-text-tertiary" />
+                <span className="font-medium text-text-primary">
+                  {formatDateTime(report.createdAt)}
+                </span>
+              </span>
             </div>
-            <div className="p-4 space-y-2">
-              {report.question.options.map((option) => (
-                <div key={option.id} className={`flex items-center p-2 rounded-lg border transition-colors ${getOptionClasses(option.id)}`}>
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold mr-3 ${getOptionBadgeClasses(option.id)}`}>
-                    {option.id}
-                  </span>
-                  <span className="flex-1 text-sm text-text-secondary dark:text-text-secondary">{option.text}</span>
-                  {getOptionIcon(option.id)}
+          </section>
+
+          <Card className="border-borderTone bg-surface-subtle shadow-surface-sm">
+            <div className="flex items-center justify-between border-b border-borderTone px-4 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-text-primary">
+                  {text.drawer.timelineTitle}
+                </h3>
+              </div>
+              <Badge
+                variant="outline"
+                className={cn('border font-medium', statusMeta.badgeClass)}
+              >
+                {getStatusLabel(report.status, text)}
+              </Badge>
+            </div>
+
+            <div className="space-y-4 px-4 py-4">
+              {timelineEntries.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-borderTone bg-surface px-4 py-6 text-sm text-text-tertiary">
+                  {text.drawer.noTimeline}
                 </div>
-              ))}
+              ) : (
+                timelineEntries.map((entry, index) => {
+                  const Icon = entry.icon
+                  const isLast = index === timelineEntries.length - 1
+                  const toneClass =
+                    entry.tone === 'violet'
+                      ? 'bg-violet-500/10 text-violet-300'
+                      : entry.tone === 'sky'
+                        ? 'bg-sky-500/10 text-sky-300'
+                        : entry.tone === 'emerald'
+                          ? 'bg-emerald-500/10 text-emerald-300'
+                          : 'bg-amber-500/10 text-amber-300'
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className="grid grid-cols-[24px_minmax(0,1fr)] gap-4"
+                    >
+                      <div className="relative flex justify-center">
+                        {!isLast ? (
+                          <div className="absolute left-1/2 top-6 h-[calc(100%+14px)] w-px -translate-x-1/2 bg-borderTone" />
+                        ) : null}
+                        <div
+                          className={cn(
+                            'relative mt-1.5 flex h-6 w-6 items-center justify-center rounded-full border border-borderTone bg-page shadow-[0_0_0_4px_rgba(8,16,29,0.8)]',
+                            toneClass
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-borderTone bg-page px-4 py-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-[15px] font-semibold leading-6 text-text-primary">
+                              {entry.action}
+                            </p>
+                            <span className="text-[13px] text-text-tertiary">
+                              {entry.actor}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center rounded-full border border-borderTone bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                              {entry.statusLabel}
+                            </span>
+                            <span className="text-[13px] text-text-tertiary">
+                              {entry.time}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 rounded-xl border border-borderTone/80 bg-surface px-3 py-3 text-[14px] leading-6 text-text-primary">
+                          {entry.note || localeCopy.defaultTimelineNote}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
             </div>
-          </div>
-        </div>
+          </Card>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-borderTone bg-[hsl(var(--state-success-bg))] p-3 text-center dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]">
-             <div className="mb-1 text-xs font-semibold text-[hsl(var(--state-success-fg))]">{text.drawer.systemAnswer}</div>
-             <div className="text-lg font-bold text-text-primary dark:text-text-primary">{text.drawer.option} {systemAnswerId}</div>
-          </div>
-          <div className="rounded-xl border border-borderTone bg-[hsl(var(--state-danger-bg))] p-3 text-center dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))]">
-            <div className="mb-1 text-xs font-semibold text-[hsl(var(--state-danger-fg))]">{text.drawer.userSuggests}</div>
-            <div className="text-lg font-bold text-text-primary dark:text-text-primary">{text.drawer.option} {userAnswerId}</div>
-          </div>
+          <Card className="border-borderTone bg-surface-subtle shadow-surface-sm">
+            <div className="flex items-center justify-between border-b border-borderTone px-4 py-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold text-text-primary">
+                  {text.drawer.workbenchTitle}
+                </h3>
+                {isLocked ? (
+                  <Badge
+                    variant="outline"
+                    className="border-slate-500/25 bg-slate-500/10 text-slate-300"
+                  >
+                    {localeCopy.processingLocked}
+                  </Badge>
+                ) : null}
+              </div>
+              <Badge variant="outline" className="border-borderTone text-text-secondary">
+                {text.drawer.currentStatus} / {getStatusLabel(report.status, text)}
+              </Badge>
+            </div>
+
+            <div className="space-y-4 px-4 py-4">
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium uppercase tracking-[0.18em] text-text-tertiary">
+                    {text.drawer.currentStatusLabel}
+                  </label>
+                  <Select
+                    value={nextStatus}
+                    onValueChange={(value) => setNextStatus(value as ReportStatus)}
+                    disabled={isLocked}
+                  >
+                    <SelectTrigger className="h-11 rounded-2xl border-borderTone bg-surface text-text-primary">
+                      <SelectValue placeholder={text.drawer.nextStatusPlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent className="border-borderTone bg-surface text-text-primary">
+                      <SelectItem value="PENDING">
+                        {text.table.pending}
+                      </SelectItem>
+                      <SelectItem value="REVIEWING">
+                        {text.table.reviewing}
+                      </SelectItem>
+                      <SelectItem value="RESOLVED">
+                        {text.table.resolved}
+                      </SelectItem>
+                      <SelectItem value="REJECTED">
+                        {text.table.rejected}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-medium uppercase tracking-[0.18em] text-text-tertiary">
+                    {text.drawer.templateLabel}
+                  </label>
+                  <Select
+                    value={templateId}
+                    onValueChange={handleTemplateChange}
+                    disabled={isLocked}
+                  >
+                    <SelectTrigger className="h-11 rounded-2xl border-borderTone bg-surface text-text-primary">
+                      <SelectValue placeholder={text.drawer.templatePlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent className="border-borderTone bg-surface text-text-primary">
+                      <SelectItem value="custom">{text.drawer.templatePlaceholder}</SelectItem>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium uppercase tracking-[0.18em] text-text-tertiary">
+                  {text.drawer.resolutionLabel}
+                </label>
+                <Textarea
+                  value={resolution}
+                  onChange={(event) => setResolution(event.target.value)}
+                  placeholder={text.drawer.resolutionPlaceholder}
+                  className="min-h-[220px] rounded-[24px] border-borderTone bg-surface px-4 py-4 text-[14px] leading-7 text-text-primary placeholder:text-text-tertiary"
+                  disabled={isLocked}
+                />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3 border-t border-borderTone pt-4">
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || isLocked}
+                  className="h-12 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  {text.drawer.submitResolution}
+                </Button>
+              </div>
+
+              {isLocked ? (
+                <div className="rounded-2xl border border-dashed border-borderTone bg-surface px-4 py-3 text-sm text-text-secondary">
+                  {localeCopy.processingLockedHint}
+                </div>
+              ) : null}
+            </div>
+          </Card>
         </div>
       </div>
-
-      <div className="relative z-10 flex flex-col gap-3 border-t border-borderTone bg-surface-subtle p-6 dark:border-borderTone dark:bg-surface-subtle">
-        <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-[hsl(var(--state-success-fg))] py-2.5 font-medium text-white shadow-lg shadow-[hsl(var(--state-success-fg))]/20 transition-all hover:scale-[1.02] hover:bg-[hsl(var(--state-success-fg))]">
-          <CheckCircle2 size={18} />
-          {text.drawer.confirmErrorRefund}
-        </button>
-        <div className="flex gap-3">
-          <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-borderTone bg-[hsl(var(--state-danger-bg))] py-2.5 text-sm font-medium text-[hsl(var(--state-danger-fg))] transition-colors hover:bg-[hsl(var(--state-danger-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]">
-            <XCircle size={18} />
-            {text.drawer.rejectReport}
-          </button>
-          <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-borderTone bg-[hsl(var(--state-info-bg))] py-2.5 text-sm font-medium text-[hsl(var(--state-info-fg))] shadow-[0_0_15px_-3px_rgba(59,130,246,0.18)] transition-colors hover:bg-[hsl(var(--state-info-bg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]">
-            <Wrench size={18} />
-            {text.drawer.markAsFixed}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+    </aside>
+  )
+}

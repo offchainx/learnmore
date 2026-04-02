@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { createInAppNotification } from './core';
 import { sendEmail } from '@/lib/email/resend';
+import { runAfterTask } from '@/lib/server/run-after-task';
 import React from 'react';
 
 // Import Email Templates
@@ -15,24 +16,26 @@ import { NotificationMetadata } from '@/lib/notification/types';
  * 触发欢迎通知 (注册成功后)
  */
 export async function triggerWelcomeNotification(userId: string, email: string, username?: string) {
-  // 1. 发送站内通知 (createInAppNotification 内部会处理偏好检查)
-  await createInAppNotification({
-    userId,
-    type: 'SYSTEM',
-    title: '欢迎加入 LearnMore!',
-    content: `你好 ${username || '同学'}，很高兴见到你！快去开启你的智慧学习之旅吧。`,
-    link: '/dashboard',
-  });
-
-  // 2. 发送欢迎邮件 (检查邮件偏好)
-  const prefs = await prisma.notificationPreference.findUnique({ where: { userId } });
-  if (!prefs || prefs.emailSystem) {
-    await sendEmail({
-      to: email,
-      subject: '欢迎加入 LearnMore!',
-      react: React.createElement(WelcomeEmail, { username: username || '同学' }),
+  runAfterTask(async () => {
+    // 1. 发送站内通知 (createInAppNotification 内部会处理偏好检查)
+    await createInAppNotification({
+      userId,
+      type: 'SYSTEM',
+      title: '欢迎加入 LearnMore!',
+      content: `你好 ${username || '同学'}，很高兴见到你！快去开启你的智慧学习之旅吧。`,
+      link: '/dashboard',
     });
-  }
+
+    // 2. 发送欢迎邮件 (检查邮件偏好)
+    const prefs = await prisma.notificationPreference.findUnique({ where: { userId } });
+    if (!prefs || prefs.emailSystem) {
+      await sendEmail({
+        to: email,
+        subject: '欢迎加入 LearnMore!',
+        react: React.createElement(WelcomeEmail, { username: username || '同学' }),
+      });
+    }
+  }, 'welcome-notification');
 }
 
 /**
@@ -45,27 +48,29 @@ export async function triggerReceiptNotification(
   orderId: string,
   planName: string
 ) {
-  // 1. 发送站内通知 (BILLING 类型强制发送)
-  await createInAppNotification({
-    userId,
-    type: 'BILLING',
-    title: '支付成功确认',
-    content: `你已成功支付 ${amount} 元订阅 ${planName}。`,
-    link: '/dashboard/settings/billing',
-    metadata: { orderId, amount, planName } as NotificationMetadata,
-  });
+  runAfterTask(async () => {
+    // 1. 发送站内通知 (BILLING 类型强制发送)
+    await createInAppNotification({
+      userId,
+      type: 'BILLING',
+      title: '支付成功确认',
+      content: `你已成功支付 ${amount} 元订阅 ${planName}。`,
+      link: '/dashboard/settings/billing',
+      metadata: { orderId, amount, planName } as NotificationMetadata,
+    });
 
-  // 2. 发送收据邮件 (BILLING 邮件强制发送)
-  await sendEmail({
-    to: email,
-    subject: `LearnMore 订单收据 - ${orderId}`,
-    react: React.createElement(ReceiptEmail, { 
-      orderId, 
-      amount: `RM ${amount.toFixed(2)}`, 
-      planName,
-      date: new Date().toLocaleDateString()
-    }),
-  });
+    // 2. 发送收据邮件 (BILLING 邮件强制发送)
+    await sendEmail({
+      to: email,
+      subject: `LearnMore 订单收据 - ${orderId}`,
+      react: React.createElement(ReceiptEmail, {
+        orderId,
+        amount: `RM ${amount.toFixed(2)}`,
+        planName,
+        date: new Date().toLocaleDateString()
+      }),
+    });
+  }, 'receipt-notification');
 }
 
 /**
@@ -140,22 +145,64 @@ export async function triggerSocialReplyNotification(
     type: 'SOCIAL',
     title: `${actorName} 回复了你的帖子`,
     content: replyContent.length > 50 ? replyContent.substring(0, 50) + '...' : replyContent,
-    link: `/dashboard/community/posts/${postId}`,
+    link: `/dashboard/community/${postId}`,
     metadata: { actorName, postId, postTitle } as NotificationMetadata,
   });
 
-  // 2. 发送邮件
-  const prefs = await prisma.notificationPreference.findUnique({ where: { userId: targetUserId } });
-  if (prefs?.emailSocial) {
-    // 假设以后有 SocialReplyEmail 模板，目前可以用通用模板或简单的 text
-    await sendEmail({
-      to: targetUser.email || '',
-      subject: `${actorName} 在社区中回复了你`,
-      text: `${actorName} 回复了你的帖子 "${postTitle}": 
+  // 2. 邮件异步发送，避免阻塞主写链路
+  runAfterTask(async () => {
+    const prefs = await prisma.notificationPreference.findUnique({ where: { userId: targetUserId } });
+    if (prefs?.emailSocial) {
+      // 假设以后有 SocialReplyEmail 模板，目前可以用通用模板或简单的 text
+      await sendEmail({
+        to: targetUser.email || '',
+        subject: `${actorName} 在社区中回复了你`,
+        text: `${actorName} 回复了你的帖子 "${postTitle}": 
 
  ${replyContent} 
 
- 查看详情: /dashboard/community/posts/${postId}`,
-    });
-  }
+ 查看详情: /dashboard/community/${postId}`,
+      });
+    }
+  }, 'social-reply-notification');
+}
+
+/**
+ * 触发社区提及通知
+ */
+export async function triggerCommunityMentionNotification(
+  targetUserId: string,
+  actorName: string,
+  postId: string,
+  postTitle: string,
+  excerpt: string
+) {
+  const targetUser = await prisma.user.findUnique({
+    where: { id: targetUserId },
+    select: { email: true },
+  })
+
+  if (!targetUser) return
+
+  await createInAppNotification({
+    userId: targetUserId,
+    type: 'SOCIAL',
+    title: `${actorName} 提及了你`,
+    content: excerpt.length > 50 ? `${excerpt.substring(0, 50)}...` : excerpt,
+    link: `/dashboard/community/${postId}`,
+    metadata: { actorName, postId, postTitle } as NotificationMetadata,
+  })
+
+  runAfterTask(async () => {
+    const prefs = await prisma.notificationPreference.findUnique({
+      where: { userId: targetUserId },
+    })
+    if (prefs?.emailSocial) {
+      await sendEmail({
+        to: targetUser.email || '',
+        subject: `${actorName} 在社区帖子中提及了你`,
+        text: `${actorName} 在帖子 "${postTitle}" 中提及了你：\n\n${excerpt}\n\n查看详情: /dashboard/community/${postId}`,
+      })
+    }
+  }, 'community-mention-notification')
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { resolveRequestUserId } from '@/lib/auth/request-user'
+import { createRoutePerfLogger } from '@/lib/observability/perf'
 
 export const preferredRegion = 'sin1'
 
@@ -22,9 +23,11 @@ function parseOffset(raw: string | null): number {
 }
 
 export async function GET(request: NextRequest) {
+  const metrics = createRoutePerfLogger('/api/notifications/summary', request)
   try {
     const userId = await resolveRequestUserId(request.headers)
     if (!userId) {
+      metrics.done(401, { reason: 'unauthorized' })
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -54,6 +57,14 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
+    metrics.done(200, {
+      limit,
+      offset,
+      onlyUnread,
+      rows: notifications.length,
+      unreadCount,
+    })
+
     return NextResponse.json(
       {
         success: true,
@@ -67,7 +78,7 @@ export async function GET(request: NextRequest) {
       },
     )
   } catch (error) {
-    console.error('Error fetching notification summary:', error)
+    metrics.error(error)
     return NextResponse.json(
       { success: false, error: 'Internal Server Error' },
       { status: 500 },

@@ -24,6 +24,7 @@ interface SmartDrillContinuousSessionProps {
   onRestart?: () => void
   previewMode?: boolean
   userTier?: TierKey
+  reporterId?: string
 }
 
 function isCorrectAnswer(question: PracticeQuestionRecord, userAnswer: string | string[] | undefined) {
@@ -76,6 +77,7 @@ export default function SmartDrillContinuousSession({
   onRestart,
   previewMode = false,
   userTier = 'STARTER',
+  reporterId,
 }: SmartDrillContinuousSessionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -202,6 +204,7 @@ export default function SmartDrillContinuousSession({
         secondaryActionLabel="再来一轮"
         secondaryAction={onRestart ?? onExit}
         userTier={userTier}
+        reporterId={reporterId ?? userId}
       />
     )
   }
@@ -220,6 +223,7 @@ export default function SmartDrillContinuousSession({
       exitLabel="退出 Smart Drill"
       isSubmitting={isSubmitting}
       rightPanelNote="Smart Drill 更强调一轮内的整体表现和状态校准，建议连续做完整组题后再提交。"
+      reporterId={reporterId ?? userId}
     />
   )
 }

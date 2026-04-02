@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyImpersonationToken } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
+import { runAfterTask } from '@/lib/server/run-after-task'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -44,16 +45,18 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    await prisma.securityLog.create({
-      data: {
-        userId: session.targetUserId,
-        action: 'IMPERSONATE_END',
-        metadata: {
-          sessionId: session.id,
-          endReason: 'TOKEN_EXPIRED',
+    runAfterTask(async () => {
+      await prisma.securityLog.create({
+        data: {
+          userId: session.targetUserId,
+          action: 'IMPERSONATE_END',
+          metadata: {
+            sessionId: session.id,
+            endReason: 'TOKEN_EXPIRED',
+          },
         },
-      },
-    })
+      })
+    }, 'impersonate-token-expired-audit')
 
     return NextResponse.redirect(new URL('/admin/users?error=token_expired', request.url))
   }

@@ -132,6 +132,45 @@ function mapReviewActionType(action: ReviewAction): AuditLogEntry['type'] {
   }
 }
 
+function normalizeQuestionAnswer(answer: Prisma.JsonValue): string[] {
+  if (typeof answer === 'string') {
+    return answer ? [answer] : []
+  }
+  if (Array.isArray(answer)) {
+    return answer
+      .filter((item): item is string => typeof item === 'string' && item.length > 0)
+  }
+  if (answer && typeof answer === 'object') {
+    return Object.values(answer).flatMap((item) =>
+      typeof item === 'string' ? [item] : []
+    )
+  }
+  return []
+}
+
+function normalizeQuestionOptions(
+  options: Prisma.JsonValue | null | undefined,
+  answer: Prisma.JsonValue
+): Array<{ id: string; text: string; isCorrect: boolean }> {
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    return []
+  }
+
+  const answerSet = new Set(normalizeQuestionAnswer(answer))
+  return Object.entries(options as Record<string, unknown>).map(([id, text]) => ({
+    id,
+    text: typeof text === 'string' ? text : String(text ?? ''),
+    isCorrect: answerSet.has(id),
+  }))
+}
+
+function getReporterDisplayName(user: {
+  username?: string | null
+  email?: string | null
+}): string {
+  return user.username || user.email || '未知用户'
+}
+
 export async function generateContentHash(
   content: string,
   type: QuestionType,
@@ -948,6 +987,10 @@ export async function getQuestions(
 }
 
 const AUTO_REVIEW_THRESHOLD = 3
+const FINAL_REPORT_STATUSES = new Set<ReportStatus>([
+  ReportStatus.RESOLVED,
+  ReportStatus.REJECTED,
+])
 
 export async function reportQuestion(
   input: CreateReportInput,
@@ -1040,7 +1083,24 @@ export async function getQuestionReports(
     description: string
     status: string
     createdAt: Date
-    question: { content: string; type: string }
+    reviewedAt: Date | null
+    reviewedBy: string | null
+    resolution: string | null
+    reporter: {
+      id: string
+      name: string
+      email: string
+      avatar: string | null
+      role: string
+    }
+    question: {
+      id: string
+      content: string
+      type: string
+      subject: string
+      options: Array<{ id: string; text: string; isCorrect: boolean }>
+      answer: string[]
+    }
   }>
 > {
   const page = params.page ?? 1
@@ -1070,7 +1130,31 @@ export async function getQuestionReports(
     prisma.questionReport.count({ where }),
     prisma.questionReport.findMany({
       where,
-      include: { question: { select: { content: true, type: true } } },
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            avatar: true,
+            role: true,
+          },
+        },
+        question: {
+          select: {
+            id: true,
+            content: true,
+            type: true,
+            options: true,
+            answer: true,
+            subject: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
       skip,
       take: pageSize,
@@ -1086,7 +1170,24 @@ export async function getQuestionReports(
       description: r.description,
       status: r.status,
       createdAt: r.createdAt,
-      question: r.question,
+      reviewedAt: r.reviewedAt,
+      reviewedBy: r.reviewedBy,
+      resolution: r.resolution,
+      reporter: {
+        id: r.reporter.id,
+        name: getReporterDisplayName(r.reporter),
+        email: r.reporter.email,
+        avatar: r.reporter.avatar,
+        role: r.reporter.role,
+      },
+      question: {
+        id: r.question.id,
+        content: r.question.content,
+        type: r.question.type,
+        subject: r.question.subject?.name || '未分类',
+        options: normalizeQuestionOptions(r.question.options, r.question.answer),
+        answer: normalizeQuestionAnswer(r.question.answer),
+      },
     })),
     total,
     page,
@@ -1094,6 +1195,82 @@ export async function getQuestionReports(
     totalPages,
     hasNext: page < totalPages,
     hasPrev: page > 1,
+  }
+}
+
+export async function getQuestionReportsOverview(
+  timeRange: '7d' | '30d' | 'all' = '7d',
+  options?: { subjectId?: string }
+): Promise<
+  ServiceResult<{
+    openQueue: number
+    resolvedCount: number
+    avgResolutionTime: number
+    answerWrongCount: number
+  }>
+> {
+  try {
+    const now = Date.now()
+    const rangeStart =
+      timeRange === 'all'
+        ? undefined
+        : new Date(now - (timeRange === '30d' ? 30 : 7) * 24 * 60 * 60 * 1000)
+    const scopedSubjectId = isUuid(options?.subjectId) ? options?.subjectId : undefined
+
+    const where: Prisma.QuestionReportWhereInput = {
+      ...(rangeStart && { createdAt: { gte: rangeStart } }),
+      ...(scopedSubjectId && {
+        question: {
+          deletedAt: null,
+          subjectId: scopedSubjectId,
+        },
+      }),
+    }
+
+    const reports = await prisma.questionReport.findMany({
+      where,
+      select: {
+        status: true,
+        issueType: true,
+        createdAt: true,
+        reviewedAt: true,
+      },
+    })
+
+    const openQueue = reports.filter(
+      (report) => report.status === 'PENDING' || report.status === 'REVIEWING'
+    ).length
+    const resolvedReports = reports.filter((report) => report.status === 'RESOLVED')
+    const answerWrongCount = reports.filter(
+      (report) => report.issueType === 'ANSWER_WRONG'
+    ).length
+    const avgResolutionTime =
+      resolvedReports.length === 0
+        ? 0
+        : resolvedReports.reduce((acc, report) => {
+            if (!report.reviewedAt) return acc
+            return (
+              acc +
+              (report.reviewedAt.getTime() - report.createdAt.getTime()) /
+                (1000 * 60 * 60)
+            )
+          }, 0) / resolvedReports.length
+
+    return {
+      success: true,
+      data: {
+        openQueue,
+        resolvedCount: resolvedReports.length,
+        avgResolutionTime,
+        answerWrongCount,
+      },
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '获取报错概览失败',
+      code: 'FETCH_FAILED',
+    }
   }
 }
 
@@ -1118,10 +1295,24 @@ export async function resolveReport(
       }
     }
 
+    const normalizedResolution = input.resolution?.trim() || null
+    const currentResolution = report.resolution?.trim() || null
     if (
-      input.status === ReportStatus.REJECTED &&
-      report.question.reportCount > 0
+      report.status === input.status &&
+      report.reviewedBy === input.reviewedBy &&
+      currentResolution === normalizedResolution
     ) {
+      safeRevalidatePath('/admin/content/review')
+      safeRevalidatePath('/admin/content/reports')
+      return { success: true, data: { resolved: true } }
+    }
+
+    const shouldDecrementReportCount =
+      !FINAL_REPORT_STATUSES.has(report.status) &&
+      FINAL_REPORT_STATUSES.has(input.status) &&
+      report.question.reportCount > 0
+
+    if (shouldDecrementReportCount) {
       await prisma.$transaction([
         prisma.questionReport.update({
           where: { id: input.reportId },
@@ -1129,7 +1320,7 @@ export async function resolveReport(
             status: input.status,
             reviewedBy: input.reviewedBy,
             reviewedAt: new Date(),
-            resolution: input.resolution,
+            resolution: normalizedResolution,
           },
         }),
         prisma.question.update({
@@ -1144,7 +1335,7 @@ export async function resolveReport(
           status: input.status,
           reviewedBy: input.reviewedBy,
           reviewedAt: new Date(),
-          resolution: input.resolution,
+          resolution: normalizedResolution,
         },
       })
     }
@@ -1170,10 +1361,13 @@ export async function bulkResolveReports(
   const results: BulkOperationResult<{ resolved: boolean }>['results'] = []
   let succeeded = 0
   let failed = 0
+  const uniqueReportIds = Array.from(
+    new Set(reportIds.map((reportId) => reportId.trim()).filter(Boolean))
+  )
 
-  for (let i = 0; i < reportIds.length; i++) {
+  for (let i = 0; i < uniqueReportIds.length; i++) {
     const result = await resolveReport({
-      reportId: reportIds[i],
+      reportId: uniqueReportIds[i],
       status,
       reviewedBy,
       resolution,

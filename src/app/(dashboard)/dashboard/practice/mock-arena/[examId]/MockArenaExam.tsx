@@ -28,6 +28,7 @@ interface MockArenaExamProps {
   userId: string
   subjectId?: string
   userTier?: TierKey
+  reporterId?: string
 }
 
 function formatQuestion(question: PracticeQuestionRecord): Question {
@@ -47,6 +48,7 @@ export default function MockArenaExam({
   userId,
   subjectId,
   userTier = 'STARTER',
+  reporterId,
 }: MockArenaExamProps) {
   const router = useRouter()
   const practiceCenterHref = subjectId
@@ -180,6 +182,7 @@ export default function MockArenaExam({
         secondaryActionLabel="再开一场"
         secondaryAction={() => router.push(subjectId ? `/dashboard/practice/mock-arena?subjectId=${encodeURIComponent(subjectId)}` : '/dashboard/practice/mock-arena')}
         userTier={userTier}
+        reporterId={reporterId ?? userId}
       />
     )
   }
@@ -199,6 +202,7 @@ export default function MockArenaExam({
       isSubmitting={isPending}
       timeLimitSeconds={remainingTime}
       rightPanelNote="Mock Arena 更强调考试氛围。建议在规定时间内整卷完成，再统一查看整卷结果和节奏表现。"
+      reporterId={reporterId ?? userId}
     />
   )
 }

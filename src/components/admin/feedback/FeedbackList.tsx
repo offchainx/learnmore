@@ -30,6 +30,7 @@ import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 import { toast } from 'sonner'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageKpiCardClass,
@@ -43,6 +44,7 @@ import {
   pageKickerClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
+import { Button } from '@/components/ui/button'
 import type { FeedbackDetailData } from './FeedbackDetailView'
 import { FeedbackDetailView } from './FeedbackDetailView'
 
@@ -120,6 +122,14 @@ type FeedbackOverview = {
   lastUpdated: string
 }
 
+type FeedbackSheetErrorKind = 'forbidden' | 'not-found' | 'error'
+
+type FeedbackSheetError = {
+  kind: FeedbackSheetErrorKind
+  title: string
+  description: string
+}
+
 interface FeedbackListProps {
   initialData: FeedbackListItem[]
   totalCount: number
@@ -145,9 +155,11 @@ export function FeedbackList({
   const searchParams = useSearchParams()
 
   const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null)
+  const [sheetPreviewTitle, setSheetPreviewTitle] = useState<string | null>(null)
   const [isFeedbackSheetOpen, setIsFeedbackSheetOpen] = useState(false)
   const [sheetData, setSheetData] = useState<FeedbackDetailData | null>(null)
   const [isSheetLoading, setIsSheetLoading] = useState(false)
+  const [sheetError, setSheetError] = useState<FeedbackSheetError | null>(null)
   const [search, setSearch] = useState(initialSearch)
   const [statusFilter, setStatusFilter] = useState<'ALL' | FeedbackStatus>(initialStatus)
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | FeedbackCategory>(initialCategory)
@@ -347,24 +359,54 @@ export function FeedbackList({
 
   const loadFeedbackDetailForSheet = useCallback(async (id: string) => {
     setIsSheetLoading(true)
+    setSheetError(null)
     try {
       const response = await fetch(`/api/admin/feedback/detail/${id}`, {
         method: 'GET',
         credentials: 'include',
         cache: 'no-store',
       })
-      const result = await response.json()
+      const result = await response.json().catch(() => null)
 
-      if (!response.ok || !result.success || !result.data) {
-        throw new Error(result.error || '加载反馈详情失败')
+      if (!response.ok || !result?.success || !result?.data) {
+        const error = new Error(result?.error || '加载反馈详情失败') as Error & {
+          status?: number
+        }
+        error.status = response.status
+        throw error
       }
 
       setSheetData(result.data)
     } catch (error) {
       console.error('[FeedbackList] loadFeedbackDetailForSheet error:', error)
-      toast.error(error instanceof Error ? error.message : '加载反馈详情失败')
-      setIsFeedbackSheetOpen(false)
-      setSelectedFeedbackId(null)
+      const errorStatus =
+        typeof error === 'object' && error && 'status' in error
+          ? Number((error as { status?: number }).status)
+          : undefined
+      const message =
+        error instanceof Error ? error.message : '加载反馈详情失败'
+      if (errorStatus === 401 || errorStatus === 403) {
+        setSheetError({
+          kind: 'forbidden',
+          title: '没有权限查看这条反馈',
+          description:
+            '当前登录状态无法访问该工单。请重新登录管理员账号后再试，或返回列表查看其他反馈。',
+        })
+      } else if (errorStatus === 404) {
+        setSheetError({
+          kind: 'not-found',
+          title: '反馈不存在或已被删除',
+          description:
+            '该工单可能已经被归档、删除，或链接已过期。你可以返回列表继续处理其他反馈。',
+        })
+      } else {
+        setSheetError({
+          kind: 'error',
+          title: '反馈详情加载失败',
+          description:
+            message || '详情数据暂时不可用，可能是网络波动或服务异常。请稍后重试。',
+        })
+      }
       setSheetData(null)
     } finally {
       setIsSheetLoading(false)
@@ -425,9 +467,11 @@ export function FeedbackList({
     updateQueryInUrl({ page: safePage }, 'push')
   }
 
-  const openFeedback = (id: string) => {
+  const openFeedback = (id: string, title: string) => {
     setSelectedFeedbackId(id)
+    setSheetPreviewTitle(title)
     setSheetData(null)
+    setSheetError(null)
     setIsFeedbackSheetOpen(true)
   }
 
@@ -519,9 +563,18 @@ export function FeedbackList({
   }
 
   const sheetTitle = useMemo(() => {
-    if (!sheetData) return 'Feedback Detail'
-    return `${sheetData.title}`
-  }, [sheetData])
+    if (sheetData?.title) return sheetData.title
+    if (sheetPreviewTitle) return sheetPreviewTitle
+    return '反馈详情'
+  }, [sheetData?.title, sheetPreviewTitle])
+
+  const handleCloseSheet = useCallback(() => {
+    setIsFeedbackSheetOpen(false)
+    setSelectedFeedbackId(null)
+    setSheetData(null)
+    setSheetError(null)
+    setSheetPreviewTitle(null)
+  }, [])
 
   return (
     <>
@@ -806,11 +859,11 @@ export function FeedbackList({
                         role="button"
                         tabIndex={0}
                         aria-label={`处理反馈 ${item.title}`}
-                        onClick={() => openFeedback(item.id)}
+                        onClick={() => openFeedback(item.id, item.title)}
                         onKeyDown={(event) => {
                           if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault()
-                            openFeedback(item.id)
+                            openFeedback(item.id, item.title)
                           }
                         }}
                         className="group cursor-pointer transition-colors hover:bg-surface-subtle focus-visible:bg-surface-subtle focus-visible:outline-none dark:hover:bg-[#131F35] dark:focus-visible:bg-[#131F35]"
@@ -888,8 +941,7 @@ export function FeedbackList({
         onOpenChange={(open) => {
           setIsFeedbackSheetOpen(open)
           if (!open) {
-            setSelectedFeedbackId(null)
-            setSheetData(null)
+            handleCloseSheet()
           }
         }}
       >
@@ -912,7 +964,7 @@ export function FeedbackList({
             </div>
             <button
               type="button"
-              onClick={() => setIsFeedbackSheetOpen(false)}
+              onClick={handleCloseSheet}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#24324D] bg-[#101A30] text-[#C8D4E7] transition hover:bg-[#16233A] hover:text-white"
             >
               <X className="h-4 w-4" />
@@ -920,18 +972,70 @@ export function FeedbackList({
           </div>
 
           <div className="p-5">
-            {isSheetLoading || !sheetData ? (
+            {isSheetLoading ? (
               <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-[#8FA4C2]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
-                <p className="text-sm">正在加载反馈详情...</p>
+                <div className="space-y-1 text-center">
+                  <p className="text-sm font-medium text-[#D6E7FF]">
+                    正在加载反馈详情...
+                  </p>
+                  {sheetPreviewTitle ? (
+                    <p className="text-xs text-[#6F86A8]">{sheetPreviewTitle}</p>
+                  ) : null}
+                </div>
               </div>
-            ) : (
+            ) : sheetError ? (
+              <PageEmptyState
+                title={sheetError.title}
+                description={sheetError.description}
+                icon={AlertCircle}
+                className="min-h-[320px] justify-center border border-[#24324D] bg-[#0B1220]"
+                iconContainerClassName="border-[#24324D] bg-[#101A30] text-[#FCA5A5]"
+                titleClassName="text-[#E6EDF7]"
+                descriptionClassName="text-[#8FA4C2]"
+                actions={
+                  <>
+                    {sheetError.kind === 'forbidden' ? (
+                      <Button
+                        onClick={() => {
+                          router.push(
+                            `/login?redirectTo=${encodeURIComponent('/admin/feedback')}`
+                          )
+                        }}
+                        className="h-10 rounded-full bg-blue-600 px-4 text-white hover:bg-blue-500"
+                      >
+                        重新登录
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={refreshSheet}
+                        className="h-10 rounded-full bg-blue-600 px-4 text-white hover:bg-blue-500"
+                      >
+                        重试加载
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={handleCloseSheet}
+                      className="h-10 rounded-full border-[#24324D] bg-[#101A30] px-4 text-[#E6EDF7] hover:bg-[#16233A] hover:text-white"
+                    >
+                      关闭抽屉
+                    </Button>
+                  </>
+                }
+              />
+            ) : sheetData ? (
               <FeedbackDetailView
                 initialData={sheetData}
                 embedded
                 onRefresh={refreshSheet}
                 onAfterSubmit={handleAfterSheetSubmit}
               />
+            ) : (
+              <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+                <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
+                <p className="text-sm">正在准备反馈详情...</p>
+              </div>
             )}
           </div>
         </SheetContent>

@@ -13,6 +13,7 @@ model User {
   id       String            @id @default(uuid()) @db.Uuid
   email    String            @unique
   username String?           @unique
+  handle   String?           @unique
   role     UserRole          @default(STUDENT)
   status   UserAccountStatus @default(ACTIVE)
 
@@ -61,6 +62,7 @@ model User {
   badges             UserBadge[]
   dailyTasks         DailyTask[]
   postLikes          PostLike[]
+  postBookmarks      PostBookmark[]
 
   // Parent-Student Relations
   parents     ParentStudent[] @relation("StudentToParent")
@@ -91,6 +93,15 @@ model User {
   voucherRedemptions     VoucherRedemption[]
 
   @@map("users")
+}
+
+model ReservedHandle {
+  id        String   @id @default(uuid()) @db.Uuid
+  handle    String   @unique
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("reserved_handles")
 }
 
 model ParentStudent {
@@ -572,7 +583,11 @@ model Post {
   content   String   @db.Text
   category  String? // Question, Note, Achievement
   tags      String[] @default([])
+  attachments String[] @default([])
+  mentionedUserIds String[] @default([]) @map("mentioned_user_ids")
+  mentionedHandles String[] @default([]) @map("mentioned_handles")
   subjectId String?  @map("subject_id") @db.Uuid
+  isPrivate Boolean  @default(false) @map("is_private")
   likeCount Int      @default(0) @map("like_count")
   isSolved  Boolean  @default(false) @map("is_solved")
   createdAt DateTime @default(now()) @map("created_at")
@@ -583,6 +598,7 @@ model Post {
   subject  Subject?   @relation(fields: [subjectId], references: [id])
   comments Comment[]
   likes    PostLike[]
+  bookmarks PostBookmark[]
 
   @@index([authorId])
   @@index([createdAt])
@@ -594,6 +610,8 @@ model Comment {
   postId     String   @map("post_id") @db.Uuid
   authorId   String   @map("author_id") @db.Uuid
   content    String   @db.Text
+  mentionedUserIds String[] @default([]) @map("mentioned_user_ids")
+  mentionedHandles String[] @default([]) @map("mentioned_handles")
   isSolution Boolean  @default(false) @map("is_solution")
   createdAt  DateTime @default(now()) @map("created_at")
 
@@ -616,6 +634,19 @@ model PostLike {
 
   @@unique([userId, postId])
   @@map("post_likes")
+}
+
+model PostBookmark {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("post_bookmarks")
 }
 
 model ContactSubmission {

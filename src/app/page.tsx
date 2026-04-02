@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getCachedPlatformStats } from '@/lib/cache/sitewide';
 import { LandingPage } from '@/components/marketing/landing-page';
+import { createServerPerfLogger } from '@/lib/observability/perf';
 
 export const preferredRegion = 'sin1';
 export const dynamic = 'force-static';
@@ -18,7 +19,14 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
+  const metrics = createServerPerfLogger('/');
+
   const stats = await getCachedPlatformStats();
+
+  metrics.done({
+    activeStudents: stats.activeStudents,
+    questionsSolved: stats.questionsSolved,
+  });
 
   return (
     <LandingPage

@@ -14,6 +14,7 @@ import {
   resolveRequestAdminIdentity,
   resolveRequestUserIdentity,
 } from '@/lib/auth/request-user'
+import { runAfterTask } from '@/lib/server/run-after-task'
 
 export interface SubmitFeedbackParams {
   category: FeedbackCategory
@@ -89,6 +90,8 @@ type FeedbackDetailRecord = Prisma.UserFeedbackGetPayload<{
   }
 }>
 
+const FEEDBACK_WRITE_DEDUP_WINDOW_MS = 2 * 60 * 1000
+
 async function createFeedbackEvent(
   tx: Prisma.TransactionClient,
   input: FeedbackEventInput
@@ -103,6 +106,40 @@ async function createFeedbackEvent(
       message: input.message ?? null,
       metadata: input.metadata,
     },
+  })
+}
+
+async function isRecentDuplicateFeedbackEvent(
+  feedbackId: string,
+  actorId: string,
+  eventType: FeedbackEventType,
+  toStatus: FeedbackStatus,
+  message: string | null
+) {
+  const latestEvent = await prisma.userFeedbackEvent.findFirst({
+    where: {
+      feedbackId,
+      actorId,
+      eventType,
+      toStatus,
+      message,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      createdAt: true,
+    },
+  })
+
+  if (!latestEvent) return false
+
+  return Date.now() - latestEvent.createdAt.getTime() <= FEEDBACK_WRITE_DEDUP_WINDOW_MS
+}
+
+async function loadFeedbackForWrite(feedbackId: string) {
+  return prisma.userFeedback.findUnique({
+    where: { id: feedbackId },
   })
 }
 
@@ -219,24 +256,24 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
       return createdFeedback
     })
 
-    // 2. 发送确认邮件给用户 (fire-and-forget, 不阻塞主流程 — ADR-004)
-    sendEmail({
-      to: userEmail,
-      subject: `We've received your feedback: ${params.title}`,
-      text: `Hi,\n\nThank you for reaching out to LearnMore. We've received your feedback regarding "${params.category}" and our team will look into it as soon as possible.\n\nYour Feedback:\n${params.content}\n\nBest regards,\nLearnMore Support Team`,
-    }).catch((err) => console.error('Feedback ack email failed:', err))
-
-    // 3. 站内通知用户（如果是登录用户）
-    if (userId) {
-      await createInAppNotification({
-        userId,
-        type: 'SYSTEM',
-        title: 'Feedback Received',
-        content: `Your feedback "${params.title}" has been received. Thank you for helping us improve!`,
+    runAfterTask(async () => {
+      await sendEmail({
+        to: userEmail,
+        subject: `We've received your feedback: ${params.title}`,
+        text: `Hi,\n\nThank you for reaching out to LearnMore. We've received your feedback regarding "${params.category}" and our team will look into it as soon as possible.\n\nYour Feedback:\n${params.content}\n\nBest regards,\nLearnMore Support Team`,
       })
-    }
 
-    revalidatePath('/admin/feedback')
+      if (userId) {
+        await createInAppNotification({
+          userId,
+          type: 'SYSTEM',
+          title: 'Feedback Received',
+          content: `Your feedback "${params.title}" has been received. Thank you for helping us improve!`,
+        })
+      }
+
+      revalidatePath('/admin/feedback')
+    }, 'feedback-submit-side-effects')
 
     return { success: true, data: feedback }
   } catch (error) {
@@ -512,9 +549,7 @@ export async function replyToFeedback(
       return { success: false, error: 'Unauthorized' }
     }
 
-    const feedback = await prisma.userFeedback.findUnique({
-      where: { id: feedbackId },
-    })
+    const feedback = await loadFeedbackForWrite(feedbackId)
 
     if (!feedback) {
       return { success: false, error: 'Feedback not found' }
@@ -523,6 +558,29 @@ export async function replyToFeedback(
     const normalizedReply = reply.trim()
     if (!normalizedReply) {
       return { success: false, error: 'Reply cannot be empty' }
+    }
+
+    const replyEventType =
+      status === FeedbackStatus.CLOSED
+        ? FeedbackEventType.CLOSED
+        : FeedbackEventType.REPLIED
+    if (
+      await isRecentDuplicateFeedbackEvent(
+        feedbackId,
+        admin.id,
+        replyEventType,
+        status,
+        normalizedReply
+      ) &&
+      feedback.status === status &&
+      feedback.adminReply === normalizedReply &&
+      feedback.repliedBy === admin.id
+    ) {
+      return {
+        success: true,
+        data: feedback,
+        deduplicated: true,
+      }
     }
 
     const now = new Date()
@@ -540,10 +598,7 @@ export async function replyToFeedback(
       await createFeedbackEvent(tx, {
         feedbackId,
         actorId: admin.id,
-        eventType:
-          status === FeedbackStatus.CLOSED
-            ? FeedbackEventType.CLOSED
-            : FeedbackEventType.REPLIED,
+        eventType: replyEventType,
         fromStatus: feedback.status,
         toStatus: status,
         message: normalizedReply,
@@ -552,25 +607,34 @@ export async function replyToFeedback(
       return nextFeedback
     })
 
-    // 2. 发送邮件通知用户 (fire-and-forget, 不阻塞主流程 — ADR-004)
-    sendEmail({
-      to: feedback.email || '',
-      subject: `Update on your feedback: ${feedback.title}`,
-      text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${normalizedReply}\n\nStatus: ${status}\n\nThank you for being part of LearnMore.\n\nBest regards,\nLearnMore Support Team`,
-    }).catch((err) => console.error('Feedback reply email failed:', err))
+    runAfterTask(async () => {
+      if (feedback.email) {
+        await sendEmail({
+          to: feedback.email,
+          subject: `Update on your feedback: ${feedback.title}`,
+          text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${normalizedReply}\n\nStatus: ${status}\n\nThank you for being part of LearnMore.\n\nBest regards,\nLearnMore Support Team`,
+        })
+      } else {
+        console.warn('[Feedback] Reply email skipped because feedback email is missing:', feedbackId)
+      }
 
-    // 3. 如果是登录用户，发送站内通知
-    if (feedback.userId) {
-      await createInAppNotification({
-        userId: feedback.userId,
-        type: 'FEEDBACK_REPLY',
-        title: 'Feedback Replied',
-        content: `Your feedback "${feedback.title}" has been replied to by our support team.`,
-      })
-    }
+      if (feedback.userId) {
+        await createInAppNotification({
+          userId: feedback.userId,
+          type: 'FEEDBACK_REPLY',
+          title: 'Feedback Replied',
+          content: `Your feedback "${feedback.title}" has been replied to by our support team.`,
+          metadata: {
+            feedbackId,
+            feedbackStatus: status,
+            feedbackTitle: feedback.title,
+          },
+        })
+      }
 
-    revalidatePath('/admin/feedback')
-    revalidatePath(`/admin/feedback/${feedbackId}`)
+      revalidatePath('/admin/feedback')
+      revalidatePath(`/admin/feedback/${feedbackId}`)
+    }, 'feedback-reply-side-effects')
 
     return { success: true, data: updatedFeedback }
   } catch (error) {
@@ -590,19 +654,36 @@ export async function updateFeedbackStatus(
       return { success: false, error: 'Unauthorized' }
     }
 
-    const feedback = await prisma.userFeedback.findUnique({
-      where: { id: feedbackId },
-    })
+    const feedback = await loadFeedbackForWrite(feedbackId)
 
     if (!feedback) {
       return { success: false, error: 'Feedback not found' }
+    }
+
+    const normalizedNote = note?.trim() || null
+    if (
+      feedback.status === status &&
+      (await isRecentDuplicateFeedbackEvent(
+        feedbackId,
+        admin.id,
+        status === FeedbackStatus.CLOSED
+          ? FeedbackEventType.CLOSED
+          : FeedbackEventType.STATUS_CHANGED,
+        status,
+        normalizedNote
+      ))
+    ) {
+      return {
+        success: true,
+        data: feedback,
+        deduplicated: true,
+      }
     }
 
     if (feedback.status === status) {
       return { success: false, error: 'Status is already up to date' }
     }
 
-    const normalizedNote = note?.trim() || null
     const updatedFeedback = await prisma.$transaction(async (tx) => {
       const nextFeedback = await tx.userFeedback.update({
         where: { id: feedbackId },
@@ -626,8 +707,10 @@ export async function updateFeedbackStatus(
       return nextFeedback
     })
 
-    revalidatePath('/admin/feedback')
-    revalidatePath(`/admin/feedback/${feedbackId}`)
+    runAfterTask(() => {
+      revalidatePath('/admin/feedback')
+      revalidatePath(`/admin/feedback/${feedbackId}`)
+    }, 'feedback-status-revalidate')
 
     return { success: true, data: updatedFeedback }
   } catch (error) {

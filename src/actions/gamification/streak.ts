@@ -12,8 +12,9 @@ import { awardBadgeIfEligible } from './achievements'
  */
 
 /**
- * Checks and updates the user's login streak.
- * Should be called when the user performs a meaningful action (completes a lesson, logs in, etc.)
+ * Checks and updates the user's study streak.
+ * Should be called only when the user performs a meaningful study action
+ * such as completing a practice session or completing a lesson.
  */
 export async function checkAndRefreshStreak(userId: string) {
   const user = await prisma.user.findUnique({

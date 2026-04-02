@@ -36,6 +36,7 @@ interface QuizViewProps {
   rightPanelNote?: string;
   onComplete?: () => void;
   userTier?: TierKey;
+  reporterId?: string;
 }
 
 function formatQuestion(question: PracticeQuestionRecord): Question {
@@ -70,6 +71,7 @@ export function QuizView({
   rightPanelNote,
   onComplete,
   userTier = 'STARTER',
+  reporterId,
 }: QuizViewProps) {
   const router = useRouter();
   const practiceCenterHref = subjectId
@@ -171,6 +173,7 @@ export function QuizView({
         secondaryActionLabel="再做一轮"
         secondaryAction={reloadPage}
         userTier={userTier}
+        reporterId={reporterId ?? userId}
       />
     );
   }
@@ -190,6 +193,7 @@ export function QuizView({
       isSubmitting={isSubmitting}
       timeLimitSeconds={timeLimitSeconds}
       rightPanelNote={rightPanelNote}
+      reporterId={reporterId ?? userId}
     />
   );
 }

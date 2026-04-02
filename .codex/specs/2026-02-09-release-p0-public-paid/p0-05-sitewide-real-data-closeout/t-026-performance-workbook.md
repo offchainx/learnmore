@@ -1,7 +1,7 @@
 # T-026 全站响应时间优化工作底稿
 
 > 用途：按 `T-026.1 -> T-026.12` 推进全站响应时间优化。  
-> 当前进度：已完成 `T-026.1 ~ T-026.8`，下一步进入 `T-026.9`。  
+> 当前进度：已完成 `T-026.1 ~ T-026.12`，收口完成。  
 > 约束：保持轻量，不做大而全清单；只覆盖本轮最值得反复测的高频路径。
 
 ## T-026.1 基线测量范围
@@ -410,7 +410,45 @@
 - `T-026.8` 已统一热 API 的 `preferredRegion`，并把实践统计中重复的用户权限作用域读取收紧为复用 helper `loadUserWithOverrides`。
 - 这轮对 `practice_subject_chapters`、`practice_exam_forecast`、`admin_users_overview`、`admin_feedback_overview` 的收益最明显，`notifications_summary` 与 `community_feed` 也有小幅下降。
 - `admin_feedback_list` 和 `admin_feedback_detail` 这次有波动，没有作为结构性退化处理；后续若要继续压缩，优先再看 SQL / 关联量，而不是再拆认证。
-- 下一步进入 `T-026.9`，把非阻塞副作用从主响应链路里剥离。
+
+### 7. `T-026.9` 变更摘要
+- 新增统一后台副作用包装器 [run-after-task.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/server/run-after-task.ts)。
+- 反馈提交、反馈回复、反馈状态更新、欢迎通知、社交通知、Stripe 回执、伪装审计、社区 badge 与相关 revalidate 已移出主响应路径，改为响应后执行。
+- 这一步的重点是缩短“用户已成功”前的阻塞时间，不再让邮件、日志、通知和 badge 计算卡住主流程。
+- 已完成构建验证；下一步进入 `T-026.10`，继续压静态资源与首屏载荷。
+
+### 8. `T-026.10` 变更摘要
+- 首页下半屏已拆为独立动态 chunk `LandingBelowFold`，主页首屏只保留 hero 和导航壳。
+- `landing-page.tsx` 已去掉下半屏静态 section，首页 HTML 里可见独立的 `src_components_marketing_LandingBelowFold_tsx_4d2097a7._.js` 脚本。
+- 本地构建通过，`curl` 首次响应约 `ttfb=0.063536s`，主页返回正常 200。
+- 仍保留后续可继续优化项：将 landing copy 进一步下沉到动态 chunk、继续压缩共享组件 chunk 和字体/图片请求。
+
+### 9. `T-026.11` 变更摘要
+- 新增共享观测 helper [perf.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/observability/perf.ts)，统一生成结构化日志，适配服务端 route logs 与本地客户端性能记录。
+- 首页服务器渲染现在会输出 `home_render_start` / `home_render_done`，带上 `route`、`ms`、`activeStudents` 和 `questionsSolved`。
+- 关键 API 已补齐统一格式日志：`/api/community/feed`、`/api/leaderboard/summary`、`/api/notifications/summary`、`/api/practice/subject-chapters`、`/api/practice/exam-forecast`、`/api/admin/users/list`、`/api/admin/users/overview`。
+- 本地留证：`GET /` 输出 `home_render_done`，`/api/community/feed`、`/api/notifications/summary`、`/api/practice/subject-chapters?subjectId=demo` 都能输出 `start` / `done`，401 也会带 `status` 与 `ms`。
+- `SpeedInsights` 仍保留在 [layout.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/layout.tsx) 里，作为线上用户侧性能指标入口。
+
+### 10. `T-026.12` 最终复测与收口
+- 最终烟测通过真实本地请求完成，`GET /` 返回 `200 OK`，页面渲染保持正常。
+- 认证态路由在未登录状态下维持预期守卫：`/dashboard/leaderboard` 与 `/dashboard/settings` 均返回 `307` 到 `/login?redirectTo=...`。
+- 热 API 未登录态保持快速失败：`/api/community/feed`、`/api/notifications/summary`、`/api/practice/subject-chapters?subjectId=demo` 都返回 `401`，结构化日志显示 `done` 且耗时为个位数毫秒级。
+- 当前轮未纳入的长期项主要仍是少量受认证依赖的后台页面深链与既有非性能错误，后续若继续压测，应优先从真实登录态浏览器里继续看 `admin_feedback` 这类业务链路，而不是再扩散到已不在本轮范围的路由。
+- 这一步只做验证和收口，不再引入新的改造面；`T-026` 到此关闭。
+
+### 11. 浏览器路由实测留档（2026-04-01）
+- 使用真实 Chromium 跑完 52 条路由，分成匿名公共页和登录态后台页两套上下文；完整表见 [t-026-browser-route-timings.md](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md)。
+- 公共页总体稳定，首页 `GET /` 约 `574ms`，`/register` 约 `328ms`，`/help` / `/pricing` / `/subjects` / `/contact` 均在 `400ms` 左右或更低。
+- 登录态后台里，最慢的是内容审核深链和表单型设置页：`/admin/content/review/:questionId` 约 `9407ms`，`/dashboard/practice/chapter-drill/preview-1` 约 `9381ms`，`/dashboard/settings` 约 `7139ms`，`/admin/permissions` 约 `7097ms`，`/admin/users/:id` 约 `6972ms`，`/admin/feedback/:id` 约 `6606ms`。
+- `/admin/content/statistics`、`/admin/vouchers`、`/dashboard/practice/smart-drill` 这几条在浏览器采样时出现自动跳转/上下文切换，完整导航统计字段不稳定，但总耗时仍已记录在表里。
+- 这一轮的结论和前面的性能判断一致：真正拖慢体验的不是“加载壳本身”，而是少数后台深链的真实数据装载与长链路页面初始化。
+
+### 12. 非无头 Playwright 复测（2026-04-01）
+- 另外补跑了一轮 `PW_HEADLESS=false` 的 Playwright Chromium 采样，确认脚本确实可以走非无头路径；当前环境没有 `DISPLAY`，但 Playwright 仍成功启动了真实浏览器进程。
+- 这轮的统计波动比无头采样更大，说明 headful 进程会把部分页面的首屏和加载时间拉长，尤其是需要额外数据装载或自动跳转的路由。
+- 代表性结果：`/dashboard` 约 `2102ms`，`/admin/users` 约 `2070ms`，`/admin/feedback` 约 `1871ms`，`/admin/content/review` 约 `1551ms`，`/admin/permissions` 约 `1456ms`，匿名页里 `/about-us` 约 `3401ms`。
+- 这轮仍然保留了和前一轮一致的结论：影响最大的还是后台深链和数据密集页，不是路由壳本身。
 
 ## 本轮执行边界
 - `T-026.1` 先完成测量范围、记录模板、热点路径确认，不在这一步混入实现改造。

@@ -15,6 +15,7 @@ import {
   Heart,
   MessageSquare,
   Mic,
+  Paperclip,
   Plus,
   Search,
   Share2,
@@ -24,6 +25,7 @@ import { useApp } from '@/providers'
 import {
   getCategories,
   PostWithAuthor,
+  toggleBookmark,
   toggleLike,
 } from '@/actions/community/post'
 import ReactMarkdown from 'react-markdown'
@@ -66,16 +68,21 @@ type SubjectOption = Awaited<ReturnType<typeof getCategories>>[number]
 interface CommunityViewProps {
   initialPosts?: PostWithAuthor[]
   subjects?: SubjectOption[]
+  initialSearchQuery?: string
+  initialSortMode?: SortMode
+  initialScopeFilter?: ScopeFilter
+  initialBoardId?: string | 'all'
 }
 
 type FeedPost = PostWithAuthor & {
   likeCount: number
   userLiked: boolean
+  userBookmarked: boolean
   _count: {
     comments: number
     likes?: number
+    bookmarks?: number
   }
-  shareCount: number
   bookmarkCount: number
 }
 
@@ -91,10 +98,19 @@ function normalizePosts(posts: PostWithAuthor[]): FeedPost[] {
     const rawPost = post as PostWithAuthor & {
       likeCount?: number
       userLiked?: boolean
+      userBookmarked?: boolean
+      bookmarkCount?: number
       _count?: {
         comments: number
         likes?: number
+        bookmarks?: number
       }
+      bookmarks?: Array<{
+        id: string
+        userId: string
+        postId: string
+        createdAt: Date
+      }>
     }
 
     const likeCount =
@@ -102,17 +118,24 @@ function normalizePosts(posts: PostWithAuthor[]): FeedPost[] {
         ? rawPost.likeCount
         : (rawPost._count?.likes ?? 0)
     const commentCount = post._count.comments
+    const bookmarkCount =
+      typeof rawPost.bookmarkCount === 'number'
+        ? rawPost.bookmarkCount
+        : (rawPost._count?.bookmarks ?? rawPost.bookmarks?.length ?? 0)
 
     return {
       ...post,
       likeCount,
       userLiked: Boolean(rawPost.userLiked),
+      userBookmarked: Boolean(
+        rawPost.userBookmarked ?? (rawPost.bookmarks?.length ?? 0) > 0
+      ),
       _count: {
         comments: commentCount,
         likes: rawPost._count?.likes ?? 0,
+        bookmarks: rawPost._count?.bookmarks ?? rawPost.bookmarks?.length ?? 0,
       },
-      shareCount: Math.max(0, Math.round((likeCount + commentCount) / 2)),
-      bookmarkCount: Math.max(0, Math.round(likeCount * 0.6)),
+      bookmarkCount,
     }
   })
 }
@@ -163,6 +186,20 @@ function formatRelativeTime(
   return `${count}mo ago`
 }
 
+function formatStableDate(
+  dateValue: Date | string,
+  lang: 'en' | 'zh' | 'ms'
+) {
+  const locale = lang === 'zh' ? 'zh-CN' : lang === 'ms' ? 'ms-MY' : 'en-MY'
+
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(dateValue))
+}
+
 function groupLabel(dateValue: Date | string, lang: 'en' | 'zh' | 'ms') {
   const timestamp = new Date(dateValue).getTime()
   const diffMs = Date.now() - timestamp
@@ -211,16 +248,23 @@ function comparePosts(a: FeedPost, b: FeedPost, sortMode: SortMode) {
 export function CommunityView({
   initialPosts = [],
   subjects = [],
+  initialSearchQuery = '',
+  initialSortMode = 'recent-posts',
+  initialScopeFilter = 'all',
+  initialBoardId = 'all',
 }: CommunityViewProps) {
   const { t, lang } = useApp()
   const [posts, setPosts] = useState<FeedPost[]>(() =>
     normalizePosts(initialPosts)
   )
-  const [loading, setLoading] = useState(initialPosts.length === 0)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>('all')
-  const [sortMode, setSortMode] = useState<SortMode>('recent-posts')
-  const [activeBoardId, setActiveBoardId] = useState<string | 'all'>('all')
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>(initialScopeFilter)
+  const [sortMode, setSortMode] = useState<SortMode>(initialSortMode)
+  const [activeBoardId, setActiveBoardId] = useState<string | 'all'>(
+    initialBoardId
+  )
   const lastLoadedKeyRef = useRef<string>(initialPosts.length > 0 ? 'feed' : '')
 
   const followedBoardIds = useMemo(
@@ -228,6 +272,10 @@ export function CommunityView({
       subjects.slice(0, Math.min(3, subjects.length)).map((item) => item.id),
     [subjects]
   )
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   const copy = useMemo(() => {
     if (lang === 'zh') {
@@ -266,12 +314,14 @@ export function CommunityView({
         comments: '评论',
         bookmarks: '收藏',
         boardLabel: '板块',
-        original: '独家原创',
+        noteTag: '笔记',
+        discussionTag: '讨论',
         questionTag: '提问',
         solvedTag: '已解决',
         achievementTag: '成就',
+        privateTag: '仅自己可见',
+        attachmentsTitle: '附件',
         aiHint: 'AI 助手',
-        shareCountNote: '收藏和分享暂按当前帖子互动热度展示。',
       }
     }
 
@@ -314,13 +364,14 @@ export function CommunityView({
         comments: 'Komen',
         bookmarks: 'Simpan',
         boardLabel: 'Papan',
-        original: 'Asal',
+        noteTag: 'Nota',
+        discussionTag: 'Perbincangan',
         questionTag: 'Soalan',
         solvedTag: 'Selesai',
         achievementTag: 'Pencapaian',
+        privateTag: 'Hanya saya boleh lihat',
+        attachmentsTitle: 'Lampiran',
         aiHint: 'AI',
-        shareCountNote:
-          'Jumlah simpan dan kongsi kini dipaparkan sebagai ringkasan interaksi.',
       }
     }
 
@@ -359,13 +410,14 @@ export function CommunityView({
       comments: 'Comments',
       bookmarks: 'Bookmarks',
       boardLabel: 'Board',
-      original: 'Original',
+      noteTag: 'Note',
+      discussionTag: 'Discussion',
       questionTag: 'Question',
       solvedTag: 'Solved',
       achievementTag: 'Achievement',
+      privateTag: 'Only visible to me',
+      attachmentsTitle: 'Attachments',
       aiHint: 'AI',
-      shareCountNote:
-        'Bookmark and share counts are currently shown as interaction placeholders.',
     }
   }, [lang])
 
@@ -503,9 +555,38 @@ export function CommunityView({
     subjects,
   ])
 
+  const buildFeedQuery = useCallback(() => {
+    const params = new URLSearchParams()
+    params.set('page', '1')
+    params.set('limit', '20')
+    params.set('sort', sortMode)
+
+    const trimmedSearch = searchQuery.trim()
+    if (trimmedSearch) {
+      params.set('search', trimmedSearch)
+    }
+
+    if (scopeFilter === 'following') {
+      params.set('scope', 'following')
+    } else if (scopeFilter === 'by-date') {
+      params.set('scope', 'by-date')
+    }
+
+    if (activeBoardId === 'unanswered') {
+      params.set('tab', 'unanswered')
+    } else if (
+      activeBoardId !== 'all' &&
+      activeBoardId !== 'following'
+    ) {
+      params.set('subjectId', activeBoardId)
+    }
+
+    return params.toString()
+  }, [activeBoardId, scopeFilter, searchQuery, sortMode])
+
   const fetchPosts = useCallback(
     async (force = false) => {
-      const requestKey = 'feed'
+      const requestKey = buildFeedQuery() || 'feed'
       if (!force && lastLoadedKeyRef.current === requestKey) {
         return
       }
@@ -516,7 +597,7 @@ export function CommunityView({
       setLoading(true)
       try {
         const response = await fetchWithTimeout(
-          '/api/community/feed?page=1&limit=20',
+          `/api/community/feed?${requestKey}`,
           {
             timeoutMs: 8000,
             method: 'GET',
@@ -563,12 +644,8 @@ export function CommunityView({
         setLoading(false)
       }
     },
-    [copy.loadFailed, lang]
+    [buildFeedQuery, copy.loadFailed, lang]
   )
-
-  useEffect(() => {
-    void fetchPosts()
-  }, [fetchPosts])
 
   async function handleLike(postId: string) {
     setPosts((prev) =>
@@ -603,6 +680,88 @@ export function CommunityView({
         variant: 'destructive',
       })
       await fetchPosts(true)
+    }
+  }
+
+  async function handleBookmark(postId: string) {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== postId) return post
+        const nextBookmarked = !post.userBookmarked
+        return {
+          ...post,
+          userBookmarked: nextBookmarked,
+          bookmarkCount: nextBookmarked
+            ? post.bookmarkCount + 1
+            : Math.max(0, post.bookmarkCount - 1),
+        }
+      })
+    )
+
+    const result = await toggleBookmark(postId)
+    if (!result.success) {
+      toast({
+        title:
+          lang === 'zh'
+            ? '操作失败'
+            : lang === 'ms'
+              ? 'Tindakan gagal'
+              : 'Action failed',
+        description:
+          lang === 'zh'
+            ? '收藏失败，请稍后重试。'
+            : lang === 'ms'
+              ? 'Gagal menyimpan siaran.'
+              : 'Failed to bookmark the post.',
+        variant: 'destructive',
+      })
+      await fetchPosts(true)
+    }
+  }
+
+  async function handleShare(postId: string) {
+    const shareUrl = `${window.location.origin}/dashboard/community/${postId}`
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl)
+      } else {
+        const fallback = document.createElement('textarea')
+        fallback.value = shareUrl
+        fallback.setAttribute('readonly', 'true')
+        fallback.style.position = 'fixed'
+        fallback.style.opacity = '0'
+        document.body.appendChild(fallback)
+        fallback.select()
+        document.execCommand('copy')
+        document.body.removeChild(fallback)
+      }
+
+      toast({
+        title:
+          lang === 'zh'
+            ? '已复制分享链接'
+            : lang === 'ms'
+              ? 'Pautan perkongsian disalin'
+              : 'Share link copied',
+      })
+    } catch (error) {
+      console.error('Error copying share link:', error)
+      toast({
+        title:
+          lang === 'zh'
+            ? '复制失败'
+            : lang === 'ms'
+              ? 'Gagal menyalin'
+              : 'Copy failed',
+        description:
+          lang === 'zh'
+            ? '请稍后重试。'
+            : lang === 'ms'
+              ? 'Sila cuba lagi kemudian.'
+              : 'Please try again.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -643,8 +802,10 @@ export function CommunityView({
         post.title,
         post.content,
         post.author.username || '',
+        post.author.handle || '',
         post.subject?.name || '',
         post.tags.join(' '),
+        post.mentionedHandles.join(' '),
       ]
         .join(' ')
         .toLowerCase()
@@ -669,7 +830,9 @@ export function CommunityView({
 
     const groups = new Map<string, FeedPost[]>()
     visiblePosts.forEach((post) => {
-      const label = groupLabel(post.createdAt, lang)
+      const label = isHydrated
+        ? groupLabel(post.createdAt, lang)
+        : formatStableDate(post.createdAt, lang)
       const bucket = groups.get(label) || []
       bucket.push(post)
       groups.set(label, bucket)
@@ -679,7 +842,7 @@ export function CommunityView({
       label,
       items,
     }))
-  }, [lang, scopeFilter, visiblePosts])
+  }, [isHydrated, lang, scopeFilter, visiblePosts])
 
   function renderCategory(post: FeedPost) {
     if (post.category === 'Question') {
@@ -710,9 +873,25 @@ export function CommunityView({
       )
     }
 
+    if (post.category === 'Note') {
+      return (
+        <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-medium text-violet-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
+          {copy.noteTag}
+        </span>
+      )
+    }
+
+    if (post.category === 'Discussion') {
+      return (
+        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
+          {copy.discussionTag}
+        </span>
+      )
+    }
+
     return (
       <span className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-medium text-violet-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary">
-        {copy.original}
+        {copy.noteTag}
       </span>
     )
   }
@@ -806,10 +985,6 @@ export function CommunityView({
               </div>
             </Card>
 
-            <div className="text-[12px] leading-5 text-text-secondary dark:text-text-secondary">
-              {copy.shareCountNote}
-            </div>
-
             {loading ? (
               <Card
                 className={`${surfaceClassName} rounded-[28px] px-5 py-10 text-center text-sm text-text-secondary dark:text-text-secondary`}
@@ -859,12 +1034,26 @@ export function CommunityView({
                             />
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span
-                                  className={`truncate ${pageCardTitleClass}`}
-                                >
-                                  {post.author.username || 'Anonymous'}
-                                </span>
+                                {post.author.handle ? (
+                                  <Link
+                                    href={`/u/${post.author.handle}`}
+                                    className={`truncate hover:text-sky-600 dark:hover:text-sky-200 ${pageCardTitleClass}`}
+                                  >
+                                    {post.author.username || `@${post.author.handle}`}
+                                  </Link>
+                                ) : (
+                                  <span
+                                    className={`truncate ${pageCardTitleClass}`}
+                                  >
+                                    {post.author.username || 'Anonymous'}
+                                  </span>
+                                )}
                                 {renderCategory(post)}
+                                {post.isPrivate ? (
+                                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-text-secondary dark:border-white/10 dark:bg-white/[0.05] dark:text-text-secondary">
+                                    {copy.privateTag}
+                                  </span>
+                                ) : null}
                               </div>
                               <div
                                 className={`mt-1 flex flex-wrap items-center gap-2 text-text-tertiary dark:text-text-tertiary ${pageMetaTextClass}`}
@@ -874,8 +1063,10 @@ export function CommunityView({
                                   {post.subject?.name || copy.boardAll}
                                 </span>
                                 <span>•</span>
-                                <span>
-                                  {formatRelativeTime(post.createdAt, lang)}
+                                <span suppressHydrationWarning>
+                                  {isHydrated
+                                    ? formatRelativeTime(post.createdAt, lang)
+                                    : formatStableDate(post.createdAt, lang)}
                                 </span>
                               </div>
                             </div>
@@ -884,7 +1075,11 @@ export function CommunityView({
                           <div
                             className={`shrink-0 text-text-tertiary dark:text-text-tertiary ${pageMetaTextClass}`}
                           >
-                            {formatRelativeTime(post.createdAt, lang)}
+                            <span suppressHydrationWarning>
+                              {isHydrated
+                                ? formatRelativeTime(post.createdAt, lang)
+                                : formatStableDate(post.createdAt, lang)}
+                            </span>
                           </div>
                         </div>
 
@@ -904,6 +1099,46 @@ export function CommunityView({
                             </ReactMarkdown>
                           </div>
                         </div>
+
+                        {post.mentionedHandles.length > 0 ? (
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            {post.mentionedHandles.map((handle) => (
+                              <Link
+                                key={handle}
+                                href={`/u/${handle}`}
+                                className="text-[12px] text-text-tertiary hover:text-sky-600 dark:text-text-tertiary dark:hover:text-sky-200"
+                              >
+                                @{handle}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {post.attachments.length > 0 ? (
+                          <div className="mt-4 space-y-2">
+                            <div className="flex items-center gap-2 text-[12px] font-medium text-text-secondary dark:text-text-secondary">
+                              <Paperclip className="h-3.5 w-3.5" />
+                              {copy.attachmentsTitle}（{post.attachments.length}）
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              {post.attachments.slice(0, 2).map((attachment) => (
+                                <a
+                                  key={attachment}
+                                  href={attachment}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="overflow-hidden rounded-2xl border border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle"
+                                >
+                                  <img
+                                    src={attachment}
+                                    alt={post.title}
+                                    className="h-28 w-full object-cover"
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
 
                         <div className="mt-4 flex flex-wrap gap-2">
                           <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-700 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100">
@@ -942,14 +1177,32 @@ export function CommunityView({
                             {post._count.comments}
                           </Link>
 
-                          <button className="inline-flex items-center gap-2 hover:text-text-primary dark:hover:text-white">
-                            <Bookmark className="h-4 w-4" />
+                          <button
+                            type="button"
+                            onClick={() => handleBookmark(post.id)}
+                            aria-label={copy.bookmarks}
+                            className={`inline-flex items-center gap-2 transition-colors ${
+                              post.userBookmarked
+                                ? 'text-amber-300'
+                                : 'hover:text-text-primary dark:hover:text-white'
+                            }`}
+                          >
+                            <Bookmark
+                              className={`h-4 w-4 ${
+                                post.userBookmarked ? 'fill-current' : ''
+                              }`}
+                            />
                             {post.bookmarkCount}
                           </button>
 
-                          <button className="inline-flex items-center gap-2 hover:text-text-primary dark:hover:text-white">
+                          <button
+                            type="button"
+                            onClick={() => handleShare(post.id)}
+                            aria-label={copy.share}
+                            className="inline-flex items-center gap-2 hover:text-text-primary dark:hover:text-white"
+                          >
                             <Share2 className="h-4 w-4" />
-                            {post.shareCount}
+                            {copy.share}
                           </button>
 
                           <button className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-tertiary hover:text-text-primary dark:text-text-tertiary dark:hover:text-white">

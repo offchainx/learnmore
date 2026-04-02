@@ -48,6 +48,17 @@ describe('QuestionCard', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
+  it('renders header action slot', () => {
+    render(
+      <QuestionCard
+        question={singleChoiceQuestion}
+        headerAction={<button type="button">报错</button>}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: '报错' })).toBeInTheDocument();
+  });
+
   it('handles single choice selection', () => {
     const handleChange = vi.fn();
     render(<QuestionCard question={singleChoiceQuestion} onAnswerChange={handleChange} />);
@@ -83,7 +94,7 @@ describe('QuestionCard', () => {
         showResult={true} 
       />
     );
-    expect(screen.getByText('Correct')).toBeInTheDocument();
+    expect(screen.getByText('回答正确')).toBeInTheDocument();
     expect(screen.getByText('1 + 1 equals 2')).toBeInTheDocument();
   });
 
@@ -103,7 +114,7 @@ describe('QuestionCard', () => {
 
       );
 
-      expect(screen.getByText('Incorrect')).toBeInTheDocument();
+      expect(screen.getByText('回答错误')).toBeInTheDocument();
 
     });
 
@@ -131,7 +142,7 @@ describe('QuestionCard', () => {
 
       expect(screen.getByText('The capital of France is?')).toBeInTheDocument();
 
-      expect(screen.getByPlaceholderText('Type your answer here...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('请输入答案')).toBeInTheDocument();
 
     });
 
@@ -145,7 +156,7 @@ describe('QuestionCard', () => {
 
       
 
-      const input = screen.getByPlaceholderText('Type your answer here...');
+      const input = screen.getByPlaceholderText('请输入答案');
 
       fireEvent.change(input, { target: { value: 'Paris' } });
 
@@ -171,7 +182,7 @@ describe('QuestionCard', () => {
 
       );
 
-      expect(screen.getByText('Correct')).toBeInTheDocument();
+      expect(screen.getByText('回答正确')).toBeInTheDocument();
 
     });
 

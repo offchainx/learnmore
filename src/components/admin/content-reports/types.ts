@@ -1,52 +1,55 @@
-export interface User {
-  id: string;
-  name: string;
-  avatar: string;
-  role?: string;
+export type ReportsRange = '7d' | '30d' | 'all'
+
+export type ReportStatus = 'PENDING' | 'REVIEWING' | 'RESOLVED' | 'REJECTED'
+
+export type ReportIssueType =
+  | 'ANSWER_WRONG'
+  | 'TYPO'
+  | 'UNCLEAR'
+  | 'IMAGE_BROKEN'
+  | 'LATEX_ERROR'
+  | 'OTHER'
+
+export interface ReportsReporter {
+  id: string
+  name: string
+  email: string
+  avatar: string | null
+  role: string
 }
 
-export enum ReportStatus {
-  PENDING = 'PENDING',
-  RESOLVED = 'RESOLVED',
-  IN_REVIEW = 'IN_REVIEW',
+export interface ReportQuestionOption {
+  id: string
+  text: string
+  isCorrect: boolean
 }
 
-export enum IssueType {
-  ANSWER_WRONG = 'ANSWER_WRONG',
-  TYPO_ERROR = 'TYPO_ERROR',
-  IMAGE_MISSING = 'IMAGE_MISSING',
+export interface ReportsQuestion {
+  id: string
+  content: string
+  type: string
+  subject: string
+  options: ReportQuestionOption[]
+  answer: string[]
 }
 
-export interface QuestionOption {
-  id: string;
-  text: string;
-  isCorrect: boolean;
+export interface ReportRecord {
+  id: string
+  reporter: ReportsReporter
+  question: ReportsQuestion
+  issueType: ReportIssueType
+  status: ReportStatus
+  description: string
+  createdAt: string
+  reviewedAt: string | null
+  reviewedBy: string | null
+  resolution: string | null
 }
 
-export interface Question {
-  id: string;
-  text: string;
-  subject: string;
-  options: QuestionOption[];
+export interface ReportsOverview {
+  openQueue: number
+  resolvedCount: number
+  avgResolutionTime: number
+  answerWrongCount: number
 }
 
-export interface Report {
-  id: string;
-  user: User;
-  timestamp: string; // e.g., "2 mins ago"
-  issueType: IssueType;
-  question: Question;
-  status: ReportStatus;
-  comment?: string;
-  userSuggestedOptionId?: string;
-  systemCorrectOptionId?: string;
-}
-
-export interface Stats {
-  pendingCount: number;
-  pendingChange: number;
-  resolvedToday: number;
-  resolvedRate: number;
-  avgResolutionTime: number; // in hours
-  avgResolutionChange: number; // in minutes
-}

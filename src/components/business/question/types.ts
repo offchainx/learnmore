@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'FILL_BLANK' | 'ESSAY' | 'TRUE_FALSE' | 'MCQ';
 
 export interface QuestionMaterialGroup {
@@ -25,4 +27,5 @@ export interface QuestionCardProps {
   readOnly?: boolean;
   showExplanation?: boolean;
   className?: string;
+  headerAction?: ReactNode;
 }

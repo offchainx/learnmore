@@ -21,6 +21,7 @@ interface ErrorWiperSessionProps {
   autoStart?: boolean;
   subjectId?: string;
   userTier?: TierKey;
+  reporterId?: string;
   onSessionComplete: (results: { wiped: number; remaining: number }) => void;
   onSubmitSession: (input: {
     attempts: Array<{ questionId: string; isCorrect: boolean }>;
@@ -65,6 +66,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
   autoStart = false,
   subjectId,
   userTier = 'STARTER',
+  reporterId,
   onSessionComplete,
   onSubmitSession,
 }) => {
@@ -159,6 +161,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
         secondaryActionLabel="再来一轮"
         secondaryAction={reloadPage}
         userTier={userTier}
+        reporterId={reporterId}
       />
     );
   }
@@ -219,6 +222,7 @@ export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({
       exitLabel="退出 Error Wiper"
       isSubmitting={isSubmitting}
       rightPanelNote="Error Wiper 更强调修复效率。建议先做完整组，再看这轮到底擦除了多少题。"
+      reporterId={reporterId}
     />
   );
 };

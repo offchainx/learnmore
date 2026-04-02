@@ -28,6 +28,27 @@ export const DEFAULT_DAILY_TASKS: DailyTaskTemplate[] = [
   },
 ]
 
+export const ONBOARDING_TASK_TEMPLATES: DailyTaskTemplate[] = [
+  {
+    type: DailyTaskType.ONBOARDING_PROFILE,
+    title: '完善个人资料',
+    targetCount: 1,
+    xpReward: 60,
+  },
+  {
+    type: DailyTaskType.ONBOARDING_GOALS,
+    title: '设置学习目标',
+    targetCount: 1,
+    xpReward: 60,
+  },
+  {
+    type: DailyTaskType.ONBOARDING_ASSESSMENT,
+    title: '完成入门测评',
+    targetCount: 1,
+    xpReward: 80,
+  },
+]
+
 /**
  * XP rewards for various actions
  */

@@ -4,9 +4,12 @@ import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { z } from 'zod'
+import { getHandleAvailability } from '@/lib/users/handle-server'
+import { normalizeHandle } from '@/lib/users/handle'
 
 const profileSchema = z.object({
   username: z.string().min(2, 'Username must be at least 2 characters').optional(),
+  handle: z.string().optional(),
   grade: z.coerce.number().min(7).max(9).optional(),
   avatar: z.string().url().optional().or(z.literal('')),
   // Preferences
@@ -115,6 +118,7 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
 
   const username = formData.get('username')
   const grade = formData.get('grade')
+  const handle = formData.get('handle')
   const avatar = formData.get('avatar')
   const language = formData.get('language')
   const theme = formData.get('theme')
@@ -123,6 +127,7 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
 
   const rawData = {
     username: username && username !== '' ? username : undefined,
+    handle: handle && handle !== '' ? handle : undefined,
     grade: grade && grade !== '' ? grade : undefined,
     avatar: avatar && avatar !== '' ? avatar : undefined,
     language: language || undefined,
@@ -140,6 +145,8 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
   const data = result.data
 
   try {
+    const normalizedHandle = data.handle ? normalizeHandle(data.handle) : undefined
+
     // Check if username is taken (if changed)
     if (data.username) {
       const existing = await prisma.user.findUnique({
@@ -150,6 +157,13 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
       }
     }
 
+    if (normalizedHandle) {
+      const availability = await getHandleAvailability(normalizedHandle, user.id)
+      if (!availability.available) {
+        return { error: availability.reason || '该账号标识暂不可用' }
+      }
+    }
+
     // Transaction to update both tables
     await prisma.$transaction(async (tx) => {
       // 1. Update User
@@ -157,6 +171,7 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
         where: { id: user.id },
         data: {
           ...(data.username && { username: data.username }),
+          ...(normalizedHandle && { handle: normalizedHandle }),
           ...(data.grade && { grade: data.grade }),
           ...(data.avatar !== undefined && { avatar: data.avatar || null }),
         }

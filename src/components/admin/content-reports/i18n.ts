@@ -33,44 +33,78 @@ type ReportsI18nBundle = {
     queueTitle: string
     queueDescription: string
     searchPlaceholder: string
+    statusAll: string
+    statusLabel: string
     issueAll: string
     issueLabel: string
     resultSummary: string
     empty: string
   }
   table: {
+    selectAll: string
     reporter: string
     issueType: string
     questionPreview: string
     subject: string
     status: string
     actions: string
-    inReview: string
+    bulkActions: string
+    bulkSelected: string
+    bulkNotePlaceholder: string
+    bulkSetReviewing: string
+    bulkSetResolved: string
+    bulkSetRejected: string
+    bulkClear: string
     pending: string
+    reviewing: string
     resolved: string
+    rejected: string
     viewDetails: string
     showing: string
     to: string
     of: string
     results: string
+    page: string
   }
   drawer: {
     reportDetails: string
+    reportUnavailable: string
+    reportUnavailableHint: string
+    topStatus: string
     student: string
     idPrefix: string
     userComment: string
-    questionContent: string
-    systemAnswer: string
-    userSuggests: string
-    option: string
-    confirmErrorRefund: string
-    rejectReport: string
-    markAsFixed: string
+    reportedAt: string
+    reporterInfo: string
+    reporterIdentity: string
+    timelineTitle: string
+    workbenchTitle: string
+    processedAt: string
+    processedBy: string
+    processedAction: string
+    processedNote: string
+    currentStatus: string
+    currentStatusLabel: string
+    nextStatus: string
+    nextStatusPlaceholder: string
+    templateLabel: string
+    templatePlaceholder: string
+    resolutionLabel: string
+    resolutionPlaceholder: string
+    submitResolution: string
+    saving: string
+    refresh: string
+    noResolution: string
+    noTimeline: string
+    noWork: string
   }
   issueType: {
     ANSWER_WRONG: string
-    TYPO_ERROR: string
-    IMAGE_MISSING: string
+    TYPO: string
+    UNCLEAR: string
+    IMAGE_BROKEN: string
+    LATEX_ERROR: string
+    OTHER: string
   }
 }
 
@@ -91,7 +125,7 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
     },
     stats: {
       openQueue: 'Open Reports',
-      openQueueHint: 'Pending and in-review items',
+      openQueueHint: 'Pending and reviewing items',
       resolvedInRange: 'Resolved',
       resolvedInRangeHint: 'Closed within current range',
       avgResolutionTime: 'Avg. Resolution Time',
@@ -110,45 +144,80 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       queueDescription:
         'Triage student reports, review evidence, and route fixes without leaving the workbench.',
       searchPlaceholder:
-        'Search by report ID, question content, subject or reporter...',
+        'Search by report ID, question content, subject, reporter, or description...',
+      statusAll: 'All Statuses',
+      statusLabel: 'Status',
       issueAll: 'All Issues',
       issueLabel: 'Issue Type',
       resultSummary: 'results',
       empty: 'No reports matched the current filters.',
     },
     table: {
+      selectAll: 'Select All',
       reporter: 'Reporter',
       issueType: 'Issue Type',
       questionPreview: 'Question Preview',
       subject: 'Subject',
       status: 'Status',
       actions: 'Actions',
-      inReview: 'In Review',
+      bulkActions: 'Bulk Actions',
+      bulkSelected: 'selected',
+      bulkNotePlaceholder: 'Optional note for bulk processing...',
+      bulkSetReviewing: 'Mark Reviewing',
+      bulkSetResolved: 'Mark Resolved',
+      bulkSetRejected: 'Mark Rejected',
+      bulkClear: 'Clear',
       pending: 'Pending',
+      reviewing: 'Reviewing',
       resolved: 'Resolved',
+      rejected: 'Rejected',
       viewDetails: 'View Details',
       showing: 'Showing',
       to: 'to',
       of: 'of',
       results: 'results',
+      page: 'Page',
     },
     drawer: {
       reportDetails: 'Report Details',
+      reportUnavailable: 'Report unavailable',
+      reportUnavailableHint:
+        'The record may have been filtered out, removed, or you may not have permission to view it.',
+      topStatus: 'Top Status',
       student: 'Student',
-      idPrefix: 'ID',
+      idPrefix: 'Ticket ID',
       userComment: 'User Comment',
-      questionContent: 'Question Content',
-      systemAnswer: 'System Answer',
-      userSuggests: 'User Suggests',
-      option: 'Option',
-      confirmErrorRefund: 'Confirm Error & Refund',
-      rejectReport: 'Reject Report',
-      markAsFixed: 'Mark as Fixed',
+      reportedAt: 'Reported At',
+      reporterInfo: 'Reporter Info',
+      reporterIdentity: 'Reporter Identity',
+      timelineTitle: 'Processing Timeline',
+      workbenchTitle: 'Processing Workbench',
+      processedAt: 'Processed At',
+      processedBy: 'Processed By',
+      processedAction: 'Action',
+      processedNote: 'Note',
+      currentStatus: 'Current Status',
+      currentStatusLabel: 'Current Status',
+      nextStatus: 'Next Status',
+      nextStatusPlaceholder: 'Choose next status',
+      templateLabel: 'Templates',
+      templatePlaceholder: 'Choose a template',
+      resolutionLabel: 'Processing Note',
+      resolutionPlaceholder: 'Write the handling summary, resolution, or rejection reason...',
+      submitResolution: 'Submit Resolution',
+      saving: 'Saving...',
+      refresh: 'Refresh',
+      noResolution: 'No resolution yet',
+      noTimeline: 'No timeline yet',
+      noWork: 'No processing note yet',
     },
     issueType: {
       ANSWER_WRONG: 'Answer Wrong',
-      TYPO_ERROR: 'Typo Error',
-      IMAGE_MISSING: 'Image Missing',
+      TYPO: 'Typo',
+      UNCLEAR: 'Unclear',
+      IMAGE_BROKEN: 'Image Broken',
+      LATEX_ERROR: 'LaTeX Error',
+      OTHER: 'Other',
     },
   },
   zh: {
@@ -166,7 +235,7 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
     },
     stats: {
       openQueue: '待处理报错',
-      openQueueHint: '待处理与处理中总量',
+      openQueueHint: '待处理与审核中总量',
       resolvedInRange: '已解决',
       resolvedInRangeHint: '当前时间范围内关闭',
       avgResolutionTime: '平均处理时长',
@@ -184,45 +253,80 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
       queueTitle: '报错队列',
       queueDescription:
         '集中处理学员上报问题，快速判断是否需要修题、复审或直接关闭。',
-      searchPlaceholder: '按报错 ID、题目内容、科目或上报人搜索...',
+      searchPlaceholder: '按报错 ID、题目内容、科目、上报人或描述搜索...',
+      statusAll: '全部状态',
+      statusLabel: '状态',
       issueAll: '全部问题',
       issueLabel: '问题类型',
       resultSummary: '条结果',
       empty: '当前筛选条件下没有匹配的报错。',
     },
     table: {
+      selectAll: '全选',
       reporter: '上报人',
       issueType: '问题类型',
       questionPreview: '题目预览',
       subject: '科目',
       status: '状态',
       actions: '操作',
-      inReview: '处理中',
+      bulkActions: '批量处理',
+      bulkSelected: '条已选中',
+      bulkNotePlaceholder: '可选：输入批量处理备注...',
+      bulkSetReviewing: '批量标记处理中',
+      bulkSetResolved: '批量标记已解决',
+      bulkSetRejected: '批量标记已驳回',
+      bulkClear: '清空选择',
       pending: '待处理',
+      reviewing: '审核中',
       resolved: '已解决',
+      rejected: '已驳回',
       viewDetails: '查看详情',
       showing: '显示',
       to: '到',
       of: '共',
       results: '条',
+      page: '页',
     },
     drawer: {
       reportDetails: '报错详情',
+      reportUnavailable: '报错详情不可用',
+      reportUnavailableHint:
+        '当前记录可能已被筛选移除、已删除，或你没有查看权限。',
+      topStatus: '顶部状态',
       student: '学员',
-      idPrefix: '编号',
+      idPrefix: '工单 ID',
       userComment: '用户反馈',
-      questionContent: '题目内容',
-      systemAnswer: '系统答案',
-      userSuggests: '用户建议',
-      option: '选项',
-      confirmErrorRefund: '确认题目错误并退款',
-      rejectReport: '驳回报错',
-      markAsFixed: '标记已修复',
+      reportedAt: '提交时间',
+      reporterInfo: '上报人信息',
+      reporterIdentity: '上报人身份',
+      timelineTitle: '处理时间线',
+      workbenchTitle: '处理工作台',
+      processedAt: '处理时间',
+      processedBy: '处理人',
+      processedAction: '动作',
+      processedNote: '内容',
+      currentStatus: '当前状态',
+      currentStatusLabel: '当前状态',
+      nextStatus: '下一状态',
+      nextStatusPlaceholder: '选择下一状态',
+      templateLabel: '模版',
+      templatePlaceholder: '选择模版',
+      resolutionLabel: '处理说明',
+      resolutionPlaceholder: '填写处理结论、解决说明或驳回原因...',
+      submitResolution: '提交处理',
+      saving: '提交中...',
+      refresh: '刷新',
+      noResolution: '暂无处理结果',
+      noTimeline: '暂无时间线',
+      noWork: '暂无处理说明',
     },
     issueType: {
       ANSWER_WRONG: '答案错误',
-      TYPO_ERROR: '文本错误',
-      IMAGE_MISSING: '图片缺失',
+      TYPO: '文本错误',
+      UNCLEAR: '表述不清',
+      IMAGE_BROKEN: '图片损坏',
+      LATEX_ERROR: '公式错误',
+      OTHER: '其他',
     },
   },
   ms: {
@@ -258,47 +362,82 @@ const reportsI18n: Record<ReportsLang, ReportsI18nBundle> = {
     filters: {
       queueTitle: 'Barisan Laporan',
       queueDescription:
-        'Semak isu yang dilaporkan pelajar dan tentukan sama ada perlu dibaiki, disemak semula atau ditutup terus.',
+        'Tumpukan laporan pelajar, semak bukti, dan hantar pembetulan tanpa keluar dari ruang kerja.',
       searchPlaceholder:
-        'Cari ikut ID laporan, kandungan soalan, subjek atau pelapor...',
+        'Cari mengikut ID laporan, kandungan soalan, subjek, pelapor atau deskripsi...',
+      statusAll: 'Semua Status',
+      statusLabel: 'Status',
       issueAll: 'Semua Isu',
       issueLabel: 'Jenis Isu',
       resultSummary: 'hasil',
       empty: 'Tiada laporan yang sepadan dengan penapis semasa.',
     },
     table: {
+      selectAll: 'Pilih Semua',
       reporter: 'Pelapor',
       issueType: 'Jenis Isu',
       questionPreview: 'Pratonton Soalan',
       subject: 'Subjek',
       status: 'Status',
       actions: 'Tindakan',
-      inReview: 'Dalam Semakan',
+      bulkActions: 'Tindakan Pukal',
+      bulkSelected: 'dipilih',
+      bulkNotePlaceholder: 'Nota pilihan untuk pemprosesan pukal...',
+      bulkSetReviewing: 'Tanda Sedang Disemak',
+      bulkSetResolved: 'Tanda Selesai',
+      bulkSetRejected: 'Tanda Ditolak',
+      bulkClear: 'Kosongkan',
       pending: 'Tertunggak',
+      reviewing: 'Sedang Disemak',
       resolved: 'Selesai',
+      rejected: 'Ditolak',
       viewDetails: 'Lihat Butiran',
       showing: 'Menunjukkan',
-      to: 'hingga',
+      to: 'ke',
       of: 'daripada',
-      results: 'rekod',
+      results: 'hasil',
+      page: 'Halaman',
     },
     drawer: {
       reportDetails: 'Butiran Laporan',
+      reportUnavailable: 'Laporan tidak tersedia',
+      reportUnavailableHint:
+        'Rekod ini mungkin telah ditapis keluar, dipadam, atau anda tiada kebenaran untuk melihatnya.',
+      topStatus: 'Status Atas',
       student: 'Pelajar',
-      idPrefix: 'ID',
+      idPrefix: 'ID Tiket',
       userComment: 'Komen Pengguna',
-      questionContent: 'Kandungan Soalan',
-      systemAnswer: 'Jawapan Sistem',
-      userSuggests: 'Cadangan Pengguna',
-      option: 'Pilihan',
-      confirmErrorRefund: 'Sahkan Ralat & Bayaran Balik',
-      rejectReport: 'Tolak Laporan',
-      markAsFixed: 'Tanda Selesai',
+      reportedAt: 'Dilaporkan Pada',
+      reporterInfo: 'Maklumat Pelapor',
+      reporterIdentity: 'Identiti Pelapor',
+      timelineTitle: 'Garis Masa Pemprosesan',
+      workbenchTitle: 'Ruang Kerja Pemprosesan',
+      processedAt: 'Diproses Pada',
+      processedBy: 'Diproses Oleh',
+      processedAction: 'Tindakan',
+      processedNote: 'Nota',
+      currentStatus: 'Status Semasa',
+      currentStatusLabel: 'Status Semasa',
+      nextStatus: 'Status Seterusnya',
+      nextStatusPlaceholder: 'Pilih status seterusnya',
+      templateLabel: 'Templat',
+      templatePlaceholder: 'Pilih templat',
+      resolutionLabel: 'Nota Pemprosesan',
+      resolutionPlaceholder: 'Tulis ringkasan pemprosesan, hasil semakan, atau sebab ditolak...',
+      submitResolution: 'Hantar Hasil',
+      saving: 'Menyimpan...',
+      refresh: 'Muat semula',
+      noResolution: 'Belum ada hasil semakan',
+      noTimeline: 'Tiada garis masa lagi',
+      noWork: 'Belum ada nota pemprosesan',
     },
     issueType: {
       ANSWER_WRONG: 'Jawapan Salah',
-      TYPO_ERROR: 'Ralat Ejaan',
-      IMAGE_MISSING: 'Imej Tiada',
+      TYPO: 'Ralat Ejaan',
+      UNCLEAR: 'Tidak Jelas',
+      IMAGE_BROKEN: 'Imej Rosak',
+      LATEX_ERROR: 'Ralat LaTeX',
+      OTHER: 'Lain-lain',
     },
   },
 }

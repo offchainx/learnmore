@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { RotateCcw, LogOut, Send, Clock3 } from 'lucide-react'
+import { RotateCcw, LogOut, Send, Clock3, TimerReset } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -13,11 +13,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { QuestionCard } from '@/components/business/question'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { QuestionCard, QuestionReportButton, QuestionContent } from '@/components/business/question'
 import type { Question } from '@/components/business/question'
 import CountdownTimer from '@/components/practice/session/CountdownTimer'
 import { cn } from '@/lib/utils'
-import { QuestionContent } from '@/components/business/question'
 
 export interface UnifiedPracticeQuestion {
   id: string
@@ -45,6 +58,7 @@ interface UnifiedPracticeWorkspaceProps {
   onTimeUp?: () => void
   rightPanelNote?: string
   stickyOffsetClassName?: string
+  reporterId?: string
 }
 
 function hasAnswer(value: string | string[] | undefined) {
@@ -78,11 +92,14 @@ export default function UnifiedPracticeWorkspace({
   onTimeUp,
   rightPanelNote,
   stickyOffsetClassName = 'top-3',
+  reporterId,
 }: UnifiedPracticeWorkspaceProps) {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [activeQuestionId, setActiveQuestionId] = useState<string>(questions[0]?.id || '')
   const [showSubmitDialog, setShowSubmitDialog] = useState(false)
+  const [showElapsedTimeSheet, setShowElapsedTimeSheet] = useState(false)
   const [startedAt] = useState(() => Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const questionRefs = useRef<Record<string, HTMLElement | null>>({})
 
   const totalQuestions = questions.length
@@ -91,6 +108,8 @@ export default function UnifiedPracticeWorkspace({
     [answers],
   )
   const progress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0
+  const elapsedSeconds = Math.max(1, Math.round((now - startedAt) / 1000))
+  const elapsedMinutes = Math.max(1, Math.ceil(elapsedSeconds / 60))
 
   useEffect(() => {
     if (questions.length === 0) return
@@ -119,6 +138,14 @@ export default function UnifiedPracticeWorkspace({
     return () => observer.disconnect()
   }, [questions])
 
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(Date.now())
+    }, 15000)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
   const goToQuestion = (questionId: string) => {
     const node = questionRefs.current[questionId]
     if (!node) return
@@ -135,6 +162,64 @@ export default function UnifiedPracticeWorkspace({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-2">
+        <Sheet
+          open={showElapsedTimeSheet}
+          onOpenChange={setShowElapsedTimeSheet}
+        >
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 rounded-full bg-surface/90 text-text-secondary hover:bg-surface hover:text-text-primary dark:bg-surface-subtle/90 dark:text-text-secondary dark:hover:bg-surface-subtle"
+                    aria-label="答题时间"
+                  >
+                    <TimerReset className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <span>答题时间</span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <SheetContent
+            side="right"
+            className="w-full border-l border-borderTone bg-surface/95 p-0 sm:max-w-sm dark:border-borderTone dark:bg-surface-subtle/95"
+          >
+            <SheetHeader className="border-b border-borderTone px-5 py-5 text-left dark:border-borderTone">
+              <SheetTitle className="flex items-center gap-2 text-lg font-semibold text-text-primary dark:text-text-primary">
+                <TimerReset className="h-4 w-4 text-primary" />
+                答题时间
+              </SheetTitle>
+              <SheetDescription className="text-sm leading-6 text-text-secondary dark:text-text-secondary">
+                这里只显示当前这轮答题已经使用的时间，按分钟计，不会影响交卷节奏。
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="space-y-4 px-5 py-5">
+              <div className="rounded-[24px] border border-borderTone bg-surface px-5 py-4 shadow-surface dark:border-borderTone dark:bg-surface">
+                <div className="text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary">
+                  当前已用
+                </div>
+                <div className="mt-3 text-4xl font-black tracking-tight text-text-primary dark:text-text-primary">
+                  {elapsedMinutes}
+                  <span className="ml-1 text-base font-semibold text-text-secondary dark:text-text-secondary">
+                    分钟
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-4 text-sm leading-6 text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary">
+                当前计时从你进入这轮答题页开始，提交时会作为本轮练习时长写入记录。
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
         {onRefresh ? (
           <Button variant="outline" size="sm" className="rounded-xl bg-surface/90 dark:bg-surface-subtle/90" onClick={onRefresh}>
             <RotateCcw className="mr-2 h-4 w-4" />
@@ -258,6 +343,15 @@ export default function UnifiedPracticeWorkspace({
                     showResult={false}
                     readOnly={false}
                     className="border-none shadow-none"
+                    headerAction={
+                      reporterId ? (
+                        <QuestionReportButton
+                          questionId={item.id}
+                          reportedBy={reporterId}
+                          questionLabel={`第 ${index + 1} 题`}
+                        />
+                      ) : null
+                    }
                   />
                 </CardContent>
               </Card>

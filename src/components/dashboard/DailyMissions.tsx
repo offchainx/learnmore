@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card'
 import { useApp } from '@/providers'
 import { useToast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
+import { PageEmptyState } from '@/components/shared/PageEmptyState'
 
 import { ProfileDialog } from './dialogs/ProfileDialog'
 import { GoalsDialog } from './dialogs/GoalsDialog'
@@ -36,6 +37,19 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
   const [showProfile, setShowProfile] = useState(false)
   const [showGoals, setShowGoals] = useState(false)
   const [showAssessment, setShowAssessment] = useState(false)
+
+  const getTaskHref = (task: DailyTask) => {
+    switch (task.type) {
+      case 'COMPLETE_LESSON':
+        return '/dashboard/courses'
+      case 'QUIZ_SCORE':
+        return '/dashboard/practice'
+      case 'FIX_ERROR':
+        return '/dashboard/practice/error-wiper'
+      default:
+        return null
+    }
+  }
 
   const handleClaim = (taskId: string, reward: number) => {
     startTransition(async () => {
@@ -75,8 +89,11 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
         setShowAssessment(true)
         break
       default:
-        if (task.type === 'COMPLETE_LESSON') {
-          router.push('/dashboard/courses')
+        {
+          const href = getTaskHref(task)
+          if (href) {
+            router.push(href)
+          }
         }
         break
     }
@@ -183,131 +200,151 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
           </div>
         </div>
 
-        <div className="space-y-3" onWheel={handleWheel}>
-          {visibleTasks.map((task, index) => {
-            const isCompleted = task.currentCount >= task.targetCount
-            const progress = Math.min(
-              (task.currentCount / task.targetCount) * 100,
-              100
-            )
-            const isInteractive =
-              !isCompleted &&
-              !task.isClaimed &&
-              (task.type === 'ONBOARDING_PROFILE' ||
-                task.type === 'ONBOARDING_GOALS' ||
-                task.type === 'ONBOARDING_ASSESSMENT')
-
-            let statusColor =
-              'text-[hsl(var(--state-info-fg))] bg-[hsl(var(--state-info-bg))] border-borderTone dark:text-[hsl(var(--state-info-fg))] dark:bg-[hsl(var(--state-info-bg))] dark:border-borderTone'
-            if (task.isClaimed) {
-              statusColor =
-                'text-text-secondary bg-surface-subtle border-borderTone dark:text-text-secondary dark:bg-surface-subtle dark:border-borderTone'
-            } else if (isCompleted) {
-              statusColor =
-                'text-[hsl(var(--state-success-fg))] bg-[hsl(var(--state-success-bg))] border-borderTone dark:text-[hsl(var(--state-success-fg))] dark:bg-[hsl(var(--state-success-bg))] dark:border-borderTone'
-            }
-
-            return (
-              <div
-                key={task.id}
-                onClick={() => handleTaskAction(task)}
-                className={`group flex items-center justify-between rounded-[22px] border px-4 py-3.5 shadow-none transition-all duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both ${
-                  task.isClaimed
-                    ? 'cursor-default border-borderTone bg-surface-subtle opacity-70 dark:border-borderTone dark:bg-surface-subtle'
-                    : isInteractive
-                      ? 'cursor-pointer border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:hover:bg-surface-subtle'
-                      : 'cursor-default border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:hover:bg-surface-subtle'
-                }`}
-                style={{ animationDelay: `${index * 45}ms` }}
+        {sortedTasks.length === 0 ? (
+          <PageEmptyState
+            title={copy('今日任务已完成', "Today's mission is clear")}
+            description={copy(
+              '今天没有待处理任务。完成新的练习或明天再回来，系统会生成新的任务。',
+              'There are no pending tasks right now. Complete a new practice run or come back tomorrow for a new mission set.'
+            )}
+            actions={
+              <Button
+                onClick={() => router.push('/dashboard/practice')}
+                className="rounded-2xl px-4 py-2 text-sm font-bold"
               >
-                <div className="flex flex-1 items-center gap-4">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed transition-all ${
-                      task.isClaimed
-                        ? 'border-borderTone dark:border-borderTone'
-                        : 'border-[hsl(var(--border-default))] group-hover:border-[hsl(var(--state-info-fg))] group-hover:bg-[hsl(var(--state-info-bg))] dark:border-borderTone dark:group-hover:border-[hsl(var(--state-info-fg))] dark:group-hover:bg-[hsl(var(--state-info-bg))]'
-                    }`}
-                  >
-                    <div
-                      className={`h-2 w-2 rounded-full bg-current ${task.isClaimed ? 'text-text-tertiary dark:text-text-tertiary' : 'text-primary dark:text-primary'}`}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div
-                      className={`text-[15px] font-bold transition-colors ${task.isClaimed ? 'text-text-secondary dark:text-text-secondary' : 'text-text-primary group-hover:text-primary dark:text-text-primary dark:group-hover:text-primary'}`}
-                    >
-                      {task.title}
-                    </div>
-                    <div className="mt-1 flex items-center gap-3">
-                      <div
-                        className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold ${statusColor}`}
-                      >
-                        {task.isClaimed
-                          ? copy('已领取', 'Claimed')
-                          : isCompleted
-                            ? copy('可领取', 'Completed')
-                            : copy('进行中', 'In Progress')}
-                      </div>
-                      <div className="h-1.5 max-w-[100px] flex-1 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface-subtle">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all duration-500 dark:bg-primary"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] text-text-secondary dark:text-text-secondary">
-                        {task.currentCount}/{task.targetCount}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {copy('去练习', 'Go Practice')}
+              </Button>
+            }
+            className="flex-1 rounded-[22px] border border-dashed border-borderTone bg-surface/60 px-4 py-6 dark:border-borderTone dark:bg-surface/40"
+          />
+        ) : (
+          <div className="space-y-3" onWheel={handleWheel}>
+            {visibleTasks.map((task, index) => {
+              const isCompleted = task.currentCount >= task.targetCount
+              const progress = Math.min(
+                (task.currentCount / task.targetCount) * 100,
+                100
+              )
+              const isInteractive =
+                !isCompleted &&
+                !task.isClaimed &&
+                (task.type === 'ONBOARDING_PROFILE' ||
+                  task.type === 'ONBOARDING_GOALS' ||
+                  task.type === 'ONBOARDING_ASSESSMENT' ||
+                  getTaskHref(task) !== null)
 
-                <div className="ml-4 flex items-center gap-4 text-right">
-                  {!task.isClaimed && (
-                    <div className="rounded-xl border border-borderTone bg-[hsl(var(--state-warning-bg))] px-2.5 py-1 text-sm font-bold text-[hsl(var(--state-warning-fg))] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:border-borderTone dark:bg-[hsl(var(--state-warning-bg))] dark:text-[hsl(var(--state-warning-fg))]">
-                      +{task.xpReward} XP
-                    </div>
-                  )}
+              let statusColor =
+                'text-[hsl(var(--state-info-fg))] bg-[hsl(var(--state-info-bg))] border-borderTone dark:text-[hsl(var(--state-info-fg))] dark:bg-[hsl(var(--state-info-bg))] dark:border-borderTone'
+              if (task.isClaimed) {
+                statusColor =
+                  'text-text-secondary bg-surface-subtle border-borderTone dark:text-text-secondary dark:bg-surface-subtle dark:border-borderTone'
+              } else if (isCompleted) {
+                statusColor =
+                  'text-[hsl(var(--state-success-fg))] bg-[hsl(var(--state-success-bg))] border-borderTone dark:text-[hsl(var(--state-success-fg))] dark:bg-[hsl(var(--state-success-bg))] dark:border-borderTone'
+              }
 
-                  {task.isClaimed ? (
-                    <div className="flex h-8 w-8 items-center justify-center text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]">
-                      <CircleCheck className="h-6 w-6" />
-                    </div>
-                  ) : isCompleted ? (
-                    <Button
-                      size="sm"
-                      className="rounded-xl border-0 bg-[hsl(var(--state-success-fg))] text-white hover:bg-[hsl(var(--state-success-fg))]"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        handleClaim(task.id, task.xpReward)
-                      }}
-                      disabled={isPending}
-                    >
-                      {isPending ? '...' : copy('领取', 'Claim')}
-                    </Button>
-                  ) : (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-borderTone bg-surface-subtle text-text-tertiary transition-all group-hover:border-[hsl(var(--state-info-fg))]/40 group-hover:bg-primary group-hover:text-white dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary dark:opacity-50 dark:group-hover:bg-primary dark:group-hover:text-white">
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-
-          {visibleTasks.length < TASKS_PER_PAGE &&
-            Array.from({ length: TASKS_PER_PAGE - visibleTasks.length }).map(
-              (_, index) => (
+              return (
                 <div
-                  key={`task-empty-${index}`}
-                  className="flex h-[92px] items-center justify-center rounded-[22px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle"
+                  key={task.id}
+                  onClick={() => handleTaskAction(task)}
+                  className={`group flex items-center justify-between rounded-[22px] border px-4 py-3.5 shadow-none transition-all duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both ${
+                    task.isClaimed
+                      ? 'cursor-default border-borderTone bg-surface-subtle opacity-70 dark:border-borderTone dark:bg-surface-subtle'
+                      : isInteractive
+                        ? 'cursor-pointer border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:hover:bg-surface-subtle'
+                        : 'cursor-default border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:hover:bg-surface-subtle'
+                  }`}
+                  style={{ animationDelay: `${index * 45}ms` }}
                 >
-                  <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
-                    {copy('已到列表底部', 'End of list')}
-                  </span>
+                  <div className="flex flex-1 items-center gap-4">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed transition-all ${
+                        task.isClaimed
+                          ? 'border-borderTone dark:border-borderTone'
+                          : 'border-[hsl(var(--border-default))] group-hover:border-[hsl(var(--state-info-fg))] group-hover:bg-[hsl(var(--state-info-bg))] dark:border-borderTone dark:group-hover:border-[hsl(var(--state-info-fg))] dark:group-hover:bg-[hsl(var(--state-info-bg))]'
+                      }`}
+                    >
+                      <div
+                        className={`h-2 w-2 rounded-full bg-current ${task.isClaimed ? 'text-text-tertiary dark:text-text-tertiary' : 'text-primary dark:text-primary'}`}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className={`text-[15px] font-bold transition-colors ${task.isClaimed ? 'text-text-secondary dark:text-text-secondary' : 'text-text-primary group-hover:text-primary dark:text-text-primary dark:group-hover:text-primary'}`}
+                      >
+                        {task.title}
+                      </div>
+                      <div className="mt-1 flex items-center gap-3">
+                        <div
+                          className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold ${statusColor}`}
+                        >
+                          {task.isClaimed
+                            ? copy('已领取', 'Claimed')
+                            : isCompleted
+                              ? copy('可领取', 'Completed')
+                              : copy('进行中', 'In Progress')}
+                        </div>
+                        <div className="h-1.5 max-w-[100px] flex-1 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface-subtle">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all duration-500 dark:bg-primary"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] text-text-secondary dark:text-text-secondary">
+                          {task.currentCount}/{task.targetCount}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="ml-4 flex items-center gap-4 text-right">
+                    {!task.isClaimed && (
+                      <div className="rounded-xl border border-borderTone bg-[hsl(var(--state-warning-bg))] px-2.5 py-1 text-sm font-bold text-[hsl(var(--state-warning-fg))] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:border-borderTone dark:bg-[hsl(var(--state-warning-bg))] dark:text-[hsl(var(--state-warning-fg))]">
+                        +{task.xpReward} XP
+                      </div>
+                    )}
+
+                    {task.isClaimed ? (
+                      <div className="flex h-8 w-8 items-center justify-center text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]">
+                        <CircleCheck className="h-6 w-6" />
+                      </div>
+                    ) : isCompleted ? (
+                      <Button
+                        size="sm"
+                        className="rounded-xl border-0 bg-[hsl(var(--state-success-fg))] text-white hover:bg-[hsl(var(--state-success-fg))]"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleClaim(task.id, task.xpReward)
+                        }}
+                        disabled={isPending}
+                      >
+                        {isPending ? '...' : copy('领取', 'Claim')}
+                      </Button>
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-borderTone bg-surface-subtle text-text-tertiary transition-all group-hover:border-[hsl(var(--state-info-fg))]/40 group-hover:bg-primary group-hover:text-white dark:border-borderTone dark:bg-surface-subtle dark:text-text-tertiary dark:opacity-50 dark:group-hover:bg-primary dark:group-hover:text-white">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
-            )}
-        </div>
+            })}
+
+            {visibleTasks.length < TASKS_PER_PAGE &&
+              Array.from({ length: TASKS_PER_PAGE - visibleTasks.length }).map(
+                (_, index) => (
+                  <div
+                    key={`task-empty-${index}`}
+                    className="flex h-[92px] items-center justify-center rounded-[22px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle"
+                  >
+                    <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
+                      {copy('已到列表底部', 'End of list')}
+                    </span>
+                  </div>
+                )
+              )}
+          </div>
+        )}
 
         {user && (
           <>

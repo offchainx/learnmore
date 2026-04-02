@@ -10,6 +10,7 @@ import {
 import prisma from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { triggerReceiptNotification } from '@/actions/notification/triggers';
+import { runAfterTask } from '@/lib/server/run-after-task';
 
 type NormalizedPlanKey = 'standard' | 'smart_plus' | 'premier';
 type NormalizedBillingCycle = 'monthly' | 'annual';
@@ -888,13 +889,15 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
   }
 
   if (staleIgnored) {
-    auditLog({
-      action: 'webhook.invoice.payment_succeeded',
-      result: 'ignored_stale_subscription',
-      eventId: event.id,
-      userId,
-      subscriptionId: subscriptionId || undefined,
-    });
+    runAfterTask(() => {
+      auditLog({
+        action: 'webhook.invoice.payment_succeeded',
+        result: 'ignored_stale_subscription',
+        eventId: event.id,
+        userId,
+        subscriptionId: subscriptionId || undefined,
+      });
+    }, 'stripe-invoice-stale-audit');
 
     return jsonResponse({
       ok: true,
@@ -914,14 +917,16 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
     }
   }
 
-  auditLog({
-    action: 'webhook.invoice.payment_succeeded',
-    result: 'processed',
-    eventId: event.id,
-    userId,
-    isRealCharge,
-    amount,
-  });
+  runAfterTask(() => {
+    auditLog({
+      action: 'webhook.invoice.payment_succeeded',
+      result: 'processed',
+      eventId: event.id,
+      userId,
+      isRealCharge,
+      amount,
+    });
+  }, 'stripe-invoice-audit');
 
   return jsonResponse({
     ok: true,

@@ -9,8 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { practiceThemeStyles, type PracticeModeTheme } from './theme'
-import { QuestionCard } from '@/components/business/question'
-import { QuestionContent } from '@/components/business/question'
+import { QuestionCard, QuestionReportButton, QuestionContent } from '@/components/business/question'
 import type { Question } from '@/components/business/question'
 import type { TierKey } from '@/lib/permissions/types'
 
@@ -37,6 +36,7 @@ interface PracticeReviewWorkspaceProps {
   secondaryActionLabel?: string
   secondaryAction?: () => void
   userTier?: TierKey
+  reporterId?: string
 }
 
 type ReviewFilter = 'all' | 'wrong' | 'correct'
@@ -160,6 +160,7 @@ export function PracticeReviewWorkspace({
   secondaryActionLabel,
   secondaryAction,
   userTier = 'STARTER',
+  reporterId,
 }: PracticeReviewWorkspaceProps) {
   const router = useRouter()
   const themeStyle = practiceThemeStyles[theme]
@@ -320,6 +321,15 @@ export function PracticeReviewWorkspace({
                       readOnly
                       showExplanation={reviewExperience.canViewExplanation}
                       className="border-none bg-transparent shadow-none"
+                      headerAction={
+                        reporterId ? (
+                          <QuestionReportButton
+                            questionId={item.id}
+                            reportedBy={reporterId}
+                            questionLabel={`第 ${item.order} 题`}
+                          />
+                        ) : null
+                      }
                     />
 
                     {reviewExperience.canViewSupplementaryNotes && item.emphasisNote ? (

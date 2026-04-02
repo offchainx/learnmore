@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createPost } from '@/actions/community/post'
+import { uploadImage } from '@/actions/storage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { toast } from '@/components/ui/use-toast'
@@ -30,41 +31,55 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
   const [content, setContent] = useState('')
   const [subjectId, setSubjectId] = useState('')
   const [tags, setTags] = useState('')
-  const [isOriginal, setIsOriginal] = useState(true)
+  const [postType, setPostType] = useState<
+    'Question' | 'Note' | 'Achievement' | 'Discussion'
+  >('Note')
   const [isPrivate, setIsPrivate] = useState(false)
+  const [mentionInput, setMentionInput] = useState('')
+  const [showMentionInput, setShowMentionInput] = useState(false)
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null)
+  const mentionInputRef = useRef<HTMLInputElement | null>(null)
 
   const copy = useMemo(() => {
     if (lang === 'zh') {
       return {
         title: '发帖子',
         sub: '按论坛发布结构整理标题、板块、标签和正文，方便社区快速浏览和检索。',
+        postTypeLabel: '帖子类型',
+        postTypeHint: '选择帖子类型，帮助社区正确展示状态与筛选方式。',
+        questionType: '提问帖',
+        noteType: '笔记帖',
+        achievementType: '成就分享',
+        discussionType: '讨论帖',
         articleTitle: '文章标题',
         articlePlaceholder: '请输入文章标题',
         boardLabel: '论坛板块',
         boardPlaceholder: '请选择论坛板块',
         tagLabel: '帖子标签',
         tagPlaceholder: '用逗号分隔，例如：代数, 函数, 求助',
-        attachmentLabel: '附件列表',
-        attachmentHint: '本轮先保留上传入口样式，附件功能后续接入。',
-        mentionLabel: '提及用户',
-        mentionHint: '本轮先保留提及入口样式，不改现有业务。',
-        originalLabel: '是否原创且独家',
-        originalHint: '只有原创内容才有机会获得更高质量曝光。',
         privateLabel: '仅自己可见',
-        privateHint: '打开后帖子仅自己可见，适合先保存草稿。',
+        privateHint: '开启后帖子仅对你自己可见。',
         bodyLabel: '帖子内容',
+        bodyHint:
+          '先写清上下文和问题，再补充公式、步骤、附件或提及用户。格式工具已集成到编辑器工具栏。',
         bodyPlaceholder: '请输入您要发表的内容...',
         addAttachment: '+ 添加附件',
         mentionUser: '+ 添加提及用户',
-        note: '目前板块、标签和正文会真实提交；附件、提及用户与更多论坛字段先保留样式入口。',
+        mentionHint: '输入账号标识，多个 handle 用逗号分隔，例如：@alice, @bob。正文里的 @handle 也会自动识别。',
+        attachmentHint: '支持图片附件，选择后会在发布时一并上传。',
+        note: '帖子类型、板块、标签、可见性、正文、附件和提及用户都会真实提交。',
         submit: '发布帖子',
         submitting: '发布中...',
         cancel: '取消',
         validateTitle: '内容不完整',
-        validateDesc: '请填写标题、板块和正文',
+        validateDesc: '请填写帖子类型、标题、板块和正文',
         success: '发布成功',
         successDesc: '帖子已发布',
+        duplicate: '重复提交已忽略',
+        duplicateDesc: '系统复用了你刚刚发布的帖子',
         failed: '发布失败',
         retry: '请稍后重试',
       }
@@ -74,6 +89,12 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
       return {
         title: 'Tulis siaran',
         sub: 'Susun tajuk, papan, tag dan kandungan supaya komuniti boleh membaca dengan cepat.',
+        postTypeLabel: 'Jenis siaran',
+        postTypeHint: 'Pilih jenis siaran supaya komuniti memaparkan status dengan betul.',
+        questionType: 'Soalan',
+        noteType: 'Nota',
+        achievementType: 'Pencapaian',
+        discussionType: 'Perbincangan',
         articleTitle: 'Tajuk',
         articlePlaceholder: 'Masukkan tajuk siaran',
         boardLabel: 'Papan forum',
@@ -81,28 +102,26 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
         tagLabel: 'Tag siaran',
         tagPlaceholder:
           'Pisahkan dengan koma, contoh: algebra, fungsi, bantuan',
-        attachmentLabel: 'Lampiran',
-        attachmentHint:
-          'Gaya muat naik disediakan dahulu. Fungsi sebenar akan disambung kemudian.',
-        mentionLabel: 'Sebut pengguna',
-        mentionHint: 'Pintu masuk gaya sahaja untuk pusingan ini.',
-        originalLabel: 'Asal dan eksklusif',
-        originalHint:
-          'Kandungan asli lebih mudah mendapat pendedahan berkualiti.',
         privateLabel: 'Hanya saya boleh lihat',
-        privateHint: 'Hidupkan untuk simpan sebagai draf peribadi.',
+        privateHint: 'Apabila dihidupkan, siaran hanya boleh dilihat oleh anda.',
         bodyLabel: 'Kandungan siaran',
+        bodyHint:
+          'Tulis konteks dan masalah dahulu, kemudian tambah formula, langkah, lampiran atau sebutan pengguna. Alat format kini berada di bar alat penyunting.',
         bodyPlaceholder: 'Masukkan kandungan yang ingin anda siarkan...',
         addAttachment: '+ Tambah lampiran',
         mentionUser: '+ Tambah sebutan',
-        note: 'Buat masa ini papan, tag dan kandungan akan dihantar secara sebenar; lampiran dan sebutan masih UI sahaja.',
+        mentionHint: 'Masukkan handle, asingkan dengan koma, contohnya: @alice, @bob. @handle dalam kandungan juga akan dikesan.',
+        attachmentHint: 'Lampiran imej disokong dan akan dimuat naik semasa penerbitan.',
+        note: 'Jenis siaran, papan, tag, keterlihatan, kandungan, lampiran dan sebutan pengguna semuanya dihantar secara sebenar.',
         submit: 'Terbitkan siaran',
         submitting: 'Sedang diterbitkan...',
         cancel: 'Batal',
         validateTitle: 'Maklumat tidak lengkap',
-        validateDesc: 'Sila isi tajuk, papan dan kandungan',
+        validateDesc: 'Sila isi jenis siaran, tajuk, papan dan kandungan',
         success: 'Berjaya diterbitkan',
         successDesc: 'Siaran telah diterbitkan',
+        duplicate: 'Penghantaran berulang diabaikan',
+        duplicateDesc: 'Siaran yang baru dihantar telah digunakan semula',
         failed: 'Gagal diterbitkan',
         retry: 'Cuba lagi sebentar lagi',
       }
@@ -111,36 +130,129 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
     return {
       title: 'Create post',
       sub: 'Use a forum-style composer so the community can scan title, board, tags and body quickly.',
+      postTypeLabel: 'Post type',
+      postTypeHint: 'Pick a type so the community can surface the right state and filters.',
+      questionType: 'Question',
+      noteType: 'Note',
+      achievementType: 'Achievement',
+      discussionType: 'Discussion',
       articleTitle: 'Title',
       articlePlaceholder: 'Enter post title',
       boardLabel: 'Forum board',
       boardPlaceholder: 'Choose a board',
       tagLabel: 'Post tags',
       tagPlaceholder: 'Comma separated, e.g. algebra, functions, help',
-      attachmentLabel: 'Attachments',
-      attachmentHint: 'Upload entry is kept as a styled placeholder for now.',
-      mentionLabel: 'Mention users',
-      mentionHint: 'Mention entry is UI-only in this pass.',
-      originalLabel: 'Original and exclusive',
-      originalHint: 'Original posts are more likely to get featured.',
       privateLabel: 'Only visible to me',
-      privateHint: 'Turn on to keep this as a private draft.',
+      privateHint: 'When enabled, only you can see this post.',
       bodyLabel: 'Post body',
+      bodyHint:
+        'Write the context first, then add formulas, steps, attachments or user mentions. Formatting tools now live in the editor toolbar.',
       bodyPlaceholder: 'Enter the content you want to publish...',
       addAttachment: '+ Add attachment',
       mentionUser: '+ Mention user',
-      note: 'Board, tags and body submit for real; attachment and mention rows are kept as UI entry points only.',
+      mentionHint:
+        'Enter handles separated by commas, for example: @alice, @bob. @handle in the post body is also detected automatically.',
+      attachmentHint: 'Image attachments are supported and upload on publish.',
+      note: 'Post type, board, tags, visibility, body, attachments and mentions all submit for real.',
       submit: 'Publish post',
       submitting: 'Publishing...',
       cancel: 'Cancel',
       validateTitle: 'Missing content',
-      validateDesc: 'Please fill title, board and body',
+      validateDesc: 'Please fill post type, title, board and body',
       success: 'Published',
       successDesc: 'Your post is now live',
+      duplicate: 'Duplicate submission ignored',
+      duplicateDesc: 'We reused your most recent post',
       failed: 'Publish failed',
       retry: 'Please try again later',
     }
   }, [lang])
+
+  const insertMarkdown = (before: string, after = before, placeholder = '') => {
+    const el = textareaRef.current
+    if (!el) return
+
+    const start = el.selectionStart ?? content.length
+    const end = el.selectionEnd ?? content.length
+    const selected = content.slice(start, end)
+    const text = selected || placeholder
+    const nextValue = `${content.slice(0, start)}${before}${text}${after}${content.slice(end)}`
+
+    setContent(nextValue)
+
+    requestAnimationFrame(() => {
+      el.focus()
+      const cursorStart = start + before.length
+      const cursorEnd = cursorStart + text.length
+      el.setSelectionRange(cursorStart, cursorEnd)
+    })
+  }
+
+  const handleAttachmentFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+
+    const incoming = Array.from(files).filter((file) =>
+      file.type.startsWith('image/'),
+    )
+
+    if (incoming.length === 0) {
+      toast({
+        title: lang === 'zh' ? '附件格式不支持' : lang === 'ms' ? 'Format lampiran tidak disokong' : 'Unsupported attachment format',
+        description:
+          lang === 'zh'
+            ? '目前仅支持图片附件。'
+            : lang === 'ms'
+              ? 'Buat masa ini hanya lampiran imej disokong.'
+              : 'Only image attachments are supported right now.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setAttachmentFiles((prev) => {
+      const seen = new Set(
+        prev.map((file) => `${file.name}:${file.size}:${file.lastModified}`),
+      )
+      const next = [...prev]
+
+      incoming.forEach((file) => {
+        const key = `${file.name}:${file.size}:${file.lastModified}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          next.push(file)
+        }
+      })
+
+      return next
+    })
+  }
+
+  const handleAttachmentPickerClick = () => {
+    attachmentInputRef.current?.click()
+  }
+
+  const handleMentionToggle = () => {
+    const next = !showMentionInput
+    setShowMentionInput(next)
+    if (next) {
+      requestAnimationFrame(() => {
+        mentionInputRef.current?.focus()
+      })
+    }
+  }
+
+  const removeAttachment = (file: File) => {
+    setAttachmentFiles((prev) =>
+      prev.filter(
+        (item) =>
+          !(
+            item.name === file.name &&
+            item.size === file.size &&
+            item.lastModified === file.lastModified
+          ),
+      ),
+    )
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -160,12 +272,31 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
         .map((tag) => tag.trim())
         .filter(Boolean)
 
+      const parsedMentions = mentionInput
+        .split(',')
+        .map((handle) => handle.trim().replace(/^@+/, ''))
+        .filter(Boolean)
+
+      const attachmentUrls: string[] = []
+      for (const file of attachmentFiles) {
+        const formData = new FormData()
+        formData.append('file', file)
+        const uploadResult = await uploadImage(formData)
+        if (!uploadResult.success || !uploadResult.url) {
+          throw new Error(uploadResult.error || 'Failed to upload attachment.')
+        }
+        attachmentUrls.push(uploadResult.url)
+      }
+
       const result = await createPost({
         title: title.trim(),
         content: content.trim(),
-        category: isOriginal ? 'Note' : 'Question',
+        category: postType,
         subjectId,
         tags: parsedTags,
+        isPrivate,
+        attachmentUrls,
+        mentionedHandles: parsedMentions,
       })
 
       if (!result.success || !result.post) {
@@ -177,7 +308,19 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
         return
       }
 
-      toast({ title: copy.success, description: copy.successDesc })
+      toast({
+        title: result.deduped ? copy.duplicate : copy.success,
+        description: result.deduped ? copy.duplicateDesc : copy.successDesc,
+      })
+      setTitle('')
+      setContent('')
+      setSubjectId('')
+      setTags('')
+      setPostType('Note')
+      setIsPrivate(false)
+      setMentionInput('')
+      setShowMentionInput(false)
+      setAttachmentFiles([])
       router.push(`/dashboard/community/${result.post.id}`)
       router.refresh()
     } catch (error) {
@@ -212,6 +355,40 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 gap-4 desktop:grid-cols-2">
+            <div className={`${fieldCardClassName} desktop:col-span-2`}>
+              <div className="mb-4">
+                <div className="text-[15px] font-medium text-white">
+                  {copy.postTypeLabel}
+                </div>
+                <div className="text-blue-100/48 mt-1 text-[12px] leading-6">
+                  {copy.postTypeHint}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {(
+                  [
+                    ['Question', copy.questionType],
+                    ['Note', copy.noteType],
+                    ['Achievement', copy.achievementType],
+                    ['Discussion', copy.discussionType],
+                  ] as const
+                ).map(([type, label]) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setPostType(type)}
+                    className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                      postType === type
+                        ? 'bg-sky-400/14 border-sky-400/30 text-sky-100'
+                        : 'text-blue-100/58 border-white/10 bg-white/[0.03] hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className={`${fieldCardClassName} desktop:col-span-2`}>
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
@@ -255,58 +432,6 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
             </div>
 
             <div className={fieldCardClassName}>
-              <div className="mb-3">
-                <div className="text-[15px] font-medium text-white">
-                  {copy.tagLabel}
-                </div>
-                <div className="text-blue-100/48 mt-1 text-[12px] leading-6">
-                  使用简洁标签增强检索和聚合展示。
-                </div>
-              </div>
-              <input
-                value={tags}
-                onChange={(event) => setTags(event.target.value)}
-                placeholder={copy.tagPlaceholder}
-                className="border-white/8 placeholder:text-blue-100/34 h-12 w-full rounded-2xl border bg-white/[0.04] px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/30"
-              />
-            </div>
-
-            <div className={fieldCardClassName}>
-              <div className="mb-4">
-                <div className="text-[15px] font-medium text-white">
-                  {copy.originalLabel}
-                </div>
-                <div className="text-blue-100/48 mt-1 text-[12px] leading-6">
-                  {copy.originalHint}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsOriginal(true)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                    isOriginal
-                      ? 'bg-sky-400/14 border-sky-400/30 text-sky-100'
-                      : 'text-blue-100/58 border-white/10 bg-white/[0.03] hover:text-white'
-                  }`}
-                >
-                  是
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsOriginal(false)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                    !isOriginal
-                      ? 'bg-sky-400/14 border-sky-400/30 text-sky-100'
-                      : 'text-blue-100/58 border-white/10 bg-white/[0.03] hover:text-white'
-                  }`}
-                >
-                  否
-                </button>
-              </div>
-            </div>
-
-            <div className={fieldCardClassName}>
               <div className="mb-4">
                 <div className="text-[15px] font-medium text-white">
                   {copy.privateLabel}
@@ -335,37 +460,18 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
             <div className={fieldCardClassName}>
               <div className="mb-4">
                 <div className="text-[15px] font-medium text-white">
-                  {copy.attachmentLabel}
+                  {copy.tagLabel}
                 </div>
                 <div className="text-blue-100/48 mt-1 text-[12px] leading-6">
-                  {copy.attachmentHint}
+                  使用简洁标签增强检索和聚合展示。
                 </div>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 rounded-full border-white/10 bg-white/5 px-5 text-sm text-blue-50 hover:bg-white/10"
-              >
-                {copy.addAttachment}
-              </Button>
-            </div>
-
-            <div className={fieldCardClassName}>
-              <div className="mb-4">
-                <div className="text-[15px] font-medium text-white">
-                  {copy.mentionLabel}
-                </div>
-                <div className="text-blue-100/48 mt-1 text-[12px] leading-6">
-                  {copy.mentionHint}
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 rounded-full border-white/10 bg-white/5 px-5 text-sm text-blue-50 hover:bg-white/10"
-              >
-                {copy.mentionUser}
-              </Button>
+              <input
+                value={tags}
+                onChange={(event) => setTags(event.target.value)}
+                placeholder={copy.tagPlaceholder}
+                className="border-white/8 placeholder:text-blue-100/34 h-12 w-full rounded-2xl border bg-white/[0.04] px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/30"
+              />
             </div>
           </div>
 
@@ -375,21 +481,151 @@ export function NewPostPageClient({ subjects }: NewPostPageClientProps) {
                 {copy.bodyLabel}
               </div>
               <div className="text-blue-100/48 mt-1 text-[12px] leading-6">
-                先写清上下文和问题，再补充公式、步骤或附件说明。
+                {copy.bodyHint}
               </div>
             </div>
             <div className="border-white/8 rounded-[24px] border bg-white/[0.03]">
-              <div className="border-white/8 text-blue-100/46 flex flex-wrap items-center gap-3 border-b px-4 py-3">
-                <span className="text-sm font-semibold">H</span>
-                <span className="text-sm font-semibold">B</span>
-                <span className="text-sm italic">I</span>
-                <span className="text-sm">⟷</span>
-                <span className="text-sm">• List</span>
-                <span className="text-sm">1. List</span>
-                <span className="text-sm">[]</span>
-                <span className="text-sm">&lt;/&gt;</span>
+              <div className="border-white/8 flex flex-col gap-3 border-b px-4 py-3 desktop:flex-row desktop:items-center desktop:justify-between">
+                <div className="text-blue-100/46 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('# ', '', '标题')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm hover:bg-white/[0.08]"
+                  >
+                    H
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('**', '**', '粗体')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm font-semibold hover:bg-white/[0.08]"
+                  >
+                    B
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('*', '*', '斜体')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm italic hover:bg-white/[0.08]"
+                  >
+                    I
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('> ', '', '引用内容')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm hover:bg-white/[0.08]"
+                  >
+                    ⟷
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('- ', '', '列表项')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm hover:bg-white/[0.08]"
+                  >
+                    • List
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('1. ', '', '列表项')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm hover:bg-white/[0.08]"
+                  >
+                    1. List
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('`', '`', '代码')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm hover:bg-white/[0.08]"
+                  >
+                    []
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => insertMarkdown('```\n', '\n```', '代码块')}
+                    className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm hover:bg-white/[0.08]"
+                  >
+                    &lt;/&gt;
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAttachmentPickerClick}
+                    className="h-9 rounded-full border-white/10 bg-white/5 px-4 text-sm text-blue-50 hover:bg-white/10"
+                  >
+                    {copy.addAttachment}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleMentionToggle}
+                    className="h-9 rounded-full border-white/10 bg-white/5 px-4 text-sm text-blue-50 hover:bg-white/10"
+                  >
+                    {copy.mentionUser}
+                  </Button>
+                </div>
               </div>
+              {showMentionInput ? (
+                <div className="border-white/8 border-b px-4 py-3">
+                  <div className="mb-2 text-[12px] leading-5 text-blue-100/48">
+                    {copy.mentionHint}
+                  </div>
+                  <input
+                    ref={mentionInputRef}
+                    value={mentionInput}
+                    onChange={(event) => setMentionInput(event.target.value)}
+                    placeholder="alice, bob"
+                    className="border-white/8 placeholder:text-blue-100/34 h-11 w-full rounded-2xl border bg-white/[0.04] px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400/30"
+                  />
+                </div>
+              ) : null}
+              {attachmentFiles.length > 0 ? (
+                <div className="border-white/8 border-b px-4 py-3">
+                  <div className="mb-2 text-[12px] leading-5 text-blue-100/48">
+                    {copy.attachmentHint}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {attachmentFiles.map((file) => (
+                      <span
+                        key={`${file.name}:${file.size}:${file.lastModified}`}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[12px] text-blue-50"
+                      >
+                        <span className="max-w-[220px] truncate">
+                          {file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(file)}
+                          className="text-blue-100/48 hover:text-white"
+                          aria-label={`remove ${file.name}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              <input
+                ref={attachmentInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  handleAttachmentFiles(event.target.files)
+                  event.target.value = ''
+                }}
+              />
               <textarea
+                ref={textareaRef}
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
                 placeholder={copy.bodyPlaceholder}

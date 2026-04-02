@@ -52,6 +52,7 @@ type LegacyUserRow = {
   id: string
   email: string
   username: string | null
+  handle: string | null
   role: 'STUDENT' | 'PARENT' | 'TEACHER' | 'ADMIN'
   status: 'ACTIVE' | 'BANNED' | 'PAUSED'
   avatar: string | null
@@ -82,6 +83,7 @@ async function getCurrentUserFallbackByRaw(userId: string) {
         id,
         email,
         username,
+        handle,
         role,
         status,
         avatar,
@@ -115,6 +117,7 @@ async function getCurrentUserFallbackByRaw(userId: string) {
       id: row.id,
       email: row.email,
       username: row.username,
+      handle: row.handle,
       role: row.role,
       status: row.status,
       avatar: row.avatar,

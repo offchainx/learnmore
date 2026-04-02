@@ -1,4 +1,5 @@
 export { QuestionCard } from './QuestionCard'
+export { QuestionReportButton } from './QuestionReportButton'
 export { QuestionContent } from './QuestionContent'
 export { SingleChoice } from './SingleChoice'
 export { MultiChoice } from './MultiChoice'

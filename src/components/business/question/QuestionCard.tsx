@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +18,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   showResult = false,
   readOnly = false,
   showExplanation = true,
-  className
+  className,
+  headerAction
 }) => {
   const isCorrect = React.useMemo(() => {
     if (!showResult) return undefined;
@@ -47,9 +50,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   return (
     <Card className={cn("w-full", className)}>
       <CardHeader className="space-y-4">
-        <div className="flex items-center justify-between">
-           <Badge variant="outline">{question.type.replace('_', ' ')}</Badge>
-           {/* Difficulty stars could go here */}
+        <div className="flex items-start justify-between gap-3">
+           <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em]">
+             {question.type.replace('_', ' ')}
+           </Badge>
+           {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
         </div>
         <QuestionContent content={question.content} className="text-lg font-medium" />
       </CardHeader>

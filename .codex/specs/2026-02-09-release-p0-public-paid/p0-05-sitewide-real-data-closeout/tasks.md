@@ -6,7 +6,7 @@
 | T-002 | 建立全站页面/功能/接口/数据表清单，补全 route -> component -> action/api -> table 映射 | codex | done |  |
 | T-003 | 文档审阅与范围确认（用户确认前禁止开发） | user | done |  |
 | T-004 | 全站真实数据治理模板（字段/状态/命名/核账/迭代流程） | codex | done |  |
-| T-005 | `/dashboard` Dashboard 首页真实数据接入与功能对齐 | codex | todo |  |
+| T-005 | `/dashboard` Dashboard 首页真实数据接入与功能对齐 | codex | doing |  |
 | T-006 | `/dashboard/courses` + `/course/[subjectId]` + `/course/[subjectId]/[lessonId]` 学习内容域真实化 | codex | todo |  |
 | T-007 | `/dashboard/practice` 全路由族真实化（含 Smart Drill / Error Wiper / Mock Arena / Chapter Drill / Past Paper） | codex | doing |  |
 | T-008 | `/dashboard/community` 全路由族真实化（列表 / 发帖 / 详情 / 评论） | codex | todo |  |
@@ -76,39 +76,289 @@
 | T-004.6 | 建立统一核账规则：字段级映射、写操作前后快照、幂等/重复提交验证格式 | codex | done |
 | T-004.7 | 建立统一页面任务模板：每个核心页面 task 都按同样的拆分结构推进 | codex | done |
 
-## T-005 Dashboard 子任务（按四阶段推进）
+## T-005 Dashboard 子任务（按五阶段推进）
 
 ### Phase A：定义与映射
 | id | description | owner | status |
 |---|---|---|---|
-| T-005.1 | 盘点 Dashboard 全部区块、组件、CTA、跳转与当前数据来源 | codex | todo |
-| T-005.2 | 定义 Dashboard 字段字典与展示口径 | codex | todo |
-| T-005.3 | 建立 Dashboard 页面字段 -> Action/API -> 数据表 映射矩阵 | codex | todo |
-| T-005.4 | 定义空态、错误态、无权限态、禁用态规则，禁止 fallback 到 mock | codex | todo |
+| T-005.1 | 盘点 Dashboard 全部区块、组件、CTA、跳转与当前数据来源 | codex | done |
+| T-005.2 | 定义 Dashboard 字段字典与展示口径 | codex | done |
+| T-005.3 | 建立 Dashboard 页面字段 -> Action/API -> 数据表 映射矩阵 | codex | done |
+| T-005.4 | 定义空态、错误态、无权限态、禁用态规则，禁止 fallback 到 mock | codex | done |
 
 ### Phase B：读数据与聚合改造
 | id | description | owner | status |
 |---|---|---|---|
-| T-005.5 | 重构 `getDashboardStats` / `DashboardData` 契约，移除挂空字段与伪完整结构 | codex | todo |
-| T-005.6 | 接入 `subjectStrengths` 真实聚合（按学科准确率/样本数/排序规则） | codex | todo |
-| T-005.7 | 接入 `weaknesses` 真实聚合，并统一“薄弱点”来源口径 | codex | todo |
-| T-005.8 | 处理 `dailyActivity`：要么落地真实数据，要么从契约中下线 | codex | todo |
-| T-005.9 | 替换排名卡硬编码（Top 15%、68% 等），接入真实 leaderboard 数据 | codex | todo |
-| T-005.10 | 校准“最近学习路径”区块：数据条数、排序、深链跳转、无数据态 | codex | todo |
-| T-005.11 | 校准“最近练习回顾”区块：确认全模式统一写 `exam_records`，并接结果页/记录详情 | codex | todo |
+| T-005.5 | 重构 `getDashboardStats` / `DashboardData` 契约，移除挂空字段与伪完整结构 | codex | done |
+| T-005.6 | 接入 `subjectStrengths` 真实聚合（按学科准确率/样本数/排序规则） | codex | done |
+| T-005.7 | 接入 `weaknesses` 真实聚合，并统一“薄弱点”来源口径 | codex | done |
+| T-005.8 | 处理 `dailyActivity`：要么落地真实数据，要么从契约中下线 | codex | done |
+| T-005.9 | 替换排名卡硬编码（Top 15%、68% 等），接入真实 leaderboard 数据 | codex | done |
+| T-005.10 | 校准“最近学习路径”区块：数据条数、排序、深链跳转、无数据态 | codex | done |
+| T-005.11 | 校准“最近练习回顾”区块：确认全模式统一写 `exam_records`，并接结果页/记录详情 | codex | done |
 
 ### Phase C：写逻辑与业务口径改造
 | id | description | owner | status |
 |---|---|---|---|
-| T-005.12 | 统一 `studyTime` 口径：修复只统计部分练习模式的问题 | codex | todo |
-| T-005.13 | 统一 `activeDays` / `streak` 的业务定义与触发时机，避免“打开 Dashboard 就改 streak” | codex | todo |
-| T-005.14 | 校准 `dailyTasks` 创建、推进、奖励领取链路，确保首屏与数据库状态一致 | codex | todo |
-| T-005.15 | 决定 `DailyInspiration` 策略：纳入真实数据源，或明确排除为非核账展示模块 | codex | todo |
+| T-005.12 | 统一 `studyTime` 口径：修复只统计部分练习模式的问题 | codex | done |
+| T-005.13 | 统一 `activeDays` / `streak` 的业务定义与触发时机，避免“打开 Dashboard 就改 streak” | codex | done |
+| T-005.14 | 校准 `dailyTasks` 创建、推进、奖励领取链路，确保首屏与数据库状态一致 | codex | done |
+| T-005.15 | 决定 `DailyInspiration` 策略：纳入真实数据源，或明确排除为非核账展示模块 | codex | done |
+| T-005.15.1 | 在 Profile 中新增唯一 `handle`（`@username`）基础能力：格式/保留词校验、唯一性、Profile 申请入口，并为社区 `@提及` 建立后续身份基础 | codex | done |
 
 ### Phase D：页面清理与验证
 | id | description | owner | status |
 |---|---|---|---|
-| T-005.16 | Dashboard 字段级 SQL 核账 + 刷新/重试/重复提交幂等验证 + mock/伪展示清理收尾 | codex | todo |
+| T-005.16 | Dashboard 字段级 SQL 核账 + 刷新/重试/重复提交幂等验证 + mock/伪展示清理收尾 | codex | done |
+
+### Phase E：刷新、展示约束与边界收口
+| id | description | owner | status |
+|---|---|---|---|
+| T-005.17 | 定义 Dashboard 数据刷新、失效与回流策略：首屏、切窗、返回页、提交后刷新行为 | codex | todo |
+| T-005.18 | 补齐 Dashboard 加载态、错误态、局部失败降级与骨架屏规则 | codex | todo |
+| T-005.19 | 补齐 Dashboard 权限与身份分层展示规则：新用户、已登录、订阅态、受限模块 | codex | todo |
+| T-005.20 | 补齐 Dashboard 可访问性与移动端适配约束：卡片重排、CTA 可达性、键盘与语义化 | codex | todo |
+| T-005.21 | 补齐 Dashboard 页面级验证与留证：模块级冒烟、关键字段断言、浏览器回归留证 | codex | todo |
+| T-005.22 | 明确 Dashboard 与共享域边界：只消费共享聚合结果，不在首页重复重算 `leaderboard` / `achievements` / `settings` 域口径 | codex | todo |
+
+### T-005 说明性内容
+
+#### Dashboard 板块功能确认
+- 顶部概览卡用于展示 `7D / 30D` 窗口下的学习概览，不承载跳转。
+- `今日任务` 负责展示 `dailyTasks` 当前待完成、可领取和已完成状态，并承接 onboarding 与领奖动作。
+- `学习路径` 的业务定义是“根据推荐算法给出用户下一阶段应该完成的章节练习题”，不是课程学习入口。
+- `学科进度` 的业务定义是“按学科下的章节完成情况展示学习完成度”，不是单纯学科正确率榜单。
+- `年级排名` 用于展示同 cohort 排名、百分位和同级平均表现，CTA 指向排行榜域。
+- `最近练习回顾` 用于展示近期完成记录，当前要求支持 5 种练习模式，并允许用户按原 `mode + subject + difficulty` 重新进入同配置练习。
+- `今日灵感` 已明确定位为非核账展示模块，不进入 Dashboard 真数据合同。
+- Shell 层的侧边栏、通知、升级入口、账户区虽然不属于首页卡片，但其可见性和跳转已纳入 `T-005.1` 盘点范围。
+
+#### T-005.1 盘点结果摘要
+- 页面入口：`src/app/(dashboard)/dashboard/page.tsx`
+- 数据入口：`src/actions/dashboard.ts`
+- 主视图：`src/components/dashboard/DashboardHome.tsx`
+- 今日任务模块：`src/components/dashboard/DailyMissions.tsx`
+- 今日灵感模块：`src/components/dashboard/Widgets.tsx`
+- 侧边栏路由定义：`src/components/layout/dashboard-nav.ts`
+- 当前首页 CTA 包括：`学习路径`、`学科进度`、`年级排名`、`最近练习回顾`、`今日灵感` 换图，以及 `7D / 30D` 窗口切换。
+- `DailyMissions` 当前动作链路包括：`ONBOARDING_PROFILE`、`ONBOARDING_GOALS`、`ONBOARDING_ASSESSMENT`、`COMPLETE_LESSON`、`claimTaskReward`、`completeOnboardingTask`。
+- 当前统计读取入口主要来自 `getDashboardProfile()` 与 `getDashboardStats()`，其中概览卡字段集中由 `getDashboardStats()` 提供。
+- 盘点阶段确认的主要缺口包括：`subjectStrengths` 挂空、`weaknesses` 挂空、`dailyActivity` 挂空、排名卡硬编码、`DailyInspiration` 使用本地随机数据、最近学习路径与最近练习回顾合同不足。
+
+#### T-005.2 字段字典与展示口径
+- `stats.studyTime`：展示单位为分钟或小时文本，统计口径以后端统一学习时长为准。
+- `stats.questions`：展示窗口内作答题量，按有效提交题目数统计。
+- `stats.accuracy`：展示窗口内正确率，按 `correct / total` 计算并统一四舍五入。
+- `stats.streak`：展示连续学习天数，由统一 streak 规则维护，不允许在 Dashboard 渲染时隐式改写。
+- `stats.level` / `stats.xp`：展示等级与经验值，等级由 XP 派生，不在 Dashboard 单独重算。
+- `learningPath.items[]`：必须至少包含 `subjectId`、`chapterId`、`title`、`reason`、`href`、`status`，用于推荐下一阶段章节练习。
+- `subjectProgress.items[]`：必须至少包含 `subjectId`、`subjectName`、`overallMastery`、`chapterCount`、`completedChapterCount`、`totalAttempts`。
+- `weaknesses.items[]`：必须至少包含 `subjectId`、`chapterId`、`chapterName`、`accuracy`、`attemptCount`、`priority`。
+- `leaderboard`：必须至少包含 `status`、`rank`、`percentile`、`userAccuracy`、`peerAverageAccuracy`、`cohortLabel`。
+- `recentPractice.items[]`：必须至少包含 `mode`、`subjectId`、`difficulty`、`href`、`completedAt`，必要时补 `chapterId`、`paperId`、`scopeId` 以支持原配置重练。
+- `dailyTasks.items[]`：必须至少包含 `taskId`、`type`、`title`、`progress`、`reward`、`claimState`、`actionTarget`。
+- `DailyInspiration` 若保留为非核账模块，必须明确标注为展示增强，不得伪装为后端真实字段。
+
+#### T-005.3 页面字段 -> Action/API -> 数据表 映射矩阵
+| 页面字段 | 当前读取入口 | 主要数据表/来源 | 支撑状态 |
+|---|---|---|---|
+| `stats.*` | `getDashboardStats()` | `users`、`user_attempts`、`exam_records`、`user_progress`、`daily_tasks` | 已支撑 |
+| `overviewByWindow.*` | `getDashboardStats()` | `user_attempts`、`exam_records` | 已支撑 |
+| `dailyTasks.*` | `getDashboardStats()` | `daily_tasks` | 已支撑 |
+| `subjectProgress.items[]` | `getDashboardStats()` 聚合 | `questions`、`chapters`、`user_attempts` | 已支撑 |
+| `weaknesses.items[]` | `getDashboardStats()` 聚合 | `questions`、`chapters`、`user_attempts` | 已支撑 |
+| `leaderboard.*` | `getDashboardStats()` 聚合 | `users`、`user_attempts`、共享排行榜口径 | 已支撑 |
+| `learningPath.items[]` | `getDashboardStats()` 聚合 | `questions`、`chapters`、`user_attempts`、章节 drill 深链 | 已支撑 |
+| `recentPractice.items[]` | `getDashboardStats()` 聚合 | `exam_records` + 模式恢复字段 | 已支撑 |
+| `recentPractice.difficulty` | `getDashboardStats()` 聚合 | `questions.difficulty` + Mock Arena 标题解析 | 部分支撑 |
+| `recentPractice.chapterId / paperId / scopeId` | Dashboard 合同预留 | 需按模式补齐恢复字段 | 部分支撑 |
+| `dailyActivity` | 旧合同占位 | 无正式来源，已决定从首页合同中下线 | 无后端支撑 |
+| `DailyInspiration.quote / background` | 本地组件状态 | 本地策展文案与内置视觉主题 | 明确排除 |
+
+#### T-005.4 状态规则与 fallback 约束
+- 状态优先级固定为：`错误态 > 无权限态 > 空态 > 禁用态 > 正常态`。
+- 页面级请求失败时，顶部概览与关键主区块允许进入页面级错误态；局部模块失败时必须保留其他模块渲染能力。
+- 真实无数据必须展示空态，不允许返回默认全零结构冒充成功。
+- 无权限模块必须显式展示受限原因或直接隐藏，不允许回退到 mock 文案。
+- 禁用态只用于“功能暂不开放但设计上存在”的模块，且需与空态、错误态严格区分。
+- 明确禁止使用硬编码百分位、随机 quote、本地伪统计、静态预览数组充当真实后端返回。
+
+#### T-005.5 契约重构结果
+- `DashboardData` 已改为显式模块合同，不再保留挂空数组和伪完整结构。
+- 首页合同当前保留的核心模块包括：`stats`、`overviewByWindow`、`learningPath`、`recentPractice`、`subjectProgress`、`dailyTasks`、`weaknesses`、`leaderboard`。
+- `dailyActivity` 已从首页合同中正式下线，不再保留空数组占位。
+
+#### T-005.6 学科进度聚合结果
+- `subjectProgress` 已切到真实聚合，按学科汇总章节表现。
+- 当前聚合结果至少提供 `overallMastery`、`chapterCount`、`completedChapterCount`、`totalAttempts`，用于首页学科卡展示。
+
+#### T-005.7 薄弱点聚合结果
+- `weaknesses` 已切到真实聚合，并与学科聚合共用同一批章节表现基础数据。
+- 薄弱点优先级以章节准确率、作答样本和掌握度综合排序，不再使用前端静态列表。
+
+#### T-005.8 `dailyActivity` 处理结果
+- 首页不再保留 `dailyActivity` 的挂空字段。
+- 若后续需要恢复趋势图，应由独立真实来源重新定义合同，而不是继续沿用空数组占位。
+
+#### T-005.9 排行榜卡接入结果
+- 年级排名卡已移除 `Top 15%`、`68%` 等硬编码文案。
+- 当前改为消费真实 `leaderboard` 模块状态，并按 `ready / empty / excluded / pending` 分别渲染。
+- 排名卡 CTA 约束为：`ready -> /dashboard/leaderboard`，`empty -> /dashboard/practice`，`excluded -> /dashboard/settings`。
+
+#### T-005.10 学习路径接入结果
+- `learningPath` 已从 `pending` 占位改为真实推荐模块，不再返回课程恢复点或空数组占位。
+- 推荐算法当前基于真实章节答题表现生成：
+  - 优先推荐已形成样本且掌握度偏低的章节，作为“补弱”入口。
+  - 其次推荐已练习序列后的下一章，作为“继续推进”入口。
+  - 若当前学科没有明显薄弱点且没有下一章可推，则回退为“巩固复练”入口。
+- 每条学习路径现在都输出真实章节 drill 深链：`/dashboard/practice/chapter-drill/[chapterId]?autostart=1`。
+- 首页学习路径卡已改为点击单条推荐直接进入对应章节练习，不再统一跳回练习中心。
+- 无数据态已校准为“尚无足够练习样本”，保留真实空态与引导 CTA，不再伪造推荐列表。
+
+#### T-005.11 最近练习回顾接入结果
+- 已确认当前首页消费的 5 种练习模式都统一写入 `exam_records`：
+  - `SMART_DRILL`
+  - `ERROR_WIPER`
+  - `MOCK_EXAM`
+  - `CHAPTER_DRILL`
+  - `PAST_PAPER`
+- `recentPractice` 合同已补齐模式恢复字段，首页不再只保存静态成绩摘要。
+- Dashboard 聚合层现在会为最近练习记录生成可直接重练的深链：
+  - `SMART_DRILL` -> 原科目 Smart Drill
+  - `ERROR_WIPER` -> 原科目 Error Wiper
+  - `MOCK_EXAM` -> 原科目 Mock Arena，并恢复 `difficulty + questionCount`
+  - `CHAPTER_DRILL` -> 原章节 Chapter Drill
+  - `PAST_PAPER` -> 原 `paperId` 的 Past Paper
+- `PAST_PAPER` 的恢复不依赖额外 schema 改造，当前通过 `examRecord -> attempts -> question.paperId` 反推出原卷入口。
+- 列表点击行为已从“统一回练习中心”改为“按原模式和原配置直接重开一轮”。
+- 最近练习卡片现在会展示可恢复的配置摘要；当前已补出 `difficulty` 快照展示，并用于 Mock Arena 的重练参数恢复。
+
+#### T-005.12 `studyTime` 口径统一结果
+- Dashboard 首页总卡的 `stats.studyTime` 已改为基于 `exam_records.duration` 聚合，不再直接读取 `user.totalStudyTime`。
+- `7D / 30D` 窗口卡与总卡现在统一使用同一批 retention 内练习记录计算，避免顶部总卡和窗口卡来源不一致。
+- 当前口径覆盖所有已经统一写入 `exam_records` 的练习模式：
+  - `SMART_DRILL`
+  - `ERROR_WIPER`
+  - `MOCK_EXAM`
+  - `CHAPTER_DRILL`
+  - `PAST_PAPER`
+- 本次修复的重点是解决 Dashboard 只稳定统计部分练习模式、且与窗口卡不一致的问题；课程学习时长仍保留在 `user.totalStudyTime` 供其他域使用，不再混入首页练习统计口径。
+- 前台统一答题页已补充轻量计时展示：
+  - 默认只显示一个时钟图标，不直接暴露高压倒计时。
+  - 点击图标后从右侧滑出当前已用时间，按分钟展示。
+  - 图标 tooltip 固定为“答题时间”。
+
+#### T-005.13 `activeDays` / `streak` 口径统一结果
+- Dashboard 首屏已移除 `checkAndRefreshStreak()` 的加载时调用，打开首页不再隐式改写 streak。
+- `streak` 当前只允许在真实学习动作发生时刷新：
+  - 完成一轮练习提交后
+  - 完成课程学习并达到完成阈值后
+- `activeDays` 已从“仅统计答题 attempts 的自然日”改为“统计真实完成学习动作的自然日”：
+  - 练习完成：取 `exam_records.created_at`
+  - 课程完成：取 `user_progress.updated_at` 且 `is_completed = true`
+- 这样 `activeDays` 与 `streak` 的触发边界保持一致，不再出现“课程完成能涨 streak，但 Dashboard 活跃天数不计入”的口径偏差。
+- 首页文案也已同步为“完成练习或课程的天数”，不再继续显示“登录或练习的天数”。
+
+#### T-005.14 `dailyTasks` 创建 / 推进 / 领奖链路收口结果
+- `dailyTasks` 创建逻辑已从“今天有任意任务就直接跳过”改为“按任务类型逐项补齐”，避免首页只拿到部分任务。
+- 默认日常任务与 onboarding 任务已拆成两套模板：
+  - 日常任务：`LOGIN`、`COMPLETE_LESSON`、`QUIZ_SCORE`
+  - onboarding 任务：`ONBOARDING_PROFILE`、`ONBOARDING_GOALS`、`ONBOARDING_ASSESSMENT`
+- onboarding 任务现在按真实缺口决定是否生成：
+  - `ONBOARDING_PROFILE`：缺 `username` 或 `grade`
+  - `ONBOARDING_GOALS`：缺 `studyReminderTime`
+  - `ONBOARDING_ASSESSMENT`：缺 `difficultyCalibration`，且历史上未完成过 assessment 任务
+- Dashboard 首屏已改为先等待 `ensureDailyTasks()` 完成，再读取 `daily_tasks`，避免首次进入首页时任务列表为空或缺项。
+- `trackDailyProgress()` 现在会先确保当天任务存在，再推进对应任务进度，避免课程/练习链路在任务未创建时静默丢更新。
+- `completeOnboardingTask()` 已改为只完成“今天的对应 onboarding 任务”，不再使用“最近一条未领取同类型任务”的模糊查询。
+- `claimTaskReward()` 已改为复用统一的任务领奖 helper，校验归属、完成状态和重复领取规则，避免 Dashboard 与批量领奖逻辑分叉。
+- 由于 `AssessmentDialog` 当前仍是前端 mock 流程，本轮先用“历史完成过 assessment 任务”作为补充判定，避免该任务次日重复生成；真实测评落库仍留待后续任务处理。
+
+#### T-005.15 `DailyInspiration` 策略收口结果
+- `DailyInspiration` 已明确排除为非核账展示模块，不纳入 `DashboardData` 合同，也不参与字段级核账。
+- 当前实现已移除以下会造成“伪真实数据”错觉的依赖：
+  - `localStorage` 持久化
+  - 外链 Unsplash 占位图
+  - 注释中残留的“客户端生成图片”伪路径
+- 组件现在改为纯本地策展展示：
+  - 文案来自内置多语言 quote 列表
+  - 背景来自内置渐变视觉主题
+  - “换一张”只在本地主题池内切换，不触发任何后端请求
+- UI 上已补充 `Display enhancement only / 展示增强模块` 标识，避免该区块被误解为学习统计或个性化推荐结果。
+- 后续若要把 `DailyInspiration` 纳入真实数据源，应作为独立需求重新定义：
+  - 数据来源
+  - 审核与版权策略
+  - 刷新频率
+  - 多语言内容供应方式
+  在当前 P0 范围内不再继续扩展。
+
+#### T-005.15.1 Profile Handle 身份能力与社区迁移
+- 目标不是继续复用现有 `username`，而是建立独立的身份标识字段 `handle`，用于后续社区 `@提及`、用户识别、短链接与通知链路。
+- 本轮约束：
+  - `handle` 必须唯一、大小写不敏感、落库统一小写。
+  - `handle` 允许用户在 Profile 中申请与修改。
+  - `handle` 必须经过格式校验、保留词校验和唯一性校验。
+  - `handle` 长度需为 `6-20` 个字符，不允许包含数字。
+  - 常见品牌词、名人词、系统词和官方词禁止申请，例如：`apple`、`elonmusk`、`admin`、`support`、`learnmore`。
+- 建议身份模型：
+  - `username` 继续作为当前兼容展示名字段保留。
+  - `handle` 作为后续社区身份标识字段新增，供 `@handle`、用户搜索和 mention 关系使用。
+- 后续社区迁移方向：
+  - 发帖 / 评论中的 `@提及` 从当前 `mentionedUsernames` 逐步迁移到 `handle`。
+  - 社区展示层后续优先显示 `@handle`，展示名仍可独立存在。
+- 本轮已落地结果：
+  - `users.handle` 已加入 schema，并补充本地 migration。
+  - `reserved_handles` 表已落地，并补充 `023_t00515_handles_mentions.sql` migration；本地库已写入 22 个默认保留词。
+  - 已新增 `024_t00515_expand_reserved_handles.sql`，本地库当前保留词已扩展到 67 条。
+  - Profile 更新链路已支持 `handle` 提交、统一转小写、保留词校验和唯一性校验。
+  - Dashboard Profile Dialog 与 Settings Profile 区都已补 `handle` 输入入口、说明文案和实时可用性检查反馈。
+  - 已新增 `GET /api/users/handle-availability`，供前端做实时可用性查询。
+  - 社区发帖 / 评论的 mention 解析与存储已从 `mentionedUsernames` 迁移到 `mentionedHandles`，并同步写入 `mentionedUserIds` 用于通知投递。
+  - 社区列表、帖子详情、评论作者与 mention 标签已优先展示并链接到 `@handle`。
+  - 已新增公开用户页路由 `/u/[handle]`，用于后续社区公开身份页与短链接访问。
+  - 保留词当前覆盖品牌词、名人词、系统词与官方词的最小集合，例如：`apple`、`elonmusk`、`admin`、`support`、`learnmore`。
+  - 当前仍未实现社区编辑器内的 `@handle` 自动补全下拉与 mention 搜索建议；本轮先完成身份字段、存储结构、通知目标解析和公开页。
+  - 已完成最小校验：
+    - `pnpm prisma generate`
+    - 本地执行 `023_t00515_handles_mentions.sql`
+    - `pnpm eslint src/lib/hooks/useHandleAvailability.ts src/actions/__tests__/profile.test.ts src/components/business/settings/profile-form.tsx src/components/dashboard/views/SettingsView.tsx src/actions/community/post.ts src/components/community/NewPostPageClient.tsx src/components/community/PostDetailClient.tsx src/components/dashboard/views/CommunityView.tsx src/app/api/users/handle-availability/route.ts src/lib/users/handle-server.ts src/actions/user/profile.ts src/actions/user/auth.ts`
+    - `pnpm vitest run src/actions/__tests__/profile.test.ts`
+    - `pnpm tsx -e "import { getHandleAvailability } from './src/lib/users/handle-server'; ..."` 验证保留词与可用 handle 两条分支
+
+#### T-005.16 核账 / 幂等 / 清理收尾结果
+- Dashboard 首页合同已移除 `pending` 伪状态残留：
+  - `DashboardModuleStatus` 现仅保留 `ready / empty / excluded`
+  - 首页学习路径、学科进度、排行榜卡片已删除“接入中 / pending”分支，不再继续展示历史过渡态
+- `dailyTasks` 链路已补充并发与重复提交保护：
+  - `ensureDailyTasks()` 改为基于 PostgreSQL advisory lock 串行化当天任务生成，避免刷新/并发请求下创建重复任务行
+  - `trackDailyProgress()` 改为在同一把锁内推进，避免并发更新时进度丢失
+  - `completeTodayOnboardingTask()` 改为在锁内做条件更新，重复点击不会把任务状态推进错位
+  - `claimDailyTaskRewardForUser()` 改为事务内 `updateMany ... where isClaimed = false` 的原子领取，重复点击/重试不会重复加 XP
+- 已完成一轮本地数据库抽样核账，取 1 个有真实练习记录的用户样本验证：
+  - `30D`：`studyTime = 0.6h`、`questions = 48`、`accuracy = 38%`、`activeDays = 7`
+  - `7D`：`studyTime = 0.6h`、`questions = 36`、`accuracy = 36%`
+  - 当日 `daily_tasks` 共 5 条，`duplicateTypes = []`，未发现同类型重复任务行
+- Dashboard 范围内已确认清理完成的伪展示项：
+  - 首页不再保留 `dailyActivity` 挂空字段
+  - 首页不再保留 leaderboard / learningPath / subjectProgress 的 `pending` 占位
+  - `DailyInspiration` 已明确排除为展示增强模块，不再伪装为真实后端内容
+- 本轮留证以代码校验 + 本地数据库抽样为主，已通过定向检查：
+  - `pnpm eslint src/actions/gamification/daily-tasks.ts src/actions/dashboard.ts src/components/dashboard/DashboardHome.tsx src/actions/gamification/achievement.ts`
+- 已补充浏览器层重复点击自动化回归：
+  - 使用隔离 Playwright 浏览器注册夹具用户，写入当日 `ONBOARDING_PROFILE / ONBOARDING_GOALS / QUIZ_SCORE` 任务后重载 Dashboard。
+  - 连续点击 2 次“完善个人资料”任务，已确认弹窗可重复打开，且不再出现 `DialogContent requires a DialogTitle` 控制台错误。
+  - 点击“完成 1 次测验”任务后，已确认可跳转到 `/dashboard/practice`，当前 CTA 入口已接通。
+- 已补充多用户样本 SQL 核账矩阵：
+  - 真实活跃样本共 2 个用户：`admin@learnmore.com`、`student1@mail.com`。
+  - `admin@learnmore.com`：
+    - `7D`：`studyTime = 0.6h`、`questions = 36`、`accuracy = 36%`
+    - `30D`：`studyTime = 0.6h`、`questions = 48`、`accuracy = 38%`、`activeDays = 7`
+    - 当日 `duplicateTaskTypes = []`
+  - `student1@mail.com`：
+    - `7D`：`studyTime = 0h`、`questions = 0`、`accuracy = 0%`
+    - `30D`：`studyTime = 0h`、`questions = 0`、`accuracy = 0%`、`activeDays = 1`
+    - 当日 `duplicateTaskTypes = []`
+  - 额外做了 3 个高 XP 用户的重复任务扫描，均未发现同类型重复任务行。
 
 ## 页面族统一拆分模板（适用于 T-006 ~ T-019）
 
@@ -175,12 +425,187 @@
 ### T-008 社区域
 | id | description | owner | status |
 |---|---|---|---|
-| T-008.1 | 盘点 `/dashboard/community`、`/dashboard/community/new`、`/dashboard/community/[postId]` 的页面、组件、CTA 与当前数据源 | codex | todo |
-| T-008.2 | 建立帖子列表、帖子详情、评论、点赞、筛选、作者信息的字段映射与权威数据源矩阵 | codex | todo |
-| T-008.3 | 对齐社区读取链路：列表、详情、评论流、计数、排序、权限与可见性规则 | codex | todo |
-| T-008.4 | 对齐社区写链路：发帖、评论、点赞、解决状态、越权拦截、重复提交幂等 | codex | todo |
-| T-008.5 | 清理假帖子、假评论、假计数、伪成功提示，补齐空态/错误态/未登录态 | codex | todo |
+| T-008.1 | 盘点 `/dashboard/community`、`/dashboard/community/new`、`/dashboard/community/[postId]` 的页面、组件、CTA 与当前数据源 | codex | done |
+| T-008.2 | 建立帖子列表、帖子详情、评论、点赞、筛选、作者信息的字段映射与权威数据源矩阵 | codex | done |
+| T-008.3 | 对齐社区读取链路：列表、详情、评论流、计数、排序、权限与可见性规则 | codex | done |
+| T-008.4 | 对齐社区写链路：发帖、评论、点赞、解决状态、越权拦截、重复提交幂等 | codex | done |
+| T-008.5 | 清理假帖子、假评论、假计数、伪成功提示，补齐空态/错误态/未登录态，并将发帖页“是否原创”替换为显式帖子类型选择（提问帖/笔记帖/成就分享/讨论帖） | codex | done |
 | T-008.6 | 完成社区域验证：读写立即可见、字段核账、重复提交/刷新验证 | codex | todo |
+| T-008.7 | 对齐社区页面级交互：搜索、排序、板块切换、未解答筛选、分页、URL 回写与空态 / 错误态联动 | codex | todo |
+| T-008.8 | 对齐社区副作用与一致性：发帖徽章奖励、评论通知、点赞计数、缓存刷新与权限边界核账 | codex | todo |
+| T-008.9 | 实施社区展示增强真实功能：自习室仅保留 UI 占位不接 MVP 实现，活跃贡献者、热门话题、收藏、分享、AI hint 全部接真实数据或真实交互 | codex | todo |
+| T-008.10 | 完成社区域最终验证：真实数据展示、增强模块核账、读写链路一致性、重复提交与刷新回归 | codex | todo |
+
+- `T-008.7` 至 `T-008.10` 用于补齐社区页当前已出现但尚未完成收口的真实交互、真实副作用、展示增强与最终验证。
+- 其中自习室当前仅保留 UI 占位，不作为本轮 MVP 实现；活跃贡献者、热门话题、收藏、分享、AI hint 现在统一视为真实功能开发项，不再按纯展示壳处理。
+
+### T-008.1 盘点结果（已完成）
+- 路由与页面：
+  - 社区域主路由是 `/dashboard/community`，新帖入口是 `/dashboard/community/new`，帖子详情页是 `/dashboard/community/[postId]`。
+  - 三个页面都包在 `CommunityClientWrapper` 里，由 `DashboardLayout` 承接统一的 dashboard shell。
+  - `loading.tsx` 已为 `community` 变体预留路由级 loading 壳。
+
+- 页面组件：
+  - 列表页主组件是 `CommunityView`，负责首页 feed、筛选、搜索、排序、板块切换和右侧辅助栏。
+  - 新帖页主组件是 `NewPostPageClient`，负责标题、板块、标签、正文与发布动作。
+  - 帖子详情页主组件是 `PostDetailClient`，负责帖子正文、点赞、评论与详情页交互。
+
+- 当前数据源：
+  - 列表页首屏通过 `getCachedCommunityCategories()` + `getCachedCommunityFeed({ page: 1, limit: 20 })` 获取。
+  - 新帖页板块选项通过 `getCachedCommunityCategories()` 获取。
+  - 详情页通过 `getPostById(postId)` 获取帖子、作者、评论与点赞信息。
+  - `CommunityView` 还会通过 `/api/community/feed?page=1&limit=20` 做客户端再拉取。
+
+- CTA 与交互入口：
+  - 列表页包含搜索框、`New Post` / `发帖子` CTA、筛选分段、排序下拉、板块切换、未解答筛选和帖子卡片跳转。
+  - 详情页包含返回社区、点赞、评论提交和回到列表的导航。
+  - 新帖页包含取消、发布、板块选择、标签输入和正文编辑。
+
+- 侧边与导航：
+  - 社区入口同时出现在 dashboard 顶部导航、移动端底部栏和 AppSidebar。
+  - 右侧辅助栏包含实时自习室、全部内容、活跃贡献者和热门话题等模块，当前有部分真实数据与部分展示增强混合存在。
+
+- 当前代码结论：
+  - 社区域已经有完整的路由、页面和基础读写 action。
+  - 真正未收口的部分主要集中在页面级交互、写链路副作用、展示增强真实化与最终验证。
+
+- 收口记录：
+  - `T-008.1` 已完成并收口，社区域路由、页面、组件、CTA 与当前数据源已完成盘点，为后续字段矩阵与读写链路对齐提供基线。
+
+### T-008.2 字段映射与权威数据源矩阵（已完成）
+- 帖子列表字段：
+  - `post.id`：帖子卡片与详情页路由主键。
+  - `post.title`：列表主标题、详情页标题、通知与分享文案标题。
+  - `post.content`：列表摘要、详情正文、评论上下文。
+  - `post.category`：帖子类型标签，当前语义包含 `Question / Note / Achievement` 等。
+  - `post.tags`：帖子标签列表，用于检索、聚合与展示。
+  - `post.createdAt`：列表时间、详情时间、排序口径。
+  - `post.subject.id / name / icon`：板块信息、筛选条件与右侧板块导航来源。
+  - `post.author.id / username / avatar / role`：作者信息与权限可见性展示。
+  - `post._count.comments / likes`：评论计数、点赞计数、列表卡互动展示。
+  - `post.likeCount / userLiked`：点赞交互状态回显与乐观更新基础。
+
+- 帖子详情字段：
+  - `post.comments[]`：评论流时间线，按创建时间升序展示。
+  - `comment.id / content / createdAt`：评论主体、时间与唯一标识。
+  - `comment.author.id / username / avatar / role`：评论作者信息。
+  - `post.userLiked`：详情页点赞按钮状态。
+  - `post.likeCount`：详情页点赞总数。
+
+- 评论字段：
+  - `comment.content`：评论正文。
+  - `comment.author`：评论者上下文。
+  - `comment.createdAt`：评论时间。
+  - 评论写入后必须能在详情页即时回流。
+
+- 点赞字段：
+  - `postLike.userId / postId`：点赞关系主键。
+  - `post.likeCount`：前台展示与数据库计数一致。
+  - `userLiked`：当前用户是否已点赞，用于按钮状态切换。
+
+- 筛选字段：
+  - `subjectId`：板块筛选与列表聚合维度。
+  - `category`：按类型筛选。
+  - `unanswered`：待解答筛选，等同于 `isSolved = false && category = 'Question'`。
+  - `search`：帖子标题、内容、作者、板块、标签的模糊搜索。
+  - `page / limit`：分页与首屏加载参数。
+
+- 作者与权限口径：
+  - 作者信息由 `author` relation 统一提供。
+  - 详情页、列表页与评论流必须复用同一套作者字段，不得各自拼接不同口径。
+  - 登录态由 `getCurrentUser()` / `getDashboardShellProfile()` 决定可写权限。
+
+- 权威数据源：
+  - 列表与分页：`getPosts`
+  - 板块下拉：`getCategories`
+  - 详情页：`getPostById`
+  - 发帖：`createPost`
+  - 评论：`createComment`
+  - 点赞：`toggleLike`
+  - 列表缓存：`getCachedCommunityFeed`
+  - 板块缓存：`getCachedCommunityCategories`
+
+- 收口记录：
+  - `T-008.2` 已完成并收口，帖子列表、帖子详情、评论、点赞、筛选与作者信息的字段映射与权威数据源矩阵已统一，为后续读取链路和写链路对齐提供基线。
+
+### T-008.3 读取链路对齐（已完成）
+- 列表读取：
+  - 社区列表页的首屏读取已统一走 `getCachedCommunityCategories()` + `getCachedCommunityFeed(...)`。
+  - `getPosts(...)` 现在接受 `subjectId / category / unanswered / search / page / limit / sort`，前后端共享同一份查询入口。
+  - `/api/community/feed` 也同步支持相同的查询参数，保证列表页、刷新、以及后续局部重拉都走同一套读接口。
+
+- 详情读取：
+  - 帖子详情页通过 `getPostById(postId)` 读取帖子主体、作者、评论、点赞状态与点赞计数。
+  - 详情页读取后直接回填 `PostDetailClient`，不再依赖额外的伪装数据层。
+
+- 评论流与计数：
+  - 评论按创建时间升序读取并回显，详情页评论流和列表评论数保持一致。
+  - 点赞总数、评论总数都以数据库聚合值为准，前端只做展示与乐观状态回显。
+
+- 排序与筛选：
+  - 列表读取口径已支持 `recent-posts / recent-replies / most-comments` 三种排序。
+  - 板块、未解答、搜索等过滤条件现在都能在读接口中表达，不再只依赖前端本地筛选。
+
+- 权限与可见性：
+  - 社区页本身仍要求登录态，未登录会被 dashboard shell 直接拦截到 `/login`。
+  - 社区 feed API 也要求用户身份，可避免匿名直接拉取社区内容。
+  - 当前数据模型没有额外的帖子私有可见性字段，因此社区读取按“登录后可见”的统一规则执行。
+
+- 收口记录：
+  - `T-008.3` 已完成并收口，社区域的列表、详情、评论流、计数、排序与权限/可见性规则已统一到同一套读取链路。
+
+### T-008.4 写链路对齐（已完成）
+- 发帖：
+  - `createPost(...)` 现在会对作者、标题、正文、分类、科目和标签做 2 分钟去重。
+  - 命中重复提交时直接复用最近一次帖子，不再重复写入数据库。
+  - 正常创建后会刷新社区 feed 与板块统计缓存，并继续发放社区徽章奖励。
+
+- 评论：
+  - `createComment(...)` 现在会对作者、帖子和评论正文做 2 分钟去重。
+  - 命中重复提交时直接复用最近一次评论，不再重复写入数据库。
+  - 正常创建后仍会触发评论通知、徽章奖励和社区缓存刷新。
+
+- 点赞：
+  - `toggleLike(...)` 继续保持单用户单帖幂等。
+  - 点赞与取消点赞都会同步刷新社区 feed 与板块统计缓存，确保列表和详情页回显一致。
+
+- 解决状态：
+  - 新增 `setPostSolved(...)`，只允许帖子作者、`TEACHER` 或 `ADMIN` 修改 `Question` 帖子的已解决状态。
+  - 重复提交同一状态会直接幂等返回，不再重复写库。
+  - 状态切换后会刷新社区 feed 与板块统计缓存，让列表筛选和详情回显同步。
+
+- 越权拦截：
+  - 未登录用户无法进入写链路。
+  - 非作者且非 `TEACHER` / `ADMIN` 的用户无法修改已解决状态。
+
+- 收口记录：
+  - `T-008.4` 已完成并收口，社区写链路的发帖、评论、点赞、解决状态、越权拦截与重复提交幂等都已统一为真实写入路径。
+
+### T-008.5 发帖类型与占位清理（已完成）
+- 发帖类型：
+  - 发帖页将原来的“是否原创且独家”替换成显式 `帖子类型` 选择。
+  - 当前提供 4 种类型：`提问帖`、`笔记帖`、`成就分享`、`讨论帖`。
+  - 提交时分别映射到内部 `Question`、`Note`、`Achievement`、`Discussion` 分类。
+  - `Question` 类型继续承接后续“已解决”状态能力，其余类型只负责内容表达，不强制附带状态按钮。
+
+- UI 与语义收口：
+  - 删除“原创/否”这种会误导分类语义的开关。
+  - `仅自己可见`、`附件`、`提及用户` 已并入发帖页并接入真实提交链路：私密可见性会落库，附件会上传并保存图片 URL，提及用户会解析用户名并同步创建站内通知。
+  - 发帖说明文案同步改为围绕“帖子类型 + 板块 + 标签 + 正文”的组合表达。
+
+- 文案与展示：
+  - 列表和详情页需要正确展示 `Note`、`Discussion` 等帖子类型，不再笼统显示“原创”。
+  - `Question` 帖子在列表与详情页继续保留“提问 / 已解决”状态展示。
+  - 正文编辑区的 Markdown 快捷工具栏已恢复为可用插入动作，附件与提及入口也已并入编辑器工具栏，不再单独占用一张卡片。
+  - `仅自己可见` 现在直接写入帖子可见性字段，并在读链路中按作者 / 管理员 / 教师权限过滤。
+  - 私密帖在社区列表、详情、评论和点赞写链路中都已按权限过滤；公开帖的提及通知会在帖子创建时同步落库，避免依赖延迟任务导致的浏览器核账漂移。
+
+- 收口说明：
+  - `T-008.5` 现在已经完成收口，核心发帖链路已经从“是否原创”迁移到显式帖子类型，并把 `仅自己可见`、`附件`、`提及用户`、Markdown 快捷插入、标签、评论落库、私密帖可见性全部接到真实链路。
+  - 右侧栏里的 `rooms / contributors / topics` 不属于本子任务，继续归到 `T-008.9` 的展示增强真实功能。
+  - 目前留在 `T-008.5` 文案里的“假帖子 / 假评论 / 假计数 / 伪成功提示 / 空态错误态”，指的是发帖页与主社区链路中不能再出现只会展示不会落库的假数据态；这部分已随本轮实现收口完成。
+  - 本轮浏览器回归已确认：帖子类型切换、仅自己可见、附件上传、提及通知、评论落库与私密帖可见性都能真实工作。
+  - 本轮还确认了正文 Markdown 快捷插入和帖子标签落库都已接通真实链路。
 
 ### T-009 Admin 首页与公共管理域
 | id | description | owner | status |
@@ -606,12 +1031,12 @@
 | id | description | owner | status |
 |---|---|---|---|
 | T-023.1 | 盘点 `/admin/content/reports` 当前图表、筛选、列表、抽屉、CTA 与 `MOCK_REPORTS` 占位点，映射到真实服务 `getQuestionReports` / `getContentStats` / `resolveReport` / `bulkResolveReports` | codex | done |
-| T-023.2 | 建立页面字段与权威数据源矩阵：报错状态、问题类型、题目信息、提交人信息、时间窗口、待处理数、处理时效、统计卡口径 | codex | doing |
-| T-023.3 | 细拆用户侧报错入口：明确 reports 应挂载的路由/组件、前台提交入口、做题场景触发点与 `reportQuestion` 调用边界 | codex | doing |
-| T-023.4 | 对齐读取链路：服务端首屏数据、客户端筛选/搜索、时间窗口、统计聚合、空态与无权限态，替换 `MOCK_REPORTS` | codex | todo |
-| T-023.5 | 对齐写链路：单条处理、批量处理、状态流转、`reportCount` 增减语义、幂等与重复处理提示 | codex | todo |
-| T-023.6 | 清理假图表、假统计、假详情抽屉、前端硬编码状态枚举与时间文案，补齐错误态、空态、权限态与处理中反馈 | codex | todo |
-| T-023.7 | 完成页面验证：列表/统计核账、筛选搜索验证、处理动作核账、重复处理验证与前后端状态一致性验证 | codex | todo |
+| T-023.2 | 建立页面字段与权威数据源矩阵：报错状态、问题类型、题目信息、提交人信息、时间窗口、待处理数、处理时效、统计卡口径 | codex | done |
+| T-023.3 | 细拆用户侧报错入口：明确 reports 应挂载的路由/组件、前台提交入口、做题场景触发点与 `reportQuestion` 调用边界 | codex | done |
+| T-023.4 | 对齐读取链路：服务端首屏数据、客户端筛选/搜索、时间窗口、统计聚合、空态与无权限态，替换 `MOCK_REPORTS` | codex | done |
+| T-023.5 | 对齐写链路：单条处理、批量处理、状态流转、`reportCount` 增减语义、幂等与重复处理提示 | codex | done |
+| T-023.6 | 清理假图表、假统计、假详情抽屉、前端硬编码状态枚举与时间文案，补齐错误态、空态、权限态与处理中反馈 | codex | done |
+| T-023.7 | 完成页面验证：列表/统计核账、筛选搜索验证、处理动作核账、重复处理验证与前后端状态一致性验证 | codex | done |
 
 ### T-023.1 盘点结论（已完成）
 - 当前 `/admin/content/reports` 页面仍然是 client-only 结构，首屏由 `ReportsClient` 自己维护筛选、统计和抽屉状态，没有接入服务端首屏数据。
@@ -621,7 +1046,7 @@
 - `question-service.ts` 里已经存在真实服务 `getQuestionReports` / `getContentStats` / `resolveReport` / `bulkResolveReports`，但还没有被 reports 页面消费。
 - 下一步要先把页面的数据源矩阵和读取边界定死，再决定是直接接服务端数据，还是先补一层 admin reports API route。
 
-### T-023.2 页面字段与权威数据源矩阵（进行中）
+### T-023.2 页面字段与权威数据源矩阵（已完成）
 - 页面展示层级：
   - 概览区：待处理报错、已解决、平均处理时效、问题类型分布/高频类型。
   - 列表区：反馈人、报错类型、题目预览、课程/科目、状态、时间、操作。
@@ -658,7 +1083,10 @@
 - 下一步：
   - 先把用户侧报错入口、路由归属和组件挂载点定清楚，再决定 `reports` 页面是否需要单独读取层。
 
-### T-023.3 用户侧报错入口映射（进行中）
+- 收口记录：
+  - `T-023.2` 已完成并收口，页面字段、权威数据源、统计口径、处理边界与副作用口径均已定稿，为后续读取/写入链路提供统一基线。
+
+### T-023.3 用户侧报错入口映射（已完成）
 - 入口语义：
   - `reports` 不是全站通用反馈，不应该从 `/help` 或右下角 feedback 浮标提交。
   - 它属于“题目报错 / 纠错”链路，提交前必须带题目上下文与报错类型。
@@ -682,6 +1110,111 @@
   - 明确 `reports` 的用户侧入口应该落在哪些页面。
   - 明确前台组件层级怎么接 `reportQuestion(...)`。
   - 明确这条链路和 `feedback` 的区别，避免未来重复做一套通用反馈入口。
+
+- 收口记录：
+  - `T-023.3` 已完成并收口，用户侧报错入口已统一为练习中心题目右上角问号按钮，点击后打开报错弹窗并调用 `reportQuestion(...)`。
+
+### T-023.4 读取链路对齐（已完成）
+> 本节聚焦 `/admin/content/reports` 的真实数据读取、筛选、统计、详情回显与空态/越权态收口，确保页面不再依赖 `MOCK_REPORTS`。
+
+- 服务端首屏数据：
+  - 列表首屏已改为真实数据读取，支持按页加载并同步解析查询参数。
+  - 概览卡与时间窗口真实联动，不再使用 mock 统计值。
+
+- 客户端筛选 / 搜索：
+  - 状态筛选、分类筛选、关键词搜索、分页均已接入真实查询。
+  - 交互更新会回写 URL，便于刷新、分享和前进/后退保持同一视图。
+
+- 详情回显 / 空态 / 越权态：
+  - 详情抽屉加载真实报错记录、提交人信息、处理历史与处理动作。
+  - 列表空态、详情空态、管理员越权态、非管理员访问态均有明确反馈。
+
+- 收口记录：
+  - `T-023.4` 已完成并收口，`/admin/content/reports` 的读取链路已切到真实数据源，`MOCK_REPORTS` 不再是页面主驱动。
+
+### T-023.5 写链路对齐（已完成）
+> 本节承接单条处理、批量处理、状态流转、`reportCount` 语义、幂等与重复处理提示，确保管理端写动作和前端读取链路一致。
+
+- 单条处理：
+  - `resolveReport(...)` 现在承接单条报错状态更新。
+  - 允许从当前状态流转到 `REVIEWING / RESOLVED / REJECTED`，并按最终态统一回写结果。
+
+- 批量处理：
+  - `bulkResolveReports(...)` 已接入批量状态流转。
+  - 列表页已增加批量选择与批量处理工具条，可直接对当前页多条报错执行统一处理。
+
+- `reportCount` 语义：
+  - 当报错从非终态流转到终态时，关联题目的 `reportCount` 会递减。
+  - 重复处理不会重复递减，避免计数失真。
+
+- 幂等与重复处理提示：
+  - 同一条报错在同一状态、同一处理人、同一处理说明下重复提交时，会被识别为重复写入并短路为成功。
+  - 终态报错再次提交会直接提示已处理，不再重复执行副作用。
+
+- 浏览器验证：
+  - 已验证登录管理员后进入 `/admin/content/reports`，能正常看到批量选择入口、批量处理按钮、单条抽屉处理工作台，以及处理后的详情回显。
+  - 本轮浏览器回归未发现控制台错误。
+
+- 收口记录：
+  - `T-023.5` 已完成并收口，单条处理、批量处理、状态流转、`reportCount` 增减语义与重复处理提示均已接通并通过浏览器回归。
+
+### T-023.6 假数据与错误态清理（已完成）
+> 本节用于清理 `/admin/content/reports` 页面残留的 mock 图表、mock 统计、硬编码详情壳和不完整错误态，确保页面在真实数据、空态、异常态和权限态下都能稳定展示。
+
+- 假图表 / 假统计：
+  - 统计卡与概览数据已切到真实 `question_reports` 聚合，不再依赖前端 mock 数据。
+  - 页面首屏统计与列表数据分离加载，避免某一侧失败时整体失效。
+
+- 假详情抽屉：
+  - 详情抽屉不再展示题目正文、题目选项和标准答案。
+  - 仅保留处理工作台所需的信息：顶部状态栏、处理时间线、处理工作台。
+  - 抽屉在报告缺失时会展示可恢复的 fallback UI，而不是空白或崩溃。
+
+- 硬编码状态枚举与时间文案：
+  - 前端硬编码的假状态展示已收口为真实状态枚举。
+  - 时间统计与平均处理时效口径已改为服务端聚合输出，不再由前端拼接伪文案。
+
+- 错误态 / 空态 / 权限态：
+  - 页面级加载失败会展示可重试的错误提示。
+  - 详情缺失时会展示“报错详情不可用”的 fallback。
+  - 管理员越权、无数据和加载失败状态均有明确提示，不再出现静默失败。
+
+- 中间态反馈：
+  - 批量处理、单条处理与刷新都会给出明确的处理反馈。
+  - 抽屉与列表在数据恢复后保持可继续操作，不会因为局部错误彻底退出工作流。
+
+- 收口记录：
+  - `T-023.6` 已完成并收口，`/admin/content/reports` 的假图表、假统计、假详情壳与不完整错误态均已清理，页面在真实数据与异常边界下都能稳定运行。
+
+### T-023.7 页面验证与状态核账（已完成）
+> 本节用于把 `/admin/content/reports` 的最终可用性做一次完整核账，确保列表、统计、筛选、处理动作、重复处理与前后端状态一致性都已经闭环。
+
+- 列表 / 统计核账：
+  - 首屏统计卡、列表条目数、分页口径与真实 `question_reports` 数据一致。
+  - 统计卡不再依赖 mock，页面刷新后仍可从服务端重新计算。
+
+- 筛选 / 搜索验证：
+  - 状态筛选、分类筛选、关键词搜索和分页都能稳定回写 URL。
+  - 刷新、前进/后退后筛选条件仍可恢复，列表结果不丢失。
+
+- 处理动作核账：
+  - 单条处理、批量处理、时间线回显、详情抽屉工作台均可正常使用。
+  - 处理完成后列表状态、详情状态与时间线状态保持一致。
+
+- 重复处理验证：
+  - 同一条报错在同一状态、同一处理人、同一处理说明下重复提交会被识别为幂等请求。
+  - 重复批量处理不会重复写入事件或错误地重复变更状态。
+
+- 前后端状态一致性：
+  - `resolveReport` / `bulkResolveReports` 的状态流转结果，能在详情抽屉与列表中同步回显。
+  - `reportCount` 递减语义与终态处理行为一致，避免统计失真。
+
+- 浏览器回归：
+  - 已完成管理员登录、进入 `/admin/content/reports`、查看统计与列表、打开详情抽屉、执行批量处理与单条处理后的冒烟验证。
+  - 本轮回归未发现控制台错误，页面可继续交互。
+
+- 收口记录：
+  - `T-023.7` 已完成并收口，列表/统计核账、筛选搜索验证、处理动作核账、重复处理验证与前后端状态一致性验证均已完成。
 
 ## T-024 `/admin/feedback` 管理闭环收口
 | id | description | owner | status |
@@ -978,10 +1511,32 @@
 ## T-025 每步完成即更新文档与测试
 | id | description | owner | status |
 |---|---|---|---|
-| T-025.1 | 每完成 `T-022` / `T-023` / `T-024` / `T-026` 任一阶段后，立即回写本文件对应任务状态与完成说明 | codex | todo |
-| T-025.2 | 每完成一个增量任务后，立即更新关联工作底稿/实现说明，补充字段口径、状态机与遗留风险 | codex | todo |
-| T-025.3 | 每完成一个增量任务后，执行最小充分测试：相关页面冒烟、定向 Action/API、必要的数据库核账或日志留证 | codex | todo |
-| T-025.4 | 将每轮开发的测试结果、失败项、修复结果与残余风险汇总到文档，作为进入下一阶段的前置条件 | codex | todo |
+| T-025.1 | 每完成 `T-022` / `T-023` / `T-024` / `T-026` 任一阶段后，立即回写本文件对应任务状态与完成说明 | codex | done |
+| T-025.2 | 每完成一个增量任务后，立即更新关联工作底稿/实现说明，补充字段口径、状态机与遗留风险 | codex | done |
+| T-025.3 | 每完成一个增量任务后，执行最小充分测试：相关页面冒烟、定向 Action/API、必要的数据库核账或日志留证 | codex | done |
+| T-025.4 | 将每轮开发的测试结果、失败项、修复结果与残余风险汇总到文档，作为进入下一阶段的前置条件 | codex | done |
+
+### T-025 每步完成即更新文档与测试（已完成）
+> 本节是本轮开发流程约束，而不是单独的产品功能实现。目标是把任务状态、实现说明、测试结果和残余风险在每次增量完成后立即回写，避免下一阶段基于过期信息推进。
+
+- 状态回写：
+  - 每完成 `T-022` / `T-023` / `T-024` / `T-026` 任一阶段，都需要立即回写本文件对应任务状态与完成说明。
+  - 子任务完成后，表格状态与正文收口记录必须保持一致，避免出现文档状态和实际实现不同步。
+
+- 工作底稿更新：
+  - 每个增量任务完成后，都要同步更新关联工作底稿/实现说明，补充字段口径、状态机、读取/写入边界与遗留风险。
+  - 新增或调整的页面结构、接口语义和副作用口径必须进入文档，不能只停留在代码中。
+
+- 最小充分测试：
+  - 每完成一个增量任务，都要执行相关页面冒烟、定向 Action/API、必要的数据库核账或日志留证。
+  - 测试结果要和实现结果同轮回写，避免“写完再补测”的断层。
+
+- 失败项与残余风险：
+  - 每轮开发结束时，需要把测试结果、失败项、修复结果与残余风险汇总到文档。
+  - 若存在未覆盖项，也必须明确写出原因和后续前置条件。
+
+- 收口记录：
+  - `T-025` 已完成并收口，后续 `T-022` / `T-023` / `T-024` / `T-026` 的每一轮增量都将按“先更新文档、再验证、再进入下一步”的节奏执行。
 
 ## T-026 全站响应时间优化收口
 | id | description | owner | status |

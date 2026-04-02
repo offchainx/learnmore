@@ -1,6 +1,6 @@
 'use client'
 
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ProfileForm } from "@/components/business/settings/profile-form"
 import type { User, UserSettings } from "@prisma/client"
 
@@ -15,6 +15,7 @@ export function ProfileDialog({ open, onOpenChange, user, onSuccess }: ProfileDi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 border-none bg-transparent shadow-none">
+        <DialogTitle className="sr-only">完善个人资料</DialogTitle>
         {/* ProfileForm contains its own Card, so we remove padding/border from DialogContent */}
         <ProfileForm user={user} onSuccess={() => {
           onSuccess()

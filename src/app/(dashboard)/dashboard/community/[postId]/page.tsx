@@ -56,12 +56,18 @@ export default async function PostDetailPage({ params }: PostDetailPageProps) {
           content: post.content,
           category: post.category,
           tags: post.tags,
+          attachments: post.attachments,
+          mentionedHandles: post.mentionedHandles,
+          isPrivate: post.isPrivate,
           createdAt: post.createdAt,
           author: post.author,
           comments: post.comments,
           likeCount: post.likeCount,
           userLiked: post.userLiked,
+          isSolved: post.isSolved,
         }}
+        currentUserId={profile.id}
+        currentUserRole={profile.role}
       />
     </CommunityClientWrapper>
   )

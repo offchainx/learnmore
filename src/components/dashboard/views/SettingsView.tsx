@@ -26,6 +26,7 @@ import {
 import { cancelSubscriptionAction } from '@/actions/billing/stripe'
 import { toast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
+import { useHandleAvailability } from '@/lib/hooks/useHandleAvailability'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
@@ -212,6 +213,7 @@ type UserProfile = {
   id: string
   email: string
   username: string | null
+  handle: string | null
   avatar: string | null
   grade: number | null
   role: string
@@ -247,9 +249,11 @@ type SettingsViewProps = {
 function SectionSubmitButton({
   idleLabel,
   pendingLabel,
+  disabled = false,
 }: {
   idleLabel: string
   pendingLabel: string
+  disabled?: boolean
 }) {
   const { pending } = useFormStatus()
 
@@ -259,6 +263,7 @@ function SectionSubmitButton({
       className="h-11 rounded-full px-5 text-sm font-semibold"
       isLoading={pending}
       loadingText={pendingLabel}
+      disabled={disabled || pending}
     >
       {idleLabel}
     </Button>
@@ -595,7 +600,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   const [profileLang, setProfileLang] = useState<Lang>(persistedLang)
   const [profileTheme, setProfileTheme] =
     useState<ThemePreference>(persistedTheme)
+  const [profileHandle, setProfileHandle] = useState(user?.handle || '')
   const profilePreferenceSyncRef = useRef(false)
+  const handleAvailability = useHandleAvailability(profileHandle, user?.handle)
 
   const copy = useMemo(() => {
     if (lang === 'zh') {
@@ -627,6 +634,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         notifSaving: '保存中...',
         profileSuccess: '个人资料已更新',
         aiSuccess: 'AI 配置已更新',
+        handleLabel: '账号标识',
+        handleHint: '用于后续社区 @提及与用户识别，系统会自动转成小写并拦截保留词。',
+        handleChecking: '正在检查账号标识是否可用...',
+        handleAvailable: '账号标识可用，将保存为',
         gradeLabel: '年级',
         emailLabel: '邮箱地址',
         avatarLabel: '头像',
@@ -697,6 +708,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         notifSaving: 'Menyimpan...',
         profileSuccess: 'Profil dikemas kini',
         aiSuccess: 'Konfigurasi AI dikemas kini',
+        handleLabel: 'Handle',
+        handleHint: 'Digunakan untuk @sebutan komuniti dan identiti pengguna. Sistem akan menyimpan dalam huruf kecil.',
+        handleChecking: 'Sedang menyemak ketersediaan handle...',
+        handleAvailable: 'Handle tersedia dan akan disimpan sebagai',
         gradeLabel: 'Tingkatan',
         emailLabel: 'Emel',
         avatarLabel: 'Avatar',
@@ -769,6 +784,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       notifSaving: 'Saving...',
       profileSuccess: 'Profile updated',
       aiSuccess: 'AI config updated',
+      handleLabel: 'Handle',
+      handleHint:
+        'Used for future community @mentions and identity. The system stores it in lowercase and blocks reserved words.',
+      handleChecking: 'Checking handle availability...',
+      handleAvailable: 'Handle is available and will be saved as',
       gradeLabel: 'Grade',
       emailLabel: 'Email',
       avatarLabel: 'Avatar',
@@ -809,6 +829,15 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       noChange: 'No new changes to save.',
     }
   }, [lang])
+
+  const handleHelperText =
+    handleAvailability.status === 'checking'
+      ? copy.handleChecking
+      : handleAvailability.status === 'available'
+        ? `${copy.handleAvailable} @${handleAvailability.normalizedHandle}`
+        : handleAvailability.status === 'unavailable'
+          ? handleAvailability.reason || copy.handleHint
+          : copy.handleHint
 
   const menuItems = useMemo(
     () => [
@@ -1430,6 +1459,31 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                         defaultValue={user?.username || ''}
                         className="bg-surface-subtle dark:bg-surface-subtle"
                       />
+                      <div className="space-y-2">
+                        <Input
+                          label={copy.handleLabel}
+                          name="handle"
+                          value={profileHandle}
+                          onChange={(event) => setProfileHandle(event.target.value)}
+                          placeholder="@yourname"
+                          className="bg-surface-subtle dark:bg-surface-subtle"
+                          error={
+                            handleAvailability.status === 'unavailable'
+                              ? handleAvailability.reason || undefined
+                              : undefined
+                          }
+                        />
+                        <p
+                          className={cn(
+                            'px-1 text-xs',
+                            handleAvailability.status === 'unavailable'
+                              ? 'text-[hsl(var(--state-danger-fg))]'
+                              : 'text-text-secondary dark:text-text-secondary'
+                          )}
+                        >
+                          {handleHelperText}
+                        </p>
+                      </div>
                       <Input
                         label={copy.gradeLabel}
                         name="grade"
@@ -1541,6 +1595,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   <SectionSubmitButton
                     idleLabel={copy.profileSave}
                     pendingLabel={copy.profileSaving}
+                    disabled={
+                      handleAvailability.status === 'checking' ||
+                      handleAvailability.status === 'unavailable'
+                    }
                   />
                 </div>
               </form>

@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Flag, Loader2, Target, type LucideIcon } from 'l
 import { PracticeHeader } from '@/components/practice/modes/shared/PracticeHeader'
 import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel'
 import type { PracticeModeTheme } from '@/components/practice/modes/shared/theme'
+import { QuestionReportButton } from '@/components/business/question'
 
 interface QuizSessionProps {
   questions: Question[]
@@ -27,6 +28,7 @@ interface QuizSessionProps {
   persistSession?: boolean
   onExit: () => void
   onRestart?: () => void
+  reporterId?: string
 }
 
 export default function QuizSession({
@@ -45,6 +47,7 @@ export default function QuizSession({
   persistSession = true,
   onExit,
   onRestart,
+  reporterId = userId,
 }: QuizSessionProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<Record<string, string | string[]>>({})
@@ -236,6 +239,15 @@ export default function QuizSession({
         showResult={isChecked}
         readOnly={isChecked}
         className="min-h-[400px] shadow-md"
+        headerAction={
+          reporterId ? (
+            <QuestionReportButton
+              questionId={currentQuestion.id}
+              reportedBy={reporterId}
+              questionLabel={`第 ${currentIndex + 1} 题`}
+            />
+          ) : null
+        }
       />
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

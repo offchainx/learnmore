@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCachedCommunityFeed } from '@/lib/cache/sitewide'
-import { resolveRequestUserId } from '@/lib/auth/request-user'
+import { createRoutePerfLogger } from '@/lib/observability/perf'
+import { getDashboardShellProfile } from '@/actions/user/profile'
 
 export const preferredRegion = 'sin1'
 
@@ -16,21 +17,49 @@ function parseLimit(raw: string | null): number {
   return Math.max(1, Math.min(50, value))
 }
 
+function parseSort(raw: string | null): 'recent-posts' | 'recent-replies' | 'most-comments' {
+  if (raw === 'recent-replies' || raw === 'most-comments') return raw
+  return 'recent-posts'
+}
+
 export async function GET(request: NextRequest) {
+  const metrics = createRoutePerfLogger('/api/community/feed', request)
   try {
-    const userId = await resolveRequestUserId(request.headers)
-    if (!userId) {
+    const profile = await getDashboardShellProfile()
+    if (!profile) {
+      metrics.done(401, { reason: 'unauthorized' })
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const tab = request.nextUrl.searchParams.get('tab') || 'latest'
+    const subjectId = request.nextUrl.searchParams.get('subjectId')
+    const category = request.nextUrl.searchParams.get('category')
+    const search = request.nextUrl.searchParams.get('search') || undefined
+    const sort = parseSort(request.nextUrl.searchParams.get('sort'))
     const page = parsePage(request.nextUrl.searchParams.get('page'))
     const limit = parseLimit(request.nextUrl.searchParams.get('limit'))
 
     const result = await getCachedCommunityFeed({
+      subjectId: subjectId || undefined,
+      category: category || undefined,
+      search,
       unanswered: tab === 'unanswered',
       page,
       limit,
+      sort,
+      viewerUserId: profile.id,
+      viewerRole: profile.role,
+    })
+
+    metrics.done(200, {
+      tab,
+      subjectId,
+      category,
+      search,
+      sort,
+      page,
+      limit,
+      posts: result.posts?.length ?? 0,
     })
 
     return NextResponse.json(
@@ -44,7 +73,7 @@ export async function GET(request: NextRequest) {
       { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=60' } },
     )
   } catch (error) {
-    console.error('Error fetching community feed:', error)
+    metrics.error(error)
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 })
   }
 }

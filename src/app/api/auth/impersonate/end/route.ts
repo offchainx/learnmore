@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyImpersonationToken, getImpersonationTokenFromCookie, decodeTokenPayload } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
+import { runAfterTask } from '@/lib/server/run-after-task'
 
 export async function POST(request: NextRequest) {
   const cookieHeader = request.headers.get('cookie')
@@ -36,7 +37,9 @@ export async function POST(request: NextRequest) {
                 endReason: 'TOKEN_EXPIRED',
               },
             }),
-            prisma.securityLog.create({
+          ])
+          runAfterTask(async () => {
+            await prisma.securityLog.create({
               data: {
                 userId: decoded.targetUserId,
                 action: 'IMPERSONATE_END',
@@ -46,8 +49,8 @@ export async function POST(request: NextRequest) {
                   endReason: 'TOKEN_EXPIRED',
                 },
               },
-            }),
-          ])
+            })
+          }, 'impersonate-end-expired-audit')
         } catch (error) {
           console.error('[impersonate/end] TOKEN_EXPIRED 审计清理失败:', error)
         }
@@ -74,7 +77,9 @@ export async function POST(request: NextRequest) {
           endReason: 'MANUAL_LOGOUT',
         },
       }),
-      prisma.securityLog.create({
+    ])
+    runAfterTask(async () => {
+      await prisma.securityLog.create({
         data: {
           userId: payload.targetUserId,
           action: 'IMPERSONATE_END',
@@ -84,8 +89,8 @@ export async function POST(request: NextRequest) {
             endReason: 'MANUAL_LOGOUT',
           },
         },
-      }),
-    ])
+      })
+    }, 'impersonate-end-manual-audit')
   } catch (error) {
     console.error('[impersonate/end] Error updating session:', error)
   }

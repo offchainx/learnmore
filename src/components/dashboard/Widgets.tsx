@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react'
-// ⚠️ 暂时禁用 Gemini API (Issue-002)
-// import { GoogleGenAI } from "@google/genai";
+import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Sparkles, RefreshCw } from 'lucide-react'
@@ -197,6 +195,78 @@ const MOTIVATIONAL_QUOTES = {
   ],
 }
 
+const INSPIRATION_BACKGROUNDS = [
+  {
+    shellLight:
+      'bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.5)_0%,transparent_28%),linear-gradient(135deg,#f8fafc_0%,#dbeafe_36%,#bfdbfe_100%)]',
+    shellDark:
+      'dark:bg-[radial-gradient(circle_at_top_left,rgba(148,163,184,0.16)_0%,transparent_28%),linear-gradient(135deg,#020617_0%,#0f172a_36%,#1e3a8a_100%)]',
+    glowLight: 'bg-sky-300/35',
+    glowDark: 'dark:bg-sky-500/20',
+    orbPrimaryLight: 'bg-white/55',
+    orbPrimaryDark: 'dark:bg-slate-200/10',
+    orbSecondaryLight: 'bg-sky-200/70',
+    orbSecondaryDark: 'dark:bg-sky-400/16',
+  },
+  {
+    shellLight:
+      'bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.4)_0%,transparent_24%),linear-gradient(135deg,#fefce8_0%,#fde68a_40%,#fca5a5_100%)]',
+    shellDark:
+      'dark:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.12)_0%,transparent_24%),linear-gradient(135deg,#111827_0%,#3f2f17_36%,#4c1d1d_100%)]',
+    glowLight: 'bg-amber-300/35',
+    glowDark: 'dark:bg-amber-500/18',
+    orbPrimaryLight: 'bg-white/50',
+    orbPrimaryDark: 'dark:bg-amber-100/10',
+    orbSecondaryLight: 'bg-rose-200/65',
+    orbSecondaryDark: 'dark:bg-rose-400/14',
+  },
+  {
+    shellLight:
+      'bg-[radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.38)_0%,transparent_26%),linear-gradient(135deg,#ecfeff_0%,#a5f3fc_42%,#bfdbfe_100%)]',
+    shellDark:
+      'dark:bg-[radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.1)_0%,transparent_26%),linear-gradient(135deg,#082f49_0%,#0f172a_42%,#172554_100%)]',
+    glowLight: 'bg-cyan-300/35',
+    glowDark: 'dark:bg-cyan-400/18',
+    orbPrimaryLight: 'bg-white/50',
+    orbPrimaryDark: 'dark:bg-cyan-100/10',
+    orbSecondaryLight: 'bg-cyan-200/70',
+    orbSecondaryDark: 'dark:bg-cyan-300/14',
+  },
+  {
+    shellLight:
+      'bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42)_0%,transparent_26%),linear-gradient(135deg,#faf5ff_0%,#ddd6fe_38%,#c4b5fd_100%)]',
+    shellDark:
+      'dark:bg-[radial-gradient(circle_at_top_left,rgba(167,139,250,0.12)_0%,transparent_26%),linear-gradient(135deg,#1e1b4b_0%,#111827_38%,#312e81_100%)]',
+    glowLight: 'bg-violet-300/35',
+    glowDark: 'dark:bg-violet-500/18',
+    orbPrimaryLight: 'bg-white/50',
+    orbPrimaryDark: 'dark:bg-violet-100/10',
+    orbSecondaryLight: 'bg-fuchsia-200/65',
+    orbSecondaryDark: 'dark:bg-fuchsia-400/14',
+  },
+  {
+    shellLight:
+      'bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.35)_0%,transparent_26%),linear-gradient(135deg,#f0fdf4_0%,#86efac_40%,#6ee7b7_100%)]',
+    shellDark:
+      'dark:bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.12)_0%,transparent_26%),linear-gradient(135deg,#052e16_0%,#0f172a_40%,#14532d_100%)]',
+    glowLight: 'bg-emerald-300/35',
+    glowDark: 'dark:bg-emerald-500/18',
+    orbPrimaryLight: 'bg-white/50',
+    orbPrimaryDark: 'dark:bg-emerald-100/10',
+    orbSecondaryLight: 'bg-emerald-200/65',
+    orbSecondaryDark: 'dark:bg-emerald-300/14',
+  },
+] as const
+
+function getDailySeed(lang: string) {
+  const now = new Date()
+  const startOfYear = new Date(now.getFullYear(), 0, 0)
+  const diff = now.getTime() - startOfYear.getTime()
+  const dayOfYear = Math.floor(diff / 86400000)
+  const langWeight = Array.from(lang).reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  return dayOfYear + langWeight
+}
+
 export const DailyInspiration = ({
   lang,
   t,
@@ -213,130 +283,74 @@ export const DailyInspiration = ({
   welcomeSub: string
   className?: string
 }) => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [quote, setQuote] = useState<string>('')
-  const [loading, setLoading] = useState(false)
+  const [manualOffset, setManualOffset] = useState(0)
   const copy = (zh: string, en: string) => (lang.startsWith('zh') ? zh : en)
 
-  const getQuote = React.useCallback(() => {
-    const quotesList =
+  const quotesList = useMemo(
+    () =>
       MOTIVATIONAL_QUOTES[lang as keyof typeof MOTIVATIONAL_QUOTES] ||
-      MOTIVATIONAL_QUOTES.en
-    return quotesList[Math.floor(Math.random() * quotesList.length)]
-  }, [lang])
+      MOTIVATIONAL_QUOTES.en,
+    [lang]
+  )
 
-  const generateInspiration = React.useCallback(async () => {
-    if (loading) return
-    setLoading(true)
-    const randomQuote = getQuote()
-    setQuote(randomQuote)
-
-    try {
-      // ⚠️ 暂时禁用 Gemini AI 图片生成 (Issue-002)
-      // 原因: 客户端无法安全调用 Gemini API，需要迁移到 Server Action
-      // TODO: 在 Phase 6 UI 定稿后，创建 Server Action 来处理 AI 图片生成
-
-      /* 原 Gemini API 代码:
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ text: `Generate a stunning, artistic, abstract or scenic background image that represents the feeling of this quote: "${randomQuote}". Style: Digital Art, Soft Lighting, Uplifting, Educational, Modern Vector or Watercolor. No text in the image.` }] },
-        config: { imageConfig: { aspectRatio: '16:9' } }
-      });
-      let base64Image = null;
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-         if (part.inlineData) {
-            base64Image = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-            break;
-         }
-      }
-      */
-
-      // 临时方案: 使用 Unsplash 占位符图片（教育主题）
-      const placeholderImages = [
-        'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&h=675&fit=crop', // 学习场景
-        'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=675&fit=crop', // 笔记本
-        'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200&h=675&fit=crop', // 书籍
-        'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&h=675&fit=crop', // 图书馆
-        'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&h=675&fit=crop', // 书桌
-      ]
-      const randomImage =
-        placeholderImages[Math.floor(Math.random() * placeholderImages.length)]
-
-      setImageUrl(randomImage)
-      const today = new Date().toDateString()
-      localStorage.setItem('daily_inspiration_date', today)
-      localStorage.setItem('daily_inspiration_image', randomImage)
-      localStorage.setItem(`daily_inspiration_quote_${lang}`, randomQuote)
-    } catch (error) {
-      console.error('Failed to generate inspiration image', error)
-      setQuote('Keep pushing forward!')
-    } finally {
-      setLoading(false)
-    }
-  }, [lang, loading, getQuote])
+  const dailySeed = useMemo(() => getDailySeed(lang), [lang])
+  const activeIndex =
+    (dailySeed + manualOffset) % Math.max(INSPIRATION_BACKGROUNDS.length, 1)
+  const activeBackground = INSPIRATION_BACKGROUNDS[activeIndex]
+  const quote = quotesList[(dailySeed + manualOffset) % quotesList.length]
 
   useEffect(() => {
-    const today = new Date().toDateString()
-    const storedDate = localStorage.getItem('daily_inspiration_date')
-    const storedImage = localStorage.getItem('daily_inspiration_image')
-    const storedQuote = localStorage.getItem(`daily_inspiration_quote_${lang}`)
-
-    if (storedDate === today && storedImage) {
-      setImageUrl(storedImage)
-      setQuote(storedQuote || getQuote())
-    } else {
-      generateInspiration()
-    }
-  }, [lang, generateInspiration, getQuote])
+    setManualOffset(0)
+  }, [lang])
 
   return (
     <div
       className={`group relative w-full overflow-hidden rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)] ${className || 'h-56 sm:h-64'}`}
     >
-      {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt="Daily Inspiration"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-      ) : (
-        <div className="absolute inset-0 animate-pulse bg-[radial-gradient(circle_at_top_left,hsl(var(--state-info-fg))_0%,transparent_30%),linear-gradient(135deg,hsl(var(--primary))_0%,hsl(var(--surface-inverse))_100%)]"></div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent"></div>
-      <div className="absolute inset-0 bg-gradient-to-t from-white/92 via-white/50 to-transparent"></div>
+      <div
+        className={`absolute inset-0 transition-transform duration-700 group-hover:scale-105 ${activeBackground.shellLight} ${activeBackground.shellDark}`}
+      />
+      <div
+        className={`pointer-events-none absolute -right-10 top-0 h-32 w-32 rounded-full blur-3xl ${activeBackground.glowLight} ${activeBackground.glowDark}`}
+      />
+      <div
+        className={`pointer-events-none absolute left-6 top-6 h-16 w-16 rounded-full blur-sm ${activeBackground.orbPrimaryLight} ${activeBackground.orbPrimaryDark}`}
+      />
+      <div
+        className={`pointer-events-none absolute bottom-10 right-20 h-24 w-24 rounded-full blur-md ${activeBackground.orbSecondaryLight} ${activeBackground.orbSecondaryDark}`}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/18 via-transparent to-transparent dark:from-white/8" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/92 via-white/56 to-transparent dark:from-slate-950/92 dark:via-slate-950/52 dark:to-transparent" />
       <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-5">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/78 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-secondary backdrop-blur-md">
-            <Sparkles className="h-3 w-3 text-primary" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/78 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-secondary backdrop-blur-md dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200">
+            <Sparkles className="h-3 w-3 text-primary dark:text-sky-300" />
             {t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
           </div>
-          <h1 className="mt-3 text-lg font-semibold tracking-tight text-text-primary sm:text-[20px]">
+          <h1 className="mt-3 text-lg font-semibold tracking-tight text-text-primary dark:text-slate-50 sm:text-[20px]">
             {welcomeTitle}
           </h1>
-          <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-text-secondary sm:text-[13px]">
+          <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-text-secondary dark:text-slate-300 sm:text-[13px]">
             {welcomeSub}
           </p>
         </div>
         <div className="flex items-end justify-between gap-4">
           <div className="max-w-3xl">
-            <p className="text-sm italic leading-6 text-text-primary sm:text-[15px]">
+            <p className="text-sm italic leading-6 text-text-primary dark:text-slate-50 sm:text-[15px]">
               &quot;{quote}&quot;
+            </p>
+            <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-secondary/85 dark:text-slate-300/85">
+              {copy('展示增强模块', 'Display enhancement only')}
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            onClick={generateInspiration}
-            disabled={loading}
-            className="shrink-0 rounded-2xl border border-white/70 bg-white/78 px-3 text-[11px] font-semibold text-text-secondary backdrop-blur-sm hover:bg-white hover:text-text-primary"
+            onClick={() => setManualOffset((value) => value + 1)}
+            className="shrink-0 rounded-2xl border border-white/70 bg-white/78 px-3 text-[11px] font-semibold text-text-secondary backdrop-blur-sm hover:bg-white hover:text-text-primary dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white"
           >
-            <RefreshCw
-              className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
-            />
-            {loading
-              ? t.common?.loading || copy('加载中', 'Loading...')
-              : copy('换一张', 'Refresh')}
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+            {copy('换一张', 'Refresh')}
           </Button>
         </div>
       </div>

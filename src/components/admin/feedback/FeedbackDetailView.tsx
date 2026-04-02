@@ -174,8 +174,35 @@ function asDate(value: string | Date | null | undefined) {
 
 function formatDateTime(value: string | Date | null | undefined) {
   const date = asDate(value)
-  if (!date) return 'N/A'
+  if (!date) return '—'
   return format(date, 'yyyy-MM-dd HH:mm')
+}
+
+const sourceTypeLabels: Record<string, string> = {
+  'floating-widget': '右下角浮标',
+  'help-page': '帮助页',
+  'support-modal': '帮助浮窗',
+  dashboard: '仪表盘',
+  'admin-feedback': '后台反馈中心',
+}
+
+function getSourceDisplay(
+  sourceType?: string | null,
+  sourcePath?: string | null
+) {
+  const normalizedType = sourceType?.trim()
+  const normalizedPath = sourcePath?.trim()
+
+  if (!normalizedType && !normalizedPath) {
+    return null
+  }
+
+  return {
+    typeLabel: normalizedType
+      ? sourceTypeLabels[normalizedType] ?? normalizedType
+      : null,
+    pathLabel: normalizedPath || null,
+  }
 }
 
 function getEventTitle(event: FeedbackTimelineEvent) {
@@ -272,11 +299,12 @@ export function FeedbackDetailView({
   const composerCopy = getComposerCopy(mode)
   const submitterName =
     initialData.user?.username || initialData.email || '匿名用户'
-  const submitterEmail =
-    initialData.user?.email || initialData.email || '未提供邮箱'
+  const submitterEmail = initialData.user?.email || initialData.email || '—'
   const submitterRole = initialData.user?.role || 'GUEST'
-  const sourceLabel = initialData.sourceType?.trim() || '未记录'
-  const sourcePath = initialData.sourcePath?.trim() || ''
+  const sourceDisplay = getSourceDisplay(
+    initialData.sourceType,
+    initialData.sourcePath
+  )
   const ticketShortId = initialData.id.slice(0, 8).toUpperCase()
 
   const handleRefresh = () => {
@@ -425,17 +453,21 @@ export function FeedbackDetailView({
           </span>
         </div>
 
-        {(initialData.sourceType || initialData.sourcePath) && (
+        {sourceDisplay ? (
           <div className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-[#24324D] bg-[#0B1220] px-4 py-3 text-xs text-[#8FA4C2]">
             <span className="inline-flex items-center rounded-full border border-[#24324D] bg-[#101A30] px-2.5 py-1 font-medium text-[#D6E7FF]">
               来源
             </span>
-            <span className="font-medium text-[#E6EDF7]">{sourceLabel}</span>
-            {sourcePath ? (
-              <span className="text-[#556B8A]">· {sourcePath}</span>
+            {sourceDisplay.typeLabel ? (
+              <span className="font-medium text-[#E6EDF7]">
+                {sourceDisplay.typeLabel}
+              </span>
+            ) : null}
+            {sourceDisplay.pathLabel ? (
+              <span className="text-[#556B8A]">· {sourceDisplay.pathLabel}</span>
             ) : null}
           </div>
-        )}
+        ) : null}
       </section>
 
       <Card className="border-borderTone bg-surface-subtle dark:border-slate-800 dark:bg-slate-900/40">
@@ -449,11 +481,11 @@ export function FeedbackDetailView({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {initialData.events.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-borderTone bg-surface px-4 py-6 text-sm text-text-tertiary dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
-              暂无处理历史，发送回复后会自动写入时间线。
-            </div>
-          ) : (
+        {initialData.events.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-borderTone bg-surface px-4 py-6 text-sm text-text-tertiary dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400">
+              暂无处理历史，提交状态变更或回复后会自动写入时间线。
+          </div>
+        ) : (
             <div className="space-y-3">
               {initialData.events.map((event, index) => {
                 const accent = getEventAccent(event)

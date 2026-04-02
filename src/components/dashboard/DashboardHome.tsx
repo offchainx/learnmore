@@ -103,6 +103,38 @@ function practiceModeLabel(
   }
 }
 
+function learningPathTypeLabel(
+  type: DashboardData['learningPath']['items'][number]['recommendationType'],
+  copy: (zh: string, en: string) => string
+) {
+  switch (type) {
+    case 'weakness':
+      return copy('补弱', 'Fix Weakness')
+    case 'next':
+      return copy('推进', 'Next Step')
+    case 'review':
+      return copy('巩固', 'Review')
+    default:
+      return copy('建议', 'Recommended')
+  }
+}
+
+function recentPracticeDifficultyLabel(
+  difficulty: DashboardData['recentPractice']['items'][number]['difficulty'],
+  copy: (zh: string, en: string) => string
+) {
+  switch (difficulty) {
+    case 'EASY':
+      return copy('简单', 'Easy')
+    case 'MEDIUM':
+      return copy('标准', 'Medium')
+    case 'HARD':
+      return copy('困难', 'Hard')
+    default:
+      return null
+  }
+}
+
 function modeAppearsInTitle(mode: PracticeMode, title: string) {
   const normalizedTitle = title.trim().toLowerCase()
   const modeLabelMap: Record<PracticeMode, string> = {
@@ -165,7 +197,7 @@ export const DashboardHome = ({
 }: {
   navigate: (path: string) => void
   onViewChange?: (view: string) => void
-  initialData: DashboardData | null
+  initialData: DashboardData
   user: User & { settings: UserSettings | null }
 }) => {
   const { t, lang } = useApp()
@@ -176,62 +208,55 @@ export const DashboardHome = ({
   const [activityPage, setActivityPage] = useState(0)
   const [subjectPage, setSubjectPage] = useState(0)
 
-  const stats = initialData?.stats || {
-    studyTime: '0.0',
-    questions: 0,
-    accuracy: 0,
-    mistakes: 0,
-    streak: 0,
-    level: 1,
-    xp: 0,
-    nextLevelXp: 1000,
-  }
-
-  const overviewByWindow = initialData?.overviewByWindow || {
-    '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-    '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-  }
-
-  const recentActivity = initialData?.recentActivity || []
-  const subjectStrengths = initialData?.subjectStrengths || []
-  const recentPractice = initialData?.recentPractice || []
-  const dailyTasks = initialData?.dailyTasks || []
+  const {
+    stats,
+    overviewByWindow,
+    learningPath,
+    recentPractice: recentPracticeSection,
+    subjectProgress,
+    dailyTasks: dailyTasksSection,
+    leaderboard,
+  } = initialData
+  const learningPathItems = learningPath.items
+  const subjectProgressItems = subjectProgress.items
+  const recentPractice = recentPracticeSection.items
+  const dailyTasks = dailyTasksSection.items
 
   const activeOverview = overviewByWindow[overviewWindow]
 
   const totalActivityPages = Math.max(
     1,
-    Math.ceil(recentActivity.length / ACTIVITY_PER_PAGE)
+    Math.ceil(learningPathItems.length / ACTIVITY_PER_PAGE)
   )
   const visibleActivity = useMemo(
     () =>
-      recentActivity.slice(
+      learningPathItems.slice(
         activityPage * ACTIVITY_PER_PAGE,
         (activityPage + 1) * ACTIVITY_PER_PAGE
       ),
-    [activityPage, recentActivity]
+    [activityPage, learningPathItems]
   )
 
   const totalSubjectPages = Math.max(
     1,
-    Math.ceil(subjectStrengths.length / SUBJECTS_PER_PAGE)
+    Math.ceil(subjectProgressItems.length / SUBJECTS_PER_PAGE)
   )
   const visibleSubjects = useMemo(
     () =>
-      subjectStrengths.slice(
+      subjectProgressItems.slice(
         subjectPage * SUBJECTS_PER_PAGE,
         (subjectPage + 1) * SUBJECTS_PER_PAGE
       ),
-    [subjectPage, subjectStrengths]
+    [subjectPage, subjectProgressItems]
   )
 
   useEffect(() => {
     setActivityPage(0)
-  }, [recentActivity.length])
+  }, [learningPathItems.length])
 
   useEffect(() => {
     setSubjectPage(0)
-  }, [subjectStrengths.length])
+  }, [subjectProgressItems.length])
 
   const handleActivityWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (totalActivityPages <= 1) return
@@ -270,14 +295,17 @@ export const DashboardHome = ({
     {
       label: copy('活跃天数', 'Active Days'),
       value: String(activeOverview.activeDays),
-      subLabel: copy('登录或练习的天数', 'Days with activity'),
+      subLabel: copy(
+        '完成练习或课程的天数',
+        'Days with completed study activity'
+      ),
     },
   ]
 
   return (
-    <div className="animate-fade-in-up min-w-0 px-3 py-1.5 sm:px-4 sm:py-2">
+    <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
       <div
-        className={`mx-auto flex w-full max-w-[1820px] min-w-0 flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
+        className={`mx-auto flex w-full min-w-0 max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
       >
         <section
           className={`grid 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
@@ -294,8 +322,8 @@ export const DashboardHome = ({
                 />
               }
               subtitle={copy(
-                '集中查看最近学习节奏、今日任务、课程恢复点和整体学科稳定度。',
-                'A compact view of your recent momentum, today’s tasks, recovery points, and subject stability.'
+                '集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。',
+                'A compact view of your recent momentum, today’s tasks, chapter recommendations, and subject stability.'
               )}
               titleClassName="font-semibold"
               actions={
@@ -356,8 +384,8 @@ export const DashboardHome = ({
                     </h3>
                     <p className={pageSectionDescriptionClass}>
                       {copy(
-                        '默认展示 4 条，滚动滑鼠滚轮可一次切换下一组课程恢复点。',
-                        'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.'
+                        '根据当前答题表现推荐下一步章节练习，可直接深链进入对应章节训练。',
+                        'Recommendations are based on your latest performance and deep-link directly into chapter drills.'
                       )}
                     </p>
                   </div>
@@ -366,22 +394,22 @@ export const DashboardHome = ({
                       totalPages={totalActivityPages}
                       page={activityPage}
                       countLabel={copy(
-                        `${recentActivity.length} 条`,
-                        `${recentActivity.length} items`
+                        `${learningPathItems.length} 条`,
+                        `${learningPathItems.length} items`
                       )}
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       className="rounded-2xl"
-                      onClick={() => navigate('/dashboard/courses')}
+                      onClick={() => navigate('/dashboard/practice')}
                     >
-                      {copy('课程中心', 'Courses')}
+                      {copy('练习中心', 'Practice')}
                     </Button>
                   </div>
                 </div>
 
-                {recentActivity.length > 0 ? (
+                {learningPath.status === 'ready' ? (
                   <div
                     className={pageListGapClass}
                     onWheel={handleActivityWheel}
@@ -390,7 +418,7 @@ export const DashboardHome = ({
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => navigate('/dashboard/courses')}
+                        onClick={() => navigate(item.href)}
                         className={`${pageInteractiveRowClass} ${pageListItemTallClass} justify-between duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both`}
                         style={{ animationDelay: `${index * 45}ms` }}
                       >
@@ -406,6 +434,9 @@ export const DashboardHome = ({
                           >
                             {item.title}
                           </div>
+                          <div className={`mt-1 truncate ${pageMetaTextClass}`}>
+                            {item.reason}
+                          </div>
                           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface-subtle">
                             <div
                               className="h-full rounded-full bg-primary"
@@ -420,7 +451,10 @@ export const DashboardHome = ({
                             {item.progress}%
                           </div>
                           <div className={`mt-1 ${pageMetaTextClass}`}>
-                            {copy('继续', 'Resume')}
+                            {learningPathTypeLabel(
+                              item.recommendationType,
+                              copy
+                            )}
                           </div>
                         </div>
                       </button>
@@ -445,16 +479,19 @@ export const DashboardHome = ({
                       '还没有最近学习记录',
                       'No recent learning path'
                     )}
-                    description={copy(
-                      '你完成第一段课程后，这里会出现最近进度和下一步建议。',
-                      'Complete your first course step and your recent activity will show up here.'
-                    )}
+                    description={
+                      learningPath.note ||
+                      copy(
+                        '完成首次练习后，这里会出现章节推荐和下一步建议。',
+                        'Complete your first practice run and chapter recommendations will show up here.'
+                      )
+                    }
                     actions={
                       <Button
-                        onClick={() => navigate('/dashboard/courses')}
+                        onClick={() => navigate('/dashboard/practice')}
                         className="rounded-2xl px-4 py-2 text-sm font-bold"
                       >
-                        {copy('开始课程', 'Start Learning')}
+                        {copy('开始练习', 'Start Practicing')}
                       </Button>
                     }
                   />
@@ -477,8 +514,8 @@ export const DashboardHome = ({
                     </h3>
                     <p className={pageSectionDescriptionClass}>
                       {copy(
-                        '默认展示 4 条，滚动滑鼠滚轮可一次切换下一组学科状态。',
-                        'Shows 4 rows at a time. Use the mouse wheel to switch to the next group.'
+                        '按学科汇总章节练习表现，帮助你快速判断当前最稳和最需要补强的方向。',
+                        'See chapter-level progress by subject to spot what is stable and what still needs work.'
                       )}
                     </p>
                   </div>
@@ -487,8 +524,8 @@ export const DashboardHome = ({
                       totalPages={totalSubjectPages}
                       page={subjectPage}
                       countLabel={copy(
-                        `${subjectStrengths.length} 科`,
-                        `${subjectStrengths.length} items`
+                        `${subjectProgressItems.length} 科`,
+                        `${subjectProgressItems.length} items`
                       )}
                     />
                     <Button
@@ -502,37 +539,37 @@ export const DashboardHome = ({
                   </div>
                 </div>
 
-                {subjectStrengths.length > 0 ? (
+                {subjectProgress.status === 'ready' ? (
                   <div
                     className={pageListGapClass}
                     onWheel={handleSubjectWheel}
                   >
                     {visibleSubjects.map((sub, index) => (
                       <div
-                        key={sub.subject}
+                        key={sub.subjectId}
                         className="rounded-[22px] border border-borderTone bg-surface px-4 py-4 shadow-surface duration-300 animate-in fade-in slide-in-from-right-4 fill-mode-both dark:border-borderTone dark:bg-surface-subtle"
                         style={{ animationDelay: `${index * 45}ms` }}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <div className={`truncate ${pageCardTitleClass}`}>
-                              {sub.subject}
+                              {sub.subjectName}
                             </div>
                             <div className={`mt-1 ${pageMetaTextClass}`}>
                               {copy(
-                                '当前科目稳定度',
-                                'Current subject confidence'
+                                `${sub.chapterCount} 个章节 · ${sub.totalAttempts} 次作答`,
+                                `${sub.chapterCount} chapters · ${sub.totalAttempts} attempts`
                               )}
                             </div>
                           </div>
                           <div className="text-right">
                             <div
-                              className={`${pageNumericValueCompactClass} ${sub.accuracy >= 80 ? 'text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]' : 'text-primary dark:text-primary'}`}
+                              className={`${pageNumericValueCompactClass} ${sub.overallMastery >= 80 ? 'text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]' : 'text-primary dark:text-primary'}`}
                             >
-                              {sub.accuracy}%
+                              {sub.overallMastery}%
                             </div>
                             <div className={pageMetaTextClass}>
-                              {sub.accuracy >= 80
+                              {sub.overallMastery >= 80
                                 ? copy('稳定', 'Stable')
                                 : copy('待提升', 'Needs work')}
                             </div>
@@ -540,8 +577,10 @@ export const DashboardHome = ({
                         </div>
                         <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface-subtle">
                           <div
-                            className={`h-full rounded-full ${sub.accuracy >= 80 ? 'bg-[hsl(var(--state-success-fg))]' : 'bg-primary'}`}
-                            style={{ width: `${Math.max(4, sub.accuracy)}%` }}
+                            className={`h-full rounded-full ${sub.overallMastery >= 80 ? 'bg-[hsl(var(--state-success-fg))]' : 'bg-primary'}`}
+                            style={{
+                              width: `${Math.max(4, sub.overallMastery)}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -605,17 +644,39 @@ export const DashboardHome = ({
               </div>
 
               <div className="mt-4 text-center">
-                <div
-                  className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}
-                >
-                  Top 15%
-                </div>
-                <div className="mt-2 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
-                  {copy(
-                    '超过多数同年级学生',
-                    'Ahead of most students in your grade'
-                  )}
-                </div>
+                {leaderboard.status === 'ready' &&
+                leaderboard.percentile !== null &&
+                leaderboard.peerAverageAccuracy !== null ? (
+                  <>
+                    <div
+                      className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}
+                    >
+                      {`Top ${leaderboard.percentile}%`}
+                    </div>
+                    <div className="mt-2 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
+                      {copy(
+                        '超过多数同年级学生',
+                        'Ahead of most students in your grade'
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <PageEmptyState
+                    title={
+                      leaderboard.status === 'excluded'
+                        ? copy('缺少年级信息', 'Grade info required')
+                        : copy('尚未进入排行榜', 'Not ranked yet')
+                    }
+                    description={
+                      leaderboard.note ||
+                      copy(
+                        '完成一组练习并获得 XP 后，这里会显示你在同年级中的位置。',
+                        'Complete a practice run and earn XP to see your position among students in your grade.'
+                      )
+                    }
+                    className="min-h-[148px] rounded-[22px] border border-dashed border-borderTone bg-surface/70 px-4 py-5 dark:border-borderTone dark:bg-surface/40"
+                  />
+                )}
               </div>
 
               <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
@@ -623,23 +684,45 @@ export const DashboardHome = ({
                   <div className={pageKickerClass}>
                     {copy('平均正确率', 'Average')}
                   </div>
-                  <div className={pageNumericValueCompactClass}>68%</div>
+                  <div className={pageNumericValueCompactClass}>
+                    {leaderboard.peerAverageAccuracy !== null
+                      ? `${leaderboard.peerAverageAccuracy}%`
+                      : '--'}
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-borderTone bg-[hsl(var(--state-success-bg))] px-4 py-3 dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]">
                   <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]">
                     {copy('你的表现', 'You')}
                   </div>
                   <div className={pageNumericValueCompactClass}>
-                    {stats.accuracy}%
+                    {leaderboard.userAccuracy}%
                   </div>
                 </div>
               </div>
 
               <Button
-                onClick={() => navigate('/dashboard/leaderboard')}
+                onClick={() => {
+                  if (leaderboard.status === 'ready') {
+                    navigate('/dashboard/leaderboard')
+                    return
+                  }
+
+                  if (leaderboard.status === 'excluded') {
+                    navigate('/dashboard/settings')
+                    return
+                  }
+
+                  if (leaderboard.status === 'empty') {
+                    navigate('/dashboard/practice')
+                  }
+                }}
                 className="mt-3.5 w-full rounded-2xl py-3 text-sm font-bold"
               >
-                {copy('查看排行榜', 'View Leaderboard')}
+                {leaderboard.status === 'ready'
+                  ? copy('查看排行榜', 'View Leaderboard')
+                  : leaderboard.status === 'excluded'
+                    ? copy('完善资料', 'Update Profile')
+                    : copy('去赚 XP', 'Earn XP')}
                 <ArrowUpRight className="ml-2 h-4 w-4" />
               </Button>
             </Card>
@@ -659,8 +742,8 @@ export const DashboardHome = ({
                   </h3>
                   <p className={pageSectionDescriptionClass}>
                     {copy(
-                      '回看最近几次训练结果，决定接下来最值得做的一步。',
-                      'Review recent training results and decide the next best move.'
+                      '回看最近几次训练结果，并按原模式与配置直接重开一轮。',
+                      'Review recent training results and jump back into the same mode and setup.'
                     )}
                   </p>
                 </div>
@@ -682,7 +765,7 @@ export const DashboardHome = ({
                     <button
                       key={record.id}
                       type="button"
-                      onClick={() => navigate('/dashboard/practice')}
+                      onClick={() => navigate(record.href)}
                       className={`${pageInteractiveRowClass} justify-between`}
                     >
                       <div className="min-w-0 flex-1">
@@ -695,8 +778,16 @@ export const DashboardHome = ({
                           {record.title}
                         </div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
-                          {record.subject} ·{' '}
-                          {formatRelativeDate(record.createdAt, copy)}
+                          {[
+                            record.subject,
+                            recentPracticeDifficultyLabel(
+                              record.difficulty,
+                              copy
+                            ),
+                            formatRelativeDate(record.createdAt, copy),
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
                         </div>
                       </div>
                       <div className="shrink-0 text-right">

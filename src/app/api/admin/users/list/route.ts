@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Admin } from '@/types'
 import { listAdminUsers } from '@/actions/admin/user-ops'
+import { createRoutePerfLogger } from '@/lib/observability/perf'
 
 export const preferredRegion = 'sin1'
 
@@ -59,6 +60,7 @@ function parseTier(raw: string | null): Admin.UserFilterState['tier'] {
 }
 
 export async function GET(request: NextRequest) {
+  const metrics = createRoutePerfLogger('/api/admin/users/list', request)
   try {
     const searchParams = request.nextUrl.searchParams
 
@@ -78,17 +80,28 @@ export async function GET(request: NextRequest) {
     const result = await listAdminUsers(filters, pagination)
     if (!result.success) {
       if (result.error?.includes('未登录') || result.error?.includes('权限不足')) {
+        metrics.done(403, { reason: 'forbidden', page: pagination.page, pageSize: pagination.pageSize })
         return NextResponse.json({ success: false, error: result.error }, { status: 403 })
       }
+      metrics.done(400, { reason: 'business_error', page: pagination.page, pageSize: pagination.pageSize })
       return NextResponse.json({ success: false, error: result.error || 'Failed to load users' }, { status: 400 })
     }
+
+    const responseData = result.data
+
+    metrics.done(200, {
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      rows: responseData?.data.length ?? 0,
+      total: responseData?.total ?? 0,
+    })
 
     return NextResponse.json(
       { success: true, data: result.data },
       { headers: { 'Cache-Control': 'no-store, max-age=0' } },
     )
   } catch (error) {
-    console.error('Error fetching admin users list:', error)
+    metrics.error(error)
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 })
   }
 }

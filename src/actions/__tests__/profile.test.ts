@@ -7,6 +7,7 @@ const mockUser: any = {
   id: 'user-1',
   email: 'test@example.com',
   username: 'testuser',
+  handle: 'test.handle',
   role: UserRole.STUDENT,
   avatar: null,
   grade: 8,
@@ -27,6 +28,7 @@ const mockUser: any = {
 const mockProfile = {
   id: 'user-1',
   username: 'testuser',
+  handle: 'test.handle',
   email: 'test@example.com',
   grade: 8,
   avatar: null,
@@ -41,7 +43,17 @@ const { mockPrisma } = vi.hoisted(() => {
         findUnique: vi.fn(),
         update: vi.fn(),
       },
+      userSettings: {
+        upsert: vi.fn(),
+      },
+      $transaction: vi.fn(),
     }
+  };
+});
+
+const { mockGetHandleAvailability } = vi.hoisted(() => {
+  return {
+    mockGetHandleAvailability: vi.fn(),
   };
 });
 
@@ -51,6 +63,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/actions/user/auth', () => ({
   getCurrentUser: vi.fn(),
+}));
+
+vi.mock('@/lib/users/handle-server', () => ({
+  getHandleAvailability: mockGetHandleAvailability,
 }));
 
 // Mock next/cache
@@ -66,6 +82,14 @@ describe('Profile Server Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockPrisma.$transaction.mockImplementation(async (callback: any) =>
+      callback(mockPrisma)
+    );
+    mockGetHandleAvailability.mockResolvedValue({
+      normalizedHandle: 'new.handle',
+      available: true,
+      reason: null,
+    });
   });
 
   afterEach(() => {
@@ -132,6 +156,39 @@ describe('Profile Server Actions', () => {
 
       const result = await updateProfile({}, formData);
       expect(result.error).toBe('Username already taken');
+    });
+
+    it('should normalize and persist handle', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
+      mockPrisma.user.update.mockResolvedValue({ ...mockProfile, handle: 'new.handle' });
+
+      const formData = new FormData();
+      formData.append('handle', '@New.Handle');
+
+      const result = await updateProfile({}, formData);
+      expect(result.success).toBe(true);
+      expect(mockGetHandleAvailability).toHaveBeenCalledWith('new.handle', mockUser.id);
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        data: expect.objectContaining({
+          handle: 'new.handle',
+        })
+      });
+    });
+
+    it('should reject reserved handles', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
+      mockGetHandleAvailability.mockResolvedValue({
+        normalizedHandle: 'apple',
+        available: false,
+        reason: '该账号标识为保留字段，暂不可申请',
+      });
+
+      const formData = new FormData();
+      formData.append('handle', '@apple');
+
+      const result = await updateProfile({}, formData);
+      expect(result.error).toBe('该账号标识为保留字段，暂不可申请');
     });
     
     it('should handle avatar update', async () => {
