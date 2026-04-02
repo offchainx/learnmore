@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/actions/user/auth'
 import { triggerSocialReplyNotification } from '../notification/triggers'
 import { awardBadgeIfEligible } from '@/actions/gamification/achievements'
 import { revalidateTag } from 'next/cache'
+import { runAfterTask } from '@/lib/server/run-after-task'
 
 export type PostWithAuthor = Prisma.PostGetPayload<{
   include: {
@@ -87,6 +88,15 @@ interface GetPostsParams {
   page?: number
   limit?: number
   search?: string
+  sort?: 'recent-posts' | 'recent-replies' | 'most-comments'
+}
+
+function buildPostOrderBy(sort: GetPostsParams['sort']) {
+  if (sort === 'recent-replies' || sort === 'most-comments') {
+    return [{ comments: { _count: 'desc' as const } }, { createdAt: 'desc' as const }]
+  }
+
+  return [{ createdAt: 'desc' as const }]
 }
 
 export async function getPosts({
@@ -96,6 +106,7 @@ export async function getPosts({
   page = 1,
   limit = 10,
   search,
+  sort = 'recent-posts',
 }: GetPostsParams = {}) {
   const skip = (page - 1) * limit
 
@@ -139,9 +150,7 @@ export async function getPosts({
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: buildPostOrderBy(sort),
       skip,
       take: limit,
     }),
@@ -324,22 +333,23 @@ export async function createComment({
       },
     })
 
-    await awardBadgeIfEligible(user.id, 'COMMUNITY')
-
-    // Trigger notification for post author (if not the same person)
     if (post && post.authorId !== user.id) {
-      try {
-        await triggerSocialReplyNotification(
-          post.authorId,
-          user.username || '有人',
-          postId,
-          post.title,
-          content
-        )
-      } catch (e) {
-        console.error('Error triggering social notification:', e)
-      }
+      await triggerSocialReplyNotification(
+        post.authorId,
+        user.username || '有人',
+        postId,
+        post.title,
+        content
+      )
     }
+
+    runAfterTask(async () => {
+      await awardBadgeIfEligible(user.id, 'COMMUNITY')
+      revalidateTag('community-feed', 'quick')
+      revalidateTag('community-categories', 'quick')
+      revalidateTag(`achievement-overview:${user.id}`, 'quick')
+      revalidateTag(`user-badges:${user.id}`, 'quick')
+    }, 'community-comment-side-effects')
 
     return { success: true, comment: newComment }
   } catch (error: unknown) {
@@ -382,6 +392,8 @@ export async function toggleLike(postId: string) {
           },
         }),
       ])
+      revalidateTag('community-feed', 'quick')
+      revalidateTag('community-categories', 'quick')
       return { success: true, liked: false }
     } else {
       // Like
@@ -399,6 +411,8 @@ export async function toggleLike(postId: string) {
           },
         }),
       ])
+      revalidateTag('community-feed', 'quick')
+      revalidateTag('community-categories', 'quick')
       return { success: true, liked: true }
     }
   } catch (error: unknown) {

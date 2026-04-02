@@ -1,1 +1,2 @@
 - 2026-04-01: Start T-024.A UI refactor (右侧弹出卡片 + 三段式：顶部状态栏/时间线/处理工作台；处理工作台含 Public Reply/Internal Note、NEXT STATUS 可变更、Templates；刷新与最新回显保持一致）。
+- 2026-04-02: Fix community interactions cache invalidation (toggleLike now revalidates community feed/categories after like/unlike; comment/post side-effects keep feed freshness aligned with DB writes).
