@@ -1,6 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -16,10 +23,12 @@ import {
   MessageSquare,
   Mic,
   Paperclip,
+  Loader2,
   Plus,
   Search,
   Share2,
   Sparkles,
+  TriangleAlert,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import {
@@ -28,6 +37,7 @@ import {
   toggleBookmark,
   toggleLike,
 } from '@/actions/community/post'
+import { generateCommunityHint } from '@/actions/community/insights'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
@@ -72,6 +82,8 @@ interface CommunityViewProps {
   initialSortMode?: SortMode
   initialScopeFilter?: ScopeFilter
   initialBoardId?: string | 'all'
+  initialPage?: number
+  initialMetadata?: FeedMetadata
 }
 
 type FeedPost = PostWithAuthor & {
@@ -88,6 +100,14 @@ type FeedPost = PostWithAuthor & {
 
 type ScopeFilter = 'all' | 'following' | 'by-date'
 type SortMode = 'recent-replies' | 'recent-posts' | 'most-comments'
+interface FeedMetadata {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
 
 const surfaceClassName = pagePanelClass
 
@@ -245,6 +265,42 @@ function comparePosts(a: FeedPost, b: FeedPost, sortMode: SortMode) {
   return bCreated - aCreated
 }
 
+function buildCommunityFeedQuery(params: {
+  page: number
+  limit: number
+  searchQuery: string
+  sortMode: SortMode
+  scopeFilter: ScopeFilter
+  activeBoardId: string | 'all'
+}) {
+  const query = new URLSearchParams()
+  query.set('page', String(params.page))
+  query.set('limit', String(params.limit))
+  query.set('sort', params.sortMode)
+
+  const trimmedSearch = params.searchQuery.trim()
+  if (trimmedSearch) {
+    query.set('search', trimmedSearch)
+  }
+
+  if (params.scopeFilter === 'following') {
+    query.set('scope', 'following')
+  } else if (params.scopeFilter === 'by-date') {
+    query.set('scope', 'by-date')
+  }
+
+  if (params.activeBoardId === 'unanswered') {
+    query.set('tab', 'unanswered')
+  } else if (
+    params.activeBoardId !== 'all' &&
+    params.activeBoardId !== 'following'
+  ) {
+    query.set('subjectId', params.activeBoardId)
+  }
+
+  return query.toString()
+}
+
 export function CommunityView({
   initialPosts = [],
   subjects = [],
@@ -252,20 +308,49 @@ export function CommunityView({
   initialSortMode = 'recent-posts',
   initialScopeFilter = 'all',
   initialBoardId = 'all',
+  initialPage = 1,
+  initialMetadata = {
+    total: initialPosts.length,
+    page: initialPage,
+    limit: 20,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
 }: CommunityViewProps) {
   const { t, lang } = useApp()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [posts, setPosts] = useState<FeedPost[]>(() =>
     normalizePosts(initialPosts)
   )
   const [isHydrated, setIsHydrated] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>(initialScopeFilter)
   const [sortMode, setSortMode] = useState<SortMode>(initialSortMode)
   const [activeBoardId, setActiveBoardId] = useState<string | 'all'>(
     initialBoardId
   )
-  const lastLoadedKeyRef = useRef<string>(initialPosts.length > 0 ? 'feed' : '')
+  const [currentPage, setCurrentPage] = useState(initialPage)
+  const [pageMetadata, setPageMetadata] = useState<FeedMetadata>(initialMetadata)
+  const [aiHintLoadingPostId, setAiHintLoadingPostId] = useState<string | null>(
+    null
+  )
+  const [aiHints, setAiHints] = useState<Record<string, string>>({})
+  const didMountRef = useRef(false)
+  const lastLoadedKeyRef = useRef<string>(
+    buildCommunityFeedQuery({
+      page: initialPage,
+      limit: initialMetadata.limit,
+      searchQuery: initialSearchQuery,
+      sortMode: initialSortMode,
+      scopeFilter: initialScopeFilter,
+      activeBoardId: initialBoardId,
+    })
+  )
 
   const followedBoardIds = useMemo(
     () =>
@@ -291,6 +376,7 @@ export function CommunityView({
         recentPosts: '最近发帖',
         mostComments: '最多评论',
         loadFailed: '加载失败，请稍后重试。',
+        retryLoad: '重试',
         loading: '正在加载社区动态...',
         noPosts: '当前筛选下还没有帖子。',
         noFollowingPosts: '你关注的板块里还没有新帖子。',
@@ -313,6 +399,8 @@ export function CommunityView({
         share: '分享',
         comments: '评论',
         bookmarks: '收藏',
+        prevPage: '上一页',
+        nextPage: '下一页',
         boardLabel: '板块',
         noteTag: '笔记',
         discussionTag: '讨论',
@@ -322,6 +410,9 @@ export function CommunityView({
         privateTag: '仅自己可见',
         attachmentsTitle: '附件',
         aiHint: 'AI 助手',
+        aiHintTitle: 'AI 提示',
+        aiHintLoading: '生成提示中...',
+        aiHintFailed: 'AI 提示生成失败',
       }
     }
 
@@ -338,6 +429,7 @@ export function CommunityView({
         recentPosts: 'Siaran terkini',
         mostComments: 'Komen terbanyak',
         loadFailed: 'Gagal memuatkan siaran.',
+        retryLoad: 'Cuba lagi',
         loading: 'Memuatkan komuniti...',
         noPosts: 'Belum ada siaran untuk penapis ini.',
         noFollowingPosts:
@@ -363,6 +455,8 @@ export function CommunityView({
         share: 'Kongsi',
         comments: 'Komen',
         bookmarks: 'Simpan',
+        prevPage: 'Halaman sebelumnya',
+        nextPage: 'Halaman seterusnya',
         boardLabel: 'Papan',
         noteTag: 'Nota',
         discussionTag: 'Perbincangan',
@@ -372,6 +466,9 @@ export function CommunityView({
         privateTag: 'Hanya saya boleh lihat',
         attachmentsTitle: 'Lampiran',
         aiHint: 'AI',
+        aiHintTitle: 'Cadangan AI',
+        aiHintLoading: 'Menjana cadangan...',
+        aiHintFailed: 'Gagal menjana cadangan AI',
       }
     }
 
@@ -387,6 +484,7 @@ export function CommunityView({
       recentPosts: 'Recent posts',
       mostComments: 'Most comments',
       loadFailed: 'Failed to load posts.',
+      retryLoad: 'Retry',
       loading: 'Loading community feed...',
       noPosts: 'No posts found for this filter.',
       noFollowingPosts: 'No new posts in the boards you follow yet.',
@@ -409,6 +507,8 @@ export function CommunityView({
       share: 'Share',
       comments: 'Comments',
       bookmarks: 'Bookmarks',
+      prevPage: 'Previous',
+      nextPage: 'Next',
       boardLabel: 'Board',
       noteTag: 'Note',
       discussionTag: 'Discussion',
@@ -418,6 +518,9 @@ export function CommunityView({
       privateTag: 'Only visible to me',
       attachmentsTitle: 'Attachments',
       aiHint: 'AI',
+      aiHintTitle: 'AI hint',
+      aiHintLoading: 'Generating hint...',
+      aiHintFailed: 'Failed to generate AI hint',
     }
   }, [lang])
 
@@ -475,56 +578,6 @@ export function CommunityView({
     [lang]
   )
 
-  const contributors = useMemo(
-    () => [
-      {
-        name: 'Michael Z.',
-        solved: 142,
-        rank: 1,
-        badge:
-          lang === 'zh'
-            ? '数学接力王'
-            : lang === 'ms'
-              ? 'Pakar Matematik'
-              : 'Math Wizard',
-      },
-      {
-        name: 'Sarah L.',
-        solved: 98,
-        rank: 2,
-        badge:
-          lang === 'zh'
-            ? '物理解题手'
-            : lang === 'ms'
-              ? 'Pakar Fizik'
-              : 'Physics Pro',
-      },
-      {
-        name: 'Jason K.',
-        solved: 85,
-        rank: 3,
-        badge:
-          lang === 'zh'
-            ? '高频帮手'
-            : lang === 'ms'
-              ? 'Pembantu Aktif'
-              : 'Helper',
-      },
-    ],
-    [lang]
-  )
-
-  const topics = useMemo(
-    () => [
-      { tag: 'MidtermPrep', count: '2.4k' },
-      { tag: 'Calculus', count: '1.1k' },
-      { tag: 'StudyTips', count: '856' },
-      { tag: 'ScienceFair', count: '542' },
-      { tag: 'HomeworkHelp', count: '300' },
-    ],
-    []
-  )
-
   const boardGroups = useMemo(() => {
     const firstChunk = subjects.slice(0, Math.ceil(subjects.length / 2))
     const secondChunk = subjects.slice(Math.ceil(subjects.length / 2))
@@ -555,38 +608,29 @@ export function CommunityView({
     subjects,
   ])
 
-  const buildFeedQuery = useCallback(() => {
-    const params = new URLSearchParams()
-    params.set('page', '1')
-    params.set('limit', '20')
-    params.set('sort', sortMode)
-
-    const trimmedSearch = searchQuery.trim()
-    if (trimmedSearch) {
-      params.set('search', trimmedSearch)
-    }
-
-    if (scopeFilter === 'following') {
-      params.set('scope', 'following')
-    } else if (scopeFilter === 'by-date') {
-      params.set('scope', 'by-date')
-    }
-
-    if (activeBoardId === 'unanswered') {
-      params.set('tab', 'unanswered')
-    } else if (
-      activeBoardId !== 'all' &&
-      activeBoardId !== 'following'
-    ) {
-      params.set('subjectId', activeBoardId)
-    }
-
-    return params.toString()
-  }, [activeBoardId, scopeFilter, searchQuery, sortMode])
+  const currentFeedQuery = useMemo(
+    () =>
+      buildCommunityFeedQuery({
+        page: currentPage,
+        limit: pageMetadata.limit,
+        searchQuery,
+        sortMode,
+        scopeFilter,
+        activeBoardId,
+      }),
+    [
+      activeBoardId,
+      currentPage,
+      pageMetadata.limit,
+      scopeFilter,
+      searchQuery,
+      sortMode,
+    ]
+  )
 
   const fetchPosts = useCallback(
     async (force = false) => {
-      const requestKey = buildFeedQuery() || 'feed'
+      const requestKey = currentFeedQuery || 'feed'
       if (!force && lastLoadedKeyRef.current === requestKey) {
         return
       }
@@ -616,6 +660,8 @@ export function CommunityView({
         }
 
         setPosts(normalizePosts(result.data.posts as PostWithAuthor[]))
+        setPageMetadata(result.data.metadata as FeedMetadata)
+        setLoadError(null)
         if (force) {
           lastLoadedKeyRef.current = requestKey
         }
@@ -624,6 +670,7 @@ export function CommunityView({
         if (!force) {
           lastLoadedKeyRef.current = ''
         }
+        setLoadError(error instanceof Error ? error.message : 'load-failed')
         toast({
           title:
             lang === 'zh'
@@ -644,8 +691,22 @@ export function CommunityView({
         setLoading(false)
       }
     },
-    [buildFeedQuery, copy.loadFailed, lang]
+    [currentFeedQuery, copy.loadFailed, lang]
   )
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
+    }
+
+    const nextUrl = `${pathname}?${currentFeedQuery}`
+    if (searchParams.toString() !== currentFeedQuery) {
+      router.replace(nextUrl, { scroll: false })
+    }
+
+    void fetchPosts()
+  }, [currentFeedQuery, fetchPosts, pathname, router, searchParams])
 
   async function handleLike(postId: string) {
     setPosts((prev) =>
@@ -765,6 +826,84 @@ export function CommunityView({
     }
   }
 
+  async function handleAiHint(post: FeedPost) {
+    if (aiHintLoadingPostId === post.id || aiHints[post.id]) {
+      return
+    }
+
+    setAiHintLoadingPostId(post.id)
+    try {
+      const result = await generateCommunityHint({
+        title: post.title,
+        content: post.content,
+        category: post.category,
+        subjectName: post.subject?.name || null,
+        tags: post.tags,
+      })
+
+      if (!result.success || !result.hint) {
+        toast({
+          title:
+            lang === 'zh'
+              ? 'AI 提示生成失败'
+              : lang === 'ms'
+                ? 'Gagal menjana cadangan AI'
+                : 'Failed to generate AI hint',
+          description: result.error || copy.aiHintFailed,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      setAiHints((prev) => ({
+        ...prev,
+        [post.id]: result.hint,
+      }))
+    } catch (error) {
+      console.error('Error generating community AI hint:', error)
+      toast({
+        title:
+          lang === 'zh'
+            ? 'AI 提示生成失败'
+            : lang === 'ms'
+              ? 'Gagal menjana cadangan AI'
+              : 'Failed to generate AI hint',
+        description: copy.aiHintFailed,
+        variant: 'destructive',
+      })
+    } finally {
+      setAiHintLoadingPostId(null)
+    }
+  }
+
+  function handleSearchChange(value: string) {
+    setSearchQuery(value)
+    setCurrentPage(1)
+  }
+
+  function handleScopeChange(nextScope: ScopeFilter) {
+    setScopeFilter(nextScope)
+    setCurrentPage(1)
+  }
+
+  function handleSortChange(nextSort: SortMode) {
+    setSortMode(nextSort)
+    setCurrentPage(1)
+  }
+
+  function handleBoardChange(nextBoardId: string | 'all') {
+    setActiveBoardId(nextBoardId)
+    setCurrentPage(1)
+  }
+
+  function handlePageChange(nextPage: number) {
+    const boundedPage = Math.min(
+      Math.max(1, nextPage),
+      Math.max(1, pageMetadata.totalPages)
+    )
+    setCurrentPage(boundedPage)
+  }
+
   const visiblePosts = useMemo(() => {
     const loweredQuery = searchQuery.trim().toLowerCase()
 
@@ -844,6 +983,121 @@ export function CommunityView({
     }))
   }, [isHydrated, lang, scopeFilter, visiblePosts])
 
+  const contributors = useMemo(() => {
+    const contributorMap = new Map<
+      string,
+      {
+        name: string
+        avatar: string | null
+        solved: number
+        rankScore: number
+        postCount: number
+        commentCount: number
+      }
+    >()
+
+    posts.forEach((post) => {
+      const key = post.author.id
+      const current = contributorMap.get(key) || {
+        name: post.author.username || post.author.handle || 'Anonymous',
+        avatar: post.author.avatar,
+        solved: 0,
+        rankScore: 0,
+        postCount: 0,
+        commentCount: 0,
+      }
+
+      current.name = post.author.username || post.author.handle || 'Anonymous'
+      current.avatar = post.author.avatar
+      current.postCount += 1
+      current.commentCount += post._count.comments
+      current.rankScore += post.likeCount + post._count.comments * 2
+
+      if (post.category === 'Question' && post.isSolved) {
+        current.solved += 1
+      }
+
+      contributorMap.set(key, current)
+    })
+
+    return Array.from(contributorMap.values())
+      .sort((a, b) => {
+        if (b.rankScore !== a.rankScore) {
+          return b.rankScore - a.rankScore
+        }
+        if (b.postCount !== a.postCount) {
+          return b.postCount - a.postCount
+        }
+        return b.commentCount - a.commentCount
+      })
+      .slice(0, 3)
+      .map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        avatar: item.avatar,
+        solved: item.postCount + item.commentCount,
+        badge:
+          index === 0
+            ? lang === 'zh'
+              ? '活跃发起人'
+              : lang === 'ms'
+                ? 'Penyumbang utama'
+                : 'Top contributor'
+            : index === 1
+              ? lang === 'zh'
+                ? '高互动作者'
+                : lang === 'ms'
+                  ? 'Penulis aktif'
+                  : 'Active author'
+              : lang === 'zh'
+                ? '答疑参与者'
+                : lang === 'ms'
+                  ? 'Pembantu aktif'
+                  : 'Helpful responder',
+      }))
+  }, [lang, posts])
+
+  const topics = useMemo(() => {
+    const topicMap = new Map<string, number>()
+
+    posts.forEach((post) => {
+      post.tags.forEach((tag) => {
+        topicMap.set(tag, (topicMap.get(tag) || 0) + 1)
+      })
+    })
+
+    return Array.from(topicMap.entries())
+      .sort((a, b) => {
+        if (b[1] !== a[1]) {
+          return b[1] - a[1]
+        }
+        return a[0].localeCompare(b[0])
+      })
+      .slice(0, 5)
+      .map(([tag, count]) => ({
+        tag,
+        count: count >= 1000 ? `${(count / 1000).toFixed(1)}k` : `${count}`,
+      }))
+  }, [posts])
+
+  const paginationSummary = useMemo(() => {
+    const totalPages = Math.max(1, pageMetadata.totalPages)
+    const total = Math.max(0, pageMetadata.total)
+    const page = Math.min(Math.max(1, pageMetadata.page), totalPages)
+    const start = total === 0 ? 0 : (page - 1) * pageMetadata.limit + 1
+    const end = total === 0 ? 0 : Math.min(page * pageMetadata.limit, total)
+
+    if (lang === 'zh') {
+      return `第 ${page} 页 / 共 ${totalPages} 页 · ${start}-${end} 条 / 共 ${total} 条`
+    }
+
+    if (lang === 'ms') {
+      return `Halaman ${page} / ${totalPages} · ${start}-${end} daripada ${total}`
+    }
+
+    return `Page ${page} / ${totalPages} · ${start}-${end} of ${total}`
+  }, [lang, pageMetadata.limit, pageMetadata.page, pageMetadata.total, pageMetadata.totalPages])
+
   function renderCategory(post: FeedPost) {
     if (post.category === 'Question') {
       return (
@@ -914,7 +1168,7 @@ export function CommunityView({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onChange={(event) => handleSearchChange(event.target.value)}
                   placeholder={copy.searchPlaceholder}
                   className={`${pageInputClass} pl-10 pr-4`}
                 />
@@ -949,7 +1203,7 @@ export function CommunityView({
                   ].map((item) => (
                     <button
                       key={item.key}
-                      onClick={() => setScopeFilter(item.key)}
+                      onClick={() => handleScopeChange(item.key)}
                       className={`${pageSegmentedButtonClass} rounded-full text-[13px] ${
                         scopeFilter === item.key
                           ? pagePillActiveClass
@@ -969,7 +1223,7 @@ export function CommunityView({
                     <select
                       value={sortMode}
                       onChange={(event) =>
-                        setSortMode(event.target.value as SortMode)
+                        handleSortChange(event.target.value as SortMode)
                       }
                       className="h-10 rounded-full border border-borderTone bg-surface px-4 pr-9 text-[13px] text-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500/15 dark:border-borderTone dark:bg-surface-subtle dark:text-white dark:focus:ring-sky-400/30"
                     >
@@ -993,7 +1247,39 @@ export function CommunityView({
               </Card>
             ) : null}
 
-            {!loading && visiblePosts.length === 0 ? (
+            {!loading && loadError ? (
+              <Card
+                className={`${surfaceClassName} rounded-[28px] px-5 py-10`}
+              >
+                <div className="mx-auto flex max-w-lg flex-col items-center gap-3 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-200">
+                    <TriangleAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary dark:text-text-primary">
+                      {lang === 'zh'
+                        ? '社区动态加载失败'
+                        : lang === 'ms'
+                          ? 'Gagal memuatkan komuniti'
+                          : 'Failed to load community feed'}
+                    </div>
+                    <p className="mt-1 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
+                      {copy.loadFailed}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-full px-4 text-sm"
+                    onClick={() => void fetchPosts(true)}
+                  >
+                    {copy.retryLoad}
+                  </Button>
+                </div>
+              </Card>
+            ) : null}
+
+            {!loading && !loadError && visiblePosts.length === 0 ? (
               <Card className="rounded-[28px]">
                 <PageEmptyState
                   icon={Bot}
@@ -1120,22 +1406,32 @@ export function CommunityView({
                               <Paperclip className="h-3.5 w-3.5" />
                               {copy.attachmentsTitle}（{post.attachments.length}）
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              {post.attachments.slice(0, 2).map((attachment) => (
-                                <a
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                              {post.attachments.slice(0, 3).map(
+                                (attachment, index) => (
+                                  <Link
                                   key={attachment}
-                                  href={attachment}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="overflow-hidden rounded-2xl border border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle"
-                                >
-                                  <img
-                                    src={attachment}
-                                    alt={post.title}
-                                    className="h-28 w-full object-cover"
-                                  />
-                                </a>
-                              ))}
+                                    href={`/dashboard/community/${post.id}`}
+                                    aria-label={`${post.title} ${index + 1}`}
+                                    className="group relative overflow-hidden rounded-2xl border border-borderTone bg-surface-subtle transition-colors hover:border-sky-300/60 dark:border-borderTone dark:bg-surface-subtle dark:hover:border-sky-400/40"
+                                  >
+                                    <img
+                                      src={attachment}
+                                      alt={post.title}
+                                      className="h-28 w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                                    />
+                                    {index === 0 && post.attachments.length > 1 ? (
+                                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 py-1.5 text-[11px] font-medium text-white">
+                                        {lang === 'zh'
+                                          ? '点击查看帖子'
+                                          : lang === 'ms'
+                                            ? 'Klik untuk buka siaran'
+                                            : 'Open post'}
+                                      </div>
+                                    ) : null}
+                                  </Link>
+                                )
+                              )}
                             </div>
                           </div>
                         ) : null}
@@ -1205,16 +1501,71 @@ export function CommunityView({
                             {copy.share}
                           </button>
 
-                          <button className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-tertiary hover:text-text-primary dark:text-text-tertiary dark:hover:text-white">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            {copy.aiHint}
+                          <button
+                            type="button"
+                            onClick={() => handleAiHint(post)}
+                            disabled={aiHintLoadingPostId === post.id}
+                            className="ml-auto inline-flex items-center gap-2 text-[12px] text-text-tertiary transition-colors hover:text-text-primary disabled:cursor-wait disabled:opacity-60 dark:text-text-tertiary dark:hover:text-white"
+                          >
+                            {aiHintLoadingPostId === post.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                            {aiHintLoadingPostId === post.id
+                              ? copy.aiHintLoading
+                              : copy.aiHint}
                           </button>
                         </div>
+
+                        {aiHints[post.id] ? (
+                          <div className="mt-3 rounded-2xl border border-sky-200 bg-sky-50/70 px-4 py-3 dark:border-sky-400/20 dark:bg-sky-400/10">
+                            <div className="flex items-center gap-2 text-[12px] font-medium text-sky-700 dark:text-sky-100">
+                              <Sparkles className="h-3.5 w-3.5" />
+                              {copy.aiHintTitle}
+                            </div>
+                            <div className="mt-2 whitespace-pre-line text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
+                              {aiHints[post.id]}
+                            </div>
+                          </div>
+                        ) : null}
                       </Card>
                     ))}
                   </div>
                 ))
               : null}
+
+            {!loading && !loadError && pageMetadata.totalPages > 1 ? (
+              <Card className={`${surfaceClassName} rounded-[28px] px-5 py-4`}>
+                <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
+                  <div className="text-[12px] text-text-tertiary dark:text-text-tertiary">
+                    {paginationSummary}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-9 rounded-full px-4 text-[12px]"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage <= 1}
+                    >
+                      {copy.prevPage}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-9 rounded-full px-4 text-[12px]"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={
+                        currentPage >= Math.max(1, pageMetadata.totalPages)
+                      }
+                    >
+                      {copy.nextPage}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ) : null}
           </div>
 
           <div className={pageSectionGapCompactClass}>
@@ -1312,7 +1663,7 @@ export function CommunityView({
                           <button
                             key={item.id}
                             onClick={() =>
-                              setActiveBoardId(item.id as string | 'all')
+                              handleBoardChange(item.id as string | 'all')
                             }
                             className={`min-h-11 rounded-2xl border px-3 py-2 text-left text-[12px] font-medium transition-colors ${
                               isActive
@@ -1407,7 +1758,7 @@ export function CommunityView({
                 {topics.map((topic) => (
                   <button
                     key={topic.tag}
-                    onClick={() => setSearchQuery(topic.tag)}
+                    onClick={() => handleSearchChange(topic.tag)}
                     className="rounded-full border border-borderTone bg-surface px-3 py-1.5 text-[12px] font-medium text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-white"
                   >
                     #{topic.tag}

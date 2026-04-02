@@ -10,7 +10,7 @@
 | T-006 | `/dashboard/courses` + `/course/[subjectId]` + `/course/[subjectId]/[lessonId]` 学习内容域真实化 | codex | todo |  |
 | T-007 | `/dashboard/practice` 全路由族真实化（含 Smart Drill / Error Wiper / Mock Arena / Chapter Drill / Past Paper） | codex | doing |  |
 | T-008 | `/dashboard/community` 全路由族真实化（列表 / 发帖 / 详情 / 评论） | codex | todo |  |
-| T-009 | `/admin` 首页与公共管理域真实化（含 `/admin/permissions`） | codex | todo |  |
+| T-009 | `/admin` 首页与公共管理域真实化 | codex | todo |  |
 | T-010 | `/admin/users` 全路由族真实化（列表 / 详情 / 管理动作） | codex | todo |  |
 | T-011 | `/admin/feedback` 全路由族真实化（列表 / 详情 / 处理流） | codex | todo |  |
 | T-012 | `/admin/referrals` + `/admin/vouchers` 增长与券码域真实化 | codex | todo |  |
@@ -114,12 +114,12 @@
 ### Phase E：刷新、展示约束与边界收口
 | id | description | owner | status |
 |---|---|---|---|
-| T-005.17 | 定义 Dashboard 数据刷新、失效与回流策略：首屏、切窗、返回页、提交后刷新行为 | codex | todo |
-| T-005.18 | 补齐 Dashboard 加载态、错误态、局部失败降级与骨架屏规则 | codex | todo |
-| T-005.19 | 补齐 Dashboard 权限与身份分层展示规则：新用户、已登录、订阅态、受限模块 | codex | todo |
-| T-005.20 | 补齐 Dashboard 可访问性与移动端适配约束：卡片重排、CTA 可达性、键盘与语义化 | codex | todo |
-| T-005.21 | 补齐 Dashboard 页面级验证与留证：模块级冒烟、关键字段断言、浏览器回归留证 | codex | todo |
-| T-005.22 | 明确 Dashboard 与共享域边界：只消费共享聚合结果，不在首页重复重算 `leaderboard` / `achievements` / `settings` 域口径 | codex | todo |
+| T-005.17 | 定义 Dashboard 数据刷新、失效与回流策略：补齐 `overview / dailyTasks / learningPath / subjectProgress / leaderboard / recentPractice` 的刷新触发矩阵，并明确 `revalidatePath('/dashboard')`、局部回流与“下次进页刷新”的边界 | codex | done |
+| T-005.18 | 补齐 Dashboard 加载态、错误态、局部失败降级与骨架屏规则：分别定义顶部 KPI、今日任务、学习路径、学科进度、排行榜、最近练习回顾、今日灵感的骨架屏、错误文案、空态 CTA 与局部失败降级规则 | codex | done |
+| T-005.19 | 补齐 Dashboard 权限与身份分层展示规则：建立未登录、已登录未完成 onboarding、免费用户、付费用户、教师/管理员的首页可见模块、受限模块与引导文案矩阵 | codex | done |
+| T-005.20 | 补齐 Dashboard 可访问性与移动端适配约束：明确手机端卡片排序、KPI 换行策略、CTA 最小点击面积、Dialog/Drawer 的移动端替代行为、键盘可达性与语义化要求 | codex | done |
+| T-005.21 | 补齐 Dashboard 页面级验证与留证：按“浏览器冒烟 / 关键字段 SQL 核账 / 重复点击与刷新 / 移动端截图 / console error 检查”建立固定收口模板 | codex | done |
+| T-005.22 | 明确 Dashboard 与共享域边界：建立字段 owner 矩阵，明确 `leaderboard / achievements / streak / xp / profile / settings` 等字段由共享域提供，Dashboard 只消费、不重复重算 | codex | done |
 
 ### T-005 说明性内容
 
@@ -347,6 +347,42 @@
 - 已补充浏览器层重复点击自动化回归：
   - 使用隔离 Playwright 浏览器注册夹具用户，写入当日 `ONBOARDING_PROFILE / ONBOARDING_GOALS / QUIZ_SCORE` 任务后重载 Dashboard。
   - 连续点击 2 次“完善个人资料”任务，已确认弹窗可重复打开，且不再出现 `DialogContent requires a DialogTitle` 控制台错误。
+
+#### T-005.17 Dashboard 刷新 / 失效 / 回流策略（已完成）
+- 当前链路盘点：
+  - `/dashboard` 首屏由 `src/app/(dashboard)/dashboard/page.tsx` 服务端执行 `getDashboardProfile()` + `getDashboardStats()` 一次性取数，驻页默认不轮询。
+  - 顶部 `7D / 30D` 窗口切换只切本地 `overviewByWindow`，不额外发请求。
+  - `DailyMissions` 在 `claimTaskReward`、`completeOnboardingTask` 成功后执行 `router.refresh()`，并依赖服务端 action 中的 `revalidatePath('/dashboard')` 使当前路由重取数据。
+  - `updateProfile`、`updateGoals`、`completeOnboarding`、`claimTaskReward`、`completeOnboardingTask` 已显式 `revalidatePath('/dashboard')`；`updateUserLessonProgress` 目前只刷新 `/dashboard/courses`，练习提交副作用目前只刷新成就 tag，不显式 `revalidatePath('/dashboard')`。
+- 刷新触发矩阵（`T-005.17.1`）：
+  - `overviewByWindow / stats`
+    - 进入 `/dashboard`：必须刷新。
+    - `7D / 30D` 切换：本地切换，不刷新。
+    - 完成练习 / 完成课程后返回 Dashboard：允许“下次进入 Dashboard 时刷新”，不要求驻页实时变更。
+    - 领奖 / Profile / Goals / Assessment 更新：允许当前页 `router.refresh()` 后刷新。
+  - `dailyTasks`
+    - 进入 `/dashboard`：必须刷新，并在读取前先执行 `ensureDailyTasks()`。
+    - 领奖 / onboarding 完成：当前页必须 `router.refresh()`。
+    - 完成练习 / 完成课程：允许依赖下次进入 Dashboard 刷新，不做驻页推送。
+  - `learningPath / subjectProgress / weaknesses / recentPractice / leaderboard`
+    - 进入 `/dashboard`：必须刷新。
+    - 练习提交后：允许在“返回 Dashboard 时刷新”，不要求练习结果页完成后实时推送首页。
+    - Profile / Goals / Assessment 更新：仅 `learningPath` 与 `dailyTasks` 可能变化，其他模块允许保持不变直到下次进入 Dashboard。
+- 缓存与失效策略（`T-005.17.2`）：
+  - Dashboard 首页不做驻页轮询，不做定时静默刷新，不做 tab focus 自动刷新。
+  - Dashboard 首页的数据一致性目标定义为“按进入页面 / 显式刷新时近实时”，不是“驻页实时”。
+  - 当前页内已知需要立即回流的动作仅限：
+    - `dailyTasks` 领奖
+    - `dailyTasks` onboarding 完成
+    - Dashboard 内直接提交的 Profile / Goals / Assessment
+  - 跨页面写入（练习提交、课程完成、设置页保存）统一按“下一次进入 Dashboard 重新取数”处理，不再引入额外轮询或跨页事件总线。
+- 执行约束：
+  - `router.refresh()` 只用于当前 Dashboard 页面内已经发生并且用户预期立即看到变化的动作。
+  - `revalidatePath('/dashboard')` 只作为“下一次进入 Dashboard 重新拉取”的失效信号，不承诺驻页热更新。
+  - 若后续需要驻页实时反馈，应作为独立需求新增，不在 P0 Dashboard 真实化范围内偷带实现。
+- 当前遗留差异：
+  - 课程完成与练习提交链路未统一显式 `revalidatePath('/dashboard')`，但按现行策略仍可接受，因为本任务定义的是“返回页刷新”而非“驻页实时刷新”。
+  - 若后续产品要求“练习完成后立刻返回 Dashboard 并看到最新 KPI”，应在练习/课程写链路补 `/dashboard` 失效，而不是在首页增加轮询。
   - 点击“完成 1 次测验”任务后，已确认可跳转到 `/dashboard/practice`，当前 CTA 入口已接通。
 - 已补充多用户样本 SQL 核账矩阵：
   - 真实活跃样本共 2 个用户：`admin@learnmore.com`、`student1@mail.com`。
@@ -358,7 +394,296 @@
     - `7D`：`studyTime = 0h`、`questions = 0`、`accuracy = 0%`
     - `30D`：`studyTime = 0h`、`questions = 0`、`accuracy = 0%`、`activeDays = 1`
     - 当日 `duplicateTaskTypes = []`
-  - 额外做了 3 个高 XP 用户的重复任务扫描，均未发现同类型重复任务行。
+- 额外做了 3 个高 XP 用户的重复任务扫描，均未发现同类型重复任务行。
+
+#### T-005.18 Dashboard 加载态 / 错误态 / 局部失败降级规则（已完成）
+- 页面级总原则：
+  - `/dashboard` 首页当前采用服务端一次性取数，若 `getDashboardProfile()` 或 `getDashboardStats()` 整体失败，则进入页面级失败路径，不允许渲染伪完整 Dashboard。
+  - 页面级失败只用于“整页关键依赖不可用”，例如用户资料缺失、数据库连接异常、核心查询抛错；此时优先展示问题说明与恢复动作，而不是零值 KPI。
+  - 页面级成功后，首页区块统一采用“模块自带空态”，不允许再用默认 `0 / 0% / 空数组` 冒充真实成功数据。
+- 骨架屏与加载策略：
+  - 当前 P0 不新增驻页异步拉取，因此首页首屏不单独引入客户端模块级 skeleton；加载体验由路由级 loading / 首屏进入等待承担。
+  - 若后续把某个 Dashboard 区块改为独立客户端拉取，必须补对应骨架屏，且骨架形态需与真实布局一一对应，不得使用通用灰块敷衍。
+  - `7D / 30D` 窗口切换为本地切换，禁止出现 skeleton 或闪烁重载。
+- 局部失败降级原则：
+  - `learningPath`、`subjectProgress`、`leaderboard`、`recentPractice`、`dailyTasks` 均按模块合同中的 `status + note` 渲染局部空态，不允许一个模块无数据就拖垮整页。
+  - `DailyInspiration` 属于展示增强模块，若本地语言文案或主题池异常，应直接回退到默认英文/中文静态文案，不影响其他模块。
+  - Dashboard 当前合同未定义模块级 `error` 状态；因此本轮约束为“能在聚合层识别为无数据的，统一返回 `empty / excluded`，真正异常上抛到页面级失败”。后续若要支持模块级错误重试，再单独扩展合同。
+- 顶部 KPI（`overviewByWindow` / `stats`）：
+  - 首屏加载：跟随页面级加载，不单独显示 skeleton。
+  - 成功有数据：展示真实 `studyTime / questions / accuracy / activeDays`。
+  - 真实无数据：允许显示 `0h / 0 / 0% / 0`，但前提是后端已确认“窗口内确实没有练习/课程事件”，不得用默认值伪造。
+  - 错误态：归入页面级失败，不做局部错误卡。
+  - CTA：无 CTA；`7D / 30D` 仅切本地窗口。
+- 今日任务（`dailyTasks`）：
+  - 首屏加载：跟随页面级加载，不单独显示 skeleton。
+  - 空态：使用当前 `PageEmptyState`，标题固定为“今日任务已完成 / Today's mission is clear”，CTA 指向 `/dashboard/practice`。
+  - 错误态：本轮不单独定义模块错误页；若 `ensureDailyTasks()` 或读取当天任务失败并影响首页主数据，则进入页面级失败。
+  - 局部失败：单个动作失败时仅 toast 报错，不清空任务列表，不得把失败动作误显示为已完成或已领取。
+  - CTA 规则：`ONBOARDING_PROFILE / GOALS / ASSESSMENT` 打开对应弹窗；`COMPLETE_LESSON` 跳 `/dashboard/courses`；`QUIZ_SCORE` 跳 `/dashboard/practice`；`FIX_ERROR` 跳 `/dashboard/practice/error-wiper`；`LOGIN` 无右侧深链 CTA。
+- 学习路径（`learningPath`）：
+  - 首屏加载：跟随页面级加载，不单独显示 skeleton。
+  - 空态：标题固定为“还没有最近学习记录”，描述优先使用模块 `note`，CTA 固定指向 `/dashboard/practice`。
+  - 错误态：聚合异常上抛为页面级失败；禁止回退到静态推荐列表。
+  - 局部失败降级：当推荐条目数少于分页槽位时，仅显示“已到列表底部”，不得补假推荐。
+  - CTA：区块头部 CTA 固定为“练习中心”；条目 CTA 必须深链到章节练习 `href`。
+- 学科进度（`subjectProgress`）：
+  - 首屏加载：跟随页面级加载，不单独显示 skeleton。
+  - 空态：标题固定为“还没有学科进度数据”，CTA 指向 `/dashboard/practice`。
+  - 错误态：聚合异常上抛为页面级失败；不得回退成硬编码学科列表。
+  - 局部失败降级：分页不足时只展示“已到列表底部”；不得补零值学科卡。
+  - CTA：区块 CTA 固定为“去练习”。
+- 年级排名（`leaderboard`）：
+  - 首屏加载：跟随页面级加载，不单独显示 skeleton。
+  - `ready`：显示真实 `percentile / peerAverageAccuracy / userAccuracy`。
+  - `excluded`：显示“缺少年级信息”，CTA 指向 `/dashboard/settings`。
+  - `empty`：显示“尚未进入排行榜”，CTA 指向 `/dashboard/practice`。
+  - 错误态：排行榜聚合异常上抛为页面级失败；禁止继续显示历史硬编码 `Top 15% / 68%` 文案。
+- 最近练习回顾（`recentPractice`）：
+  - 首屏加载：跟随页面级加载，不单独显示 skeleton。
+  - 空态：标题固定为“还没有练习记录”，CTA 指向 `/dashboard/practice`。
+  - 错误态：聚合异常上抛为页面级失败；不得回退到假成绩记录。
+  - 局部失败降级：若某条记录缺少可恢复字段，则该条不渲染为可点击重练项，而不是拼接错误深链。
+  - CTA：区块头部 CTA 指向 `/dashboard/practice`；单条记录 CTA 指向其模式恢复 `href`。
+- 今日灵感（`DailyInspiration`）：
+  - 首屏加载：不显示 skeleton，直接渲染本地策展模块。
+  - 空态：不定义；若当前语言文案缺失，回退到英文文案池。
+  - 错误态：不得影响 Dashboard 其他模块；允许直接回退到默认主题与默认 quote。
+  - CTA：仅保留“换一张 / Refresh”本地切换按钮，不承载业务跳转。
+- 文案与留证约束：
+  - 所有空态文案必须明确说明“为何当前没有数据”以及“下一步去哪里补数据”，禁止出现泛化文案如“暂无内容”。
+  - 所有错误态若未来扩展为模块级错误，必须同时提供恢复动作或联系指引；不能只显示红字。
+  - 本轮 `T-005.18` 先锁定规则，不额外引入客户端 skeleton 实现；若后续有独立异步模块，再按本节规则补 UI。
+
+#### T-005.19 Dashboard 权限与身份分层展示矩阵（已完成）
+- 访问前提：
+  - `未登录` 用户不属于 Dashboard 展示矩阵，当前由路由层直接重定向到 `/login`，不渲染 Dashboard 壳或空态首页。
+  - `已登录但数据库用户记录缺失` 属于账户同步异常，不归入普通身份分层；当前走页面级账户修复路径。
+- 身份分层总原则：
+  - Dashboard 首页当前默认只服务学生主视图；家长、管理员、教师虽然可进入 `/dashboard`，但其壳层与导航需按角色切换，不能假定所有用户都看到同一套学生入口。
+  - 订阅层级当前不用于隐藏 Dashboard 主模块，主要用于升级引导、试用 Banner、排行榜资料约束和下游练习/AI 功能额度；因此本任务只定义展示差异，不新增按套餐硬隐藏首页卡片。
+  - `excluded` 只用于“当前用户缺少参与该模块所需资料或身份”，不得滥用为“未开发”或“套餐不足”。
+- 分层矩阵（`T-005.19.1`）：
+  - `未登录`
+    - 首页可见模块：无。
+    - 处理方式：直接重定向 `/login`。
+    - 说明：不在 Dashboard 内展示“请登录后查看”空页面。
+  - `已登录未完成 onboarding 的学生`
+    - 首页可见模块：顶部 KPI、今日任务、学习路径、学科进度、排行榜、最近练习回顾、今日灵感。
+    - 特殊规则：
+      - `dailyTasks` 必须优先生成并展示 onboarding 任务。
+      - `leaderboard` 若缺少年级资料，可进入 `excluded`，CTA 指向 `/dashboard/settings`。
+      - `learningPath / subjectProgress / recentPractice` 允许真实空态，不因 onboarding 未完成而整体隐藏。
+    - 引导文案：优先通过 `今日任务` 和 `排行榜 excluded` 提示补资料，而不是整页遮罩。
+  - `已登录免费用户（STARTER）`
+    - 首页可见模块：与普通学生一致，不额外隐藏首页区块。
+    - 特殊规则：
+      - 侧边栏保留“升级套餐”入口。
+      - 试用倒计时 Banner 不显示，除非其套餐状态属于 `STANDARD` 且试用即将结束。
+      - 首页 CTA 可以引导进入练习中心或设置页，但不得在 Dashboard 卡片内伪装未开放模块。
+  - `已登录付费用户（STANDARD / SMART_PLUS / PREMIER）`
+    - 首页可见模块：与普通学生一致。
+    - 特殊规则：
+      - 保留侧边栏升级/套餐入口，但其文案可视为续费/查看套餐，不作为功能解锁遮罩。
+      - `STANDARD` 且 `subscriptionEnd` 在 24 小时内时，允许显示试用倒计时 Banner。
+      - `SMART_PLUS / PREMIER` 不因套餐更高而获得额外 Dashboard 首页模块；差异主要体现在下游功能额度。
+  - `家长（PARENT）`
+    - 首页可见模块：不使用学生 Dashboard 首页；当前切换到 `ParentDashboardView`。
+    - 导航：仅保留 parent 首页和设置。
+    - 约束：不得把学生的 `dailyTasks / learningPath / leaderboard / recentPractice` 直接复用于家长首页。
+  - `教师 / 管理员（TEACHER / ADMIN）`
+    - 首页可见模块：当前仍可进入学生 Dashboard 壳，但同时拥有 Admin 导航区和 `/admin` 路由入口。
+    - 导航：侧边栏增加 Admin Dashboard、用户管理、内容管理等入口。
+    - 套餐规则：权限引擎中教师/管理员视作 `PREMIER`，但这不意味着 Dashboard 首页要额外渲染管理员专属学生卡片。
+    - 约束：教师/管理员在 `/dashboard` 看到的学生首页模块继续按学生合同渲染；真正的管理能力留在 `/admin` 域，不在 Dashboard 首页混排。
+- 模块级受限规则：
+  - `leaderboard`
+    - 受限原因仅限资料缺失（例如 grade 缺失）等参与条件不满足。
+    - 受限展示使用 `excluded + note`，CTA 指向 `/dashboard/settings`。
+    - 不因免费/付费差异隐藏排行榜卡。
+  - `dailyTasks`
+    - 仅对学生主视图生效；家长首页不展示该模块。
+    - onboarding 未完成时优先展示 onboarding 任务，不需要额外叠加全页 onboarding 遮罩。
+  - `learningPath / subjectProgress / recentPractice`
+    - 仅按“有无真实学习数据”决定 `ready / empty`，不因免费/付费差异切成受限态。
+  - `DailyInspiration`
+    - 所有身份统一可见；它是展示增强模块，不参与权限判断。
+- 侧边栏与壳层规则：
+  - 学生主导航当前固定为 `dashboard / courses / practice / community`。
+  - 家长导航当前固定为 parent 首页。
+  - 设置页入口对所有已登录角色保留。
+  - 升级入口对非家长用户保留；当前不根据是否已付费做隐藏。
+  - Notification Bell 当前在桌面壳层统一展示，不因身份分层在 `T-005` 内做额外差异化。
+- 执行约束：
+  - P0 范围内不得新增“按套餐隐藏整块 Dashboard 卡片”的设计，除非对应能力在下游页面本身已有正式权限门禁。
+  - 家长与管理员的特殊能力应分别落在 `ParentDashboardView` 和 `/admin`，不在学生 Dashboard 首页临时拼接。
+  - 若后续产品要做“付费用户专属首页卡”或“教师专属首页卡”，应作为新需求新增，不在当前真实化收口阶段偷带实现。
+
+#### T-005.20 Dashboard 可访问性与移动端适配约束（已完成）
+- 移动端布局总原则：
+  - Dashboard 在手机端保持单列流式布局，不允许出现需要横向滚动才能看到完整主内容的情况。
+  - 模块顺序沿用当前信息优先级，不因移动端重排业务意义：
+    - 顶部 KPI
+    - 今日任务
+    - 学习路径
+    - 学科进度
+    - 年级排名
+    - 最近练习回顾
+    - 今日灵感
+  - 侧边栏在手机端统一通过抽屉式菜单进入，禁止在主内容区域再复制一套二级导航。
+- KPI 与卡片换行策略（`T-005.20.1`）：
+  - 顶部 KPI 卡在小屏下允许 `1 列 -> 2 列 -> 4 列` 渐进排布，当前实现的 `grid gap-3 sm:grid-cols-2 2xl:grid-cols-4` 视为基线。
+  - KPI 卡内容必须保证数字、标签、副标题在 320px 宽度下不发生裁切；若文案过长，应优先缩短副标题而不是压缩主数值。
+  - 学习路径、学科进度、最近练习回顾在手机端保持单列卡片堆叠，不允许把行内信息压成两列导致点击目标过密。
+- CTA 最小点击面积：
+  - 所有主要按钮和列表行点击目标最小高度按 `44px` 约束；当前 `Button` 默认 `h-10` 略低于理想值时，关键 CTA 应通过 `py-3`、`h-11` 或整行点击补足。
+  - 任务列表、学习路径、最近练习回顾这类整行点击项，点击区域必须覆盖整行卡片，不能只让右箭头或局部文字可点。
+  - 头部 `7D / 30D` 切换、区块 CTA、移动端菜单按钮必须保留清晰的 hover / focus / active 可视反馈。
+- Dialog / Drawer 行为：
+  - 当前 Dashboard 内的 onboarding 弹窗继续使用 `Dialog`，不在 P0 额外切成 `Drawer`，但需满足以下约束：
+    - 在窄屏下对话框宽度不得超过视口，内容区必须可滚动。
+    - `ProfileDialog` 允许使用 `max-h-[90vh] overflow-y-auto` 作为基线。
+    - `GoalsDialog`、`AssessmentDialog` 在移动端若内容继续增长，应优先补滚动与内边距，而不是让内容溢出到视口外。
+  - 对话框必须始终带 `DialogTitle`，即使视觉上隐藏，也要保留给辅助技术。
+  - 若后续某个表单步骤在手机端明显超过 1 屏，应优先改造成分步表单，而不是在现有 Dialog 中继续堆叠。
+- 键盘可达性与焦点管理：
+  - 侧边栏项、顶部窗口切换、区块 CTA、任务行、学习路径行、最近练习记录行都必须保持原生 `button` 或可聚焦元素语义，不允许改成无语义 `div` 点击。
+  - 焦点样式必须保留，当前 `Button` 和分段控件已有 `focus-visible` ring，不得在后续样式调整中去掉。
+  - Dialog 打开后焦点应进入对话框，关闭后回到触发元素；若后续自定义弹窗行为，不得破坏 Radix 默认焦点管理。
+  - 键盘用户必须可以完成：
+    - 切换 `7D / 30D`
+    - 打开今日任务中的 onboarding 弹窗
+    - 触发区块 CTA 跳转
+    - 关闭移动端侧边栏与对话框
+- 语义化与辅助技术要求：
+  - 所有 Dialog 必须包含 `DialogTitle`，必要时可使用 `sr-only` 隐藏标题文本。
+  - 图标按钮必须带可理解的文本或 `sr-only` 标签，不能只保留纯图标。
+  - 空态、受限态、错误态文案必须可被读屏顺序读出，不得只依赖背景图、颜色或装饰图标传递状态。
+  - `DailyInspiration` 的“换一张”按钮虽为展示增强功能，仍需保留明确按钮文案，不使用无标签图标。
+- 移动端壳层约束：
+  - 手机端顶部只保留一个菜单触发器，不重复展示桌面通知浮层。
+  - 侧边栏遮罩层点击关闭继续保留；但关闭行为不得阻断页面滚动恢复。
+  - 试用 Banner、主内容区、底部卡片在小屏下必须按自然文档流堆叠，不允许 `fixed` 覆盖主要 CTA。
+- 本轮执行边界：
+  - `T-005.20` 先锁定约束，不在本轮额外引入新的 Drawer 组件、手势导航或专门的移动端重设计。
+  - 若后续出现真实移动端截断、按钮过小、Dialog 溢出等缺陷，应按本节约束修正实现，不再重新讨论标准。
+
+#### T-005.21 Dashboard 页面级验证与留证模板（已完成）
+- 目标：
+  - 为 Dashboard 建立固定的最小充分验收模板，后续每次收口都按同一格式留证，避免只跑 lint 或只看页面肉眼结果。
+  - 模板覆盖浏览器冒烟、关键字段核账、重复点击/刷新、移动端、控制台错误 5 类必检项。
+- 固定验收模板（`T-005.21.1`）：
+  - `A. 浏览器冒烟`
+    - 打开 `/dashboard`，确认页面可加载且无页面级崩溃。
+    - 核对顶部 KPI、今日任务、学习路径、学科进度、年级排名、最近练习回顾、今日灵感均能渲染。
+    - 至少覆盖 1 个“有数据用户”和 1 个“空数据用户”样本。
+  - `B. 关键字段 SQL / 后台核账`
+    - 至少核对：
+      - `7D / 30D studyTime`
+      - `questions`
+      - `accuracy`
+      - `activeDays`
+      - 当日 `dailyTasks` 类型集合与重复任务情况
+    - 至少保留 2 个真实用户样本，且包含 1 个活跃样本。
+    - 需要记录“页面值 -> SQL/表值 -> 口径说明”三列映射，不能只贴最终数字。
+  - `C. 重复点击 / 刷新 / 幂等`
+    - 对今日任务至少验证：
+      - `完善个人资料` 可重复打开弹窗且不报错。
+      - 领奖按钮重复点击不会重复加 XP。
+      - 页面刷新后任务状态与数据库一致。
+    - 如当轮涉及新增 CTA，也必须补一次重复点击验证。
+  - `D. 移动端截图 / 视口检查`
+    - 至少在一个手机视口（基线 `390x844`）打开 `/dashboard`。
+    - 核对：
+      - 没有横向滚动
+      - KPI 与主要卡片不截断
+      - 侧边栏菜单可打开/关闭
+      - 主要 CTA 不被 Banner、浮层或底部元素遮挡
+    - 至少留 1 张截图路径或等价证据。
+  - `E. console / runtime error 检查`
+    - 打开 Dashboard 后检查浏览器 console / page error。
+    - 至少覆盖：
+      - 首屏加载
+      - 打开一个 onboarding Dialog
+      - 执行一个页内刷新动作（如领奖或完成 onboarding）
+    - 不允许带着已知红字 console error 进入完成态。
+- Dashboard 专项验收清单：
+  - `KPI`：核对 7D / 30D 切换只改本地窗口，不触发空白闪烁。
+  - `dailyTasks`：核对创建、推进、领奖、刷新后一致性。
+  - `learningPath`：核对条目深链正确、空态 CTA 指向 `/dashboard/practice`。
+  - `subjectProgress`：核对真实空态与有数据态切换，不出现硬编码学科卡。
+  - `leaderboard`：核对 `ready / empty / excluded` 三种状态至少其一，并确认 CTA 去向正确。
+  - `recentPractice`：核对至少 1 条记录可按原模式重练。
+  - `DailyInspiration`：仅检查渲染、语言切换、深浅色表现，不纳入 SQL 核账。
+- 证据格式约束：
+  - 每次 Dashboard 收口至少记录：
+    - 执行日期
+    - 样本用户
+    - 浏览器验证范围
+    - SQL/数据库核账摘要
+    - 是否存在已知残余风险
+  - 如果某一项未执行，必须写明“未执行原因 + 当前替代证据”，不能直接省略。
+- 本轮已具备的基础留证：
+  - 已有浏览器层重复点击回归：连续点击 2 次“完善个人资料”无 `DialogTitle` 报错。
+  - 已有多用户 SQL 核账矩阵：`admin@learnmore.com`、`student1@mail.com`。
+  - 已有定向代码校验：`pnpm eslint src/actions/gamification/daily-tasks.ts src/actions/dashboard.ts src/components/dashboard/DashboardHome.tsx src/actions/gamification/achievement.ts`
+  - 已确认 Dashboard 当前不再保留 `pending` 伪状态与 `dailyActivity` 挂空字段。
+- 执行边界：
+  - `T-005.21` 负责建立模板，不重复执行一次完整总回归；真正的统一总验收仍归 `T-020 / T-021`。
+  - 后续若 Dashboard 再新增模块或跨域联动，必须先把新项加入本模板，再宣告页面收口完成。
+
+#### T-005.22 Dashboard 与共享域边界 / 字段 owner 矩阵（已完成）
+- 总原则：
+  - Dashboard 是消费层，不是新的业务权威层。
+  - 任何已经由共享域定义的字段，Dashboard 只能读取、组合、做展示态分发，不能偷偷在页面层或首页聚合里重写业务口径。
+  - 若共享域已有独立页面或独立 action，Dashboard 必须复用其权威字段和状态，而不是再造一份“首页专用口径”。
+- 字段 owner 矩阵（`T-005.22.1`）：
+  | 字段 / 模块 | 权威 owner 域 | 当前 Dashboard 消费入口 | Dashboard 职责边界 |
+  |---|---|---|---|
+  | `profile.username / avatar / grade / handle / role` | 用户资料域（`src/actions/user/profile.ts`、`src/actions/user/auth.ts`） | `getDashboardProfile()` | 仅展示与引导补资料；不在首页重算、镜像或缓存另一套资料字段 |
+  | `settings.language / theme / notification* / studyReminderTime` | 设置域（`user_settings` + `src/actions/user/profile.ts` / settings actions） | `getDashboardProfile()` | 仅消费设置结果影响文案、主题和 onboarding 判断；不在 Dashboard 自己持久化设置 |
+  | `subscriptionTier / subscriptionStatus / subscriptionEnd` | 订阅 / billing 域 | `DashboardLayout`、`SettingsView` | 仅用于升级入口、试用 Banner、展示文案；不在 Dashboard 判定真正权限能力 |
+  | `xp / level / nextLevelXp` | 游戏化域（XP 积分规则 + `calculateLevel`） | `getDashboardStats()`、`DashboardLayout` | `xp` 为源字段，`level / nextLevelXp` 仅允许从 XP 派生展示，禁止 Dashboard 自定义等级公式 |
+  | `streak / lastStudyDate` | 游戏化域（`src/actions/gamification/streak.ts`） | `getDashboardStats()` | 只展示 streak；禁止在 Dashboard 渲染时触发 streak 写入 |
+  | `dailyTasks / reward claimState / task progress` | 游戏化任务域（`src/actions/gamification/daily-tasks.ts`、`achievement.ts`） | `getDashboardStats()` | 首页只负责展示、触发动作、刷新；任务生成/推进/领奖逻辑不在组件层实现 |
+  | `leaderboard.rank / percentile / peerAverageAccuracy / userAccuracy` | 排行榜域（leaderboard 聚合口径） | `buildLeaderboardCard()` | 首页只消费周榜摘要卡，不定义独立排行榜算法 |
+  | `achievements / badges` | 成就域（`src/actions/gamification/achievements.ts` 及相关 badge 逻辑） | 当前 Dashboard 首页不直接消费，仅在壳层 XP 卡与后续 `/dashboard/achievements` 域使用 | 首页不预先复制 badge 明细，不在 Dashboard 自己判发徽章 |
+  | `studyTime / questions / accuracy / activeDays` | Dashboard 首页统计口径本身，但其底层来源分别归属练习记录、课程进度、活动事件 | `getDashboardStats()` | Dashboard 可聚合展示，但必须复用底层权威表：`exam_records`、`user_attempts`、`user_progress` |
+  | `learningPath / subjectProgress / weaknesses / recentPractice` | Dashboard 首页聚合层 | `getDashboardStats()` | 这些属于 Dashboard 自有展示聚合，可在首页定义合同，但不得越权改写下游练习结果原始数据 |
+- 共享域边界说明：
+  - `profile / settings`
+    - Dashboard 只负责把资料缺失转成空态、任务或 CTA。
+    - 真正的资料保存、handle 校验、语言主题切换都归资料/设置域。
+  - `gamification`
+    - `xp / streak / dailyTasks / badges` 的写入触发与规则都归游戏化域。
+    - Dashboard 只能调用公开 action，不得在组件里直接拼写 XP、连击、任务状态更新逻辑。
+  - `leaderboard`
+    - Dashboard 首页只展示摘要卡。
+    - 排名算法、榜单周期、cohort 归属属于排行榜域；首页卡不得再定义“首页版排行榜逻辑”。
+  - `practice / courses`
+    - Dashboard 的 `studyTime / recentPractice / activeDays / learningPath / subjectProgress` 依赖练习和课程产出的事实数据。
+    - 首页可以做聚合，但不负责补写事实表，也不负责为练习/课程流程兜底生成假记录。
+- Dashboard 允许拥有的职责：
+  - 汇总多个共享域的只读结果，形成首页摘要。
+  - 把共享域状态翻译成首页空态、受限态、CTA。
+  - 定义首页专属的展示合同，例如 `learningPath.items[]`、`subjectProgress.items[]` 这种聚合输出结构。
+- Dashboard 不允许拥有的职责：
+  - 不重算 `streak`。
+  - 不重算 `xp` 规则。
+  - 不保存 `profile/settings`。
+  - 不单独定义排行榜排名算法。
+  - 不在组件层直接改 `dailyTasks` 数据库状态。
+  - 不为无数据模块伪造默认成功值掩盖上游缺失。
+- 当前实现与边界对齐情况：
+  - `getDashboardProfile()` 已作为首页资料读取入口，复用用户域字段。
+  - `getDashboardStats()` 当前只读 `user.xp / user.streak` 并基于权威字段派生展示值，没有再写回。
+  - `checkAndRefreshStreak()` 已移出 Dashboard 首屏读取链路，避免首页越权改写游戏化状态。
+  - `updateProfile()` 等资料写链路继续在用户域内完成，并通过 `revalidatePath('/dashboard')` 回流，不让 Dashboard 自己持久化资料。
+  - `leaderboard` 首页卡当前由 `buildLeaderboardCard()` 聚合摘要，未在组件层重复计算排名。
+- 执行约束：
+  - 后续如果某字段已经在 `T-016 / T-017 / T-018` 等共享域任务中被定义，Dashboard 必须直接消费其输出或复用同一口径。
+  - 若需要改字段口径，应优先改 owner 域，再由 Dashboard 跟进消费；不能只在首页偷偷改一版。
+  - 任何“为了首页好看先补一个默认值”的做法，都视为越权，除非该字段已在本任务文档中明确标记为“展示增强模块”。
 
 ## 页面族统一拆分模板（适用于 T-006 ~ T-019）
 
@@ -380,7 +705,7 @@
 | T-006 | `/dashboard/courses`、`/course/[subjectId]`、`/course/[subjectId]/[lessonId]` | 将用户内容、学习进度、章节/课程口径统一 |
 | T-007 | `/dashboard/practice`、`/dashboard/practice/smart-drill`、`/dashboard/practice/error-wiper`、`/dashboard/practice/mock-arena`、`/dashboard/practice/mock-arena/[examId]`、`/dashboard/practice/chapter-drill/[chapterId]`、`/dashboard/practice/past-paper/[paperId]` | 练习域作为一个整体推进，不拆散模式口径 |
 | T-008 | `/dashboard/community`、`/dashboard/community/new`、`/dashboard/community/[postId]` | 列表、详情、发帖、评论必须一起打通 |
-| T-009 | `/admin`、`/admin/permissions` | Admin 首页聚合与公共管理能力一起处理 |
+| T-009 | `/admin` | Admin 首页聚合与公共管理能力一起处理 |
 | T-010 | `/admin/users`、`/admin/users/[id]` | 用户列表、详情、动作闭环 |
 | T-011 | `/admin/feedback`、`/admin/feedback/[id]` | 反馈列表、详情、处理状态闭环 |
 | T-012 | `/admin/referrals`、`/admin/vouchers` | 推荐、增长、券码能力一起核账 |
@@ -430,14 +755,11 @@
 | T-008.3 | 对齐社区读取链路：列表、详情、评论流、计数、排序、权限与可见性规则 | codex | done |
 | T-008.4 | 对齐社区写链路：发帖、评论、点赞、解决状态、越权拦截、重复提交幂等 | codex | done |
 | T-008.5 | 清理假帖子、假评论、假计数、伪成功提示，补齐空态/错误态/未登录态，并将发帖页“是否原创”替换为显式帖子类型选择（提问帖/笔记帖/成就分享/讨论帖） | codex | done |
-| T-008.6 | 完成社区域验证：读写立即可见、字段核账、重复提交/刷新验证 | codex | todo |
-| T-008.7 | 对齐社区页面级交互：搜索、排序、板块切换、未解答筛选、分页、URL 回写与空态 / 错误态联动 | codex | todo |
-| T-008.8 | 对齐社区副作用与一致性：发帖徽章奖励、评论通知、点赞计数、缓存刷新与权限边界核账 | codex | todo |
-| T-008.9 | 实施社区展示增强真实功能：自习室仅保留 UI 占位不接 MVP 实现，活跃贡献者、热门话题、收藏、分享、AI hint 全部接真实数据或真实交互 | codex | todo |
-| T-008.10 | 完成社区域最终验证：真实数据展示、增强模块核账、读写链路一致性、重复提交与刷新回归 | codex | todo |
-
-- `T-008.7` 至 `T-008.10` 用于补齐社区页当前已出现但尚未完成收口的真实交互、真实副作用、展示增强与最终验证。
-- 其中自习室当前仅保留 UI 占位，不作为本轮 MVP 实现；活跃贡献者、热门话题、收藏、分享、AI hint 现在统一视为真实功能开发项，不再按纯展示壳处理。
+| T-008.6 | 完成社区域验证：读写立即可见、字段核账、重复提交/刷新验证 | codex | done |
+| T-008.7 | 对齐社区页面级交互：搜索、排序、板块切换、未解答筛选、分页、URL 回写与空态 / 错误态联动 | codex | done |
+| T-008.8 | 对齐社区副作用与一致性：发帖徽章奖励、评论通知、点赞计数、缓存刷新与权限边界核账 | codex | done |
+| T-008.9 | 实施社区展示增强真实功能：自习室仅保留 UI 占位不接 MVP 实现，活跃贡献者、热门话题、收藏、分享、AI hint 全部接真实数据或真实交互 | codex | done |
+| T-008.10 | 完成社区域最终验证：真实数据展示、增强模块核账、读写链路一致性、重复提交与刷新回归 | codex | done |
 
 ### T-008.1 盘点结果（已完成）
 - 路由与页面：
@@ -607,15 +929,147 @@
   - 本轮浏览器回归已确认：帖子类型切换、仅自己可见、附件上传、提及通知、评论落库与私密帖可见性都能真实工作。
   - 本轮还确认了正文 Markdown 快捷插入和帖子标签落库都已接通真实链路。
 
+### T-008.6 社区域验证（已完成）
+- 浏览器验证：
+  - 登录后进入 `/dashboard/community`，列表、收藏、分享、详情与评论入口均可正常打开。
+  - 分享按钮可将帖子链接复制到剪贴板，粘贴后能直接打开对应帖子。
+  - 收藏按钮点击后会立即更新按钮状态与计数，刷新后依然保持一致。
+  - 详情页评论提交后会立即显示，重复提交相同内容会命中去重，不会重复落库。
+
+- 字段核账：
+  - 评论内容会落到 `comments` 表，并与页面回显一致。
+  - 收藏会落到 `post_bookmarks` 表，并与列表页总收藏数一致。
+  - 重复提交后的评论不会新增第二条记录。
+
+- 收口说明：
+  - `T-008.6` 已完成社区域最终验证，读写立即可见、字段核账、重复提交与刷新回归均已通过。
+
+- `T-008.7` 至 `T-008.10` 用于补齐社区页当前已出现但尚未完成收口的真实交互、真实副作用、展示增强与最终验证。
+- 其中自习室当前仅保留 UI 占位，不作为本轮 MVP 实现；活跃贡献者、热门话题、收藏、分享、AI hint 现在统一视为真实功能开发项，不再按纯展示壳处理。
+
+### T-008.7 页面级交互（已完成）
+- 社区页首屏已支持从 URL 读取并回写 `search / sort / scope / board / subjectId / tab / page`，用户切换搜索、排序、板块和未解答筛选时，地址栏会同步更新。
+- 空态与错误态已经联动：无结果时展示空态，接口异常时展示加载失败卡片并提供重试入口。
+- 浏览器回归已验证：
+  - 搜索后地址栏带上 `search`，空态可见。
+  - 清除搜索后 URL 回到无搜索参数的状态。
+  - 排序和板块切换会更新 URL。
+  - 直接访问 `?page=2` 可正常解析并渲染空态。
+  - 触发异常搜索可展示错误态。
+- 当前社区数据量下 `page=1` 已覆盖全部结果，所以页面未展示分页按钮，但路由分页和页面级分页参数已经可用。
+
+### T-008.8 社区域副作用与一致性（已完成）
+- 发帖徽章奖励：
+  - `createPost(...)` 在正常创建后仍会调用 `awardBadgeIfEligible(user.id, 'COMMUNITY')`。
+  - 数据库核账确认 `admin_ui_test@learnmore.com` 已获得 `community_helper_10` 徽章，且对应的 `ACHIEVEMENT` 通知已存在。
+
+- 评论通知：
+  - `createComment(...)` 会同步触发站内 `SOCIAL` 通知；邮件保持异步发送，不阻断主写链路。
+  - 提及用户也会同步创建站内通知，避免只依赖延迟任务回流。
+
+- 点赞计数与缓存刷新：
+  - 点赞与取消点赞都会更新 `post.likeCount`，列表与详情页统一读这个标量计数。
+  - 发帖、评论、点赞、收藏、解决状态变更都会刷新 `/dashboard/community`、详情页以及 `community-feed / community-categories` 缓存标签。
+
+- 权限边界：
+  - 未登录用户无法进入社区读写链路。
+  - 新注册普通用户访问私密帖子 `e17fff81-f96f-45ac-974b-90e81cf8bc2a` 时，会看到“帖子不存在或已删除”，不会泄漏私密内容。
+  - `setPostSolved(...)` 仍只允许帖子作者、`TEACHER`、`ADMIN` 修改 `Question` 帖子的已解决状态。
+
+- 浏览器验证：
+  - 收藏按钮刷新后状态与计数保持一致。
+  - 分享按钮可复制真实帖子 URL 到剪贴板。
+  - 点赞后刷新仍保持切换结果。
+  - 评论提交后刷新仍保留，重复评论不会新增第二条记录。
+
+- 收口说明：
+  - `T-008.8` 已完成，社区域的徽章、通知、点赞计数、缓存刷新与权限边界已统一到真实数据与真实副作用路径。
+
+### T-008.9 社区展示增强真实功能（已完成）
+- 自习室占位：
+  - 社区右侧栏的实时自习室仍保留 UI 占位，不作为本轮 MVP 的真实房间系统。
+  - 当前展示仅用于承接页面结构与视觉层级，房间列表仍是静态占位内容。
+
+- 活跃贡献者与热门话题：
+  - 活跃贡献者由当前社区帖子聚合派生，基于发帖量、评论量与互动分值排序。
+  - 热门话题由当前帖子标签聚合派生，可直接作为搜索入口。
+  - 浏览器回归确认右侧栏已能看到贡献者徽章与标签聚合结果，例如 `#qa`、`#browser` 等。
+
+- 帖子附件预览：
+  - 帖子卡片里的图片预览保持原始顺序展示。
+  - 图片点击后直接进入对应帖子详情，不再打开原图链接。
+
+- 收藏、分享、AI hint：
+  - 收藏保持真实写链路并可刷新回显。
+  - 分享按钮会复制帖子真实链接到剪贴板，并给出“已复制分享链接”提示。
+  - AI hint 会调用服务端生成提示，并把结果以内联面板渲染在帖子卡片下方。
+  - 浏览器回归确认 AI hint 面板可见，且按钮加载与结果展示正常。
+
+- 收口说明：
+  - `T-008.9` 已完成收口，右侧栏的展示增强与帖子卡片交互现在已统一为真实数据或真实交互；其中自习室仍明确保留为 UI 占位，不纳入 MVP 真实功能。
+
+### T-008.10 社区域最终验证（已完成）
+- 真实数据展示：
+  - 社区页首屏可稳定读取真实帖子数据，不再依赖 mock。
+  - 页面右侧栏的活跃贡献者、热门话题、自习室占位与帖子卡片内容都能正常渲染。
+  - 浏览器核验可见派生标签与贡献者徽章，例如 `#qa`、`#browser`、`活跃发起人`、`高互动作者`、`答疑参与者`。
+
+- 增强模块核账：
+  - 自习室仍为 UI 占位，不作为本轮 MVP 真实房间系统。
+  - 热门话题由当前帖子标签聚合派生。
+  - 活跃贡献者由当前帖子互动分值派生。
+  - AI hint 按帖子触发并以内联面板展示。
+
+- 读写链路一致性：
+  - 收藏按钮点击后会真实切换并刷新后保持一致。
+  - 分享按钮会复制真实帖子 URL 到剪贴板。
+  - 附件缩略图点击会进入帖子详情页，不再打开原图链接。
+  - 点赞、评论与刷新后的回显保持一致。
+
+- 重复提交与刷新回归：
+  - 评论重复提交不会新增第二条记录。
+  - 评论刷新后仍保留。
+  - 点赞刷新后仍保留切换状态。
+  - 收藏刷新后仍保留切换状态。
+
+- 浏览器验证结果：
+  - `hasContributorBadge = true`
+  - `hasTopicTag = true`
+  - `hasRooms = true`
+  - `aiButtons = 12`
+  - `bookmarkBefore = 1`, `bookmarkAfterClick = 0`, `bookmarkAfterReload = 0`
+  - `clipboardText` 为真实帖子 URL
+  - `attachmentHref` 与 `detailUrlAfterAttachmentClick` 都指向帖子详情页
+  - `likeBefore = 点赞(0)`, `likeAfterClick = 已点赞(1)`, `likeAfterReload = 已点赞(1)`
+  - `commentCountBeforeReload = 1`, `commentCountAfterReload = 1`
+  - `duplicateCommentVisibleCount = 1`
+  - `aiHintTextLength = 9`
+
+- 收口说明：
+  - `T-008.10` 已完成社区域最终验证，真实数据展示、增强模块核账、读写链路一致性、重复提交与刷新回归均已确认通过。
+
 ### T-009 Admin 首页与公共管理域
+
+#### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-009.1 | 盘点 `/admin`、`/admin/permissions` 的模块、统计卡、列表、快捷动作与当前数据源 | codex | todo |
-| T-009.2 | 建立 admin 首页统计、风险提示、权限数据、快捷入口的字段映射与权威数据源矩阵 | codex | todo |
-| T-009.3 | 对齐 admin 首页读取链路：聚合统计、待办、风险、权限概览与角色可见性 | codex | todo |
-| T-009.4 | 对齐公共管理写链路：权限调整、角色限制、管理员可执行动作的权限与幂等 | codex | todo |
-| T-009.5 | 清理假统计、假待办、假权限回执、假风险提示，补齐 forbidden/error/empty 状态 | codex | todo |
-| T-009.6 | 完成 Admin 首页域验证：角色隔离、字段核账、重复操作验证 | codex | todo |
+| T-009.1 | 盘点 `/admin` 首页的模块、统计卡、风险区、待办区、审计区、快捷入口、当前数据源、mock 占位和缓存入口 | codex | doing |
+| T-009.2 | 定义 `/admin` 首屏 `workQueue` / `risks` / `audits` / KPI / 快捷入口的字段口径、权威数据源与展示规则，明确今日必须处理、最近告警、最近操作审计分别展示什么 | codex | todo |
+| T-009.3 | 建立角色权限矩阵与前端展示区块，覆盖 `ADMIN` / `TEACHER` / `PARENT` / `STUDENT` 的可见、可进入、可操作、可写入、可审计范围，并同步到首屏交互入口 | codex | todo |
+
+#### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-009.4 | 对齐 `/admin` 首页读取链路，替换 `workQueue` / `risks` / `audits` / KPI / 快捷入口的真实数据源，并核验卡片展示、列表排序、跳转目标与后端返回一致 | codex | todo |
+| T-009.5 | 对齐公共管理写链路的权限、幂等、审计，补齐首屏相关写动作的真实副作用闭环；用户权限提权、覆写、恢复等动作归入 `T-010` | codex | todo |
+| T-009.6 | 补缓存失效与刷新闭环，明确写后 `revalidatePath`、缓存 tag 失效、局部刷新、进页刷新与返回首页后的数据回流边界 | codex | todo |
+| T-009.7 | 补审计留痕、角色边界和高风险操作确认，保证 `audits` 与安全/权限事件口径一致，且关键动作有操作者、目标、前后值、原因与时间 | codex | todo |
+
+#### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-009.8 | 清理假统计、假待办、假风险提示、假审计、假回执与死链，补齐 `forbidden` / `error` / `empty` 状态，完成 `/admin` mock 数据清退 | codex | todo |
+| T-009.9 | 完成 `/admin` 首页域验证：`workQueue` / `risks` / `audits` 角色隔离、字段核账、周期切换核账、重复操作验证、刷新后仍为真实数据 | codex | todo |
 
 ### T-010 用户管理域
 | id | description | owner | status |
@@ -623,9 +1077,28 @@
 | T-010.1 | 盘点 `/admin/users`、`/admin/users/[id]` 的列表、筛选、详情模块、管理动作与当前数据源 | codex | todo |
 | T-010.2 | 建立用户列表、订阅、状态、学习概览、审计信息、管理动作的字段映射与权威数据源矩阵 | codex | todo |
 | T-010.3 | 对齐用户管理读取链路：列表、搜索、筛选、详情聚合、关联记录加载 | codex | todo |
-| T-010.4 | 对齐用户管理写链路：状态变更、备注、权限覆盖、模拟登录等动作的权限与幂等 | codex | todo |
+| T-010.4 | 对齐用户管理写链路：状态变更、备注、模拟登录等动作的权限与幂等 | codex | todo |
 | T-010.5 | 清理假用户数据、假统计、假管理回执，补齐空态/错误态/越权态 | codex | todo |
 | T-010.6 | 完成用户管理域验证：管理动作核账、权限验证、重复提交验证 | codex | todo |
+
+#### T-010 权限提权 / 覆写 / 恢复
+
+##### Phase A：边界与约束
+| id | description | owner | status |
+|---|---|---|---|
+| T-010.7 | 盘点 `/admin/users`、`/admin/users/[id]` 中权限提权、权限覆写、权限恢复的入口、按钮、弹窗、历史区块、当前数据源与 mock 占位 | codex | todo |
+| T-010.8 | 建立权限变更字段口径与权威数据源矩阵，覆盖 `subscriptionTier`、`subscriptionEnd`、`override history`、`securityLog`、`reason`、`expiresAt`、`operator`、`restore target` 与幂等键 | codex | todo |
+
+##### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-010.9 | 对齐权限提权 / 覆写 / 恢复写链路，打通提交、撤销、过期失效、重复提交防重、权限校验、审计落库与写后刷新回流，所有动作仅通过 `/admin/users` 与 `/admin/users/[id]` 暴露 | codex | todo |
+
+##### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-010.10 | 清理假提权回执、假历史、静态默认值与死链，补齐 `forbidden` / `error` / `empty` / `confirm` 状态，确保权限变更交互不再依赖已废弃路由 | codex | todo |
+| T-010.11 | 完成权限提权 / 覆写 / 恢复域验证：前后值核账、恢复验证、重复提交验证、越权验证、刷新后仍为真实数据 | codex | todo |
 
 ### T-011 反馈域
 | id | description | owner | status |

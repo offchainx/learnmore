@@ -36,6 +36,12 @@ function parseBoardId(raw?: string): CommunityBoardId {
   return raw || 'all'
 }
 
+function parsePage(raw?: string): number {
+  const value = Number.parseInt(raw || '', 10)
+  if (!Number.isFinite(value) || value < 1) return 1
+  return value
+}
+
 export const metadata: Metadata = {
   title: 'Community - LearnMore',
   description: 'Join the discussion with other students.',
@@ -47,6 +53,7 @@ export default async function CommunityPage({
   searchParams?: Promise<{
     search?: string | string[]
     sort?: string | string[]
+    page?: string | string[]
     board?: string | string[]
     scope?: string | string[]
     subjectId?: string | string[]
@@ -63,6 +70,7 @@ export default async function CommunityPage({
   const resolvedSearchParams = (await searchParams) || {}
   const initialSearchQuery = readParam(resolvedSearchParams.search) || ''
   const initialSortMode = parseSort(readParam(resolvedSearchParams.sort))
+  const initialPage = parsePage(readParam(resolvedSearchParams.page))
   const initialScopeFilter = parseScope(
     readParam(resolvedSearchParams.scope)
   )
@@ -87,7 +95,7 @@ export default async function CommunityPage({
   const [categories, postResult] = await Promise.all([
     getCachedCommunityCategories(),
     getCachedCommunityFeed({
-      page: 1,
+      page: initialPage,
       limit: 20,
       search: initialSearchQuery || undefined,
       sort: initialSortMode,
@@ -108,6 +116,8 @@ export default async function CommunityPage({
         initialSortMode={initialSortMode}
         initialScopeFilter={initialScopeFilter}
         initialBoardId={initialBoardId}
+        initialPage={initialPage}
+        initialMetadata={postResult.metadata}
       />
     </CommunityClientWrapper>
   )

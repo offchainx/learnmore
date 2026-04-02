@@ -8,7 +8,7 @@ import {
   triggerSocialReplyNotification,
 } from '../notification/triggers'
 import { awardBadgeIfEligible } from '@/actions/gamification/achievements'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { runAfterTask } from '@/lib/server/run-after-task'
 import {
   extractMentionHandlesFromText,
@@ -438,6 +438,7 @@ export async function createPost({
       },
     })
     await awardBadgeIfEligible(user.id, 'COMMUNITY')
+    revalidatePath('/dashboard/community')
     revalidateTag('community-feed', 'quick')
     revalidateTag('community-categories', 'quick')
     revalidateTag(`achievement-overview:${user.id}`, 'quick')
@@ -558,7 +559,7 @@ export async function getPostById(postId: string) {
       ...post,
       userLiked: post.likes ? post.likes.length > 0 : false,
       userBookmarked: post.bookmarks ? post.bookmarks.length > 0 : false,
-      likeCount: post._count.likes,
+      likeCount: post.likeCount,
       bookmarkCount: post._count.bookmarks,
     }
   } catch (error: unknown) {
@@ -686,6 +687,8 @@ export async function createComment({
 
     runAfterTask(async () => {
       await awardBadgeIfEligible(user.id, 'COMMUNITY')
+      revalidatePath('/dashboard/community')
+      revalidatePath(`/dashboard/community/${postId}`)
       revalidateTag('community-feed', 'quick')
       revalidateTag('community-categories', 'quick')
       revalidateTag(`achievement-overview:${user.id}`, 'quick')
@@ -745,6 +748,8 @@ export async function toggleLike(postId: string) {
           },
         }),
       ])
+      revalidatePath('/dashboard/community')
+      revalidatePath(`/dashboard/community/${postId}`)
       revalidateTag('community-feed', 'quick')
       revalidateTag('community-categories', 'quick')
       return { success: true, liked: false }
@@ -764,6 +769,8 @@ export async function toggleLike(postId: string) {
           },
         }),
       ])
+      revalidatePath('/dashboard/community')
+      revalidatePath(`/dashboard/community/${postId}`)
       revalidateTag('community-feed', 'quick')
       revalidateTag('community-categories', 'quick')
       return { success: true, liked: true }
@@ -845,6 +852,8 @@ export async function setPostSolved({
 
     revalidateTag('community-feed', 'quick')
     revalidateTag('community-categories', 'quick')
+    revalidatePath('/dashboard/community')
+    revalidatePath(`/dashboard/community/${postId}`)
 
     return {
       success: true,
@@ -894,6 +903,8 @@ export async function toggleBookmark(postId: string) {
       await prisma.postBookmark.delete({
         where: { id: existingBookmark.id },
       })
+      revalidatePath('/dashboard/community')
+      revalidatePath(`/dashboard/community/${postId}`)
       revalidateTag('community-feed', 'quick')
       revalidateTag('community-categories', 'quick')
       return { success: true, bookmarked: false }
@@ -905,6 +916,8 @@ export async function toggleBookmark(postId: string) {
         postId,
       },
     })
+    revalidatePath('/dashboard/community')
+    revalidatePath(`/dashboard/community/${postId}`)
     revalidateTag('community-feed', 'quick')
     revalidateTag('community-categories', 'quick')
     return { success: true, bookmarked: true }
