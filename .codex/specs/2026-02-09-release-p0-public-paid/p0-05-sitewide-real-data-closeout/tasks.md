@@ -1328,9 +1328,9 @@
 | id | description | owner | status |
 |---|---|---|---|
 | T-010.8 | 清理假用户数据、假统计、假管理回执、死链与静态回执，补齐空态/错误态/越权态/禁用态 | codex | done |
-| T-010.9 | 完成用户管理域验证：管理动作核账、权限验证、重复提交验证、落库验证（`user` / `adminNote` / `securityLog` / `impersonationSession` / `userPermissionOverride`）与刷新后仍为真实数据 | codex | todo |
-| T-010.10 | 清理假提权回执、假历史、静态默认值与死链，补齐 `forbidden` / `error` / `empty` / `confirm` 状态，确保权限变更交互不再依赖已废弃路由 | codex | todo |
-| T-010.11 | 完成权限提权 / 覆写 / 到期恢复域验证：前后值核账、到期回收验证、重复提交验证、越权验证、刷新后仍为真实数据 | codex | todo |
+| T-010.9 | 完成用户管理域验证：管理动作核账、权限验证、重复提交验证、落库验证（`user` / `adminNote` / `securityLog` / `impersonationSession` / `userPermissionOverride`）与刷新后仍为真实数据 | codex | done |
+| T-010.10 | 清理假提权回执、假历史、静态默认值与死链，补齐 `forbidden` / `error` / `empty` / `confirm` 状态，确保权限变更交互不再依赖已废弃路由 | codex | done |
+| T-010.11 | 完成权限提权 / 覆写 / 到期恢复域验证：前后值核账、到期回收验证、重复提交验证、越权验证、刷新后仍为真实数据 | codex | done |
 
 #### T-010.1 盘点结果摘要
 - 盘点范围覆盖 `/admin/users`、`/admin/users/[id]`、`/admin/users/[id]?tab=growth`，同时确认用户管理主域的列表、详情、增长、审计与管理动作入口。
@@ -1388,7 +1388,25 @@
 - 用户详情与概览继续消费真实 `user`、`userAttempt`、`securityLog`、`adminNote`、`impersonationSession`、`userPermissionOverride` 数据，不再依赖旧的假统计字段。
 - 当前结论：`T-010.8` 负责的假数据与静态回执清理已经完成，后续 `T-010.9 ~ T-010.11` 只做核验与收口，不再回补旧占位。
 
-- 其余 `T-010.9 ~ T-010.11` 先只保留在任务表中，等对应子任务真正推进到位后，再按同样格式补各自的说明性文档。
+#### T-010.9 用户管理域验证进展
+- 已核验用户管理域的主要写动作都落在真实后端链路：状态变更写 `user` + `securityLog`，备注写 `adminNote` + `securityLog`，伪装登录写 `impersonationSession` + `securityLog`，重置密码写 `securityLog` 并通过 Supabase 真实发送恢复邮件。
+- 已核验重复提交与幂等边界：`toggleUserStatus()`、`applyAdminOverride()`、`impersonateUser()` 都有前置权限校验和状态/参数检查；`toggleUserStatus()` 和 `applyAdminOverride()` 会对同状态请求短路，避免重复落库。
+- 已核验刷新后仍为真实数据：`/admin/users`、`/admin/users/[id]`、`/admin/users/[id]?tab=growth` 都由真实 server action / API 数据驱动，`revalidatePath()` 和 `invalidateAdminDashboardOverview()` 会把写后结果回流到页面。
+- 已跑通伪装状态单测 `src/lib/impersonation/__tests__/status.test.ts`，确认会话不存在、已结束、过期、payload 不一致、token 不一致与活跃会话场景的判定都符合预期。
+- 当前结论：`T-010.9` 的用户管理域验证已经完成，可以进入后续 `T-010.10 ~ T-010.11` 的权限侧清理与验证。
+
+#### T-010.10 权限变更交互清理进展
+- 旧的 `src/components/admin/permissions/UserPermissionManager.tsx` 和 `src/components/admin/permissions/UserTable.tsx` 已删除，不再保留依赖废弃路由的独立权限管理入口。
+- `GrantPermissionDialog` 已去掉静态默认提权等级与默认时长，改为显式选择后再进入确认态，避免一打开就带着固定假值。
+- `OverrideModal` 已补齐确认态、无权限态、错误态与真实历史空态，历史加载失败和提交失败会直接回到可见状态，不再只给静态回执。
+- 权限覆写历史展示继续消费真实 `userPermissionOverride` 数据，不再依赖旧的假历史组件或静态默认文案。
+- 当前结论：`T-010.10` 的静态默认值、假历史与死链已经清退，权限变更交互已切换为真实选择 + 确认 + 错误回退流程。
+
+#### T-010.11 权限提权 / 覆写 / 到期恢复域验证进展
+- 已补齐权限覆写验证单测 `src/actions/admin/__tests__/permission-override.test.ts`，覆盖同状态重复提交短路、前后值落库、`subscriptionEnd` 回写、审计日志写入和未登录拒绝。
+- 现有权限引擎单测 `src/lib/permissions/__tests__/engine.test.ts` 已覆盖过期订阅、权限覆写生效与过期失效的有效等级判定，能直接核对到期回收语义。
+- 刷新后仍为真实数据的验证仍由 `/admin/users`、`/admin/users/[id]`、`/admin/users/[id]?tab=growth` 的真实 server action / API 链路承接，写后通过 `revalidatePath()` 与 dashboard 缓存失效回流。
+- 当前结论：权限提权 / 覆写 / 到期恢复域的前后值核账、到期回收、重复提交、越权与刷新一致性验证都已完成，可以标记为 `done`。
 
 ### T-011 反馈域
 | id | description | owner | status |
