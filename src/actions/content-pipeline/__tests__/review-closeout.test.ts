@@ -367,8 +367,8 @@ describe('内容审核域收口验证', () => {
       '提交审核',
       '审核通过',
     ])
-    expect(question?.availableChapters).toHaveLength(1)
-    expect(question?.availableChapters[0]?.id).toBe('chapter-leaf')
+    expect(question?.availableChapters ?? []).toHaveLength(1)
+    expect(question?.availableChapters?.[0]?.id).toBe('chapter-leaf')
     expect(question?.sourceImageUrl).toBe('https://example.com/source.pdf')
   })
 })

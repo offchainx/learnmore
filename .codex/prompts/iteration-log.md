@@ -8,4 +8,6 @@
 
 | 2026-04-03 | T-012 referral telemetry closeout | 实现 referral 增长归因与 telemetry 留存，补分享落地页和支付透传，并切换 Prisma 到 directUrl | 已完成 T-012.4 收口：新增 referral_attribution_events 归因表、COPY/CLICK/BIND/CHECKOUT/SETTLE/REWARD_GRANT 写点、/r/[code] 分享落地页、SettingsView 与 Pricing 透传，Prisma 直连 directUrl 可用并已验证 | schema, billing referral, checkout, stripe webhook, pricing page, settings view, referral route, tasks.md | Prisma db push 在 pooler 连接下卡住，改用 directUrl 和原生 SQL 完成同步 | 归因链路从 copy/click 到 bind/checkout/settle/reward_grant 已闭环 | 继续推进 T-012.5 读取链路对齐 |
 
+| 2026-04-03 | pricing build fix | 修复 /pricing 在 Vercel 预渲染阶段 useSearchParams() 缺少 Suspense boundary 的构建错误 | 已将 /pricing 拆分为服务端壳子 + 客户端组件，使用 Suspense 包裹 useSearchParams()，并修复内容审核测试的可选字段类型问题，pnpm build 已通过 | src/app/(marketing)/pricing/page.tsx, src/app/(marketing)/pricing/PricingPageClient.tsx, src/actions/content-pipeline/__tests__/review-closeout.test.ts | Next.js 预渲染 /pricing 时 useSearchParams() 触发 CSR bailout | pricing 页面现在可在 Vercel 生产构建中稳定 prerender | 继续推进 T-012.5 之前的内容由用户确认后再开始 |
+
 ## 约束
