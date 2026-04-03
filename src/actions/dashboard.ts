@@ -185,9 +185,13 @@ async function loadDashboardSubjectResults(
     },
   })
 
-  const subjectResults = await Promise.all(
-    subjects.map((subject) => getSubjectChapters(subject.id, userId))
-  )
+  const subjectResults: SubjectChaptersResult[] = []
+  for (const subject of subjects) {
+    const result = await getSubjectChapters(subject.id, userId)
+    if (result) {
+      subjectResults.push(result)
+    }
+  }
 
   return subjectResults.filter(
     (result): result is SubjectChaptersResult =>
@@ -655,105 +659,82 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   const thirtyDaysAgo = dayjs().subtract(30, 'day').startOf('day').toDate()
   const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
 
-  const [
-    dailyTasks,
-    totalAttempts,
-    correctAttempts,
-    mistakeCount,
-    attemptsInRetention,
-    examRecordsInRetention,
-    completedLessonsInRetention,
-    recentPractice,
-    subjectResults,
-  ] = await Promise.all([
-    prisma.dailyTask.findMany({
-      where: {
-        userId: user.id,
-        date: {
-          gte: today.toDate(),
-          lt: nextDay.toDate(),
+  const dailyTasks = await prisma.dailyTask.findMany({
+    where: {
+      userId: user.id,
+      date: {
+        gte: today.toDate(),
+        lt: nextDay.toDate(),
+      },
+    },
+    orderBy: { type: 'asc' },
+  })
+
+  const attemptsInRetention = await prisma.userAttempt.findMany({
+    where: {
+      userId: user.id,
+      createdAt: { gte: minDate },
+    },
+    select: {
+      createdAt: true,
+      isCorrect: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  const totalAttempts = attemptsInRetention.length
+  const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
+  const mistakeCount = totalAttempts - correctAttempts
+
+  const examRecordsInRetention = await prisma.examRecord.findMany({
+    where: {
+      userId: user.id,
+      createdAt: { gte: minDate },
+    },
+    select: {
+      createdAt: true,
+      duration: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  const completedLessonsInRetention = await prisma.userProgress.findMany({
+    where: {
+      userId: user.id,
+      isCompleted: true,
+      updatedAt: { gte: minDate },
+    },
+    select: {
+      updatedAt: true,
+    },
+    orderBy: { updatedAt: 'desc' },
+  })
+
+  const recentPractice = await prisma.examRecord.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+    include: {
+      subject: {
+        select: {
+          name: true,
         },
       },
-      orderBy: { type: 'asc' },
-    }),
-    prisma.userAttempt.count({
-      where: {
-        userId: user.id,
-        createdAt: { gte: minDate },
-      },
-    }),
-    prisma.userAttempt.count({
-      where: {
-        userId: user.id,
-        isCorrect: true,
-        createdAt: { gte: minDate },
-      },
-    }),
-    prisma.userAttempt.count({
-      where: {
-        userId: user.id,
-        isCorrect: false,
-        createdAt: { gte: minDate },
-      },
-    }),
-    prisma.userAttempt.findMany({
-      where: {
-        userId: user.id,
-        createdAt: { gte: minDate },
-      },
-      select: {
-        createdAt: true,
-        isCorrect: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.examRecord.findMany({
-      where: {
-        userId: user.id,
-        createdAt: { gte: minDate },
-      },
-      select: {
-        createdAt: true,
-        duration: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.userProgress.findMany({
-      where: {
-        userId: user.id,
-        isCompleted: true,
-        updatedAt: { gte: minDate },
-      },
-      select: {
-        updatedAt: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-    }),
-    prisma.examRecord.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      include: {
-        subject: {
-          select: {
-            name: true,
-          },
-        },
-        attempts: {
-          select: {
-            question: {
-              select: {
-                chapterId: true,
-                paperId: true,
-                difficulty: true,
-              },
+      attempts: {
+        select: {
+          question: {
+            select: {
+              chapterId: true,
+              paperId: true,
+              difficulty: true,
             },
           },
         },
       },
-    }),
-    loadDashboardSubjectResults(user.id),
-  ])
+    },
+  })
+
+  const subjectResults = await loadDashboardSubjectResults(user.id)
 
   const accuracy =
     totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0

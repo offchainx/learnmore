@@ -10,4 +10,6 @@
 
 | 2026-04-03 | pricing build fix | 修复 /pricing 在 Vercel 预渲染阶段 useSearchParams() 缺少 Suspense boundary 的构建错误 | 已将 /pricing 拆分为服务端壳子 + 客户端组件，使用 Suspense 包裹 useSearchParams()，并修复内容审核测试的可选字段类型问题，pnpm build 已通过 | src/app/(marketing)/pricing/page.tsx, src/app/(marketing)/pricing/PricingPageClient.tsx, src/actions/content-pipeline/__tests__/review-closeout.test.ts | Next.js 预渲染 /pricing 时 useSearchParams() 触发 CSR bailout | pricing 页面现在可在 Vercel 生产构建中稳定 prerender | 继续推进 T-012.5 之前的内容由用户确认后再开始 |
 
+| 2026-04-03 | dashboard Prisma pool timeout fix | 将 /dashboard 首屏的 Prisma 并发查询串行化，移除 Promise.all 和重复 count，降低单连接池环境下的超时风险 | 已修复 /dashboard 的 P2024 connection pool timeout，pnpm -s tsc --noEmit 与 pnpm run build 通过 | src/actions/dashboard.ts, src/app/(dashboard)/dashboard/page.tsx | 首屏多条 Prisma 查询并发执行，在 connection_limit=1 的环境下容易耗尽连接池 | 后续优先保持单连接兼容，再考虑局部缓存/批处理优化 | 修复后继续观察 Vercel runtime logs |
+
 ## 约束
