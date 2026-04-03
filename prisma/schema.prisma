@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ============ 用户模块 ============
@@ -72,6 +73,8 @@ model User {
   // Referral Relations
   referralsGiven    Referral[] @relation("Referrer") // 我推荐的人
   referralsReceived Referral[] @relation("Referee") // 推荐我的人
+  referralAttributionEventsAsReferrer ReferralAttributionEvent[] @relation("ReferralAttributionReferrer")
+  referralAttributionEventsAsReferee  ReferralAttributionEvent[] @relation("ReferralAttributionReferee")
 
   // 🆕 Content Pipeline 关联 (Story-044)
   uploadedSourceFiles SourceFile[]       @relation("UserUploadedFiles")
@@ -709,6 +712,15 @@ enum ReferralStatus {
   CANCELLED // 被推荐人退款（可选）
 }
 
+enum ReferralAttributionEventType {
+  COPY
+  CLICK
+  BIND
+  CHECKOUT
+  SETTLE
+  REWARD_GRANT
+}
+
 model Referral {
   id           String @id @default(uuid()) @db.Uuid
   referrerId   String @map("referrer_id") @db.Uuid // 推荐人 ID
@@ -735,11 +747,37 @@ model Referral {
   // Relations
   referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
   referee  User @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+  attributionEvents ReferralAttributionEvent[]
 
   @@unique([refereeId]) // 每个用户只能使用一次推荐码
   @@index([referrerId])
   @@index([status])
   @@map("referrals")
+}
+
+model ReferralAttributionEvent {
+  id             String                      @id @default(uuid()) @db.Uuid
+  referralCode   String                      @map("referral_code")
+  eventType      ReferralAttributionEventType @map("event_type")
+  success        Boolean                     @default(true)
+  errorCode      String?                     @map("error_code")
+  referralId     String?                     @map("referral_id") @db.Uuid
+  referrerId     String?                     @map("referrer_id") @db.Uuid
+  refereeId      String?                     @map("referee_id") @db.Uuid
+  sourcePath     String?                     @map("source_path")
+  destinationPath String?                    @map("destination_path")
+  metadata       Json?
+  createdAt      DateTime                    @default(now()) @map("created_at")
+
+  referral Referral? @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  referrer User?     @relation("ReferralAttributionReferrer", fields: [referrerId], references: [id], onDelete: SetNull)
+  referee  User?     @relation("ReferralAttributionReferee", fields: [refereeId], references: [id], onDelete: SetNull)
+
+  @@index([referralCode, createdAt])
+  @@index([eventType, createdAt])
+  @@index([referrerId, createdAt])
+  @@index([refereeId, createdAt])
+  @@map("referral_attribution_events")
 }
 
 // ============ Content Pipeline 模块 (Story-044) ============

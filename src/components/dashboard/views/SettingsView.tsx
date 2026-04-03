@@ -24,6 +24,7 @@ import {
   updateNotificationPreferences,
 } from '@/actions/notification/preferences'
 import { cancelSubscriptionAction } from '@/actions/billing/stripe'
+import { recordReferralCopyAction } from '@/actions/billing/referral'
 import { toast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
 import { useHandleAvailability } from '@/lib/hooks/useHandleAvailability'
@@ -435,7 +436,7 @@ function ReferralSection({
     }
   }, [lang, user.referralCount])
 
-  const referralPath = '/pricing'
+  const referralPath = user.referralCode ? `/r/${user.referralCode}` : '/r/[code]'
 
   const handleCopyCode = async () => {
     if (!user.referralCode) return
@@ -445,11 +446,19 @@ function ReferralSection({
   }
 
   const handleCopyLink = async () => {
+    if (!user.referralCode) return
     const referralUrl =
       typeof window === 'undefined'
         ? referralPath
         : `${window.location.origin}${referralPath}`
     await navigator.clipboard.writeText(referralUrl)
+    void recordReferralCopyAction({
+      referralCode: user.referralCode,
+      sourcePath: typeof window === 'undefined' ? null : window.location.pathname,
+      destinationPath: referralPath,
+    }).catch((error) => {
+      console.warn('[ReferralAttribution] copy log failed', error)
+    })
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 1800)
   }
@@ -508,6 +517,7 @@ function ReferralSection({
               variant="outline"
               className={subtleButtonClass}
               onClick={handleCopyLink}
+              disabled={!user.referralCode}
             >
               {copiedLink ? copy.copied : copy.copyLink}
             </Button>

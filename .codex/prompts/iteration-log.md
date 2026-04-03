@@ -6,4 +6,6 @@
 
 | 2026-04-03 | T-010 用户管理域收口 | 推进 T-010.8~T-010.11 的假数据清理、权限交互收口与验证 | 完成用户管理域的静态回执/死链清理、权限交互真实化、权限覆写与到期回收验证 | 清理假数据组件、补充真实确认态和错误态、新增权限覆写单测 | Next.js 热更新曾短暂报旧模块引用，重启开发服务即可恢复 | 以后先查验缓存/热更新残留，再判断是否需要改代码 | 开始前先确认 T-011 反馈域边界与约束 |
 
+| 2026-04-03 | T-012 referral telemetry closeout | 实现 referral 增长归因与 telemetry 留存，补分享落地页和支付透传，并切换 Prisma 到 directUrl | 已完成 T-012.4 收口：新增 referral_attribution_events 归因表、COPY/CLICK/BIND/CHECKOUT/SETTLE/REWARD_GRANT 写点、/r/[code] 分享落地页、SettingsView 与 Pricing 透传，Prisma 直连 directUrl 可用并已验证 | schema, billing referral, checkout, stripe webhook, pricing page, settings view, referral route, tasks.md | Prisma db push 在 pooler 连接下卡住，改用 directUrl 和原生 SQL 完成同步 | 归因链路从 copy/click 到 bind/checkout/settle/reward_grant 已闭环 | 继续推进 T-012.5 读取链路对齐 |
+
 ## 约束

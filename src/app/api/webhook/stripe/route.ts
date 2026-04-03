@@ -11,6 +11,7 @@ import prisma from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 import { triggerReceiptNotification } from '@/actions/notification/triggers';
 import { runAfterTask } from '@/lib/server/run-after-task';
+import { recordReferralAttributionEvent } from '@/lib/referrals/attribution';
 
 type NormalizedPlanKey = 'standard' | 'smart_plus' | 'premier';
 type NormalizedBillingCycle = 'monthly' | 'annual';
@@ -261,6 +262,21 @@ async function settleReferralOnFirstPaid(
       },
     });
 
+    await recordReferralAttributionEvent(tx, {
+      referralCode: referral.referralCode,
+      referralId: referral.id,
+      referrerId: referral.referrerId,
+      refereeId: referral.refereeId,
+      eventType: 'SETTLE',
+      success: true,
+      metadata: {
+        result: 'DEFERRED',
+        referrerTier,
+        refereeExtendedEnd: refereeExtendedEnd.toISOString(),
+        rewardGranted: false,
+      },
+    });
+
     return {
       didSettle: true,
       updatedRefereeEnd: refereeExtendedEnd,
@@ -287,6 +303,35 @@ async function settleReferralOnFirstPaid(
       referrerRewardGrantedAt: now,
       deferredRewardWeeks: 0,
       deferredSettledAt: now,
+    },
+  });
+
+  await recordReferralAttributionEvent(tx, {
+    referralCode: referral.referralCode,
+    referralId: referral.id,
+    referrerId: referral.referrerId,
+    refereeId: referral.refereeId,
+    eventType: 'SETTLE',
+    success: true,
+    metadata: {
+      result: 'COMPLETED',
+      referrerTier,
+      refereeExtendedEnd: refereeExtendedEnd.toISOString(),
+      rewardGranted: true,
+    },
+  });
+
+  await recordReferralAttributionEvent(tx, {
+    referralCode: referral.referralCode,
+    referralId: referral.id,
+    referrerId: referral.referrerId,
+    refereeId: referral.refereeId,
+    eventType: 'REWARD_GRANT',
+    success: true,
+    metadata: {
+      result: 'IMMEDIATE',
+      referrerTier,
+      rewardGranted: true,
     },
   });
 
@@ -322,6 +367,7 @@ async function settleDeferredRewardsForReferrer(
     },
     select: {
       id: true,
+      referralCode: true,
       deferredRewardWeeks: true,
     },
   });
@@ -356,6 +402,18 @@ async function settleDeferredRewardsForReferrer(
         referrerRewardGrantedAt: now,
         deferredSettledAt: now,
         deferredRewardWeeks: 0,
+      },
+    });
+
+    await recordReferralAttributionEvent(tx, {
+      referralCode: deferred.referralCode,
+      referralId: deferred.id,
+      referrerId,
+      eventType: 'REWARD_GRANT',
+      success: true,
+      metadata: {
+        result: 'DEFERRED',
+        deferredRewardWeeks: deferred.deferredRewardWeeks,
       },
     });
   }

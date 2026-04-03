@@ -13,9 +13,9 @@
 | T-009 | `/admin` 首页与公共管理域真实化 | codex | todo |  |
 | T-010 | `/admin/users` 全路由族真实化（列表 / 详情 / 管理动作） | codex | todo |  |
 | T-011 | `/admin/feedback` 全路由族真实化（列表 / 详情 / 处理流） | codex | todo |  |
-| T-012 | `/admin/referrals` + `/admin/vouchers` 增长与券码域真实化 | codex | todo |  |
-| T-013 | `/admin/content/import` + `/admin/content` 内容导入入口真实化 | codex | todo |  |
-| T-014 | `/admin/content/review` 全路由族真实化（列表 / 详情 / 审核动作） | codex | todo |  |
+| T-012 | Referral 裂变主线 + Voucher 治理台真实化（拆分为 T-012A/B/C） | codex | todo |  |
+| T-013 | `/admin/content/import` + `/admin/content` 内容导入入口真实化 | codex | done |  |
+| T-014 | `/admin/content/review` 全路由族真实化（列表 / 详情 / 审核动作） | codex | done |  |
 | T-015 | `/admin/content/reports` + `/admin/content/statistics` 内容质控与统计域真实化 | codex | todo |  |
 | T-016 | `/dashboard/leaderboard` 排行榜真实数据接入与口径对齐 | codex | todo |  |
 | T-017 | `/dashboard/achievements` 成就 / XP / streak / 任务域真实化 | codex | todo |  |
@@ -1411,42 +1411,157 @@
 ### T-011 反馈域
 | id | description | owner | status |
 |---|---|---|---|
-| T-011.1 | 盘点 `/admin/feedback`、`/admin/feedback/[id]` 的列表、详情、处理动作与当前数据源 | codex | todo |
-| T-011.2 | 建立反馈内容、状态、标签、处理记录、提交人信息的字段映射与权威数据源矩阵 | codex | todo |
-| T-011.3 | 对齐反馈读取链路：列表、筛选、详情、处理历史与关联对象 | codex | todo |
-| T-011.4 | 对齐反馈写链路：状态流转、备注、处理动作、权限校验与幂等 | codex | todo |
-| T-011.5 | 清理假反馈、假状态流、假成功提示，补齐空态/错误态/越权态 | codex | todo |
-| T-011.6 | 完成反馈域验证：状态流转核账、重复处理验证、前后端一致性验证 | codex | todo |
+| T-011.1 | 盘点 `/admin/feedback`、`/admin/feedback/[id]` 的列表、详情、处理动作与当前数据源 | codex | done |
+| T-011.2 | 建立反馈内容、状态、标签、处理记录、提交人信息的字段映射与权威数据源矩阵 | codex | done |
+| T-011.3 | 对齐反馈读取链路：列表、筛选、详情、处理历史与关联对象 | codex | done |
+| T-011.4 | 对齐反馈写链路：状态流转、备注、处理动作、权限校验与幂等 | codex | done |
+| T-011.5 | 清理假反馈、假状态流、假成功提示，补齐空态/错误态/越权态 | codex | done |
+| T-011.6 | 完成反馈域验证：状态流转核账、重复处理验证、前后端一致性验证 | codex | done |
 
-### T-012 推荐与券码域
+### T-011 收口说明
+- `T-011` 已由 `T-024.1 ~ T-024.6` 完整落地，前台反馈提交入口、后台 `/admin/feedback` 管理闭环、真实读取/写入链路、幂等、通知/邮件副作用、空态/越权态与最终验证均已完成。
+- 其中 `T-022` 覆盖前台入口，`T-024` 覆盖后台处理闭环，二者合并后已经满足 `T-011` 的全部交付边界，因此 `T-011` 可直接收口为 `done`。
+
+### T-012 Referral 裂变主线
 | id | description | owner | status |
 |---|---|---|---|
-| T-012.1 | 盘点 `/admin/referrals`、`/admin/vouchers` 的列表、统计、筛选、操作入口与当前数据源 | codex | todo |
-| T-012.2 | 建立推荐关系、奖励状态、券码状态、使用记录、增长统计的字段映射与权威数据源矩阵 | codex | todo |
-| T-012.3 | 对齐推荐与券码读取链路：列表、明细、状态聚合、统计口径与时间窗口 | codex | todo |
-| T-012.4 | 对齐推荐与券码写链路：发放、作废、核销、补发、权限与幂等 | codex | todo |
-| T-012.5 | 清理假券码、假增长数据、假奖励状态与伪成功提示，补齐空态/错误态 | codex | todo |
-| T-012.6 | 完成推荐与券码域验证：状态核账、重复操作验证、页面与数据库一致性验证 | codex | todo |
+| T-012.1 | 盘点 referral 的数据源、绑定入口、奖励发放时点、重复绑定、自推、过期与回收边界 | codex | done |
+| T-012.2 | 建立 referral 关系、奖励状态、发放状态、结算时点与统计口径的权威数据源矩阵 | codex | done |
+| T-012.3 | 定义 referral 的增长归因口径：复制、点击、绑定、首付、结算、回流、重复提交与幂等 | codex | done |
+| T-012.4 | 落地 referral 的增长归因与 telemetry 留存：覆盖 `copy / click / bind / checkout / settle / reward_grant`，用于判断哪类分享动作真正带来裂变转化 | codex | done |
+| T-012.5 | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | codex | todo |
+| T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | todo |
+| T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | todo |
+| T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | todo |
+| T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | todo |
+| T-012.10 | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | codex | todo |
+
+### T-012A 用户侧分享 / 绑定 / 奖励展示
+| id | description | owner | status |
+|---|---|---|---|
+| T-012A.1 | 盘点用户侧 referral 入口：Settings、Pricing、注册后引导、订阅前提示与个人中心 | codex | todo |
+| T-012A.2 | 建立前台交互矩阵：复制码、复制链接、预填推荐码、绑定成功回显、奖励说明与登录/未登录差异 | codex | todo |
+| T-012A.3 | 实现低成本分享入口：一键复制 referral code、复制带上下文的深链，必要时补二维码或一键分享 | codex | todo |
+| T-012A.4 | 实现绑定体验：在支付页或订阅页自动/手动带入 referralCode，支持错误提示和绑定结果回显 | codex | todo |
+| T-012A.5 | 实现奖励展示：已推荐人数、待发奖励、已发奖励、奖励规则、结算状态与剩余额度 | codex | todo |
+| T-012A.6 | 优化分享动机：把可得奖励与传播路径放在最容易看到的位置，减少“只有 code 没有动力”的问题 | codex | todo |
+| T-012A.7 | 清理假文案、假状态、无效 CTA、过时说明与重复入口 | codex | todo |
+| T-012A.8 | 完成浏览器验证：未登录、登录、复制、分享、绑定、支付、奖励回显与刷新一致性验证 | codex | todo |
+
+### T-012B Voucher 创建 / 启停 / 核销 / 支付接入
+| id | description | owner | status |
+|---|---|---|---|
+| T-012B.1 | 盘点 voucher 的数据源、生命周期、有效期、上限、核销记录与 Stripe coupon 绑定关系 | codex | todo |
+| T-012B.2 | 建立 voucher 字段与权威数据源矩阵：code、状态、折扣类型、折扣值、已核销数、有效期与 Stripe coupon id | codex | todo |
+| T-012B.3 | 定义 voucher 的使用口径：先冻结分发策略边界（管理员发放 vs 用户可分享活动码），再明确管理员创建、用户支付时输入、核销成功、失效、超上限与重复使用 | codex | todo |
+| T-012B.4 | 对齐 voucher 创建与启停链路：创建、停用、启用、列表、筛选、排序与状态回显 | codex | todo |
+| T-012B.5 | 对齐 voucher 支付接入：Pricing / Checkout 里的 voucherCode 真实输入或可预填、校验、折扣计算与 Stripe coupon 传递 | codex | todo |
+| T-012B.6 | 对齐 voucher 核销链路：首次成功支付后的核销、重复使用拦截、超上限拦截与过期拦截 | codex | todo |
+| T-012B.7 | 对齐 voucher 后台管理展示：列表统计、搜索、状态过滤、核销次数、有效期与来源信息 | codex | todo |
+| T-012B.8 | 清理假券码、假折扣、伪成功提示、无效 fallback 与过期入口 | codex | todo |
+| T-012B.9 | 完成 voucher 域验证：创建、启停、核销、过期、超限、重复使用与非管理员访问验证 | codex | todo |
+
+### T-012C 后台增长工具台统一概览和治理
+| id | description | owner | status |
+|---|---|---|---|
+| T-012C.1 | 盘点 `/admin/referrals`、`/admin/vouchers` 的页面结构、tab、筛选、统计、操作入口与角色边界 | codex | todo |
+| T-012C.2 | 建立后台增长工具台的字段矩阵：概览 KPI、推荐关系表、voucher 表、筛选项、详情项与操作项 | codex | todo |
+| T-012C.3 | 定义治理边界：`ADMIN` / `TEACHER` 的可见性、可操作性、死链处理、路由跳转与空态策略 | codex | todo |
+| T-012C.4 | 对齐后台增长工具台读取链路：推荐列表、voucher 列表、统计卡、时间窗口、搜索与分页 | codex | todo |
+| T-012C.5 | 对齐后台增长工具台写链路：创建 voucher、启停 voucher、权限校验、重复提交与幂等 | codex | todo |
+| T-012C.6 | 补后台概览的真实统计与趋势：推荐数、完成率、待发奖励、可用 voucher 与已核销次数 | codex | todo |
+| T-012C.7 | 补缓存失效、审计留痕、错误态、空态与角色边界验证 | codex | todo |
+| T-012C.8 | 清理假统计、旧文案、占位数据、废弃入口与无效跳转 | codex | todo |
+| T-012C.9 | 完成后台增长工具台验证：管理员 / 教师可见性、筛选、创建、启停、刷新一致性与数据库核账 | codex | todo |
+
+### T-012.1 盘点结论
+- referral 的权威数据源主要分布在 `users` 与 `referrals` 两层：`users.referralCode / referralCount / referralLimit / subscriptionTier / subscriptionEnd / firstPaidAt` 负责身份与容量，`referrals.referrerId / refereeId / referralCode / status / rewardGranted / rewardDate / bindSource / refereePaidAt / refereeRewardGrantedAt / referrerRewardGrantedAt / deferredRewardTier / deferredRewardWeeks / deferredSettledAt` 负责关系与奖励流转。
+- 用户侧绑定入口当前已经存在于 `Pricing / Checkout` 支付链路，入口数据通过 [`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 调用 [`src/actions/billing/referral.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/referral.ts)；展示与传播入口则主要落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 的推荐卡，以及 [`src/components/admin/users/tabs/GrowthTab.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/users/tabs/GrowthTab.tsx) / [`src/actions/admin/user-details.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/user-details.ts) 的后台增长视图。
+- 奖励发放时点当前以 Stripe webhook 的真实付费事件为准：首付/首单进入 [`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 后先结算被推荐人的延长权益，再根据推荐人档位决定是立即发放还是延迟发放；`STARTER` 走延迟发放，非 `STARTER` 走即时发放。
+- 重复绑定与自推边界已经有明确约束：[`src/actions/billing/referral.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/referral.ts) 通过 `refereeId` 唯一约束保证一人只能绑定一次，已有绑定不可修改，绑定自己的推荐码会直接拒绝。
+- 过期与回收目前主要停留在数据模型层与状态枚举层，`ReferralStatus.EXPIRED / CANCELLED` 已预留，但当前没有独立的自动过期回收写链路；本次 `T-012.1` 需要把“当前已实现”和“预留但未落地”明确分开，后续子任务不要误把 schema 预留当成已实现能力。
+- 统计与回流口径已分层：`getProfile()` 会拉取 `referralsGiven` 中处于 `DEFERRED` 的奖励，`GrowthTab` 与后台 referrals console 负责展示树状关系和奖励状态，`SettingsView` 负责对用户暴露推荐码与奖励摘要。
+
+### T-012.2 字段矩阵草案
+- `users` 主体字段：
+  - `referralCode`：用户个人推荐码，用户侧展示和支付页预填的核心字段。
+  - `referralCount`：已成功计入的推荐人数，用户侧奖励展示与后台 KPI 的核心统计字段。
+  - `referralLimit`：推荐额度上限，决定用户还能继续裂变多少人。
+  - `subscriptionTier / subscriptionEnd / firstPaidAt`：用于判断奖励发放时点、延迟结算与当前订阅档位。
+- `referrals` 主体字段：
+  - `referrerId / refereeId / referralCode`：定义关系链与归因对象。
+  - `status`：`PENDING / COMPLETED / DEFERRED / EXPIRED / CANCELLED`，决定列表展示、奖励展示与结算状态。
+  - `rewardGranted / rewardDate`：奖励是否真正发放以及发放时间。
+  - `bindSource`：推荐码绑定来源，用于区分 UPGRADE 等业务入口。
+  - `refereePaidAt / refereeRewardGrantedAt / referrerRewardGrantedAt`：记录被推荐人与推荐人的关键结算时间点。
+  - `deferredRewardTier / deferredRewardWeeks / deferredSettledAt`：记录延迟奖励的类型、周期与最终结算时间。
+- 用户侧展示层需要消费的字段：
+  - `SettingsView`：`referralCode / referralCount / referralLimit / referralsGiven`。
+  - `GrowthTab`：`referralCode / totalInvites / completedInvites / deferredInvites / pendingInvites / remainingQuota / rewardSummary`。
+  - `admin/referrals` console：`referralCode / status / rewardGranted / deferredRewardTier / deferredRewardWeeks / deferredSettledAt / createdAt`。
+- 统计与口径层需要先统一的字段：
+  - 已完成推荐数：`status = COMPLETED`
+  - 延迟发放推荐数：`status = DEFERRED && deferredRewardWeeks > 0`
+  - 待完成推荐数：`status = PENDING`
+  - 推荐额度剩余：`referralLimit - completedInvites - deferredInvites`
+- 这一阶段先不引入新字段，只把现有字段与展示/结算/统计口径固定下来，后续 `T-012.3 ~ T-012.10` 才继续接入传播与写链路。
+
+### T-012.3 归因口径
+- `T-012.3` 只定义 referral 的增长归因口径，不引入新表，不重做奖励结算，只把后续埋点与状态更新该认哪一步先定死。
+- 归因链路按“曝光 -> 复制 -> 点击 -> 绑定 -> 支付意图 -> 首付结算 -> 奖励发放”拆分，其中本轮必须先明确后面五个关键节点：
+  - `copy`：用户复制推荐码或复制推荐链接的动作。当前主要发生在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 的推荐卡，后续 `T-012A.3` 还会把它扩展到更明确的分享入口。
+  - `click`：用户点击分享链接进入站点的动作。当前代码里还没有独立 click 埋点，所以本阶段先定义“点击后进入带 referral 上下文的落地页”才算命中。
+  - `bind`：[`src/actions/billing/referral.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/referral.ts) 成功创建 `referrals` 记录的瞬间，这是 referral 归因的唯一权威绑定事件。`ALREADY_BOUND / SELF_REFERRAL / REFERRAL_NOT_FOUND` 这类失败结果都不计入转化。
+  - `checkout`：[`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 生成支付会话并透传 `referralCode` 的时点，只代表支付意图，不等于转化完成。
+  - `settle`：[`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 在首付/首单真实到账后执行推荐关系结算的时点，才算真正进入奖励兑现阶段。
+  - `reward_grant`：`referrals.rewardGranted / rewardDate / referrerRewardGrantedAt / refereeRewardGrantedAt / deferredSettledAt` 被写入时，视为奖励兑现完成；`DEFERRED` 场景中先出现 `refereeRewardGrantedAt`，后续再由 webhook 触发 `deferredSettledAt` 视为最终结算。
+- 重复提交与无效归因的判定规则：
+  - 同一个 `refereeId` 只能有一条 referral 关系，重复绑定只能返回已绑定，不算新增归因。
+  - 自推、无效码、已过期、已取消这几类都只记失败原因，不记转化。
+  - `checkout` 成功但 webhook 未结算时，只能算“支付意图”，不能算最终转化。
+  - `settle` 成功但奖励延迟发放时，仍然属于已完成的归因链路，只是奖励兑现分两段。
+- 这一阶段的输出是“统一口径”，已由 `T-012.4` 接成 telemetry 留存，`T-012A.4~T-012A.8` 再继续把用户侧入口补完整。
+
+### T-012.4 telemetry 留存落地
+- 已新增 `referral_attribution_events` 作为 referral 归因留存表，统一记录 `COPY / CLICK / BIND / CHECKOUT / SETTLE / REWARD_GRANT` 六类事件。
+- 已补齐关键写点：用户侧复制推荐链接、推荐链接落地点击、推荐码绑定、结账会话创建、Stripe 首付结算与奖励发放阶段均会写入归因事件。
+- 已补齐可追踪分享入口：用户侧推荐卡改为复制带推荐码的深链 `/r/[code]`，落地页再跳转到 `/pricing?referralCode=...`。
+- 已补齐支付透传：`Pricing / Checkout` 现在会读取 `referralCode`，并把它继续传到 checkout metadata 和结算链路。
+- 已完成最小闭环验证：新增事件能够写入数据库并在事务内回滚，确保 telemetry 表、枚举和 Prisma 客户端都可正常工作。
 
 ### T-013 内容导入入口域
 | id | description | owner | status |
 |---|---|---|---|
-| T-013.1 | 盘点 `/admin/content`、`/admin/content/import` 的入口、上传流、导入状态与当前数据源 | codex | todo |
-| T-013.2 | 建立内容源文件、导入任务、处理状态、结果统计、错误摘要的字段映射与权威数据源矩阵 | codex | todo |
-| T-013.3 | 对齐内容导入读取链路：入口页、导入记录、状态轮询、结果汇总与错误展示 | codex | todo |
-| T-013.4 | 对齐内容导入写链路：上传、创建导入任务、重试、取消、权限与幂等 | codex | todo |
-| T-013.5 | 清理假导入结果、假 OCR/导入状态、假成功提示，补齐空态/错误态/禁用态 | codex | todo |
-| T-013.6 | 完成内容导入域验证：任务创建核账、状态流转核账、重复提交验证 | codex | todo |
+| T-013.1 | 盘点 `/admin/content`、`/admin/content/import` 的入口、上传流、导入状态与当前数据源 | codex | done |
+| T-013.2 | 建立内容源文件、导入任务、处理状态、结果统计、错误摘要的字段映射与权威数据源矩阵 | codex | done |
+| T-013.3 | 对齐内容导入读取链路：入口页、导入记录、状态轮询、结果汇总与错误展示 | codex | done |
+| T-013.4 | 对齐内容导入写链路：上传、创建导入任务、重试、取消、权限与幂等 | codex | done |
+| T-013.5 | 清理假导入结果、假 OCR/导入状态、假成功提示，补齐空态/错误态/禁用态 | codex | done |
+| T-013.6 | 完成内容导入域验证：任务创建核账、状态流转核账、重复提交验证 | codex | done |
 
 ### T-014 内容审核域
+##### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-014.1 | 盘点 `/admin/content/review`、`/admin/content/review/[questionId]` 的列表、详情、审核动作与当前数据源 | codex | todo |
-| T-014.2 | 建立题目内容、审核状态、审核人、审核日志、质量字段的字段映射与权威数据源矩阵 | codex | todo |
-| T-014.3 | 对齐内容审核读取链路：待审列表、详情信息、审核历史、过滤条件与排序口径 | codex | todo |
-| T-014.4 | 对齐内容审核写链路：通过、驳回、修改建议、报错处理、权限与幂等 | codex | todo |
-| T-014.5 | 清理假审核队列、假审核结果、假状态流，补齐空态/错误态/越权态 | codex | todo |
-| T-014.6 | 完成内容审核域验证：审核动作核账、重复处理验证、前后端状态一致性验证 | codex | todo |
+| T-014.1 | 盘点 `/admin/content/review`、`/admin/content/review/[questionId]`、`/admin/content/review?tab=...` 的列表、详情、抽屉、已删除视图、操作日志与数据源入口，明确审核主域边界 | codex | done |
+| T-014.2 | 建立审核字段口径与权威数据源矩阵，覆盖题干、选项、答案、解析、科目、章节、难度、质量分、状态、审核人、审核时间、日志、真题标记与软删除字段 | codex | done |
+| T-014.3 | 固化审核状态机与动作边界：待审、已校对、已发布、已驳回、已归档、已删除；明确通过 / 驳回 / 编辑保存 / 删除 / AI补章节的权限、幂等与审计落库 | codex | done |
+| T-014.4 | 明确审核域与报错治理域的责任边界：`pendingReports` 仅作统计展示，报错处理动作归 `T-015`，审核域不重复实现报错治理 | codex | done |
+
+##### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-014.5 | 对齐审核读取链路：待审列表、详情聚合、历史回放、筛选排序、组合题 / 子题、真实空态与登录拦截 | codex | done |
+| T-014.6 | 对齐审核写链路：通过、驳回、编辑保存、删除、批量动作、AI补章节、权限校验、幂等、防重、审计落库与写后刷新 | codex | done |
+| T-014.7 | 对齐审核抽屉与单题页交互：`returnTo` 回跳、`questionId` / `reviewAction` / `nextQuestionId` URL 托管、连续审核流、用户端预览与真实 `subjectId / chapterId` 编辑 | codex | done |
+| T-014.8 | 对齐审核列表信息完整化：导入时间 / 审核时间、批次名称、排序选项、软删除 tab、KPI 口径与“刷新 / 操作日志”入口 | codex | done |
+| T-014.9 | 对齐审核页右上角真实日志：`content_review_logs` 读取、手动刷新、本地搜索、真实审核人 / 动作展示与空态提示 | codex | done |
+
+##### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-014.10 | 清理假审核队列、假状态流、静态默认值、假成功提示与死链，确保列表 / 抽屉 / 单题页全部回到真实数据 | codex | done |
+| T-014.11 | 完成审核域验证：审核动作核账、重复处理验证、删除回收验证、前后端状态一致性验证、刷新后仍为真实数据 | codex | done |
 
 ### T-015 内容质控与统计域
 | id | description | owner | status |

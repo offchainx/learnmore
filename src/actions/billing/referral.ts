@@ -3,6 +3,11 @@
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/actions/user/auth';
+import {
+  lookupReferrerByReferralCode,
+  normalizeReferralCode,
+  recordReferralAttributionEvent,
+} from '@/lib/referrals/attribution';
 
 const bindReferralInputSchema = z.object({
   referralCode: z
@@ -21,6 +26,22 @@ type BindReferralResult = {
 export async function bindReferralCodeAction(referralCode: string): Promise<BindReferralResult> {
   const user = await getCurrentUser();
   if (!user || !user.email) {
+    const normalizedCode = normalizeReferralCode(referralCode)
+    if (normalizedCode) {
+      void recordReferralAttributionEvent(prisma, {
+        referralCode: normalizedCode,
+        eventType: 'BIND',
+        refereeId: user?.id ?? null,
+        success: false,
+        errorCode: 'UNAUTHORIZED',
+        metadata: {
+          result: 'UNAUTHORIZED',
+        },
+      }).catch((error) => {
+        console.warn('[ReferralAttribution] bind log failed', error)
+      })
+    }
+
     return {
       ok: false,
       code: 'UNAUTHORIZED',
@@ -30,6 +51,19 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
 
   const parsed = bindReferralInputSchema.safeParse({ referralCode });
   if (!parsed.success) {
+    void recordReferralAttributionEvent(prisma, {
+      referralCode,
+      eventType: 'BIND',
+      refereeId: user.id,
+      success: false,
+      errorCode: 'INVALID_REFERRAL_CODE',
+      metadata: {
+        result: 'INVALID_REFERRAL_CODE',
+      },
+    }).catch((error) => {
+      console.warn('[ReferralAttribution] bind log failed', error)
+    })
+
     return {
       ok: false,
       code: 'INVALID_REFERRAL_CODE',
@@ -48,6 +82,21 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
   });
 
   if (existingBinding) {
+    const existingReferrer = await lookupReferrerByReferralCode(normalizedCode)
+    void recordReferralAttributionEvent(prisma, {
+      referralCode: normalizedCode,
+      eventType: 'BIND',
+      referrerId: existingReferrer?.id ?? null,
+      refereeId: user.id,
+      success: existingBinding.referralCode === normalizedCode,
+      errorCode: existingBinding.referralCode === normalizedCode ? null : 'REFERRAL_ALREADY_BOUND',
+      metadata: {
+        result: existingBinding.referralCode === normalizedCode ? 'ALREADY_BOUND' : 'REFERRAL_ALREADY_BOUND',
+      },
+    }).catch((error) => {
+      console.warn('[ReferralAttribution] bind log failed', error)
+    })
+
     if (existingBinding.referralCode === normalizedCode) {
       return {
         ok: true,
@@ -73,6 +122,19 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
   });
 
   if (!referrer) {
+    void recordReferralAttributionEvent(prisma, {
+      referralCode: normalizedCode,
+      eventType: 'BIND',
+      refereeId: user.id,
+      success: false,
+      errorCode: 'REFERRAL_NOT_FOUND',
+      metadata: {
+        result: 'REFERRAL_NOT_FOUND',
+      },
+    }).catch((error) => {
+      console.warn('[ReferralAttribution] bind log failed', error)
+    })
+
     return {
       ok: false,
       code: 'REFERRAL_NOT_FOUND',
@@ -81,6 +143,20 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
   }
 
   if (referrer.id === user.id) {
+    void recordReferralAttributionEvent(prisma, {
+      referralCode: normalizedCode,
+      eventType: 'BIND',
+      referrerId: referrer.id,
+      refereeId: user.id,
+      success: false,
+      errorCode: 'SELF_REFERRAL',
+      metadata: {
+        result: 'SELF_REFERRAL',
+      },
+    }).catch((error) => {
+      console.warn('[ReferralAttribution] bind log failed', error)
+    })
+
     return {
       ok: false,
       code: 'SELF_REFERRAL',
@@ -99,9 +175,36 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
         bindSource: 'UPGRADE',
       },
     });
+
+    void recordReferralAttributionEvent(prisma, {
+      referralCode: normalizedCode,
+      eventType: 'BIND',
+      referrerId: referrer.id,
+      refereeId: user.id,
+      success: true,
+      metadata: {
+        result: 'BOUND',
+      },
+    }).catch((error) => {
+      console.warn('[ReferralAttribution] bind log failed', error)
+    })
   } catch (error) {
     // 并发下 unique(refereeId) 可能命中
     if (error instanceof Error && error.message.includes('Unique constraint')) {
+      void recordReferralAttributionEvent(prisma, {
+        referralCode: normalizedCode,
+        eventType: 'BIND',
+        referrerId: referrer.id,
+        refereeId: user.id,
+        success: false,
+        errorCode: 'REFERRAL_ALREADY_BOUND',
+        metadata: {
+          result: 'REFERRAL_ALREADY_BOUND',
+        },
+      }).catch((logError) => {
+        console.warn('[ReferralAttribution] bind log failed', logError)
+      })
+
       return {
         ok: false,
         code: 'REFERRAL_ALREADY_BOUND',
@@ -124,3 +227,47 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
   };
 }
 
+export async function recordReferralCopyAction(input: {
+  referralCode: string
+  sourcePath?: string | null
+  destinationPath?: string | null
+}) {
+  const user = await getCurrentUser()
+  if (!user || !user.email) {
+    return {
+      ok: false,
+      code: 'UNAUTHORIZED',
+      message: '请先登录后再记录分享',
+    }
+  }
+
+  const normalizedCode = normalizeReferralCode(input.referralCode)
+  if (!normalizedCode) {
+    return {
+      ok: false,
+      code: 'INVALID_REFERRAL_CODE',
+      message: '推荐码格式不正确',
+    }
+  }
+
+  try {
+    await recordReferralAttributionEvent(prisma, {
+      referralCode: normalizedCode,
+      eventType: 'COPY',
+      referrerId: user.id,
+      sourcePath: input.sourcePath ?? null,
+      destinationPath: input.destinationPath ?? null,
+      metadata: {
+        action: 'copy_referral_link',
+      },
+    })
+  } catch (error) {
+    console.warn('[ReferralAttribution] copy log failed', error)
+  }
+
+  return {
+    ok: true,
+    code: 'COPIED',
+    message: '推荐链接已记录',
+  }
+}

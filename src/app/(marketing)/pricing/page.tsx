@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
 import { ShineBorder } from '@/components/ui/shine-border';
@@ -62,9 +62,14 @@ function CellRenderer({ value }: { value: CellValue }) {
 // ─────────────────────────────────────────────────────────────
 const PricingPage: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isAnnual, setIsAnnual] = useState(false);
   const { lang, setLang } = useApp();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const referralCode = useMemo(
+    () => searchParams.get('referralCode')?.trim().toUpperCase() || '',
+    [searchParams]
+  );
 
   const toggleLang = () => {
     const nextLang = lang === 'en' ? 'zh' : 'en';
@@ -87,7 +92,7 @@ const PricingPage: React.FC = () => {
         planKey,
         billingCycle,
         paymentMode: 'stripe',
-        referralCode: '',
+        referralCode,
         voucherCode: '',
       });
 

@@ -5,6 +5,10 @@ import prisma from '@/lib/prisma';
 import { bindReferralCodeAction } from '@/actions/billing/referral';
 import { createCheckoutSession } from '@/actions/billing/stripe';
 import { getCurrentUser } from '@/actions/user/auth';
+import {
+  lookupReferrerByReferralCode,
+  recordReferralAttributionEvent,
+} from '@/lib/referrals/attribution';
 
 const prepareCheckoutInputSchema = z.object({
   planKey: z.enum(['standard', 'smart_plus', 'premier']),
@@ -119,8 +123,51 @@ export async function prepareCheckoutAction(input: PrepareCheckoutInput): Promis
   }
 
   const payload = parsed.data;
+  const normalizedReferralCode = normalizeCode(payload.referralCode);
+  const referralOwner = normalizedReferralCode
+    ? await lookupReferrerByReferralCode(normalizedReferralCode)
+    : null;
+
+  const logCheckoutEvent = async (input: {
+    success: boolean
+    errorCode?: string | null
+    message?: string | null
+    checkoutUrl?: string | null
+    stripeCouponId?: string | null
+  }) => {
+    if (!normalizedReferralCode) {
+      return
+    }
+
+    try {
+      await recordReferralAttributionEvent(prisma, {
+        referralCode: normalizedReferralCode,
+        eventType: 'CHECKOUT',
+        referrerId: referralOwner?.id ?? null,
+        refereeId: user.id,
+        success: input.success,
+        errorCode: input.errorCode ?? null,
+        metadata: {
+          planKey: payload.planKey,
+          billingCycle: payload.billingCycle,
+          paymentMode: payload.paymentMode,
+          checkoutUrl: input.checkoutUrl ?? null,
+          stripeCouponId: input.stripeCouponId ?? null,
+          resultMessage: input.message ?? null,
+        },
+      })
+    } catch (error) {
+      console.warn('[ReferralAttribution] checkout log failed', error)
+    }
+  }
 
   if (payload.paymentMode !== 'stripe') {
+    await logCheckoutEvent({
+      success: false,
+      errorCode: 'PAYMENT_MODE_NOT_READY',
+      message: '当前仅支持 Stripe 支付，其他方式即将支持',
+    })
+
     return {
       ok: false,
       code: 'PAYMENT_MODE_NOT_READY',
@@ -128,20 +175,39 @@ export async function prepareCheckoutAction(input: PrepareCheckoutInput): Promis
     };
   }
 
-  const normalizedReferralCode = normalizeCode(payload.referralCode);
   if (normalizedReferralCode) {
     const bindResult = await bindReferralCodeAction(normalizedReferralCode);
     if (!bindResult.ok) {
+      await logCheckoutEvent({
+        success: false,
+        errorCode: bindResult.code,
+        message: bindResult.message,
+      })
+
       return bindResult;
     }
   }
 
   const voucherResult = await resolveVoucherCouponId(user.id, payload.voucherCode);
   if (!voucherResult.ok) {
+    await logCheckoutEvent({
+      success: false,
+      errorCode: voucherResult.code,
+      message: voucherResult.message,
+    })
+
     return voucherResult;
   }
 
-  const cancelRedirectPath = `/pricing?payment=cancelled&planKey=${payload.planKey}&billingCycle=${payload.billingCycle}`;
+  const cancelSearchParams = new URLSearchParams({
+    payment: 'cancelled',
+    planKey: payload.planKey,
+    billingCycle: payload.billingCycle,
+  });
+  if (normalizedReferralCode) {
+    cancelSearchParams.set('referralCode', normalizedReferralCode);
+  }
+  const cancelRedirectPath = `/pricing?${cancelSearchParams.toString()}`;
   const checkoutResult = await createCheckoutSession(payload.planKey, payload.billingCycle, {
     paymentMode: payload.paymentMode,
     referralCode: normalizedReferralCode,
@@ -151,12 +217,24 @@ export async function prepareCheckoutAction(input: PrepareCheckoutInput): Promis
   });
 
   if (!checkoutResult.ok) {
+    await logCheckoutEvent({
+      success: false,
+      errorCode: checkoutResult.error.code,
+      message: checkoutResult.error.message,
+    })
+
     return {
       ok: false,
       code: checkoutResult.error.code,
       message: checkoutResult.error.message,
     };
   }
+
+  await logCheckoutEvent({
+    success: true,
+    checkoutUrl: checkoutResult.checkoutUrl,
+    stripeCouponId: voucherResult.stripeCouponId || null,
+  })
 
   return {
     ok: true,
