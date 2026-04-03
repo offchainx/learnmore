@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma'
 import { SubscriptionTier, SecurityAction, UserRole } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
+import { buildSecurityLogMetadata } from '@/lib/admin/security-log'
 
 export type PermissionSearchUser = {
   id: string
@@ -42,6 +44,13 @@ function calcExpiresAt(duration: string): Date | null {
   }
 }
 
+function isSameDateTime(left: Date | null, right: Date | null): boolean {
+  if (!left || !right) {
+    return left === right
+  }
+  return left.getTime() === right.getTime()
+}
+
 export async function applyAdminOverride(data: {
   userId: string
   tier: SubscriptionTier
@@ -53,55 +62,101 @@ export async function applyAdminOverride(data: {
     throw new Error('Unauthorized: Only admins can perform this action')
   }
 
+  const reason = data.reason.trim()
+  if (reason.length < 10) {
+    throw new Error('原因至少需要10个字符')
+  }
+
   const expiresAt = data.duration ? calcExpiresAt(data.duration) : null
 
-  // 1. Log the override in UserPermissionOverride（含 expiresAt）
-  await prisma.userPermissionOverride.create({
-    data: {
-      userId: data.userId,
-      overriddenBy: currentUser.id,
-      targetField: 'subscriptionTier',
-      newValue: data.tier,
-      reason: data.reason,
-      expiresAt,
+  const targetUser = await prisma.user.findUnique({
+    where: { id: data.userId },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      subscriptionTier: true,
+      subscriptionEnd: true,
     },
   })
 
-  // 2. Get previous tier for logging
-  const previousUser = await prisma.user.findUnique({
-    where: { id: data.userId },
-    select: { subscriptionTier: true },
-  })
+  if (!targetUser) {
+    throw new Error('目标用户不存在')
+  }
 
-  // 3. Update User's subscriptionTier and subscriptionEnd
-  await prisma.user.update({
-    where: { id: data.userId },
-    data: {
-      subscriptionTier: data.tier,
-      subscriptionEnd: expiresAt,
-    },
-  })
+  const sameStateAlreadyApplied =
+    targetUser.subscriptionTier === data.tier &&
+    isSameDateTime(targetUser.subscriptionEnd, expiresAt)
 
-  // 4. Log to SecurityLog (Associated with the Target User so it shows in their logs)
-  await prisma.securityLog.create({
-    data: {
-      userId: data.userId, 
-      action: SecurityAction.PERMISSION_OVERRIDE,
-      metadata: {
-        actorId: currentUser.id,
-        actorName: currentUser.username || currentUser.email,
-        previousTier: previousUser?.subscriptionTier,
-        newTier: data.tier,
-        duration: data.duration || 'permanent',
-        expiresAt: expiresAt?.toISOString() || null,
-        reason: data.reason,
+  if (sameStateAlreadyApplied) {
+    revalidatePath(`/admin/users/${data.userId}`)
+    revalidatePath('/admin/users')
+    revalidatePath('/admin')
+    invalidateAdminDashboardOverview()
+    return { success: true }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.userPermissionOverride.create({
+      data: {
+        userId: data.userId,
+        overriddenBy: currentUser.id,
+        targetField: 'subscriptionTier',
+        previousValue: targetUser.subscriptionTier,
+        newValue: data.tier,
+        reason,
+        expiresAt,
       },
-    },
+    })
+
+    await tx.user.update({
+      where: { id: data.userId },
+      data: {
+        subscriptionTier: data.tier,
+        subscriptionEnd: expiresAt,
+      },
+    })
+
+    await tx.securityLog.create({
+      data: {
+        userId: data.userId,
+        action: SecurityAction.PERMISSION_OVERRIDE,
+        metadata: buildSecurityLogMetadata({
+          operator: {
+            id: currentUser.id,
+            email: currentUser.email,
+            name: currentUser.username || currentUser.email,
+          },
+          target: {
+            id: targetUser.id,
+            email: targetUser.email ?? null,
+          },
+          reason,
+          changes: [
+            {
+              field: 'subscriptionTier',
+              before: targetUser.subscriptionTier ?? null,
+              after: data.tier,
+            },
+            {
+              field: 'subscriptionEnd',
+              before: targetUser.subscriptionEnd?.toISOString() ?? null,
+              after: expiresAt?.toISOString() ?? null,
+            },
+          ],
+          extra: {
+            duration: data.duration || 'permanent',
+            expiresAt: expiresAt?.toISOString() || null,
+          },
+        }),
+      },
+    })
   })
 
-// 5. Revalidate
   revalidatePath(`/admin/users/${data.userId}`)
-  revalidatePath('/admin/permissions')
+  revalidatePath('/admin/users')
+  revalidatePath('/admin')
+  invalidateAdminDashboardOverview()
   return { success: true }
 }
 

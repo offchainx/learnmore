@@ -2,3 +2,4 @@
 - 2026-04-01: Start T-024.A UI refactor (右侧弹出卡片 + 三段式：顶部状态栏/时间线/处理工作台；处理工作台含 Public Reply/Internal Note、NEXT STATUS 可变更、Templates；刷新与最新回显保持一致）。
 - 2026-04-02: Fix community interactions cache invalidation (toggleLike now revalidates community feed/categories after like/unlike; comment/post side-effects keep feed freshness aligned with DB writes).
 - 2026-04-02: Close T-005 Dashboard real-data workstream and extend handle identity system (dashboard real-data closeout, daily-task idempotency, lightweight practice timer, community handle mentions, reserved_handles, public /u/[handle], live handle availability checks, hydration mismatch fixes).
+- 2026-04-03: Close T-009 admin home real-data cleanup (admin overview/workQueue/risks/audits real-data closeout, role matrix for ADMIN/TEACHER/PARENT/STUDENT, cache invalidation and audit trail cleanup, remove obsolete /admin/permissions path, ensure T-009.1~T-009.9 are收口完成).

@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
-import { toggleUserStatus, impersonateUser } from '@/actions/admin/user-ops'
+import { toggleUserStatus, impersonateUser, resetUserPassword } from '@/actions/admin/user-ops'
 import type { Admin } from '@/types'
 import { toast } from 'sonner'
 
@@ -80,9 +80,13 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({ user }) =>
           break
         }
         case 'resetPassword': {
-          // TODO: 实现密码重置逻辑
-          toast.info('密码重置功能开发中')
-          closeConfirmDialog()
+          const result = await resetUserPassword(user.id, reason)
+          if (result.success) {
+            toast.success('密码重置邮件已发送')
+            closeConfirmDialog()
+          } else {
+            toast.error(result.error || '密码重置失败')
+          }
           break
         }
       }

@@ -11,6 +11,7 @@ export enum AuditEventType {
   IMPERSONATE = 'Impersonation',
   STATUS = 'Status Change',
   LOGIN = 'Login',
+  PASSWORD_RESET = 'Password Reset',
   NOTE = 'Note',
   OTHER = 'Other',
 }
@@ -22,6 +23,11 @@ export interface AuditLogItem {
   description: string
   timestamp: string
   meta?: {
+    operator?: string | null
+    target?: string | null
+    reason?: string | null
+    changes?: string[]
+    sensitive?: boolean
     isSessionStart?: boolean
     isSessionEnd?: boolean
     durationLabel?: string | null

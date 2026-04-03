@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { CreditCard } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { CreditCard, Clock3, ShieldCheck, Repeat } from 'lucide-react'
 import { Admin } from '@/types'
 import { UserTierBadge } from '../UserBadges'
 import { GrantPermissionDialog } from '../GrantPermissionDialog'
-import { StripeHistoryTable } from '../StripeHistoryTable'
 import { getOverrideHistory } from '@/actions/admin/permission-override'
 import type { OverrideHistoryItem } from '@/actions/admin/permission-override'
 
@@ -46,7 +45,19 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
   const [historyLoading, setHistoryLoading] = useState(true)
   const [overrideHistory, setOverrideHistory] = useState<OverrideHistoryItem[]>([])
 
-  const payments = useMemo(() => [], [])
+  const subscriptionEndDate = user.subscriptionEnd
+    ? new Date(user.subscriptionEnd)
+    : null
+  const hasSubscriptionEnd = Boolean(subscriptionEndDate)
+  const remainingDays = subscriptionEndDate
+    ? Math.ceil((subscriptionEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null
+  const remainingLabel =
+    remainingDays === null
+      ? '未设置'
+      : remainingDays > 0
+        ? `${remainingDays} 天`
+        : '已到期'
 
   useEffect(() => {
     async function loadHistory() {
@@ -72,39 +83,28 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
           <div className="mb-4">
             <UserTierBadge tier={user.tier} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Duration</div>
-              <div className="text-slate-200 text-sm font-mono">
-                {(() => {
-                  if (user.tier === Admin.SubscriptionTier.STARTER) return 'Free Tier'
-                  const start = new Date(user.joinDate)
-                  const end = new Date(start)
-                  end.setFullYear(end.getFullYear() + 1)
-                  return `${start.toLocaleDateString('zh-CN')} - ${end.toLocaleDateString('zh-CN')}`
-                })()}
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">当前等级</div>
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                {user.tier}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Auto-Renew</div>
-              <div className={`flex items-center gap-2 text-sm font-medium ${user.tier === Admin.SubscriptionTier.STARTER ? 'text-slate-500' : 'text-emerald-400'}`}>
-                <div className={`w-8 h-4 rounded-full relative border ${user.tier === Admin.SubscriptionTier.STARTER ? 'bg-slate-800 border-slate-700' : 'bg-emerald-900/50 border-emerald-800'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 rounded-full shadow-sm transition-all ${user.tier === Admin.SubscriptionTier.STARTER ? 'left-0.5 bg-slate-600' : 'right-0.5 bg-emerald-500'}`}></div>
-                </div>
-                {user.tier === Admin.SubscriptionTier.STARTER ? 'OFF' : 'ON'}
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">到期时间</div>
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
+                <Clock3 className="h-4 w-4 text-blue-400" />
+                {hasSubscriptionEnd
+                  ? subscriptionEndDate!.toLocaleDateString('zh-CN')
+                  : '未设置'}
               </div>
             </div>
             <div>
-              <div className="text-xs text-slate-500 uppercase tracking-wide mb-1">Remaining</div>
-              <div className={`text-sm font-bold ${user.tier === Admin.SubscriptionTier.STARTER ? 'text-slate-500' : 'text-blue-400'}`}>
-                {(() => {
-                  if (user.tier === Admin.SubscriptionTier.STARTER) return 'N/A'
-                  const start = new Date(user.joinDate)
-                  const end = new Date(start)
-                  end.setFullYear(end.getFullYear() + 1)
-                  const remaining = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                  return remaining > 0 ? `${remaining} Days` : 'Expired'
-                })()}
+              <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">剩余天数</div>
+              <div className={`flex items-center gap-2 text-sm font-bold ${remainingDays === null ? 'text-slate-500' : remainingDays > 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                <Repeat className="h-4 w-4" />
+                {remainingLabel}
               </div>
             </div>
           </div>
@@ -113,22 +113,22 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-semibold text-slate-200">Permission Overrides</h3>
+          <h3 className="text-sm font-semibold text-slate-200">权限覆写历史</h3>
           <button
             onClick={() => setIsGrantDialogOpen(true)}
             className="text-xs border border-blue-600 text-blue-500 px-3 py-1.5 rounded hover:bg-blue-950/30 transition-colors"
           >
-            Grant Permission
+            发起覆写
           </button>
         </div>
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-800 text-xs text-slate-500 uppercase">
-              <th className="px-3 py-2 font-medium">Type</th>
-              <th className="px-3 py-2 font-medium">Duration</th>
-              <th className="px-3 py-2 font-medium">Reason</th>
-              <th className="px-3 py-2 font-medium">Admin</th>
-              <th className="px-3 py-2 font-medium text-right">Time</th>
+              <th className="px-3 py-2 font-medium">类型</th>
+              <th className="px-3 py-2 font-medium">有效期</th>
+              <th className="px-3 py-2 font-medium">原因</th>
+              <th className="px-3 py-2 font-medium">管理员</th>
+              <th className="px-3 py-2 font-medium text-right">时间</th>
             </tr>
           </thead>
           <tbody>
@@ -158,8 +158,6 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ user }) => {
           </tbody>
         </table>
       </div>
-
-      <StripeHistoryTable payments={payments} />
 
       <GrantPermissionDialog
         isOpen={isGrantDialogOpen}

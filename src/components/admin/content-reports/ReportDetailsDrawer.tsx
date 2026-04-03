@@ -750,7 +750,7 @@ export function ReportDetailsDrawer({
                 <Button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || isLocked}
+                  disabled={isSubmitting}
                   className="h-12 rounded-2xl bg-primary px-5 text-white hover:bg-primary/90"
                 >
                   {isSubmitting ? (

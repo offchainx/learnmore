@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from 'next/cache'
+import { cacheLife, cacheTag, revalidateTag } from 'next/cache'
 import type { LeaderboardPeriod } from '@prisma/client'
 import { getPlatformStats } from '@/actions/marketing/campaign'
 import { getCategories, getPosts } from '@/actions/community/post'
@@ -11,6 +11,8 @@ import {
   buildAdminDashboardOverview,
   type AdminDashboardOverview,
 } from '@/actions/admin/dashboard-overview'
+
+export const ADMIN_DASHBOARD_OVERVIEW_TAG = 'admin-dashboard-overview'
 
 type CommunityFeedParams = Parameters<typeof getPosts>[0]
 
@@ -64,6 +66,10 @@ export async function getCachedAdminDashboardOverview(
 ): Promise<AdminDashboardOverview> {
   'use cache'
   cacheLife('quick')
-  cacheTag('admin-dashboard-overview')
+  cacheTag(ADMIN_DASHBOARD_OVERVIEW_TAG)
   return buildAdminDashboardOverview(window)
+}
+
+export function invalidateAdminDashboardOverview() {
+  revalidateTag(ADMIN_DASHBOARD_OVERVIEW_TAG, 'quick')
 }

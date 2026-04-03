@@ -11,6 +11,7 @@ import { cache } from 'react'
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
 import { triggerWelcomeNotification } from '../notification/triggers'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
 
 function isPrismaConnectivityError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
@@ -630,6 +631,10 @@ export async function syncCurrentUserToDatabase() {
       },
       update: {},
     })
+
+    if (shouldIncrementSignIn || !existingUser?.lastSignInAt) {
+      invalidateAdminDashboardOverview()
+    }
 
     return { success: true, user: dbUser }
   } catch (e) {

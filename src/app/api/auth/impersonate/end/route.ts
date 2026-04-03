@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyImpersonationToken, getImpersonationTokenFromCookie, decodeTokenPayload } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
 import { runAfterTask } from '@/lib/server/run-after-task'
+import { buildSecurityLogMetadata } from '@/lib/admin/security-log'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
 
 export async function POST(request: NextRequest) {
   const cookieHeader = request.headers.get('cookie')
@@ -43,13 +45,21 @@ export async function POST(request: NextRequest) {
               data: {
                 userId: decoded.targetUserId,
                 action: 'IMPERSONATE_END',
-                metadata: {
-                  sessionId: decoded.sessionId,
-                  adminId: decoded.adminId,
-                  endReason: 'TOKEN_EXPIRED',
-                },
+                metadata: buildSecurityLogMetadata({
+                  operator: {
+                    id: decoded.adminId,
+                  },
+                  target: {
+                    id: decoded.targetUserId,
+                  },
+                  extra: {
+                    sessionId: decoded.sessionId,
+                    endReason: 'TOKEN_EXPIRED',
+                  },
+                }),
               },
             })
+            invalidateAdminDashboardOverview()
           }, 'impersonate-end-expired-audit')
         } catch (error) {
           console.error('[impersonate/end] TOKEN_EXPIRED 审计清理失败:', error)
@@ -83,13 +93,21 @@ export async function POST(request: NextRequest) {
         data: {
           userId: payload.targetUserId,
           action: 'IMPERSONATE_END',
-          metadata: {
-            sessionId: payload.sessionId,
-            adminId: payload.adminId,
-            endReason: 'MANUAL_LOGOUT',
-          },
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: payload.adminId,
+            },
+            target: {
+              id: payload.targetUserId,
+            },
+            extra: {
+              sessionId: payload.sessionId,
+              endReason: 'MANUAL_LOGOUT',
+            },
+          }),
         },
       })
+      invalidateAdminDashboardOverview()
     }, 'impersonate-end-manual-audit')
   } catch (error) {
     console.error('[impersonate/end] Error updating session:', error)

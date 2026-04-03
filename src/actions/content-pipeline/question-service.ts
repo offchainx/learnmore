@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
+import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
 import { suggestQuestionChapters } from '@/lib/content-pipeline/chapter-tagging'
 import { format } from 'date-fns'
 import {
@@ -33,6 +34,7 @@ import type {
   UpdateStatusInput,
   ReportFilter,
 } from '@/lib/content-pipeline/types'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -1278,6 +1280,15 @@ export async function resolveReport(
   input: ResolveReportInput
 ): Promise<ServiceResult<{ resolved: boolean }>> {
   try {
+    const admin = await resolveRequestAdminIdentity()
+    if (!admin) {
+      return {
+        success: false,
+        error: '权限不足',
+        code: 'FORBIDDEN',
+      }
+    }
+
     const report = await prisma.questionReport.findUnique({
       where: { id: input.reportId },
       include: { question: { select: { id: true, reportCount: true } } },
@@ -1299,11 +1310,13 @@ export async function resolveReport(
     const currentResolution = report.resolution?.trim() || null
     if (
       report.status === input.status &&
-      report.reviewedBy === input.reviewedBy &&
+      report.reviewedBy === admin.id &&
       currentResolution === normalizedResolution
     ) {
       safeRevalidatePath('/admin/content/review')
       safeRevalidatePath('/admin/content/reports')
+      safeRevalidatePath('/admin')
+      invalidateAdminDashboardOverview()
       return { success: true, data: { resolved: true } }
     }
 
@@ -1318,7 +1331,7 @@ export async function resolveReport(
           where: { id: input.reportId },
           data: {
             status: input.status,
-            reviewedBy: input.reviewedBy,
+            reviewedBy: admin.id,
             reviewedAt: new Date(),
             resolution: normalizedResolution,
           },
@@ -1333,7 +1346,7 @@ export async function resolveReport(
         where: { id: input.reportId },
         data: {
           status: input.status,
-          reviewedBy: input.reviewedBy,
+          reviewedBy: admin.id,
           reviewedAt: new Date(),
           resolution: normalizedResolution,
         },
@@ -1342,6 +1355,8 @@ export async function resolveReport(
 
     safeRevalidatePath('/admin/content/review')
     safeRevalidatePath('/admin/content/reports')
+    safeRevalidatePath('/admin')
+    invalidateAdminDashboardOverview()
     return { success: true, data: { resolved: true } }
   } catch (error) {
     return {

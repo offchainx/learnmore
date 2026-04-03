@@ -53,6 +53,7 @@ export default async function AdminUsersPage() {
                 ? initialOverviewResult.data
                 : undefined
             }
+            viewerRole={profile.role}
             canOverridePermissions={profile.role === 'ADMIN'}
           />
         </div>

@@ -42,15 +42,6 @@ export interface AdminDashboardAuditItem {
   target: string
   time: string
   level: 'info' | 'warning' | 'critical'
-  visibleTo: AdminDashboardRole[]
-}
-
-export type AdminDashboardQuickActionIcon = 'review' | 'users' | 'permissions' | 'feedback' | 'vouchers'
-
-export interface AdminDashboardQuickAction {
-  id: string
-  label: string
-  icon: AdminDashboardQuickActionIcon
-  href: string
+  href?: string
   visibleTo: AdminDashboardRole[]
 }

@@ -41,10 +41,6 @@ export interface User extends UserSummary {
   phone: string
   joinDate: string
   joinSource: string
-  totalSpend: number
-  projectsCount: number
-  apiCalls: number
-  activeDeviceCount: number
   learningStats: {
     totalQuestions: number
     accuracy: number

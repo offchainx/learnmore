@@ -3,6 +3,12 @@
 import prisma from '@/lib/prisma'
 import { Admin } from '@/types'
 import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
+import {
+  formatSecurityLogSummary,
+  getSecurityActionLabel,
+  isSensitiveSecurityAction,
+  summarizeSecurityLogMetadata,
+} from '@/lib/admin/security-log'
 
 // ============ 权限检查 ============
 
@@ -23,10 +29,18 @@ interface ReferralStats {
   referralCode: string | null
   totalInvites: number
   referralLimit: number
+  completedInvites: number
+  deferredInvites: number
+  pendingInvites: number
+  remainingQuota: number
   rewardSummary: string
 }
 
-export async function getUserReferralData(userId: string): Promise<Admin.ActionResult<{ stats: ReferralStats, tree: Admin.ReferralNode }>> {
+export async function getUserReferralData(
+  userId: string
+): Promise<
+  Admin.ActionResult<{ stats: ReferralStats; tree: Admin.ReferralNode }>
+> {
   try {
     await requireAdmin()
 
@@ -37,11 +51,13 @@ export async function getUserReferralData(userId: string): Promise<Admin.ActionR
         username: true,
         email: true,
         referralCode: true,
-        referralCount: true,
         referralLimit: true,
         subscriptionTier: true,
         referralsGiven: {
-          include: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
             referee: {
               select: {
                 id: true,
@@ -49,55 +65,86 @@ export async function getUserReferralData(userId: string): Promise<Admin.ActionR
                 email: true,
                 subscriptionTier: true,
                 referralsGiven: {
-                  include: {
+                  select: {
+                    id: true,
+                    status: true,
                     referee: {
                       select: {
                         id: true,
                         username: true,
                         email: true,
                         subscriptionTier: true,
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     })
 
     if (!user) {
       return { success: false, error: '用户不存在' }
     }
 
+    const totalInvites = user.referralsGiven.length
+    const completedInvites = user.referralsGiven.filter(
+      (referral) => referral.status === 'COMPLETED'
+    ).length
+    const deferredInvites = user.referralsGiven.filter(
+      (referral) => referral.status === 'DEFERRED'
+    ).length
+    const pendingInvites = user.referralsGiven.filter(
+      (referral) => referral.status === 'PENDING'
+    ).length
+    const remainingQuota = Math.max(
+      0,
+      user.referralLimit - completedInvites - deferredInvites
+    )
+
     // Build Stats
     const stats: ReferralStats = {
       referralCode: user.referralCode,
-      totalInvites: user.referralCount,
+      totalInvites,
       referralLimit: user.referralLimit,
-      rewardSummary: `${user.referralCount}/${user.referralLimit} 推荐额度已使用`
+      completedInvites,
+      deferredInvites,
+      pendingInvites,
+      remainingQuota,
+      rewardSummary: `已结算 ${completedInvites}，延迟发放 ${deferredInvites}，待完成 ${pendingInvites}`,
     }
 
     // Build Tree (Depth 2)
     const tree: Admin.ReferralNode = {
       id: user.id,
       name: user.username || user.email.split('@')[0],
-      tier: (user.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
-      children: user.referralsGiven.map(r1 => ({
-        id: r1.referee.id,
-        name: r1.referee.username || r1.referee.email.split('@')[0],
-        tier: (r1.referee.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
-        children: r1.referee.referralsGiven.map(r2 => ({
-          id: r2.referee.id,
-          name: r2.referee.username || r2.referee.email.split('@')[0],
-          tier: (r2.referee.subscriptionTier as Admin.SubscriptionTier) || Admin.SubscriptionTier.STARTER,
-        }))
-      }))
+      tier:
+        (user.subscriptionTier as Admin.SubscriptionTier) ||
+        Admin.SubscriptionTier.STARTER,
+      children: user.referralsGiven
+        .slice()
+        .sort(
+          (left, right) => right.createdAt.getTime() - left.createdAt.getTime()
+        )
+        .map((r1) => ({
+          id: r1.referee.id,
+          name: r1.referee.username || r1.referee.email.split('@')[0],
+          tier:
+            (r1.referee.subscriptionTier as Admin.SubscriptionTier) ||
+            Admin.SubscriptionTier.STARTER,
+          children: r1.referee.referralsGiven.map((r2) => ({
+            id: r2.referee.id,
+            name: r2.referee.username || r2.referee.email.split('@')[0],
+            tier:
+              (r2.referee.subscriptionTier as Admin.SubscriptionTier) ||
+              Admin.SubscriptionTier.STARTER,
+          })),
+        })),
     }
 
     return { success: true, data: { stats, tree } }
-
   } catch (error) {
     console.error('[getUserReferralData] Error:', error)
     return { success: false, error: '获取推荐数据失败' }
@@ -119,27 +166,45 @@ interface ActivityEvent {
   time: string
 }
 
-export async function getUserActivityData(userId: string): Promise<Admin.ActionResult<{ stats: ActivityStats, timeline: ActivityEvent[], heatmap: number[][] }>> {
+export async function getUserActivityData(
+  userId: string
+): Promise<
+  Admin.ActionResult<{
+    stats: ActivityStats
+    timeline: ActivityEvent[]
+    heatmap: number[][]
+  }>
+> {
   try {
     await requireAdmin()
 
     // 1. Stats
     const attemptsCount = await prisma.userAttempt.count({ where: { userId } })
-    const correctAttempts = await prisma.userAttempt.count({ where: { userId, isCorrect: true } })
-    const accuracy = attemptsCount > 0 ? Math.round((correctAttempts / attemptsCount) * 100) : 0
-    
-    const mistakesCount = await prisma.userAttempt.count({ where: { userId, isCorrect: false } })
-    
+    const correctAttempts = await prisma.userAttempt.count({
+      where: { userId, isCorrect: true },
+    })
+    const accuracy =
+      attemptsCount > 0
+        ? Math.round((correctAttempts / attemptsCount) * 100)
+        : 0
+
+    const mistakesCount = await prisma.userAttempt.count({
+      where: { userId, isCorrect: false },
+    })
+
     // Days Active: derive from DailyTask (LOGIN type) or UserAttempt dates
     // For simplicity, using user.streak or aggregation. Let's use user.streak for now as proxy or count distinct dates in UserAttempt
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { streak: true } })
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { streak: true },
+    })
     const daysActive = user?.streak || 0
 
     const stats: ActivityStats = {
       totalQuestions: attemptsCount,
       accuracy,
       mistakes: mistakesCount,
-      daysActive
+      daysActive,
     }
 
     // 2. Timeline (Mix of UserAttempt, SecurityLog(LOGIN), DailyTask)
@@ -147,41 +212,40 @@ export async function getUserActivityData(userId: string): Promise<Admin.ActionR
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 5,
-      include: { question: { select: { type: true } } }
+      include: { question: { select: { type: true } } },
     })
 
     const recentLogins = await prisma.securityLog.findMany({
       where: { userId, action: 'LOGIN' },
       orderBy: { createdAt: 'desc' },
-      take: 5
+      take: 5,
     })
 
     // Merge and Sort
     const events: ActivityEvent[] = [
-      ...recentAttempts.map(a => ({
+      ...recentAttempts.map((a) => ({
         type: 'Quiz Completed', // or a.question.type
         color: 'bg-emerald-500',
-        time: a.createdAt.toISOString()
+        time: a.createdAt.toISOString(),
       })),
-      ...recentLogins.map(l => ({
+      ...recentLogins.map((l) => ({
         type: 'Login',
         color: 'bg-blue-500',
-        time: l.createdAt.toISOString()
-      }))
+        time: l.createdAt.toISOString(),
+      })),
     ]
       .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-     .slice(0, 10)
-     .map(e => ({
-       type: e.type,
-       color: e.color,
-       time: formatRelativeTime(new Date(e.time))
-     }))
+      .slice(0, 10)
+      .map((e) => ({
+        type: e.type,
+        color: e.color,
+        time: formatRelativeTime(new Date(e.time)),
+      }))
 
     // 3. Heatmap (Last 12 weeks, real activity aggregation)
     const heatmap = await buildActivityHeatmap(userId)
 
     return { success: true, data: { stats, timeline: events, heatmap } }
-
   } catch (error) {
     console.error('[getUserActivityData] Error:', error)
     return { success: false, error: '获取活跃数据失败' }
@@ -190,7 +254,9 @@ export async function getUserActivityData(userId: string): Promise<Admin.ActionR
 
 // ============ Task D: Audit Tab - Consolidated Logs ============
 
-export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResult<Admin.AuditLogItem[]>> {
+export async function getUserAuditLogs(
+  userId: string
+): Promise<Admin.ActionResult<Admin.AuditLogItem[]>> {
   try {
     await requireAdmin()
 
@@ -198,57 +264,82 @@ export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResu
     const securityLogs = await prisma.securityLog.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      take: 100
+      take: 100,
     })
 
     // 2. Fetch Impersonation Sessions
     const sessions = await prisma.impersonationSession.findMany({
       where: { targetUserId: userId },
-      orderBy: { startedAt: 'desc' }
+      orderBy: { startedAt: 'desc' },
     })
 
     // 4. Map to Unified Format
     const items: Admin.AuditLogItem[] = []
 
     // Map Security Logs
-    securityLogs.forEach(log => {
+    securityLogs.forEach((log) => {
       let type = Admin.AuditEventType.OTHER
-      const title = log.action as string
-      let desc = JSON.stringify(log.metadata || {})
+      const title = getSecurityActionLabel(log.action as string)
+      const summary = summarizeSecurityLogMetadata(log.metadata, {
+        operator: log.userId,
+        target: log.userId,
+      })
+      let desc = formatSecurityLogSummary(log.metadata, {
+        operator: summary.operator,
+        target: summary.target,
+      })
 
-      switch(log.action) {
+      switch (log.action) {
         case 'LOGIN':
         case 'LOGOUT':
-          type = Admin.AuditEventType.LOGIN; break;
+          type = Admin.AuditEventType.LOGIN
+          break
+        case 'PASSWORD_RESET':
+          type = Admin.AuditEventType.PASSWORD_RESET
+          break
         case 'USER_BANNED':
         case 'USER_UNBANNED':
-          type = Admin.AuditEventType.STATUS; break;
+          type = Admin.AuditEventType.STATUS
+          break
         case 'PERMISSION_OVERRIDE':
-          type = Admin.AuditEventType.PERMISSION; break;
+          type = Admin.AuditEventType.PERMISSION
+          break
         case 'IMPERSONATE_START':
         case 'IMPERSONATE_END':
-          type = Admin.AuditEventType.IMPERSONATE; break;
+          type = Admin.AuditEventType.IMPERSONATE
+          break
         case 'ADMIN_NOTE_ADDED':
+        case 'ADMIN_NOTE_PINNED':
         case 'ADMIN_NOTE_DELETED':
-          type = Admin.AuditEventType.NOTE; break;
+        case 'ADMIN_NOTE_RESTORED':
+          type = Admin.AuditEventType.NOTE
+          break
       }
 
       // Parse metadata for better description
-      const meta = log.metadata as any
-      if (meta?.reason) desc = `Reason: ${meta.reason}`
-      if (meta?.adminEmail) desc += ` | By: ${meta.adminEmail}`
+      if (summary.changes.length > 0) {
+        desc = [summary.operator, summary.target, ...summary.changes]
+          .filter(Boolean)
+          .join(' | ')
+      }
+      if (summary.reason) {
+        desc += ` | 原因: ${summary.reason}`
+      }
 
       // Enrich IMPERSONATE_END with duration and endReason from session record
       let durationLabel: string | null = null
       let endReason: string | null = null
       if (log.action === 'IMPERSONATE_END') {
         // Find matching session: match by targetUserId + adminId + timing proximity
-        const matchedSession = sessions.find(s =>
-          s.endedAt &&
-          Math.abs(s.endedAt.getTime() - log.createdAt.getTime()) < 5000 // within 5s
+        const matchedSession = sessions.find(
+          (s) =>
+            s.endedAt &&
+            Math.abs(s.endedAt.getTime() - log.createdAt.getTime()) < 5000 // within 5s
         )
         if (matchedSession) {
-          const durationMs = matchedSession.endedAt!.getTime() - matchedSession.startedAt.getTime()
+          const durationMs =
+            matchedSession.endedAt!.getTime() -
+            matchedSession.startedAt.getTime()
           const mins = Math.floor(durationMs / 60000)
           const secs = Math.floor((durationMs % 60000) / 1000)
           durationLabel = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
@@ -263,11 +354,16 @@ export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResu
         description: desc,
         timestamp: log.createdAt.toISOString(),
         meta: {
+          operator: summary.operator,
+          target: summary.target,
+          reason: summary.reason,
+          changes: summary.changes,
+          sensitive: isSensitiveSecurityAction(log.action),
           isSessionStart: log.action === 'IMPERSONATE_START',
           isSessionEnd: log.action === 'IMPERSONATE_END',
           durationLabel,
           endReason,
-        }
+        },
       })
     })
 
@@ -283,10 +379,12 @@ export async function getUserAuditLogs(userId: string): Promise<Admin.ActionResu
     // But we might want to enrich the END log with duration if not present.
 
     // Sort
-    items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    items.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    )
 
     return { success: true, data: items }
-
   } catch (error) {
     console.error('[getUserAuditLogs] Error:', error)
     return { success: false, error: '获取审计日志失败' }

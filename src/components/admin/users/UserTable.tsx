@@ -23,10 +23,11 @@ import {
   Filter,
   Eye,
   Ban,
-  Mail,
+  FileText,
   ShieldAlert,
   Sparkles,
   Ticket,
+  TrendingUp,
   Users,
 } from 'lucide-react'
 import { Admin } from '@/types'
@@ -78,6 +79,7 @@ interface UserTableProps {
   onUserSelect?: (user: Admin.UserSummary) => void
   initialData?: Admin.PaginatedResponse<Admin.UserSummary>
   initialOverview?: Admin.UserOverview
+  viewerRole: 'ADMIN' | 'TEACHER'
   canOverridePermissions?: boolean
 }
 
@@ -85,9 +87,11 @@ export const UserTable: React.FC<UserTableProps> = ({
   onUserSelect,
   initialData,
   initialOverview,
+  viewerRole,
   canOverridePermissions = false,
 }) => {
   const router = useRouter()
+  const canViewUserDetail = viewerRole === 'ADMIN'
 
   // Filters
   const [filters, setFilters] = useState<Admin.UserFilterState>({
@@ -239,12 +243,14 @@ export const UserTable: React.FC<UserTableProps> = ({
     void loadOverview()
   }, [loadOverview])
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [filters])
-
   // --- Handlers ---
+
+  const updateFilters = (
+    updater: (current: Admin.UserFilterState) => Admin.UserFilterState
+  ) => {
+    setCurrentPage(1)
+    setFilters(updater)
+  }
 
   const handleSort = (key: keyof Admin.UserSummary) => {
     setSortConfig((current) => ({
@@ -272,9 +278,14 @@ export const UserTable: React.FC<UserTableProps> = ({
   const handleUserClick = (user: Admin.UserSummary) => {
     if (onUserSelect) {
       onUserSelect(user)
-    } else {
-      router.push(`/admin/users/${user.id}`)
+      return
     }
+
+    if (!canViewUserDetail) {
+      return
+    }
+
+    router.push(`/admin/users/${user.id}`)
   }
 
   const handleQuickAction = (
@@ -318,6 +329,45 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   const isFiltered =
     filters.search !== '' || filters.status !== 'All' || filters.tier !== 'All'
+
+  const exportCurrentPage = () => {
+    if (data.data.length === 0) {
+      toast.error('当前页没有可导出的用户')
+      return
+    }
+
+    const escapeCsv = (value: string | number | null) => {
+      const normalized = value == null ? '' : String(value)
+      return `"${normalized.replaceAll('"', '""')}"`
+    }
+
+    const rows = [
+      ['姓名', '邮箱', '角色', '状态', '订阅等级', '年级', '学校', '最后活跃'],
+      ...data.data.map((user) => [
+        user.name,
+        user.email,
+        user.role,
+        user.status,
+        user.tier,
+        user.grade,
+        user.school,
+        user.lastActive,
+      ]),
+    ]
+
+    const csv = rows.map((row) => row.map(escapeCsv).join(',')).join('\n')
+    const blob = new Blob([`\uFEFF${csv}`], {
+      type: 'text/csv;charset=utf-8;',
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `admin-users-page-${currentPage}-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+    toast.success('已导出当前页用户列表')
+  }
+
   const overviewCards = (overview?.metrics || []).map((metric) => {
     if (metric.id === 'total') {
       return {
@@ -384,9 +434,9 @@ export const UserTable: React.FC<UserTableProps> = ({
     key: Admin.UserOverviewWindow
     label: string
   }> = [
-    { key: '7D', label: '7 Days' },
-    { key: '30D', label: '30 Days' },
-    { key: 'ALL', label: 'All Time' },
+    { key: '7D', label: '近 7 天' },
+    { key: '30D', label: '近 30 天' },
+    { key: 'ALL', label: '累计' },
   ]
 
   const getTrendDisplay = (trend: number | null) => {
@@ -664,6 +714,11 @@ export const UserTable: React.FC<UserTableProps> = ({
               <p className="text-sm text-text-secondary dark:text-[#8FA4C2]">
                 搜索、筛选并处理用户状态，保留原有详情跳转与高风险操作逻辑。
               </p>
+              {!canViewUserDetail ? (
+                <p className="text-sm text-amber-600 dark:text-amber-300">
+                  当前为教师视角，仅保留列表与概览读取能力；详情、增长和高风险操作仅管理员可用。
+                </p>
+              ) : null}
             </div>
 
             <div className="flex flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
@@ -678,7 +733,10 @@ export const UserTable: React.FC<UserTableProps> = ({
                     placeholder="搜索用户、邮箱或学校..."
                     value={filters.search}
                     onChange={(e) =>
-                      setFilters((f) => ({ ...f, search: e.target.value }))
+                      updateFilters((current) => ({
+                        ...current,
+                        search: e.target.value,
+                      }))
                     }
                     className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#6F86A8] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                   />
@@ -689,8 +747,8 @@ export const UserTable: React.FC<UserTableProps> = ({
                     <select
                       value={filters.status}
                       onChange={(e) =>
-                        setFilters((f) => ({
-                          ...f,
+                        updateFilters((current) => ({
+                          ...current,
                           status: e.target.value as Admin.UserStatus | 'All',
                         }))
                       }
@@ -713,8 +771,8 @@ export const UserTable: React.FC<UserTableProps> = ({
                     <select
                       value={filters.tier}
                       onChange={(e) =>
-                        setFilters((f) => ({
-                          ...f,
+                        updateFilters((current) => ({
+                          ...current,
                           tier: e.target.value as
                             | Admin.SubscriptionTier
                             | 'All',
@@ -754,9 +812,13 @@ export const UserTable: React.FC<UserTableProps> = ({
                   </span>{' '}
                   位用户
                 </span>
-                <button className="inline-flex items-center gap-2 rounded-xl border border-borderTone bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-subtle dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]">
+                <button
+                  onClick={exportCurrentPage}
+                  disabled={data.data.length === 0}
+                  className="inline-flex items-center gap-2 rounded-xl border border-borderTone bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
+                >
                   <Download size={16} />
-                  导出
+                  导出当前页
                 </button>
               </div>
             </div>
@@ -823,7 +885,11 @@ export const UserTable: React.FC<UserTableProps> = ({
                   <tr
                     key={user.id}
                     onClick={() => handleUserClick(user)}
-                    className="group cursor-pointer transition-colors hover:bg-surface-subtle dark:hover:bg-[#131F35]"
+                    className={`group transition-colors ${
+                      canViewUserDetail
+                        ? 'cursor-pointer hover:bg-surface-subtle dark:hover:bg-[#131F35]'
+                        : 'cursor-default'
+                    }`}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -866,110 +932,136 @@ export const UserTable: React.FC<UserTableProps> = ({
                       </span>
                     </td>
                     <td className="action-menu relative px-6 py-4 text-right">
-                      <div
-                        className="flex justify-end"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <IconButton
-                          icon={<MoreHorizontal size={18} />}
-                          onClick={() =>
-                            setActiveDropdownId(
-                              activeDropdownId === user.id ? null : user.id
-                            )
-                          }
-                          className={
-                            activeDropdownId === user.id
-                              ? 'border-borderTone bg-surface-subtle text-text-primary dark:border-[#24324D] dark:bg-[#18243D] dark:text-[#E6EDF7]'
-                              : ''
-                          }
-                        />
-                      </div>
-
-                      {activeDropdownId === user.id ? (
-                        <div
-                          className="absolute right-6 top-11 z-50 w-52 origin-top-right overflow-hidden rounded-2xl border border-borderTone bg-surface shadow-surface duration-100 animate-in fade-in zoom-in-95 dark:border-[#24324D] dark:bg-[#151F36] dark:shadow-[0_18px_40px_rgba(2,8,23,0.42)]"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="py-1.5">
-                            <button
-                              onClick={() => {
-                                handleUserClick(user)
-                                setActiveDropdownId(null)
-                              }}
-                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white"
-                            >
-                              <Eye size={14} />
-                              查看详情
-                            </button>
-                            <button
-                              disabled
-                              className="flex w-full cursor-not-allowed items-center gap-2 px-4 py-2.5 text-left text-sm text-[#60738F]"
-                            >
-                              <Mail size={14} />
-                              发送邀请（待接入）
-                            </button>
-                            {canOverridePermissions ? (
-                              <OverrideModal
-                                user={{
-                                  id: user.id,
-                                  email: user.email,
-                                  username: user.name,
-                                  subscriptionTier:
-                                    user.tier === Admin.SubscriptionTier.PREMIER
-                                      ? 'PREMIER'
-                                      : user.tier ===
-                                          Admin.SubscriptionTier.SMART_PLUS
-                                        ? 'SMART_PLUS'
-                                        : user.tier ===
-                                            Admin.SubscriptionTier.STANDARD
-                                          ? 'STANDARD'
-                                          : 'STARTER',
-                                  subscriptionEnd: user.subscriptionEnd,
-                                  role:
-                                    user.role === 'ADMIN'
-                                      ? 'ADMIN'
-                                      : user.role === 'TEACHER'
-                                        ? 'TEACHER'
-                                        : user.role === 'PARENT'
-                                          ? 'PARENT'
-                                          : 'STUDENT',
-                                }}
-                                onSuccess={async () => {
-                                  setActiveDropdownId(null)
-                                  lastLoadedQueryKey.current = ''
-                                  lastLoadedOverviewWindow.current = ''
-                                  await Promise.all([
-                                    loadUsers(),
-                                    loadOverview(),
-                                  ])
-                                }}
-                              >
-                                <button className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white">
-                                  <ShieldAlert size={14} />
-                                  提权 / 覆写
-                                </button>
-                              </OverrideModal>
-                            ) : null}
-                            <div className="mx-3 my-1 h-px bg-borderTone dark:bg-[#24324D]" />
-                            <button
+                      {canViewUserDetail ? (
+                        <>
+                          <div
+                            className="flex justify-end"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <IconButton
+                              icon={<MoreHorizontal size={18} />}
                               onClick={() =>
-                                handleQuickAction(
-                                  user,
-                                  user.status === Admin.UserStatus.BANNED
-                                    ? 'unban'
-                                    : 'ban'
+                                setActiveDropdownId(
+                                  activeDropdownId === user.id ? null : user.id
                                 )
                               }
-                              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-rose-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-[#FCA5A5] dark:hover:bg-[#33161A] dark:hover:text-[#FECACA]"
-                            >
-                              <Ban size={14} />
-                              {user.status === Admin.UserStatus.BANNED
-                                ? '解除封禁'
-                                : '快速封禁'}
-                            </button>
+                              className={
+                                activeDropdownId === user.id
+                                  ? 'border-borderTone bg-surface-subtle text-text-primary dark:border-[#24324D] dark:bg-[#18243D] dark:text-[#E6EDF7]'
+                                  : ''
+                              }
+                            />
                           </div>
-                        </div>
-                      ) : null}
+
+                          {activeDropdownId === user.id ? (
+                            <div
+                              className="absolute right-6 top-11 z-50 w-52 origin-top-right overflow-hidden rounded-2xl border border-borderTone bg-surface shadow-surface duration-100 animate-in fade-in zoom-in-95 dark:border-[#24324D] dark:bg-[#151F36] dark:shadow-[0_18px_40px_rgba(2,8,23,0.42)]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="py-1.5">
+                                <button
+                                  onClick={() => {
+                                    router.push(`/admin/users/${user.id}`)
+                                    setActiveDropdownId(null)
+                                  }}
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white"
+                                >
+                                  <Eye size={14} />
+                                  查看详情
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    router.push(
+                                      `/admin/users/${user.id}?tab=growth`
+                                    )
+                                    setActiveDropdownId(null)
+                                  }}
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white"
+                                >
+                                  <TrendingUp size={14} />
+                                  查看增长
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    router.push(
+                                      `/admin/users/${user.id}?tab=audit`
+                                    )
+                                    setActiveDropdownId(null)
+                                  }}
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white"
+                                >
+                                  <FileText size={14} />
+                                  查看审计
+                                </button>
+                                {canOverridePermissions ? (
+                                  <OverrideModal
+                                    user={{
+                                      id: user.id,
+                                      email: user.email,
+                                      username: user.name,
+                                      subscriptionTier:
+                                        user.tier ===
+                                        Admin.SubscriptionTier.PREMIER
+                                          ? 'PREMIER'
+                                          : user.tier ===
+                                              Admin.SubscriptionTier.SMART_PLUS
+                                            ? 'SMART_PLUS'
+                                            : user.tier ===
+                                                Admin.SubscriptionTier.STANDARD
+                                              ? 'STANDARD'
+                                              : 'STARTER',
+                                      subscriptionEnd: user.subscriptionEnd,
+                                      role:
+                                        user.role === 'ADMIN'
+                                          ? 'ADMIN'
+                                          : user.role === 'TEACHER'
+                                            ? 'TEACHER'
+                                            : user.role === 'PARENT'
+                                              ? 'PARENT'
+                                              : 'STUDENT',
+                                    }}
+                                    onSuccess={async () => {
+                                      setActiveDropdownId(null)
+                                      lastLoadedQueryKey.current = ''
+                                      lastLoadedOverviewWindow.current = ''
+                                      await Promise.all([
+                                        loadUsers(),
+                                        loadOverview(),
+                                      ])
+                                    }}
+                                  >
+                                    <button className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary dark:text-[#D5E0F0] dark:hover:bg-[#1A2744] dark:hover:text-white">
+                                      <ShieldAlert size={14} />
+                                      提权 / 覆写
+                                    </button>
+                                  </OverrideModal>
+                                ) : null}
+                                <div className="mx-3 my-1 h-px bg-borderTone dark:bg-[#24324D]" />
+                                <button
+                                  onClick={() =>
+                                    handleQuickAction(
+                                      user,
+                                      user.status === Admin.UserStatus.BANNED
+                                        ? 'unban'
+                                        : 'ban'
+                                    )
+                                  }
+                                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-rose-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-[#FCA5A5] dark:hover:bg-[#33161A] dark:hover:text-[#FECACA]"
+                                >
+                                  <Ban size={14} />
+                                  {user.status === Admin.UserStatus.BANNED
+                                    ? '解除封禁'
+                                    : '快速封禁'}
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+                        </>
+                      ) : (
+                        <span className="text-xs text-text-secondary dark:text-[#8FA4C2]">
+                          仅管理员可操作
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))

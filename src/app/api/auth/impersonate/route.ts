@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyImpersonationToken } from '@/lib/jwt'
 import prisma from '@/lib/prisma'
 import { runAfterTask } from '@/lib/server/run-after-task'
+import { buildSecurityLogMetadata } from '@/lib/admin/security-log'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -50,12 +52,21 @@ export async function GET(request: NextRequest) {
         data: {
           userId: session.targetUserId,
           action: 'IMPERSONATE_END',
-          metadata: {
-            sessionId: session.id,
-            endReason: 'TOKEN_EXPIRED',
-          },
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: session.adminId,
+            },
+            target: {
+              id: session.targetUserId,
+            },
+            extra: {
+              sessionId: session.id,
+              endReason: 'TOKEN_EXPIRED',
+            },
+          }),
         },
       })
+      invalidateAdminDashboardOverview()
     }, 'impersonate-token-expired-audit')
 
     return NextResponse.redirect(new URL('/admin/users?error=token_expired', request.url))

@@ -779,10 +779,10 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
               countLabel={`${items.length} 条记录`}
             />
             <Link
-              href="/admin/permissions"
+              href="/admin/users"
               className="text-sm font-medium text-primary transition-colors hover:text-primary/80 dark:text-[#60A5FA] dark:hover:text-[#93C5FD]"
             >
-              查看全部日志
+              查看用户日志
             </Link>
           </div>
         </div>
@@ -804,12 +804,8 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
           </div>
         ) : (
           <ul className="space-y-3">
-            {visibleItems.map((log, index) => (
-              <li
-                key={log.id}
-                className="rounded-[22px] border border-borderTone bg-surface px-4 py-3.5 duration-300 animate-in dark:border-[#1B2840] dark:bg-[#121C32]"
-                style={{ animationDelay: `${index * 45}ms` }}
-              >
+            {visibleItems.map((log, index) => {
+              const content = (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2.5">
@@ -831,8 +827,25 @@ function AuditTable({ items }: { items: AdminDashboardAuditItem[] }) {
                     </span>
                   </div>
                 </div>
-              </li>
-            ))}
+              )
+
+              return (
+                <li key={log.id} style={{ animationDelay: `${index * 45}ms` }}>
+                  {log.href ? (
+                    <Link
+                      href={log.href}
+                      className="group block rounded-[22px] border border-borderTone bg-surface px-4 py-3.5 duration-300 animate-in hover:border-primary/40 hover:bg-surface-subtle dark:border-[#1B2840] dark:bg-[#121C32] dark:hover:border-[#2A466C] dark:hover:bg-[#15233A]"
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <div className="rounded-[22px] border border-borderTone bg-surface px-4 py-3.5 duration-300 animate-in dark:border-[#1B2840] dark:bg-[#121C32]">
+                      {content}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
             {visibleItems.length < ITEMS_PER_PAGE ? (
               <EmptySlots count={ITEMS_PER_PAGE - visibleItems.length} />
             ) : null}

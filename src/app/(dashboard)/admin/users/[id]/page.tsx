@@ -13,10 +13,15 @@ import { UserDetailClient } from './UserDetailClient'
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function AdminUserDetailPage({ params }: Props) {
+export default async function AdminUserDetailPage({ params, searchParams }: Props) {
   const { id } = await params
+  const resolvedSearchParams = (await searchParams) || {}
+  const rawTab = Array.isArray(resolvedSearchParams.tab)
+    ? resolvedSearchParams.tab[0]
+    : resolvedSearchParams.tab
   const profile = await getProfile()
 
   if (!profile) {
@@ -39,7 +44,7 @@ export default async function AdminUserDetailPage({ params }: Props) {
     <AdminClientWrapper userRole={profile.role}>
       <div className="min-h-screen bg-slate-950 p-6">
         <div className="max-w-7xl mx-auto">
-          <UserDetailClient user={result.data} />
+          <UserDetailClient user={result.data} initialTab={rawTab} />
         </div>
       </div>
     </AdminClientWrapper>

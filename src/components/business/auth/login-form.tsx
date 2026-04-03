@@ -27,9 +27,10 @@ const initialState: AuthFormState = {}
 
 interface LoginFormProps {
   redirectTo?: string
+  resetSuccess?: boolean
 }
 
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function LoginForm({ redirectTo, resetSuccess }: LoginFormProps) {
   const [state, formAction] = useActionState(loginAction, initialState)
 
   return (
@@ -40,6 +41,11 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           登录您的 LearnMore 账户
         </CardDescription>
       </CardHeader>
+      {resetSuccess ? (
+        <div className="mx-6 mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+          密码已更新，请使用新密码重新登录。
+        </div>
+      ) : null}
       <form action={formAction}>
         <input type="hidden" name="redirectTo" value={redirectTo || ''} />
         <CardContent className="space-y-4">
@@ -50,7 +56,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">密码</Label>
-              <Link href="#" className="text-sm text-primary hover:underline">
+              <Link href="/reset-password" className="text-sm text-primary hover:underline">
                 忘记密码?
               </Link>
             </div>

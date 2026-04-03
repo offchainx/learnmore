@@ -25,6 +25,7 @@ import {
 
 interface UserDetailClientProps {
   user: Admin.UserDetail
+  initialTab?: string
 }
 
 type TabId = 'overview' | 'subscription' | 'activity' | 'growth' | 'audit'
@@ -44,8 +45,14 @@ const tabs: Tab[] = [
   { id: 'audit', label: '审计', icon: <FileText className="w-4 h-4" /> },
 ]
 
-export const UserDetailClient: React.FC<UserDetailClientProps> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState<TabId>('overview')
+function resolveInitialTab(initialTab?: string): TabId {
+  return tabs.some((tab) => tab.id === initialTab)
+    ? (initialTab as TabId)
+    : 'overview'
+}
+
+export const UserDetailClient: React.FC<UserDetailClientProps> = ({ user, initialTab }) => {
+  const [activeTab, setActiveTab] = useState<TabId>(resolveInitialTab(initialTab))
 
   return (
     <div className="space-y-6">

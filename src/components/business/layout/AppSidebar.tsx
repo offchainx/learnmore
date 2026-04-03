@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { logoutAction } from '@/actions/user/auth'
 import {
   Menu, BookOpen, LayoutDashboard, PenTool, BookMarked,
-  Trophy, MessageCircle, MessageSquare, Settings, LogOut, ShieldCheck
+  Trophy, MessageCircle, MessageSquare, Settings, LogOut
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -84,23 +84,6 @@ const SidebarContent = ({ onClose, userRole }: { onClose?: () => void; userRole?
           {isAdmin && (
             <>
               <div className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-6 mb-3 px-4">Admin</div>
-              <Link
-                href="/admin/permissions"
-                onClick={onClose}
-                className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200 group relative overflow-hidden ${
-                  pathname === '/admin/permissions'
-                    ? 'text-blue-600 dark:text-white bg-blue-50 dark:bg-white/10'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
-                }`}
-              >
-                {pathname === '/admin/permissions' && (
-                  <div className="absolute inset-0 border-l-4 border-blue-500 bg-gradient-to-r from-blue-100/50 to-transparent dark:from-blue-600/10 dark:to-transparent" />
-                )}
-                <div className="flex items-center justify-center w-5 h-5 mr-3 relative z-10">
-                  <ShieldCheck className={`w-full h-full ${pathname === '/admin/permissions' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`} />
-                </div>
-                <span className="relative z-10 leading-none pt-[1px]">Permissions Control</span>
-              </Link>
               <Link
                 href="/admin/feedback"
                 onClick={onClose}

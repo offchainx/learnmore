@@ -17,10 +17,10 @@ import {
   Globe,
   Shield,
   Clock,
-  Smartphone,
 } from 'lucide-react'
 import { AdminNoteList } from '../AdminNoteList'
 import type { Admin } from '@/types'
+import { formatSecurityLogSummary } from '@/lib/admin/security-log'
 
 interface OverviewTabProps {
   user: Admin.UserDetail
@@ -66,9 +66,13 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ user }) => {
                 value={user.joinSource}
               />
               <InfoItem
-                icon={<Smartphone className="w-4 h-4" />}
-                label="活跃设备"
-                value={`${user.activeDeviceCount} 台`}
+                icon={<Clock className="w-4 h-4" />}
+                label="账号到期"
+                value={
+                  user.subscriptionEnd
+                    ? new Date(user.subscriptionEnd).toLocaleDateString('zh-CN')
+                    : '未设置'
+                }
               />
             </div>
           </div>
@@ -139,6 +143,7 @@ const actionLabels: Record<Admin.SecurityAction, { label: string; color: string 
   USER_UNBANNED: { label: '解除封禁', color: 'text-green-400' },
   PERMISSION_OVERRIDE: { label: '权限覆写', color: 'text-blue-400' },
   ADMIN_NOTE_ADDED: { label: '添加备注', color: 'text-slate-400' },
+  ADMIN_NOTE_PINNED: { label: '置顶备注', color: 'text-slate-400' },
   ADMIN_NOTE_DELETED: { label: '删除备注', color: 'text-slate-400' },
   ADMIN_NOTE_RESTORED: { label: '恢复备注', color: 'text-slate-400' },
 }
@@ -164,11 +169,21 @@ const SecurityLogItem: React.FC<SecurityLogItemProps> = ({ log }) => {
           {log.ipAddress && <span>IP: {log.ipAddress}</span>}
         </div>
 
-        {log.metadata && (
-          <div className="mt-2 p-2 bg-slate-800/50 rounded text-xs text-slate-400 font-mono">
-            {formatMetadata(log.metadata)}
+        <div className="mt-2 space-y-1.5">
+          <div className="flex flex-wrap gap-2 text-[11px] text-slate-400">
+            <span className="rounded-full border border-slate-700 bg-slate-800/70 px-2 py-0.5">
+              {formatSecurityLogSummary(log.metadata, {
+                operator: 'system',
+                target: log.userId,
+              })}
+            </span>
           </div>
-        )}
+          {log.metadata && (
+            <div className="rounded-lg border border-slate-800 bg-slate-800/40 px-3 py-2 text-xs text-slate-400">
+              {formatMetadata(log.metadata)}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -176,8 +191,25 @@ const SecurityLogItem: React.FC<SecurityLogItemProps> = ({ log }) => {
 
 function formatMetadata(metadata: Record<string, unknown>): string {
   const entries = Object.entries(metadata)
-    .filter(([key]) => !['adminId'].includes(key)) // 隐藏敏感字段
-    .map(([key, value]) => `${key}: ${String(value)}`)
+    .filter(([key]) => !['adminId', 'operatorId', 'targetId'].includes(key)) // 隐藏敏感字段
+    .map(([key, value]) => {
+      if (key === 'changes' && Array.isArray(value)) {
+        const formatted = value
+          .filter((item) => item && typeof item === 'object')
+          .map((item) => {
+            const record = item as Record<string, unknown>
+            return `${String(record.field ?? 'field')}: ${String(record.before ?? '-')} → ${String(record.after ?? '-')}`
+          })
+          .join(' | ')
+        return `${key}: ${formatted || '-'}`
+      }
+
+      if (value && typeof value === 'object') {
+        return `${key}: ${JSON.stringify(value)}`
+      }
+
+      return `${key}: ${String(value)}`
+    })
 
   return entries.join(' | ') || '-'
 }

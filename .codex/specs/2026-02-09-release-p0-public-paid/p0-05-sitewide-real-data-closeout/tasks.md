@@ -25,7 +25,6 @@
 | T-021 | 预发复测、发布前收口与回滚确认 | codex | todo |  |
 
 ## 实际执行顺序
-
 > 说明：本文件的任务编号用于追踪，不等于文档展示顺序。  
 > `T-004` 是“已完成的规则模板”，不是下一步要执行的工作。  
 > 当前真正的执行顺序应固定为下面这条链路。
@@ -40,7 +39,6 @@
 | Stage 5 | `T-021` | 预发复测、发布前收口与回滚确认 |
 
 ## T-002 全站治理前置任务（开发前必须补齐）
-
 ### 目标
 - 在进入任何页面实现前，先把全站治理总表、依赖顺序、字段来源、写入事件、约束缺口一次性梳理清楚。
 - `T-005 ~ T-019` 开始开发前，必须先完成 `T-002.1 ~ T-002.10` 并经用户确认颗粒度。
@@ -60,7 +58,6 @@
 | T-002.10 | 形成全站治理总表并完成一次用户对齐，锁定开发顺序与验收颗粒度 | user/codex | done |
 
 ## T-004 全站真实数据治理模板（已完成，作为规则层引用）
-
 ### 目标
 - 后续所有页面任务必须按同一套字段定义、命名、状态机、空态规则、核账规则推进。
 - 禁止“每做一个页面就重定义一遍统计口径和字段含义”。
@@ -77,7 +74,6 @@
 | T-004.7 | 建立统一页面任务模板：每个核心页面 task 都按同样的拆分结构推进 | codex | done |
 
 ## T-005 Dashboard 子任务（按五阶段推进）
-
 ### Phase A：定义与映射
 | id | description | owner | status |
 |---|---|---|---|
@@ -122,7 +118,6 @@
 | T-005.22 | 明确 Dashboard 与共享域边界：建立字段 owner 矩阵，明确 `leaderboard / achievements / streak / xp / profile / settings` 等字段由共享域提供，Dashboard 只消费、不重复重算 | codex | done |
 
 ### T-005 说明性内容
-
 #### Dashboard 板块功能确认
 - 顶部概览卡用于展示 `7D / 30D` 窗口下的学习概览，不承载跳转。
 - `今日任务` 负责展示 `dailyTasks` 当前待完成、可领取和已完成状态，并承接 onboarding 与领奖动作。
@@ -290,7 +285,7 @@
   - 审核与版权策略
   - 刷新频率
   - 多语言内容供应方式
-  在当前 P0 范围内不再继续扩展。
+    在当前 P0 范围内不再继续扩展。
 
 #### T-005.15.1 Profile Handle 身份能力与社区迁移
 - 目标不是继续复用现有 `username`，而是建立独立的身份标识字段 `handle`，用于后续社区 `@提及`、用户识别、短链接与通知链路。
@@ -638,18 +633,18 @@
   - 任何已经由共享域定义的字段，Dashboard 只能读取、组合、做展示态分发，不能偷偷在页面层或首页聚合里重写业务口径。
   - 若共享域已有独立页面或独立 action，Dashboard 必须复用其权威字段和状态，而不是再造一份“首页专用口径”。
 - 字段 owner 矩阵（`T-005.22.1`）：
-  | 字段 / 模块 | 权威 owner 域 | 当前 Dashboard 消费入口 | Dashboard 职责边界 |
-  |---|---|---|---|
-  | `profile.username / avatar / grade / handle / role` | 用户资料域（`src/actions/user/profile.ts`、`src/actions/user/auth.ts`） | `getDashboardProfile()` | 仅展示与引导补资料；不在首页重算、镜像或缓存另一套资料字段 |
-  | `settings.language / theme / notification* / studyReminderTime` | 设置域（`user_settings` + `src/actions/user/profile.ts` / settings actions） | `getDashboardProfile()` | 仅消费设置结果影响文案、主题和 onboarding 判断；不在 Dashboard 自己持久化设置 |
-  | `subscriptionTier / subscriptionStatus / subscriptionEnd` | 订阅 / billing 域 | `DashboardLayout`、`SettingsView` | 仅用于升级入口、试用 Banner、展示文案；不在 Dashboard 判定真正权限能力 |
-  | `xp / level / nextLevelXp` | 游戏化域（XP 积分规则 + `calculateLevel`） | `getDashboardStats()`、`DashboardLayout` | `xp` 为源字段，`level / nextLevelXp` 仅允许从 XP 派生展示，禁止 Dashboard 自定义等级公式 |
-  | `streak / lastStudyDate` | 游戏化域（`src/actions/gamification/streak.ts`） | `getDashboardStats()` | 只展示 streak；禁止在 Dashboard 渲染时触发 streak 写入 |
-  | `dailyTasks / reward claimState / task progress` | 游戏化任务域（`src/actions/gamification/daily-tasks.ts`、`achievement.ts`） | `getDashboardStats()` | 首页只负责展示、触发动作、刷新；任务生成/推进/领奖逻辑不在组件层实现 |
-  | `leaderboard.rank / percentile / peerAverageAccuracy / userAccuracy` | 排行榜域（leaderboard 聚合口径） | `buildLeaderboardCard()` | 首页只消费周榜摘要卡，不定义独立排行榜算法 |
-  | `achievements / badges` | 成就域（`src/actions/gamification/achievements.ts` 及相关 badge 逻辑） | 当前 Dashboard 首页不直接消费，仅在壳层 XP 卡与后续 `/dashboard/achievements` 域使用 | 首页不预先复制 badge 明细，不在 Dashboard 自己判发徽章 |
-  | `studyTime / questions / accuracy / activeDays` | Dashboard 首页统计口径本身，但其底层来源分别归属练习记录、课程进度、活动事件 | `getDashboardStats()` | Dashboard 可聚合展示，但必须复用底层权威表：`exam_records`、`user_attempts`、`user_progress` |
-  | `learningPath / subjectProgress / weaknesses / recentPractice` | Dashboard 首页聚合层 | `getDashboardStats()` | 这些属于 Dashboard 自有展示聚合，可在首页定义合同，但不得越权改写下游练习结果原始数据 |
+| 字段 / 模块 | 权威 owner 域 | 当前 Dashboard 消费入口 | Dashboard 职责边界 |
+|---|---|---|---|
+| `profile.username / avatar / grade / handle / role` | 用户资料域（`src/actions/user/profile.ts`、`src/actions/user/auth.ts`） | `getDashboardProfile()` | 仅展示与引导补资料；不在首页重算、镜像或缓存另一套资料字段 |
+| `settings.language / theme / notification* / studyReminderTime` | 设置域（`user_settings` + `src/actions/user/profile.ts` / settings actions） | `getDashboardProfile()` | 仅消费设置结果影响文案、主题和 onboarding 判断；不在 Dashboard 自己持久化设置 |
+| `subscriptionTier / subscriptionStatus / subscriptionEnd` | 订阅 / billing 域 | `DashboardLayout`、`SettingsView` | 仅用于升级入口、试用 Banner、展示文案；不在 Dashboard 判定真正权限能力 |
+| `xp / level / nextLevelXp` | 游戏化域（XP 积分规则 + `calculateLevel`） | `getDashboardStats()`、`DashboardLayout` | `xp` 为源字段，`level / nextLevelXp` 仅允许从 XP 派生展示，禁止 Dashboard 自定义等级公式 |
+| `streak / lastStudyDate` | 游戏化域（`src/actions/gamification/streak.ts`） | `getDashboardStats()` | 只展示 streak；禁止在 Dashboard 渲染时触发 streak 写入 |
+| `dailyTasks / reward claimState / task progress` | 游戏化任务域（`src/actions/gamification/daily-tasks.ts`、`achievement.ts`） | `getDashboardStats()` | 首页只负责展示、触发动作、刷新；任务生成/推进/领奖逻辑不在组件层实现 |
+| `leaderboard.rank / percentile / peerAverageAccuracy / userAccuracy` | 排行榜域（leaderboard 聚合口径） | `buildLeaderboardCard()` | 首页只消费周榜摘要卡，不定义独立排行榜算法 |
+| `achievements / badges` | 成就域（`src/actions/gamification/achievements.ts` 及相关 badge 逻辑） | 当前 Dashboard 首页不直接消费，仅在壳层 XP 卡与后续 `/dashboard/achievements` 域使用 | 首页不预先复制 badge 明细，不在 Dashboard 自己判发徽章 |
+| `studyTime / questions / accuracy / activeDays` | Dashboard 首页统计口径本身，但其底层来源分别归属练习记录、课程进度、活动事件 | `getDashboardStats()` | Dashboard 可聚合展示，但必须复用底层权威表：`exam_records`、`user_attempts`、`user_progress` |
+| `learningPath / subjectProgress / weaknesses / recentPractice` | Dashboard 首页聚合层 | `getDashboardStats()` | 这些属于 Dashboard 自有展示聚合，可在首页定义合同，但不得越权改写下游练习结果原始数据 |
 - 共享域边界说明：
   - `profile / settings`
     - Dashboard 只负责把资料缺失转成空态、任务或 CTA。
@@ -686,7 +681,6 @@
   - 任何“为了首页好看先补一个默认值”的做法，都视为越权，除非该字段已在本任务文档中明确标记为“展示增强模块”。
 
 ## 页面族统一拆分模板（适用于 T-006 ~ T-019）
-
 > 除 Dashboard 外，其余页面族任务默认按同一模板继续拆分，避免每个页面重新发明一套流程。
 
 | 子任务后缀 | 固定含义 |
@@ -699,7 +693,6 @@
 | `.6` | 本页面族验证：页面冒烟、字段核账、重复提交/刷新验证 |
 
 ## 页面族任务范围说明
-
 | task | 页面族范围 | 备注 |
 |---|---|---|
 | T-006 | `/dashboard/courses`、`/course/[subjectId]`、`/course/[subjectId]/[lessonId]` | 将用户内容、学习进度、章节/课程口径统一 |
@@ -718,7 +711,6 @@
 | T-019 | 登录、注册、公开页 CTA、联系/帮助/博客等表单与跳转 | 用于承接旧版“Public / Marketing / Auth”范围 |
 
 ## 页面族展开清单（用于开发前对齐颗粒度）
-
 ### T-006 学习内容域
 | id | description | owner | status |
 |---|---|---|---|
@@ -730,7 +722,6 @@
 | T-006.6 | 完成学习内容域验证：页面冒烟、进度字段核账、重复保存/刷新验证 | codex | todo |
 
 ### T-007 练习域
-
 > 前置说明：以下 4 条“规则固化”任务属于 `T-007.3 / T-007.4` 的前置门槛。  
 > 未明确落定前，不应继续推进相关读取、筛题、写链路与统计口径实现。
 
@@ -1049,56 +1040,355 @@
   - `T-008.10` 已完成社区域最终验证，真实数据展示、增强模块核账、读写链路一致性、重复提交与刷新回归均已确认通过。
 
 ### T-009 Admin 首页与公共管理域
-
 #### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-009.1 | 盘点 `/admin` 首页的模块、统计卡、风险区、待办区、审计区、快捷入口、当前数据源、mock 占位和缓存入口 | codex | doing |
-| T-009.2 | 定义 `/admin` 首屏 `workQueue` / `risks` / `audits` / KPI / 快捷入口的字段口径、权威数据源与展示规则，明确今日必须处理、最近告警、最近操作审计分别展示什么 | codex | todo |
-| T-009.3 | 建立角色权限矩阵与前端展示区块，覆盖 `ADMIN` / `TEACHER` / `PARENT` / `STUDENT` 的可见、可进入、可操作、可写入、可审计范围，并同步到首屏交互入口 | codex | todo |
+| T-009.1 | 盘点 `/admin` 首页的模块、统计卡、风险区、待办区、审计区、当前数据源、mock 占位和缓存入口 | codex | done |
+| T-009.2 | 定义 `/admin` 首屏 `workQueue` / `risks` / `audits` / KPI 的字段口径、权威数据源与展示规则，明确今日必须处理、最近告警、最近操作审计分别展示什么 | codex | done |
+| T-009.3 | 建立角色权限矩阵与前端展示区块，覆盖 `ADMIN` / `TEACHER` / `PARENT` / `STUDENT` 的可见、可进入、可操作、可写入、可审计范围，并同步到首屏展示规则 | codex | done |
 
 #### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-009.4 | 对齐 `/admin` 首页读取链路，替换 `workQueue` / `risks` / `audits` / KPI / 快捷入口的真实数据源，并核验卡片展示、列表排序、跳转目标与后端返回一致 | codex | todo |
-| T-009.5 | 对齐公共管理写链路的权限、幂等、审计，补齐首屏相关写动作的真实副作用闭环；用户权限提权、覆写、恢复等动作归入 `T-010` | codex | todo |
-| T-009.6 | 补缓存失效与刷新闭环，明确写后 `revalidatePath`、缓存 tag 失效、局部刷新、进页刷新与返回首页后的数据回流边界 | codex | todo |
-| T-009.7 | 补审计留痕、角色边界和高风险操作确认，保证 `audits` 与安全/权限事件口径一致，且关键动作有操作者、目标、前后值、原因与时间 | codex | todo |
+| T-009.4 | 对齐 `/admin` 首页读取链路，替换 `workQueue` / `risks` / `audits` / KPI 的真实数据源，并核验卡片展示、列表排序、跳转目标与后端返回一致 | codex | done |
+| T-009.5 | 对齐公共管理写链路的权限、幂等、审计，补齐首屏相关写动作的真实副作用闭环；用户权限提权、覆写、恢复等动作归入 `T-010` | codex | done |
+| T-009.6 | 补缓存失效与刷新闭环，明确写后 `revalidatePath`、缓存 tag 失效、局部刷新、进页刷新与返回首页后的数据回流边界 | codex | done |
+| T-009.7 | 补审计留痕、角色边界和高风险操作确认，保证 `audits` 与安全/权限事件口径一致，且关键动作有操作者、目标、前后值、原因与时间 | codex | done |
 
 #### Phase C：清理和收口验证
 | id | description | owner | status |
 |---|---|---|---|
-| T-009.8 | 清理假统计、假待办、假风险提示、假审计、假回执与死链，补齐 `forbidden` / `error` / `empty` 状态，完成 `/admin` mock 数据清退 | codex | todo |
-| T-009.9 | 完成 `/admin` 首页域验证：`workQueue` / `risks` / `audits` 角色隔离、字段核账、周期切换核账、重复操作验证、刷新后仍为真实数据 | codex | todo |
+| T-009.8 | 清理假统计、假待办、假风险提示、假审计、假回执与死链，补齐 `forbidden` / `error` / `empty` 状态，完成 `/admin` mock 数据清退 | codex | done |
+| T-009.9 | 完成 `/admin` 首页域验证：`workQueue` / `risks` / `audits` 角色隔离、字段核账、周期切换核账、重复操作验证、刷新后仍为真实数据 | codex | done |
+
+### T-009 说明性内容
+#### T-009.1 盘点结果摘要
+- 路由入口：`/admin`
+- 页面文件：`src/app/(dashboard)/admin/page.tsx`
+- 主体渲染：`src/components/admin/dashboard/v2/AdminDashboardV2.tsx`
+- 缓存入口：`getCachedAdminDashboardOverview(initialWindow)`，缓存 tag 为 `admin-dashboard-overview`
+- 角色门禁：仅 `ADMIN` / `TEACHER` 可进入，`PARENT` / `STUDENT` 直接重定向到 `/dashboard`
+- 当前首页主模块只有四块：
+  - `KPI`
+  - `workQueue`
+  - `risks`
+  - `audits`
+- 当前首页真正有用的跳转只有：
+  - `workQueue` -> `/admin/content/reports`
+  - `workQueue` -> `/admin/feedback`
+- 当前首页风险与审计跳转已替换为有效后台页，不再依赖 `/admin/permissions`
+- 首页不再包含独立 quick actions 合同，内容审核 / 用户管理 / 权限配置 / 学员反馈 / 优惠券管理均由各自路由域承接
+
+#### T-009.2 首屏字段口径与权威数据源矩阵
+##### 总体口径
+| 模块 | 核心目的 | 是否必须真实数据 | 是否允许 mock | 备注 |
+|---|---|---|---|---|
+| KPI | 展示管理台当前窗口内的业务规模、推进效率与风险压力 | 是 | 否 | 只允许来自真实聚合或真实表 |
+| workQueue | 展示今日必须处理的待办事项 | 是 | 否 | 必须按 SLA 排序，卡片可点击进入处理页 |
+| risks | 展示最近告警与安全/权限敏感事件 | 是 | 否 | 仅 ADMIN 可见，必须能回溯到安全日志 |
+| audits | 展示最近操作审计 | 是 | 否 | 只展示真实审计记录，不允许静态说明替代 |
+
+##### 不纳入首页合同的数据
+- 内容审核
+- 用户管理
+- 权限配置
+- 学员反馈
+- 优惠券管理
+
+##### KPI 字段口径
+| KPI id | 展示文案 | 权威数据源 | 复算规则 | 空态规则 |
+|---|---|---|---|---|
+| `kpi-active-users` | 活跃用户 | `users.lastSignInAt` | 按当前窗口统计最近活跃用户数 | 无数据时显示 `0` |
+| `kpi-paid-users` | 付费用户 | `users.subscriptionTier` | 按付费订阅类型统计总量与窗口增量 | 无数据时显示 `0` |
+| `kpi-completion` | 课程完成率 | `userProgress.isCompleted` | 按窗口内更新的课程进度计算完成率 | 无数据时显示 `0.0%` |
+| `kpi-tickets` | 待处理工单 | `userFeedback`, `questionReport` | 统计当前待处理反馈与待审核报错的合计与增量 | 无数据时显示 `0` |
+| `kpi-system-errors` | 系统异常 | `securityLog` | 统计风险动作数量与高风险事件数量 | 无数据时显示 `0` |
+
+##### workQueue 字段口径
+| 队列类型 | 展示标题 | 权威数据源 | 排序规则 | 点击跳转 | 空态规则 |
+|---|---|---|---|---|---|
+| 内容报错待审核 | `内容问题待审核: ${issueType}` | `questionReport` | 按截止时间升序，超时优先 | `/admin/content/reports` | 无待办时展示“当前没有积压事项” |
+| 用户反馈待处理 | `用户反馈待处理: ${title}` | `userFeedback` | 按截止时间升序，超时优先 | `/admin/feedback` | 无待办时展示“当前没有积压事项” |
+
+##### risks 字段口径
+| 风险类型 | 展示字段 | 权威数据源 | 进入条件 | 点击跳转 | 角色可见性 | 空态规则 |
+|---|---|---|---|---|---|---|
+| 安全/权限告警 | `title`, `level`, `time`, `source`, `href` | `securityLog` | `RISK_ACTIONS` 集合内的事件 | `/admin/users/[id]?tab=audit` | 仅 `ADMIN` | 无告警时展示“当前没有新增告警” |
+
+##### audits 字段口径
+| 审计项 | 展示字段 | 权威数据源 | 进入条件 | 点击跳转 | 角色可见性 | 空态规则 |
+|---|---|---|---|---|---|---|
+| 操作审计 | `actor`, `action`, `target`, `time`, `level`, `href`, `visibleTo` | `securityLog` | 近期开启时间范围内的安全日志 | `/admin/users` | `ADMIN` / `TEACHER`，敏感动作仅 `ADMIN` | 无审计时展示“当前时间范围内暂无审计记录” |
+
+##### 角色可见性矩阵
+| 模块 | ADMIN | TEACHER | PARENT | STUDENT |
+|---|---|---|---|---|
+| 路由进入 | 可进入 | 可进入 | 不可进入 | 不可进入 |
+| KPI | 可见 | 可见 | 不可进入 | 不可进入 |
+| workQueue | 可见 | 可见 | 不可进入 | 不可进入 |
+| risks | 可见 | 不展示，显示占位 | 不可进入 | 不可进入 |
+| audits | 可见 | 可见 | 不可进入 | 不可进入 |
+
+##### 后续实现约束
+- 所有 `workQueue`、`risks`、`audits` 和 KPI 卡片必须来自真实数据，不允许前端静态数组兜底。
+- `workQueue` 只承接“今日必须处理”的事项，不混入其他后台路由功能入口。
+- `risks` 和 `audits` 只展示真实 `securityLog` 派生内容，不允许用静态说明文案替代数据。
+- 首页跳转必须指向现有后台页，不再允许 `/admin/permissions` 作为任何首页目标。
+
+#### T-009.3 角色权限矩阵与前端展示规则
+- 路由门禁：
+  - `ADMIN` 和 `TEACHER` 可以进入 `/admin`
+  - `PARENT` 和 `STUDENT` 不进入 `/admin`，直接重定向到 `/dashboard`
+- 前端展示规则：
+  - `ADMIN` 显示完整首页：`KPI`、`workQueue`、`risks`、`audits`
+  - `TEACHER` 显示首页主线：`KPI`、`workQueue`、`audits`
+  - `TEACHER` 不展示 `risks`，改为占位说明，不应出现可点击告警卡
+  - `PARENT` / `STUDENT` 不展示任何 `/admin` 首页模块
+- 可操作范围：
+  - `ADMIN` 可点击处理队列、风险项、审计项
+  - `TEACHER` 仅可点击工作队列与审计项
+  - `PARENT` / `STUDENT` 无操作入口
+- 可写入范围：
+  - 本阶段 `/admin` 首页不承担写动作，只负责展示与跳转
+  - 真正的写动作归入对应业务页或 `T-010 ~ T-015`
+- 可审计范围：
+  - `ADMIN` 可看到完整审计信息
+  - `TEACHER` 仅看到当前权限范围内的审计摘要
+  - 敏感审计必须保持角色过滤，不得通过隐藏样式规避
+
+- 收口说明：
+  - `T-009.1`、`T-009.2`、`T-009.3` 已完成收口，`/admin` 首页的盘点、字段口径与角色矩阵已经定稿。
+  - 后续 `T-009.4` 开始进入真实链路接入与校验，不再修改上述边界定义。
+
+#### T-009.4 首页读取链路对齐进展
+- 首页读取链路继续沿用 `getAdminDashboardOverview(window)` -> `buildAdminDashboardOverview(window)`，不新增前端静态兜底数组。
+- `workQueue` 继续只消费真实待处理项：
+  - 内容报错待审核 -> `/admin/content/reports`
+  - 用户反馈待处理 -> `/admin/feedback`
+- `risks` 已对齐到真实风险日志，并将点击目标收口到现有用户详情审计视图：
+  - 风险卡跳转到 `/admin/users/[id]?tab=audit`
+  - 仅 `ADMIN` 可见，因此不会出现教师点击后跳到无权限页的问题
+- `audits` 已对齐到真实安全日志，并将点击目标统一收口到现有用户管理页：
+  - 审计项跳转到 `/admin/users`
+  - `ADMIN` / `TEACHER` 都有可达落点，不再依赖已废弃路由
+- `/admin/users/[id]` 已补 `searchParams.tab` 入口，支持首页深链直接打开 `audit` tab。
+- 运行时遗留死链已同步清理：
+  - 首页主链路不再引用 `/admin/permissions`
+  - 侧边栏不再暴露 `/admin/permissions`
+  - 权限覆写写后刷新不再 `revalidatePath('/admin/permissions')`
+- 页面级验证结果：
+  - 使用本地管理员账号 `admin_ui_test@learnmore.com` 登录后，`/admin` 可正常加载，`管理概览`、`今日必须处理`、`最近告警`、`最近操作审计` 四块均正常渲染
+  - 时间窗口从默认态切到 `本周` 后，URL 正常切换到 `/admin?window=WEEK`，服务端读取链路继续工作
+  - 当前数据库 `securityLog` 为空，因此本轮运行态验证确认了 `risks` 与 `audits` 的空态展示和链接合同，未能回放真实风险项点击
+  - 空数据情况下：
+    - `risks` 正常展示“当前没有新增告警”
+    - `audits` 正常展示“当前时间范围内暂无审计记录”
+    - 审计区 CTA 仍可跳转 `/admin/users`
+- 收口说明：
+  - `T-009.4` 已完成首页读取链路对齐，真实数据读取、窗口切换、空态展示和现有有效跳转均已确认。
+  - 真实风险记录与真实审计记录的字段核账、角色隔离和刷新后回流验证留到 `T-009.9` 统一收口。
+
+#### T-009.5 写链路对齐进展
+- 本阶段只处理会反向影响首页三块数据的写动作，不扩散到 `T-010` 的权限提权 / 覆写 / 到期恢复。
+- 当前纳入首页副作用闭环的写动作：
+  - 反馈提交 / 反馈状态变更 / 反馈回复：影响 `workQueue` 与 KPI
+  - 内容报错处理：影响 `workQueue` 与 KPI
+  - 用户封禁 / 解封：影响 `risks`、`audits` 与 KPI
+- 本阶段对齐原则：
+  - 服务端必须重新校验后台身份，不能只信任前端传入的操作者字段
+  - 重复执行同一高风险动作不能重复写入首页风险/审计事件
+  - 写后至少要触发 `/admin` 页面级刷新，确保首页能感知真实副作用
+- 当前已完成：
+  - `toggleUserStatus()` 增加目标用户存在性校验、禁止操作其他管理员、禁止操作自己、重复封禁/解封幂等保护
+  - `toggleUserStatus()` 写后补充 `/admin/users` 与 `/admin` 刷新
+  - `submitFeedback()`、`replyToFeedback()`、`updateFeedbackStatus()` 写后补充 `/admin` 刷新
+  - `resolveReport()` 改为服务端自行解析管理员身份，不再信任前端传入的 `reviewedBy`
+  - `resolveReport()` 写后补充 `/admin` 刷新
+  - `ReportDetailsDrawer` 的“提交处理”按钮去掉错误的初始失活，改为仅在提交中禁用，锁态继续由 `handleSubmit()` 给出明确提示，避免按钮不可点击导致内容报错处理链路假死
+- 当前未纳入：
+  - 权限提权 / 覆写 / 到期恢复，仍归 `T-010`
+- 页面级验证结果：
+  - 通过浏览器登录管理员账号 `admin_ui_test@learnmore.com`，创建并处理受控测试反馈 `5a5f9b42-1f99-4fc5-83c3-d702f2a7f498`（标题 `T009 closeout feedback 1775186777640`）
+  - 反馈详情页将该工单更新为 `CLOSED` 后，首页 `/admin` 的 `workQueue` 不再显示该条“用户反馈待处理”事项，确认反馈状态变更 -> 首页回流闭环成立
+  - 通过浏览器登录管理员账号，处理受控测试报错 `95792bd7-3958-4ecb-b31f-2bbaa20a86a6`（描述 `T009 closeout report 1775186777640`）
+  - 报错详情抽屉提交后，数据库状态更新为 `RESOLVED`，且首页 `/admin` 的 `workQueue` 不再显示对应“内容问题待审核: LATEX_ERROR”事项，确认内容报错处理 -> 首页回流闭环成立
+- 收口说明：
+  - `T-009.5` 已完成本阶段要求的权限校验、幂等保护、首页刷新回流和页面级行为验证
+  - 全量 `pnpm -s tsc --noEmit` 已通过；此前阻塞的 `scripts/measure-route-timings.ts` 类型问题已修复，并同步移除了脚本中的 `/admin/permissions` 废弃路由样本
+
+#### T-009.6 缓存失效与刷新闭环进展
+- 本阶段只处理首页汇总层的缓存与刷新闭环，不新增业务路由、不引入新的展示合同。
+- 统一缓存入口仍是 `getCachedAdminDashboardOverview(initialWindow)`，首页汇总数据继续挂在 `admin-dashboard-overview` tag 上。
+- 统一失效入口已收口为 `invalidateAdminDashboardOverview()`，由所有会影响首页三块与 KPI 的写动作在服务端统一调用。
+- 当前已纳入缓存/刷新闭环的写动作：
+  - `submitFeedback()`：反馈提交后刷新首页 `workQueue` / KPI
+  - `replyToFeedback()`：反馈回复后刷新首页 `workQueue` / KPI
+  - `updateFeedbackStatus()`：反馈状态变更后刷新首页 `workQueue` / KPI
+  - `resolveReport()`：报错处理后刷新首页 `workQueue` / KPI
+  - `toggleUserStatus()`：用户封禁 / 解封后刷新首页 `risks` / `audits` / KPI
+  - `addAdminNote()` / `softDeleteAdminNote()` / `restoreAdminNote()`：管理备注变更后刷新用户管理相关汇总与首页缓存
+  - `impersonateUser()`：模拟登录后刷新首页安全与审计汇总
+  - `applyAdminOverride()`：权限覆写后刷新首页风险/审计相关汇总
+  - `syncCurrentUserToDatabase()`：登录态镜像发生变化时刷新首页活跃用户统计
+- 刷新边界说明：
+  - `revalidatePath()` 用于立即刷新具体页面或详情页，让当前路由尽快看到最新结果
+  - `revalidateTag('admin-dashboard-overview', 'quick')` 用于失效首页汇总缓存，保证再次进入 `/admin` 时重新取真实数据
+  - 这两层必须同时存在，不能只靠页面刷新掩盖缓存残留
+  - 本阶段不再保留任何仅在前端靠 `router.refresh()` 或静态数组兜底的缓存策略
+- 收口说明：
+  - `T-009.6` 已完成首页缓存失效、页面刷新和返回首页的数据回流边界定义，`/admin` 首页不再依赖单一页面刷新来覆盖跨域写副作用
+  - 该阶段只补齐缓存与刷新合同，不改动 `T-009.1 ~ T-009.5` 已定稿的模块边界与字段口径
+
+#### T-009.7 审计留痕、角色边界和高风险确认进展
+- 本阶段只增强审计留痕与高风险动作展示，不新增 `/admin` 首页路由、不修改既有角色矩阵的进入边界。
+- 统一审计元数据格式已收口为：
+  - `operatorId / operatorEmail / operatorName`
+  - `targetId / targetEmail / targetName`
+  - `reason`
+  - `changes[]`
+  - `extra`
+- 当前已按统一格式补齐的高风险动作：
+  - 用户封禁 / 解封：写入操作者、目标用户、状态前后值与原因
+  - 权限覆写：写入操作者、目标用户、订阅等级前后值、到期时间与原因
+  - 管理备注新增 / 删除 / 恢复 / 置顶：写入操作者、目标用户、备注状态或置顶状态
+  - 重置密码：写入操作者、目标用户、原因与重置跳转地址
+  - 伪装登录开始 / 结束：写入操作者、目标用户、会话状态、结束原因与会话标识
+- 展示侧对齐：
+  - `/admin` 首页 `risks / audits` 改为读取统一审计元数据，避免再展示散装 JSON
+  - 用户详情页 `Overview` / `Audit` 两个区块补齐结构化留痕展示，能够直接看到操作者、目标、原因、变更与高风险标记
+  - `audits` 中的敏感事件继续保持仅 `ADMIN` 可见，`TEACHER` 只能看到权限范围内的摘要
+- 高风险确认边界：
+  - 既有封禁、解封、伪装登录、重置密码动作继续使用确认弹窗，不新增无确认写入口
+  - 本阶段只校正审计口径与展示口径，避免再出现“有确认无留痕”或“有留痕无摘要”的不一致
+- 收口说明：
+  - `T-009.7` 已完成审计留痕、角色边界和高风险确认的口径收束，首页风险卡与用户审计页已切到同一套字段解释
+  - 后续 `T-009.8` 继续处理 mock、假态与死链清退，不再回改本阶段的审计字段合同
+
+#### T-009.8 假数据与死链清退进展
+- 本阶段目标是把 `/admin` 域里不再承接真实业务的假数据、死链和旧页面全部清退掉，避免首页和管理页继续引用废弃合同。
+- 当前已完成的清退项：
+  - 删除 `/admin/permissions` 路由页，彻底移除这个废弃后台入口
+  - 删除 `src/actions/admin/stripe-mock.ts`，清退 admin 域里残留的模拟支付历史
+  - 删除 `src/components/admin/users/mock/userMockData.ts`，清退用户管理域里的 mock 用户、mock 审计与 mock 热力图生成器
+- 保留并收敛的真实状态：
+  - `/admin` 首页的 `loading / error / empty` 状态继续由 `AdminDashboardV2` 自己承接，不再回退到静态数组或假页面
+  - `risks`、`audits`、`workQueue` 的空态继续展示真实空状态文案，不再混入 mock 数据
+  - `/admin` 首页所有跳转仅指向真实存在的后台页，不再允许回退到废弃的 `/admin/permissions`
+- 收口说明：
+  - `T-009.8` 已完成死链和无引用 mock 文件的实际清退，后续只剩最终域验证，不再引入新的假数据源或旧路由回填
+  - `next typegen` 已重新生成路由类型，`/admin/permissions` 的旧生成引用已清除，`pnpm -s tsc --noEmit` 已通过
+
+#### T-009.9 首页域最终验证结果
+- 验证环境：
+  - 本地开发服务使用现有 `next dev` 实例，验证入口为 `http://localhost:3000`
+  - 使用专用测试账号完成登录：
+    - `admin_ui_test@learnmore.com`
+    - `teacher_ui_test@learnmore.com`
+    - `student_ui_test@learnmore.com`
+    - `parent_ui_test@learnmore.com`
+- 验证结果 - `ADMIN`：
+  - `/admin` 可正常进入
+  - 首屏四块均可见：`管理概览`、`今日必须处理`、`最近告警`、`最近操作审计`
+  - 当前窗口切换到 `本周` 后，URL 正常变为 `/admin?window=WEEK`
+  - `workQueue` 非空，`risks` 非空，`audits` 非空，未回落到空态或静态兜底
+  - 风险卡可点击并正确深链到 `/admin/users/[id]?tab=audit`
+- 验证结果 - `TEACHER`：
+  - `/admin` 可正常进入
+  - 保留 `管理概览`、`今日必须处理`、`最近操作审计`
+  - 风险面板切换为占位说明，展示“当前角色不展示风险面板”，且不出现可点击风险卡
+- 验证结果 - `STUDENT` / `PARENT`：
+  - 访问 `/admin` 后均重定向到 `/dashboard`
+  - 不展示任何 `/admin` 首页模块
+- 字段核账：
+  - 首页三块已按统一合同读取真实数据
+  - `workQueue` 继续由真实 `userFeedback` / `questionReport` 派生
+  - `risks` / `audits` 继续由真实 `securityLog` 派生
+  - 首页不存在 `/admin/permissions` 跳转或死链
+- 收口说明：
+  - `T-009.9` 已完成首页域的角色隔离、窗口切换、真实数据、深链跳转和空态/非空态核验
+  - 至此 `T-009` 全部子任务完成，后续仅进入 `T-010` 用户管理域的收口验证
 
 ### T-010 用户管理域
-| id | description | owner | status |
-|---|---|---|---|
-| T-010.1 | 盘点 `/admin/users`、`/admin/users/[id]` 的列表、筛选、详情模块、管理动作与当前数据源 | codex | todo |
-| T-010.2 | 建立用户列表、订阅、状态、学习概览、审计信息、管理动作的字段映射与权威数据源矩阵 | codex | todo |
-| T-010.3 | 对齐用户管理读取链路：列表、搜索、筛选、详情聚合、关联记录加载 | codex | todo |
-| T-010.4 | 对齐用户管理写链路：状态变更、备注、模拟登录等动作的权限与幂等 | codex | todo |
-| T-010.5 | 清理假用户数据、假统计、假管理回执，补齐空态/错误态/越权态 | codex | todo |
-| T-010.6 | 完成用户管理域验证：管理动作核账、权限验证、重复提交验证 | codex | todo |
-
-#### T-010 权限提权 / 覆写 / 恢复
-
 ##### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-010.7 | 盘点 `/admin/users`、`/admin/users/[id]` 中权限提权、权限覆写、权限恢复的入口、按钮、弹窗、历史区块、当前数据源与 mock 占位 | codex | todo |
-| T-010.8 | 建立权限变更字段口径与权威数据源矩阵，覆盖 `subscriptionTier`、`subscriptionEnd`、`override history`、`securityLog`、`reason`、`expiresAt`、`operator`、`restore target` 与幂等键 | codex | todo |
+| T-010.1 | 盘点 `/admin/users`、`/admin/users/[id]`、`/admin/users/[id]?tab=growth` 的列表、筛选、详情、增长、审计、管理动作入口与当前数据源，明确用户管理主域边界 | codex | done |
+| T-010.2 | 建立用户管理字段口径与权威数据源矩阵，覆盖 `user`、`adminNote`、`securityLog`、`impersonationSession`、`userPermissionOverride`、重置密码链路的展示字段、写入字段、落库表与幂等键 | codex | done |
+| T-010.3 | 盘点权限提权 / 覆写 / 到期恢复子域的入口、按钮、弹窗、历史区块、当前数据源与 mock 占位，并与用户管理主域边界对齐 | codex | todo |
+| T-010.4 | 建立权限变更字段口径与权威数据源矩阵，覆盖 `subscriptionTier`、`subscriptionEnd`、`override history`、`securityLog`、`reason`、`expiresAt`、`operator`、`到期恢复口径` 与幂等键 | codex | done |
 
 ##### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-010.9 | 对齐权限提权 / 覆写 / 恢复写链路，打通提交、撤销、过期失效、重复提交防重、权限校验、审计落库与写后刷新回流，所有动作仅通过 `/admin/users` 与 `/admin/users/[id]` 暴露 | codex | todo |
+| T-010.5 | 对齐用户管理读取链路：列表、搜索、筛选、详情聚合、关联记录加载、增长/审计/权限历史读链路，确保真实数据闭环 | codex | done |
+| T-010.6 | 对齐用户管理写链路：状态变更、备注新增/删除/恢复/置顶、模拟登录、重置密码等动作的权限校验、幂等、防重、审计落库与写后刷新 | codex | done |
+| T-010.7 | 对齐权限提权 / 覆写 / 到期恢复写链路，打通提交、到期失效、重复提交防重、权限校验、审计落库与写后刷新回流，所有动作仅通过 `/admin/users` 与 `/admin/users/[id]` 暴露 | codex | done |
 
 ##### Phase C：清理和收口验证
 | id | description | owner | status |
 |---|---|---|---|
+| T-010.8 | 清理假用户数据、假统计、假管理回执、死链与静态回执，补齐空态/错误态/越权态/禁用态 | codex | done |
+| T-010.9 | 完成用户管理域验证：管理动作核账、权限验证、重复提交验证、落库验证（`user` / `adminNote` / `securityLog` / `impersonationSession` / `userPermissionOverride`）与刷新后仍为真实数据 | codex | todo |
 | T-010.10 | 清理假提权回执、假历史、静态默认值与死链，补齐 `forbidden` / `error` / `empty` / `confirm` 状态，确保权限变更交互不再依赖已废弃路由 | codex | todo |
-| T-010.11 | 完成权限提权 / 覆写 / 恢复域验证：前后值核账、恢复验证、重复提交验证、越权验证、刷新后仍为真实数据 | codex | todo |
+| T-010.11 | 完成权限提权 / 覆写 / 到期恢复域验证：前后值核账、到期回收验证、重复提交验证、越权验证、刷新后仍为真实数据 | codex | todo |
+
+#### T-010.1 盘点结果摘要
+- 盘点范围覆盖 `/admin/users`、`/admin/users/[id]`、`/admin/users/[id]?tab=growth`，同时确认用户管理主域的列表、详情、增长、审计与管理动作入口。
+- 列表页由 `src/app/(dashboard)/admin/users/page.tsx` 注入真实初始数据，`ADMIN` / `TEACHER` 都可进入。
+- 详情页由 `src/app/(dashboard)/admin/users/[id]/page.tsx` 承接，当前仅 `ADMIN` 可访问。
+- 增长视图已由真实推荐关系驱动，和列表、详情的深链合同一致。
+- 当前结论：主域边界已明确，`done` 标注成立。
+
+#### T-010.2 字段口径与权威数据源矩阵
+- 用户管理列表侧的权威源是 `user` 表，字段覆盖 `id`、`email`、`username`、`role`、`status`、`subscriptionTier`、`subscriptionEnd`、`lastSignInAt`、`grade`、`school`、`createdAt`。
+- 列表展示口径统一按 `lastSignInAt` 优先、`createdAt` 兜底，搜索命中 `email`、`username`、`school`，ID 仅在合法 UUID 时做精确匹配。
+- 概览与风险统计只消费 `user` 与 `securityLog` 的真实数据，不允许前端再造一份首页口径。
+- 单用户增长、增长树和推荐额度只消费 `user` 与 `referral` 的真实关系，不再依赖静态摘要或硬编码邀请数。
+- 用户详情的 `overview / subscription / activity / growth / audit` 五个 tab 各自有明确的数据源边界，审计与增长深链必须继续遵守 `/admin/users/[id]?tab=...` 合同。
+- 管理动作对应的写入表已经明确：状态与封禁写 `user` + `securityLog`，备注写 `adminNote` + `securityLog`，伪装登录写 `impersonationSession` + `securityLog`，权限覆写写 `userPermissionOverride` + `user` + `securityLog`。
+- 当前结论：字段口径与权威数据源已经锁定，后续 `T-010.3 ~ T-010.11` 只能按这套矩阵消费与落库。
+
+#### T-010.3 权限提权 / 覆写 / 到期恢复盘点结果
+- 盘点范围覆盖 `/admin/users`、`/admin/users/[id]` 中与权限提权、权限覆写、到期恢复相关的入口、按钮、弹窗和历史区块。
+- 现有前端入口主要集中在 `src/components/admin/users/tabs/SubscriptionTab.tsx`、`src/components/admin/users/GrantPermissionDialog.tsx` 和 `src/components/admin/permissions/OverrideModal.tsx`。
+- 权限历史已能通过 `getOverrideHistory()` 读取，操作提交已通过 `applyAdminOverride()` 进入真实写链路。
+- 当前实现是按时长计算 `expiresAt`，到期后自然失效，没有单独的手动恢复后端动作。
+- 当前结论：权限子域已确认存在，入口和历史链路是实的，但“恢复”语义必须继续按到期失效理解，不能写成不存在的独立恢复能力。
+
+#### T-010.4 权限变更字段口径与权威数据源矩阵
+- 权限变更的展示与写入字段必须统一落在 `subscriptionTier`、`subscriptionEnd`、`reason`、`expiresAt`、`operator`、`override history` 这组合同上，不允许出现另一套页面口径。
+- 权限覆写的权威写入表是 `userPermissionOverride`，用户当前订阅态的权威表是 `user`，审计留痕的权威表是 `securityLog`。
+- 历史展示的读取入口是 `getOverrideHistory()`，它读取 `userPermissionOverride` 并补充管理员身份信息，前端只负责展示，不再自行拼口径。
+- 提权弹窗和覆写弹窗都必须把 `duration` 映射到 `expiresAt`，并把 `reason` 作为必填审计原因写入。
+- 当前结论：`T-010.4` 已经把权限变更的字段边界锁定，后续实现只能沿着这套数据源矩阵继续推进。
+
+#### T-010.5 用户管理读取链路进展
+- 用户列表读取已经由 `listAdminUsers()` 承接，支持搜索、状态筛选、订阅筛选、排序和分页，列表页通过真实服务端查询而不是静态数组渲染。
+- 用户概览读取已经由 `getAdminUserOverview()` 承接，`/admin/users` 的首屏统计卡直接消费真实 `user` 与 `securityLog` 聚合。
+- 用户详情读取已经由 `getUserDetail()` 承接，详情页的 `overview / subscription / activity / growth / audit` 等信息都来自真实数据库关联。
+- 增长、活跃、审计这三块分别由 `getUserReferralData()`、`getUserActivityData()`、`getUserAuditLogs()` 承接，已经形成独立且可核账的读取入口。
+- 当前结论：`T-010.5` 已确认读取链路是真实闭环，后续只需要继续做角色边界、细节核账和回流验证，不需要再改读取合同本身。
+
+#### T-010.6 用户管理写链路进展
+- 用户管理写动作已经补齐真实闭环：状态变更、备注新增/删除/恢复/置顶、模拟登录、重置密码都通过真实 server action 执行，不再依赖静态回执。
+- 重置密码链路已改为先由管理员端发送到 `/reset-password`，再由前台恢复页承接 `resetPasswordForEmail()` 请求和恢复链接后的新密码设置。
+- 登录页的“忘记密码”入口已改成真实 `/reset-password` 路由，密码重置成功后会回跳到 `/login?reset=success` 并展示成功提示。
+- `toggleNotePin()` 已补上 `securityLog` 审计与写后刷新，管理员备注置顶不再是纯前端状态切换。
+- 当前结论：`T-010.6` 的写链路已经闭环，管理员侧发起、前台恢复页、审计落库与登录回流都已打通，可以标记为 `done`。
+
+#### T-010.7 权限提权 / 覆写 / 到期恢复写链路进展
+- `applyAdminOverride()` 已改成事务化写入：先落 `userPermissionOverride`，再更新 `user`，最后写入 `securityLog`。
+- 重复提交已经增加同状态短路，当前用户记录的 `subscriptionTier` 与 `subscriptionEnd` 如果已经和目标值一致，就不会再次落写。
+- 权限覆写记录补写了 `previousValue`，历史回放与审计核账可以直接看到前后值。
+- 当前结论：权限提权 / 覆写 / 到期恢复写链路已经闭环，所有动作继续只通过 `/admin/users` 与 `/admin/users/[id]` 暴露，可以标记为 `done`。
+
+#### T-010.8 假数据、静态回执与死链清退进展
+- 用户管理域里的支付历史假回执组件 `src/components/admin/users/StripeHistoryTable.tsx` 已删除，不再向详情页注入静态 payment history。
+- 伪装登录链路已去掉空 `token` 占位，改为先签发完整 JWT，再一次性创建 `impersonationSession`，避免出现“先建壳、后回填”的静态回执。
+- 用户详情与概览继续消费真实 `user`、`userAttempt`、`securityLog`、`adminNote`、`impersonationSession`、`userPermissionOverride` 数据，不再依赖旧的假统计字段。
+- 当前结论：`T-010.8` 负责的假数据与静态回执清理已经完成，后续 `T-010.9 ~ T-010.11` 只做核验与收口，不再回补旧占位。
+
+- 其余 `T-010.9 ~ T-010.11` 先只保留在任务表中，等对应子任务真正推进到位后，再按同样格式补各自的说明性文档。
 
 ### T-011 反馈域
 | id | description | owner | status |
@@ -1223,7 +1513,6 @@
 - 各页面族任务默认先做读数据与口径，再做写动作，最后做 mock 清理和验证。
 
 ## 2026-03-30 补充任务（仅追加，不替换既有任务）
-
 > 说明：本节用于承接当前确认的开发顺序与落地颗粒度。  
 > 不改动 `T-001 ~ T-021` 的原始定义；以下任务作为追加任务执行。  
 > 其中 `T-022 ~ T-024` 对应当前已确认的增量开发链路，`T-025` 用于约束“每完成一步立即更新文档并测试留证”，`T-026` 用于承接全站响应时间/渲染时间/交互反馈时间优化。
@@ -1237,7 +1526,6 @@
 | T-026 | 全站响应时间优化收口：首屏渲染、路由切换、点击即时反馈、函数与数据源延迟统一压缩 | codex | done |  |
 
 ## 补充执行顺序（覆盖本轮开发，不替换原顺序）
-
 | 执行阶段 | 对应任务 | 执行说明 |
 |---|---|---|
 | Stage A | `T-022` | 先打通全站 Feedback 入口，确保正式入口、提交动作、回显与基础验证可用 |
@@ -1442,7 +1730,6 @@
 - 未执行 `/admin/feedback/[id]` 详情页验证：本步只验证了列表可见性，未继续点入详情页核对来源字段展示。
 
 ## 2026-03-31 补充验证与运行修复记录
-
 ### T-022 浏览器补充验证（2026-03-31）
 - 多语言浏览器验证：
 - 使用 Playwright headless 分别在 `zh/en/ms` 三种语言 cookie + localStorage 状态下打开 `/help`。

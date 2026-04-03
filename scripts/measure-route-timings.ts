@@ -35,6 +35,24 @@ type RouteMetrics = RouteSample & {
   firstContentfulPaintMs: number | null
 }
 
+type NavigationMetrics = {
+  responseStart: number
+  domInteractive: number
+  domContentLoadedEventEnd: number
+  loadEventEnd: number
+  duration: number
+  redirectCount: number
+  transferSize: number
+  encodedBodySize: number
+  decodedBodySize: number
+  type: string
+}
+
+type PerformanceSnapshot = {
+  nav: NavigationMetrics | null
+  paints: { name: string; startTime: number }[]
+}
+
 type Samples = {
   blogSlug: string | null
   communityPostId: string | null
@@ -80,25 +98,13 @@ async function measureRoute(page: Page, sample: RouteSample): Promise<RouteMetri
 
   await page.waitForTimeout(200)
 
-  let metrics: {
-    nav: {
-      responseStart: number
-      domInteractive: number
-      domContentLoadedEventEnd: number
-      loadEventEnd: number
-      duration: number
-      redirectCount: number
-      transferSize: number
-      encodedBodySize: number
-      decodedBodySize: number
-      type: string
-    } | null
-    paints: { name: string; startTime: number }[]
-  } | null = null
+  let metrics: PerformanceSnapshot | null = null
 
   try {
     metrics = await page.evaluate(() => {
-      const nav = window.performance.getEntriesByType('navigation').at(-1)
+      const nav = window.performance
+        .getEntriesByType('navigation')
+        .at(-1) as PerformanceNavigationTiming | undefined
       const paints = window.performance.getEntriesByType('paint').map((entry) => ({
         name: entry.name,
         startTime: entry.startTime,
@@ -130,7 +136,7 @@ async function measureRoute(page: Page, sample: RouteSample): Promise<RouteMetri
   const paints = Object.fromEntries(
     (metrics?.paints || []).map((entry: { name: string; startTime: number }) => [entry.name, entry.startTime])
   )
-  const nav = metrics?.nav || {}
+  const nav = metrics?.nav
 
   return {
     scope: sample.scope,
@@ -139,16 +145,16 @@ async function measureRoute(page: Page, sample: RouteSample): Promise<RouteMetri
     status: response ? response.status() : null,
     finalUrl: page.url(),
     totalMs: round(totalMs),
-    responseStartMs: round(nav.responseStart),
-    domInteractiveMs: round(nav.domInteractive),
-    domContentLoadedMs: round(nav.domContentLoadedEventEnd),
-    loadMs: round(nav.loadEventEnd),
-    navigationDurationMs: round(nav.duration),
-    redirectCount: nav.redirectCount ?? null,
-    transferSize: nav.transferSize ?? null,
-    encodedBodySize: nav.encodedBodySize ?? null,
-    decodedBodySize: nav.decodedBodySize ?? null,
-    type: nav.type || null,
+    responseStartMs: round(nav?.responseStart),
+    domInteractiveMs: round(nav?.domInteractive),
+    domContentLoadedMs: round(nav?.domContentLoadedEventEnd),
+    loadMs: round(nav?.loadEventEnd),
+    navigationDurationMs: round(nav?.duration),
+    redirectCount: nav?.redirectCount ?? null,
+    transferSize: nav?.transferSize ?? null,
+    encodedBodySize: nav?.encodedBodySize ?? null,
+    decodedBodySize: nav?.decodedBodySize ?? null,
+    type: nav?.type || null,
     firstPaintMs: round(paints['first-paint']),
     firstContentfulPaintMs: round(paints['first-contentful-paint']),
   }
@@ -246,7 +252,6 @@ async function main() {
     { scope: 'auth', label: '/admin/content/review/slow-path', url: 'http://localhost:3000/admin/content/review/slow-path' },
     samples.questionId ? { scope: 'auth', label: `/admin/content/review/${samples.questionId}`, url: `http://localhost:3000/admin/content/review/${encodeURIComponent(samples.questionId)}` } : null,
     { scope: 'auth', label: '/admin/content/statistics', url: 'http://localhost:3000/admin/content/statistics' },
-    { scope: 'auth', label: '/admin/permissions', url: 'http://localhost:3000/admin/permissions' },
     { scope: 'auth', label: '/admin/referrals', url: 'http://localhost:3000/admin/referrals' },
     { scope: 'auth', label: '/admin/users', url: 'http://localhost:3000/admin/users' },
     samples.userId ? { scope: 'auth', label: `/admin/users/${samples.userId}`, url: `http://localhost:3000/admin/users/${encodeURIComponent(samples.userId)}` } : null,

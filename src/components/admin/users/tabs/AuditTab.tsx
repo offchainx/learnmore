@@ -32,6 +32,7 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
     if (auditFilter === 'Permission Change') return auditLogs.filter(l => l.type === Admin.AuditEventType.PERMISSION);
     if (auditFilter === 'Impersonation') return auditLogs.filter(l => l.type === Admin.AuditEventType.IMPERSONATE);
     if (auditFilter === 'Status Change') return auditLogs.filter(l => l.type === Admin.AuditEventType.STATUS);
+    if (auditFilter === 'Password Reset') return auditLogs.filter(l => l.type === Admin.AuditEventType.PASSWORD_RESET);
     return auditLogs;
   }, [auditLogs, auditFilter]);
 
@@ -49,7 +50,7 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
         
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-8 border-b border-slate-800 pb-6">
-          {['All', 'Permission Change', 'Impersonation', 'Status Change'].map(f => (
+          {['All', 'Permission Change', 'Impersonation', 'Status Change', 'Password Reset'].map(f => (
             <button
               key={f}
               onClick={() => setAuditFilter(f)}
@@ -83,6 +84,9 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
               if (log.type === Admin.AuditEventType.STATUS) {
                 icon = <Ban size={14} />;
                 colorClass = 'text-red-400 bg-red-950/30 border-red-900';
+              } else if (log.type === Admin.AuditEventType.PASSWORD_RESET) {
+                icon = <Lock size={14} />;
+                colorClass = 'text-amber-400 bg-amber-950/30 border-amber-900';
               } else if (log.type === Admin.AuditEventType.IMPERSONATE) {
                 icon = <UserIcon size={14} />;
                 colorClass = 'text-amber-400 bg-amber-950/30 border-amber-900';
@@ -122,6 +126,33 @@ export const AuditTab: React.FC<AuditTabProps> = ({ user }) => {
                     <p className="text-xs text-slate-400 leading-relaxed">
                       {log.description}
                     </p>
+                    <div className="flex flex-wrap gap-2 text-[11px] text-slate-400">
+                      {log.meta?.operator && (
+                        <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5">
+                          操作者: {log.meta.operator}
+                        </span>
+                      )}
+                      {log.meta?.target && (
+                        <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5">
+                          目标: {log.meta.target}
+                        </span>
+                      )}
+                      {log.meta?.reason && (
+                        <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5">
+                          原因: {log.meta.reason}
+                        </span>
+                      )}
+                      {log.meta?.changes?.length ? (
+                        <span className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900 px-2 py-0.5">
+                          变更: {log.meta.changes.join(' / ')}
+                        </span>
+                      ) : null}
+                      {log.meta?.sensitive ? (
+                        <span className="inline-flex items-center rounded-full border border-amber-700/60 bg-amber-950/40 px-2 py-0.5 text-amber-300">
+                          高风险
+                        </span>
+                      ) : null}
+                    </div>
                     {/* Duration + EndReason badges for IMPERSONATE_END */}
                     {log.meta?.isSessionEnd && (
                       <div className="flex items-center gap-2 mt-1">

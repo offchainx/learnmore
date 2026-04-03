@@ -15,6 +15,7 @@ import {
   resolveRequestUserIdentity,
 } from '@/lib/auth/request-user'
 import { runAfterTask } from '@/lib/server/run-after-task'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
 
 export interface SubmitFeedbackParams {
   category: FeedbackCategory
@@ -273,6 +274,8 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
       }
 
       revalidatePath('/admin/feedback')
+      revalidatePath('/admin')
+      invalidateAdminDashboardOverview()
     }, 'feedback-submit-side-effects')
 
     return { success: true, data: feedback }
@@ -634,6 +637,8 @@ export async function replyToFeedback(
 
       revalidatePath('/admin/feedback')
       revalidatePath(`/admin/feedback/${feedbackId}`)
+      revalidatePath('/admin')
+      invalidateAdminDashboardOverview()
     }, 'feedback-reply-side-effects')
 
     return { success: true, data: updatedFeedback }
@@ -710,6 +715,8 @@ export async function updateFeedbackStatus(
     runAfterTask(() => {
       revalidatePath('/admin/feedback')
       revalidatePath(`/admin/feedback/${feedbackId}`)
+      revalidatePath('/admin')
+      invalidateAdminDashboardOverview()
     }, 'feedback-status-revalidate')
 
     return { success: true, data: updatedFeedback }

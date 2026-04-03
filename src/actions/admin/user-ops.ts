@@ -12,7 +12,11 @@ import { revalidatePath } from 'next/cache'
 import { signImpersonationToken } from '@/lib/jwt'
 import { Admin } from '@/types'
 import { SecurityAction, SubscriptionTier } from '@prisma/client'
+import { randomUUID } from 'crypto'
 import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
+import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
+import { createClient } from '@/lib/supabase/server'
+import { buildSecurityLogMetadata } from '@/lib/admin/security-log'
 
 const AVATAR_COLOR_PALETTE = [
   'bg-red-500',
@@ -513,6 +517,19 @@ export async function getUserDetail(
 
     const activeSession = dbUser.impersonationSessions[0]
     const lastActiveDate = dbUser.lastSignInAt || dbUser.createdAt
+    const [totalQuestions, correctQuestions, mistakesCount] =
+      await Promise.all([
+        prisma.userAttempt.count({ where: { userId: dbUser.id } }),
+        prisma.userAttempt.count({
+          where: { userId: dbUser.id, isCorrect: true },
+        }),
+        prisma.userAttempt.count({
+          where: { userId: dbUser.id, isCorrect: false },
+        }),
+      ])
+
+    const accuracy =
+      totalQuestions > 0 ? Math.round((correctQuestions / totalQuestions) * 100) : 0
 
     const userDetail: Admin.UserDetail = {
       id: dbUser.id,
@@ -531,14 +548,10 @@ export async function getUserDetail(
       phone: '未设置',
       joinDate: dbUser.createdAt.toISOString(),
       joinSource: dbUser.utmSource || '直接访问',
-      totalSpend: 0,
-      projectsCount: 0,
-      apiCalls: 0,
-      activeDeviceCount: 1,
       learningStats: {
-        totalQuestions: 0,
-        accuracy: 0,
-        mistakes: 0,
+        totalQuestions,
+        accuracy,
+        mistakes: mistakesCount,
         daysActive: dbUser.streak || 0,
       },
       notes,
@@ -584,6 +597,37 @@ export async function toggleUserStatus(
       return { success: false, error: '原因至少需要10个字符' }
     }
 
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+      },
+    })
+
+    if (!targetUser) {
+      return { success: false, error: '目标用户不存在' }
+    }
+
+    if (targetUser.role === 'ADMIN') {
+      return { success: false, error: '不能封禁其他管理员' }
+    }
+
+    if (admin.id === userId) {
+      return { success: false, error: '不能修改自己的账号状态' }
+    }
+
+    const nextStatus = action === 'ban' ? 'BANNED' : 'ACTIVE'
+    if (targetUser.status === nextStatus) {
+      revalidatePath(`/admin/users/${userId}`)
+      revalidatePath('/admin/users')
+      revalidatePath('/admin')
+      invalidateAdminDashboardOverview()
+      return { success: true }
+    }
+
     // 使用事务确保审计日志和状态变更原子性
     await prisma.$transaction(async (tx) => {
       // 1. 写入审计日志（先写审计，保证痕迹不丢失）
@@ -591,11 +635,25 @@ export async function toggleUserStatus(
         data: {
           userId,
           action: action === 'ban' ? 'USER_BANNED' : 'USER_UNBANNED',
-          metadata: {
-            adminId: admin.id,
-            adminEmail: admin.email,
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: admin.id,
+              email: admin.email,
+              name: admin.username ?? admin.email,
+            },
+            target: {
+              id: targetUser.id,
+              email: targetUser.email,
+            },
             reason,
-          },
+            changes: [
+              {
+                field: 'status',
+                before: targetUser.status,
+                after: nextStatus,
+              },
+            ],
+          }),
         },
       })
 
@@ -603,12 +661,15 @@ export async function toggleUserStatus(
       await tx.user.update({
         where: { id: userId },
         data: {
-          status: action === 'ban' ? 'BANNED' : 'ACTIVE',
+          status: nextStatus,
         },
       })
     })
 
     revalidatePath(`/admin/users/${userId}`)
+    revalidatePath('/admin/users')
+    revalidatePath('/admin')
+    invalidateAdminDashboardOverview()
     return { success: true }
   } catch (error) {
     console.error('[toggleAdmin.UserStatus] Error:', error)
@@ -644,15 +705,22 @@ export async function addAdminNote(
         data: {
           userId,
           action: 'ADMIN_NOTE_ADDED',
-          metadata: {
-            adminId: admin.id,
-            adminEmail: admin.email,
-          },
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: admin.id,
+              email: admin.email,
+              name: admin.username ?? admin.email,
+            },
+            target: {
+              id: userId,
+            },
+          }),
         },
       }),
     ])
 
     revalidatePath(`/admin/users/${userId}`)
+    invalidateAdminDashboardOverview()
     return {
       success: true,
       data: {
@@ -695,16 +763,26 @@ export async function softDeleteAdminNote(
         data: {
           userId: note.userId,
           action: 'ADMIN_NOTE_DELETED',
-          metadata: {
-            adminId: admin.id,
-            adminEmail: admin.email,
-            noteId,
-          },
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: admin.id,
+              email: admin.email,
+              name: admin.username ?? admin.email,
+            },
+            target: {
+              id: note.userId,
+            },
+            extra: {
+              noteId,
+              noteState: 'deleted',
+            },
+          }),
         },
       }),
     ])
 
     revalidatePath(`/admin/users/${note.userId}`)
+    invalidateAdminDashboardOverview()
     return { success: true }
   } catch (error) {
     console.error('[softDeleteAdmin.AdminNote] Error:', error)
@@ -735,16 +813,26 @@ export async function restoreAdminNote(
         data: {
           userId: note.userId,
           action: 'ADMIN_NOTE_RESTORED',
-          metadata: {
-            adminId: admin.id,
-            adminEmail: admin.email,
-            noteId,
-          },
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: admin.id,
+              email: admin.email,
+              name: admin.username ?? admin.email,
+            },
+            target: {
+              id: note.userId,
+            },
+            extra: {
+              noteId,
+              noteState: 'restored',
+            },
+          }),
         },
       }),
     ])
 
     revalidatePath(`/admin/users/${note.userId}`)
+    invalidateAdminDashboardOverview()
     return { success: true }
   } catch (error) {
     console.error('[restoreAdmin.AdminNote] Error:', error)
@@ -759,25 +847,138 @@ export async function toggleNotePin(
   noteId: string
 ): Promise<Admin.ActionResult> {
   try {
-    await requireAdmin()
+    const admin = await requireAdmin()
 
     const note = await prisma.adminNote.findUnique({ where: { id: noteId } })
     if (!note) {
       return { success: false, error: '备注不存在' }
     }
 
-    await prisma.adminNote.update({
-      where: { id: noteId },
-      data: { isPinned: !note.isPinned },
-    })
+    await prisma.$transaction([
+      prisma.adminNote.update({
+        where: { id: noteId },
+        data: { isPinned: !note.isPinned },
+      }),
+      prisma.securityLog.create({
+        data: {
+          userId: note.userId,
+          action: SecurityAction.ADMIN_NOTE_PINNED,
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: admin.id,
+              email: admin.email,
+              name: admin.username ?? admin.email,
+            },
+            target: {
+              id: note.userId,
+            },
+            changes: [
+              {
+                field: 'isPinned',
+                before: note.isPinned,
+                after: !note.isPinned,
+              },
+            ],
+            extra: {
+              noteId,
+            },
+          }),
+        },
+      }),
+    ])
 
     revalidatePath(`/admin/users/${note.userId}`)
+    invalidateAdminDashboardOverview()
     return { success: true }
   } catch (error) {
     console.error('[toggleNotePin] Error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : '操作失败',
+    }
+  }
+}
+
+export async function resetUserPassword(
+  targetUserId: string,
+  reason: string
+): Promise<Admin.ActionResult> {
+  try {
+    const admin = await requireAdmin()
+
+    if (reason.length < 10) {
+      return { success: false, error: '原因至少需要10个字符' }
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+      },
+    })
+
+    if (!targetUser) {
+      return { success: false, error: '目标用户不存在' }
+    }
+
+    if (targetUser.role === 'ADMIN') {
+      return { success: false, error: '不能重置其他管理员密码' }
+    }
+
+    if (admin.id === targetUserId) {
+      return { success: false, error: '不能重置自己的密码' }
+    }
+
+    const supabase = await createClient()
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const redirectTo = `${appBaseUrl}/reset-password`
+
+    const { error } = await supabase.auth.resetPasswordForEmail(targetUser.email, {
+      redirectTo,
+    })
+
+    if (error) {
+      return {
+        success: false,
+        error: error.message || '发送密码重置邮件失败',
+      }
+    }
+
+    await prisma.securityLog.create({
+      data: {
+        userId: targetUserId,
+        action: SecurityAction.PASSWORD_RESET,
+        metadata: buildSecurityLogMetadata({
+          operator: {
+            id: admin.id,
+            email: admin.email,
+            name: admin.username ?? admin.email,
+          },
+          target: {
+            id: targetUser.id,
+            email: targetUser.email,
+          },
+          reason,
+          extra: {
+            redirectTo,
+          },
+        }),
+      },
+    })
+
+    revalidatePath(`/admin/users/${targetUserId}`)
+    revalidatePath('/admin/users')
+    revalidatePath('/admin')
+    invalidateAdminDashboardOverview()
+
+    return { success: true }
+  } catch (error) {
+    console.error('[resetUserPassword] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '重置密码失败',
     }
   }
 }
@@ -815,47 +1016,55 @@ export async function impersonateUser(
 
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 小时后过期
 
-    // 使用事务
-    const session = await prisma.$transaction(async (tx) => {
-      // 1. 写入审计日志
-      await tx.securityLog.create({
-        data: {
-          userId: targetUserId,
-          action: 'IMPERSONATE_START',
-          metadata: {
-            adminId: admin.id,
-            adminEmail: admin.email,
-            reason,
-          },
-        },
-      })
+    const sessionId = randomUUID()
 
-      // 2. 创建伪装会话（先不填 token）
-      const newSession = await tx.impersonationSession.create({
-        data: {
-          adminId: admin.id,
-          targetUserId,
-          token: '', // 先占位
-          expiresAt,
-        },
-      })
-
-      return newSession
-    })
-
-    // 3. 签发 JWT
+    // 先签发完整 token，再一次性写入会话，避免空 token 占位
     const token = await signImpersonationToken({
-      sessionId: session.id,
+      sessionId,
       adminId: admin.id,
       targetUserId,
       exp: expiresAt,
     })
 
-    // 4. 回填 token
-    await prisma.impersonationSession.update({
-      where: { id: session.id },
-      data: { token },
+    // 使用事务
+    await prisma.$transaction(async (tx) => {
+      // 1. 写入审计日志
+      await tx.securityLog.create({
+        data: {
+          userId: targetUserId,
+          action: 'IMPERSONATE_START',
+          metadata: buildSecurityLogMetadata({
+            operator: {
+              id: admin.id,
+              email: admin.email,
+              name: admin.username ?? admin.email,
+            },
+            target: {
+              id: targetUserId,
+              email: targetUser.email ?? null,
+            },
+            reason,
+            extra: {
+              expiresAt: expiresAt.toISOString(),
+              sessionState: 'started',
+            },
+          }),
+        },
+      })
+
+      // 2. 一次性创建伪装会话
+      await tx.impersonationSession.create({
+        data: {
+          id: sessionId,
+          adminId: admin.id,
+          targetUserId,
+          token,
+          expiresAt,
+        },
+      })
     })
+
+    invalidateAdminDashboardOverview()
 
     return {
       success: true,
