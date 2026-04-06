@@ -79,9 +79,11 @@ export async function getProfile() {
  * Dashboard 首屏仅需用户基础信息。
  * 使用轻量查询避免拉取 badges/count/referrals/settings 等重数据。
  */
-export async function getDashboardProfile() {
+type DashboardCurrentUser = Awaited<ReturnType<typeof getDashboardCurrentUser>>
+
+export async function getDashboardProfile(currentUser?: DashboardCurrentUser | null) {
   const startedAt = performance.now()
-  const user = await getDashboardCurrentUser()
+  const user = currentUser ?? await getDashboardCurrentUser()
   if (!user) {
     logPerf('getDashboardProfile', startedAt, { status: 'no-user' })
     return null
@@ -109,9 +111,9 @@ export async function getDashboardProfile() {
 /**
  * Settings 页需要单独加载用户设置，避免把 settings 回源绑在 dashboard 首页首屏。
  */
-export async function getDashboardSettingsProfile() {
+export async function getDashboardSettingsProfile(currentUser?: DashboardCurrentUser | null) {
   const startedAt = performance.now()
-  const user = await getDashboardCurrentUser()
+  const user = currentUser ?? await getDashboardCurrentUser()
   if (!user) {
     logPerf('getDashboardSettingsProfile', startedAt, { status: 'no-user' })
     return null

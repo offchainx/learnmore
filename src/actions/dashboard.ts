@@ -672,9 +672,13 @@ async function buildLeaderboardCard(
   }
 }
 
-export async function getDashboardStats(): Promise<DashboardData | null> {
+type DashboardCurrentUser = Awaited<ReturnType<typeof getDashboardCurrentUser>>
+
+export async function getDashboardStats(
+  currentUser?: DashboardCurrentUser | null
+): Promise<DashboardData | null> {
   const startedAt = performance.now()
-  const user = await getDashboardCurrentUser()
+  const user = currentUser ?? await getDashboardCurrentUser()
   if (!user) {
     logPerf('getDashboardStats', startedAt, { status: 'no-user' })
     return null

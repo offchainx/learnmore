@@ -1,14 +1,28 @@
+import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { getDashboardProfile } from '@/actions/user/profile';
 import { getDashboardStats } from '@/actions/dashboard';
-import { syncCurrentUserToDatabase } from '@/actions/user/auth';
+import { getDashboardCurrentUser, syncCurrentUserToDatabase } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
+import { DashboardRouteLoading } from '@/components/loading/dashboard-route-loading';
 
-export default async function DashboardPage() {
-  const profile = await getDashboardProfile();
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardRouteLoading currentView="dashboard" variant="dashboard" />}>
+      <DashboardPageContent />
+    </Suspense>
+  );
+}
+
+async function DashboardPageContent() {
+  const currentUser = await getDashboardCurrentUser();
+  const [profile, dashboardData] = await Promise.all([
+    getDashboardProfile(currentUser),
+    getDashboardStats(currentUser),
+  ]);
 
   if (!profile) {
     // Check if we have a valid session but missing database record
@@ -88,8 +102,6 @@ export default async function DashboardPage() {
 
     redirect('/login');
   }
-
-  const dashboardData = await getDashboardStats();
 
   if (!dashboardData) {
     redirect('/login');

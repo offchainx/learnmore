@@ -46,4 +46,6 @@
 
 | 2026-04-06 | T-PERF.FIX.7 最新 deployment 复测 | 在 `88dc751` 对应的 production deployment 上，用可见真实浏览器再次测 `/dashboard` 并对照 runtime logs | `F7PeKAm8dvMH1kFimhzJDrzCYuoL` 已 READY 且指向 `88dc751`；可见浏览器进入 `/dashboard` 的 `DOMContentLoaded` 仍达到 `113s+`，runtime logs 里当前高信号集中在 `getDashboardCurrentUser...`、`getDashboardStats.dailyTasks`、`getDashboardStats.attemptsInRetention`、`getDashboardStats.subjectResults` | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md, src/actions/user/profile.ts, src/app/(dashboard)/dashboard/settings/page.tsx, src/components/dashboard/DailyMissions.tsx | 说明首页 settings 剥离后问题仍在，瓶颈已经推进到 dashboard 最基础的用户读取和统计聚合 | 下一步继续拆 `getDashboardCurrentUser()` 与 `getDashboardStats()` 的更细粒度子查询 | 这轮结果说明不是“没推送”，而是当前首页热路径仍旧太重 |
 
+| 2026-04-06 | T-PERF.FIX.7 首页流式壳子 | 把 `/dashboard` 首页改成 `Suspense` 流式壳子，并让 profile/stats 复用同一个 currentUser | 已经把 dashboard 首页从“所有数据同步 await 后再返回”改成“先返回 fallback，再逐步流入真实内容”；profile 与 stats 共享 currentUser，减少重复用户读取 | src/app/(dashboard)/dashboard/page.tsx, src/actions/user/profile.ts, src/actions/dashboard.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这样做不是删功能，而是把功能拆成壳子和后续流入的数据，避免所有首屏内容一次性绑死在同一条同步链路上 | 下一轮部署后继续用可见浏览器验证 fallback 是否快速出现，再观察真实数据流入时序 | 这是继续下拆的关键一步 |
+
 ## 约束
