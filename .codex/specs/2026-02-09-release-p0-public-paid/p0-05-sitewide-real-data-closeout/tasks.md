@@ -1429,7 +1429,7 @@
 | T-012.2 | 建立 referral 关系、奖励状态、发放状态、结算时点与统计口径的权威数据源矩阵 | codex | done |
 | T-012.3 | 定义 referral 的增长归因口径：复制、点击、绑定、首付、结算、回流、重复提交与幂等 | codex | done |
 | T-012.4 | 落地 referral 的增长归因与 telemetry 留存：覆盖 `copy / click / bind / checkout / settle / reward_grant`，用于判断哪类分享动作真正带来裂变转化 | codex | done |
-| T-012.5 | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | codex | todo |
+| T-012.5 | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | codex | done |
 | T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | todo |
 | T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | todo |
 | T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | todo |

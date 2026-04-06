@@ -12,4 +12,6 @@
 
 | 2026-04-03 | dashboard Prisma pool timeout fix | 将 /dashboard 首屏的 Prisma 并发查询串行化，移除 Promise.all 和重复 count，降低单连接池环境下的超时风险 | 已修复 /dashboard 的 P2024 connection pool timeout，pnpm -s tsc --noEmit 与 pnpm run build 通过 | src/actions/dashboard.ts, src/app/(dashboard)/dashboard/page.tsx | 首屏多条 Prisma 查询并发执行，在 connection_limit=1 的环境下容易耗尽连接池 | 后续优先保持单连接兼容，再考虑局部缓存/批处理优化 | 修复后继续观察 Vercel runtime logs |
 
+| 2026-04-06 | T-012.5 referral read-chain closeout | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | 已完成 T-012.5：新增 referral overview helper 统一后台统计口径，Pricing 页补充可见可编辑的 referral 预填输入与套餐购买按钮，后台增长视图继续复用同一份 referral 统计数据，pnpm build 通过 | src/lib/referrals/overview.ts, src/actions/admin/user-details.ts, src/app/(marketing)/pricing/PricingPageClient.tsx, tasks.md | Pricing 页原本只有 URL 透传，没有显式 referral 输入和购买入口 | 后续可继续推进 T-012.6 写链路与激励展示 | T-012.5 已收口，进入 T-012.6 |
+
 ## 约束

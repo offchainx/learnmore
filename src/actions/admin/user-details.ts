@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma'
 import { Admin } from '@/types'
 import { resolveRequestAdminIdentity } from '@/lib/auth/request-user'
+import { buildReferralOverviewStats } from '@/lib/referrals/overview'
 import {
   formatSecurityLogSummary,
   getSecurityActionLabel,
@@ -89,31 +90,21 @@ export async function getUserReferralData(
       return { success: false, error: '用户不存在' }
     }
 
-    const totalInvites = user.referralsGiven.length
-    const completedInvites = user.referralsGiven.filter(
-      (referral) => referral.status === 'COMPLETED'
-    ).length
-    const deferredInvites = user.referralsGiven.filter(
-      (referral) => referral.status === 'DEFERRED'
-    ).length
-    const pendingInvites = user.referralsGiven.filter(
-      (referral) => referral.status === 'PENDING'
-    ).length
-    const remainingQuota = Math.max(
-      0,
-      user.referralLimit - completedInvites - deferredInvites
-    )
+    const overviewStats = buildReferralOverviewStats({
+      referralsGiven: user.referralsGiven,
+      referralLimit: user.referralLimit,
+    })
 
     // Build Stats
     const stats: ReferralStats = {
       referralCode: user.referralCode,
-      totalInvites,
+      totalInvites: overviewStats.totalInvites,
       referralLimit: user.referralLimit,
-      completedInvites,
-      deferredInvites,
-      pendingInvites,
-      remainingQuota,
-      rewardSummary: `已结算 ${completedInvites}，延迟发放 ${deferredInvites}，待完成 ${pendingInvites}`,
+      completedInvites: overviewStats.completedInvites,
+      deferredInvites: overviewStats.deferredInvites,
+      pendingInvites: overviewStats.pendingInvites,
+      remainingQuota: overviewStats.remainingQuota,
+      rewardSummary: overviewStats.rewardSummary,
     }
 
     // Build Tree (Depth 2)
