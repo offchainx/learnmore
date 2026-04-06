@@ -186,25 +186,23 @@ async function loadDashboardSubjectResults(
     },
   })
 
-  const subjectResults = await Promise.all(
-    subjects.map(async (subject) => {
-      try {
-        return await getSubjectChapters(subject.id, userId)
-      } catch (error) {
-        console.warn('[Dashboard] Failed to load subject chapters:', {
-          subjectId: subject.id,
-          userId,
-          error,
-        })
-        return null
+  const subjectResults: SubjectChaptersResult[] = []
+  for (const subject of subjects) {
+    try {
+      const result = await getSubjectChapters(subject.id, userId)
+      if (result && result.chapters.length > 0) {
+        subjectResults.push(result)
       }
-    })
-  )
+    } catch (error) {
+      console.warn('[Dashboard] Failed to load subject chapters:', {
+        subjectId: subject.id,
+        userId,
+        error,
+      })
+    }
+  }
 
-  return subjectResults.filter(
-    (result): result is SubjectChaptersResult =>
-      result !== null && result.chapters.length > 0
-  )
+  return subjectResults
 }
 
 function buildSubjectProgress(
@@ -666,7 +664,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   const thirtyDaysAgo = dayjs().subtract(30, 'day').startOf('day').toDate()
   const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
 
-  const dailyTasksPromise = prisma.dailyTask.findMany({
+  const dailyTasks = await prisma.dailyTask.findMany({
     where: {
       userId: user.id,
       date: {
@@ -677,7 +675,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { type: 'asc' },
   })
 
-  const attemptsInRetentionPromise = prisma.userAttempt.findMany({
+  const attemptsInRetention = await prisma.userAttempt.findMany({
     where: {
       userId: user.id,
       createdAt: { gte: minDate },
@@ -689,7 +687,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { createdAt: 'desc' },
   })
 
-  const examRecordsInRetentionPromise = prisma.examRecord.findMany({
+  const examRecordsInRetention = await prisma.examRecord.findMany({
     where: {
       userId: user.id,
       createdAt: { gte: minDate },
@@ -701,7 +699,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { createdAt: 'desc' },
   })
 
-  const completedLessonsInRetentionPromise = prisma.userProgress.findMany({
+  const completedLessonsInRetention = await prisma.userProgress.findMany({
     where: {
       userId: user.id,
       isCompleted: true,
@@ -713,7 +711,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { updatedAt: 'desc' },
   })
 
-  const recentPracticePromise = prisma.examRecord.findMany({
+  const recentPractice = await prisma.examRecord.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     take: 5,
@@ -737,38 +735,14 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     },
   })
 
-  const subjectResultsPromise = loadDashboardSubjectResults(user.id)
-  const leaderboardPromise = attemptsInRetentionPromise.then((attemptsInRetention) => {
-    const totalAttempts = attemptsInRetention.length
-    const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
-    const accuracy =
-      totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
-    return buildLeaderboardCard(user, accuracy, minDate)
-  })
-
-  const [
-    dailyTasks,
-    attemptsInRetention,
-    examRecordsInRetention,
-    completedLessonsInRetention,
-    recentPractice,
-    subjectResults,
-    leaderboardData,
-  ] = await Promise.all([
-    dailyTasksPromise,
-    attemptsInRetentionPromise,
-    examRecordsInRetentionPromise,
-    completedLessonsInRetentionPromise,
-    recentPracticePromise,
-    subjectResultsPromise,
-    leaderboardPromise,
-  ])
+  const subjectResults = await loadDashboardSubjectResults(user.id)
 
   const totalAttempts = attemptsInRetention.length
   const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
   const mistakeCount = totalAttempts - correctAttempts
   const accuracy =
     totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
+  const leaderboardData = await buildLeaderboardCard(user, accuracy, minDate)
   const studyHours = formatHours(sumStudySeconds(examRecordsInRetention))
   const level = calculateLevel(user.xp ?? 0)
   const nextLevelXp = calculateNextLevelXp(level)

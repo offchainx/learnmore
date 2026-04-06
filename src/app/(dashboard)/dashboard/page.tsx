@@ -8,10 +8,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 export default async function DashboardPage() {
-  const [profile, dashboardData] = await Promise.all([
-    getDashboardProfile(),
-    getDashboardStats(),
-  ]);
+  const profile = await getDashboardProfile();
 
   if (!profile) {
     // Check if we have a valid session but missing database record
@@ -91,6 +88,8 @@ export default async function DashboardPage() {
 
     redirect('/login');
   }
+
+  const dashboardData = await getDashboardStats();
 
   if (!dashboardData) {
     redirect('/login');

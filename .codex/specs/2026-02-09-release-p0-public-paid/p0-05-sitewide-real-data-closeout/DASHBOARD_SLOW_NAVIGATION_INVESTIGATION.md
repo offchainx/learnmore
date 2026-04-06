@@ -66,6 +66,7 @@
 - `[src/proxy.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/proxy.ts)` 会在每个受保护路由请求前执行 `supabase.auth.getUser()`
 - `[src/app/(dashboard)/dashboard/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/page.tsx)` 已经改成 `getDashboardProfile()` 与 `getDashboardStats()` 并行
 - `[src/actions/dashboard.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/dashboard.ts)` 的 dashboard 首屏聚合已并行化，但仍保留 `ensureDailyTasks(user.id)` 作为前置逻辑
+- `[src/actions/dashboard.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/dashboard.ts)` 的 dashboard 首屏聚合已回退为保守串行，优先适配当前生产环境 `connection_limit=1`
 - `[src/actions/gamification/daily-tasks.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/daily-tasks.ts)` 内部仍有 advisory lock，只是现在已经补了快路径
 - `[src/actions/practice/data-service.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/practice/data-service.ts)` 的 `getSubjectChapters()` 仍然是 dashboard 聚合链路中的重节点
 - `[src/lib/cache/sitewide.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts)` 已经有 `cacheTag` / `cacheLife`，但哪些路由真正命中缓存、哪些仍重复回源，还需要继续核实
@@ -132,6 +133,7 @@
 | T-PERF.FIX.3 | 给 `loadUserWithOverrides()` 加请求级缓存 | codex | done |
 | T-PERF.FIX.4 | 将 `loadDashboardSubjectResults()` 的 subject loop 改成批量并发 | codex | done |
 | T-PERF.FIX.5 | 评估并移出 `ensureDailyTasks()` 从首屏关键路径 | codex | done |
+| T-PERF.FIX.6 | 将 dashboard 首屏 DB 访问回退为单连接串行保守模式 | codex | done |
 
 ### T-PERF.FIX.1 ~ T-PERF.FIX.5 执行规则
 
@@ -208,6 +210,20 @@
 - 当前结论：
   - 首屏阻塞风险最大的副作用已经从同步路径移出
   - 如果登录后仍出现长时间 skeleton，更可能是其他数据聚合或前置鉴权在拖慢
+
+### T-PERF.FIX.6 首屏保守回退结果（已完成）
+
+- 结果：
+  - `[src/app/(dashboard)/dashboard/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/page.tsx)` 已回退为先取 `profile`，再进入 `getDashboardStats()`
+  - `[src/actions/dashboard.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/dashboard.ts)` 中 dashboard 首屏的 DB 访问已改为顺序执行，`subjectResults` 与 `leaderboard` 也改回串行收敛
+
+- 收口记录：
+  - 这一步是针对当前生产环境 `connection_limit=1` 的保守兼容措施
+  - 目标是先恢复登录后可用性，再根据 runtime logs 逐步放开并发
+
+- 当前结论：
+  - 当前 dashboard 首屏优先保证“能进、能渲染、能稳定返回”
+  - 后续如果要重新放开并发，必须先确认生产数据库连接池和各查询耗时都已经足够安全
 
 ### T-PERF.1 路径盘点结果（已完成）
 

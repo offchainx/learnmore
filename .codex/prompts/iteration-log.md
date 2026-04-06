@@ -28,4 +28,6 @@
 
 | 2026-04-06 | T-PERF.FIX.1~5 dashboard 首屏收口 | 推进 dashboard 首屏性能修复，合并 profile/stats 并行、统计查询并行、权限缓存、subject 并发与 daily tasks 脱离首屏关键路径 | 已完成 T-PERF.FIX.1~5，dashboard 首屏从串行聚合收敛为并行聚合，并将 `ensureDailyTasks()` 从同步关键路径移出，后续等待已登录真实浏览器复测与 Vercel runtime logs 校验 | src/app/(dashboard)/dashboard/page.tsx, src/actions/dashboard.ts, src/lib/permissions/load-user-scope.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | dashboard 登录后仍存在长时间 skeleton 体感，需要继续用真实浏览器和 runtime logs 验证是否已经收敛 | 完成后回到 T-PERF.5 做已登录态真实测量 | 本次迭代用于先把首屏阻塞面收窄，再回到测量闭环 |
 
+| 2026-04-06 | dashboard 首屏并发回退为保守串行 | 针对生产环境 `connection_limit=1` 的 `P2024` 超时，把 dashboard 首屏并发访问回退为单连接串行保守模式，并同步更新排查文档 | 已回退 `DashboardPage` 与 `getDashboardStats` 的并发访问，`loadDashboardSubjectResults()` 也改回顺序执行，目标是先恢复登录后可用性，再逐步放开并发 | src/app/(dashboard)/dashboard/page.tsx, src/actions/dashboard.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 生产库连接池限制明显，继续并发会放大 `P2024`，先保守可用更重要 | 先验证登录后是否能稳定进入 dashboard，再决定是否重新加回局部并发 | 本次迭代用于从“并发优化”切回“可用性优先” |
+
 ## 约束
