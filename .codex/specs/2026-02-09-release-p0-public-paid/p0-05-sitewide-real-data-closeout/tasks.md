@@ -16,7 +16,7 @@
 | T-012 | Referral 裂变主线 + Voucher 治理台真实化（拆分为 T-012A/B/C） | codex | todo |  |
 | T-013 | `/admin/content/import` + `/admin/content` 内容导入入口真实化 | codex | done |  |
 | T-014 | `/admin/content/review` 全路由族真实化（列表 / 详情 / 审核动作） | codex | done |  |
-| T-015 | `/admin/content/reports` + `/admin/content/statistics` 内容质控与统计域真实化 | codex | todo |  |
+| T-015 | `/admin/content/reports` + `/admin/content/statistics` 内容质控与统计域真实化 | codex | done |  |
 | T-016 | `/dashboard/leaderboard` 排行榜真实数据接入与口径对齐 | codex | todo |  |
 | T-017 | `/dashboard/achievements` 成就 / XP / streak / 任务域真实化 | codex | todo |  |
 | T-018 | `/dashboard/settings` 全路由族真实化（含 `/dashboard/settings/notifications`） | codex | todo |  |
@@ -1430,7 +1430,7 @@
 | T-012.3 | 定义 referral 的增长归因口径：复制、点击、绑定、首付、结算、回流、重复提交与幂等 | codex | done |
 | T-012.4 | 落地 referral 的增长归因与 telemetry 留存：覆盖 `copy / click / bind / checkout / settle / reward_grant`，用于判断哪类分享动作真正带来裂变转化 | codex | done |
 | T-012.5 | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | codex | done |
-| T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | todo |
+| T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | done |
 | T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | todo |
 | T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | todo |
 | T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | todo |
@@ -1529,6 +1529,22 @@
 - 已补齐支付透传：`Pricing / Checkout` 现在会读取 `referralCode`，并把它继续传到 checkout metadata 和结算链路。
 - 已完成最小闭环验证：新增事件能够写入数据库并在事务内回滚，确保 telemetry 表、枚举和 Prisma 客户端都可正常工作。
 
+### T-012.5 读取链路收口说明
+- `T-012.5` 的目标不是再新增 referral 业务规则，而是把“用户侧看到什么、支付页预填什么、后台看什么”三条读取链路统一到同一份口径，避免不同页面各算各的。
+- 用户侧推荐码展示已经落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：它使用 `referralCode / referralCount / referralLimit / referralsGiven` 这组字段展示推荐码、复制链接、奖励说明与当前推荐摘要。
+- 支付页预填已经落在 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx)：它会从 `?referralCode=` 读取推荐码，允许用户在提交前确认或修改，然后再传给 `prepareCheckoutAction()` 与 checkout metadata。
+- 后台增长概览与用户详情统一复用 [`src/lib/referrals/overview.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/referrals/overview.ts) 的统计 helper，再由 [`src/actions/admin/user-details.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/user-details.ts) 和 [`src/components/admin/users/tabs/GrowthTab.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/users/tabs/GrowthTab.tsx) 消费，确保“已结算 / 延迟发放 / 待完成 / 剩余额度”的口径完全一致。
+- 这一阶段只负责读链路和展示口径收口，不引入新的写链路或奖励规则；写链路、支付结算和权限校验继续放在 `T-012.6` 及后续子任务里处理。
+
+### T-012.6 写链路与回流闭环说明
+- `T-012.6` 继续沿用已经确认的 referral 业务边界，不再新增新的奖励规则，而是把“绑定推荐码 -> 发起支付 -> Stripe 首付结算 -> 奖励发放 -> 页面刷新回流”这条写链路补齐并收口。
+- 绑定推荐码这一步仍然由 [`src/actions/billing/referral.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/referral.ts) 处理，保持“一个 referee 只能绑定一次、不能自推、无效码直接拒绝”的幂等与权限约束。
+- 支付透传这一步仍然由 [`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 负责，把 `referralCode` / `voucherCode` 写入 checkout metadata，并把推荐码一路透传到 Stripe 会话与回跳地址。
+- 首付结算与奖励发放由 [`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 统一处理：Stripe `invoice.payment_succeeded` 到达后，按首付/首单的真实到账时间结算推荐关系，并把 `referrals` 的状态、奖励字段与归因事件同步写回。
+- 这次补的是“写入后立刻回流”的刷新闭环：成功绑定和成功结算后会失效 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)、[`src/components/admin/users/tabs/GrowthTab.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/users/tabs/GrowthTab.tsx)、[`src/actions/admin/user-details.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/user-details.ts) 以及后台 referrals 列表与用户详情页，避免刚写入的数据还停留在旧缓存里。
+- 这一阶段仍然不碰 `T-012.7` 的激励卡片文案与传播出口，也不做 `T-012.8` 的异常态扩展；目标只是把写链路的权限、幂等、透传、结算和刷新闭环先稳定下来。
+- 本轮验证已经通过：`pnpm -s tsc --noEmit`、`pnpm run build` 与相关 `eslint` 均已通过，说明写链路与刷新闭环可以稳定收口。
+
 ### T-013 内容导入入口域
 | id | description | owner | status |
 |---|---|---|---|
@@ -1566,12 +1582,12 @@
 ### T-015 内容质控与统计域
 | id | description | owner | status |
 |---|---|---|---|
-| T-015.1 | 盘点 `/admin/content/reports`、`/admin/content/statistics` 的图表、列表、筛选、CTA 与当前数据源 | codex | todo |
-| T-015.2 | 建立报错统计、题量统计、质量分布、处理效率等字段映射与权威数据源矩阵 | codex | todo |
-| T-015.3 | 对齐质控与统计读取链路：图表、列表、时间窗口、筛选条件与口径说明 | codex | todo |
-| T-015.4 | 对齐质控与统计写链路：报错处理、状态更新、统计刷新、权限与幂等 | codex | todo |
-| T-015.5 | 清理假图表、假统计、假报错回执，补齐空态/错误态/权限态 | codex | todo |
-| T-015.6 | 完成内容质控与统计域验证：统计字段核账、报错处理核账、重复操作验证 | codex | todo |
+| T-015.1 | 盘点 `/admin/content/reports`、`/admin/content/statistics` 的图表、列表、筛选、CTA 与当前数据源 | codex | done |
+| T-015.2 | 建立报错统计、题量统计、质量分布、处理效率等字段映射与权威数据源矩阵 | codex | done |
+| T-015.3 | 对齐质控与统计读取链路：图表、列表、时间窗口、筛选条件与口径说明 | codex | done |
+| T-015.4 | 对齐质控与统计写链路：报错处理、状态更新、统计刷新、权限与幂等 | codex | done |
+| T-015.5 | 清理假图表、假统计、假报错回执，补齐空态/错误态/权限态 | codex | done |
+| T-015.6 | 完成内容质控与统计域验证：统计字段核账、报错处理核账、重复操作验证 | codex | done |
 
 ### T-016 排行榜域
 | id | description | owner | status |

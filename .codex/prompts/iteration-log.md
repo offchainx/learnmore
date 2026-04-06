@@ -14,4 +14,6 @@
 
 | 2026-04-06 | T-012.5 referral read-chain closeout | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | 已完成 T-012.5：新增 referral overview helper 统一后台统计口径，Pricing 页补充可见可编辑的 referral 预填输入与套餐购买按钮，后台增长视图继续复用同一份 referral 统计数据，pnpm build 通过 | src/lib/referrals/overview.ts, src/actions/admin/user-details.ts, src/app/(marketing)/pricing/PricingPageClient.tsx, tasks.md | Pricing 页原本只有 URL 透传，没有显式 referral 输入和购买入口 | 后续可继续推进 T-012.6 写链路与激励展示 | T-012.5 已收口，进入 T-012.6 |
 
+| 2026-04-06 | T-012.6 referral write-chain closeout | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | 已完成 T-012.6：成功绑定与首付结算后统一失效 dashboard/settings/admin/referrals/admin/users，写链路权限与幂等保持不变，pnpm -s tsc --noEmit 与 pnpm run build 通过 | src/lib/referrals/cache.ts, src/actions/billing/referral.ts, src/app/api/webhook/stripe/route.ts, tasks.md | referral 写入后没有统一回流失效，用户页/后台页可能短暂展示旧缓存 | 后续推进 T-012.7 激励展示与传播出口 | T-012.6 已收口，进入 T-012.7 |
+
 ## 约束

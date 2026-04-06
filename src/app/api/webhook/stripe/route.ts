@@ -12,6 +12,7 @@ import { stripe } from '@/lib/stripe';
 import { triggerReceiptNotification } from '@/actions/notification/triggers';
 import { runAfterTask } from '@/lib/server/run-after-task';
 import { recordReferralAttributionEvent } from '@/lib/referrals/attribution';
+import { invalidateReferralReadViews } from '@/lib/referrals/cache';
 
 type NormalizedPlanKey = 'standard' | 'smart_plus' | 'premier';
 type NormalizedBillingCycle = 'monthly' | 'annual';
@@ -233,6 +234,7 @@ async function settleReferralOnFirstPaid(
   if (!referral || referral.status !== ReferralStatus.PENDING) {
     return {
       didSettle: false,
+      referrerId: null as string | null,
       updatedRefereeEnd: null as Date | null,
     };
   }
@@ -279,6 +281,7 @@ async function settleReferralOnFirstPaid(
 
     return {
       didSettle: true,
+      referrerId: referral.referrerId,
       updatedRefereeEnd: refereeExtendedEnd,
     };
   }
@@ -337,6 +340,7 @@ async function settleReferralOnFirstPaid(
 
   return {
     didSettle: true,
+    referrerId: referral.referrerId,
     updatedRefereeEnd: refereeExtendedEnd,
   };
 }
@@ -765,6 +769,20 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
   let duplicate = false;
   let staleIgnored = false;
   let planForReceipt = 'standard';
+  let referralResult = {
+    didSettle: false,
+    referrerId: null as string | null,
+    updatedRefereeEnd: null as Date | null,
+  };
+  let deferredSettle = {
+    settledCount: 0,
+    updatedSubscriptionEnd: null as Date | null,
+  };
+  let voucherResult = {
+    redeemed: false,
+    reason: 'SKIPPED',
+    voucherCode: null as string | null,
+  };
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -840,20 +858,6 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
           ...(isRealCharge && !user.firstPaidAt ? { firstPaidAt: now } : {}),
         },
       });
-
-      let referralResult = {
-        didSettle: false,
-        updatedRefereeEnd: null as Date | null,
-      };
-      let deferredSettle = {
-        settledCount: 0,
-        updatedSubscriptionEnd: null as Date | null,
-      };
-      let voucherResult = {
-        redeemed: false,
-        reason: 'SKIPPED',
-        voucherCode: null as string | null,
-      };
 
       if (isRealCharge) {
         const purchasedTier = user.subscriptionTier || SubscriptionTier.STANDARD;
@@ -934,6 +938,13 @@ async function handleInvoicePaymentSucceeded(event: Stripe.Event, invoice: Strip
       },
       500
     );
+  }
+
+  if (isRealCharge && (referralResult.didSettle || deferredSettle.settledCount > 0)) {
+    invalidateReferralReadViews({
+      userId: userId || null,
+      relatedUserId: referralResult.referrerId,
+    });
   }
 
   if (duplicate) {

@@ -8,6 +8,7 @@ import {
   normalizeReferralCode,
   recordReferralAttributionEvent,
 } from '@/lib/referrals/attribution';
+import { invalidateReferralReadViews } from '@/lib/referrals/cache';
 
 const bindReferralInputSchema = z.object({
   referralCode: z
@@ -187,6 +188,11 @@ export async function bindReferralCodeAction(referralCode: string): Promise<Bind
       },
     }).catch((error) => {
       console.warn('[ReferralAttribution] bind log failed', error)
+    })
+
+    invalidateReferralReadViews({
+      userId: user.id,
+      relatedUserId: referrer.id,
     })
   } catch (error) {
     // 并发下 unique(refereeId) 可能命中
