@@ -58,4 +58,6 @@
 
 | 2026-04-06 | T-PERF.FIX.7 summary/activity 可见浏览器复测 | 用真实可见 Chromium 登录并测 `/dashboard` 首屏 summary 时间 | 本轮复测结果：登录页 `domcontentloaded` 约 `2.2s`，`/dashboard` 跳转 `domcontentloaded` 约 `3.1s`，首页 summary 首次可见约 `10.9s`，说明三段式拆分已经把首屏从 30s+ 压到了 10s 级 | src/components/dashboard/DashboardHome.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 继续观察 summary 里剩余的统计聚合是否还要再拆 | 下一步再决定是否继续把 summary 拆成更细的 stats / overview 两段 | 这轮结果是首屏体感改善的直接证据 |
 
+| 2026-04-06 | T-PERF.FIX.7 summary stats / overview 再拆分 | 将 dashboard summary 继续拆成 stats 与 overview 两段，先出 stats 再补趋势卡 | 已把 `home-core` 缩为 stats-first，并新增 `home-overview` 独立补 `overviewByWindow`；`DashboardHome` 正在同步更新成先渲染 stats 卡、再补趋势卡的两段式 summary | src/actions/dashboard.ts, src/app/api/dashboard/home-core/route.ts, src/app/api/dashboard/home-overview/route.ts, src/components/dashboard/DashboardHome.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 目标是继续提前首屏第一批可见内容，同时不删 summary 功能 | 下一轮部署 READY 后再用真实可见浏览器复测 summary 首次可见时间 | 这是 T-PERF.FIX.7 的下一层下拆 |
+
 ## 约束

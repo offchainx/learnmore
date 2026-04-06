@@ -207,6 +207,9 @@ export const DashboardHome = ({
   const [coreData, setCoreData] = useState<DashboardData | null>(
     initialData
   )
+  const [overviewData, setOverviewData] = useState<{
+    overviewByWindow: DashboardData['overviewByWindow']
+  } | null>(null)
   const [activityData, setActivityData] = useState<{
     recentPractice: DashboardData['recentPractice']
     leaderboard: DashboardData['leaderboard']
@@ -217,6 +220,9 @@ export const DashboardHome = ({
     weaknesses: DashboardData['weaknesses']
   } | null>(null)
   const [isLoadingCoreData, setIsLoadingCoreData] = useState(!initialData)
+  const [isLoadingOverviewData, setIsLoadingOverviewData] = useState(
+    !initialData
+  )
   const [isLoadingActivityData, setIsLoadingActivityData] = useState(
     !initialData
   )
@@ -270,6 +276,56 @@ export const DashboardHome = ({
       cancelled = true
     }
   }, [coreData])
+
+  useEffect(() => {
+    if (overviewData) return
+
+    let cancelled = false
+
+    const loadOverviewData = async () => {
+      setIsLoadingOverviewData(true)
+      try {
+        const response = await fetch('/api/dashboard/home-overview', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load dashboard overview data: ${response.status}`
+          )
+        }
+
+        const payload = (await response.json()) as {
+          overviewByWindow?: DashboardData['overviewByWindow']
+        }
+
+        if (!cancelled) {
+          setOverviewData({
+            overviewByWindow: payload.overviewByWindow ?? {
+              '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+              '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+            },
+          })
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[DashboardHome] Failed to lazy-load overview data:', error)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingOverviewData(false)
+        }
+      }
+    }
+
+    void loadOverviewData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [overviewData])
 
   useEffect(() => {
     if (activityData) return
@@ -421,6 +477,12 @@ export const DashboardHome = ({
         note: undefined,
       },
     }),
+    ...(overviewData ?? {
+      overviewByWindow: {
+        '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+        '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+      },
+    }),
     ...(activityData ?? {
       recentPractice: { status: 'empty', items: [], note: undefined },
       leaderboard: {
@@ -453,6 +515,33 @@ export const DashboardHome = ({
   const dailyTasks = dailyTasksSection.items
 
   const activeOverview = overviewByWindow[overviewWindow]
+  const summaryStatsCards = [
+    {
+      label: copy('学习时长', 'Study Time'),
+      value: `${stats.studyTime}h`,
+      subLabel: copy('本周期累计投入', 'Logged in selected window'),
+    },
+    {
+      label: copy('完成题数', 'Questions'),
+      value: String(stats.questions),
+      subLabel: copy('本周期作答总量', 'Answered in selected window'),
+    },
+  ]
+  const overviewCards = [
+    {
+      label: copy('正确率', 'Accuracy'),
+      value: `${activeOverview.accuracy}%`,
+      subLabel: copy('本周期平均表现', 'Average in selected window'),
+    },
+    {
+      label: copy('活跃天数', 'Active Days'),
+      value: String(activeOverview.activeDays),
+      subLabel: copy(
+        '完成练习或课程的天数',
+        'Days with completed study activity'
+      ),
+    },
+  ]
 
   const totalActivityPages = Math.max(
     1,
@@ -577,32 +666,6 @@ export const DashboardHome = ({
     )
   }
 
-  const overviewCards = [
-    {
-      label: copy('学习时长', 'Study Time'),
-      value: `${activeOverview.studyTime}h`,
-      subLabel: copy('本周期累计投入', 'Logged in selected window'),
-    },
-    {
-      label: copy('完成题数', 'Questions'),
-      value: String(activeOverview.questions),
-      subLabel: copy('本周期作答总量', 'Answered in selected window'),
-    },
-    {
-      label: copy('正确率', 'Accuracy'),
-      value: `${activeOverview.accuracy}%`,
-      subLabel: copy('本周期平均表现', 'Average in selected window'),
-    },
-    {
-      label: copy('活跃天数', 'Active Days'),
-      value: String(activeOverview.activeDays),
-      subLabel: copy(
-        '完成练习或课程的天数',
-        'Days with completed study activity'
-      ),
-    },
-  ]
-
   return (
     <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
     <div
@@ -653,7 +716,7 @@ export const DashboardHome = ({
               <section
                 className={`grid gap-3 sm:grid-cols-2 2xl:grid-cols-4 ${pageGridGapClass}`}
               >
-                {overviewCards.map((card) => (
+                {summaryStatsCards.map((card) => (
                   <OverviewCard
                     key={card.label}
                     label={card.label}
@@ -661,6 +724,29 @@ export const DashboardHome = ({
                     subLabel={card.subLabel}
                   />
                 ))}
+                {isLoadingOverviewData && !overviewData ? (
+                  <>
+                    <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                      <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
+                      <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                    </div>
+                    <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                      <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
+                      <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                    </div>
+                  </>
+                ) : (
+                  overviewCards.map((card) => (
+                    <OverviewCard
+                      key={card.label}
+                      label={card.label}
+                      value={card.value}
+                      subLabel={card.subLabel}
+                    />
+                  ))
+                )}
               </section>
             </PageHeroShell>
 

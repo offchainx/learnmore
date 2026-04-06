@@ -704,6 +704,7 @@ export async function getDashboardStats(
     includeRecentPractice?: boolean
     includeSubjectResults?: boolean
     includeLeaderboard?: boolean
+    includeOverview?: boolean
   } = {}
 ): Promise<DashboardData | null> {
   const startedAt = performance.now()
@@ -724,6 +725,7 @@ export async function getDashboardStats(
   const includeRecentPractice = options.includeRecentPractice !== false
   const includeSubjectResults = options.includeSubjectResults !== false
   const includeLeaderboard = options.includeLeaderboard !== false
+  const includeOverview = options.includeOverview !== false
   let dailyTasks: DashboardData['dailyTasks']['items'] = []
   if (includeDailyTasks) {
     const ensureStartedAt = performance.now()
@@ -791,22 +793,31 @@ export async function getDashboardStats(
     rows: examRecordsInRetention.length,
   })
 
-  const completedLessonsStartedAt = performance.now()
-  const completedLessonsInRetention = await prisma.userProgress.findMany({
-    where: {
+  let completedLessonsInRetention: Array<{ updatedAt: Date }> = []
+  if (includeOverview) {
+    const completedLessonsStartedAt = performance.now()
+    completedLessonsInRetention = await prisma.userProgress.findMany({
+      where: {
+        userId: user.id,
+        isCompleted: true,
+        updatedAt: { gte: minDate },
+      },
+      select: {
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    })
+    logPerf('getDashboardStats.completedLessonsInRetention', completedLessonsStartedAt, {
       userId: user.id,
-      isCompleted: true,
-      updatedAt: { gte: minDate },
-    },
-    select: {
-      updatedAt: true,
-    },
-    orderBy: { updatedAt: 'desc' },
-  })
-  logPerf('getDashboardStats.completedLessonsInRetention', completedLessonsStartedAt, {
-    userId: user.id,
-    rows: completedLessonsInRetention.length,
-  })
+      rows: completedLessonsInRetention.length,
+    })
+  } else {
+    logPerf('getDashboardStats.completedLessonsInRetention', startedAt, {
+      userId: user.id,
+      rows: 0,
+      skipped: true,
+    })
+  }
 
   const recentPracticeStartedAt = performance.now()
   let recentPractice: RecentPracticeRecord[] = []
@@ -953,20 +964,25 @@ export async function getDashboardStats(
       xp: user.xp ?? 0,
       nextLevelXp,
     },
-    overviewByWindow: {
-      '7D': buildOverviewWindow(
-        attemptsInRetention,
-        examRecordsInRetention,
-        activityEvents,
-        sevenDaysAgo
-      ),
-      '30D': buildOverviewWindow(
-        attemptsInRetention,
-        examRecordsInRetention,
-        activityEvents,
-        thirtyDaysAgo
-      ),
-    },
+    overviewByWindow: includeOverview
+      ? {
+          '7D': buildOverviewWindow(
+            attemptsInRetention,
+            examRecordsInRetention,
+            activityEvents,
+            sevenDaysAgo
+          ),
+          '30D': buildOverviewWindow(
+            attemptsInRetention,
+            examRecordsInRetention,
+            activityEvents,
+            thirtyDaysAgo
+          ),
+        }
+      : {
+          '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+          '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+        },
     learningPath: includeSubjectResults
       ? buildLearningPath(subjectResults)
       : {

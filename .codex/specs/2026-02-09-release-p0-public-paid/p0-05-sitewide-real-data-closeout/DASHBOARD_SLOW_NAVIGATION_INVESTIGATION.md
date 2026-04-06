@@ -310,6 +310,25 @@
   - 这轮三段式拆分已经把“首屏完全等完再显示”的状态改成“summary 先可见”
   - 下一步如果还要继续压时间，重点就会转回 summary 段里剩下的 `attemptsInRetention` / `examRecordsInRetention` / `completedLessonsInRetention`
 
+### T-PERF.FIX.7.2 summary stats / overview 再拆分
+
+| id | description | owner | status |
+|---|---|---|---|
+| T-PERF.FIX.7.3 | 将 summary 再拆成 `stats` 与 `overview` 两段加载，先出 stats 再补趋势卡 | codex | todo |
+
+- 目标：
+  - 让首页 summary 的第一批可见内容只依赖更轻的 `stats` 段
+  - `overviewByWindow` 作为第二段单独补齐，不再跟 stats 卡在同一个首屏等待里
+
+- 当前动作：
+  - `home-core` 继续缩为 stats-first
+  - 新增 `home-overview` 专门回 `overviewByWindow`
+  - `DashboardHome` 继续并行拉 summary / activity / subjects，但 summary 内部会先渲染 stats，再补 trend cards
+
+- 下一步：
+  - 等新 deployment READY 后，用真实可见浏览器再测 `/dashboard` 首屏 summary 首次可见时间
+  - 同时对照 runtime logs，确认 overview 侧是否被独立到了后台补拉里
+
 ### T-PERF.1 路径盘点结果（已完成）
 
 - 本次排查不再只盯 `/dashboard`

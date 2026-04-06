@@ -15,12 +15,12 @@ export async function GET() {
     includeRecentPractice: false,
     includeSubjectResults: false,
     includeLeaderboard: false,
-    includeOverview: false,
+    includeOverview: true,
   })
 
   if (!data) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  return NextResponse.json({ data })
+  return NextResponse.json({ overviewByWindow: data.overviewByWindow })
 }
