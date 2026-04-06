@@ -18,4 +18,6 @@
 
 | 2026-04-06 | T-012.7 referral sharing-exit closeout | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | 已完成 T-012.7：SettingsView 新增奖励进度、剩余额度与低成本传播出口（复制码 / 复制分享文案 / 系统分享），tasks.md 已同步收口，后续再用 lint/build 复核 | src/components/dashboard/views/SettingsView.tsx, tasks.md | 分享入口只有 code，没有进度与传播文案，激励不足 | 后续推进 T-012.8 异常态与调试体验 | T-012.7 已收口，进入 T-012.8 |
 
+| 2026-04-06 | T-012.8 referral debug-state closeout | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | 已完成 T-012.8：SettingsView 补充未生成码空态与复制失败兜底，Pricing 与 referral 落地页可直接显示无效/不存在/已绑定/自推/取消支付等状态，pnpm -s tsc --noEmit 与 eslint 通过 | src/components/dashboard/views/SettingsView.tsx, src/app/(marketing)/pricing/PricingPageClient.tsx, src/app/r/[code]/route.ts, tasks.md | 异常态只能靠 alert 或静态文案，调试体验差 | 后续推进 T-012.9 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | T-012.8 已收口，进入 T-012.9 |
+
 ## 约束

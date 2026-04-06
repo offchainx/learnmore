@@ -17,6 +17,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   const sourcePath = `${request.nextUrl.pathname}${request.nextUrl.search}`
 
   const destinationUrl = new URL('/pricing', request.url)
+  let referralError: string | null = null
   if (normalizedCode) {
     destinationUrl.searchParams.set('referralCode', normalizedCode)
   }
@@ -46,8 +47,18 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         referer: request.headers.get('referer'),
       },
     })
+
+    if (!normalizedCode) {
+      referralError = 'INVALID_REFERRAL_CODE'
+    } else if (!referrer) {
+      referralError = 'REFERRAL_NOT_FOUND'
+    }
   } catch (error) {
     console.warn('[ReferralAttribution] click log failed', error)
+  }
+
+  if (referralError) {
+    destinationUrl.searchParams.set('referralError', referralError)
   }
 
   return NextResponse.redirect(destinationUrl)

@@ -1432,7 +1432,7 @@
 | T-012.5 | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | codex | done |
 | T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | done |
 | T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | done |
-| T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | todo |
+| T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | done |
 | T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | todo |
 | T-012.10 | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | codex | todo |
 
@@ -1551,6 +1551,12 @@
 - 激励展示要同时表达“我还能邀请多少人”和“邀请后能得到什么”，因此本阶段补了推荐进度条、奖励规则摘要和状态提示，但不改奖励发放口径。
 - 传播出口必须尽量低成本：默认优先提供一键复制推荐码和推荐链接，其次提供可直接转发的分享文案，最后才是系统分享；目标是把用户从“看到 code”推进到“真的会分享”。
 - 这一阶段的收口标准是：页面上能清楚看到奖励动机、可复制传播内容、剩余额度与当前进度，同时不引入新的 mock 或新的分享规则。
+
+### T-012.8 异常态与调试体验说明
+- `T-012.8` 不再调整 referral 的结算口径，而是把异常态和调试体验做实：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态都要能被前台明确识别。
+- 用户侧空态主要落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：当推荐码尚未生成时，页面会显示专门的空态说明、禁用传播按钮，并提示先完成账号设置或订阅后再回来查看。
+- 推荐分享与支付入口的错误态主要落在 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 和 [`src/app/r/[code]/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts)：无效推荐码、未找到推荐码、已绑定、自推、支付取消与优惠码异常都会以页面内状态的方式展示，而不是只弹一个不可追踪的 alert。
+- 这一阶段的重点是“可调试”：出问题时用户能看见具体原因，开发者也能从归因事件与 URL 参数判断是链接无效、账号已绑定、还是 checkout / voucher 侧失败，而不是把所有问题都混成一个通用失败提示。
 
 ### T-013 内容导入入口域
 | id | description | owner | status |

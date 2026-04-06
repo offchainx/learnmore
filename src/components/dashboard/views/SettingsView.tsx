@@ -397,6 +397,9 @@ function ReferralSection({
         nativeShare: '系统分享',
         copied: '已复制',
         empty: '未生成',
+        emptyTitle: '推荐码尚未生成',
+        emptyDesc: '当你的账号准备好后，这里会显示可分享的推荐码与链接。',
+        emptyAction: '请先完成账号设置或订阅后再查看推荐入口。',
         reward: '奖励规则',
         rule1: '好友在升级流程填写您的推荐码并完成首笔真实扣款后开始结算。',
         rule2: '你可获得 2 周额外会员时长。',
@@ -428,6 +431,9 @@ function ReferralSection({
         nativeShare: 'Kongsi sistem',
         copied: 'Disalin',
         empty: 'Belum dijana',
+        emptyTitle: 'Kod rujukan belum dijana',
+        emptyDesc: 'Apabila akaun anda sedia, kod dan pautan untuk dikongsi akan dipaparkan di sini.',
+        emptyAction: 'Sila lengkapkan tetapan akaun atau langganan dahulu.',
         reward: 'Peraturan ganjaran',
         rule1:
           'Ganjaran dikira selepas rakan melengkapkan bayaran sebenar pertama dengan kod anda.',
@@ -459,6 +465,11 @@ function ReferralSection({
       nativeShare: 'Share sheet',
       copied: 'Copied',
       empty: 'Not generated',
+      emptyTitle: 'Referral code not generated yet',
+      emptyDesc:
+        'Once your account is ready, this area will show a shareable code and link.',
+      emptyAction:
+        'Complete your account setup or subscription first, then come back here.',
       reward: 'Reward rules',
       rule1:
         'Rewards are settled after the first real paid renewal with your code.',
@@ -483,9 +494,28 @@ function ReferralSection({
 
   const handleCopyCode = async () => {
     if (!user.referralCode) return
-    await navigator.clipboard.writeText(user.referralCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
+    try {
+      await navigator.clipboard.writeText(user.referralCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch (error) {
+      console.warn('[ReferralShare] copy code failed', error)
+      toast({
+        variant: 'destructive',
+        title:
+          lang === 'zh'
+            ? '复制推荐码失败'
+            : lang === 'ms'
+              ? 'Gagal menyalin kod'
+              : 'Failed to copy referral code',
+        description:
+          lang === 'zh'
+            ? '请手动复制当前推荐码后重试'
+            : lang === 'ms'
+              ? 'Sila salin kod ini secara manual dan cuba lagi'
+              : 'Please copy the code manually and try again',
+      })
+    }
   }
 
   const handleCopyLink = async () => {
@@ -494,23 +524,62 @@ function ReferralSection({
       typeof window === 'undefined'
         ? referralPath
         : `${window.location.origin}${referralPath}`
-    await navigator.clipboard.writeText(referralUrl)
-    void recordReferralCopyAction({
-      referralCode: user.referralCode,
-      sourcePath: typeof window === 'undefined' ? null : window.location.pathname,
-      destinationPath: referralPath,
-    }).catch((error) => {
-      console.warn('[ReferralAttribution] copy log failed', error)
-    })
-    setCopiedLink(true)
-    setTimeout(() => setCopiedLink(false), 1800)
+
+    try {
+      await navigator.clipboard.writeText(referralUrl)
+      void recordReferralCopyAction({
+        referralCode: user.referralCode,
+        sourcePath: typeof window === 'undefined' ? null : window.location.pathname,
+        destinationPath: referralPath,
+      }).catch((error) => {
+        console.warn('[ReferralAttribution] copy log failed', error)
+      })
+      setCopiedLink(true)
+      setTimeout(() => setCopiedLink(false), 1800)
+    } catch (error) {
+      console.warn('[ReferralShare] copy link failed', error)
+      toast({
+        variant: 'destructive',
+        title:
+          lang === 'zh'
+            ? '复制链接失败'
+            : lang === 'ms'
+              ? 'Gagal menyalin pautan'
+              : 'Failed to copy referral link',
+        description:
+          lang === 'zh'
+            ? '请手动复制当前分享链接后重试'
+            : lang === 'ms'
+              ? 'Sila salin pautan ini secara manual dan cuba lagi'
+              : 'Please copy the link manually and try again',
+      })
+    }
   }
 
   const handleCopyShareCopy = async () => {
     if (!user.referralCode) return
-    await navigator.clipboard.writeText(copy.shareCopy)
-    setCopiedShare(true)
-    setTimeout(() => setCopiedShare(false), 1800)
+    try {
+      await navigator.clipboard.writeText(copy.shareCopy)
+      setCopiedShare(true)
+      setTimeout(() => setCopiedShare(false), 1800)
+    } catch (error) {
+      console.warn('[ReferralShare] copy share text failed', error)
+      toast({
+        variant: 'destructive',
+        title:
+          lang === 'zh'
+            ? '复制文案失败'
+            : lang === 'ms'
+              ? 'Gagal menyalin mesej'
+              : 'Failed to copy share copy',
+        description:
+          lang === 'zh'
+            ? '请手动复制分享文案后重试'
+            : lang === 'ms'
+              ? 'Sila salin mesej ini secara manual dan cuba lagi'
+              : 'Please copy the share copy manually and try again',
+      })
+    }
   }
 
   const handleNativeShare = async () => {
@@ -595,6 +664,17 @@ function ReferralSection({
               {copied ? copy.copied : copy.copyCode}
             </Button>
           </div>
+          {!user.referralCode ? (
+            <div className="mt-3 rounded-2xl border border-dashed border-borderTone bg-surface-subtle px-4 py-3 text-sm leading-6 text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary">
+              <div className="font-medium text-text-primary dark:text-white">
+                {copy.emptyTitle}
+              </div>
+              <div className="mt-1">{copy.emptyDesc}</div>
+              <div className="mt-1 text-xs text-text-tertiary dark:text-text-tertiary">
+                {copy.emptyAction}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className={`${insetCardClassName} p-4`}>
@@ -655,6 +735,15 @@ function ReferralSection({
               }}
             />
           </div>
+          {user.referralCount === 0 ? (
+            <div className="rounded-2xl border border-dashed border-borderTone bg-surface-subtle px-4 py-3 text-sm leading-6 text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary">
+              {lang === 'zh'
+                ? '当前还没有成功推荐好友，复制上方的推荐码或链接后开始分享。'
+                : lang === 'ms'
+                  ? 'Belum ada rakan yang berjaya dirujuk lagi. Salin kod atau pautan di atas untuk mula berkongsi.'
+                  : 'No successful referrals yet. Copy the code or link above to start sharing.'}
+            </div>
+          ) : null}
         </div>
       </div>
 

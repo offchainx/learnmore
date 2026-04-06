@@ -21,15 +21,214 @@ type PlanCard = {
   features: string[]
 }
 
+type NoticeLang = 'en' | 'zh' | 'ms'
+type CheckoutNoticeTone = 'info' | 'error'
+
+type CheckoutNotice = {
+  tone: CheckoutNoticeTone
+  title: string
+  message: string
+}
+
+function buildReferralNotice(
+  lang: NoticeLang,
+  code: string | null,
+  tone: CheckoutNoticeTone
+): CheckoutNotice | null {
+  if (!code) return null
+
+  const map = {
+    zh: {
+      INVALID_REFERRAL_CODE: {
+        title: '推荐链接无效',
+        message: '这条分享链接里的推荐码格式不正确，请检查后再试。',
+      },
+      REFERRAL_NOT_FOUND: {
+        title: '推荐码不存在',
+        message: '这条分享链接对应的推荐码未找到，请联系分享者确认。',
+      },
+      PAYMENT_CANCELLED: {
+        title: '支付已取消',
+        message: '你可以继续修改推荐码，然后重新选择方案。',
+      },
+      REFERRAL_ALREADY_BOUND: {
+        title: '推荐码已绑定',
+        message: '你已经绑定过其他推荐码，当前账号暂不支持修改。',
+      },
+      SELF_REFERRAL: {
+        title: '不能绑定自己的推荐码',
+        message: '请使用别人的推荐码，或者直接继续购买。',
+      },
+      BIND_FAILED: {
+        title: '绑定失败',
+        message: '推荐码绑定暂时失败，请稍后重试。',
+      },
+      PAYMENT_MODE_NOT_READY: {
+        title: '支付方式未就绪',
+        message: '当前仅支持 Stripe 支付，其他方式稍后开放。',
+      },
+      VOUCHER_ALREADY_USED: {
+        title: '优惠码已使用',
+        message: '当前账号已经使用过这个优惠码。',
+      },
+      VOUCHER_EXPIRED: {
+        title: '优惠码已过期',
+        message: '这张优惠码已过期，请更换后重试。',
+      },
+      VOUCHER_EXHAUSTED: {
+        title: '优惠码已用完',
+        message: '这张优惠码已经达到使用上限。',
+      },
+      VOUCHER_NOT_STARTED: {
+        title: '优惠码未生效',
+        message: '这张优惠码尚未到可用时间。',
+      },
+      VOUCHER_NOT_READY: {
+        title: '优惠码暂不可用',
+        message: '这张优惠码尚未配置好 Stripe 折扣，暂时不能使用。',
+      },
+      INVALID_VOUCHER: {
+        title: '优惠码无效',
+        message: '这张优惠码不存在或已失效。',
+      },
+    },
+    ms: {
+      INVALID_REFERRAL_CODE: {
+        title: 'Pautan rujukan tidak sah',
+        message: 'Kod rujukan dalam pautan ini tidak betul. Sila semak dan cuba lagi.',
+      },
+      REFERRAL_NOT_FOUND: {
+        title: 'Kod rujukan tidak ditemui',
+        message: 'Kami tidak dapat mencari kod rujukan ini. Sila minta pengirim untuk semak semula.',
+      },
+      PAYMENT_CANCELLED: {
+        title: 'Pembayaran dibatalkan',
+        message: 'Anda boleh semak kod rujukan dan cuba semula.',
+      },
+      REFERRAL_ALREADY_BOUND: {
+        title: 'Kod rujukan sudah dipautkan',
+        message: 'Akaun ini sudah memautkan kod rujukan lain.',
+      },
+      SELF_REFERRAL: {
+        title: 'Rujukan diri sendiri tidak dibenarkan',
+        message: 'Sila gunakan kod rujukan orang lain atau teruskan tanpa kod.',
+      },
+      BIND_FAILED: {
+        title: 'Gagal memaut kod rujukan',
+        message: 'Kod rujukan tidak dapat dipautkan sekarang. Sila cuba lagi nanti.',
+      },
+      PAYMENT_MODE_NOT_READY: {
+        title: 'Kaedah bayaran belum sedia',
+        message: 'Setakat ini hanya Stripe disokong. Kaedah lain akan menyusul.',
+      },
+      VOUCHER_ALREADY_USED: {
+        title: 'Voucher sudah digunakan',
+        message: 'Akaun ini telah menebus kod voucher ini.',
+      },
+      VOUCHER_EXPIRED: {
+        title: 'Voucher telah tamat tempoh',
+        message: 'Kod voucher ini sudah tamat tempoh.',
+      },
+      VOUCHER_EXHAUSTED: {
+        title: 'Voucher telah habis',
+        message: 'Kod voucher ini telah mencapai had penebusan.',
+      },
+      VOUCHER_NOT_STARTED: {
+        title: 'Voucher belum aktif',
+        message: 'Kod voucher ini belum mula aktif lagi.',
+      },
+      VOUCHER_NOT_READY: {
+        title: 'Voucher belum sedia',
+        message: 'Voucher ini belum dipautkan kepada Stripe coupon.',
+      },
+      INVALID_VOUCHER: {
+        title: 'Voucher tidak sah',
+        message: 'Kod voucher ini tidak wujud atau tidak lagi sah.',
+      },
+    },
+    en: {
+      INVALID_REFERRAL_CODE: {
+        title: 'Invalid referral link',
+        message: 'The referral code in this link is malformed. Please check and try again.',
+      },
+      REFERRAL_NOT_FOUND: {
+        title: 'Referral code not found',
+        message: 'We could not find the referral code in this link. Please ask the sender to confirm it.',
+      },
+      PAYMENT_CANCELLED: {
+        title: 'Payment cancelled',
+        message: 'You can review the referral code and try again.',
+      },
+      REFERRAL_ALREADY_BOUND: {
+        title: 'Referral already bound',
+        message: 'This account has already bound another referral code.',
+      },
+      SELF_REFERRAL: {
+        title: 'Self-referral is not allowed',
+        message: 'Please use another person’s referral code or continue without one.',
+      },
+      BIND_FAILED: {
+        title: 'Referral binding failed',
+        message: 'The referral code could not be bound right now. Please retry later.',
+      },
+      PAYMENT_MODE_NOT_READY: {
+        title: 'Payment method not ready',
+        message: 'Only Stripe is available right now. Other methods are coming soon.',
+      },
+      VOUCHER_ALREADY_USED: {
+        title: 'Voucher already used',
+        message: 'This account has already redeemed the voucher code.',
+      },
+      VOUCHER_EXPIRED: {
+        title: 'Voucher expired',
+        message: 'This voucher code has already expired.',
+      },
+      VOUCHER_EXHAUSTED: {
+        title: 'Voucher exhausted',
+        message: 'This voucher code has reached its redemption limit.',
+      },
+      VOUCHER_NOT_STARTED: {
+        title: 'Voucher not active yet',
+        message: 'This voucher code is not active yet.',
+      },
+      VOUCHER_NOT_READY: {
+        title: 'Voucher not ready',
+        message: 'This voucher is not linked to a Stripe coupon yet.',
+      },
+      INVALID_VOUCHER: {
+        title: 'Invalid voucher',
+        message: 'This voucher code does not exist or is no longer valid.',
+      },
+    },
+  } as const
+
+  const normalized = map[lang][code as keyof (typeof map)['zh']]
+  if (!normalized) return null
+  return {
+    tone,
+    title: normalized.title,
+    message: normalized.message,
+  }
+}
+
 const PricingPageClient: React.FC = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isAnnual, setIsAnnual] = useState(false)
   const { lang, setLang } = useApp()
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null)
+  const [checkoutNotice, setCheckoutNotice] = useState<CheckoutNotice | null>(null)
 
   const referralCodeFromQuery = useMemo(
     () => searchParams.get('referralCode')?.trim().toUpperCase() || '',
+    [searchParams]
+  )
+  const referralErrorFromQuery = useMemo(
+    () => searchParams.get('referralError')?.trim().toUpperCase() || '',
+    [searchParams]
+  )
+  const paymentStatusFromQuery = useMemo(
+    () => searchParams.get('payment')?.trim().toLowerCase() || '',
     [searchParams]
   )
   const [referralInput, setReferralInput] = useState(referralCodeFromQuery)
@@ -37,6 +236,34 @@ const PricingPageClient: React.FC = () => {
   useEffect(() => {
     setReferralInput(referralCodeFromQuery)
   }, [referralCodeFromQuery])
+
+  useEffect(() => {
+    if (paymentStatusFromQuery === 'cancelled') {
+      setCheckoutNotice({
+        tone: 'info',
+        title: lang === 'zh' ? '支付已取消' : 'Payment cancelled',
+        message:
+          lang === 'zh'
+            ? '你可以继续修改推荐码，然后重新选择方案。'
+            : 'You can review the referral code and try again.',
+      })
+      return
+    }
+
+    if (referralErrorFromQuery) {
+      const notice = buildReferralNotice(
+        lang,
+        referralErrorFromQuery,
+        'error'
+      )
+      if (notice) {
+        setCheckoutNotice(notice)
+        return
+      }
+    }
+
+    setCheckoutNotice(null)
+  }, [lang, paymentStatusFromQuery, referralErrorFromQuery])
 
   const normalizedReferralCode = referralInput.trim().toUpperCase()
 
@@ -64,7 +291,19 @@ const PricingPageClient: React.FC = () => {
       })
 
       if (!result.ok || !result.checkoutUrl) {
-        alert(result.message || '暂时无法创建支付会话，请稍后重试。')
+        const notice = buildReferralNotice(
+          lang,
+          result.code.toUpperCase(),
+          'error'
+        )
+        setCheckoutNotice(
+          notice || {
+            tone: 'error',
+            title: lang === 'zh' ? '暂时无法继续支付' : 'Unable to continue checkout',
+            message:
+              result.message || (lang === 'zh' ? '请稍后重试。' : 'Please try again later.'),
+          }
+        )
         setLoadingPlan(null)
         return
       }
@@ -72,7 +311,14 @@ const PricingPageClient: React.FC = () => {
       window.location.assign(result.checkoutUrl)
     } catch (error) {
       console.error('[Pricing] prepare checkout failed', error)
-      alert('暂时无法创建支付会话，请稍后重试。')
+      setCheckoutNotice({
+        tone: 'error',
+        title: lang === 'zh' ? '支付会话创建失败' : 'Checkout session failed',
+        message:
+          lang === 'zh'
+            ? '暂时无法创建支付会话，请稍后重试。'
+            : 'Unable to create a checkout session right now. Please try again later.',
+      })
       setLoadingPlan(null)
     }
   }
@@ -316,6 +562,19 @@ const PricingPageClient: React.FC = () => {
             </div>
 
             <div className="mt-6 space-y-3">
+              {checkoutNotice ? (
+                <div
+                  className={cn(
+                    'rounded-2xl border px-4 py-3 text-sm leading-6',
+                    checkoutNotice.tone === 'error'
+                      ? 'border-rose-400/30 bg-rose-400/10 text-rose-100'
+                      : 'border-cyan-400/30 bg-cyan-400/10 text-cyan-100'
+                  )}
+                >
+                  <div className="font-semibold">{checkoutNotice.title}</div>
+                  <div className="mt-1 text-slate-200">{checkoutNotice.message}</div>
+                </div>
+              ) : null}
               <Input
                 label={copy.referralLabel}
                 value={referralInput}
@@ -350,6 +609,11 @@ const PricingPageClient: React.FC = () => {
               {lang === 'zh'
                 ? '如果你通过分享链接进入，这里应该已经自动填好推荐码。'
                 : 'If you opened this page from a referral link, the code should already be filled in here.'}
+            </div>
+            <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs leading-6 text-slate-400">
+              {lang === 'zh'
+                ? '调试提示：如果看到“推荐码不存在 / 已绑定 / 自推 / 格式错误”等状态，这一层会直接显示具体原因，方便你核对分享链路。'
+                : 'Debug tip: if you see referral invalid / already bound / self-referral / malformed states, this panel shows the exact reason to help you trace the sharing flow.'}
             </div>
           </div>
         </section>
