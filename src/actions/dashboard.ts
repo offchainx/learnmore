@@ -502,6 +502,29 @@ function parseMockExamDifficulty(
     : null
 }
 
+type RecentPracticeRecord = {
+  id: string
+  title: string | null
+  subjectId: string | null
+  totalQuestions: number
+  duration: number | null
+  score: number
+  correctCount: number
+  createdAt: Date
+  mode: PracticeMode
+  chapterId: string | null
+  subject: {
+    name: string
+  } | null
+  attempts: Array<{
+    question: {
+      chapterId: string | null
+      paperId: string | null
+      difficulty: number | null
+    } | null
+  }>
+}
+
 function buildRecentPracticeHref(input: {
   mode: PracticeMode
   subjectId: string | null
@@ -678,6 +701,7 @@ export async function getDashboardStats(
   currentUser?: DashboardCurrentUser | null,
   options: {
     includeDailyTasks?: boolean
+    includeRecentPractice?: boolean
     includeSubjectResults?: boolean
     includeLeaderboard?: boolean
   } = {}
@@ -697,6 +721,7 @@ export async function getDashboardStats(
   const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
 
   const includeDailyTasks = options.includeDailyTasks !== false
+  const includeRecentPractice = options.includeRecentPractice !== false
   const includeSubjectResults = options.includeSubjectResults !== false
   const includeLeaderboard = options.includeLeaderboard !== false
   let dailyTasks: DashboardData['dailyTasks']['items'] = []
@@ -784,33 +809,42 @@ export async function getDashboardStats(
   })
 
   const recentPracticeStartedAt = performance.now()
-  const recentPractice = await prisma.examRecord.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-    include: {
-      subject: {
-        select: {
-          name: true,
+  let recentPractice: RecentPracticeRecord[] = []
+  if (includeRecentPractice) {
+    recentPractice = (await prisma.examRecord.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      include: {
+        subject: {
+          select: {
+            name: true,
+          },
         },
-      },
-      attempts: {
-        select: {
-          question: {
-            select: {
-              chapterId: true,
-              paperId: true,
-              difficulty: true,
+        attempts: {
+          select: {
+            question: {
+              select: {
+                chapterId: true,
+                paperId: true,
+                difficulty: true,
+              },
             },
           },
         },
       },
-    },
-  })
-  logPerf('getDashboardStats.recentPractice', recentPracticeStartedAt, {
-    userId: user.id,
-    rows: recentPractice.length,
-  })
+    })) as RecentPracticeRecord[]
+    logPerf('getDashboardStats.recentPractice', recentPracticeStartedAt, {
+      userId: user.id,
+      rows: recentPractice.length,
+    })
+  } else {
+    logPerf('getDashboardStats.recentPractice', recentPracticeStartedAt, {
+      userId: user.id,
+      rows: 0,
+      skipped: true,
+    })
+  }
 
   let subjectResults: SubjectChaptersResult[] = []
   if (includeSubjectResults) {
@@ -861,7 +895,14 @@ export async function getDashboardStats(
     completedLessons: completedLessonsInRetention,
   })
   const recentPracticeItems = recentPractice.map((record) => {
-    const attemptQuestions = record.attempts.map((attempt) => attempt.question)
+    const attemptQuestions = record.attempts
+      .map((attempt) => attempt.question)
+      .filter(
+        (
+          question
+        ): question is NonNullable<(typeof record.attempts)[number]['question']> =>
+          question !== null
+      )
     const chapterId =
       record.chapterId ?? attemptQuestions.find((question) => question.chapterId)?.chapterId ?? null
     const paperId =

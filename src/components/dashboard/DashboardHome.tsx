@@ -207,12 +207,19 @@ export const DashboardHome = ({
   const [coreData, setCoreData] = useState<DashboardData | null>(
     initialData
   )
+  const [activityData, setActivityData] = useState<{
+    recentPractice: DashboardData['recentPractice']
+    leaderboard: DashboardData['leaderboard']
+  } | null>(null)
   const [subjectData, setSubjectData] = useState<{
     learningPath: DashboardData['learningPath']
     subjectProgress: DashboardData['subjectProgress']
     weaknesses: DashboardData['weaknesses']
   } | null>(null)
   const [isLoadingCoreData, setIsLoadingCoreData] = useState(!initialData)
+  const [isLoadingActivityData, setIsLoadingActivityData] = useState(
+    !initialData
+  )
   const [isLoadingSubjectData, setIsLoadingSubjectData] = useState(!initialData)
   const [homeDataError, setHomeDataError] = useState<string | null>(null)
   const [overviewWindow, setOverviewWindow] =
@@ -257,6 +264,77 @@ export const DashboardHome = ({
       }
     }
 
+    void loadCoreData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [coreData])
+
+  useEffect(() => {
+    if (activityData) return
+
+    let cancelled = false
+
+    const loadActivityData = async () => {
+      setIsLoadingActivityData(true)
+      try {
+        const response = await fetch('/api/dashboard/home-activity', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load dashboard activity data: ${response.status}`
+          )
+        }
+
+        const payload = (await response.json()) as {
+          recentPractice?: DashboardData['recentPractice']
+          leaderboard?: DashboardData['leaderboard']
+        }
+
+        if (!cancelled) {
+          setActivityData({
+            recentPractice: payload.recentPractice ?? {
+              status: 'empty',
+              items: [],
+              note: '最近练习稍后加载。',
+            },
+            leaderboard: payload.leaderboard ?? {
+              status: 'empty',
+              percentile: null,
+              peerAverageAccuracy: null,
+              userAccuracy: 0,
+              note: '排行榜稍后加载。',
+            },
+          })
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[DashboardHome] Failed to lazy-load activity data:', error)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingActivityData(false)
+        }
+      }
+    }
+
+    void loadActivityData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [activityData])
+
+  useEffect(() => {
+    if (subjectData) return
+
+    let cancelled = false
+
     const loadSubjectData = async () => {
       setIsLoadingSubjectData(true)
       try {
@@ -267,7 +345,9 @@ export const DashboardHome = ({
         })
 
         if (!response.ok) {
-          throw new Error(`Failed to load dashboard subject data: ${response.status}`)
+          throw new Error(
+            `Failed to load dashboard subject data: ${response.status}`
+          )
         }
 
         const payload = (await response.json()) as {
@@ -306,14 +386,12 @@ export const DashboardHome = ({
       }
     }
 
-    void loadCoreData()
     void loadSubjectData()
 
     return () => {
       cancelled = true
     }
-  }, [coreData])
-
+  }, [subjectData])
   const dashboardDataSnapshot = {
     ...(coreData ?? {
       stats: {
@@ -335,6 +413,16 @@ export const DashboardHome = ({
       subjectProgress: { status: 'empty', items: [], note: undefined },
       dailyTasks: { status: 'empty', items: [], note: undefined },
       weaknesses: { status: 'empty', items: [], note: undefined },
+      leaderboard: {
+        status: 'empty',
+        percentile: null,
+        peerAverageAccuracy: null,
+        userAccuracy: 0,
+        note: undefined,
+      },
+    }),
+    ...(activityData ?? {
+      recentPractice: { status: 'empty', items: [], note: undefined },
       leaderboard: {
         status: 'empty',
         percentile: null,
@@ -517,9 +605,9 @@ export const DashboardHome = ({
 
   return (
     <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
-      <div
-        className={`mx-auto flex w-full min-w-0 max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
-      >
+    <div
+      className={`mx-auto flex w-full min-w-0 max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
+    >
         <section
           className={`grid 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
         >
@@ -882,11 +970,23 @@ export const DashboardHome = ({
                 </div>
               </div>
 
-              <div className="mt-4 text-center">
-                {leaderboard.status === 'ready' &&
+              {isLoadingActivityData && !activityData ? (
+                <>
+                  <div className="mt-4 text-center">
+                    <Skeleton className="mx-auto h-10 w-40 rounded-full" />
+                    <Skeleton className="mx-auto mt-3 h-4 w-52 rounded-full" />
+                  </div>
+                  <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
+                    <Skeleton className="h-20 rounded-2xl" />
+                    <Skeleton className="h-20 rounded-2xl" />
+                  </div>
+                  <Skeleton className="mt-3.5 h-12 rounded-2xl" />
+                </>
+              ) : leaderboard.status === 'ready' &&
                 leaderboard.percentile !== null &&
                 leaderboard.peerAverageAccuracy !== null ? (
-                  <>
+                <>
+                  <div className="mt-4 text-center">
                     <div
                       className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}
                     >
@@ -898,72 +998,72 @@ export const DashboardHome = ({
                         'Ahead of most students in your grade'
                       )}
                     </div>
-                  </>
-                ) : (
-                  <PageEmptyState
-                    title={
-                      leaderboard.status === 'excluded'
-                        ? copy('缺少年级信息', 'Grade info required')
-                        : copy('尚未进入排行榜', 'Not ranked yet')
-                    }
-                    description={
-                      leaderboard.note ||
-                      copy(
-                        '完成一组练习并获得 XP 后，这里会显示你在同年级中的位置。',
-                        'Complete a practice run and earn XP to see your position among students in your grade.'
-                      )
-                    }
-                    className="min-h-[148px] rounded-[22px] border border-dashed border-borderTone bg-surface/70 px-4 py-5 dark:border-borderTone dark:bg-surface/40"
-                  />
-                )}
-              </div>
+                  </div>
 
-              <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
-                <div className={`${pageInsetClass} px-4 py-3`}>
-                  <div className={pageKickerClass}>
-                    {copy('平均正确率', 'Average')}
+                  <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
+                    <div className={`${pageInsetClass} px-4 py-3`}>
+                      <div className={pageKickerClass}>
+                        {copy('平均正确率', 'Average')}
+                      </div>
+                      <div className={pageNumericValueCompactClass}>
+                        {leaderboard.peerAverageAccuracy !== null
+                          ? `${leaderboard.peerAverageAccuracy}%`
+                          : '--'}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-borderTone bg-[hsl(var(--state-success-bg))] px-4 py-3 dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]">
+                      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]">
+                        {copy('你的表现', 'You')}
+                      </div>
+                      <div className={pageNumericValueCompactClass}>
+                        {leaderboard.userAccuracy}%
+                      </div>
+                    </div>
                   </div>
-                  <div className={pageNumericValueCompactClass}>
-                    {leaderboard.peerAverageAccuracy !== null
-                      ? `${leaderboard.peerAverageAccuracy}%`
-                      : '--'}
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-borderTone bg-[hsl(var(--state-success-bg))] px-4 py-3 dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))]">
-                  <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-[hsl(var(--state-success-fg))] dark:text-[hsl(var(--state-success-fg))]">
-                    {copy('你的表现', 'You')}
-                  </div>
-                  <div className={pageNumericValueCompactClass}>
-                    {leaderboard.userAccuracy}%
-                  </div>
-                </div>
-              </div>
 
-              <Button
-                onClick={() => {
-                  if (leaderboard.status === 'ready') {
-                    navigate('/dashboard/leaderboard')
-                    return
+                  <Button
+                    onClick={() => {
+                      if (leaderboard.status === 'ready') {
+                        navigate('/dashboard/leaderboard')
+                        return
+                      }
+
+                      if (leaderboard.status === 'excluded') {
+                        navigate('/dashboard/settings')
+                        return
+                      }
+
+                      if (leaderboard.status === 'empty') {
+                        navigate('/dashboard/practice')
+                      }
+                    }}
+                    className="mt-3.5 w-full rounded-2xl py-3 text-sm font-bold"
+                  >
+                    {leaderboard.status === 'ready'
+                      ? copy('查看排行榜', 'View Leaderboard')
+                      : leaderboard.status === 'excluded'
+                        ? copy('完善资料', 'Update Profile')
+                        : copy('去赚 XP', 'Earn XP')}
+                    <ArrowUpRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <PageEmptyState
+                  title={
+                    leaderboard.status === 'excluded'
+                      ? copy('缺少年级信息', 'Grade info required')
+                      : copy('尚未进入排行榜', 'Not ranked yet')
                   }
-
-                  if (leaderboard.status === 'excluded') {
-                    navigate('/dashboard/settings')
-                    return
+                  description={
+                    leaderboard.note ||
+                    copy(
+                      '完成一组练习并获得 XP 后，这里会显示你在同年级中的位置。',
+                      'Complete a practice run and earn XP to see your position among students in your grade.'
+                    )
                   }
-
-                  if (leaderboard.status === 'empty') {
-                    navigate('/dashboard/practice')
-                  }
-                }}
-                className="mt-3.5 w-full rounded-2xl py-3 text-sm font-bold"
-              >
-                {leaderboard.status === 'ready'
-                  ? copy('查看排行榜', 'View Leaderboard')
-                  : leaderboard.status === 'excluded'
-                    ? copy('完善资料', 'Update Profile')
-                    : copy('去赚 XP', 'Earn XP')}
-                <ArrowUpRight className="ml-2 h-4 w-4" />
-              </Button>
+                  className="min-h-[148px] rounded-[22px] border border-dashed border-borderTone bg-surface/70 px-4 py-5 dark:border-borderTone dark:bg-surface/40"
+                />
+              )}
             </Card>
 
             <Card
@@ -996,7 +1096,26 @@ export const DashboardHome = ({
                 </Button>
               </div>
 
-              {recentPractice.length > 0 ? (
+              {isLoadingActivityData && !activityData ? (
+                <div className={`space-y-3 ${pageListGapClass}`}>
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={`recent-practice-skeleton-${index}`}
+                      className={`${pageInteractiveRowClass} justify-between`}
+                    >
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <Skeleton className="h-4 w-28 rounded-full" />
+                        <Skeleton className="h-5 w-4/5 rounded-full" />
+                        <Skeleton className="h-4 w-full rounded-full" />
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <Skeleton className="ml-auto h-6 w-16 rounded-full" />
+                        <Skeleton className="ml-auto mt-2 h-4 w-20 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentPractice.length > 0 ? (
                 <div
                   className={`custom-scrollbar max-h-[332px] overflow-y-auto pr-1 ${pageListGapClass}`}
                 >

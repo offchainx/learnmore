@@ -262,11 +262,12 @@
   - 这一步不是删功能，而是让功能继续保持完整的同时，不再把所有首屏数据一次性绑在同一个同步 await 上
 
 - 收口记录：
-  - `T-PERF.FIX.7` 已经完成一次关键拆解：把 `permissionOverrides` 从 dashboard 热路径剥离
-  - 现在又把 `settings` 回源从首页剥离，dashboard 首屏继续只保留必须读路径
-  - 但首页仍然是 30s+ 级别，说明首屏最早的服务端路径还在大幅阻塞
-  - 这次已经把 dashboard 首页改成流式壳子，后续真实内容会在 fallback 之后继续流入
-  - `dailyTasks` 已经挪到页面落地后的二次请求，`attemptsInRetention`、`subjectResults`、`leaderboard` 也已经移出首屏 SSR，下一步必须盯住 `home-core` / `home-subjects` 这两条请求里仍然最慢的 Prisma 调用，以及 `getDashboardCurrentUser()` 的基础读路径
+- `T-PERF.FIX.7` 已经完成一次关键拆解：把 `permissionOverrides` 从 dashboard 热路径剥离
+- 现在又把 `settings` 回源从首页剥离，dashboard 首屏继续只保留必须读路径
+- 但首页仍然是 30s+ 级别，说明首屏最早的服务端路径还在大幅阻塞
+- 这次已经把 dashboard 首页改成流式壳子，后续真实内容会在 fallback 之后继续流入
+- `dailyTasks` 已经挪到页面落地后的二次请求，`attemptsInRetention`、`subjectResults`、`leaderboard` 也已经移出首屏 SSR，下一步必须盯住 `home-core` / `home-subjects` 这两条请求里仍然最慢的 Prisma 调用，以及 `getDashboardCurrentUser()` 的基础读路径
+- 当前这一轮又把首页再切成 `home-core` / `home-activity` / `home-subjects` 三段，目的是让 summary 先出来，再让最近练习、排行榜和章节推荐逐步补齐
 
 ### T-PERF.FIX.7 ~ T-PERF.FIX.9 下一步推进顺序
 
@@ -278,6 +279,26 @@
   - 这三个任务按“先首页、再最慢子页、再第二慢子页”的顺序推进
   - 每完成一个任务，就把对应的真实浏览器结果、runtime logs 证据和最终结论补回本节
   - 在 `T-PERF.FIX.7` 没完成前，不展开更多 dashboard 子页改造，避免继续无头修改
+
+### T-PERF.FIX.7.1 summary / activity 再拆分
+
+| id | description | owner | status |
+|---|---|---|---|
+| T-PERF.FIX.7.1 | 将 `home-core` 再收窄为 summary，只保留 `stats` / `overview` | codex | done |
+| T-PERF.FIX.7.2 | 将 `recentPractice` / `leaderboard` 拆到独立 `home-activity` 加载段 | codex | done |
+
+- 结果：
+  - `[src/app/api/dashboard/home-core/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/home-core/route.ts)` 现在只回首页 summary，不再把最近练习和排行榜绑在第一段请求里
+  - `[src/app/api/dashboard/home-activity/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/home-activity/route.ts)` 新增为独立 activity 请求，专门回最近练习和排行榜
+  - `[src/components/dashboard/DashboardHome.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/DashboardHome.tsx)` 现在会并行拉 summary、activity 和 subjects，summary 到了就先渲染首屏骨架和概览，activity 继续在后台补
+
+- 收口记录：
+  - 这一步不是删功能，而是把首页首屏再拆成更细的加载段，避免 `recentPractice` 和 `leaderboard` 继续卡住最早可见内容
+  - 如果后续浏览器测量仍然慢，下一层就会继续看 `home-core` summary 里剩余的 `attemptsInRetention` / `examRecordsInRetention` / `completedLessonsInRetention` 是否仍然过重
+
+- 当前结论：
+  - 首页已经从两段式加载推进到三段式加载
+  - 下一轮验证重点是 summary 是否已经足够快到让首屏体感明显改善
 
 ### T-PERF.1 路径盘点结果（已完成）
 

@@ -12,14 +12,17 @@ export async function GET() {
 
   const data = await getDashboardStats(user, {
     includeDailyTasks: false,
-    includeRecentPractice: false,
+    includeRecentPractice: true,
     includeSubjectResults: false,
-    includeLeaderboard: false,
+    includeLeaderboard: true,
   })
 
   if (!data) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  return NextResponse.json({ data })
+  return NextResponse.json({
+    recentPractice: data.recentPractice,
+    leaderboard: data.leaderboard,
+  })
 }
