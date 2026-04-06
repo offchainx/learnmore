@@ -326,10 +326,12 @@
   - `DashboardHome` 继续并行拉 summary / activity / subjects，但 summary 内部会先渲染 stats，再补 trend cards
 
 - 结果：
-  - 真实可见 Chromium 复测里，`/dashboard` 的 `DOMContentLoaded` 约 `4.7s`
-  - `home-core` 在约 `14.1s` 返回，`home-overview` 在约 `15.2s` 返回
-  - `学习时长` / `完成题数` 先于趋势卡出现，说明 stats-first 与 overview 后补已经生效
-  - 这一步把 summary 继续拆细完成了，但当前尾巴已经转移到 `home-subjects`
+  - 真实可见 Chromium 复测里，`/dashboard` 的 `DOMContentLoaded` 约 `4.8s`
+  - `home-core` 在约 `14.6s` 返回，`home-overview` 在约 `14.1s` 返回
+  - `home-activity` 在约 `17.6s` 返回，`home-subjects` 在约 `48.3s` 返回
+  - `学习时长` / `正确率` / `最近练习` / `排行榜` 先于学科卡片出现，说明 summary 与 activity 已经先行回填
+  - `daily-tasks` 这轮在浏览器侧出现了 `500`，需要后续独立确认是否只是瞬时异常，还是和 subject 尾部争用一起放大了
+  - 这一步把 summary 继续拆细完成了，但当前尾巴已经稳定落到 `home-subjects`
 
 - 下一步：
   - 继续盯 `home-subjects` 内部的细粒度阶段，确认是 subject 读取、chapter 统计，还是 attempts 聚合最慢
