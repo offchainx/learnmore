@@ -26,7 +26,7 @@ type UserProfile = User & { settings?: UserSettings | null }
 
 interface DashboardClientProps {
   user: UserProfile
-  initialData: DashboardData
+  initialData: DashboardData | null
 }
 
 export function DashboardClient({ user, initialData }: DashboardClientProps) {

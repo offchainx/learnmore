@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { DailyInspiration } from './Widgets'
 import { DailyMissions } from './DailyMissions'
 import {
@@ -197,16 +198,94 @@ export const DashboardHome = ({
 }: {
   navigate: (path: string) => void
   onViewChange?: (view: string) => void
-  initialData: DashboardData
+  initialData: DashboardData | null
   user: User & { settings?: UserSettings | null }
 }) => {
   const { t, lang } = useApp()
   const copy = (zh: string, en: string, ms?: string) =>
     languageCopy(lang, zh, en, ms)
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    initialData
+  )
+  const [isLoadingHomeData, setIsLoadingHomeData] = useState(!initialData)
+  const [homeDataError, setHomeDataError] = useState<string | null>(null)
   const [overviewWindow, setOverviewWindow] =
     useState<DashboardOverviewWindow>('7D')
   const [activityPage, setActivityPage] = useState(0)
   const [subjectPage, setSubjectPage] = useState(0)
+
+  useEffect(() => {
+    if (dashboardData) return
+
+    let cancelled = false
+
+    const loadHomeData = async () => {
+      setIsLoadingHomeData(true)
+      setHomeDataError(null)
+      try {
+        const response = await fetch('/api/dashboard/home-data', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load dashboard home data: ${response.status}`)
+        }
+
+        const payload = (await response.json()) as { data?: DashboardData }
+        if (!cancelled) {
+          setDashboardData(payload.data ?? null)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[DashboardHome] Failed to lazy-load home data:', error)
+          setHomeDataError(
+            error instanceof Error ? error.message : 'Failed to load dashboard data'
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingHomeData(false)
+        }
+      }
+    }
+
+    void loadHomeData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [dashboardData])
+
+  const dashboardDataSnapshot = dashboardData ?? {
+    stats: {
+      studyTime: '0.0',
+      questions: 0,
+      accuracy: 0,
+      mistakes: 0,
+      streak: 0,
+      level: 0,
+      xp: 0,
+      nextLevelXp: 0,
+    },
+    overviewByWindow: {
+      '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+      '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+    },
+    learningPath: { status: 'empty', items: [], note: undefined },
+    recentPractice: { status: 'empty', items: [], note: undefined },
+    subjectProgress: { status: 'empty', items: [], note: undefined },
+    dailyTasks: { status: 'empty', items: [], note: undefined },
+    weaknesses: { status: 'empty', items: [], note: undefined },
+    leaderboard: {
+      status: 'empty',
+      percentile: null,
+      peerAverageAccuracy: null,
+      userAccuracy: 0,
+      note: undefined,
+    },
+  }
 
   const {
     stats,
@@ -216,7 +295,7 @@ export const DashboardHome = ({
     subjectProgress,
     dailyTasks: dailyTasksSection,
     leaderboard,
-  } = initialData
+  } = dashboardDataSnapshot
   const learningPathItems = learningPath.items
   const subjectProgressItems = subjectProgress.items
   const recentPractice = recentPracticeSection.items
@@ -257,6 +336,77 @@ export const DashboardHome = ({
   useEffect(() => {
     setSubjectPage(0)
   }, [subjectProgressItems.length])
+
+  if (isLoadingHomeData || !dashboardData) {
+    return (
+      <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
+        <div className="mx-auto flex w-full min-w-0 max-w-[1820px] flex-col gap-4 pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)]">
+          <Card className="rounded-[30px] border border-borderTone bg-surface p-5 shadow-surface">
+            <div className="flex flex-col gap-4">
+              <div className="space-y-3">
+                <Skeleton className="h-7 w-36 rounded-full" />
+                <Skeleton className="h-4 w-full max-w-2xl rounded-full" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={`dash-skeleton-stat-${index}`}
+                    className="rounded-[28px] border border-borderTone bg-surface-subtle p-5 shadow-surface"
+                  >
+                    <Skeleton className="h-4 w-24 rounded-full" />
+                    <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
+                    <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+            <Card className="rounded-[28px] border border-borderTone bg-surface p-5 shadow-surface">
+              <Skeleton className="h-6 w-40 rounded-full" />
+              <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
+              <div className="mt-5 space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <Skeleton
+                    key={`dash-skeleton-row-${index}`}
+                    className="h-24 rounded-[22px]"
+                  />
+                ))}
+              </div>
+            </Card>
+
+            <div className="space-y-4">
+              <Card className="rounded-[28px] border border-borderTone bg-surface p-5 shadow-surface">
+                <Skeleton className="h-6 w-28 rounded-full" />
+                <Skeleton className="mt-4 h-32 rounded-[24px]" />
+              </Card>
+              <Card className="rounded-[28px] border border-borderTone bg-surface p-5 shadow-surface">
+                <Skeleton className="h-6 w-32 rounded-full" />
+                <div className="mt-4 space-y-3">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <Skeleton
+                      key={`dash-skeleton-list-${index}`}
+                      className="h-20 rounded-[22px]"
+                    />
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {homeDataError ? (
+            <Card className="rounded-[28px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
+              <div className="text-sm font-semibold">
+                Dashboard data is loading slowly.
+              </div>
+              <div className="mt-1 text-sm opacity-80">{homeDataError}</div>
+            </Card>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
 
   const handleActivityWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (totalActivityPages <= 1) return

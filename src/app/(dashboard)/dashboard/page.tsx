@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { getDashboardProfile } from '@/actions/user/profile';
-import { getDashboardStats } from '@/actions/dashboard';
 import { getDashboardCurrentUser, syncCurrentUserToDatabase } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
@@ -19,10 +18,7 @@ export default function DashboardPage() {
 
 async function DashboardPageContent() {
   const currentUser = await getDashboardCurrentUser();
-  const [profile, dashboardData] = await Promise.all([
-    getDashboardProfile(currentUser),
-    getDashboardStats(currentUser, { includeDailyTasks: false }),
-  ]);
+  const profile = await getDashboardProfile(currentUser);
 
   if (!profile) {
     // Check if we have a valid session but missing database record
@@ -103,8 +99,5 @@ async function DashboardPageContent() {
     redirect('/login');
   }
 
-  if (!dashboardData) {
-    redirect('/login');
-  }
-  return <DashboardClient user={profile} initialData={dashboardData} />;
+  return <DashboardClient user={profile} initialData={null} />;
 }
