@@ -17,7 +17,7 @@
 | T-013 | `/admin/content/import` + `/admin/content` 内容导入入口真实化 | codex | done |  |
 | T-014 | `/admin/content/review` 全路由族真实化（列表 / 详情 / 审核动作） | codex | done |  |
 | T-015 | `/admin/content/reports` + `/admin/content/statistics` 内容质控与统计域真实化 | codex | done |  |
-| T-016 | `/dashboard/leaderboard` 排行榜真实数据接入与口径对齐 | codex | todo |  |
+| T-016 | `/dashboard/leaderboard` 排行榜 + sidebar 经验值卡真实化 | codex | todo |  |
 | T-017 | `/dashboard/achievements` 成就 / XP / streak / 任务域真实化 | codex | todo |  |
 | T-018 | `/dashboard/settings` 全路由族真实化（含 `/dashboard/settings/notifications`） | codex | todo |  |
 | T-019 | Public / Marketing / Auth 页面 CTA、表单、跳转与权限行为对齐 | codex | todo |  |
@@ -1431,7 +1431,7 @@
 | T-012.4 | 落地 referral 的增长归因与 telemetry 留存：覆盖 `copy / click / bind / checkout / settle / reward_grant`，用于判断哪类分享动作真正带来裂变转化 | codex | done |
 | T-012.5 | 对齐 referral 读取链路：用户侧推荐码展示、支付页预填、后台概览与用户详情增长信息 | codex | done |
 | T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | done |
-| T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | todo |
+| T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | done |
 | T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | todo |
 | T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | todo |
 | T-012.10 | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | codex | todo |
@@ -1545,6 +1545,13 @@
 - 这一阶段仍然不碰 `T-012.7` 的激励卡片文案与传播出口，也不做 `T-012.8` 的异常态扩展；目标只是把写链路的权限、幂等、透传、结算和刷新闭环先稳定下来。
 - 本轮验证已经通过：`pnpm -s tsc --noEmit`、`pnpm run build` 与相关 `eslint` 均已通过，说明写链路与刷新闭环可以稳定收口。
 
+### T-012.7 激励展示与传播出口说明
+- `T-012.7` 只负责 referral 的激励展示与传播出口，不再新增绑定规则、结算规则或奖励计算规则；这些业务边界已经由 `T-012.1 ~ T-012.6` 固定下来。
+- 用户侧传播入口集中在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：提供复制推荐码、复制深链、复制分享文案、系统分享，以及推荐进度与剩余名额提示。
+- 激励展示要同时表达“我还能邀请多少人”和“邀请后能得到什么”，因此本阶段补了推荐进度条、奖励规则摘要和状态提示，但不改奖励发放口径。
+- 传播出口必须尽量低成本：默认优先提供一键复制推荐码和推荐链接，其次提供可直接转发的分享文案，最后才是系统分享；目标是把用户从“看到 code”推进到“真的会分享”。
+- 这一阶段的收口标准是：页面上能清楚看到奖励动机、可复制传播内容、剩余额度与当前进度，同时不引入新的 mock 或新的分享规则。
+
 ### T-013 内容导入入口域
 | id | description | owner | status |
 |---|---|---|---|
@@ -1589,15 +1596,29 @@
 | T-015.5 | 清理假图表、假统计、假报错回执，补齐空态/错误态/权限态 | codex | done |
 | T-015.6 | 完成内容质控与统计域验证：统计字段核账、报错处理核账、重复操作验证 | codex | done |
 
-### T-016 排行榜域
+### T-016 排行榜与成长进度域
+##### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-016.1 | 盘点 `/dashboard/leaderboard` 的榜单区块、周期切换、我的排名卡、衍生卡片与当前数据源 | codex | todo |
-| T-016.2 | 建立榜单名次、分数、我的排名、周期、榜单说明、衍生卡片的字段映射与权威数据源矩阵 | codex | todo |
-| T-016.3 | 对齐排行榜读取链路：周/月/总榜、榜单列表、我的排名、分页/限制与时间窗口口径 | codex | todo |
-| T-016.4 | 对齐排行榜写链路：积分更新入口、周期切换、缓存刷新、幂等与并发策略 | codex | todo |
-| T-016.5 | 清理首屏 mock 榜单、假排名、假百分位与伪说明文案，补齐空态/错误态 | codex | todo |
-| T-016.6 | 完成排行榜域验证：榜单字段核账、我的排名核账、周期切换与重复刷新验证 | codex | todo |
+| T-016.1 | 盘点 `/dashboard/leaderboard`、sidebar 经验值卡、`actions/leaderboard`、`/api/leaderboard/summary`、`DashboardLayout` 与 `LeaderboardView` 的数据入口，明确排行榜与成长进度的主边界 | codex | todo |
+| T-016.2 | 建立排行榜与成长进度字段矩阵，覆盖 `rank / score / period / myRank / gap / user.xp / level / nextLevelXp / streak / accuracy / badges / subscriptionTier` 等权威数据源与展示口径 | codex | todo |
+| T-016.3 | 固化产品边界：sidebar 经验值卡只负责持续成长进度，`/dashboard/leaderboard` 只负责排名与追赶目标，右侧成长总览负责下一步行动，明确空态 / 加载 / 错误态文案 | codex | todo |
+| T-016.4 | 明确 legacy sidebar 的处理边界：若旧 `AppSidebar` 仍保留，仅作为兼容实现，不把硬编码 XP 卡继续扩散到新主线 | codex | todo |
+
+##### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-016.5 | 对齐 `/dashboard/leaderboard` 读取链路：去除 mock 榜单与固定名次，接入真实后端数据、周期切换、当前用户定位与追赶目标计算 | codex | todo |
+| T-016.6 | 对齐 sidebar 经验值卡读取链路：接入真实 `user.xp`、等级计算与下一级进度，确保练习 / 社区等增益后可以正确刷新 | codex | todo |
+| T-016.7 | 对齐后端能力链路：确保 `getLeaderboard`、`getUserRank`、`/api/leaderboard/summary` 与缓存策略可支撑首屏与切换请求 | codex | todo |
+| T-016.8 | 对齐排行榜右侧成长面板：成长总览、徽章进度、追赶目标、推荐挑战与 CTA 跳转，保证信息能直接驱动下一步动作 | codex | todo |
+| T-016.9 | 对齐交互修复与调试体验：周期切换、刷新、网络错误、空榜、未登录、当前自己定位与请求超时回退 | codex | todo |
+
+##### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-016.10 | 清理 mock 榜单、假排名、假百分位、硬编码 XP / Level、静态头像与伪说明文案，确保页面和 sidebar 都回到真实数据 | codex | todo |
+| T-016.11 | 完成排行榜与成长进度域验证：榜单字段核账、我的排名核账、XP / level 核账、周期切换与刷新一致性验证 | codex | todo |
 
 ### T-017 成就与游戏化域
 | id | description | owner | status |

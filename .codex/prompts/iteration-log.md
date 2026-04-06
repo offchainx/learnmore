@@ -16,4 +16,6 @@
 
 | 2026-04-06 | T-012.6 referral write-chain closeout | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | 已完成 T-012.6：成功绑定与首付结算后统一失效 dashboard/settings/admin/referrals/admin/users，写链路权限与幂等保持不变，pnpm -s tsc --noEmit 与 pnpm run build 通过 | src/lib/referrals/cache.ts, src/actions/billing/referral.ts, src/app/api/webhook/stripe/route.ts, tasks.md | referral 写入后没有统一回流失效，用户页/后台页可能短暂展示旧缓存 | 后续推进 T-012.7 激励展示与传播出口 | T-012.6 已收口，进入 T-012.7 |
 
+| 2026-04-06 | T-012.7 referral sharing-exit closeout | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | 已完成 T-012.7：SettingsView 新增奖励进度、剩余额度与低成本传播出口（复制码 / 复制分享文案 / 系统分享），tasks.md 已同步收口，后续再用 lint/build 复核 | src/components/dashboard/views/SettingsView.tsx, tasks.md | 分享入口只有 code，没有进度与传播文案，激励不足 | 后续推进 T-012.8 异常态与调试体验 | T-012.7 已收口，进入 T-012.8 |
+
 ## 约束

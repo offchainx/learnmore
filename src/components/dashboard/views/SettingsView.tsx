@@ -77,6 +77,7 @@ import {
   Sun,
   User,
   Users,
+  Send,
   Zap,
 } from 'lucide-react'
 
@@ -230,6 +231,7 @@ type UserProfile = {
     deferredRewardWeeks: number
     deferredRewardTier: string | null
   }>
+  referralLimit?: number | null
   settings: {
     aiPersonality?: string | null
     difficultyCalibration?: number | null
@@ -240,7 +242,6 @@ type UserProfile = {
   } | null
   referralCode: string | null
   referralCount: number
-  referralLimit: number
 }
 
 type SettingsViewProps = {
@@ -374,11 +375,14 @@ function ReferralSection({
   user: {
     referralCode: string | null
     referralCount: number
+    referralLimit?: number | null
   }
   lang: 'en' | 'zh' | 'ms'
 }) {
   const [copied, setCopied] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedShare, setCopiedShare] = useState(false)
+  const [shared, setShared] = useState(false)
 
   const copy = useMemo(() => {
     if (lang === 'zh') {
@@ -389,6 +393,8 @@ function ReferralSection({
         link: '推荐入口链接',
         copyCode: '复制推荐码',
         copyLink: '复制链接',
+        copyShare: '复制分享文案',
+        nativeShare: '系统分享',
         copied: '已复制',
         empty: '未生成',
         reward: '奖励规则',
@@ -396,6 +402,17 @@ function ReferralSection({
         rule2: '你可获得 2 周额外会员时长。',
         rule3: '好友可获得 2 周额外会员时长。',
         rule4: `您已成功推荐 ${user.referralCount} 位好友，当前不设上限。`,
+        progressLabel: '推荐进度',
+        progressHint:
+          user.referralLimit && user.referralLimit > 0
+            ? `已完成 ${user.referralCount} / ${user.referralLimit} 个名额`
+            : `已完成 ${user.referralCount} 次推荐`,
+        remainingHint:
+          user.referralLimit && user.referralLimit > 0
+            ? `剩余可继续邀请 ${Math.max(user.referralLimit - user.referralCount, 0)} 位好友`
+            : '当前推荐额度不设上限。',
+        shareCopy:
+          `我正在使用 LearnMore 学习，输入我的推荐码 ${user.referralCode || ''}，我们都能获得额外会员奖励。`,
       }
     }
 
@@ -407,6 +424,8 @@ function ReferralSection({
         link: 'Pautan rujukan',
         copyCode: 'Salin kod',
         copyLink: 'Salin pautan',
+        copyShare: 'Salin mesej',
+        nativeShare: 'Kongsi sistem',
         copied: 'Disalin',
         empty: 'Belum dijana',
         reward: 'Peraturan ganjaran',
@@ -415,6 +434,17 @@ function ReferralSection({
         rule2: 'Anda menerima tambahan 2 minggu keahlian.',
         rule3: 'Rakan anda juga menerima tambahan 2 minggu keahlian.',
         rule4: `Anda telah berjaya merujuk ${user.referralCount} rakan setakat ini.`,
+        progressLabel: 'Kemajuan rujukan',
+        progressHint:
+          user.referralLimit && user.referralLimit > 0
+            ? `${user.referralCount} daripada ${user.referralLimit} slot digunakan`
+            : `Sudah berjaya merujuk ${user.referralCount} rakan`,
+        remainingHint:
+          user.referralLimit && user.referralLimit > 0
+            ? `Masih boleh menjemput ${Math.max(user.referralLimit - user.referralCount, 0)} rakan lagi`
+            : 'Had rujukan semasa tidak ditetapkan.',
+        shareCopy:
+          `Saya sedang belajar di LearnMore. Guna kod rujukan ${user.referralCode || ''} untuk dapat ganjaran ahli tambahan.`,
       }
     }
 
@@ -425,6 +455,8 @@ function ReferralSection({
       link: 'Referral link',
       copyCode: 'Copy code',
       copyLink: 'Copy link',
+      copyShare: 'Copy share copy',
+      nativeShare: 'Share sheet',
       copied: 'Copied',
       empty: 'Not generated',
       reward: 'Reward rules',
@@ -433,8 +465,19 @@ function ReferralSection({
       rule2: 'You receive 2 extra weeks of membership.',
       rule3: 'Your friend receives 2 extra weeks of membership.',
       rule4: `You have referred ${user.referralCount} friends so far.`,
+      progressLabel: 'Referral progress',
+      progressHint:
+        user.referralLimit && user.referralLimit > 0
+          ? `${user.referralCount} / ${user.referralLimit} spots used`
+          : `You have referred ${user.referralCount} friends`,
+      remainingHint:
+        user.referralLimit && user.referralLimit > 0
+          ? `${Math.max(user.referralLimit - user.referralCount, 0)} invites left`
+          : 'No referral limit is set right now.',
+      shareCopy:
+        `I use LearnMore to study. Use my referral code ${user.referralCode || ''} and we both unlock extra membership rewards.`,
     }
-  }, [lang, user.referralCount])
+  }, [lang, user.referralCount, user.referralLimit, user.referralCode])
 
   const referralPath = user.referralCode ? `/r/${user.referralCode}` : '/r/[code]'
 
@@ -462,6 +505,58 @@ function ReferralSection({
     setCopiedLink(true)
     setTimeout(() => setCopiedLink(false), 1800)
   }
+
+  const handleCopyShareCopy = async () => {
+    if (!user.referralCode) return
+    await navigator.clipboard.writeText(copy.shareCopy)
+    setCopiedShare(true)
+    setTimeout(() => setCopiedShare(false), 1800)
+  }
+
+  const handleNativeShare = async () => {
+    if (!user.referralCode) return
+
+    const referralUrl =
+      typeof window === 'undefined'
+        ? referralPath
+        : `${window.location.origin}${referralPath}`
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: copy.title,
+          text: copy.shareCopy,
+          url: referralUrl,
+        })
+      } else {
+        await navigator.clipboard.writeText(`${copy.shareCopy}\n${referralUrl}`)
+      }
+      setShared(true)
+      setTimeout(() => setShared(false), 1800)
+    } catch (error) {
+      console.warn('[ReferralShare] share failed', error)
+      toast({
+        variant: 'destructive',
+        title:
+          lang === 'zh'
+            ? '分享失败'
+            : lang === 'ms'
+              ? 'Gagal berkongsi'
+              : 'Share failed',
+        description:
+          lang === 'zh'
+            ? '请稍后重试'
+            : lang === 'ms'
+              ? 'Sila cuba lagi nanti'
+              : 'Please try again later',
+      })
+    }
+  }
+
+  const referralProgressPercent =
+    user.referralLimit && user.referralLimit > 0
+      ? Math.min(100, Math.round((user.referralCount / user.referralLimit) * 100))
+      : null
 
   return (
     <div className={`${surfaceClassName} ${pageCardPaddingClass}`}>
@@ -538,6 +633,68 @@ function ReferralSection({
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className={`${insetCardClassName} mt-4 p-4`}>
+        <div className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white">
+          <Sparkles className="h-4 w-4 text-sky-300" />
+          {copy.progressLabel}
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between text-sm text-text-secondary dark:text-text-secondary">
+            <span>{copy.progressHint}</span>
+            <span>{copy.remainingHint}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-800/70">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500"
+              style={{
+                width: `${
+                  referralProgressPercent ?? Math.min(100, Math.max(20, user.referralCount * 12))
+                }%`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={`${insetCardClassName} mt-4 p-4`}>
+        <div className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white">
+          <LinkIcon className="h-4 w-4 text-sky-300" />
+          {lang === 'zh' ? '传播出口' : lang === 'ms' ? 'Saluran perkongsian' : 'Sharing actions'}
+        </div>
+        <div className="grid gap-3 desktop:grid-cols-3">
+          <Button
+            type="button"
+            variant="outline"
+            className={subtleButtonClass}
+            onClick={handleCopyCode}
+            disabled={!user.referralCode}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            {copied ? copy.copied : copy.copyCode}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className={subtleButtonClass}
+            onClick={handleCopyShareCopy}
+            disabled={!user.referralCode}
+          >
+            <ClipboardList className="mr-2 h-4 w-4" />
+            {copiedShare ? copy.copied : copy.copyShare}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className={subtleButtonClass}
+            onClick={handleNativeShare}
+            disabled={!user.referralCode}
+          >
+            <Send className="mr-2 h-4 w-4" />
+            {shared ? copy.copied : copy.nativeShare}
+          </Button>
+        </div>
       </div>
     </div>
   )
@@ -1919,6 +2076,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   user={{
                     referralCode: user?.referralCode || null,
                     referralCount: user?.referralCount || 0,
+                    referralLimit: user?.referralLimit || null,
                   }}
                   lang={lang}
                 />
