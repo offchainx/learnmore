@@ -189,18 +189,29 @@ async function loadDashboardSubjectResults(
   })
 
   const subjectResults: SubjectChaptersResult[] = []
-  for (const subject of subjects) {
-    try {
-      const result = await getSubjectChapters(subject.id, userId)
-      if (result && result.chapters.length > 0) {
+  const batchSize = Math.min(2, subjects.length)
+  for (let index = 0; index < subjects.length; index += batchSize) {
+    const batch = subjects.slice(index, index + batchSize)
+    const batchResults = await Promise.all(
+      batch.map(async (subject) => {
+        try {
+          const result = await getSubjectChapters(subject.id, userId)
+          return result && result.chapters.length > 0 ? result : null
+        } catch (error) {
+          console.warn('[Dashboard] Failed to load subject chapters:', {
+            subjectId: subject.id,
+            userId,
+            error,
+          })
+          return null
+        }
+      })
+    )
+
+    for (const result of batchResults) {
+      if (result) {
         subjectResults.push(result)
       }
-    } catch (error) {
-      console.warn('[Dashboard] Failed to load subject chapters:', {
-        subjectId: subject.id,
-        userId,
-        error,
-      })
     }
   }
 

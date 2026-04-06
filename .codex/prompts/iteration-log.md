@@ -1,3 +1,4 @@
+- 2026-04-06: Continue T-PERF.FIX.7 subject tail split (add stage logging to getSubjectChapters, batch subject chapter loads 2-at-a-time, record summary stats/overview timings; latest visible browser run showed learningTime at ~14.1s, overview at ~15.5s, activity at ~16.8s, and subject data trailing to ~54.5s).
 - 2026-04-02: Close T-008 community workstream (T-008.7~T-008.10 final validation, real derived contributors/topics, attachment click-through to post detail, AI hint inline render, bookmark/share/comment/like persistence).
 - 2026-04-01: Start T-024.A UI refactor (右侧弹出卡片 + 三段式：顶部状态栏/时间线/处理工作台；处理工作台含 Public Reply/Internal Note、NEXT STATUS 可变更、Templates；刷新与最新回显保持一致）。
 - 2026-04-02: Fix community interactions cache invalidation (toggleLike now revalidates community feed/categories after like/unlike; comment/post side-effects keep feed freshness aligned with DB writes).

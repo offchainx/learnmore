@@ -21,6 +21,7 @@ import { QUOTA_CONFIGS } from '@/lib/practice/types'
 import { getEffectiveTier } from '@/lib/permissions/engine'
 import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 import { loadUserWithOverrides } from '@/lib/permissions/load-user-scope'
+import { logPerf } from '@/lib/perf-log'
 import {
   practiceQuestionWithGroupInclude,
   type PracticeQuestionRecord,
@@ -144,38 +145,69 @@ export async function getSubjectChapters(
   subjectId: string,
   userId: string
 ): Promise<SubjectChaptersResult | null> {
+  const startedAt = performance.now()
   // 1. 获取用户等级和数据保留期 (C3)
+  const userStartedAt = performance.now()
   const user = await loadUserWithOverrides(userId)
+  logPerf('getSubjectChapters.userScope', userStartedAt, {
+    userId,
+    subjectId,
+    found: Boolean(user),
+  })
 
-  if (!user) return null
+  if (!user) {
+    logPerf('getSubjectChapters.total', startedAt, {
+      userId,
+      subjectId,
+      status: 'no-user',
+    })
+    return null
+  }
 
   const tier = getEffectiveTier(user)
   const minDate = getRetentionDate(tier)
 
   // 2. 查询科目信息
-  const subject = await prisma.subject.findUnique({
-    where: { id: subjectId }
+  const subjectStartedAt = performance.now()
+  const [subject, chapters] = await Promise.all([
+    prisma.subject.findUnique({
+      where: { id: subjectId },
+    }),
+    prisma.chapter.findMany({
+      where: {
+        subjectId,
+        children: { none: {} },
+      },
+      include: {
+        _count: {
+          select: { questions: true }
+        }
+      },
+      orderBy: { order: 'asc' }
+    }),
+  ])
+  logPerf('getSubjectChapters.subjectAndChapters', subjectStartedAt, {
+    userId,
+    subjectId,
+    foundSubject: Boolean(subject),
+    chapters: chapters.length,
   })
 
   if (!subject) {
+    logPerf('getSubjectChapters.total', startedAt, {
+      userId,
+      subjectId,
+      status: 'no-subject',
+    })
     return null
   }
 
-  // 3. 查询该科目下所有章节及题目数
-  const chapters = await prisma.chapter.findMany({
-    where: {
-      subjectId,
-      children: { none: {} },
-    },
-    include: {
-      _count: {
-        select: { questions: true }
-      }
-    },
-    orderBy: { order: 'asc' }
-  })
-
   if (chapters.length === 0) {
+    logPerf('getSubjectChapters.total', startedAt, {
+      userId,
+      subjectId,
+      status: 'empty',
+    })
     return {
       subjectId,
       subjectName: subject.name,
@@ -186,6 +218,7 @@ export async function getSubjectChapters(
   const chapterIds = chapters.map(c => c.id)
 
   // 4. 批量查询用户在这些章节的所有答题统计 (应用 C3 过滤)
+  const attemptsStartedAt = performance.now()
   const attemptsWithChapter = await prisma.userAttempt.findMany({
     where: {
       userId,
@@ -203,6 +236,11 @@ export async function getSubjectChapters(
         }
       }
     }
+  })
+  logPerf('getSubjectChapters.attemptsWithChapter', attemptsStartedAt, {
+    userId,
+    subjectId,
+    attempts: attemptsWithChapter.length,
   })
 
   // 4. 按章节聚合统计
