@@ -231,16 +231,18 @@
 ### T-PERF.FIX.7 首屏慢点定位结果（进行中）
 
 - 本轮真实浏览器结果：
-  - 登录态下进入 `/dashboard`，首屏可识别内容出现约 `42.1s`
+  - 最新 production deployment 已切到 `88dc751`
+  - 在可见真实浏览器里重新打开 `https://learnmorev10.vercel.app/dashboard`，`DOMContentLoaded` 仍然达到 `113s+`
+  - 页面正文在随后很快出现，说明当前问题仍然是服务端首屏响应，而不是纯前端渲染卡死
   - `/dashboard/leaderboard` 约 `13.0s`
   - `/dashboard/achievements` 约 `12.9s`
-  - 这说明首屏依然慢，且这次把 `permissionOverrides` 从 dashboard 热路径拆出后，体感并没有立刻收敛到可接受区间
+  - 这说明首页 settings 剥离后，首屏仍然卡在更基础的 dashboard 热路径上
 
 - 本轮 runtime logs 结果：
   - 最新 deployment 的 runtime logs 已经能看到 `warning` 级别的 `[Perf]`
-  - `/dashboard` 侧主要出现 `getDashboardCurrentUser...` 与 `getDashboardProfile...`
-  - `/dashboard/leaderboard` 侧出现了 `getDashboardCurrentUser...` 与 `getAchievementOverview...`
-  - `/dashboard/achievements` 侧出现了 `getDashboardCurrentUser...`
+  - `/dashboard` 侧主要出现 `getDashboardCurrentUser...` 与 `getDashboardStats.da...`
+  - `getDashboardStats.dailyTasks`、`getDashboardStats.attemptsInRetention`、`getDashboardStats.subjectResults` 都仍然冒头
+  - 这表示慢点已经从 settings / permissionOverrides 收敛到 dashboard 首屏的基础用户读取与统计聚合
 
 - 本轮继续下拆：
   - `/dashboard` 首页里的 `settings` 回源已经从 `getDashboardProfile()` 中剥离，首页只保留基础用户信息
@@ -248,18 +250,16 @@
   - `DailyMissions` 仍可接受 `settings` 为空，首屏不再因 `studyReminderTime` 之类次级设置拖慢
 
 - 当前判断：
-  - `permissionOverrides` 已经从 dashboard 热路径中剥离，但 `/dashboard` 仍然慢，说明真正的瓶颈不只在权限覆写 relation join
-  - 现在更应继续拆 `getDashboardCurrentUser()` 内部的最早 Prisma 访问，以及 `getDashboardStats()` 后续聚合链路
-  - `leaderboard` 与 `achievements` 的 13s 级别耗时说明它们仍然各自存在独立 SSR / 聚合成本，不是 dashboard 首屏唯一问题
-  - 这轮日志里 `getDashboardCurrentUser...` 已经成为新的首个高信号标签，说明当前首要阻塞点已经从“权限覆写关系”推进到“轻量用户读取本身”
-  - 这次进一步把 `getDashboardCurrentUser()` 收敛成纯读路径，并把 `settings` 查询从首页移到 settings 独立路由，下一轮应重点观察 runtime logs 是否继续把高信号标签往后推
+  - `permissionOverrides` 和 `settings` 两层已经拆出，但 `/dashboard` 仍然严重慢，说明真正的瓶颈更靠近首屏统计聚合或更底层的鉴权 / Prisma 访问
+  - 下一步应继续拆 `getDashboardCurrentUser()` 以及 `getDashboardStats()` 的每个子查询，看 `dailyTasks`、`attempts`、`examRecords`、`subjectResults`、`leaderboard` 谁还在拖尾
+  - `leaderboard` 与 `achievements` 依然是独立的子页性能问题，但当前首页慢已经足够压过它们，必须先把首页救活
+  - 当前还不能把 dashboard 慢归因结束，必须继续把函数级慢点压到可商用的范围内
 
 - 收口记录：
   - `T-PERF.FIX.7` 已经完成一次关键拆解：把 `permissionOverrides` 从 dashboard 热路径剥离
   - 现在又把 `settings` 回源从首页剥离，dashboard 首屏继续只保留必须读路径
-  - 下一步要继续追的是 `getDashboardCurrentUser()` 里更基础的 user 读取，以及 `getDashboardStats()` 的剩余聚合成本
-  - 当前还不能把 dashboard 慢归因结束，必须继续把函数级慢点压到可商用的范围内
-  - 现在的目标是先让 dashboard 首屏只做“读”，不做“写”，再回头看是否还存在必须同步完成的补偿逻辑
+  - 但首页仍然是 30s+ 级别，说明首屏最早的服务端路径还在大幅阻塞
+  - 下一步必须盯住 `getDashboardStats()` 的具体子查询和 `getDashboardCurrentUser()` 的基础读路径，把真正拖尾的 Prisma 调用再切细
 
 ### T-PERF.FIX.7 ~ T-PERF.FIX.9 下一步推进顺序
 
