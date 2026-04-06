@@ -22,4 +22,6 @@
 
 | 2026-04-06 | T-012.9 referral cleanup closeout | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | 已完成 T-012.9：SettingsView 去掉 /r/[code] 占位展示，GrowthTab 空数据时改为明确空态，ReferralOverview 不再输出零值式奖励摘要，tasks.md 已同步收口，pnpm -s tsc --noEmit 与 eslint 通过 | src/components/dashboard/views/SettingsView.tsx, src/components/admin/users/tabs/GrowthTab.tsx, src/lib/referrals/overview.ts, tasks.md | referral 主流程里仍然残留占位路径和零值式奖励摘要 | 后续推进 T-012.10 域验证 | T-012.9 已收口，进入 T-012.10 |
 
+| 2026-04-06 | T-012.10 referral domain verification | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | 已完成 T-012.10：通过 p0-01 internal smoke 脚本核验绑定/首付结算/webhook 重放幂等/voucher 核销，/r/[code] redirect 与 /pricing referral 预填一致，临时 smoke 数据已清理，tasks.md 已改为 done | scripts/p0-01-internal-smoke.mjs, src/app/r/[code]/route.ts, src/app/(marketing)/pricing/PricingPageClient.tsx, tasks.md | referral 域的最终验证还缺端到端核账与页面一致性确认 | referral 线收口完成，后续进入 T-012A/T-012B/T-012C 继续细化（如需） | T-012.10 已收口，T-012 整体完成 |
+
 ## 约束

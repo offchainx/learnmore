@@ -1434,7 +1434,7 @@
 | T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | done |
 | T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | done |
 | T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | done |
-| T-012.10 | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | codex | todo |
+| T-012.10 | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | codex | done |
 
 ### T-012A 用户侧分享 / 绑定 / 奖励展示
 | id | description | owner | status |
@@ -1564,6 +1564,13 @@
 - 后台增长视图的奖励摘要与推荐额度也改成“有真实推荐记录才展示结算句式、没有数据则展示空态提示”，避免把 0 推荐包装成看似正常的统计文案。
 - 推荐分享与支付页的文案已经统一成“推荐链接 / referral link”这类真实入口描述，不再依赖死链占位文本；`Pricing` 页上的错误提示也改成页面内 banner，避免伪成功或弹窗式回退。
 - 这一阶段完成后，referral 相关页面应只保留真实数据、真实入口和真实错误态，不再有 mock fallback、死链占位或假统计句式。
+
+### T-012.10 域验证说明
+- `T-012.10` 是最终收口验证，不新增任何业务实现，只检查 referral 域是否已经在代码、数据库与页面表现上形成闭环。
+- 已通过 [`scripts/p0-01-internal-smoke.mjs`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/scripts/p0-01-internal-smoke.mjs) 做到端核账：临时 smoke 用户完成 referral 绑定、首次支付结算、延迟奖励补发、Stripe webhook 重放幂等与 voucher 核销，结果显示 referral 最终状态为 `COMPLETED`，`referralCount`、`firstPaidAt`、`rewardGranted`、`deferredSettledAt` 都同步写入数据库。
+- 已通过 [`/r/[code]`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts) 和 [`/pricing`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 做页面核对：真实 referral code 会正确 redirect 到 `/pricing?referralCode=...`，而 `Pricing` 页会把该码作为预填值展示出来，不再依赖占位路径。
+- 已做重复提交与重复回放验证：同一条 webhook 重放不会重复生成 `voucherRedemption`，并且 smoke 数据清理后，相关 `user / referral / referral_attribution_events / voucherRedemption / voucherCode` 记录均已清空，避免验证数据污染后续页面。
+- 本阶段的收口标准是：任务表状态、页面表现、数据库状态三者一致，且没有遗留 mock、死链或临时 smoke 数据。
 
 ### T-013 内容导入入口域
 | id | description | owner | status |
