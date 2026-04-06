@@ -24,4 +24,6 @@
 
 | 2026-04-06 | T-012.10 referral domain verification | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | 已完成 T-012.10：通过 p0-01 internal smoke 脚本核验绑定/首付结算/webhook 重放幂等/voucher 核销，/r/[code] redirect 与 /pricing referral 预填一致，临时 smoke 数据已清理，tasks.md 已改为 done | scripts/p0-01-internal-smoke.mjs, src/app/r/[code]/route.ts, src/app/(marketing)/pricing/PricingPageClient.tsx, tasks.md | referral 域的最终验证还缺端到端核账与页面一致性确认 | referral 线收口完成，后续进入 T-012A/T-012B/T-012C 继续细化（如需） | T-012.10 已收口，T-012 整体完成 |
 
+| 2026-04-06 | Dashboard slow navigation investigation | 收紧 Dashboard 切换慢的根因排查与推进顺序，并把当前诊断补丁与工作文档一起收口 | 已补 Dashboard/proxy 计时日志、daily-tasks 快路径、subject 聚合并行化、用户范围 cache，并新增 `docs/reports/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md` 作为后续推进清单 | src/proxy.ts, src/actions/dashboard.ts, src/actions/gamification/daily-tasks.ts, src/lib/permissions/load-user-scope.ts, src/app/(dashboard)/dashboard/page.tsx, docs/reports/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 现有 runtime logs 颗粒度仍不足，必须靠下一版日志验证 auth/聚合/锁路径耗时 | 下一步按文档中的 Step 1 -> Step 5 顺序推进，先看部署后的请求级耗时再继续改 | 当前迭代已建立排查工作文档和推进顺序 |
+
 ## 约束

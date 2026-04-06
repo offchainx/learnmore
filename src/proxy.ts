@@ -43,6 +43,7 @@ async function safeGetSupabaseUser(
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const requestHeaders = new Headers(request.headers)
+  const proxyStartedAt = Date.now()
 
   const isProtectedRoute =
     pathname.startsWith('/dashboard') || pathname.startsWith('/admin')
@@ -142,7 +143,11 @@ export async function proxy(request: NextRequest) {
     }
   )
 
+  const authStartedAt = Date.now()
   const user = await safeGetSupabaseUser(request, supabase)
+  console.info(
+    `[proxy] auth pathname=${pathname} duration_ms=${Date.now() - authStartedAt} authenticated=${Boolean(user?.id)}`
+  )
 
   if (user?.id) {
     requestHeaders.set(INTERNAL_AUTH_USER_ID_HEADER, user.id)
@@ -176,6 +181,10 @@ export async function proxy(request: NextRequest) {
     const redirectTo = getSafeRedirectTarget(request.nextUrl.searchParams.get('redirectTo'))
     return NextResponse.redirect(new URL(redirectTo, request.url))
   }
+
+  console.info(
+    `[proxy] total pathname=${pathname} duration_ms=${Date.now() - proxyStartedAt} authenticated=${Boolean(user?.id)}`
+  )
 
   return response
 }

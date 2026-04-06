@@ -113,44 +113,122 @@ function getOnboardingRequirementState(user: {
   ])
 }
 
+type DailyTaskSnapshot = {
+  user: {
+    username: string | null
+    grade: number | null
+    settings: {
+      studyReminderTime: string | null
+      difficultyCalibration: number | null
+    } | null
+  } | null
+  completedAssessmentTask: {
+    id: string
+  } | null
+  existingTasks: Array<{
+    id: string
+    type: DailyTaskType
+    isClaimed: boolean
+    currentCount: number
+    targetCount: number
+  }>
+}
+
+function getDailyTaskSnapshotState(snapshot: DailyTaskSnapshot) {
+  if (!snapshot.user) {
+    return null
+  }
+
+  const onboardingNeeded = getOnboardingRequirementState(
+    snapshot.user,
+    Boolean(snapshot.completedAssessmentTask)
+  )
+  const existingTypes = new Set(snapshot.existingTasks.map((task) => task.type))
+  const rowsToCreate = buildTaskRows(
+    '',
+    new Date(),
+    existingTypes,
+    onboardingNeeded
+  )
+  const tasksToComplete = snapshot.existingTasks.filter(
+    (task) =>
+      isOnboardingTaskType(task.type) &&
+      !task.isClaimed &&
+      task.currentCount < task.targetCount &&
+      onboardingNeeded.get(task.type) === false
+  )
+
+  return {
+    rowsToCreate,
+    tasksToComplete,
+  }
+}
+
+async function loadDailyTaskSnapshot(
+  client: Pick<typeof prisma, 'user' | 'dailyTask'>,
+  userId: string,
+  start: Date,
+  end: Date
+): Promise<DailyTaskSnapshot> {
+  const [user, completedAssessmentTask, existingTasks] = await Promise.all([
+    client.user.findUnique({
+      where: { id: userId },
+      select: {
+        username: true,
+        grade: true,
+        settings: {
+          select: {
+            studyReminderTime: true,
+            difficultyCalibration: true,
+          },
+        },
+      },
+    }),
+    client.dailyTask.findFirst({
+      where: {
+        userId,
+        type: DailyTaskType.ONBOARDING_ASSESSMENT,
+        OR: [{ currentCount: { gte: 1 } }, { isClaimed: true }],
+      },
+      select: { id: true },
+    }),
+    client.dailyTask.findMany({
+      where: {
+        userId,
+        date: {
+          gte: start,
+          lt: end,
+        },
+      },
+    }),
+  ])
+
+  return {
+    user,
+    completedAssessmentTask,
+    existingTasks,
+  }
+}
+
 /**
  * Ensures dashboard task rows exist for the current day and reconciles
  * onboarding task completion with the latest user profile/settings state.
  */
 export async function ensureDailyTasks(userId: string) {
+  const { start, end } = getTodayRange()
+  const snapshot = await loadDailyTaskSnapshot(prisma, userId, start, end)
+
+  const snapshotState = getDailyTaskSnapshotState(snapshot)
+  if (!snapshotState || (
+    snapshotState.rowsToCreate.length === 0 &&
+    snapshotState.tasksToComplete.length === 0
+  )) {
+    return
+  }
+
   await withDailyTaskLock(userId, async (tx, { start, end }) => {
-    const [user, completedAssessmentTask, existingTasks] = await Promise.all([
-      tx.user.findUnique({
-        where: { id: userId },
-        select: {
-          username: true,
-          grade: true,
-          settings: {
-            select: {
-              studyReminderTime: true,
-              difficultyCalibration: true,
-            },
-          },
-        },
-      }),
-      tx.dailyTask.findFirst({
-        where: {
-          userId,
-          type: DailyTaskType.ONBOARDING_ASSESSMENT,
-          OR: [{ currentCount: { gte: 1 } }, { isClaimed: true }],
-        },
-        select: { id: true },
-      }),
-      tx.dailyTask.findMany({
-        where: {
-          userId,
-          date: {
-            gte: start,
-            lt: end,
-          },
-        },
-      }),
-    ])
+    const { user, completedAssessmentTask, existingTasks } =
+      await loadDailyTaskSnapshot(tx, userId, start, end)
 
     if (!user) return
 
