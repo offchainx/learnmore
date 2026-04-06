@@ -24,4 +24,6 @@
 
 | 2026-04-06 | T-012.10 referral domain verification | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | 已完成 T-012.10：通过 p0-01 internal smoke 脚本核验绑定/首付结算/webhook 重放幂等/voucher 核销，/r/[code] redirect 与 /pricing referral 预填一致，临时 smoke 数据已清理，tasks.md 已改为 done | scripts/p0-01-internal-smoke.mjs, src/app/r/[code]/route.ts, src/app/(marketing)/pricing/PricingPageClient.tsx, tasks.md | referral 域的最终验证还缺端到端核账与页面一致性确认 | referral 线收口完成，后续进入 T-012A/T-012B/T-012C 继续细化（如需） | T-012.10 已收口，T-012 整体完成 |
 
+| 2026-04-06 | Vercel 全站性能排查文档与近期收口同步 | 将 p0-05 下的线上性能排查文档落到 spec 目录，并同步当前 referral / pricing 相关最新改动后推送远端 | 已补 `DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md` 为“Vercel 线上全站切换性能排查与推进清单”，并保留当前 `tasks.md` 与 `src/app/(marketing)/pricing/page.tsx` 的最新工作区变更一起收口推送 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/tasks.md, src/app/(marketing)/pricing/page.tsx | 本次主要目标是同步远端基线，方便后续基于用户录屏继续定位线上切换慢 | 远端同步完成后继续结合用户真实录屏排查已登录态切页慢点 | 当前迭代用于对齐远端代码与排查文档基线 |
+
 ## 约束

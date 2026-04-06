@@ -1439,11 +1439,11 @@
 ### T-012A 用户侧分享 / 绑定 / 奖励展示
 | id | description | owner | status |
 |---|---|---|---|
-| T-012A.1 | 盘点用户侧 referral 入口：Settings、Pricing、注册后引导、订阅前提示与个人中心 | codex | todo |
-| T-012A.2 | 建立前台交互矩阵：复制码、复制链接、预填推荐码、绑定成功回显、奖励说明与登录/未登录差异 | codex | todo |
-| T-012A.3 | 实现低成本分享入口：一键复制 referral code、复制带上下文的深链，必要时补二维码或一键分享 | codex | todo |
-| T-012A.4 | 实现绑定体验：在支付页或订阅页自动/手动带入 referralCode，支持错误提示和绑定结果回显 | codex | todo |
-| T-012A.5 | 实现奖励展示：已推荐人数、待发奖励、已发奖励、奖励规则、结算状态与剩余额度 | codex | todo |
+| T-012A.1 | 盘点用户侧 referral 入口：Settings、Pricing、注册后引导、订阅前提示与个人中心 | codex | done |
+| T-012A.2 | 建立前台交互矩阵：复制码、复制链接、预填推荐码、绑定成功回显、奖励说明与登录/未登录差异 | codex | done |
+| T-012A.3 | 实现低成本分享入口：一键复制 referral code、复制带上下文的深链，必要时补二维码或一键分享 | codex | done |
+| T-012A.4 | 实现绑定体验：在支付页或订阅页自动/手动带入 referralCode，支持错误提示和绑定结果回显 | codex | doing |
+| T-012A.5 | 实现奖励展示：已推荐人数、待发奖励、已发奖励、奖励规则、结算状态与剩余额度 | codex | done |
 | T-012A.6 | 优化分享动机：把可得奖励与传播路径放在最容易看到的位置，减少“只有 code 没有动力”的问题 | codex | todo |
 | T-012A.7 | 清理假文案、假状态、无效 CTA、过时说明与重复入口 | codex | todo |
 | T-012A.8 | 完成浏览器验证：未登录、登录、复制、分享、绑定、支付、奖励回显与刷新一致性验证 | codex | todo |
@@ -1533,8 +1533,6 @@
 - `T-012.5` 的目标不是再新增 referral 业务规则，而是把“用户侧看到什么、支付页预填什么、后台看什么”三条读取链路统一到同一份口径，避免不同页面各算各的。
 - 用户侧推荐码展示已经落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：它使用 `referralCode / referralCount / referralLimit / referralsGiven` 这组字段展示推荐码、复制链接、奖励说明与当前推荐摘要。
 - 支付页预填已经落在 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx)：它会从 `?referralCode=` 读取推荐码，允许用户在提交前确认或修改，然后再传给 `prepareCheckoutAction()` 与 checkout metadata。
-- 后台增长概览与用户详情统一复用 [`src/lib/referrals/overview.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/referrals/overview.ts) 的统计 helper，再由 [`src/actions/admin/user-details.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/user-details.ts) 和 [`src/components/admin/users/tabs/GrowthTab.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/users/tabs/GrowthTab.tsx) 消费，确保“已结算 / 延迟发放 / 待完成 / 剩余额度”的口径完全一致。
-- 这一阶段只负责读链路和展示口径收口，不引入新的写链路或奖励规则；写链路、支付结算和权限校验继续放在 `T-012.6` 及后续子任务里处理。
 
 ### T-012.6 写链路与回流闭环说明
 - `T-012.6` 继续沿用已经确认的 referral 业务边界，不再新增新的奖励规则，而是把“绑定推荐码 -> 发起支付 -> Stripe 首付结算 -> 奖励发放 -> 页面刷新回流”这条写链路补齐并收口。
@@ -1571,6 +1569,65 @@
 - 已通过 [`/r/[code]`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts) 和 [`/pricing`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 做页面核对：真实 referral code 会正确 redirect 到 `/pricing?referralCode=...`，而 `Pricing` 页会把该码作为预填值展示出来，不再依赖占位路径。
 - 已做重复提交与重复回放验证：同一条 webhook 重放不会重复生成 `voucherRedemption`，并且 smoke 数据清理后，相关 `user / referral / referral_attribution_events / voucherRedemption / voucherCode` 记录均已清空，避免验证数据污染后续页面。
 - 本阶段的收口标准是：任务表状态、页面表现、数据库状态三者一致，且没有遗留 mock、死链或临时 smoke 数据。
+
+### T-012A.1 入口盘点结论
+- 当前已落地的用户侧 referral 入口主要有两个：
+  - [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 中的推荐卡，负责展示用户自己的推荐码、推荐链接、分享文案、进度与奖励说明。
+  - [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 中的推荐码预填区，负责承接 `?referralCode=` 并在支付前允许用户确认或修改。
+- 入口路由里还存在一个中转层：
+  - [`src/app/r/[code]/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts) 会把分享链接带来的推荐码跳转到 `/pricing?referralCode=...`，同时保留无效码的错误回流。
+- 目前没有独立的“注册后引导页”或“订阅前提示页”作为 referral 专属页面存在；
+  - 注册流程会生成推荐码，但入口仍然是注册完成后的用户设置页和后续分享链接。
+  - 订阅前提示实际由 `/pricing` 承接，不再额外拆出一层新路由。
+- “个人中心”在当前产品里主要对应 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 的设置区，不是单独的 referral 页面。
+- 后台增长概览与用户详情统一复用 [`src/lib/referrals/overview.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/referrals/overview.ts) 的统计 helper，再由 [`src/actions/admin/user-details.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/user-details.ts) 和 [`src/components/admin/users/tabs/GrowthTab.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/users/tabs/GrowthTab.tsx) 消费，确保“已结算 / 延迟发放 / 待完成 / 剩余额度”的口径完全一致。
+- 这一阶段只负责读链路和展示口径收口，不引入新的写链路或奖励规则；写链路、支付结算和权限校验继续放在 `T-012.6` 及后续子任务里处理。
+
+### T-012A.2 前台交互矩阵说明
+- `T-012A.2` 只负责把前台的交互矩阵定清楚，不直接新增新的分享规则或绑定逻辑；本阶段要明确哪些入口展示什么、点击后去哪里、不同登录状态下如何兜底。
+- 当前需要纳入矩阵的前台交互主要来自两处：
+  - [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：负责展示推荐码、推荐链接、分享文案、奖励说明、进度与复制/分享动作。
+  - [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx)：负责接收 `?referralCode=`、允许用户确认或修改、并把结果继续传给 checkout。
+- 交互矩阵需要至少覆盖这些行为：
+  - 复制推荐码：用户点击后复制纯 code，不携带上下文。
+  - 复制推荐链接：用户点击后复制带 `referralCode` 的深链，通常会落到 `/r/[code]` 或 `/pricing?referralCode=...`。
+  - 预填推荐码：用户从推荐链接进入时，`Pricing` 页应自动带入 code，并允许手动修改。
+  - 绑定成功回显：提交后要能看到绑定成功、已绑定、不能自推、无效码等明确结果。
+  - 奖励说明：要展示双方奖励、结算时点、剩余额度和当前进度。
+- 登录/未登录差异：未登录时应引导先登录或注册，登录后才展示可复制与可绑定的完整动作。
+- 这一阶段的输出是“前台交互口径”，后续 `T-012A.3 ~ T-012A.8` 再把分享入口、绑定体验、奖励展示和浏览器验证补完整。
+
+### T-012A.3 低成本分享入口说明
+- `T-012A.3` 关注的是“用户打开设置页后，能不能马上把推荐码传播出去”，因此只要求把最常用的低成本动作做稳定，不额外引入复杂分享流程。
+- 当前可直接承接的实现已经在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：
+  - 一键复制推荐码。
+  - 一键复制带 `referralCode` 的推荐链接，当前链接路径以 `/r/[code]` 为主。
+  - 一键复制分享文案，减少用户自己组织话术的成本。
+  - 系统分享兜底，支持原生 `navigator.share`，不支持时自动退化为剪贴板复制。
+- 这一步还会记录推荐链接复制事件，保证“复制 -> 点击 -> 绑定”后续能在归因链路里追踪到来源。
+- `T-012A.3` 的收口标准是：用户不用离开设置页，就能完成“看到码 -> 复制码 -> 复制链接 -> 转发”的最小传播动作；如果后续要补二维码或更重的分享面板，也只能作为增强项，不能破坏这条最短路径。
+
+### T-012A.4 绑定体验说明
+- `T-012A.4` 只负责把“看到推荐码 -> 带着推荐码去支付 -> 绑定结果有回显”这条链路做顺，不额外新增绑定规则。
+- 当前绑定体验已经由 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 承接：
+  - 会从 `?referralCode=` 自动预填推荐码。
+  - 允许用户在提交前手动修改或清空推荐码。
+  - 会把推荐码继续传给 checkout 和归因链路。
+  - 会把无效码、已绑定、自推、支付取消等结果以页面内提示形式回显。
+- 这一阶段的目标不是再造一个新的绑定页，而是把支付页上的绑定确认体验固定下来，保证用户能清楚知道“码是否已带入、是否可以继续购买、失败原因是什么”。
+- 后续如果要做更强的绑定反馈，也只能围绕支付页的错误态和回显态补强，不能打散现有 `Pricing -> Checkout -> Webhook` 这条主链。
+
+### T-012A.5 奖励展示说明
+- `T-012A.5` 只负责把奖励展示的口径收口，不再引入新的奖励计算规则；这一步要确保用户侧和后台都看见同一套“已推荐 / 待结算 / 已发放 / 剩余额度”。
+- 当前用户侧奖励展示已经存在于 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：
+  - 推荐进度会显示已推荐人数和剩余可邀请名额。
+  - 奖励规则区会显示双方奖励、结算时点与传播说明。
+  - 订阅区会显示待结算推荐奖励和待结算记录条数，方便用户知道有多少延迟奖励还未补发。
+- 后台奖励展示已经统一落在 [`src/lib/referrals/overview.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/referrals/overview.ts)、[`src/actions/admin/user-details.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/user-details.ts) 和 [`src/components/admin/users/tabs/GrowthTab.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/users/tabs/GrowthTab.tsx)：
+  - `rewardSummary` 统一输出已结算 / 延迟发放 / 待完成。
+  - `remainingQuota` 统一输出剩余额度。
+  - `totalInvites / completedInvites / deferredInvites / pendingInvites` 统一输出推荐结构。
+- 这一阶段的收口标准是：用户设置页、后台增长页、用户详情页看到的奖励状态和剩余额度必须一致，不再允许一边显示待结算、一边显示假完成数。
 
 ### T-013 内容导入入口域
 | id | description | owner | status |
