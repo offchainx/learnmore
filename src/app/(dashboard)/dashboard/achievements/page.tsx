@@ -18,15 +18,16 @@ export default async function AchievementsPage() {
   if (!profile) {
     redirect('/login')
   }
+  const resolvedProfile = profile
 
   const [overview, badges] = await Promise.all([
-    getCachedAchievementOverview(profile.id),
-    getCachedUserBadges(profile.id),
+    getCachedAchievementOverview(resolvedProfile.id),
+    getCachedUserBadges(resolvedProfile.id),
   ])
 
   return (
     <AchievementsClientWrapper
-      user={profile}
+      user={resolvedProfile}
       overview={overview}
       badges={badges}
     />

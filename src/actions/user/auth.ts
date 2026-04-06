@@ -12,6 +12,7 @@ import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
 import { triggerWelcomeNotification } from '../notification/triggers'
 import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
+import { logPerf } from '@/lib/perf-log'
 
 function isPrismaConnectivityError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
@@ -403,6 +404,7 @@ export async function logoutAction() {
 
 // 获取当前用户
 export const getCurrentUser = cache(async function getCurrentUser() {
+  const startedAt = performance.now()
   const incomingHeaders = await headers()
   const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
   let userId = forwardedUserId
@@ -412,7 +414,12 @@ export const getCurrentUser = cache(async function getCurrentUser() {
 
   // Fast path: middleware 已校验并透传 userId，避免同请求链二次远程鉴权。
   if (!userId) {
+    const authStartedAt = performance.now()
     authUser = await getAuthUserFromSupabase()
+    logPerf('getCurrentUser.authUser', authStartedAt, {
+      hasForwardedUserId: Boolean(forwardedUserId),
+      userId: authUser?.id ?? null,
+    })
     if (!authUser) return null
     userId = authUser.id
     authLastSignInAt = parseAuthTimestamp(authUser.last_sign_in_at)
@@ -421,6 +428,7 @@ export const getCurrentUser = cache(async function getCurrentUser() {
 
   // 从 public.users 获取完整用户信息
   let dbUser = null
+  const dbLookupStartedAt = performance.now()
   try {
     dbUser = await prisma.user.findUnique({
       where: { id: userId },
@@ -434,6 +442,10 @@ export const getCurrentUser = cache(async function getCurrentUser() {
           }
         }
       }
+    })
+    logPerf('getCurrentUser.prisma.user.findUnique', dbLookupStartedAt, {
+      hasForwardedUserId: Boolean(forwardedUserId),
+      found: Boolean(dbUser),
     })
   } catch (error) {
     if (isPrismaConnectivityError(error)) {
@@ -470,6 +482,7 @@ export const getCurrentUser = cache(async function getCurrentUser() {
 
     console.warn(`[Auth] User ${userId} not found in database, auto-syncing...`)
     try {
+      const syncStartedAt = performance.now()
       dbUser = await prisma.user.create({
         data: {
           id: userId,
@@ -505,6 +518,10 @@ export const getCurrentUser = cache(async function getCurrentUser() {
           language: 'zh',
           theme: 'dark',
         },
+      })
+      logPerf('getCurrentUser.autoSync', syncStartedAt, {
+        userId,
+        hasAuthUser: Boolean(authUser),
       })
       console.warn(`[Auth] User ${userId} synced successfully with STARTER`)
     } catch (e) {
@@ -559,6 +576,7 @@ export const getCurrentUser = cache(async function getCurrentUser() {
   }
 
   return dbUser
+  
 })
 
 /**

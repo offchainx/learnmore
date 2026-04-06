@@ -94,6 +94,5 @@ export default async function DashboardPage() {
   if (!dashboardData) {
     redirect('/login');
   }
-
   return <DashboardClient user={profile} initialData={dashboardData} />;
 }

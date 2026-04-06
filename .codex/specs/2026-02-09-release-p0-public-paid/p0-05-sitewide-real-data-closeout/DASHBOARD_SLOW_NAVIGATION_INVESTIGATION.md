@@ -134,6 +134,9 @@
 | T-PERF.FIX.4 | 将 `loadDashboardSubjectResults()` 的 subject loop 改成批量并发 | codex | done |
 | T-PERF.FIX.5 | 评估并移出 `ensureDailyTasks()` 从首屏关键路径 | codex | done |
 | T-PERF.FIX.6 | 将 dashboard 首屏 DB 访问回退为单连接串行保守模式 | codex | done |
+| T-PERF.FIX.7 | 先定位 `/dashboard` 首屏到底卡在哪个 server action / Prisma 调用 | codex | todo |
+| T-PERF.FIX.8 | 再单独拆 `/dashboard/leaderboard` 的慢点与请求级耗时 | codex | todo |
+| T-PERF.FIX.9 | 最后拆 `/dashboard/achievements` 的慢点与请求级耗时 | codex | todo |
 
 ### T-PERF.FIX.1 ~ T-PERF.FIX.5 执行规则
 
@@ -225,6 +228,17 @@
   - 当前 dashboard 首屏优先保证“能进、能渲染、能稳定返回”
   - 后续如果要重新放开并发，必须先确认生产数据库连接池和各查询耗时都已经足够安全
 
+### T-PERF.FIX.7 ~ T-PERF.FIX.9 下一步推进顺序
+
+- `T-PERF.FIX.7` 先只盯 `/dashboard` 首屏，逐个对照 runtime logs 和浏览器时序，定位是哪个 server action 或哪条 Prisma 调用最慢
+- `T-PERF.FIX.8` 再单独拆 `/dashboard/leaderboard`，确认是排行榜聚合、缓存命中，还是二次请求拖慢
+- `T-PERF.FIX.9` 最后拆 `/dashboard/achievements`，确认成就页是否存在独立慢查询、任务计算或客户端二次拉取
+
+- 说明：
+  - 这三个任务按“先首页、再最慢子页、再第二慢子页”的顺序推进
+  - 每完成一个任务，就把对应的真实浏览器结果、runtime logs 证据和最终结论补回本节
+  - 在 `T-PERF.FIX.7` 没完成前，不展开更多 dashboard 子页改造，避免继续无头修改
+
 ### T-PERF.1 路径盘点结果（已完成）
 
 - 本次排查不再只盯 `/dashboard`
@@ -306,8 +320,8 @@
 
 下一步只做三件事：
 
-1. 获取已登录态下的 Playwright 真实浏览器时序
-2. 用新部署后的 runtime logs 核对 `proxy`、`ensureDailyTasks`、主查询批次耗时
-3. 根据证据决定先压 auth 热路径，还是先压 dashboard-core 的聚合与二次请求
+1. 用真实浏览器，非 headless，先跑 `/dashboard` 登录后首屏，定位最慢的 server action / Prisma 调用
+2. 再跑 `/dashboard/leaderboard`，确认它到底慢在聚合、缓存还是二次请求
+3. 最后跑 `/dashboard/achievements`，把第二个慢点也单独拆出来
 
 在这三步完成前，不再把问题泛化成新的大改造。

@@ -136,21 +136,22 @@ export default async function LeaderboardPage() {
   if (!profile) {
     redirect('/login')
   }
+  const resolvedProfile = profile
 
   const [overview, badges] = await Promise.all([
-    getCachedAchievementOverview(profile.id),
-    getCachedUserBadges(profile.id),
+    getCachedAchievementOverview(resolvedProfile.id),
+    getCachedUserBadges(resolvedProfile.id),
   ])
 
   const mockEntries = buildMockLeaderboardEntries({
-    id: profile.id,
-    username: profile.username,
-    avatar: profile.avatar,
+    id: resolvedProfile.id,
+    username: resolvedProfile.username,
+    avatar: resolvedProfile.avatar,
   })
 
   return (
     <LeaderboardClientWrapper
-      user={profile}
+      user={resolvedProfile}
       initialPeriod="WEEKLY"
       initialEntries={mockEntries}
       initialMyRank={10}

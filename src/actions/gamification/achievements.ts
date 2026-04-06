@@ -8,6 +8,7 @@ import type {
   AchievementOverview,
   BadgeWithUnlockStatus,
 } from '@/lib/gamification/achievements-types'
+import { logPerf } from '@/lib/perf-log'
 
 const BADGE_DEFINITIONS = [
   {
@@ -64,8 +65,12 @@ export async function ensureDefaultBadges() {
 export async function getAchievementOverview(
   inputUserId?: string
 ): Promise<AchievementOverview | null> {
+  const startedAt = performance.now()
   const userId = await resolveUserId(inputUserId)
-  if (!userId) return null
+  if (!userId) {
+    logPerf('getAchievementOverview', startedAt, { status: 'no-user' })
+    return null
+  }
 
   const [user, totalAttempts, correctAttempts, posts, comments] =
     await Promise.all([
@@ -84,7 +89,7 @@ export async function getAchievementOverview(
   const level = calculateLevel(user.xp)
   const nextLevelXp = calculateNextLevelXp(level)
 
-  return {
+  const result = {
     streak: user.streak,
     questions: totalAttempts,
     correctAnswers: correctAttempts,
@@ -99,13 +104,22 @@ export async function getAchievementOverview(
     posts,
     comments,
   }
+  logPerf('getAchievementOverview', startedAt, {
+    userId,
+    status: 'ok',
+  })
+  return result
 }
 
 export async function listUserBadges(
   inputUserId?: string
 ): Promise<BadgeWithUnlockStatus[]> {
+  const startedAt = performance.now()
   const userId = await resolveUserId(inputUserId)
-  if (!userId) return []
+  if (!userId) {
+    logPerf('listUserBadges', startedAt, { status: 'no-user' })
+    return []
+  }
 
   await ensureDefaultBadges()
 
@@ -123,7 +137,7 @@ export async function listUserBadges(
     userBadges.map((item) => [item.badgeId, item.awardedAt])
   )
 
-  return badges.map((badge) => ({
+  const result = badges.map((badge) => ({
     id: badge.id,
     code: badge.code,
     name: badge.name,
@@ -133,6 +147,11 @@ export async function listUserBadges(
     unlocked: userBadgeMap.has(badge.id),
     awardedAt: userBadgeMap.get(badge.id) ?? null,
   }))
+  logPerf('listUserBadges', startedAt, {
+    userId,
+    badgeCount: result.length,
+  })
+  return result
 }
 
 export async function awardBadgeIfEligible(

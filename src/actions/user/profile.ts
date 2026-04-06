@@ -6,6 +6,7 @@ import { getCurrentUser } from '@/actions/user/auth'
 import { z } from 'zod'
 import { getHandleAvailability } from '@/lib/users/handle-server'
 import { normalizeHandle } from '@/lib/users/handle'
+import { logPerf } from '@/lib/perf-log'
 
 const profileSchema = z.object({
   username: z.string().min(2, 'Username must be at least 2 characters').optional(),
@@ -79,19 +80,36 @@ export async function getProfile() {
  * 使用轻量查询避免拉取 badges/count/referrals 等重数据。
  */
 export async function getDashboardProfile() {
+  const startedAt = performance.now()
   const user = await getCurrentUser()
-  if (!user) return null
+  if (!user) {
+    logPerf('getDashboardProfile', startedAt, { status: 'no-user' })
+    return null
+  }
 
   try {
+    const settingsStartedAt = performance.now()
     const settings = await prisma.userSettings.findUnique({
       where: { userId: user.id },
     })
+    logPerf('getDashboardProfile.settings', settingsStartedAt, {
+      userId: user.id,
+      found: Boolean(settings),
+    })
 
+    logPerf('getDashboardProfile', startedAt, {
+      status: 'ok',
+      userId: user.id,
+    })
     return {
       ...user,
       settings,
     }
   } catch (error) {
+    logPerf('getDashboardProfile', startedAt, {
+      status: 'fallback',
+      userId: user.id,
+    })
     console.warn('[Profile] Falling back to dashboard profile due database schema mismatch:', error)
     return {
       ...user,
