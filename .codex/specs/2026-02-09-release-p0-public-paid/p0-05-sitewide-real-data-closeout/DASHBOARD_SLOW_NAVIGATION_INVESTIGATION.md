@@ -252,10 +252,11 @@
   - `getDashboardProfile()` 与 `getDashboardStats()` 现在可以复用同一个 `currentUser`，避免首页上下文反复回源用户数据
   - `dailyTasks` 已从首页初始 SSR 里剥离，`DashboardHome` 会在页面落地后再通过 `/api/dashboard/daily-tasks` 补拉
   - `attemptsInRetention`、`subjectResults`、`leaderboard` 已进一步移出 `/dashboard` 首屏 SSR，`DashboardHome` 会在页面落地后再通过 `/api/dashboard/home-data` 次请求补齐这些重查询结果
+  - 现在又把首页请求继续拆成 `home-core` 与 `home-subjects` 两条并行请求，核心统计与排行榜先出现，章节推荐 / 学科进度 / 薄弱点再后补
 
 - 当前判断：
   - `permissionOverrides` 和 `settings` 两层已经拆出，但 `/dashboard` 仍然严重慢，说明真正的瓶颈更靠近首屏统计聚合或更底层的鉴权 / Prisma 访问
-  - 现在 `dailyTasks`、`attemptsInRetention`、`subjectResults`、`leaderboard` 都已经从初始 SSR 中移出，下一步应继续拆 `getDashboardCurrentUser()` 的基础读路径，以及 `home-data` 次请求里仍然最慢的子查询
+  - 现在 `dailyTasks`、`attemptsInRetention`、`subjectResults`、`leaderboard` 都已经从初始 SSR 中移出，下一步应继续盯 `home-core` 与 `home-subjects` 哪条仍然最慢，以及 `getDashboardCurrentUser()` 的基础读路径
   - `leaderboard` 与 `achievements` 依然是独立的子页性能问题，但当前首页慢已经足够压过它们，必须先把首页救活
   - 当前还不能把 dashboard 慢归因结束，必须继续把函数级慢点压到可商用的范围内
   - 这一步不是删功能，而是让功能继续保持完整的同时，不再把所有首屏数据一次性绑在同一个同步 await 上
@@ -265,7 +266,7 @@
   - 现在又把 `settings` 回源从首页剥离，dashboard 首屏继续只保留必须读路径
   - 但首页仍然是 30s+ 级别，说明首屏最早的服务端路径还在大幅阻塞
   - 这次已经把 dashboard 首页改成流式壳子，后续真实内容会在 fallback 之后继续流入
-  - `dailyTasks` 已经挪到页面落地后的二次请求，`attemptsInRetention`、`subjectResults`、`leaderboard` 也已经移出首屏 SSR，下一步必须盯住 `getDashboardCurrentUser()` 的基础读路径，以及 `home-data` 次请求里仍然最慢的 Prisma 调用
+  - `dailyTasks` 已经挪到页面落地后的二次请求，`attemptsInRetention`、`subjectResults`、`leaderboard` 也已经移出首屏 SSR，下一步必须盯住 `home-core` / `home-subjects` 这两条请求里仍然最慢的 Prisma 调用，以及 `getDashboardCurrentUser()` 的基础读路径
 
 ### T-PERF.FIX.7 ~ T-PERF.FIX.9 下一步推进顺序
 

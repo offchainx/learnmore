@@ -204,10 +204,16 @@ export const DashboardHome = ({
   const { t, lang } = useApp()
   const copy = (zh: string, en: string, ms?: string) =>
     languageCopy(lang, zh, en, ms)
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+  const [coreData, setCoreData] = useState<DashboardData | null>(
     initialData
   )
-  const [isLoadingHomeData, setIsLoadingHomeData] = useState(!initialData)
+  const [subjectData, setSubjectData] = useState<{
+    learningPath: DashboardData['learningPath']
+    subjectProgress: DashboardData['subjectProgress']
+    weaknesses: DashboardData['weaknesses']
+  } | null>(null)
+  const [isLoadingCoreData, setIsLoadingCoreData] = useState(!initialData)
+  const [isLoadingSubjectData, setIsLoadingSubjectData] = useState(!initialData)
   const [homeDataError, setHomeDataError] = useState<string | null>(null)
   const [overviewWindow, setOverviewWindow] =
     useState<DashboardOverviewWindow>('7D')
@@ -215,77 +221,134 @@ export const DashboardHome = ({
   const [subjectPage, setSubjectPage] = useState(0)
 
   useEffect(() => {
-    if (dashboardData) return
+    if (coreData) return
 
     let cancelled = false
 
-    const loadHomeData = async () => {
-      setIsLoadingHomeData(true)
+    const loadCoreData = async () => {
+      setIsLoadingCoreData(true)
       setHomeDataError(null)
       try {
-        const response = await fetch('/api/dashboard/home-data', {
+        const response = await fetch('/api/dashboard/home-core', {
           method: 'GET',
           credentials: 'include',
           cache: 'no-store',
         })
 
         if (!response.ok) {
-          throw new Error(`Failed to load dashboard home data: ${response.status}`)
+          throw new Error(`Failed to load dashboard core data: ${response.status}`)
         }
 
         const payload = (await response.json()) as { data?: DashboardData }
         if (!cancelled) {
-          setDashboardData(payload.data ?? null)
+          setCoreData(payload.data ?? null)
         }
       } catch (error) {
         if (!cancelled) {
-          console.warn('[DashboardHome] Failed to lazy-load home data:', error)
+          console.warn('[DashboardHome] Failed to lazy-load core data:', error)
           setHomeDataError(
             error instanceof Error ? error.message : 'Failed to load dashboard data'
           )
         }
       } finally {
         if (!cancelled) {
-          setIsLoadingHomeData(false)
+          setIsLoadingCoreData(false)
         }
       }
     }
 
-    void loadHomeData()
+    const loadSubjectData = async () => {
+      setIsLoadingSubjectData(true)
+      try {
+        const response = await fetch('/api/dashboard/home-subjects', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load dashboard subject data: ${response.status}`)
+        }
+
+        const payload = (await response.json()) as {
+          learningPath?: DashboardData['learningPath']
+          subjectProgress?: DashboardData['subjectProgress']
+          weaknesses?: DashboardData['weaknesses']
+        }
+
+        if (!cancelled) {
+          setSubjectData({
+            learningPath: payload.learningPath ?? {
+              status: 'empty',
+              items: [],
+              note: '章节推荐稍后加载。',
+            },
+            subjectProgress: payload.subjectProgress ?? {
+              status: 'empty',
+              items: [],
+              note: '学科进度稍后加载。',
+            },
+            weaknesses: payload.weaknesses ?? {
+              status: 'empty',
+              items: [],
+              note: '薄弱点分析稍后加载。',
+            },
+          })
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[DashboardHome] Failed to lazy-load subject data:', error)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingSubjectData(false)
+        }
+      }
+    }
+
+    void loadCoreData()
+    void loadSubjectData()
 
     return () => {
       cancelled = true
     }
-  }, [dashboardData])
+  }, [coreData])
 
-  const dashboardDataSnapshot = dashboardData ?? {
-    stats: {
-      studyTime: '0.0',
-      questions: 0,
-      accuracy: 0,
-      mistakes: 0,
-      streak: 0,
-      level: 0,
-      xp: 0,
-      nextLevelXp: 0,
-    },
-    overviewByWindow: {
-      '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-      '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-    },
-    learningPath: { status: 'empty', items: [], note: undefined },
-    recentPractice: { status: 'empty', items: [], note: undefined },
-    subjectProgress: { status: 'empty', items: [], note: undefined },
-    dailyTasks: { status: 'empty', items: [], note: undefined },
-    weaknesses: { status: 'empty', items: [], note: undefined },
-    leaderboard: {
-      status: 'empty',
-      percentile: null,
-      peerAverageAccuracy: null,
-      userAccuracy: 0,
-      note: undefined,
-    },
-  }
+  const dashboardDataSnapshot = {
+    ...(coreData ?? {
+      stats: {
+        studyTime: '0.0',
+        questions: 0,
+        accuracy: 0,
+        mistakes: 0,
+        streak: 0,
+        level: 0,
+        xp: 0,
+        nextLevelXp: 0,
+      },
+      overviewByWindow: {
+        '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+        '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+      },
+      learningPath: { status: 'empty', items: [], note: undefined },
+      recentPractice: { status: 'empty', items: [], note: undefined },
+      subjectProgress: { status: 'empty', items: [], note: undefined },
+      dailyTasks: { status: 'empty', items: [], note: undefined },
+      weaknesses: { status: 'empty', items: [], note: undefined },
+      leaderboard: {
+        status: 'empty',
+        percentile: null,
+        peerAverageAccuracy: null,
+        userAccuracy: 0,
+        note: undefined,
+      },
+    }),
+    ...(subjectData ?? {
+      learningPath: { status: 'empty', items: [], note: undefined },
+      subjectProgress: { status: 'empty', items: [], note: undefined },
+      weaknesses: { status: 'empty', items: [], note: undefined },
+    }),
+  } satisfies DashboardData
 
   const {
     stats,
@@ -337,7 +400,7 @@ export const DashboardHome = ({
     setSubjectPage(0)
   }, [subjectProgressItems.length])
 
-  if (isLoadingHomeData || !dashboardData) {
+  if (isLoadingCoreData || !coreData) {
     return (
       <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
         <div className="mx-auto flex w-full min-w-0 max-w-[1820px] flex-col gap-4 pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)]">
@@ -559,7 +622,20 @@ export const DashboardHome = ({
                   </div>
                 </div>
 
-                {learningPath.status === 'ready' ? (
+                {isLoadingSubjectData && !subjectData ? (
+                  <div className={pageListGapClass}>
+                    {Array.from({ length: ACTIVITY_PER_PAGE }).map((_, index) => (
+                      <Card
+                        key={`learning-skeleton-${index}`}
+                        className={`${pagePanelClass} min-h-0 shadow-none ${pageCardPaddingClass}`}
+                      >
+                        <Skeleton className="h-6 w-40 rounded-full" />
+                        <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
+                        <Skeleton className="mt-5 h-24 rounded-[22px]" />
+                      </Card>
+                    ))}
+                  </div>
+                ) : learningPath.status === 'ready' ? (
                   <div
                     className={pageListGapClass}
                     onWheel={handleActivityWheel}
@@ -689,7 +765,20 @@ export const DashboardHome = ({
                   </div>
                 </div>
 
-                {subjectProgress.status === 'ready' ? (
+                {isLoadingSubjectData && !subjectData ? (
+                  <div className={pageListGapClass}>
+                    {Array.from({ length: SUBJECTS_PER_PAGE }).map((_, index) => (
+                      <Card
+                        key={`subject-skeleton-${index}`}
+                        className="rounded-[22px] border border-borderTone bg-surface px-4 py-4 shadow-surface dark:border-borderTone dark:bg-surface-subtle"
+                      >
+                        <Skeleton className="h-5 w-36 rounded-full" />
+                        <Skeleton className="mt-2 h-4 w-48 rounded-full" />
+                        <Skeleton className="mt-4 h-2.5 rounded-full" />
+                      </Card>
+                    ))}
+                  </div>
+                ) : subjectProgress.status === 'ready' ? (
                   <div
                     className={pageListGapClass}
                     onWheel={handleSubjectWheel}

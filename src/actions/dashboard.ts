@@ -676,7 +676,11 @@ type DashboardCurrentUser = Awaited<ReturnType<typeof getDashboardCurrentUser>>
 
 export async function getDashboardStats(
   currentUser?: DashboardCurrentUser | null,
-  options: { includeDailyTasks?: boolean } = {}
+  options: {
+    includeDailyTasks?: boolean
+    includeSubjectResults?: boolean
+    includeLeaderboard?: boolean
+  } = {}
 ): Promise<DashboardData | null> {
   const startedAt = performance.now()
   const user = currentUser ?? await getDashboardCurrentUser()
@@ -693,6 +697,8 @@ export async function getDashboardStats(
   const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
 
   const includeDailyTasks = options.includeDailyTasks !== false
+  const includeSubjectResults = options.includeSubjectResults !== false
+  const includeLeaderboard = options.includeLeaderboard !== false
   let dailyTasks: DashboardData['dailyTasks']['items'] = []
   if (includeDailyTasks) {
     const ensureStartedAt = performance.now()
@@ -806,24 +812,47 @@ export async function getDashboardStats(
     rows: recentPractice.length,
   })
 
-  const subjectResultsStartedAt = performance.now()
-  const subjectResults = await loadDashboardSubjectResults(user.id)
-  logPerf('getDashboardStats.subjectResults', subjectResultsStartedAt, {
-    userId: user.id,
-    subjects: subjectResults.length,
-  })
+  let subjectResults: SubjectChaptersResult[] = []
+  if (includeSubjectResults) {
+    const subjectResultsStartedAt = performance.now()
+    subjectResults = await loadDashboardSubjectResults(user.id)
+    logPerf('getDashboardStats.subjectResults', subjectResultsStartedAt, {
+      userId: user.id,
+      subjects: subjectResults.length,
+    })
+  } else {
+    logPerf('getDashboardStats.subjectResults', startedAt, {
+      userId: user.id,
+      subjects: 0,
+      skipped: true,
+    })
+  }
 
   const totalAttempts = attemptsInRetention.length
   const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
   const mistakeCount = totalAttempts - correctAttempts
   const accuracy =
     totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
-  const leaderboardStartedAt = performance.now()
-  const leaderboardData = await buildLeaderboardCard(user, accuracy, minDate)
-  logPerf('getDashboardStats.leaderboard', leaderboardStartedAt, {
-    userId: user.id,
-    status: leaderboardData.status,
-  })
+  let leaderboardData: DashboardLeaderboardModule = {
+    status: 'empty',
+    percentile: null,
+    peerAverageAccuracy: null,
+    userAccuracy: accuracy,
+    note: '排行榜数据稍后加载。',
+  }
+  if (includeLeaderboard) {
+    const leaderboardStartedAt = performance.now()
+    leaderboardData = await buildLeaderboardCard(user, accuracy, minDate)
+    logPerf('getDashboardStats.leaderboard', leaderboardStartedAt, {
+      userId: user.id,
+      status: leaderboardData.status,
+    })
+  } else {
+    logPerf('getDashboardStats.leaderboard', startedAt, {
+      userId: user.id,
+      status: 'skipped',
+    })
+  }
   const studyHours = formatHours(sumStudySeconds(examRecordsInRetention))
   const level = calculateLevel(user.xp ?? 0)
   const nextLevelXp = calculateNextLevelXp(level)
@@ -897,17 +926,35 @@ export async function getDashboardStats(
         thirtyDaysAgo
       ),
     },
-    learningPath: buildLearningPath(subjectResults),
+    learningPath: includeSubjectResults
+      ? buildLearningPath(subjectResults)
+      : {
+          status: 'empty',
+          items: [],
+          note: '章节推荐稍后加载。',
+        },
     recentPractice: {
       status: recentPracticeItems.length > 0 ? 'ready' : 'empty',
       items: recentPracticeItems,
     },
-    subjectProgress: buildSubjectProgress(subjectResults),
+    subjectProgress: includeSubjectResults
+      ? buildSubjectProgress(subjectResults)
+      : {
+          status: 'empty',
+          items: [],
+          note: '学科进度稍后加载。',
+        },
     dailyTasks: {
       status: dailyTasks.length > 0 ? 'ready' : 'empty',
       items: dailyTasks,
     },
-    weaknesses: buildWeaknesses(subjectResults),
+    weaknesses: includeSubjectResults
+      ? buildWeaknesses(subjectResults)
+      : {
+          status: 'empty',
+          items: [],
+          note: '薄弱点分析稍后加载。',
+        },
     leaderboard: leaderboardData,
   }
   logPerf('getDashboardStats.total', startedAt, {
