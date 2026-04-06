@@ -198,7 +198,7 @@ export const DashboardHome = ({
   navigate: (path: string) => void
   onViewChange?: (view: string) => void
   initialData: DashboardData
-  user: User & { settings: UserSettings | null }
+  user: User & { settings?: UserSettings | null }
 }) => {
   const { t, lang } = useApp()
   const copy = (zh: string, en: string, ms?: string) =>

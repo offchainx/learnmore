@@ -7,7 +7,7 @@ import type { User, UserSettings } from "@prisma/client"
 interface ProfileDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user: User & { settings: UserSettings | null }
+  user: User & { settings?: UserSettings | null }
   onSuccess: () => void
 }
 

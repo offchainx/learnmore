@@ -232,7 +232,7 @@ type UserProfile = {
     deferredRewardTier: string | null
   }>
   referralLimit?: number | null
-  settings: {
+  settings?: {
     aiPersonality?: string | null
     difficultyCalibration?: number | null
     language?: string | null
@@ -753,16 +753,6 @@ function ReferralSection({
           {lang === 'zh' ? '传播出口' : lang === 'ms' ? 'Saluran perkongsian' : 'Sharing actions'}
         </div>
         <div className="grid gap-3 desktop:grid-cols-3">
-          <Button
-            type="button"
-            variant="outline"
-            className={subtleButtonClass}
-            onClick={handleCopyCode}
-            disabled={!user.referralCode}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            {copied ? copy.copied : copy.copyCode}
-          </Button>
           <Button
             type="button"
             variant="outline"

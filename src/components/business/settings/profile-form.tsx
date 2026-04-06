@@ -15,7 +15,7 @@ import type { User, UserSettings } from '@prisma/client'
 import { useHandleAvailability } from '@/lib/hooks/useHandleAvailability'
 
 interface ProfileFormProps {
-  user: User & { settings: UserSettings | null }
+  user: User & { settings?: UserSettings | null }
   onSuccess?: () => void
 }
 

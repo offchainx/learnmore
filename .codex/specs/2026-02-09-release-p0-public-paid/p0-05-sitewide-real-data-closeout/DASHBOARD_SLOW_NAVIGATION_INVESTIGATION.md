@@ -231,27 +231,35 @@
 ### T-PERF.FIX.7 首屏慢点定位结果（进行中）
 
 - 本轮真实浏览器结果：
-  - 登录后进入 `/dashboard`，首屏可识别内容出现约 `38.9s`
-  - 这说明首屏仍然卡在 SSR / server action / Prisma 链路里，而不是前端路由本身
+  - 登录态下进入 `/dashboard`，首屏可识别内容出现约 `42.1s`
+  - `/dashboard/leaderboard` 约 `13.0s`
+  - `/dashboard/achievements` 约 `12.9s`
+  - 这说明首屏依然慢，且这次把 `permissionOverrides` 从 dashboard 热路径拆出后，体感并没有立刻收敛到可接受区间
 
 - 本轮 runtime logs 结果：
-  - `/dashboard` 在 `08:06:26`、`08:05:33`、`08:04:14`、`08:03:38`、`08:03:21` 都出现了 `warning` 级别的 `[Perf]` 日志
-  - 其中可见的高频标签包括 `getCurrentUser.prisma...`、`getDashboardStats.da...`、`loadDashboardSubject...`
-  - `/dashboard/leaderboard` 在 `08:06:12` 也出现了 `getCurrentUser.prisma...`
-  - `/dashboard/achievements` 在 `08:06:26` 出现了 `getCurrentUser.prisma...` 与 `listUserBadges...`
+  - 最新 deployment 的 runtime logs 已经能看到 `warning` 级别的 `[Perf]`
+  - `/dashboard` 侧主要出现 `getDashboardCurrentUser...` 与 `getDashboardProfile...`
+  - `/dashboard/leaderboard` 侧出现了 `getDashboardCurrentUser...` 与 `getAchievementOverview...`
+  - `/dashboard/achievements` 侧出现了 `getDashboardCurrentUser...`
+
+- 本轮继续下拆：
+  - `/dashboard` 首页里的 `settings` 回源已经从 `getDashboardProfile()` 中剥离，首页只保留基础用户信息
+  - `/dashboard/settings` 现在单独走 `getDashboardSettingsProfile()`，避免 settings 查询跟首页首屏绑定
+  - `DailyMissions` 仍可接受 `settings` 为空，首屏不再因 `studyReminderTime` 之类次级设置拖慢
 
 - 当前判断：
-  - 首屏最先冒头的慢点仍然是 `getCurrentUser()` 里的 Prisma 访问，尤其是 `prisma.user.findUnique`
-  - `getDashboardStats()` 里的主聚合也还在持续占用首屏时间，日志里已经能看到其分段 warning
-  - `loadDashboardSubjectResults()` 仍然是首屏后半段的重要聚合成本，但它更像第二慢点，而不是最初始阻塞点
-  - 这轮日志里没有再单独冒出 `getDashboardProfile.settings`、`getDashboardStats.dailyTasks` 这类更后面的分段标签，说明它们不是当前首要阻塞点
-  - 这轮代码已经把 dashboard 相关页面的用户读取切到 `getDashboardCurrentUser()`，把 `permissionOverrides` 从 dashboard 热路径里拆出去了，下一轮需要验证 runtime logs 是否能把首个慢标签进一步压下去
+  - `permissionOverrides` 已经从 dashboard 热路径中剥离，但 `/dashboard` 仍然慢，说明真正的瓶颈不只在权限覆写 relation join
+  - 现在更应继续拆 `getDashboardCurrentUser()` 内部的最早 Prisma 访问，以及 `getDashboardStats()` 后续聚合链路
+  - `leaderboard` 与 `achievements` 的 13s 级别耗时说明它们仍然各自存在独立 SSR / 聚合成本，不是 dashboard 首屏唯一问题
+  - 这轮日志里 `getDashboardCurrentUser...` 已经成为新的首个高信号标签，说明当前首要阻塞点已经从“权限覆写关系”推进到“轻量用户读取本身”
+  - 这次进一步把 `getDashboardCurrentUser()` 收敛成纯读路径，并把 `settings` 查询从首页移到 settings 独立路由，下一轮应重点观察 runtime logs 是否继续把高信号标签往后推
 
 - 收口记录：
-  - `T-PERF.FIX.7` 现在已经从“猜测最慢点”推进到“确认首要慢点优先看 `getCurrentUser.prisma.user.findUnique`”
-  - 下一步如果要继续缩小范围，应优先继续拆 `getCurrentUser()` 这条链路，先确认它的 `permissionOverrides` 关系是否是慢点，再把 `getDashboardStats()` 的次级慢点单独拆出来
-  - dashboard 页面本身并不依赖 `permissionOverrides` 做首屏渲染，因此这层关系优先值得从热路径中剥离出来验证
-  - 目前代码已经完成这层剥离，后续以真实浏览器 + runtime logs 验证是否真的把首屏耗时压下去
+  - `T-PERF.FIX.7` 已经完成一次关键拆解：把 `permissionOverrides` 从 dashboard 热路径剥离
+  - 现在又把 `settings` 回源从首页剥离，dashboard 首屏继续只保留必须读路径
+  - 下一步要继续追的是 `getDashboardCurrentUser()` 里更基础的 user 读取，以及 `getDashboardStats()` 的剩余聚合成本
+  - 当前还不能把 dashboard 慢归因结束，必须继续把函数级慢点压到可商用的范围内
+  - 现在的目标是先让 dashboard 首屏只做“读”，不做“写”，再回头看是否还存在必须同步完成的补偿逻辑
 
 ### T-PERF.FIX.7 ~ T-PERF.FIX.9 下一步推进顺序
 

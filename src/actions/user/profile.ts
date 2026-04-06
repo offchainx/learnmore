@@ -76,8 +76,8 @@ export async function getProfile() {
 }
 
 /**
- * Dashboard 首屏仅需用户基础信息 + settings。
- * 使用轻量查询避免拉取 badges/count/referrals 等重数据。
+ * Dashboard 首屏仅需用户基础信息。
+ * 使用轻量查询避免拉取 badges/count/referrals/settings 等重数据。
  */
 export async function getDashboardProfile() {
   const startedAt = performance.now()
@@ -88,16 +88,46 @@ export async function getDashboardProfile() {
   }
 
   try {
+    logPerf('getDashboardProfile', startedAt, {
+      status: 'ok',
+      userId: user.id,
+    })
+    return {
+      ...user,
+      settings: null,
+    }
+  } catch (error) {
+    logPerf('getDashboardProfile', startedAt, {
+      status: 'fallback',
+      userId: user.id,
+    })
+    console.warn('[Profile] Falling back to dashboard profile due database schema mismatch:', error)
+    return { ...user, settings: null }
+  }
+}
+
+/**
+ * Settings 页需要单独加载用户设置，避免把 settings 回源绑在 dashboard 首页首屏。
+ */
+export async function getDashboardSettingsProfile() {
+  const startedAt = performance.now()
+  const user = await getDashboardCurrentUser()
+  if (!user) {
+    logPerf('getDashboardSettingsProfile', startedAt, { status: 'no-user' })
+    return null
+  }
+
+  try {
     const settingsStartedAt = performance.now()
     const settings = await prisma.userSettings.findUnique({
       where: { userId: user.id },
     })
-    logPerf('getDashboardProfile.settings', settingsStartedAt, {
+    logPerf('getDashboardSettingsProfile.settings', settingsStartedAt, {
       userId: user.id,
       found: Boolean(settings),
     })
 
-    logPerf('getDashboardProfile', startedAt, {
+    logPerf('getDashboardSettingsProfile', startedAt, {
       status: 'ok',
       userId: user.id,
     })
@@ -106,11 +136,11 @@ export async function getDashboardProfile() {
       settings,
     }
   } catch (error) {
-    logPerf('getDashboardProfile', startedAt, {
+    logPerf('getDashboardSettingsProfile', startedAt, {
       status: 'fallback',
       userId: user.id,
     })
-    console.warn('[Profile] Falling back to dashboard profile due database schema mismatch:', error)
+    console.warn('[Profile] Falling back to dashboard settings profile due database schema mismatch:', error)
     return {
       ...user,
       settings: null,

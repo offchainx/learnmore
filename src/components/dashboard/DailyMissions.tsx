@@ -20,7 +20,7 @@ import { AssessmentDialog } from './dialogs/AssessmentDialog'
 
 interface DailyMissionsProps {
   tasks: DailyTask[]
-  user?: User & { settings: UserSettings | null }
+  user?: User & { settings?: UserSettings | null }
 }
 
 const TASKS_PER_PAGE = 3

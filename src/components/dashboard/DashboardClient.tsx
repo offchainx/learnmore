@@ -22,7 +22,7 @@ import { AchievementsView } from '@/components/achievements/AchievementsView'
 import { ParentDashboardView } from './views/ParentDashboardView'
 import { User, UserSettings } from '@prisma/client'
 
-type UserProfile = User & { settings: UserSettings | null }
+type UserProfile = User & { settings?: UserSettings | null }
 
 interface DashboardClientProps {
   user: UserProfile
