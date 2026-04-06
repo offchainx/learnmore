@@ -10,7 +10,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  await ensureDailyTasks(user.id)
+  try {
+    await ensureDailyTasks(user.id)
+  } catch (error) {
+    console.warn('[DailyTasks] ensureDailyTasks failed; serving existing tasks only:', error)
+  }
   const tasks = await getTodayTasks(user.id)
 
   return NextResponse.json({ tasks })

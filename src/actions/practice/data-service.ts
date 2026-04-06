@@ -149,6 +149,7 @@ export async function getSubjectChapters(
   // 1. 获取用户等级和数据保留期 (C3)
   const userStartedAt = performance.now()
   const user = await loadUserWithOverrides(userId)
+  const userScopeMs = performance.now() - userStartedAt
   logPerf('getSubjectChapters.userScope', userStartedAt, {
     userId,
     subjectId,
@@ -186,6 +187,7 @@ export async function getSubjectChapters(
       orderBy: { order: 'asc' }
     }),
   ])
+  const subjectAndChaptersMs = performance.now() - subjectStartedAt
   logPerf('getSubjectChapters.subjectAndChapters', subjectStartedAt, {
     userId,
     subjectId,
@@ -237,6 +239,7 @@ export async function getSubjectChapters(
       }
     }
   })
+  const attemptsWithChapterMs = performance.now() - attemptsStartedAt
   logPerf('getSubjectChapters.attemptsWithChapter', attemptsStartedAt, {
     userId,
     subjectId,
@@ -330,6 +333,16 @@ export async function getSubjectChapters(
         monthlyCorrectRate
       }
     }
+  })
+
+  logPerf('getSubjectChapters.total', startedAt, {
+    userId,
+    subjectId,
+    userScopeMs: Math.round(userScopeMs),
+    subjectAndChaptersMs: Math.round(subjectAndChaptersMs),
+    attemptsWithChapterMs: Math.round(attemptsWithChapterMs),
+    chapters: chapters.length,
+    attempts: attemptsWithChapter.length,
   })
 
   return {

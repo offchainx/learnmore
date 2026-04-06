@@ -330,12 +330,13 @@
   - `home-core` 在约 `14.6s` 返回，`home-overview` 在约 `14.1s` 返回
   - `home-activity` 在约 `17.6s` 返回，`home-subjects` 在约 `48.3s` 返回
   - `学习时长` / `正确率` / `最近练习` / `排行榜` 先于学科卡片出现，说明 summary 与 activity 已经先行回填
-  - `daily-tasks` 这轮在浏览器侧出现了 `500`，需要后续独立确认是否只是瞬时异常，还是和 subject 尾部争用一起放大了
+  - `daily-tasks` 这轮在浏览器侧出现了 `500`，已将 API 改为失败降级，不再让补任务错误把 dashboard 链路打成 500
   - 这一步把 summary 继续拆细完成了，但当前尾巴已经稳定落到 `home-subjects`
 
 - 下一步：
-  - 继续盯 `home-subjects` 内部的细粒度阶段，确认是 subject 读取、chapter 统计，还是 attempts 聚合最慢
-  - 同时对照 runtime logs，确认新的阶段日志能把慢点收敛到可操作的子步骤里
+  - 等新 deployment READY 后，用真实可见浏览器继续复测 `/dashboard`
+  - 对照 runtime logs 中新增的 `getSubjectChapters.total` 汇总，判断 `userScope`、`subjectAndChapters`、`attemptsWithChapter` 哪一段最慢
+  - 如果 subject 线仍然偏慢，再继续把 chapter 聚合和 attempts 聚合拆细
 
 ### T-PERF.FIX.7.4 subjectResults 内部拆分
 
