@@ -56,4 +56,6 @@
 
 | 2026-04-06 | T-PERF.FIX.7 summary/activity 再拆分 | 将 dashboard 首页继续拆成 `home-core` summary 与 `home-activity` activity 两段，summary 只保留 `stats` / `overview` | 已完成进一步拆分：`home-core` 现在只回 summary，`home-activity` 独立回 `recentPractice` / `leaderboard`，`DashboardHome` 并行拉三段数据并给 activity 侧加 skeleton 占位，首屏不再让最近练习与排行榜继续绑住最早可见内容 | src/actions/dashboard.ts, src/app/api/dashboard/home-core/route.ts, src/app/api/dashboard/home-activity/route.ts, src/components/dashboard/DashboardHome.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 当前目标是把最早可见内容继续提前，同时保留最近练习、排行榜和学科卡片完整功能 | 下一步等新 deployment READY 后再用真实浏览器测首屏是否继续缩短，并对照 runtime logs 看 summary 里还剩哪些慢点 | 这是 T-PERF.FIX.7 的继续下拆，重点从“一个大 core”切成“summary / activity / subjects”三段 |
 
+| 2026-04-06 | T-PERF.FIX.7 summary/activity 可见浏览器复测 | 用真实可见 Chromium 登录并测 `/dashboard` 首屏 summary 时间 | 本轮复测结果：登录页 `domcontentloaded` 约 `2.2s`，`/dashboard` 跳转 `domcontentloaded` 约 `3.1s`，首页 summary 首次可见约 `10.9s`，说明三段式拆分已经把首屏从 30s+ 压到了 10s 级 | src/components/dashboard/DashboardHome.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 继续观察 summary 里剩余的统计聚合是否还要再拆 | 下一步再决定是否继续把 summary 拆成更细的 stats / overview 两段 | 这轮结果是首屏体感改善的直接证据 |
+
 ## 约束

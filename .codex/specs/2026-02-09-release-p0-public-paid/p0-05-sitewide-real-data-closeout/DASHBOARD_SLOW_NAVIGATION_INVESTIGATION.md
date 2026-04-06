@@ -300,6 +300,16 @@
   - 首页已经从两段式加载推进到三段式加载
   - 下一轮验证重点是 summary 是否已经足够快到让首屏体感明显改善
 
+- 浏览器复测结果（已完成）：
+  - 使用真实可见 Chromium 登录 `admin@learnmore.com`
+  - `/dashboard` 跳转后的 `DOMContentLoaded` 约 `3.1s`
+  - 首页 summary 首次可见约 `10.9s`
+  - `recentPractice` / `leaderboard` 的 shell 与 summary 在同一时间点可见，说明首屏已不再被 30s+ 级别的单段重查询死锁
+
+- 当前更新结论：
+  - 这轮三段式拆分已经把“首屏完全等完再显示”的状态改成“summary 先可见”
+  - 下一步如果还要继续压时间，重点就会转回 summary 段里剩下的 `attemptsInRetention` / `examRecordsInRetention` / `completedLessonsInRetention`
+
 ### T-PERF.1 路径盘点结果（已完成）
 
 - 本次排查不再只盯 `/dashboard`
