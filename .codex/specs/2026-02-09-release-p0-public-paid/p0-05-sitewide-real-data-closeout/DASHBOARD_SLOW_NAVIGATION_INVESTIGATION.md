@@ -228,6 +228,31 @@
   - 当前 dashboard 首屏优先保证“能进、能渲染、能稳定返回”
   - 后续如果要重新放开并发，必须先确认生产数据库连接池和各查询耗时都已经足够安全
 
+### T-PERF.FIX.7 首屏慢点定位结果（进行中）
+
+- 本轮真实浏览器结果：
+  - 登录后进入 `/dashboard`，首屏可识别内容出现约 `38.9s`
+  - 这说明首屏仍然卡在 SSR / server action / Prisma 链路里，而不是前端路由本身
+
+- 本轮 runtime logs 结果：
+  - `/dashboard` 在 `08:06:26`、`08:05:33`、`08:04:14`、`08:03:38`、`08:03:21` 都出现了 `warning` 级别的 `[Perf]` 日志
+  - 其中可见的高频标签包括 `getCurrentUser.prisma...`、`getDashboardStats.da...`、`loadDashboardSubject...`
+  - `/dashboard/leaderboard` 在 `08:06:12` 也出现了 `getCurrentUser.prisma...`
+  - `/dashboard/achievements` 在 `08:06:26` 出现了 `getCurrentUser.prisma...` 与 `listUserBadges...`
+
+- 当前判断：
+  - 首屏最先冒头的慢点仍然是 `getCurrentUser()` 里的 Prisma 访问，尤其是 `prisma.user.findUnique`
+  - `getDashboardStats()` 里的主聚合也还在持续占用首屏时间，日志里已经能看到其分段 warning
+  - `loadDashboardSubjectResults()` 仍然是首屏后半段的重要聚合成本，但它更像第二慢点，而不是最初始阻塞点
+  - 这轮日志里没有再单独冒出 `getDashboardProfile.settings`、`getDashboardStats.dailyTasks` 这类更后面的分段标签，说明它们不是当前首要阻塞点
+  - 这轮代码已经把 dashboard 相关页面的用户读取切到 `getDashboardCurrentUser()`，把 `permissionOverrides` 从 dashboard 热路径里拆出去了，下一轮需要验证 runtime logs 是否能把首个慢标签进一步压下去
+
+- 收口记录：
+  - `T-PERF.FIX.7` 现在已经从“猜测最慢点”推进到“确认首要慢点优先看 `getCurrentUser.prisma.user.findUnique`”
+  - 下一步如果要继续缩小范围，应优先继续拆 `getCurrentUser()` 这条链路，先确认它的 `permissionOverrides` 关系是否是慢点，再把 `getDashboardStats()` 的次级慢点单独拆出来
+  - dashboard 页面本身并不依赖 `permissionOverrides` 做首屏渲染，因此这层关系优先值得从热路径中剥离出来验证
+  - 目前代码已经完成这层剥离，后续以真实浏览器 + runtime logs 验证是否真的把首屏耗时压下去
+
 ### T-PERF.FIX.7 ~ T-PERF.FIX.9 下一步推进顺序
 
 - `T-PERF.FIX.7` 先只盯 `/dashboard` 首屏，逐个对照 runtime logs 和浏览器时序，定位是哪个 server action 或哪条 Prisma 调用最慢

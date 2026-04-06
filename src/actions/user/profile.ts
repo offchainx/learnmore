@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
-import { getCurrentUser } from '@/actions/user/auth'
+import { getCurrentUser, getDashboardCurrentUser } from '@/actions/user/auth'
 import { z } from 'zod'
 import { getHandleAvailability } from '@/lib/users/handle-server'
 import { normalizeHandle } from '@/lib/users/handle'
@@ -81,7 +81,7 @@ export async function getProfile() {
  */
 export async function getDashboardProfile() {
   const startedAt = performance.now()
-  const user = await getCurrentUser()
+  const user = await getDashboardCurrentUser()
   if (!user) {
     logPerf('getDashboardProfile', startedAt, { status: 'no-user' })
     return null
@@ -123,7 +123,7 @@ export async function getDashboardProfile() {
  * 直接复用 getCurrentUser 结果，减少重复数据库访问。
  */
 export async function getDashboardShellProfile() {
-  const user = await getCurrentUser()
+  const user = await getDashboardCurrentUser()
   if (!user) return null
   return user
 }

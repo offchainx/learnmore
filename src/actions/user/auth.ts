@@ -579,6 +579,183 @@ export const getCurrentUser = cache(async function getCurrentUser() {
   
 })
 
+export const getDashboardCurrentUser = cache(async function getDashboardCurrentUser() {
+  const startedAt = performance.now()
+  const incomingHeaders = await headers()
+  const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+  let userId = forwardedUserId
+  let authUser: SupabaseAuthUser | null = null
+  let authLastSignInAt: Date | null = null
+  let authMetadataUtm: UTMData = {}
+
+  const dashboardUserSelect = {
+    id: true,
+    email: true,
+    username: true,
+    handle: true,
+    role: true,
+    status: true,
+    avatar: true,
+    grade: true,
+    school: true,
+    streak: true,
+    totalStudyTime: true,
+    xp: true,
+    aiTokenBalance: true,
+    lastStudyDate: true,
+    lastSignInAt: true,
+    signInCount: true,
+    utmSource: true,
+    utmMedium: true,
+    utmCampaign: true,
+    referralCode: true,
+    referralCount: true,
+    referralLimit: true,
+    subscriptionTier: true,
+    subscriptionStart: true,
+    subscriptionEnd: true,
+    subscriptionStatus: true,
+    cancelAtPeriodEnd: true,
+    stripeCustomerId: true,
+    stripeSubscriptionId: true,
+    firstPaidAt: true,
+    createdAt: true,
+    updatedAt: true,
+  } as const
+
+  if (!userId) {
+    const authStartedAt = performance.now()
+    authUser = await getAuthUserFromSupabase()
+    logPerf('getDashboardCurrentUser.authUser', authStartedAt, {
+      hasForwardedUserId: Boolean(forwardedUserId),
+      userId: authUser?.id ?? null,
+    })
+    if (!authUser) return null
+    userId = authUser.id
+    authLastSignInAt = parseAuthTimestamp(authUser.last_sign_in_at)
+    authMetadataUtm = getUtmDataFromAuthMetadata(authUser.user_metadata)
+  }
+
+  let dbUser = null
+  const dbLookupStartedAt = performance.now()
+  try {
+    dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: dashboardUserSelect,
+    })
+    logPerf('getDashboardCurrentUser.prisma.user.findUnique', dbLookupStartedAt, {
+      hasForwardedUserId: Boolean(forwardedUserId),
+      found: Boolean(dbUser),
+    })
+  } catch (error) {
+    if (isPrismaConnectivityError(error)) {
+      console.warn('[Auth] Database unavailable in getDashboardCurrentUser; returning null.')
+      return null
+    }
+
+    if (isPrismaSchemaMismatchError(error)) {
+      console.warn('[Auth] Database schema mismatch in getDashboardCurrentUser; trying fallback query.')
+      const fallbackUser = await getCurrentUserFallbackByRaw(userId)
+      if (fallbackUser) {
+        return fallbackUser
+      }
+      return null
+    }
+
+    throw error
+  }
+
+  if (!dbUser) {
+    if (!authUser) {
+      authUser = await getAuthUserFromSupabase()
+      if (!authUser || authUser.id !== userId) {
+        return null
+      }
+      authLastSignInAt = parseAuthTimestamp(authUser.last_sign_in_at)
+      authMetadataUtm = getUtmDataFromAuthMetadata(authUser.user_metadata)
+    }
+
+    if (!authUser.email) {
+      return null
+    }
+
+    console.warn(`[Auth] User ${userId} not found in database, auto-syncing...`)
+    try {
+      const syncStartedAt = performance.now()
+      dbUser = await prisma.user.create({
+        data: {
+          id: userId,
+          email: authUser.email,
+          username: authUser.user_metadata?.username || authUser.email.split('@')[0],
+          referralCode: generateReferralCode(),
+          subscriptionTier: 'STARTER',
+          subscriptionStatus: 'CANCELED',
+          subscriptionStart: null,
+          subscriptionEnd: null,
+          cancelAtPeriodEnd: false,
+          lastSignInAt: authLastSignInAt,
+          signInCount: authLastSignInAt ? 1 : 0,
+          utmSource: authMetadataUtm.utmSource || null,
+          utmMedium: authMetadataUtm.utmMedium || null,
+          utmCampaign: authMetadataUtm.utmCampaign || null,
+        },
+        select: dashboardUserSelect,
+      })
+      await prisma.userSettings.create({
+        data: {
+          userId,
+          language: 'zh',
+          theme: 'dark',
+        },
+      })
+      logPerf('getDashboardCurrentUser.autoSync', syncStartedAt, {
+        userId,
+        hasAuthUser: Boolean(authUser),
+      })
+      console.warn(`[Auth] User ${userId} synced successfully with STARTER`)
+    } catch (e) {
+      if (isPrismaConnectivityError(e)) {
+        console.warn('[Auth] Database unavailable while auto-sync dashboard user.')
+        return null
+      }
+      if (isPrismaSchemaMismatchError(e)) {
+        console.warn('[Auth] Database schema mismatch while auto-sync dashboard user.')
+        return null
+      }
+      console.error('[Auth] Failed to sync dashboard user:', e)
+    }
+  }
+
+  if (dbUser && dbUser.status === 'BANNED') {
+    console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
+    return null
+  }
+
+  if (
+    dbUser &&
+    authUser &&
+    authLastSignInAt &&
+    (!dbUser.lastSignInAt || authLastSignInAt > dbUser.lastSignInAt)
+  ) {
+    void prisma.user.update({
+        where: { id: userId },
+        data: {
+          lastSignInAt: authLastSignInAt,
+          signInCount: { increment: 1 },
+        },
+        select: dashboardUserSelect,
+      })
+      .then((updated) => {
+        dbUser = updated
+      })
+      .catch((e) => {
+      console.warn('[Auth] Failed to sync sign-in mirror fields in getDashboardCurrentUser:', e)
+      })
+  }
+
+  return dbUser
+})
+
 /**
  * 手动同步 Supabase Auth 用户到 public.users 表
  * 用于修复 Account Sync Issue

@@ -34,4 +34,8 @@
 
 | 2026-04-06 | Perf logs 切换到 warning 级别 | 将函数级耗时日志从 info 切换为 warning，确保 Vercel runtime logs 可以直接捕获 | 已将 `logPerf` 改为 `console.warn`，下一版部署后可用 runtime logs 直接读取 dashboard 首屏与 leaderboard/achievements 的函数级耗时 | src/lib/perf-log.ts | 之前 info 日志未进入 Vercel runtime logs，需要提高日志级别 | 下一次部署后重新跑 headed browser，再抓 runtime logs 做函数级对照 | 这是对可观测性链路的补强 |
 
+| 2026-04-06 | T-PERF.FIX.7 首屏慢点定位 | 重新用真实浏览器复测已登录 `/dashboard`、`/dashboard/leaderboard`、`/dashboard/achievements`，并对照 Vercel runtime logs | 本轮真实浏览器测得 `/dashboard` 首屏可识别内容约 38.9s，`/dashboard/leaderboard` 约 13.3s，`/dashboard/achievements` 约 13.0s；runtime logs 已能看到 warning 级 `[Perf]`，首要慢点仍落在 `getCurrentUser.prisma.user.findUnique`，其次才是 `getDashboardStats` 与 `listUserBadges` 等函数 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md, src/actions/user/auth.ts, src/actions/dashboard.ts, src/actions/gamification/achievements.ts | 需要继续把首屏最早的慢调用和后续子页慢调用分开，避免把所有 dashboard 慢都混成一个问题 | 下一步按 T-PERF.FIX.8、T-PERF.FIX.9 继续拆 leaderboard 与 achievements | 这轮已经把首屏慢点从“页面体感”推进到“函数级慢点候选” |
+
+| 2026-04-06 | dashboard 轻量用户读取剥离 | 将 dashboard 相关页面从 `getCurrentUser()` 切换为 `getDashboardCurrentUser()`，去掉 `permissionOverrides` 热路径查询 | 已完成 dashboard 热路径的用户读取瘦身：`getDashboardProfile`、`getDashboardShellProfile`、`getDashboardStats` 统一改用轻量用户读取，`permissionOverrides` 不再跟随 `/dashboard` 首屏和 dashboard shell 一起加载 | src/actions/user/auth.ts, src/actions/user/profile.ts, src/actions/dashboard.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 目标是把首屏最早的 Prisma 查询从 relation join 中拆出去，降低 server action 的连接占用 | 下一轮用真实浏览器和 runtime logs 验证首屏是否继续收敛 | 这一步是 T-PERF.FIX.7 的下一层拆解 |
+
 ## 约束
