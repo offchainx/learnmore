@@ -3,7 +3,7 @@ export function logPerf(
   startedAt: number,
   details: Record<string, unknown> = {}
 ) {
-  console.info(`[Perf] ${label}`, {
+  console.warn(`[Perf] ${label}`, {
     elapsedMs: Math.round(performance.now() - startedAt),
     ...details,
   })

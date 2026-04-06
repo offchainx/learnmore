@@ -32,4 +32,6 @@
 
 | 2026-04-06 | T-PERF.FIX.7 dashboard 函数级埋点 | 为 `/dashboard`、`/dashboard/leaderboard`、`/dashboard/achievements` 加入函数级耗时日志，准备下一轮真实浏览器与 runtime logs 对照 | 已新增 `logPerf` 工具，并在 `getCurrentUser`、`getDashboardProfile`、`getDashboardStats`、`getAchievementOverview`、`listUserBadges`、`buildLeaderboardCard` 等关键函数中加入分段计时，等待新部署后用真实浏览器复测 | src/lib/perf-log.ts, src/actions/user/auth.ts, src/actions/user/profile.ts, src/actions/dashboard.ts, src/actions/gamification/achievements.ts, src/app/(dashboard)/dashboard/page.tsx, src/app/(dashboard)/dashboard/leaderboard/page.tsx, src/app/(dashboard)/dashboard/achievements/page.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 需要把 dashboard 首屏、leaderboard、achievements 的慢点定位到具体函数/查询，而不是只看页面体感 | 新部署后用 headed 浏览器重新测量，并结合 runtime logs 确认最慢调用 | 本次迭代用于为 T-PERF.FIX.7~9 提供可观测性 |
 
+| 2026-04-06 | Perf logs 切换到 warning 级别 | 将函数级耗时日志从 info 切换为 warning，确保 Vercel runtime logs 可以直接捕获 | 已将 `logPerf` 改为 `console.warn`，下一版部署后可用 runtime logs 直接读取 dashboard 首屏与 leaderboard/achievements 的函数级耗时 | src/lib/perf-log.ts | 之前 info 日志未进入 Vercel runtime logs，需要提高日志级别 | 下一次部署后重新跑 headed browser，再抓 runtime logs 做函数级对照 | 这是对可观测性链路的补强 |
+
 ## 约束
