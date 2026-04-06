@@ -675,7 +675,8 @@ async function buildLeaderboardCard(
 type DashboardCurrentUser = Awaited<ReturnType<typeof getDashboardCurrentUser>>
 
 export async function getDashboardStats(
-  currentUser?: DashboardCurrentUser | null
+  currentUser?: DashboardCurrentUser | null,
+  options: { includeDailyTasks?: boolean } = {}
 ): Promise<DashboardData | null> {
   const startedAt = performance.now()
   const user = currentUser ?? await getDashboardCurrentUser()
@@ -684,14 +685,6 @@ export async function getDashboardStats(
     return null
   }
 
-  const ensureStartedAt = performance.now()
-  runAfterTask(async () => {
-    await ensureDailyTasks(user.id)
-  }, 'dashboard-ensure-daily-tasks')
-  logPerf('getDashboardStats.ensureDailyTasks.scheduled', ensureStartedAt, {
-    userId: user.id,
-  })
-
   const tier = getEffectiveTier(user as UserWithOverrides)
   const minDate = getRetentionDate(tier)
   const today = dayjs().startOf('day')
@@ -699,21 +692,39 @@ export async function getDashboardStats(
   const thirtyDaysAgo = dayjs().subtract(30, 'day').startOf('day').toDate()
   const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
 
-  const dailyTasksStartedAt = performance.now()
-  const dailyTasks = await prisma.dailyTask.findMany({
-    where: {
+  const includeDailyTasks = options.includeDailyTasks !== false
+  let dailyTasks: DashboardData['dailyTasks']['items'] = []
+  if (includeDailyTasks) {
+    const ensureStartedAt = performance.now()
+    runAfterTask(async () => {
+      await ensureDailyTasks(user.id)
+    }, 'dashboard-ensure-daily-tasks')
+    logPerf('getDashboardStats.ensureDailyTasks.scheduled', ensureStartedAt, {
       userId: user.id,
-      date: {
-        gte: today.toDate(),
-        lt: nextDay.toDate(),
+    })
+
+    const dailyTasksStartedAt = performance.now()
+    dailyTasks = await prisma.dailyTask.findMany({
+      where: {
+        userId: user.id,
+        date: {
+          gte: today.toDate(),
+          lt: nextDay.toDate(),
+        },
       },
-    },
-    orderBy: { type: 'asc' },
-  })
-  logPerf('getDashboardStats.dailyTasks', dailyTasksStartedAt, {
-    userId: user.id,
-    rows: dailyTasks.length,
-  })
+      orderBy: { type: 'asc' },
+    })
+    logPerf('getDashboardStats.dailyTasks', dailyTasksStartedAt, {
+      userId: user.id,
+      rows: dailyTasks.length,
+    })
+  } else {
+    logPerf('getDashboardStats.dailyTasks', startedAt, {
+      userId: user.id,
+      rows: 0,
+      skipped: true,
+    })
+  }
 
   const attemptsStartedAt = performance.now()
   const attemptsInRetention = await prisma.userAttempt.findMany({

@@ -21,7 +21,7 @@ async function DashboardPageContent() {
   const currentUser = await getDashboardCurrentUser();
   const [profile, dashboardData] = await Promise.all([
     getDashboardProfile(currentUser),
-    getDashboardStats(currentUser),
+    getDashboardStats(currentUser, { includeDailyTasks: false }),
   ]);
 
   if (!profile) {

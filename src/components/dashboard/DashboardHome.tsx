@@ -363,7 +363,7 @@ export const DashboardHome = ({
               </section>
             </PageHeroShell>
 
-            <DailyMissions tasks={dailyTasks} user={user} />
+            <DailyMissions tasks={dailyTasks} user={user} lazyLoadTasks />
 
             <section
               className={`grid desktop:grid-cols-2 2xl:min-h-0 ${pageGridGapClass}`}

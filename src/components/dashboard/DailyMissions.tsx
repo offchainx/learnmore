@@ -19,24 +19,77 @@ import { GoalsDialog } from './dialogs/GoalsDialog'
 import { AssessmentDialog } from './dialogs/AssessmentDialog'
 
 interface DailyMissionsProps {
-  tasks: DailyTask[]
+  tasks?: DailyTask[]
   user?: User & { settings?: UserSettings | null }
+  lazyLoadTasks?: boolean
 }
 
 const TASKS_PER_PAGE = 3
 
-export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
+export const DailyMissions = ({ tasks = [], user, lazyLoadTasks = false }: DailyMissionsProps) => {
   const { t, lang } = useApp()
   const router = useRouter()
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()
   const [page, setPage] = useState(0)
+  const [resolvedTasks, setResolvedTasks] = useState<DailyTask[]>(tasks)
+  const [isLoadingTasks, setIsLoadingTasks] = useState(lazyLoadTasks && tasks.length === 0)
 
   const copy = (zh: string, en: string) => (lang.startsWith('zh') ? zh : en)
 
   const [showProfile, setShowProfile] = useState(false)
   const [showGoals, setShowGoals] = useState(false)
   const [showAssessment, setShowAssessment] = useState(false)
+
+  useEffect(() => {
+    if (!lazyLoadTasks) {
+      setResolvedTasks(tasks)
+      setIsLoadingTasks(false)
+      return
+    }
+
+    let cancelled = false
+
+    const loadTasks = async () => {
+      setIsLoadingTasks(true)
+      try {
+        const response = await fetch('/api/dashboard/daily-tasks', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load daily tasks: ${response.status}`)
+        }
+
+        const payload = (await response.json()) as { tasks?: DailyTask[] }
+        if (!cancelled) {
+          setResolvedTasks(payload.tasks ?? [])
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('[DailyMissions] Failed to lazy-load tasks:', error)
+          setResolvedTasks(tasks)
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingTasks(false)
+        }
+      }
+    }
+
+    if (tasks.length > 0) {
+      setResolvedTasks(tasks)
+      setIsLoadingTasks(false)
+    } else {
+      void loadTasks()
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [lazyLoadTasks, tasks])
 
   const getTaskHref = (task: DailyTask) => {
     switch (task.type) {
@@ -115,7 +168,7 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
 
   const sortedTasks = useMemo(
     () =>
-      [...tasks].sort((a, b) => {
+      [...resolvedTasks].sort((a, b) => {
         const aCompleted = a.currentCount >= a.targetCount
         const bCompleted = b.currentCount >= b.targetCount
 
@@ -127,7 +180,7 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
 
         return 0
       }),
-    [tasks]
+    [resolvedTasks]
   )
 
   const totalPages = Math.max(1, Math.ceil(sortedTasks.length / TASKS_PER_PAGE))
@@ -200,7 +253,13 @@ export const DailyMissions = ({ tasks, user }: DailyMissionsProps) => {
           </div>
         </div>
 
-        {sortedTasks.length === 0 ? (
+        {isLoadingTasks ? (
+          <div className="flex flex-1 items-center justify-center rounded-[22px] border border-dashed border-borderTone bg-surface/60 px-4 py-6 dark:border-borderTone dark:bg-surface/40">
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
+              {copy('正在加载今日任务', 'Loading today\'s missions')}
+            </span>
+          </div>
+        ) : sortedTasks.length === 0 ? (
           <PageEmptyState
             title={copy('今日任务已完成', "Today's mission is clear")}
             description={copy(

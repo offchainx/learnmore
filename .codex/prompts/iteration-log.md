@@ -48,4 +48,6 @@
 
 | 2026-04-06 | T-PERF.FIX.7 首页流式壳子 | 把 `/dashboard` 首页改成 `Suspense` 流式壳子，并让 profile/stats 复用同一个 currentUser | 已经把 dashboard 首页从“所有数据同步 await 后再返回”改成“先返回 fallback，再逐步流入真实内容”；profile 与 stats 共享 currentUser，减少重复用户读取 | src/app/(dashboard)/dashboard/page.tsx, src/actions/user/profile.ts, src/actions/dashboard.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这样做不是删功能，而是把功能拆成壳子和后续流入的数据，避免所有首屏内容一次性绑死在同一条同步链路上 | 下一轮部署后继续用可见浏览器验证 fallback 是否快速出现，再观察真实数据流入时序 | 这是继续下拆的关键一步 |
 
+| 2026-04-06 | T-PERF.FIX.7 dailyTasks 脱离首屏 SSR | 将 `dailyTasks` 从 `/dashboard` 首屏 SSR 中剥离，改为页面落地后通过独立 API 次请求补拉 | 已把 `/dashboard` 的初始统计查询去掉 `dailyTasks` 同步回源，`DashboardHome` 改为 `lazyLoadTasks` 模式，`/api/dashboard/daily-tasks` 负责后续补齐任务列表，先让首屏少背一段 Prisma 负载 | src/actions/dashboard.ts, src/app/(dashboard)/dashboard/page.tsx, src/app/api/dashboard/daily-tasks/route.ts, src/components/dashboard/DailyMissions.tsx, src/components/dashboard/DashboardHome.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 目标是把首屏最早能看到的变化先落在 dashboard 壳子和骨架屏更快出现，而不是继续让任务列表拖住整个页面 | 下一轮部署后重点看 `/dashboard` 首屏是否先缩短、`dailyTasks` 是否改为页面落地后的二次请求 | 这是继续下拆的下一刀，保留功能但拆掉同步负载 |
+
 ## 约束
