@@ -1433,7 +1433,7 @@
 | T-012.6 | 对齐 referral 写链路：绑定推荐码、支付透传、首单/首付结算、奖励发放、权限校验与幂等 | codex | done |
 | T-012.7 | 补 referral 的激励展示与传播出口：复制码、复制深链、分享文案、奖励进度与状态提示 | codex | done |
 | T-012.8 | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | codex | done |
-| T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | todo |
+| T-012.9 | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | codex | done |
 | T-012.10 | 完成 referral 域验证：绑定核账、首付结算、重复提交验证、页面与数据库一致性验证 | codex | todo |
 
 ### T-012A 用户侧分享 / 绑定 / 奖励展示
@@ -1557,6 +1557,13 @@
 - 用户侧空态主要落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：当推荐码尚未生成时，页面会显示专门的空态说明、禁用传播按钮，并提示先完成账号设置或订阅后再回来查看。
 - 推荐分享与支付入口的错误态主要落在 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 和 [`src/app/r/[code]/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts)：无效推荐码、未找到推荐码、已绑定、自推、支付取消与优惠码异常都会以页面内状态的方式展示，而不是只弹一个不可追踪的 alert。
 - 这一阶段的重点是“可调试”：出问题时用户能看见具体原因，开发者也能从归因事件与 URL 参数判断是链接无效、账号已绑定、还是 checkout / voucher 侧失败，而不是把所有问题都混成一个通用失败提示。
+
+### T-012.9 清理回退与静态文案说明
+- `T-012.9` 只做清理，不再增加新的 referral 行为：把假推荐数、静态奖励摘要、占位路径、伪成功提示和 mock 回退全部收口，确保主流程只展示真实数据。
+- 用户侧推荐入口已经改成“有码就显示真实分享链接、无码就显示空态说明”，不再直接暴露 `/r/[code]` 这类占位路径，也不再把空值当成可分享内容。
+- 后台增长视图的奖励摘要与推荐额度也改成“有真实推荐记录才展示结算句式、没有数据则展示空态提示”，避免把 0 推荐包装成看似正常的统计文案。
+- 推荐分享与支付页的文案已经统一成“推荐链接 / referral link”这类真实入口描述，不再依赖死链占位文本；`Pricing` 页上的错误提示也改成页面内 banner，避免伪成功或弹窗式回退。
+- 这一阶段完成后，referral 相关页面应只保留真实数据、真实入口和真实错误态，不再有 mock fallback、死链占位或假统计句式。
 
 ### T-013 内容导入入口域
 | id | description | owner | status |

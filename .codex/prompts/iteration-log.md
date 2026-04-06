@@ -20,4 +20,6 @@
 
 | 2026-04-06 | T-012.8 referral debug-state closeout | 补 referral 的异常态与调试体验：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态 | 已完成 T-012.8：SettingsView 补充未生成码空态与复制失败兜底，Pricing 与 referral 落地页可直接显示无效/不存在/已绑定/自推/取消支付等状态，pnpm -s tsc --noEmit 与 eslint 通过 | src/components/dashboard/views/SettingsView.tsx, src/app/(marketing)/pricing/PricingPageClient.tsx, src/app/r/[code]/route.ts, tasks.md | 异常态只能靠 alert 或静态文案，调试体验差 | 后续推进 T-012.9 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | T-012.8 已收口，进入 T-012.9 |
 
+| 2026-04-06 | T-012.9 referral cleanup closeout | 清理假推荐数、静态奖励文案、死链、伪成功提示与 mock 回退 | 已完成 T-012.9：SettingsView 去掉 /r/[code] 占位展示，GrowthTab 空数据时改为明确空态，ReferralOverview 不再输出零值式奖励摘要，tasks.md 已同步收口，pnpm -s tsc --noEmit 与 eslint 通过 | src/components/dashboard/views/SettingsView.tsx, src/components/admin/users/tabs/GrowthTab.tsx, src/lib/referrals/overview.ts, tasks.md | referral 主流程里仍然残留占位路径和零值式奖励摘要 | 后续推进 T-012.10 域验证 | T-012.9 已收口，进入 T-012.10 |
+
 ## 约束

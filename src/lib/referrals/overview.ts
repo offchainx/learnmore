@@ -39,6 +39,9 @@ export function buildReferralOverviewStats(
       0,
       input.referralLimit - completedInvites - deferredInvites
     ),
-    rewardSummary: `已结算 ${completedInvites}，延迟发放 ${deferredInvites}，待完成 ${pendingInvites}`,
+    rewardSummary:
+      totalInvites === 0
+        ? '当前暂无推荐记录'
+        : `已结算 ${completedInvites}，延迟发放 ${deferredInvites}，待完成 ${pendingInvites}`,
   }
 }

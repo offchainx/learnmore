@@ -490,7 +490,7 @@ function ReferralSection({
     }
   }, [lang, user.referralCount, user.referralLimit, user.referralCode])
 
-  const referralPath = user.referralCode ? `/r/${user.referralCode}` : '/r/[code]'
+  const referralPath = user.referralCode ? `/r/${user.referralCode}` : null
 
   const handleCopyCode = async () => {
     if (!user.referralCode) return
@@ -519,7 +519,7 @@ function ReferralSection({
   }
 
   const handleCopyLink = async () => {
-    if (!user.referralCode) return
+    if (!user.referralCode || !referralPath) return
     const referralUrl =
       typeof window === 'undefined'
         ? referralPath
@@ -583,7 +583,7 @@ function ReferralSection({
   }
 
   const handleNativeShare = async () => {
-    if (!user.referralCode) return
+    if (!user.referralCode || !referralPath) return
 
     const referralUrl =
       typeof window === 'undefined'
@@ -685,7 +685,7 @@ function ReferralSection({
             <div
               className={`${dataBlockClass} min-w-0 flex-1 truncate text-sm`}
             >
-              {referralPath}
+              {referralPath || copy.empty}
             </div>
             <Button
               type="button"

@@ -335,7 +335,7 @@ const PricingPageClient: React.FC = () => {
         save: '节省约 10%',
         referralTitle: '推荐码预填',
         referralDesc:
-          '从 /r/[code] 进入时会自动填充。你可以在提交前检查或更换推荐码。',
+          '从推荐链接进入时会自动填充。你可以在提交前检查或更换推荐码。',
         referralLabel: 'Referral Code',
         referralPlaceholder: '请输入或粘贴推荐码',
         referralHint: '该值会继续传给 checkout，并写入归因链路。',
@@ -413,7 +413,7 @@ const PricingPageClient: React.FC = () => {
       save: 'Save about 10%',
       referralTitle: 'Referral code prefill',
       referralDesc:
-        'Links from /r/[code] will auto-fill this field. You can review or replace it before continuing.',
+        'Referral links will auto-fill this field. You can review or replace it before continuing.',
       referralLabel: 'Referral Code',
       referralPlaceholder: 'Enter or paste a referral code',
       referralHint: 'This value is passed to checkout and logged for attribution.',

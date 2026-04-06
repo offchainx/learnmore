@@ -131,7 +131,7 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <code className="rounded border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-lg tracking-[0.25em] text-emerald-400">
-                    {data.stats.referralCode || '未配置'}
+                    {data.stats.referralCode || '暂无推荐码'}
                   </code>
                   <button
                     onClick={async () => {
@@ -198,7 +198,11 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
                 奖励结算
               </div>
               <div className="text-sm font-medium text-slate-200">
-                {data.stats.rewardSummary}
+                {data.stats.totalInvites === 0 ? (
+                  <span>当前还没有推荐记录，分享后这里会显示结算情况。</span>
+                ) : (
+                  data.stats.rewardSummary
+                )}
               </div>
             </div>
 
@@ -206,10 +210,16 @@ export const GrowthTab: React.FC<GrowthTabProps> = ({ user }) => {
               <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">
                 推荐额度
               </div>
-              <div className="text-sm font-medium text-slate-200">
-                总额度 {data.stats.referralLimit}，剩余{' '}
-                {data.stats.remainingQuota}
-              </div>
+              {data.stats.referralLimit > 0 ? (
+                <div className="text-sm font-medium text-slate-200">
+                  总额度 {data.stats.referralLimit}，剩余{' '}
+                  {data.stats.remainingQuota}
+                </div>
+              ) : (
+                <div className="text-sm font-medium text-slate-200">
+                  当前未设置推荐额度上限
+                </div>
+              )}
             </div>
           </div>
         </div>
