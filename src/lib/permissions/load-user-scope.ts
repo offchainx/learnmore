@@ -1,7 +1,8 @@
+import { cache } from 'react'
 import prisma from '@/lib/prisma'
 import type { UserWithOverrides } from './engine'
 
-export async function loadUserWithOverrides(
+export const loadUserWithOverrides = cache(async function loadUserWithOverrides(
   userId: string
 ): Promise<UserWithOverrides | null> {
   return prisma.user.findUnique({
@@ -19,4 +20,4 @@ export async function loadUserWithOverrides(
       },
     },
   })
-}
+})

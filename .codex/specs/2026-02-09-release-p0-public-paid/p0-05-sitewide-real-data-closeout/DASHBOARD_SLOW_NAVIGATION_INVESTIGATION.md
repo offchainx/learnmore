@@ -117,6 +117,98 @@
 | T-PERF.9 | 建立“可商用化”性能门槛与验收阈值，明确 public 与 protected 两套标准 | codex | todo |
 | T-PERF.10 | 完成上线前复测、留证、回滚建议与最终发布判断 | codex | todo |
 
+说明：
+- `T-PERF.5` 到 `T-PERF.10` 仍然保留为测量、验证与收口任务
+- 下方新增的“Dashboard 首屏修复子任务”是从当前结论里拆出来的真正推进动作
+- 后续每完成一个修复子任务，就在本节下方追加对应的说明性内容
+- 说明块的写法参考下面已经完成的 `T-PERF.1` 到 `T-PERF.4`，保持“结果 / 收口记录 / 当前结论”的推进格式
+
+### Dashboard 首屏修复子任务
+
+| id | description | owner | status |
+|---|---|---|---|
+| T-PERF.FIX.1 | 将 `DashboardPage` 改为并行获取 `profile` 和 `stats` | codex | done |
+| T-PERF.FIX.2 | 将 `getDashboardStats()` 里的串行查询拆成并行查询 | codex | done |
+| T-PERF.FIX.3 | 给 `loadUserWithOverrides()` 加请求级缓存 | codex | done |
+| T-PERF.FIX.4 | 将 `loadDashboardSubjectResults()` 的 subject loop 改成批量并发 | codex | done |
+| T-PERF.FIX.5 | 评估并移出 `ensureDailyTasks()` 从首屏关键路径 | codex | done |
+
+### T-PERF.FIX.1 ~ T-PERF.FIX.5 执行规则
+
+- 这 5 条不是 `T-PERF.5` 的一部分，`T-PERF.5` 仍然只负责已登录真实浏览器测量
+- 这 5 条是从当前证据中抽出来的修复动作，按“先并行、再缓存、再降首屏阻塞”的顺序推进
+- 每完成一个子任务，就在本节下方补对应的说明块，写法与 `T-PERF.1` 到 `T-PERF.4` 保持一致
+
+### T-PERF.FIX.1 DashboardPage 并行化结果（已完成）
+
+- 结果：
+  - `[src/app/(dashboard)/dashboard/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/page.tsx)` 已改为同时启动 `getDashboardProfile()` 与 `getDashboardStats()`
+  - 首屏不再等待 profile 完成后才开始统计查询
+
+- 收口记录：
+  - 这一步只消除明显串行等待，不改变数据口径
+  - 后续已登录真实浏览器测量需要验证这次并行化是否真的缩短首屏等待
+
+- 当前结论：
+  - `DashboardPage` 已从“串行入口”收敛为“并行入口”
+  - 这是 dashboard-core 首屏路径的第一层降阻
+
+### T-PERF.FIX.2 getDashboardStats 并行化结果（已完成）
+
+- 结果：
+  - `[src/actions/dashboard.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/dashboard.ts)` 中原先顺序执行的统计查询已改为并行启动
+  - `dailyTask`、`userAttempt`、`examRecord`、`userProgress`、`recentPractice`、`subjectResults`、`leaderboard` 现在都进入同一轮并行收集
+
+- 收口记录：
+  - 原先的串行等待已被拆掉，`leaderboard` 也改为从已启动的 retention 查询结果推导
+  - 这一步需要配合 runtime logs 继续确认是否还有新的慢查询在拖尾
+
+- 当前结论：
+  - dashboard 首屏的主要数据批次已经从串行链路收敛为并行链路
+  - 如果后续仍慢，问题更可能落在单条慢查询或鉴权热路径，而不是这一层的顺序等待
+
+### T-PERF.FIX.3 loadUserWithOverrides 缓存结果（已完成）
+
+- 结果：
+  - `[src/lib/permissions/load-user-scope.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/permissions/load-user-scope.ts)` 已用 `cache()` 包裹
+  - 同一请求内重复读取用户范围时，不再反复回源
+
+- 收口记录：
+  - 这一步主要减少 dashboard 聚合链路里重复读取用户范围的开销
+  - 该缓存仅作用于同请求周期，不改变跨请求的数据一致性
+
+- 当前结论：
+  - 这层优化针对的是“重复回源”，不是单次查询慢
+  - 如果切页仍卡，后续要继续看是否还有其他重复鉴权或重复权限读取
+
+### T-PERF.FIX.4 loadDashboardSubjectResults 并发化结果（已完成）
+
+- 结果：
+  - `[src/actions/dashboard.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/dashboard.ts)` 中的 subject 聚合已改为 `Promise.all`
+  - 每个 subject 的失败都会被单独收敛，不再让一个 subject 的慢查询拖住整轮串行循环
+
+- 收口记录：
+  - 原先的 subject loop 是 dashboard 首屏的典型 N+1 放大点
+  - 现在已经把“按 subject 顺序等待”的尾部延迟拆掉
+
+- 当前结论：
+  - subject 维度的聚合已经从串行改为并发
+  - 如果后续还慢，下一步应继续定位是否是单个 subject 的查询本身过慢，或者是更上游的鉴权与任务补全逻辑
+
+### T-PERF.FIX.5 ensureDailyTasks 脱离首屏关键路径结果（已完成）
+
+- 结果：
+  - `[src/actions/dashboard.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/dashboard.ts)` 已不再在首屏路径里同步等待 `ensureDailyTasks(user.id)`
+  - 该逻辑已改为后台调度执行，首屏可以先继续渲染 dashboard 数据
+
+- 收口记录：
+  - `ensureDailyTasks()` 本身仍保留无锁快路径与必要写入分支
+  - 变化点在于它不再阻塞 dashboard 首屏关键路径
+
+- 当前结论：
+  - 首屏阻塞风险最大的副作用已经从同步路径移出
+  - 如果登录后仍出现长时间 skeleton，更可能是其他数据聚合或前置鉴权在拖慢
+
 ### T-PERF.1 路径盘点结果（已完成）
 
 - 本次排查不再只盯 `/dashboard`
@@ -203,4 +295,3 @@
 3. 根据证据决定先压 auth 热路径，还是先压 dashboard-core 的聚合与二次请求
 
 在这三步完成前，不再把问题泛化成新的大改造。
-

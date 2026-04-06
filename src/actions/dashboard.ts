@@ -18,6 +18,7 @@ import { getRetentionDate } from '@/lib/permissions/prisma-scope'
 import { getSubjectChapters } from '@/actions/practice/data-service'
 import type { SubjectChaptersResult } from '@/lib/practice/types'
 import { startOfWeek } from 'date-fns'
+import { runAfterTask } from '@/lib/server/run-after-task'
 
 export type DashboardOverviewWindow = '7D' | '30D'
 export type DashboardModuleStatus = 'ready' | 'empty' | 'excluded'
@@ -185,13 +186,20 @@ async function loadDashboardSubjectResults(
     },
   })
 
-  const subjectResults: SubjectChaptersResult[] = []
-  for (const subject of subjects) {
-    const result = await getSubjectChapters(subject.id, userId)
-    if (result) {
-      subjectResults.push(result)
-    }
-  }
+  const subjectResults = await Promise.all(
+    subjects.map(async (subject) => {
+      try {
+        return await getSubjectChapters(subject.id, userId)
+      } catch (error) {
+        console.warn('[Dashboard] Failed to load subject chapters:', {
+          subjectId: subject.id,
+          userId,
+          error,
+        })
+        return null
+      }
+    })
+  )
 
   return subjectResults.filter(
     (result): result is SubjectChaptersResult =>
@@ -647,11 +655,10 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   const user = await getCurrentUser()
   if (!user) return null
 
-  try {
+  runAfterTask(async () => {
     await ensureDailyTasks(user.id)
-  } catch (error) {
-    console.warn('[Dashboard] ensureDailyTasks failed:', error)
-  }
+  }, 'dashboard-ensure-daily-tasks')
+
   const tier = getEffectiveTier(user as UserWithOverrides)
   const minDate = getRetentionDate(tier)
   const today = dayjs().startOf('day')
@@ -659,7 +666,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
   const thirtyDaysAgo = dayjs().subtract(30, 'day').startOf('day').toDate()
   const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
 
-  const dailyTasks = await prisma.dailyTask.findMany({
+  const dailyTasksPromise = prisma.dailyTask.findMany({
     where: {
       userId: user.id,
       date: {
@@ -670,7 +677,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { type: 'asc' },
   })
 
-  const attemptsInRetention = await prisma.userAttempt.findMany({
+  const attemptsInRetentionPromise = prisma.userAttempt.findMany({
     where: {
       userId: user.id,
       createdAt: { gte: minDate },
@@ -682,11 +689,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { createdAt: 'desc' },
   })
 
-  const totalAttempts = attemptsInRetention.length
-  const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
-  const mistakeCount = totalAttempts - correctAttempts
-
-  const examRecordsInRetention = await prisma.examRecord.findMany({
+  const examRecordsInRetentionPromise = prisma.examRecord.findMany({
     where: {
       userId: user.id,
       createdAt: { gte: minDate },
@@ -698,7 +701,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { createdAt: 'desc' },
   })
 
-  const completedLessonsInRetention = await prisma.userProgress.findMany({
+  const completedLessonsInRetentionPromise = prisma.userProgress.findMany({
     where: {
       userId: user.id,
       isCompleted: true,
@@ -710,7 +713,7 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     orderBy: { updatedAt: 'desc' },
   })
 
-  const recentPractice = await prisma.examRecord.findMany({
+  const recentPracticePromise = prisma.examRecord.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     take: 5,
@@ -734,8 +737,36 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
     },
   })
 
-  const subjectResults = await loadDashboardSubjectResults(user.id)
+  const subjectResultsPromise = loadDashboardSubjectResults(user.id)
+  const leaderboardPromise = attemptsInRetentionPromise.then((attemptsInRetention) => {
+    const totalAttempts = attemptsInRetention.length
+    const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
+    const accuracy =
+      totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
+    return buildLeaderboardCard(user, accuracy, minDate)
+  })
 
+  const [
+    dailyTasks,
+    attemptsInRetention,
+    examRecordsInRetention,
+    completedLessonsInRetention,
+    recentPractice,
+    subjectResults,
+    leaderboardData,
+  ] = await Promise.all([
+    dailyTasksPromise,
+    attemptsInRetentionPromise,
+    examRecordsInRetentionPromise,
+    completedLessonsInRetentionPromise,
+    recentPracticePromise,
+    subjectResultsPromise,
+    leaderboardPromise,
+  ])
+
+  const totalAttempts = attemptsInRetention.length
+  const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
+  const mistakeCount = totalAttempts - correctAttempts
   const accuracy =
     totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0
   const studyHours = formatHours(sumStudySeconds(examRecordsInRetention))
@@ -786,8 +817,6 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
       createdAt: record.createdAt,
     }
   })
-  const leaderboard = await buildLeaderboardCard(user, accuracy, minDate)
-
   return {
     stats: {
       studyTime: studyHours,
@@ -824,8 +853,6 @@ export async function getDashboardStats(): Promise<DashboardData | null> {
       items: dailyTasks,
     },
     weaknesses: buildWeaknesses(subjectResults),
-    leaderboard: {
-      ...leaderboard,
-    },
+    leaderboard: leaderboardData,
   }
 }

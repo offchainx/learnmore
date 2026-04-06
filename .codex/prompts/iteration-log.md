@@ -26,4 +26,6 @@
 
 | 2026-04-06 | Vercel 全站性能排查文档与近期收口同步 | 将 p0-05 下的线上性能排查文档落到 spec 目录，并同步当前 referral / pricing 相关最新改动后推送远端 | 已补 `DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md` 为“Vercel 线上全站切换性能排查与推进清单”，并保留当前 `tasks.md` 与 `src/app/(marketing)/pricing/page.tsx` 的最新工作区变更一起收口推送 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/tasks.md, src/app/(marketing)/pricing/page.tsx | 本次主要目标是同步远端基线，方便后续基于用户录屏继续定位线上切换慢 | 远端同步完成后继续结合用户真实录屏排查已登录态切页慢点 | 当前迭代用于对齐远端代码与排查文档基线 |
 
+| 2026-04-06 | T-PERF.FIX.1~5 dashboard 首屏收口 | 推进 dashboard 首屏性能修复，合并 profile/stats 并行、统计查询并行、权限缓存、subject 并发与 daily tasks 脱离首屏关键路径 | 已完成 T-PERF.FIX.1~5，dashboard 首屏从串行聚合收敛为并行聚合，并将 `ensureDailyTasks()` 从同步关键路径移出，后续等待已登录真实浏览器复测与 Vercel runtime logs 校验 | src/app/(dashboard)/dashboard/page.tsx, src/actions/dashboard.ts, src/lib/permissions/load-user-scope.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | dashboard 登录后仍存在长时间 skeleton 体感，需要继续用真实浏览器和 runtime logs 验证是否已经收敛 | 完成后回到 T-PERF.5 做已登录态真实测量 | 本次迭代用于先把首屏阻塞面收窄，再回到测量闭环 |
+
 ## 约束
