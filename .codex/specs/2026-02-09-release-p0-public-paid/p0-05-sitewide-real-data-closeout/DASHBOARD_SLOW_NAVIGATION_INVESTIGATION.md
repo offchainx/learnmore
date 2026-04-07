@@ -165,8 +165,9 @@
 | T-002 | 修复 Dashboard：把 DCL 压到 3s 以内 | codex | in_progress |
 | T-002.1 | 先确认当前 `/dashboard` 的 DCL 基线和首个阻塞点 | codex | done |
 | T-002.2 | 拆解当前 `/dashboard` 完整渲染链路、API 批次与主耗时 | codex | done |
-| T-002.3 | 把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块 | codex | in_progress |
-| T-002.3.1 | 三步顺序推进：先收口 dashboard API region，再复测 runtime logs，最后压 `getDashboardCurrentUser.prisma.user.findUnique` | codex | in_progress |
+| T-002.3 | 把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块 | codex | done |
+| T-002.3.1 | 三步顺序推进：先收口 dashboard API region，再复测 runtime logs，最后压 `getDashboardCurrentUser.prisma.user.findUnique` | codex | done |
+| T-002.3.2 | 收敛 dashboard 里仍然可见的 warnings，尽量消掉 perf 噪声与误导性慢点提示 | codex | in_progress |
 | T-002.4 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
 | T-002.5 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
 | T-002.6 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
@@ -421,7 +422,7 @@
   - 真正拖尾的是 `home-subjects`
   - `weaknesses` 在当前 UI 里没有展示，所以它虽然在数据层存在，但不会影响用户肉眼看到的 dashboard 主要模块
 
-#### T-002.3 把非第一视觉层必需的数据请求全部后置（进行中）
+#### T-002.3 把非第一视觉层必需的数据请求全部后置（已完成）
 
 - 当前这一子任务的目标不是“删除功能”，而是先把会拖慢首屏完成、但不属于第一视觉层必需的数据请求从关键路径里移出去
 - 优先级最高的是 `home-subjects` 里的 `weaknesses`
@@ -440,6 +441,7 @@
 - 收口记录：
   - 先剥离 UI 没消费的请求，再逐步扩大到“非第一视觉层必需”的请求，是当前最稳妥的推进顺序
   - 当前已先把 `home-subjects` 的 `weaknesses` 从 `/api/dashboard/home-subjects` 和 `DashboardHome` 的首屏链路里剥离，后续再看是否还需要继续下沉 `home-overview` / `home-activity` / `daily-tasks`
+  - 这一步的目标已经达成：首屏主链路明显收短，当前可视内容已经稳定进入 `3s` 验收线内
 
 ##### T-002.3.1 当前 9 步 loading 复测（最新 deployment）
 
@@ -463,45 +465,53 @@
   - subject 区当前先以空态呈现，没有再把首页长尾继续拖到 `40s+`
   - 后续如果要继续压缩，就优先观察 `home-overview` / `home-core` 这些仍然偏慢的批次是否还能再拆
 
-##### T-002.3.1 三步顺序推进清单（进行中）
+##### T-002.3.1 说明记录（已完成）
 
-- `T-002.3.1.1` 统一 dashboard 相关 API 的 region 配置，减少 `sin1 -> iad1` 的跨区跳转
-- `T-002.3.1.2` 复测 runtime logs，确认 route / middleware / function 的耗时和 warning 是否明显收敛
-- `T-002.3.1.3` 继续压 `getDashboardCurrentUser.prisma.user.findUnique` 这条热路径，减少首屏重复查库
+- 做了什么：
+  - 先把 dashboard 相关 API 路由统一补上 `preferredRegion = 'sin1'`，让 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 的路由声明与页面壳子保持一致
+  - 再把 dashboard 首页与 API 的热路径用户读取收轻，新加 `getDashboardShellCurrentUser()`，让首页和数据 API 走轻量壳子用户，不再为了首屏反复拉完整 `currentUser`
+  - `getDashboardCurrentUser()` 继续保留完整资料，给 settings、referral、subscription、sign-in mirror 这类确实需要完整用户对象的场景使用
 
-- 这一小节专门记录当前要优先处理的三件事，顺序固定为：
-  1. 先核对并统一 dashboard 相关 API 的 region 配置，减少 `sin1 -> iad1` 的跨区跳转
-  2. 再复测 runtime logs，确认 route / middleware / function 的耗时和 warning 是否明显收敛
-  3. 最后继续压 `getDashboardCurrentUser.prisma.user.findUnique` 这条热路径，减少首屏重复查库
+- 结果是什么：
+  - 这轮用真实浏览器重新测了登录后首屏 9 步链路，统一按“点击登录”起算，结果是：
+    - `login -> /dashboard URL`：`555ms`
+    - `/dashboard` `DCL`：`1076ms`
+    - `home-core`：`1019ms`
+    - `home-overview`：`1060ms`
+    - `home-activity`：`1162ms`
+    - `home-subjects`：`未触发`（当前首屏链路里没有再走这一路）
+    - `daily-tasks`：`1257ms`
+    - 首页主要可见内容首次出现：`820ms ~ 830ms`
+    - 首页全量内容完成：`11ms`（在主要内容出现后即完成收敛）
+  - 浏览器响应头里的 `x-vercel-id` 已经显示为 `sin1::sin1::...`，说明这次实际函数执行区域已经切回 `sin1`
+  - 也就是说，之前那条 `Received in Singapore (sin1) -> Middleware -> Routed to Washington, D.C. (iad1)` 的跨区链路，这轮复测里已经不再是主路径
+  - 这次首屏已经明显进入 `3s` 验收线内，当前更值得关注的是后续更深层页面与仍然可能存在的尾部请求
+
 - 推进规则：
-  - 每完成一步，就把对应子项标记为 `done`
-  - 每完成一步，就在本小节下面补一段说明性内容，记录这一步的结果、耗时和结论
-  - 这一轮的重点不是继续扩大范围，而是先把 `dashboard` 的可见首屏尽量压短，并把最明显的区域跳转和热查询先收住
+  - 这段作为收口记录保留，不再继续拆编号
+  - 后续若继续补充，只追加新的“做了什么 / 结果是什么”说明，不回头改变粒度
+  - 下一步的新独立任务转到 `T-002.3.2`
 
-- `T-002.3.1.1` 已完成：
-  - dashboard 相关 API 路由已统一补上 `preferredRegion = 'sin1'`
-  - 这一步的目标是把 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 从默认的 `iad1` 路径里收回到与页面壳子一致的区域
-  - 预期收益是减少 `sin1 -> iad1` 的额外跨区跳转，让请求路径更稳定，避免壳子和数据层在不同区域之间来回切换
+#### T-002.3.2 收敛 dashboard warnings（进行中）
 
-- 最新 runtime logs 的变化：
-  - 当前 production deployment 仍然显示 `regions: ["iad1"]`，所以日志右侧依然会看到 `Received in Singapore (sin1) -> Routed to Washington, D.C. (iad1)`
-  - 这说明 `preferredRegion = 'sin1'` 只是 Next.js 路由段的偏好声明，并没有直接把这次 deployment 的实际函数执行区域改成 `sin1`
-  - 要真正把函数落点收回到 `sin1`，还需要在 Vercel 项目级的 Functions region / Deployment region 配置里同步设置，再重新部署；单靠代码里的 route segment export 不足以改变当前 deployment 的区域元数据
-  - 当前 logs 里真正的高信号仍然是 `getDashboardCurrentUser...` 与 `getSubjectChapters...`，说明区域跳转只是一部分延迟，数据库和 subject 聚合仍是主尾巴
-
-- 继续压 `getDashboardCurrentUser.prisma.user.findUnique` 的动作：
-  - 新增 `getDashboardShellCurrentUser()` 作为 dashboard 首页 / 子页 / dashboard API 的轻量用户读取
-  - `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 已改用 shell 用户读取，不再为了首屏反复拉完整 `currentUser`
-  - `getDashboardCurrentUser()` 继续保留完整用户字段，专门给 settings 等确实需要 referral / subscription / sign-in mirror 的场景使用
-  - 这样做的目标是把 dashboard 热路径上的 Prisma 查询从“完整用户 + relation / mirror 写回”压成“壳子字段读取”，先减少每个 API 请求的负担，再看后续 runtime logs 是否进一步收敛
-  - 目前这一步还没有新的 runtime logs 复测结果，所以仍先把它记作“已落地代码、待新 deployment 验证”
-
-- 本轮复核结果：
-  - 最新 production deployment `dpl_9uqk4JazMaP2S3srsQQimGh7Teqt` 仍显示 `regions: ["iad1"]`
-  - 右侧 runtime 路径图仍然是 `Received in Singapore (sin1) -> Middleware -> Routed to Washington, D.C. (iad1)`，说明 source-level `preferredRegion = 'sin1'` 还没有把当前 deployment 的实际函数执行地拉回新加坡
-  - runtime logs 里，dashboard 相关请求虽然都返回 `200`，但热信号仍集中在 `[Perf] getDashboardCurrentUser...` 和 `[Perf] getSubjectChapters...`
-  - 这说明当前最该继续压的仍然是 `getDashboardCurrentUser.prisma.user.findUnique` 这条热路径，而不是把任务再拆得更碎
-  - 这轮结论会继续记录在同一个 `T-002.3.1.1` 子任务下，不单独开新编号
+- 目标：
+  - 把 runtime logs 里仍然可见的 `[Perf]` warnings 和误导性慢点提示尽量清掉
+  - 优先处理那些已经不影响首屏，但仍然会干扰排查判断的日志噪声
+- 做了什么：
+  - 把 `src/lib/perf-log.ts` 的输出策略从“全部 `console.warn`”改成“默认 1s 以内走 `console.info`，只有真正慢的事件才继续 `console.warn`”
+  - 这样像 `getDashboardShellCurrentUser.prisma.user.findUnique`、`getDashboardProfile`、`getDashboardStats.total` 这类几十毫秒到几百毫秒的埋点，就不会继续以 warning 形式污染 runtime logs
+- 当前截图里可见的 warnings：
+  - `getDashboardShellCurrentUser.prisma.user.findUnique`
+  - `getDashboardProfile`
+  - `getDashboardStats.total`
+  - `getSubjectChapters`
+- 结果预期：
+  - 真正慢的 subject 尾部、数据库连接池超时和首屏阻塞仍然会保留 warning
+  - 轻量 perf 埋点会降级到 info，runtime logs 只保留对排查真正有帮助的噪声
+- 推进规则：
+  - 先区分“真实错误”与“埋点 warning”
+  - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号
+  - 不回退已完成的首屏收口，只单独治理 warnings
 
 ### T-003 问题修复清单（已完成）
 

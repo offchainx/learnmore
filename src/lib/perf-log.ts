@@ -1,10 +1,20 @@
 export function logPerf(
   label: string,
   startedAt: number,
-  details: Record<string, unknown> = {}
+  details: Record<string, unknown> = {},
+  options: { warnAfterMs?: number } = {}
 ) {
-  console.warn(`[Perf] ${label}`, {
-    elapsedMs: Math.round(performance.now() - startedAt),
+  const elapsedMs = Math.round(performance.now() - startedAt)
+  const warnAfterMs = options.warnAfterMs ?? 1000
+  const payload = {
+    elapsedMs,
     ...details,
-  })
+  }
+
+  if (elapsedMs >= warnAfterMs) {
+    console.warn(`[Perf] ${label}`, payload)
+    return
+  }
+
+  console.info(`[Perf] ${label}`, payload)
 }
