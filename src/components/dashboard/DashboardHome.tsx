@@ -217,7 +217,6 @@ export const DashboardHome = ({
   const [subjectData, setSubjectData] = useState<{
     learningPath: DashboardData['learningPath']
     subjectProgress: DashboardData['subjectProgress']
-    weaknesses: DashboardData['weaknesses']
   } | null>(null)
   const [isLoadingCoreData, setIsLoadingCoreData] = useState(!initialData)
   const [isLoadingOverviewData, setIsLoadingOverviewData] = useState(
@@ -409,7 +408,6 @@ export const DashboardHome = ({
         const payload = (await response.json()) as {
           learningPath?: DashboardData['learningPath']
           subjectProgress?: DashboardData['subjectProgress']
-          weaknesses?: DashboardData['weaknesses']
         }
 
         if (!cancelled) {
@@ -423,11 +421,6 @@ export const DashboardHome = ({
               status: 'empty',
               items: [],
               note: '学科进度稍后加载。',
-            },
-            weaknesses: payload.weaknesses ?? {
-              status: 'empty',
-              items: [],
-              note: '薄弱点分析稍后加载。',
             },
           })
         }
@@ -496,7 +489,6 @@ export const DashboardHome = ({
     ...(subjectData ?? {
       learningPath: { status: 'empty', items: [], note: undefined },
       subjectProgress: { status: 'empty', items: [], note: undefined },
-      weaknesses: { status: 'empty', items: [], note: undefined },
     }),
   } satisfies DashboardData
 

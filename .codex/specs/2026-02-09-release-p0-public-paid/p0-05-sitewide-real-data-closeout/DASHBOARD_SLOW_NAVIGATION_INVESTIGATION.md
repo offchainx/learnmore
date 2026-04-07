@@ -165,7 +165,7 @@
 | T-002 | 修复 Dashboard：把 DCL 压到 3s 以内 | codex | in_progress |
 | T-002.1 | 先确认当前 `/dashboard` 的 DCL 基线和首个阻塞点 | codex | done |
 | T-002.2 | 拆解当前 `/dashboard` 完整渲染链路、API 批次与主耗时 | codex | done |
-| T-002.3 | 将 `/dashboard` 首页改为先出壳子，再后补主体内容 | codex | in_progress |
+| T-002.3 | 把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块 | codex | in_progress |
 | T-002.4 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
 | T-002.5 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
 | T-002.6 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
@@ -419,6 +419,26 @@
   - 页面壳子已经先出来了
   - 真正拖尾的是 `home-subjects`
   - `weaknesses` 在当前 UI 里没有展示，所以它虽然在数据层存在，但不会影响用户肉眼看到的 dashboard 主要模块
+
+#### T-002.3 把非第一视觉层必需的数据请求全部后置（进行中）
+
+- 当前这一子任务的目标不是“删除功能”，而是先把会拖慢首屏完成、但不属于第一视觉层必需的数据请求从关键路径里移出去
+- 优先级最高的是 `home-subjects` 里的 `weaknesses`
+  - 这块当前 dashboard 首页没有单独渲染
+  - 所以它是最明确的白跑项
+- 其次是所有“可以先出壳、后补数据”的模块：
+  - `home-overview`
+  - `home-activity`
+  - `daily-tasks`
+  - `home-subjects.learningPath`
+  - `home-subjects.subjectProgress`
+- 这一轮的检验标准是：
+  - 先看 dashboard 可见壳子是否更快出现
+  - 再看首页主要内容是否有明显提前
+  - 如果收益显著，再继续往下拆剩余尾巴
+- 收口记录：
+  - 先剥离 UI 没消费的请求，再逐步扩大到“非第一视觉层必需”的请求，是当前最稳妥的推进顺序
+  - 当前已先把 `home-subjects` 的 `weaknesses` 从 `/api/dashboard/home-subjects` 和 `DashboardHome` 的首屏链路里剥离，后续再看是否还需要继续下沉 `home-overview` / `home-activity` / `daily-tasks`
 
 ### T-003 问题修复清单（已完成）
 

@@ -716,6 +716,7 @@ export async function getDashboardStats(
     includeSubjectResults?: boolean
     includeLeaderboard?: boolean
     includeOverview?: boolean
+    includeWeaknesses?: boolean
   } = {}
 ): Promise<DashboardData | null> {
   const startedAt = performance.now()
@@ -737,6 +738,7 @@ export async function getDashboardStats(
   const includeSubjectResults = options.includeSubjectResults !== false
   const includeLeaderboard = options.includeLeaderboard !== false
   const includeOverview = options.includeOverview !== false
+  const includeWeaknesses = options.includeWeaknesses !== false
   let dailyTasks: DashboardData['dailyTasks']['items'] = []
   if (includeDailyTasks) {
     const ensureStartedAt = performance.now()
@@ -884,6 +886,26 @@ export async function getDashboardStats(
     })
   }
 
+  let weaknesses: DashboardData['weaknesses'] = {
+    status: 'empty',
+    items: [],
+    note: '薄弱点分析稍后加载。',
+  }
+  if (includeSubjectResults && includeWeaknesses) {
+    const weaknessesStartedAt = performance.now()
+    weaknesses = buildWeaknesses(subjectResults)
+    logPerf('getDashboardStats.weaknesses', weaknessesStartedAt, {
+      userId: user.id,
+      rows: weaknesses.items.length,
+    })
+  } else {
+    logPerf('getDashboardStats.weaknesses', startedAt, {
+      userId: user.id,
+      rows: 0,
+      skipped: true,
+    })
+  }
+
   const totalAttempts = attemptsInRetention.length
   const correctAttempts = attemptsInRetention.filter((attempt) => attempt.isCorrect).length
   const mistakeCount = totalAttempts - correctAttempts
@@ -1016,8 +1038,8 @@ export async function getDashboardStats(
       status: dailyTasks.length > 0 ? 'ready' : 'empty',
       items: dailyTasks,
     },
-    weaknesses: includeSubjectResults
-      ? buildWeaknesses(subjectResults)
+    weaknesses: includeSubjectResults && includeWeaknesses
+      ? weaknesses
       : {
           status: 'empty',
           items: [],

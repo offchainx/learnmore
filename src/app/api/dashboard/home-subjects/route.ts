@@ -14,6 +14,7 @@ export async function GET() {
     includeDailyTasks: false,
     includeSubjectResults: true,
     includeLeaderboard: false,
+    includeWeaknesses: false,
   })
 
   if (!data) {
@@ -23,6 +24,5 @@ export async function GET() {
   return NextResponse.json({
     learningPath: data.learningPath,
     subjectProgress: data.subjectProgress,
-    weaknesses: data.weaknesses,
   })
 }
