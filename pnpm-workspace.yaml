@@ -1,9 +1,9 @@
 patchedDependencies:
   baseline-browser-mapping@2.10.12: patches/baseline-browser-mapping@2.10.12.patch
 onlyBuiltDependencies:
+  - '@napi-rs/canvas'
   - '@prisma/client'
   - '@prisma/engines'
-  - canvas
   - esbuild
   - prisma
   - sharp

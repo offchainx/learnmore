@@ -505,6 +505,7 @@
   - 把 Gemini 客户端改成惰性初始化，不再在模块加载期直接打印 `GEMINI_API_KEY is not set in environment variables.`，改为只有真正调用 AI 功能时才返回明确错误
   - 给根布局和营销布局补上 `metadataBase`，消除 Next.js 在 build 期关于站点基准 URL 的默认回退 warning
   - 这次 build fail 的直接原因是旧版 `@prisma/cli` 仍作为直接 devDependency 被安装，导致它的 preinstall 自检主动失败；已从 `package.json` 和 `pnpm-workspace.yaml` 中移除，并刷新 lockfile
+  - 旧版 `canvas` 直接依赖已经移除，PDF / OCR 这条链路改成延迟加载 `@napi-rs/canvas`，避免 build install 阶段出现 `canvas` 的弃用噪声；同时 `pdfjs-dist` 的加载也改成仅在真正执行 PDF 导入时才触发，避免 `/admin/content/import` 在模块初始化期直接触发 `DOMMatrix` 错误
 - 当前截图里可见的 warnings：
   - `getDashboardShellCurrentUser.prisma.user.findUnique`
   - `getDashboardProfile`
@@ -524,6 +525,7 @@
   - `generateAIResponse` / `ai-tutor` / `question parser` 现在都会先检查 Gemini 客户端是否可用，不再依赖顶层 warning
   - `pnpm run build` 复测已经不再出现 `GEMINI_API_KEY`、`package.json#prisma`、`ignored build scripts` 和 `metadataBase` 这四类可见 warning
   - `pnpm run build` 也已验证不会再被 `@prisma/cli` 的 preinstall 中断
+  - `/admin/content/import` 的 `DOMMatrix is not defined` 已被延迟加载修复，PDF/OCR 只在真正处理 PDF 时才会去加载 `pdfjs-dist` 和 canvas 绑定
 - 推进规则：
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号

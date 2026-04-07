@@ -1,10 +1,53 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+type CanvasModule = typeof import('@napi-rs/canvas')
+type PdfjsModule = typeof import('pdfjs-dist/legacy/build/pdf.mjs')
 
 export interface PDFPageImage {
-  pageNumber: number;
-  dataUrl: string; // Base64 data URL
-  width: number;
-  height: number;
+  pageNumber: number
+  dataUrl: string
+  width: number
+  height: number
+}
+
+let pdfjsModulePromise: Promise<PdfjsModule> | null = null
+let canvasModulePromise: Promise<CanvasModule> | null = null
+
+async function loadCanvasModule(): Promise<CanvasModule> {
+  if (!canvasModulePromise) {
+    canvasModulePromise = import('@napi-rs/canvas')
+  }
+  return canvasModulePromise
+}
+
+function applyCanvasGlobals(canvasModule: CanvasModule) {
+  const globalCanvas = globalThis as typeof globalThis & {
+    DOMMatrix?: unknown
+    ImageData?: unknown
+    Path2D?: unknown
+  }
+
+  if (!globalCanvas.DOMMatrix && canvasModule.DOMMatrix) {
+    ;(globalCanvas as Record<string, unknown>).DOMMatrix = canvasModule.DOMMatrix
+  }
+
+  if (!globalCanvas.ImageData && canvasModule.ImageData) {
+    ;(globalCanvas as Record<string, unknown>).ImageData = canvasModule.ImageData
+  }
+
+  if (!globalCanvas.Path2D && canvasModule.Path2D) {
+    ;(globalCanvas as Record<string, unknown>).Path2D = canvasModule.Path2D
+  }
+}
+
+async function loadPdfjsModule(): Promise<PdfjsModule> {
+  if (!pdfjsModulePromise) {
+    pdfjsModulePromise = (async () => {
+      const canvasModule = await loadCanvasModule()
+      applyCanvasGlobals(canvasModule)
+      return import('pdfjs-dist/legacy/build/pdf.mjs')
+    })()
+  }
+
+  return pdfjsModulePromise
 }
 
 /**
@@ -14,81 +57,77 @@ export async function convertPDFToImages(
   pdfSource: ArrayBuffer | string,
   options: { scale?: number } = {}
 ): Promise<PDFPageImage[]> {
-  const scale = options.scale || 2.0; // Higher scale for better OCR quality
+  const scale = options.scale || 2.0
+  const pdfjsLib = await loadPdfjsModule()
 
-  // Dynamically import canvas to avoid build/runtime errors if native module is missing
-  let createCanvas: any;
+  let createCanvas: CanvasModule['createCanvas']
   try {
-    const canvasModule = await import('canvas');
-    createCanvas = canvasModule.createCanvas;
+    const canvasModule = await loadCanvasModule()
+    createCanvas = canvasModule.createCanvas
   } catch (error) {
-    console.error('Failed to load canvas module:', error);
-    throw new Error('Canvas module is not available. Please ensure "canvas" is installed and built correctly.');
+    console.error('Failed to load @napi-rs/canvas module:', error)
+    throw new Error(
+      'Canvas module is not available. Please ensure "@napi-rs/canvas" is installed and built correctly.'
+    )
   }
 
-  // Define NodeCanvasFactory with the imported createCanvas
   const NodeCanvasFactory = {
-    create: function (width: number, height: number) {
-      const canvas = createCanvas(width, height);
-      const context = canvas.getContext('2d');
+    create(width: number, height: number) {
+      const canvas = createCanvas(width, height)
+      const context = canvas.getContext('2d')
       return {
-        canvas: canvas,
-        context: context,
-      };
+        canvas,
+        context,
+      }
     },
 
-    reset: function (canvasAndContext: any, width: number, height: number) {
-      canvasAndContext.canvas.width = width;
-      canvasAndContext.canvas.height = height;
+    reset(canvasAndContext: any, width: number, height: number) {
+      canvasAndContext.canvas.width = width
+      canvasAndContext.canvas.height = height
     },
 
-    destroy: function (canvasAndContext: any) {
-      // Zeroing the width and height cause Firefox to release graphics
-      // resources immediately, which can be useful to avoid memory pressure.
-      canvasAndContext.canvas.width = 0;
-      canvasAndContext.canvas.height = 0;
-      canvasAndContext.canvas = null;
-      canvasAndContext.context = null;
+    destroy(canvasAndContext: any) {
+      canvasAndContext.canvas.width = 0
+      canvasAndContext.canvas.height = 0
+      canvasAndContext.canvas = null
+      canvasAndContext.context = null
     },
-  };
+  }
 
-  // Load the document
   const loadingTask = pdfjsLib.getDocument({
     data: typeof pdfSource === 'string' ? undefined : new Uint8Array(pdfSource as ArrayBuffer),
     url: typeof pdfSource === 'string' ? pdfSource : undefined,
-  });
+  })
 
-  const pdfDocument = await loadingTask.promise;
-  const pageCount = pdfDocument.numPages;
-  const images: PDFPageImage[] = [];
+  const pdfDocument = await loadingTask.promise
+  const pageCount = pdfDocument.numPages
+  const images: PDFPageImage[] = []
 
-  for (let i = 1; i <= pageCount; i++) {
-    const page = await pdfDocument.getPage(i);
-    const viewport = page.getViewport({ scale });
+  for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+    const page = await pdfDocument.getPage(pageNumber)
+    const viewport = page.getViewport({ scale })
 
-    // Create canvas
-    const canvasFactory = NodeCanvasFactory;
-    const canvasAndContext = canvasFactory.create(viewport.width, viewport.height);
+    const canvasFactory = NodeCanvasFactory
+    const canvasAndContext = canvasFactory.create(viewport.width, viewport.height)
     const renderContext = {
       canvasContext: canvasAndContext.context,
-      viewport: viewport,
-      canvasFactory: canvasFactory,
-    };
+      viewport,
+      canvasFactory,
+    }
 
-    await page.render(renderContext as any).promise;
+    await page.render(renderContext as any).promise
 
-    const dataUrl = canvasAndContext.canvas.toDataURL('image/png');
-    
+    const dataUrl = canvasAndContext.canvas.toDataURL('image/png')
+
     images.push({
-      pageNumber: i,
+      pageNumber,
       dataUrl,
       width: viewport.width,
       height: viewport.height,
-    });
+    })
 
-    // Cleanup
-    canvasFactory.destroy(canvasAndContext);
+    canvasFactory.destroy(canvasAndContext)
   }
 
-  return images;
+  return images
 }
