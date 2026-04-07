@@ -79,6 +79,58 @@
 - `loadDashboardSubjectResults()` 已改为并行 subject 聚合
 - `loadUserWithOverrides()` 已增加同请求内缓存
 
+### 2.6 当前验收线（上线门槛）
+
+本次排查后，所有页面都按同一套门槛验收，不达标不允许上线。
+
+- public 页面：
+  - `DCL` 不超过 `2s`
+  - 首屏壳子完成时间不超过 `1.5s`
+  - 内容完成时间不超过 `3s`
+
+- 登录后核心页面：
+  - `DCL` 不超过 `3s`
+  - 首屏壳子完成时间不超过 `2s`
+  - 内容完成时间不超过 `3s`
+
+- 说明：
+  - `DCL` 代表 DOMContentLoaded，衡量 HTML 解析完成与基础结构可用时间
+  - `LCP` 代表 Largest Contentful Paint，衡量首屏最大内容块什么时候出现
+  - `INP` 代表 Interaction to Next Paint，衡量用户交互后页面多久能给出视觉反馈
+  - `TBT` 代表 Total Blocking Time，衡量主线程被长任务阻塞了多久
+  - 这四个指标里，`DCL` 适合做“首个结构可用”的粗门槛，`LCP` / `INP` / `TBT` 更适合衡量真实用户体感
+
+- 上线规则：
+  - 任意一个页面只要有任一门槛不达标，就不能上线
+  - dashboard 核心页如果内容完成时间超过 `3s`，视为未达标
+  - public 页如果 `DCL` 超过 `2s`，视为未达标
+  - 后续每轮修复都必须按这套门槛复测并回写结果
+
+### 2.7 复测记录模板
+
+后续每轮复测都直接按下面的表填写，不再重新发散描述。
+
+| 路由 | 类别 | DCL | 首屏壳子完成时间 | 内容完成时间 | 关键内容标记 | runtime log 备注 | 是否通过 |
+|---|---|---:|---:|---:|---|---|---|
+| `/dashboard` | protected / core |  |  |  |  |  |  |
+| `/dashboard/courses` | protected / subpage |  |  |  |  |  |  |
+| `/dashboard/practice` | protected / subpage |  |  |  |  |  |  |
+| `/dashboard/community` | protected / subpage |  |  |  |  |  |  |
+| `/dashboard/leaderboard` | protected / subpage |  |  |  |  |  |  |
+| `/dashboard/achievements` | protected / subpage |  |  |  |  |  |  |
+| `/dashboard/settings` | protected / subpage |  |  |  |  |  |  |
+| `/login` | public / auth |  |  |  |  |  |  |
+| `/pricing` | public |  |  |  |  |  |  |
+| `/subjects` | public |  |  |  |  |  |  |
+
+- 填写规则：
+  - `DCL` 记录 `DOMContentLoaded`
+  - `首屏壳子完成时间` 记录布局 / skeleton / 主要壳子首次可见的时间
+  - `内容完成时间` 记录关键业务内容真正出现的时间
+  - `关键内容标记` 记录正文里用来判断“内容已完成”的文本
+  - `runtime log 备注` 记录该轮对应的 `[Perf]` / 200 / 500 / timeout 现象
+  - `是否通过` 只写 `yes` / `no`
+
 ## 3. 当前高概率根因
 
 按当前证据排序：

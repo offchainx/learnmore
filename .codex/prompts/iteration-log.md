@@ -65,4 +65,6 @@
 
 | 2026-04-07 | T-001 dashboard 全路由真实基线 | 重新从 T-001 开始，使用真实 Chromium + Vercel runtime logs 记录 public 与登录态 dashboard 路由基线 | 已补齐 `T-001` 说明段：public 页 `/`、`/login`、`/pricing`、`/subjects`、`/about-us`、`/how-it-works`、`/register` 的 DCL/加载基线，以及登录后 `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community`、`/dashboard/leaderboard`、`/dashboard/achievements`、`/dashboard/settings` 的 DCL 与正文完成时间 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这轮用于把 T-001 从“检验”推进到“可重复的真实浏览器基线记录” | 下一步按 T-002 继续把发现的问题转成修复清单 | 这次基线把 dashboard 首页正文出现时间从 shell 与内容层分开记录 |
 
+| 2026-04-07 | 复测模板标准化 | 将 dashboard 性能复测口径压成固定模板，后续每轮直接填表复测 | 已在 `DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md` 的 `2.7` 节加入统一复测模板，覆盖路由、类别、DCL、首屏壳子完成时间、内容完成时间、关键内容标记、runtime log 备注与是否通过 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 统一复测口径后，后续每轮只填表，不再重新组织口径 | 下一步继续按 T-002 推进问题清单与修复闭环 | 这样可以把每轮复测结果保持在同一颗粒度 |
+
 ## 约束
