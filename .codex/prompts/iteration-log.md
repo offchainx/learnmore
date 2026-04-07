@@ -81,4 +81,6 @@
 
 | 2026-04-07 | T-002.3.1 dashboard API region 收口 | 先把 dashboard 相关 API 路由统一到 `preferredRegion = 'sin1'`，减少 `sin1 -> iad1` 的跨区跳转 | 已为 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 补齐 `preferredRegion = 'sin1'`，并在文档里新增 `T-002.3.1` 三步顺序推进清单：先收口 region、再复测 runtime logs、最后继续压 `getDashboardCurrentUser.prisma.user.findUnique` | src/app/api/dashboard/home-core/route.ts, src/app/api/dashboard/home-overview/route.ts, src/app/api/dashboard/home-activity/route.ts, src/app/api/dashboard/home-subjects/route.ts, src/app/api/dashboard/daily-tasks/route.ts, src/app/api/dashboard/home-data/route.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一刀的目标是先收窄区域跳转，再用 runtime logs 验证实际收益 | 下一步进入 `T-002.3.1.2`，复测 runtime logs 并对照 warning / 耗时是否收敛 | 这是 T-002.3.1 的第一步落地 |
 
+| 2026-04-07 | T-002.3.1 任务表补录 | 将 `T-002.3.1` 追加到工作流任务总表，方便后续按顺序标记完成状态 | 已在任务总表里新增 `T-002.3.1`，并保持其状态为 `in_progress`，使 region 收口 / runtime logs 复测 / `getDashboardCurrentUser` 热路径压缩三步都能在同一张表里被追踪 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步只是补录，不改变已经完成的代码改动 | 后续继续按 `T-002.3.1.2` 推进 | 任务表与说明段已对齐 |
+
 ## 约束

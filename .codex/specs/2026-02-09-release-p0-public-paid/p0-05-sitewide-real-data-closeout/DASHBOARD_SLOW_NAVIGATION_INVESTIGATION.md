@@ -166,6 +166,7 @@
 | T-002.1 | 先确认当前 `/dashboard` 的 DCL 基线和首个阻塞点 | codex | done |
 | T-002.2 | 拆解当前 `/dashboard` 完整渲染链路、API 批次与主耗时 | codex | done |
 | T-002.3 | 把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块 | codex | in_progress |
+| T-002.3.1 | 三步顺序推进：先收口 dashboard API region，再复测 runtime logs，最后压 `getDashboardCurrentUser.prisma.user.findUnique` | codex | in_progress |
 | T-002.4 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
 | T-002.5 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
 | T-002.6 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
