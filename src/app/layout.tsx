@@ -13,6 +13,7 @@ import { CookieConsent } from '@/components/layout/CookieConsent'
 import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
@@ -85,6 +86,7 @@ export default function RootLayout({
         <Toaster />
         <Sonner position="top-center" />
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
