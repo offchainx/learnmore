@@ -83,4 +83,6 @@
 
 | 2026-04-07 | T-002.3.1 任务表补录 | 将 `T-002.3.1` 追加到工作流任务总表，方便后续按顺序标记完成状态 | 已在任务总表里新增 `T-002.3.1`，并保持其状态为 `in_progress`，使 region 收口 / runtime logs 复测 / `getDashboardCurrentUser` 热路径压缩三步都能在同一张表里被追踪 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步只是补录，不改变已经完成的代码改动 | 后续继续按 `T-002.3.1.2` 推进 | 任务表与说明段已对齐 |
 
+| 2026-04-07 | T-002.3.1.1 复核结果 | 复核 dashboard API region 收口是否真正把执行地拉回 `sin1` | 最新 production deployment `dpl_9uqk4JazMaP2S3srsQQimGh7Teqt` 仍然显示 `regions: ["iad1"]`，runtime 路径图依旧是 `Received in Singapore (sin1) -> Middleware -> Routed to Washington, D.C. (iad1)`；dashboard 相关请求整体仍为 `200`，但热信号继续集中在 `[Perf] getDashboardCurrentUser...` 和 `[Perf] getSubjectChapters...` | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 说明 source-level `preferredRegion = 'sin1'` 还不足以改变当前 deployment 的实际函数执行地 | 下一步仍在同一子任务下继续压 `getDashboardCurrentUser.prisma.user.findUnique`，同时留意是否需要上升到项目级 region 配置 | 这轮复核结果明确了 region 收口尚未生效 |
+
 ## 约束

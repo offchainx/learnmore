@@ -483,6 +483,13 @@
   - 这一步的目标是把 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 从默认的 `iad1` 路径里收回到与页面壳子一致的区域
   - 预期收益是减少 `sin1 -> iad1` 的额外跨区跳转，让请求路径更稳定，避免壳子和数据层在不同区域之间来回切换
 
+- 本轮复核结果：
+  - 最新 production deployment `dpl_9uqk4JazMaP2S3srsQQimGh7Teqt` 仍显示 `regions: ["iad1"]`
+  - 右侧 runtime 路径图仍然是 `Received in Singapore (sin1) -> Middleware -> Routed to Washington, D.C. (iad1)`，说明 source-level `preferredRegion = 'sin1'` 还没有把当前 deployment 的实际函数执行地拉回新加坡
+  - runtime logs 里，dashboard 相关请求虽然都返回 `200`，但热信号仍集中在 `[Perf] getDashboardCurrentUser...` 和 `[Perf] getSubjectChapters...`
+  - 这说明当前最该继续压的仍然是 `getDashboardCurrentUser.prisma.user.findUnique` 这条热路径，而不是把任务再拆得更碎
+  - 这轮结论会继续记录在同一个 `T-002.3.1.1` 子任务下，不单独开新编号
+
 ### T-003 问题修复清单（已完成）
 
 - 已整理出可执行的拆分方案，而不是继续猜测
