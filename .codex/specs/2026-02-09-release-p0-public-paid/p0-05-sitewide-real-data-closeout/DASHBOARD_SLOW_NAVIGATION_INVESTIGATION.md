@@ -164,10 +164,11 @@
 | T-001 | 检验：建立线上真实基线与样本 | codex | done |
 | T-002 | 修复 Dashboard：把 DCL 压到 3s 以内 | codex | in_progress |
 | T-002.1 | 先确认当前 `/dashboard` 的 DCL 基线和首个阻塞点 | codex | done |
-| T-002.2 | 将 `/dashboard` 首页改为先出壳子，再后补主体内容 | codex | in_progress |
-| T-002.3 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
-| T-002.4 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
-| T-002.5 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
+| T-002.2 | 拆解当前 `/dashboard` 完整渲染链路、API 批次与主耗时 | codex | done |
+| T-002.3 | 将 `/dashboard` 首页改为先出壳子，再后补主体内容 | codex | in_progress |
+| T-002.4 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
+| T-002.5 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
+| T-002.6 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
 | T-003 | 问题修复清单：列出并验证可执行拆分方案 | codex | done |
 | T-003.1 | 将 `DashboardPage` 拆为流式壳子和更轻的首页数据入口 | codex | done |
 | T-003.2 | 将首页拆成 `home-core`、`home-overview`、`home-activity`、`home-subjects` | codex | done |
@@ -243,6 +244,140 @@
 - 当前基线仍显示首页正文明显晚于 shell，说明首个阻塞点仍在 dashboard 首屏数据链路
 - 收口记录：
   - 后续所有修复动作都必须服务于 `DCL < 3s` 这个目标
+
+#### T-002.2 当前 `/dashboard` 完整渲染链路、API 批次与主耗时（已完成）
+
+- 当前 `/dashboard` 的完整渲染不是单一路由一次性完成，而是由一条“服务端鉴权 + 页面壳子 + 客户端四路并行拉数 + daily-tasks 尾部补偿”的链路组成
+- 如果按用户可感知阶段拆开，当前完整渲染大致可以分成 8 个关键步骤：
+  1. 受保护路由前置鉴权
+  2. `/dashboard` 服务端入口与用户上下文解析
+  3. `DashboardClient` / `DashboardLayout` 首屏壳子渲染
+  4. `home-core` 首个核心数据批次
+  5. `home-overview` 趋势批次
+  6. `home-activity` 最近练习 + 排行榜批次
+  7. `home-subjects` 学科推荐 / 进度 / 薄弱点批次
+  8. `daily-tasks` 独立尾部补偿批次
+- 这 8 步不是严格串行相加，而是“前 3 步串行、后 5 条数据分支并行发起”的混合结构；最终总耗时由最慢分支决定
+- 当前最新稳定基线里，`/dashboard` 的 `DOMContentLoaded` 约 `2.443s`，正文完全出现约 `17.8s`
+- 也就是说：首屏壳子已经能在 3s 左右出来，但真正拖尾的是后续数据回填，尤其是 `home-subjects` 这条链
+
+#### T-002.2.1 路由与鉴权阶段
+
+- 请求先进入 Vercel 受保护路由逻辑
+- `src/proxy.ts` 会先尝试 `supabase.auth.getUser()`
+  - 如果 middleware 已透传 `INTERNAL_AUTH_USER_ID_HEADER`，则可以走快路径
+  - 如果没有透传，则会额外做一次远程鉴权
+- 这个阶段的产出是“当前请求是否允许继续进入 `/dashboard`”，它不负责页面内容，但会直接影响所有已登录路由的首跳延迟
+
+#### T-002.2.2 `/dashboard` 服务端入口与用户上下文
+
+- 入口文件是 [src/app/(dashboard)/dashboard/page.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/page.tsx)
+- 这一步包含：
+  - `DashboardPage` 通过 `Suspense` 先返回 `DashboardRouteLoading`
+  - `DashboardPageContent()` 调用 `getDashboardCurrentUser()`
+  - 再调用 `getDashboardProfile(currentUser)`
+  - 如果 `profile` 为空，会走数据库/会话兜底分支，确认是账号同步问题、连接问题还是 schema 问题
+- 这一步的关键 DB 访问：
+  - `headers()` 读取 forwarded user id
+  - `createClient().auth.getUser()` 远程鉴权兜底
+  - `prisma.user.findUnique(select dashboardUserSelect)` 获取基础用户行
+  - 若 `referralCode` 缺失，还会补一次 `ensureReferralCode()` 的 `prisma.user.update`
+- 这一阶段返回的是“dashboard 的基础用户上下文”，不是业务卡片内容
+
+#### T-002.2.3 客户端壳子与首屏框架
+
+- `DashboardClient` 决定当前视图，并把 `/dashboard` 交给 `DashboardHome`
+- `DashboardLayout` 先把导航、侧边栏、容器框架渲染出来
+- 这一步通常是最先可见的“壳子”，对应用户看到 sidebar、header、页面容器先出现
+- 这里本身不再做重数据库查询，主要是 React 组件渲染与视图切换
+
+#### T-002.2.4 `home-core` 核心数据批次
+
+- 对应 API：[src/app/api/dashboard/home-core/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/home-core/route.ts)
+- 客户端请求：`GET /api/dashboard/home-core`
+- 服务端步骤：
+  - `getDashboardCurrentUser()`
+  - `getDashboardStats(user, { includeDailyTasks: false, includeRecentPractice: false, includeSubjectResults: false, includeLeaderboard: false, includeOverview: false })`
+- 主要 DB 批次：
+  - `attemptsInRetention`：`prisma.userAttempt.findMany`
+  - `examRecordsInRetention`：`prisma.examRecord.findMany`
+- 主要聚合：
+  - 计算学习时长、题目总数、正确率、错题数、等级、XP、下一级 XP
+- 这个批次是 dashboard 首屏最核心的基础统计，理论上应该尽快返回
+
+#### T-002.2.5 `home-overview` 趋势批次
+
+- 对应 API：[src/app/api/dashboard/home-overview/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/home-overview/route.ts)
+- 客户端请求：`GET /api/dashboard/home-overview`
+- 服务端步骤：
+  - `getDashboardCurrentUser()`
+  - `getDashboardStats(user, { includeDailyTasks: false, includeRecentPractice: false, includeSubjectResults: false, includeLeaderboard: false, includeOverview: true })`
+- 主要 DB 批次：
+  - `attemptsInRetention`
+  - `examRecordsInRetention`
+  - `completedLessonsInRetention`：`prisma.userProgress.findMany`
+- 主要聚合：
+  - `buildOverviewWindow()` 计算 7D / 30D 的学习时长、题量、正确率、活跃天数
+- 这条分支只负责趋势卡，不应该阻塞首页壳子
+
+#### T-002.2.6 `home-activity` 最近练习 + 排行榜批次
+
+- 对应 API：[src/app/api/dashboard/home-activity/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/home-activity/route.ts)
+- 客户端请求：`GET /api/dashboard/home-activity`
+- 服务端步骤：
+  - `getDashboardCurrentUser()`
+  - `getDashboardStats(user, { includeDailyTasks: false, includeRecentPractice: true, includeSubjectResults: false, includeLeaderboard: true })`
+- 主要 DB 批次：
+  - `attemptsInRetention`
+  - `examRecordsInRetention`
+  - `recentPractice`：`prisma.examRecord.findMany({ take: 5, include: { subject, attempts } })`
+  - `leaderboard`：`prisma.leaderboardEntry.findMany()` + `prisma.userAttempt.groupBy()`
+- 主要聚合：
+  - `buildRecentPracticeHref()`、`bucketDifficulty()`、`parseMockExamDifficulty()`
+  - `buildLeaderboardCard()` 里先算 cohort，再按用户答题正确率算 percentile 和 peer average
+- 这一分支的目标是补最近练习和排行榜，不应再拖住整页首屏
+
+#### T-002.2.7 `home-subjects` 学科推荐 / 进度 / 薄弱点批次
+
+- 对应 API：[src/app/api/dashboard/home-subjects/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/home-subjects/route.ts)
+- 客户端请求：`GET /api/dashboard/home-subjects`
+- 服务端步骤：
+  - `getDashboardCurrentUser()`
+  - `getDashboardStats(user, { includeDailyTasks: false, includeSubjectResults: true, includeLeaderboard: false })`
+- 主要 DB 批次：
+  - `attemptsInRetention`
+  - `examRecordsInRetention`
+  - `subjectResults`：`loadDashboardSubjectResults(user.id)`
+- `loadDashboardSubjectResults()` 内部还会再拆三层：
+  1. `prisma.subject.findMany()` 取所有科目
+  2. 按 2 个 subject 为一批并行调用 `getSubjectChapters()`
+  3. 每个 `getSubjectChapters()` 再拆成：
+     - `loadUserWithOverrides(userId)`：`prisma.user.findUnique(select role/subscription/permissionOverrides)`，并且同请求内缓存
+     - `prisma.subject.findUnique()` + `prisma.chapter.findMany()` 并行读取 subject 与叶子章节
+     - `prisma.userAttempt.findMany()` 按 `chapterIds` 批量取章节答题记录
+     - 把全量 / 7 天 / 30 天数据在内存里聚合成 `learningPath`、`subjectProgress`、`weaknesses`
+- 这是当前最明显的尾部热点，也是最值得继续细拆的分支
+
+#### T-002.2.8 `daily-tasks` 独立尾部补偿批次
+
+- 对应 API：[src/app/api/dashboard/daily-tasks/route.ts](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/daily-tasks/route.ts)
+- 客户端会在 dashboard 侧边任务区独立触发
+- 服务端步骤：
+  - `getDashboardCurrentUser()`
+  - `ensureDailyTasks(user.id)`：内部通过 `pg_advisory_xact_lock` 保证并发安全
+  - `getTodayTasks(user.id)` 读取最终展示任务
+- `ensureDailyTasks()` 的内部 DB 批次：
+  - `tx.user.findUnique(select username, grade, settings...)`
+  - `tx.dailyTask.findFirst()` 查是否已完成 onboarding assessment
+  - `tx.dailyTask.findMany()` 取今日已有任务
+  - 必要时 `createMany()` / `update()` 补齐或收敛任务状态
+- 这一条已经从“首屏硬阻塞”降级为“尾部补偿”，但如果事务或锁等待过久，仍可能污染体感
+
+#### T-002.2.9 当前渲染结论
+
+- 当前 `/dashboard` 的首屏完成并不是一个单点，而是“壳子先出 + 多条 API 回填 + subject 尾部补齐”的组合结果
+- 如果只看壳子，已经接近可接受范围；如果看完整内容出现，则最慢尾部仍然是 `home-subjects`
+- 这也说明后续子任务不能再按页面名粗切，而要按“哪一批 DB 查询最慢”继续往下拆
 
 ### T-003 问题修复清单（已完成）
 

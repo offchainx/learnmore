@@ -69,4 +69,6 @@
 
 | 2026-04-07 | T-002 目标重定义 | 将 dashboard 推进目标从泛化性能排查收束为 `DCL < 3s` | 已把 `T-001.1 ~ T-001.4` 收回到 `T-001` 说明段，并将 `T-002` 重新定义为“把 `/dashboard` 的 DOMContentLoaded 压到 3s 以内”，任务列表改为单一目标下的子任务推进 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 以后每完成一个 `T-002.x` 子任务，都要单独补说明性内容并复测 | 下一步继续推进 `T-002.2`，先让首页先出壳子再后补主体内容 | 这次重排用于统一 dashboard 性能线的颗粒度 |
 
+| 2026-04-07 | T-002.2 dashboard 渲染链路拆解 | 将 `/dashboard` 的完整渲染链路拆成鉴权、服务端上下文、客户端壳子、home-core、home-overview、home-activity、home-subjects、daily-tasks 8 个关键阶段 | 已把 `T-002.2` 从“壳子先出”改写为“完整链路拆解”，并把后续任务顺延为 `T-002.3 ~ T-002.6`，同时明确每条 API 的主查询批次与 subject / daily-tasks 尾部聚合方式，方便后续逐段推进 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 后续每完成一个子任务，都要在同一颗粒度下补说明性内容并复测 | 下一步按 `T-002.3` 继续推进首页先出壳子、后补主体内容 | 这次重排用于把 dashboard 渲染步骤和子任务颗粒度对齐 |
+
 ## 约束
