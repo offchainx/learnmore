@@ -27,9 +27,6 @@
     "test:supabase": "dotenv -e .env.local -- tsx src/lib/__tests__/supabase-connection.test.ts",
     "test:seed-data": "dotenv -e .env.local -- tsx prisma/seed.test.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@google/generative-ai": "^0.24.1",

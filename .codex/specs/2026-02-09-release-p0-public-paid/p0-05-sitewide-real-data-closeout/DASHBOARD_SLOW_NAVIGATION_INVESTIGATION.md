@@ -500,6 +500,8 @@
 - 做了什么：
   - 把 `src/lib/perf-log.ts` 的输出策略从“全部 `console.warn`”改成“默认 1s 以内走 `console.info`，只有真正慢的事件才继续 `console.warn`”
   - 这样像 `getDashboardShellCurrentUser.prisma.user.findUnique`、`getDashboardProfile`、`getDashboardStats.total` 这类几十毫秒到几百毫秒的埋点，就不会继续以 warning 形式污染 runtime logs
+  - 把 Prisma 的旧式 `package.json#prisma` 配置迁到 `prisma.config.ts`，让 build logs 不再提示这项配置已弃用
+  - 把 pnpm build scripts 白名单写进 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`，把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 这些已知依赖的构建脚本纳入批准范围，避免 build logs 重复报“ignored build scripts”
 - 当前截图里可见的 warnings：
   - `getDashboardShellCurrentUser.prisma.user.findUnique`
   - `getDashboardProfile`
@@ -508,6 +510,11 @@
 - 结果预期：
   - 真正慢的 subject 尾部、数据库连接池超时和首屏阻塞仍然会保留 warning
   - 轻量 perf 埋点会降级到 info，runtime logs 只保留对排查真正有帮助的噪声
+  - Prisma 的弃用提示与 pnpm 的 ignored build scripts 提示会在后续 build 中收敛掉，只保留真正值得关注的构建异常
+- 当前本地验证：
+  - `pnpm exec prisma generate` 已能直接读取 `prisma.config.ts`
+  - 旧的 `package.json#prisma` 弃用提示已经不再出现
+  - `T-002.3.2` 的 build warning 收口已在代码层完成，等待下一次 deployment 的 build logs 做最终确认
 - 推进规则：
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号

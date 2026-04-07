@@ -89,4 +89,6 @@
 
 | 2026-04-07 | T-002.3.2 warning 分级策略 | 将 dashboard 的 perf 日志从“全部 warn”改成“超过阈值才 warn” | 已修改 `src/lib/perf-log.ts`：默认 1000ms 以下输出 `console.info`，只有真正慢的事件才继续输出 `console.warn`；同时在文档里把 `T-002.3.2` 记为进行中并补了当前截图里的 warning 列表与预期收敛结果 | src/lib/perf-log.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了清掉 runtime logs 里那些“看起来像警告、其实只是轻量埋点”的噪声 | 下一步需要用新的 production deployment 复测，确认低于阈值的 perf 记录是否已经不再以 warning 形式出现 | 这一步只收敛日志噪声，不回退首屏收口 |
 
+| 2026-04-07 | T-002.3.2 build warning 收口 | 同步收敛 Prisma deprecated config 和 pnpm ignored build scripts 两类 build logs 噪声 | 已将 `package.json#prisma` 迁移到 `prisma.config.ts`，并把 seed 迁到 `migrations.seed`；同时把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 等构建脚本加入 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`；`pnpm exec prisma generate` 已验证通过 | package.json, prisma.config.ts, pnpm-workspace.yaml, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了让后续 build logs 只保留真正的异常，不再重复刷出已知弃用或脚本白名单噪声 | 下一步等新 deployment 后复查 build / runtime logs 是否收敛 | 这一步仍然属于 T-002.3.2 的 warning 清理范围 |
+
 ## 约束
