@@ -504,6 +504,7 @@
   - 把 pnpm build scripts 白名单写进 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`，把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 这些已知依赖的构建脚本纳入批准范围，避免 build logs 重复报“ignored build scripts”
   - 把 Gemini 客户端改成惰性初始化，不再在模块加载期直接打印 `GEMINI_API_KEY is not set in environment variables.`，改为只有真正调用 AI 功能时才返回明确错误
   - 给根布局和营销布局补上 `metadataBase`，消除 Next.js 在 build 期关于站点基准 URL 的默认回退 warning
+  - 这次 build fail 的直接原因是旧版 `@prisma/cli` 仍作为直接 devDependency 被安装，导致它的 preinstall 自检主动失败；已从 `package.json` 和 `pnpm-workspace.yaml` 中移除，并刷新 lockfile
 - 当前截图里可见的 warnings：
   - `getDashboardShellCurrentUser.prisma.user.findUnique`
   - `getDashboardProfile`
@@ -515,12 +516,14 @@
   - Prisma 的弃用提示与 pnpm 的 ignored build scripts 提示会在后续 build 中收敛掉，只保留真正值得关注的构建异常
   - Gemini 缺 key 的提示不会再在 build 期模块加载时刷屏；如果生产环境真的没配 key，只有调用 AI 功能时才会返回明确错误
   - Next.js 的 `metadataBase` warning 也已经收口，不再默认回退到 `http://localhost:3000`
+  - `@prisma/cli` 不会再进入安装链路，因此这次 build fail 不会再因为它的 preinstall 自检而复现
 - 当前本地验证：
   - `pnpm exec prisma generate` 已能直接读取 `prisma.config.ts`
   - 旧的 `package.json#prisma` 弃用提示已经不再出现
   - `T-002.3.2` 的 build warning 收口已在代码层完成，等待下一次 deployment 的 build logs 做最终确认
   - `generateAIResponse` / `ai-tutor` / `question parser` 现在都会先检查 Gemini 客户端是否可用，不再依赖顶层 warning
   - `pnpm run build` 复测已经不再出现 `GEMINI_API_KEY`、`package.json#prisma`、`ignored build scripts` 和 `metadataBase` 这四类可见 warning
+  - `pnpm run build` 也已验证不会再被 `@prisma/cli` 的 preinstall 中断
 - 推进规则：
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号

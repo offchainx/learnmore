@@ -1,7 +1,6 @@
 patchedDependencies:
   baseline-browser-mapping@2.10.12: patches/baseline-browser-mapping@2.10.12.patch
 onlyBuiltDependencies:
-  - '@prisma/cli'
   - '@prisma/client'
   - '@prisma/engines'
   - canvas
