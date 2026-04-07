@@ -6,6 +6,7 @@ export const metadata: Metadata = {
     default: 'LearnMore - 中学生在线教育平台',
   },
   description: '专为中学生打造的在线学习平台，涵盖数学、物理、化学、英语、语文、生物六大学科',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnmorev10.vercel.app'),
   keywords: ['在线教育', '中学', 'AI导师', '自适应学习', '学习路径', 'LearnMore'],
   openGraph: {
     type: 'website',

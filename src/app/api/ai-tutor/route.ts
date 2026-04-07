@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/actions/user/auth'; // Ensure this works in API routes (it should if using auth() helper)
 import prisma from '@/lib/prisma';
-import { genAI, TUTOR_SYSTEM_INSTRUCTION } from '@/lib/gemini';
+import { getGeminiClient, TUTOR_SYSTEM_INSTRUCTION } from '@/lib/gemini';
 import { UserRole, SubscriptionTier } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
@@ -76,6 +76,11 @@ Please explain to the student why their answer might be wrong and guide them to 
 
     // 4. Call Gemini Stream
     // Using gemini-1.5-flash for speed/cost efficiency
+    const genAI = getGeminiClient()
+    if (!genAI) {
+      return new NextResponse('AI service unavailable: GEMINI_API_KEY is not configured', { status: 503 });
+    }
+
     const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
         systemInstruction: TUTOR_SYSTEM_INSTRUCTION

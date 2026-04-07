@@ -502,6 +502,8 @@
   - 这样像 `getDashboardShellCurrentUser.prisma.user.findUnique`、`getDashboardProfile`、`getDashboardStats.total` 这类几十毫秒到几百毫秒的埋点，就不会继续以 warning 形式污染 runtime logs
   - 把 Prisma 的旧式 `package.json#prisma` 配置迁到 `prisma.config.ts`，让 build logs 不再提示这项配置已弃用
   - 把 pnpm build scripts 白名单写进 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`，把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 这些已知依赖的构建脚本纳入批准范围，避免 build logs 重复报“ignored build scripts”
+  - 把 Gemini 客户端改成惰性初始化，不再在模块加载期直接打印 `GEMINI_API_KEY is not set in environment variables.`，改为只有真正调用 AI 功能时才返回明确错误
+  - 给根布局和营销布局补上 `metadataBase`，消除 Next.js 在 build 期关于站点基准 URL 的默认回退 warning
 - 当前截图里可见的 warnings：
   - `getDashboardShellCurrentUser.prisma.user.findUnique`
   - `getDashboardProfile`
@@ -511,10 +513,14 @@
   - 真正慢的 subject 尾部、数据库连接池超时和首屏阻塞仍然会保留 warning
   - 轻量 perf 埋点会降级到 info，runtime logs 只保留对排查真正有帮助的噪声
   - Prisma 的弃用提示与 pnpm 的 ignored build scripts 提示会在后续 build 中收敛掉，只保留真正值得关注的构建异常
+  - Gemini 缺 key 的提示不会再在 build 期模块加载时刷屏；如果生产环境真的没配 key，只有调用 AI 功能时才会返回明确错误
+  - Next.js 的 `metadataBase` warning 也已经收口，不再默认回退到 `http://localhost:3000`
 - 当前本地验证：
   - `pnpm exec prisma generate` 已能直接读取 `prisma.config.ts`
   - 旧的 `package.json#prisma` 弃用提示已经不再出现
   - `T-002.3.2` 的 build warning 收口已在代码层完成，等待下一次 deployment 的 build logs 做最终确认
+  - `generateAIResponse` / `ai-tutor` / `question parser` 现在都会先检查 Gemini 客户端是否可用，不再依赖顶层 warning
+  - `pnpm run build` 复测已经不再出现 `GEMINI_API_KEY`、`package.json#prisma`、`ignored build scripts` 和 `metadataBase` 这四类可见 warning
 - 推进规则：
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号

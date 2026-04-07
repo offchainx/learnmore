@@ -1,6 +1,6 @@
 'use server'
 
-import { genAI } from '@/lib/gemini'
+import { getGeminiClient } from '@/lib/gemini'
 import { getCurrentUser } from '@/actions/user/auth'
 
 export interface ParsedQuestion {
@@ -77,6 +77,14 @@ export async function parseQuestionImage(formData: FormData): Promise<ParseResul
     })
 
     // 使用 2.0 Flash 强制 JSON 输出模式
+    const genAI = getGeminiClient()
+    if (!genAI) {
+      return {
+        success: false,
+        error: 'AI service unavailable: GEMINI_API_KEY is not configured',
+      }
+    }
+
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
       generationConfig: {

@@ -17,6 +17,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
   description: '专为中学生打造的在线学习平台,涵盖数学、物理、化学、英语、语文、生物六大学科',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnmorev10.vercel.app'),
   icons: {
     icon: [
       { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
