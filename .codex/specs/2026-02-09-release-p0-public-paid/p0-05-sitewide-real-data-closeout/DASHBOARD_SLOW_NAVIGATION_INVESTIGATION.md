@@ -379,6 +379,47 @@
 - 如果只看壳子，已经接近可接受范围；如果看完整内容出现，则最慢尾部仍然是 `home-subjects`
 - 这也说明后续子任务不能再按页面名粗切，而要按“哪一批 DB 查询最慢”继续往下拆
 
+#### T-002.2.10 当前 UI 对应关系与白跑项
+
+- `home-core` 对应 UI 顶部的两张 summary 卡：
+  - `学习时长`
+  - `完成题数`
+- `home-overview` 对应 hero 区右侧的两张趋势卡：
+  - `正确率`
+  - `活跃天数`
+- `home-activity` 对应右侧下方的两块内容：
+  - `年级排名`
+  - `最近练习回顾`
+- `home-subjects` 对应左侧主区的两块内容：
+  - `学习路径`
+  - `学科进度`
+- `daily-tasks` 对应左侧的 `今日任务` 卡片
+- 当前这版 UI 里，`home-subjects` 返回的 `weaknesses` **没有单独渲染出来**，所以这一部分对 dashboard 首页来说是白跑项
+- 另外：
+  - 路由鉴权、`/dashboard` 服务端入口、客户端壳子本身都不直接展示数据，但它们是进入 dashboard 的前置链路，不能简单视为多余
+  - `home-core` / `home-overview` / `home-activity` / `home-subjects` 里那些“默认空壳字段”主要是为了维持数据形状，不是实际 UI 目标
+
+#### T-002.2.11 当前 9 步 loading 基线（当前 production）
+
+- 本轮真实可见浏览器测得的当前基线如下：
+
+| 步骤 | 内容 | 当前耗时 |
+|---|---|---:|
+| 1 | 登录提交 -> `/dashboard` URL 到达（路由鉴权 / 重定向） | `1.756s` |
+| 2 | `/dashboard` 文档响应 + DCL / 壳子可用 | `0.698s` |
+| 3 | `home-core` | `6.324s` |
+| 4 | `home-overview` | `4.856s` |
+| 5 | `home-activity` | `7.553s` |
+| 6 | `home-subjects` | `41.240s` |
+| 7 | `daily-tasks` | `6.267s` |
+| 8 | 首页主要可见内容首次稳定出现（summary / overview / activity / subjects / dailyTasks） | `9.94s` |
+| 9 | 首页全量内容完成，长尾由 `home-subjects` 决定 | `41.240s` |
+
+- 这组数值说明：
+  - 页面壳子已经先出来了
+  - 真正拖尾的是 `home-subjects`
+  - `weaknesses` 在当前 UI 里没有展示，所以它虽然在数据层存在，但不会影响用户肉眼看到的 dashboard 主要模块
+
 ### T-003 问题修复清单（已完成）
 
 - 已整理出可执行的拆分方案，而不是继续猜测

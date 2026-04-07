@@ -73,4 +73,6 @@
 
 | 2026-04-07 | 全量工作区快照提交 | 按用户要求将当前工作区内的所有改动一次性提交并推送到远端，不区分是否由本轮直接修改 | 已准备执行全量 `git add -A` + commit + push，包含现有 dashboard 排查文档、业务代码、测试文件与未跟踪文件，作为当前工作区的统一快照 | 当前工作区所有变更 | 由于仓库钩子要求代码变更必须同步更新迭代日志，因此先补一条全量快照记录再执行提交 | 本轮目标是把当前所有改动统一收口到远端 |
 
+| 2026-04-07 | dashboard UI 对应关系与 9 步基线补录 | 明确当前 dashboard 首页 UI 与 `home-core / home-overview / home-activity / home-subjects / daily-tasks` 的对应关系，并补一版真实浏览器 9 步加载基线 | 已回写 `DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md`：补充了当前 UI 映射、`weaknesses` 白跑项说明，以及当前 production 的 9 步 loading 基线（`home-subjects` 仍为最长尾） | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这次只做记录和归档，不继续往下拆 | 后续如果继续推进，再从 `T-002.3` 开始 | 这轮用于把 UI 对应关系和真实耗时基线对齐 |
+
 ## 约束
