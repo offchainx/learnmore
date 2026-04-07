@@ -79,4 +79,6 @@
 
 | 2026-04-07 | T-002.3 首先剥离非第一视觉层请求 | 按用户确认的策略，先优先剥离 dashboard 首页 UI 没消费或不属于第一视觉层必需的数据请求 | 已把 `T-002.3` 改写为“把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块”，先做收益验证再继续往下拆 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步的目的，是先验证 UI 未消费请求被移除后是否有显著收益 | 下一步仍按 `T-002.3` 这条口径继续推进 | 先剥离白跑项，再评估进一步后置的收益 |
 
+| 2026-04-07 | T-002.3.1 dashboard API region 收口 | 先把 dashboard 相关 API 路由统一到 `preferredRegion = 'sin1'`，减少 `sin1 -> iad1` 的跨区跳转 | 已为 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 补齐 `preferredRegion = 'sin1'`，并在文档里新增 `T-002.3.1` 三步顺序推进清单：先收口 region、再复测 runtime logs、最后继续压 `getDashboardCurrentUser.prisma.user.findUnique` | src/app/api/dashboard/home-core/route.ts, src/app/api/dashboard/home-overview/route.ts, src/app/api/dashboard/home-activity/route.ts, src/app/api/dashboard/home-subjects/route.ts, src/app/api/dashboard/daily-tasks/route.ts, src/app/api/dashboard/home-data/route.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一刀的目标是先收窄区域跳转，再用 runtime logs 验证实际收益 | 下一步进入 `T-002.3.1.2`，复测 runtime logs 并对照 warning / 耗时是否收敛 | 这是 T-002.3.1 的第一步落地 |
+
 ## 约束

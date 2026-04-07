@@ -462,6 +462,26 @@
   - subject 区当前先以空态呈现，没有再把首页长尾继续拖到 `40s+`
   - 后续如果要继续压缩，就优先观察 `home-overview` / `home-core` 这些仍然偏慢的批次是否还能再拆
 
+##### T-002.3.1 三步顺序推进清单（进行中）
+
+- `T-002.3.1.1` 统一 dashboard 相关 API 的 region 配置，减少 `sin1 -> iad1` 的跨区跳转
+- `T-002.3.1.2` 复测 runtime logs，确认 route / middleware / function 的耗时和 warning 是否明显收敛
+- `T-002.3.1.3` 继续压 `getDashboardCurrentUser.prisma.user.findUnique` 这条热路径，减少首屏重复查库
+
+- 这一小节专门记录当前要优先处理的三件事，顺序固定为：
+  1. 先核对并统一 dashboard 相关 API 的 region 配置，减少 `sin1 -> iad1` 的跨区跳转
+  2. 再复测 runtime logs，确认 route / middleware / function 的耗时和 warning 是否明显收敛
+  3. 最后继续压 `getDashboardCurrentUser.prisma.user.findUnique` 这条热路径，减少首屏重复查库
+- 推进规则：
+  - 每完成一步，就把对应子项标记为 `done`
+  - 每完成一步，就在本小节下面补一段说明性内容，记录这一步的结果、耗时和结论
+  - 这一轮的重点不是继续扩大范围，而是先把 `dashboard` 的可见首屏尽量压短，并把最明显的区域跳转和热查询先收住
+
+- `T-002.3.1.1` 已完成：
+  - dashboard 相关 API 路由已统一补上 `preferredRegion = 'sin1'`
+  - 这一步的目标是把 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 从默认的 `iad1` 路径里收回到与页面壳子一致的区域
+  - 预期收益是减少 `sin1 -> iad1` 的额外跨区跳转，让请求路径更稳定，避免壳子和数据层在不同区域之间来回切换
+
 ### T-003 问题修复清单（已完成）
 
 - 已整理出可执行的拆分方案，而不是继续猜测

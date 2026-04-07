@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getDashboardCurrentUser } from '@/actions/user/auth'
 import { getDashboardStats } from '@/actions/dashboard'
 
+export const preferredRegion = 'sin1'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
