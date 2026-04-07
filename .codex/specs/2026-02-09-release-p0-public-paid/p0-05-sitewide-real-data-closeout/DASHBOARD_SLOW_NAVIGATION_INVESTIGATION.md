@@ -440,6 +440,28 @@
   - 先剥离 UI 没消费的请求，再逐步扩大到“非第一视觉层必需”的请求，是当前最稳妥的推进顺序
   - 当前已先把 `home-subjects` 的 `weaknesses` 从 `/api/dashboard/home-subjects` 和 `DashboardHome` 的首屏链路里剥离，后续再看是否还需要继续下沉 `home-overview` / `home-activity` / `daily-tasks`
 
+##### T-002.3.1 当前 9 步 loading 复测（最新 deployment）
+
+- 本轮使用可见 Chrome 的无痕 context，按“登录 -> dashboard -> 壳子 -> 各模块内容 -> 全量内容”的顺序重新测了一轮
+- 这次测量里，`home-subjects` 没有单独冒出一个可见的独立请求，左侧学科区仍然先以空态展示；这和当前“先剥离白跑项、再观察是否还需要继续后置”的策略一致
+
+| 步骤 | 内容 | 当前耗时 |
+|---|---|---:|
+| 1 | 登录提交 -> `/dashboard` URL 到达 | `2.737s` |
+| 2 | `/dashboard` 壳子首次可见（sidebar / header / route chrome） | `3.327s` |
+| 3 | `home-core` | `15.373s` |
+| 4 | `home-overview` | `23.500s` |
+| 5 | `home-activity` | `7.432s` |
+| 6 | `home-subjects` | `未单独观测（当前 subject 区仍以空态展示，未看到独立请求）` |
+| 7 | `daily-tasks` | `12.787s` |
+| 8 | 首页主要可见内容首次稳定出现（summary / overview / activity） | `13.622s` |
+| 9 | 首页全量内容完成 | `13.629s` |
+
+- 这组数值说明：
+  - `weaknesses` 先被剥离后，dashboard 主体已经能在约 `13.6s` 左右稳定下来
+  - subject 区当前先以空态呈现，没有再把首页长尾继续拖到 `40s+`
+  - 后续如果要继续压缩，就优先观察 `home-overview` / `home-core` 这些仍然偏慢的批次是否还能再拆
+
 ### T-003 问题修复清单（已完成）
 
 - 已整理出可执行的拆分方案，而不是继续猜测
