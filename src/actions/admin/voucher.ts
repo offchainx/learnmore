@@ -1,6 +1,6 @@
 'use server'
 
-import { VoucherDiscountType } from '@prisma/client'
+import { Prisma, VoucherDiscountType } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
@@ -28,6 +28,12 @@ function normalizeVoucherCode(code: string): string {
   return code.trim().toUpperCase()
 }
 
+function isPrismaErrorWithCode(error: unknown, code: string): boolean {
+  if (!error || typeof error !== 'object') return false
+  if (!('code' in error)) return false
+  return String((error as { code?: unknown }).code) === code
+}
+
 async function ensureAdmin() {
   const currentUser = await resolveRequestAdminIdentity()
   if (!currentUser) {
@@ -44,7 +50,7 @@ export async function createVoucherCodeAction(
     return {
       ok: false,
       code: 'UNAUTHORIZED',
-      message: '仅管理员可操作 Voucher',
+      message: '仅管理员可操作优惠券',
     }
   }
 
@@ -93,11 +99,14 @@ export async function createVoucherCodeAction(
       },
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Unique constraint')) {
+    if (
+      (error instanceof Prisma.PrismaClientKnownRequestError ||
+        isPrismaErrorWithCode(error, 'P2002'))
+    ) {
       return {
         ok: false,
         code: 'DUPLICATE_CODE',
-        message: 'Voucher Code 已存在',
+        message: '优惠券码已存在',
       }
     }
 
@@ -105,18 +114,17 @@ export async function createVoucherCodeAction(
     return {
       ok: false,
       code: 'CREATE_FAILED',
-      message: '创建 Voucher 失败，请稍后再试',
+      message: '创建优惠券失败，请稍后再试',
     }
   }
 
-  revalidatePath('/admin/vouchers')
   revalidatePath('/admin/referrals')
   revalidatePath('/pricing')
 
   return {
     ok: true,
     code: 'CREATED',
-    message: 'Voucher 已创建',
+    message: '优惠券已创建',
   }
 }
 
@@ -129,7 +137,7 @@ export async function toggleVoucherStatusAction(
     return {
       ok: false,
       code: 'UNAUTHORIZED',
-      message: '仅管理员可操作 Voucher',
+      message: '仅管理员可操作优惠券',
     }
   }
 
@@ -137,11 +145,32 @@ export async function toggleVoucherStatusAction(
     return {
       ok: false,
       code: 'INVALID_VOUCHER_ID',
-      message: '缺少 Voucher ID',
+      message: '缺少优惠券 ID',
     }
   }
 
   try {
+    const existingVoucher = await prisma.voucherCode.findUnique({
+      where: { id: voucherId },
+      select: { id: true, isActive: true },
+    })
+
+    if (!existingVoucher) {
+      return {
+        ok: false,
+        code: 'VOUCHER_NOT_FOUND',
+        message: '优惠券不存在',
+      }
+    }
+
+    if (existingVoucher.isActive === isActive) {
+      return {
+        ok: true,
+        code: 'UNCHANGED',
+        message: isActive ? '优惠券已处于启用状态' : '优惠券已处于停用状态',
+      }
+    }
+
     await prisma.voucherCode.update({
       where: { id: voucherId },
       data: { isActive },
@@ -151,17 +180,16 @@ export async function toggleVoucherStatusAction(
     return {
       ok: false,
       code: 'UPDATE_FAILED',
-      message: '更新 Voucher 状态失败',
+      message: '更新优惠券状态失败',
     }
   }
 
-  revalidatePath('/admin/vouchers')
   revalidatePath('/admin/referrals')
   revalidatePath('/pricing')
 
   return {
     ok: true,
     code: 'UPDATED',
-    message: isActive ? 'Voucher 已启用' : 'Voucher 已停用',
+    message: isActive ? '优惠券已启用' : '优惠券已停用',
   }
 }

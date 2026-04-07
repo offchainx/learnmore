@@ -190,7 +190,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     pathname?.startsWith('/admin/users') ||
     pathname?.startsWith('/admin/feedback') ||
     pathname?.startsWith('/admin/referrals') ||
-    pathname?.startsWith('/admin/vouchers') ||
     false
   const isContentAdminRoute = pathname?.startsWith('/admin/content') || false
   const isAnyAdminRoute = pathname?.startsWith('/admin') || false

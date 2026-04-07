@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { GrowthToolsConsole } from '@/components/admin/referrals/GrowthToolsConsole'
+import { resolveGrowthConsoleInitialTab } from '@/lib/admin/growth-console'
 
 const statusOrder = [
   'PENDING',
@@ -109,11 +110,10 @@ export default async function AdminReferralsPage({
               createdAt: voucher.createdAt.toISOString(),
             }))}
             isAdmin={profile.role === 'ADMIN'}
-            initialTab={
-              profile.role === 'ADMIN' && params?.tab === 'vouchers'
-                ? 'vouchers'
-                : 'referrals'
-            }
+            initialTab={resolveGrowthConsoleInitialTab({
+              tab: params?.tab,
+              role: profile.role,
+            })}
           />
         </div>
       </div>

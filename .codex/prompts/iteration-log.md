@@ -71,4 +71,6 @@
 
 | 2026-04-07 | T-002.2 dashboard 渲染链路拆解 | 将 `/dashboard` 的完整渲染链路拆成鉴权、服务端上下文、客户端壳子、home-core、home-overview、home-activity、home-subjects、daily-tasks 8 个关键阶段 | 已把 `T-002.2` 从“壳子先出”改写为“完整链路拆解”，并把后续任务顺延为 `T-002.3 ~ T-002.6`，同时明确每条 API 的主查询批次与 subject / daily-tasks 尾部聚合方式，方便后续逐段推进 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 后续每完成一个子任务，都要在同一颗粒度下补说明性内容并复测 | 下一步按 `T-002.3` 继续推进首页先出壳子、后补主体内容 | 这次重排用于把 dashboard 渲染步骤和子任务颗粒度对齐 |
 
+| 2026-04-07 | 全量工作区快照提交 | 按用户要求将当前工作区内的所有改动一次性提交并推送到远端，不区分是否由本轮直接修改 | 已准备执行全量 `git add -A` + commit + push，包含现有 dashboard 排查文档、业务代码、测试文件与未跟踪文件，作为当前工作区的统一快照 | 当前工作区所有变更 | 由于仓库钩子要求代码变更必须同步更新迭代日志，因此先补一条全量快照记录再执行提交 | 本轮目标是把当前所有改动统一收口到远端 |
+
 ## 约束

@@ -490,7 +490,9 @@ function ReferralSection({
     }
   }, [lang, user.referralCount, user.referralLimit, user.referralCode])
 
-  const referralPath = user.referralCode ? `/r/${user.referralCode}` : null
+  const referralPath = user.referralCode
+    ? `/register?referralCode=${encodeURIComponent(user.referralCode)}`
+    : null
 
   const handleCopyCode = async () => {
     if (!user.referralCode) return

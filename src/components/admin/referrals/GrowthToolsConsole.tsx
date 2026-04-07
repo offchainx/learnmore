@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { VoucherDiscountType } from '@prisma/client'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
@@ -24,6 +24,10 @@ import {
   toggleVoucherStatusAction,
 } from '@/actions/admin/voucher'
 import {
+  GROWTH_CONSOLE_REFERRAL_STATUS_OPTIONS,
+  getGrowthConsoleFieldMatrix,
+} from '@/lib/admin/growth-console-matrix'
+import {
   pageKpiCardClass,
   pageSegmentedButtonCompactClass,
   pageSegmentedControlCompactClass,
@@ -38,6 +42,8 @@ import {
 
 type GrowthTab = 'referrals' | 'vouchers'
 type TimeRange = '7D' | '30D' | 'ALL'
+
+const GROWTH_CONSOLE_PAGE_SIZE = 10
 
 type ReferralRow = {
   id: string
@@ -88,13 +94,7 @@ interface GrowthToolsConsoleProps {
   initialTab: GrowthTab
 }
 
-const referralStatusLabelMap: Record<ReferralRow['status'], string> = {
-  PENDING: '待完成',
-  COMPLETED: '已完成',
-  DEFERRED: '延迟发放',
-  EXPIRED: '已过期',
-  CANCELLED: '已取消',
-}
+export type { GrowthTab }
 
 const referralStatusClassMap: Record<ReferralRow['status'], string> = {
   PENDING:
@@ -137,6 +137,11 @@ function calcTrend(current: number, previous: number) {
   }
 
   return Number((((current - previous) / previous) * 100).toFixed(1))
+}
+
+function formatRate(numerator: number, denominator: number) {
+  if (denominator <= 0) return '0.0%'
+  return `${((numerator / denominator) * 100).toFixed(1)}%`
 }
 
 function getTrendDisplay(trend: number | null) {
@@ -187,6 +192,8 @@ export function GrowthToolsConsole({
   const [voucherType, setVoucherType] = useState<'ALL' | VoucherDiscountType>(
     'ALL'
   )
+  const [referralPage, setReferralPage] = useState(1)
+  const [voucherPage, setVoucherPage] = useState(1)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -198,6 +205,19 @@ export function GrowthToolsConsole({
   const [validFrom, setValidFrom] = useState('')
   const [validTo, setValidTo] = useState('')
   const [stripeCouponId, setStripeCouponId] = useState('')
+  const fieldMatrix = useMemo(
+    () => getGrowthConsoleFieldMatrix(isAdmin ? 'ADMIN' : 'TEACHER'),
+    [isAdmin]
+  )
+  const referralStatusLabelMap = useMemo(
+    () =>
+      Object.fromEntries(
+        GROWTH_CONSOLE_REFERRAL_STATUS_OPTIONS.filter(
+          (option) => option.value !== 'ALL'
+        ).map((option) => [option.value, option.label])
+      ) as Record<ReferralRow['status'], string>,
+    []
+  )
 
   const referralScope = useMemo(() => {
     if (range === 'ALL') return referrals
@@ -274,6 +294,14 @@ export function GrowthToolsConsole({
       (sum, item) => sum + item.redeemedCount,
       0
     )
+    const referralCompletionRateCurrent = formatRate(
+      conversionCurrent,
+      referralCurrent
+    )
+    const referralCompletionRatePrevious = formatRate(
+      conversionPrevious,
+      referralPrevious
+    )
 
     const cards: KpiCard[] = [
       {
@@ -296,12 +324,15 @@ export function GrowthToolsConsole({
         title: '成功转化',
         value: String(completedReferrals),
         caption: range === 'ALL' ? '累计' : currentLabel,
-        meta: '完成推荐闭环并发放奖励的记录数',
+        meta: `完成推荐闭环并发放奖励的记录数，完成率 ${referralCompletionRateCurrent}`,
         trend:
           range === 'ALL'
             ? null
             : calcTrend(conversionCurrent, conversionPrevious),
-        trendLabel: range === 'ALL' ? '累计视角' : '较上窗口完成',
+        trendLabel:
+          range === 'ALL'
+            ? '累计视角'
+            : `较上窗口完成（上窗 ${referralCompletionRatePrevious}）`,
         icon: CheckCircle2,
         iconClassName: 'text-[#4ADE80]',
         iconBgClassName: 'bg-green-100 dark:bg-[#123125]',
@@ -329,7 +360,7 @@ export function GrowthToolsConsole({
       cards.push(
         {
           key: 'vouchers-active',
-          title: '可用 Voucher',
+          title: '可用优惠券',
           value: String(activeVouchers),
           caption: range === 'ALL' ? '当前状态' : currentLabel,
           meta: '当前仍处于启用状态的 Voucher 数量',
@@ -409,6 +440,41 @@ export function GrowthToolsConsole({
     })
   }, [range, voucherKeyword, voucherStatus, voucherType, vouchers])
 
+  const referralPageCount = Math.max(
+    1,
+    Math.ceil(filteredReferrals.length / GROWTH_CONSOLE_PAGE_SIZE)
+  )
+  const voucherPageCount = Math.max(
+    1,
+    Math.ceil(filteredVouchers.length / GROWTH_CONSOLE_PAGE_SIZE)
+  )
+
+  const paginatedReferrals = useMemo(() => {
+    const start = (Math.min(referralPage, referralPageCount) - 1) * GROWTH_CONSOLE_PAGE_SIZE
+    return filteredReferrals.slice(start, start + GROWTH_CONSOLE_PAGE_SIZE)
+  }, [filteredReferrals, referralPage, referralPageCount])
+
+  const paginatedVouchers = useMemo(() => {
+    const start = (Math.min(voucherPage, voucherPageCount) - 1) * GROWTH_CONSOLE_PAGE_SIZE
+    return filteredVouchers.slice(start, start + GROWTH_CONSOLE_PAGE_SIZE)
+  }, [filteredVouchers, voucherPage, voucherPageCount])
+
+  useEffect(() => {
+    setReferralPage(1)
+  }, [range, referralKeyword, referralStatus])
+
+  useEffect(() => {
+    setVoucherPage(1)
+  }, [range, voucherKeyword, voucherStatus, voucherType])
+
+  useEffect(() => {
+    setReferralPage((current) => Math.min(current, referralPageCount))
+  }, [referralPageCount])
+
+  useEffect(() => {
+    setVoucherPage((current) => Math.min(current, voucherPageCount))
+  }, [voucherPageCount])
+
   const copyCode = async (code: string) => {
     try {
       await navigator.clipboard.writeText(code)
@@ -473,7 +539,7 @@ export function GrowthToolsConsole({
             <PageHeroTitle title="增长工具" capsuleLabel="Growth Console" />
           </h1>
           <p className="max-w-3xl text-sm text-text-secondary">
-            在同一工作台内查看推荐关系链路、奖励状态与 Voucher
+            在同一工作台内查看推荐关系链路、奖励状态与优惠券
             发放/核销情况，减少在多个后台工具间切换。
           </p>
         </div>
@@ -486,7 +552,7 @@ export function GrowthToolsConsole({
               增长概览
             </h2>
             <p className="text-sm text-text-secondary">
-              聚焦推荐转化、待发奖励与 Voucher
+              聚焦推荐转化、待发奖励与优惠券
               使用情况，并补充相对上周期的变化。
             </p>
           </div>
@@ -583,7 +649,7 @@ export function GrowthToolsConsole({
                 工作区
               </h2>
               <p className="text-sm text-text-secondary">
-                在推荐关系和 Voucher 管理之间切换，保持同一套筛选和表格工作流。
+                在推荐关系和优惠券管理之间切换，保持同一套筛选和表格工作流。
               </p>
             </div>
 
@@ -610,7 +676,7 @@ export function GrowthToolsConsole({
                         : 'text-text-secondary hover:text-text-primary'
                     }`}
                   >
-                    Voucher 管理
+                    优惠券管理
                   </button>
                 ) : null}
               </div>
@@ -648,10 +714,10 @@ export function GrowthToolsConsole({
                       className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
                       <option value="ALL">状态: 全部</option>
-                      {Object.entries(referralStatusLabelMap).map(
-                        ([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
+                      {fieldMatrix.referralFilters.map((option) =>
+                        option.value === 'ALL' ? null : (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
                           </option>
                         )
                       )}
@@ -677,31 +743,20 @@ export function GrowthToolsConsole({
               <table className="w-full min-w-[1120px] border-collapse text-left">
                 <thead>
                   <tr className="border-b border-borderTone bg-surface-subtle">
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      推荐人
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      被推荐人
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      推荐码
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      状态
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      奖励状态
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      延迟奖励
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      创建时间
-                    </th>
+                    {fieldMatrix.referralTableColumns.map((column) => (
+                      <th
+                        key={column.key}
+                        className={`px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary ${
+                          column.align === 'right' ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        {column.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-borderTone">
-                  {filteredReferrals.length === 0 ? (
+                  {paginatedReferrals.length === 0 ? (
                     <tr>
                       <td
                         colSpan={7}
@@ -711,7 +766,7 @@ export function GrowthToolsConsole({
                       </td>
                     </tr>
                   ) : (
-                    filteredReferrals.map((row) => (
+                    paginatedReferrals.map((row) => (
                       <tr
                         key={row.id}
                         className="transition-colors hover:bg-surface-subtle"
@@ -789,6 +844,33 @@ export function GrowthToolsConsole({
                 </tbody>
               </table>
             </div>
+
+            <div className="flex flex-col gap-3 border-t border-borderTone bg-surface-subtle px-5 py-4 text-sm text-text-secondary sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between">
+              <span>
+                第 {Math.min(referralPage, referralPageCount)} / {referralPageCount}{' '}
+                页，当前每页 {GROWTH_CONSOLE_PAGE_SIZE} 条
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReferralPage((current) => Math.max(1, current - 1))}
+                  disabled={referralPage <= 1}
+                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  上一页
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setReferralPage((current) => Math.min(referralPageCount, current + 1))
+                  }
+                  disabled={referralPage >= referralPageCount}
+                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  下一页
+                </button>
+              </div>
+            </div>
           </>
         ) : (
           <>
@@ -797,7 +879,7 @@ export function GrowthToolsConsole({
                 <div className="grid gap-3 tablet:grid-cols-2">
                   <div className="tablet:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Code
+                      优惠券码
                     </label>
                     <input
                       value={code}
@@ -810,7 +892,7 @@ export function GrowthToolsConsole({
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Discount Type
+                      折扣类型
                     </label>
                     <select
                       value={discountType}
@@ -821,13 +903,13 @@ export function GrowthToolsConsole({
                       }
                       className="w-full appearance-none rounded-2xl border border-borderTone bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
-                      <option value="AMOUNT">AMOUNT</option>
-                      <option value="PERCENT">PERCENT</option>
+                      <option value="AMOUNT">固定金额</option>
+                      <option value="PERCENT">百分比</option>
                     </select>
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Discount Value
+                      折扣值
                     </label>
                     <input
                       type="number"
@@ -843,7 +925,7 @@ export function GrowthToolsConsole({
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Max Redemptions
+                      核销上限
                     </label>
                     <input
                       type="number"
@@ -857,7 +939,7 @@ export function GrowthToolsConsole({
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Valid From
+                      生效时间
                     </label>
                     <input
                       type="datetime-local"
@@ -868,7 +950,7 @@ export function GrowthToolsConsole({
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Valid To
+                      失效时间
                     </label>
                     <input
                       type="datetime-local"
@@ -879,7 +961,7 @@ export function GrowthToolsConsole({
                   </div>
                   <div className="tablet:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-text-primary">
-                      Stripe Coupon ID
+                      Stripe 优惠券 ID
                     </label>
                     <input
                       value={stripeCouponId}
@@ -895,7 +977,7 @@ export function GrowthToolsConsole({
                 <div className="rounded-[24px] border border-borderTone bg-surface-subtle p-5 dark:border-[#24324D] dark:bg-[#151F36]">
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-text-primary">
-                      创建 Voucher
+                      创建优惠券
                     </h3>
                     <p className="text-sm text-text-secondary">
                       在统一工作台内创建金额减免或百分比折扣，并立即进入启停管理。
@@ -905,7 +987,7 @@ export function GrowthToolsConsole({
                     <p>当前支持：</p>
                     <p>AMOUNT 固定金额减免</p>
                     <p>PERCENT 百分比折扣</p>
-                    <p>支持有效期、核销上限和 Stripe Coupon 绑定</p>
+                    <p>支持有效期、核销上限和 Stripe 优惠券绑定</p>
                   </div>
                   <button
                     onClick={submitCreateVoucher}
@@ -915,7 +997,7 @@ export function GrowthToolsConsole({
                     {isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : null}
-                    创建 Voucher
+                    创建优惠券
                   </button>
                 </div>
               </div>
@@ -931,7 +1013,7 @@ export function GrowthToolsConsole({
                     />
                     <input
                       type="text"
-                      placeholder="搜索 Voucher code 或 Stripe Coupon..."
+                      placeholder="搜索优惠券码或 Stripe 优惠券..."
                       value={voucherKeyword}
                       onChange={(e) => setVoucherKeyword(e.target.value)}
                       className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#8FA4C2] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
@@ -947,9 +1029,11 @@ export function GrowthToolsConsole({
                       }
                       className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     >
-                      <option value="ALL">状态: 全部</option>
-                      <option value="ACTIVE">启用中</option>
-                      <option value="INACTIVE">已停用</option>
+                      {fieldMatrix.voucherFilters?.status.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary"
@@ -966,9 +1050,11 @@ export function GrowthToolsConsole({
                       }
                       className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/40 focus:ring-2 focus:ring-primary/20"
                     >
-                      <option value="ALL">类型: 全部</option>
-                      <option value="AMOUNT">AMOUNT</option>
-                      <option value="PERCENT">PERCENT</option>
+                      {fieldMatrix.voucherFilters?.type.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown
                       className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary"
@@ -981,7 +1067,7 @@ export function GrowthToolsConsole({
                   <span className="font-semibold text-text-primary">
                     {filteredVouchers.length}
                   </span>{' '}
-                  个 Voucher
+                  个优惠券
                 </span>
               </div>
             </div>
@@ -990,44 +1076,30 @@ export function GrowthToolsConsole({
               <table className="w-full min-w-[1180px] border-collapse text-left">
                 <thead>
                   <tr className="border-b border-borderTone bg-surface-subtle">
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      Code
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      Type
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      Value
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      Usage
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      Stripe Coupon
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      有效期
-                    </th>
-                    <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      状态
-                    </th>
-                    <th className="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                      操作
-                    </th>
+                    {fieldMatrix.voucherTableColumns.map((column) => (
+                      <th
+                        key={column.key}
+                        className={`px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary ${
+                          column.align === 'right' ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        {column.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-borderTone">
-                  {filteredVouchers.length === 0 ? (
+                  {paginatedVouchers.length === 0 ? (
                     <tr>
                       <td
                         colSpan={8}
                         className="px-6 py-16 text-center text-sm text-text-secondary"
                       >
-                        当前筛选下暂无 Voucher
+                        当前筛选下暂无优惠券
                       </td>
                     </tr>
                   ) : (
-                    filteredVouchers.map((voucher) => (
+                    paginatedVouchers.map((voucher) => (
                       <tr
                         key={voucher.id}
                         className="transition-colors hover:bg-surface-subtle"
@@ -1051,7 +1123,7 @@ export function GrowthToolsConsole({
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-text-primary">
-                          {voucher.discountType}
+                          {voucher.discountType === 'PERCENT' ? '百分比' : '固定金额'}
                         </td>
                         <td className="px-6 py-4 text-sm text-text-primary">
                           {voucher.discountType === 'PERCENT'
@@ -1079,7 +1151,7 @@ export function GrowthToolsConsole({
                                 : 'border-slate-200 bg-slate-100 text-slate-600'
                             }`}
                           >
-                            {voucher.isActive ? 'ACTIVE' : 'INACTIVE'}
+                            {voucher.isActive ? '启用中' : '已停用'}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -1098,6 +1170,33 @@ export function GrowthToolsConsole({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-borderTone bg-surface-subtle px-5 py-4 text-sm text-text-secondary sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between">
+              <span>
+                第 {Math.min(voucherPage, voucherPageCount)} / {voucherPageCount}{' '}
+                页，当前每页 {GROWTH_CONSOLE_PAGE_SIZE} 条
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setVoucherPage((current) => Math.max(1, current - 1))}
+                  disabled={voucherPage <= 1}
+                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  上一页
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVoucherPage((current) => Math.min(voucherPageCount, current + 1))
+                  }
+                  disabled={voucherPage >= voucherPageCount}
+                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  下一页
+                </button>
+              </div>
             </div>
           </>
         )}

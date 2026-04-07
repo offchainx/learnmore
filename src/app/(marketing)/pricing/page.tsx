@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input'
 import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
 import { useApp } from '@/providers';
 import { prepareCheckoutAction } from '@/actions/billing/checkout';
+import { calculateVoucherDiscountedPrice } from '@/lib/vouchers/preview'
+import { useVoucherCodeAvailability } from '@/lib/hooks/useVoucherCodeAvailability'
 
 // ─── 比较表单元格类型 ─────────────────────────────────────────
 // string: 直接文本
@@ -63,6 +66,8 @@ const PricingPage: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
   const { lang, setLang } = useApp();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [voucherCode, setVoucherCode] = useState('')
+  const voucherAvailability = useVoucherCodeAvailability(voucherCode)
 
   const toggleLang = () => {
     const nextLang = lang === 'en' ? 'zh' : 'en';
@@ -78,6 +83,16 @@ const PricingPage: React.FC = () => {
       return;
     }
 
+    if (voucherCode.trim() && voucherAvailability.status === 'checking') {
+      alert(isZh ? '优惠券正在验证中，请稍后再试。' : 'Your voucher is still being verified. Please wait.')
+      return
+    }
+
+    if (voucherCode.trim() && voucherAvailability.status === 'unavailable') {
+      alert(voucherAvailability.reason || (isZh ? '这个优惠券无效，请检查后重试。' : 'This voucher code is invalid.'))
+      return
+    }
+
     setLoadingPlan(planName);
     const billingCycle = isAnnual ? 'annual' : 'monthly';
     try {
@@ -86,7 +101,10 @@ const PricingPage: React.FC = () => {
         billingCycle,
         paymentMode: 'stripe',
         referralCode: '',
-        voucherCode: '',
+        voucherCode:
+          voucherAvailability.status === 'available'
+            ? voucherAvailability.normalizedVoucherCode
+            : '',
       });
 
       if (!result.ok || !result.checkoutUrl) {
@@ -104,6 +122,40 @@ const PricingPage: React.FC = () => {
   };
 
   const isZh = lang === 'zh';
+  const activeVoucher = useMemo(() => {
+    if (voucherAvailability.status !== 'available') {
+      return null
+    }
+
+    if (
+      voucherAvailability.discountType === null ||
+      voucherAvailability.discountValue === null
+    ) {
+      return null
+    }
+
+    return {
+      code: voucherAvailability.normalizedVoucherCode,
+      discountType: voucherAvailability.discountType,
+      discountValue: voucherAvailability.discountValue,
+    }
+  }, [voucherAvailability])
+
+  const hasVoucherInput = voucherCode.trim().length > 0
+  const isVoucherBlocked =
+    hasVoucherInput &&
+    (voucherAvailability.status === 'checking' || voucherAvailability.status === 'unavailable')
+
+  const getDisplayedPlanPrice = (basePrice: number) => {
+    if (!activeVoucher || basePrice <= 0) {
+      return basePrice
+    }
+
+    return calculateVoucherDiscountedPrice(basePrice, {
+      discountType: activeVoucher.discountType,
+      discountValue: activeVoucher.discountValue,
+    })
+  }
 
   // ─── i18n 静态文案 ──────────────────────────────────────────
   const t = {
@@ -121,6 +173,13 @@ const PricingPage: React.FC = () => {
       referralDesc: "Invite a friend to LearnMore. They get a 2-week free extension, and so do you!",
       referralPlaceholder: "Enter friend's email",
       referralBtn: "Invite",
+      voucherTitle: "Apply Voucher",
+      voucherDesc: "Enter a voucher code before checkout. Valid vouchers will update the displayed price instantly.",
+      voucherPlaceholder: "Enter voucher code",
+      voucherChecking: "Checking voucher...",
+      voucherInvalid: "This voucher code is invalid. Please check and try again.",
+      voucherApplied: (code: string) => `Voucher ${code} applied. Prices below have been updated.`,
+      voucherClear: "Clear",
       footer: "© 2025 LearnMore Edu. All rights reserved.",
       perMo: "/mo",
       plans: [
@@ -200,6 +259,13 @@ const PricingPage: React.FC = () => {
       referralDesc: "邀请朋友加入 LearnMore。他们获得 2 周免费时长，您也一样！",
       referralPlaceholder: "输入朋友的邮箱",
       referralBtn: "发送邀请",
+      voucherTitle: "应用优惠券",
+      voucherDesc: "在结账前输入优惠券码。有效优惠券会立即更新下方价格。",
+      voucherPlaceholder: "输入优惠券码",
+      voucherChecking: "正在验证优惠券...",
+      voucherInvalid: "这个优惠券无效，请检查后重试。",
+      voucherApplied: (code: string) => `已应用优惠券 ${code}，下方价格已更新。`,
+      voucherClear: "清空",
       footer: "© 2025 LearnMore Edu. 保留所有权利。",
       perMo: "/月",
       plans: [
@@ -444,6 +510,57 @@ const PricingPage: React.FC = () => {
                  {currentT.annually} <span className="text-xs text-green-400 ml-1 font-normal">{currentT.save}</span>
               </span>
            </div>
+
+           <div className="mt-10 rounded-3xl border border-slate-800 bg-[#0f111a]/80 p-5 text-left shadow-2xl shadow-black/20 backdrop-blur-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    {currentT.voucherTitle}
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    {currentT.voucherDesc}
+                  </p>
+                </div>
+                <div className="flex w-full flex-col gap-3 md:w-[30rem] md:flex-row md:items-center">
+                  <Input
+                    value={voucherCode}
+                    onChange={(event) => setVoucherCode(event.target.value.toUpperCase())}
+                    placeholder={currentT.voucherPlaceholder}
+                    spellCheck={false}
+                    autoCapitalize="characters"
+                    className={`h-11 border-slate-700 bg-slate-950/60 text-white placeholder:text-slate-500 ${
+                      isVoucherBlocked ? 'border-red-400 focus-visible:ring-red-500' : ''
+                    }`}
+                  />
+                  {hasVoucherInput ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0 border-slate-700 bg-transparent text-white hover:bg-slate-900"
+                      onClick={() => setVoucherCode('')}
+                    >
+                      {currentT.voucherClear}
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-4 min-h-6 text-sm">
+                {voucherAvailability.status === 'checking' && hasVoucherInput ? (
+                  <span className="text-slate-400">{currentT.voucherChecking}</span>
+                ) : null}
+                {voucherAvailability.status === 'unavailable' && hasVoucherInput ? (
+                  <span className="font-medium text-red-400">
+                    {voucherAvailability.reason || currentT.voucherInvalid}
+                  </span>
+                ) : null}
+                {activeVoucher ? (
+                  <span className="font-medium text-emerald-400">
+                    {currentT.voucherApplied(activeVoucher.code)}
+                  </span>
+                ) : null}
+              </div>
+            </div>
         </div>
 
         {/* Pricing Cards */}
@@ -470,13 +587,20 @@ const PricingPage: React.FC = () => {
                           <span className="text-3xl font-bold text-white">
                              {idx === 0
                                ? isZh ? "永久免费" : "Forever Free"
-                               : plan.price === 0 ? 'RM0' : `RM${plan.price}`
+                               : plan.price === 0 ? 'RM0' : `RM${getDisplayedPlanPrice(plan.price)}`
                              }
                           </span>
                           {idx !== 0 && plan.price !== 0 && <span className="text-slate-500 text-sm">{currentT.perMo}</span>}
                        </div>
                        {isAnnual && plan.price !== 0 && (
-                          <div className="text-xs text-green-400 mt-1">{currentT.billed(plan.annualPrice * 12)}</div>
+                          <div className="text-xs text-green-400 mt-1">
+                            {currentT.billed(getDisplayedPlanPrice(plan.price) * 12)}
+                          </div>
+                       )}
+                       {activeVoucher && idx !== 0 && plan.price !== 0 && (
+                          <div className="mt-1 text-xs text-slate-500 line-through">
+                            RM{plan.price}
+                          </div>
                        )}
                     </div>
 
@@ -516,7 +640,7 @@ const PricingPage: React.FC = () => {
                           ${plan.btnVariant === 'solid-gold' ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg shadow-amber-500/25 border-none' : ''}
                        `}
                       onClick={() => handleSubscribe(plan.name, plan.key)}
-                       disabled={loadingPlan !== null}
+                       disabled={loadingPlan !== null || (plan.key !== 'starter' && isVoucherBlocked)}
                     >
                        {loadingPlan === plan.name ? (
                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>

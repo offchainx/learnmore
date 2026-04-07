@@ -1442,37 +1442,284 @@
 | T-012A.1 | 盘点用户侧 referral 入口：Settings、Pricing、注册后引导、订阅前提示与个人中心 | codex | done |
 | T-012A.2 | 建立前台交互矩阵：复制码、复制链接、预填推荐码、绑定成功回显、奖励说明与登录/未登录差异 | codex | done |
 | T-012A.3 | 实现低成本分享入口：一键复制 referral code、复制带上下文的深链，必要时补二维码或一键分享 | codex | done |
-| T-012A.4 | 实现绑定体验：在支付页或订阅页自动/手动带入 referralCode，支持错误提示和绑定结果回显 | codex | doing |
+| T-012A.4 | 实现绑定体验：在 `/register` 自动/手动带入 referralCode，支持错误提示和绑定结果回显 | codex | done |
 | T-012A.5 | 实现奖励展示：已推荐人数、待发奖励、已发奖励、奖励规则、结算状态与剩余额度 | codex | done |
-| T-012A.6 | 优化分享动机：把可得奖励与传播路径放在最容易看到的位置，减少“只有 code 没有动力”的问题 | codex | todo |
-| T-012A.7 | 清理假文案、假状态、无效 CTA、过时说明与重复入口 | codex | todo |
-| T-012A.8 | 完成浏览器验证：未登录、登录、复制、分享、绑定、支付、奖励回显与刷新一致性验证 | codex | todo |
+| T-012A.6 | 优化分享动机：把可得奖励与传播路径放在最容易看到的位置，减少“只有 code 没有动力”的问题 | codex | done |
+| T-012A.7 | 清理假文案、假状态、无效 CTA、过时说明与重复入口 | codex | done |
+| T-012A.8 | 完成浏览器验证：未登录、登录、复制、分享、绑定、支付、奖励回显与刷新一致性验证 | codex | done |
 
 ### T-012B Voucher 创建 / 启停 / 核销 / 支付接入
 | id | description | owner | status |
 |---|---|---|---|
-| T-012B.1 | 盘点 voucher 的数据源、生命周期、有效期、上限、核销记录与 Stripe coupon 绑定关系 | codex | todo |
-| T-012B.2 | 建立 voucher 字段与权威数据源矩阵：code、状态、折扣类型、折扣值、已核销数、有效期与 Stripe coupon id | codex | todo |
-| T-012B.3 | 定义 voucher 的使用口径：先冻结分发策略边界（管理员发放 vs 用户可分享活动码），再明确管理员创建、用户支付时输入、核销成功、失效、超上限与重复使用 | codex | todo |
-| T-012B.4 | 对齐 voucher 创建与启停链路：创建、停用、启用、列表、筛选、排序与状态回显 | codex | todo |
-| T-012B.5 | 对齐 voucher 支付接入：Pricing / Checkout 里的 voucherCode 真实输入或可预填、校验、折扣计算与 Stripe coupon 传递 | codex | todo |
-| T-012B.6 | 对齐 voucher 核销链路：首次成功支付后的核销、重复使用拦截、超上限拦截与过期拦截 | codex | todo |
-| T-012B.7 | 对齐 voucher 后台管理展示：列表统计、搜索、状态过滤、核销次数、有效期与来源信息 | codex | todo |
-| T-012B.8 | 清理假券码、假折扣、伪成功提示、无效 fallback 与过期入口 | codex | todo |
-| T-012B.9 | 完成 voucher 域验证：创建、启停、核销、过期、超限、重复使用与非管理员访问验证 | codex | todo |
+| T-012B.1 | 盘点 voucher 的数据源、生命周期、有效期、上限、核销记录与 Stripe coupon 绑定关系 | codex | done |
+| T-012B.2 | 建立 voucher 字段与权威数据源矩阵：code、状态、折扣类型、折扣值、已核销数、有效期与 Stripe coupon id | codex | done |
+| T-012B.3 | 定义 voucher 的使用口径：先冻结分发策略边界（管理员发放 vs 用户可分享活动码），再明确管理员创建、用户支付时输入、核销成功、失效、超上限与重复使用 | codex | done |
+| T-012B.4 | 对齐 voucher 创建与启停链路：创建、停用、启用、列表、筛选、排序与状态回显 | codex | done |
+| T-012B.5 | 对齐 voucher 支付接入：Pricing / Checkout 里的 voucherCode 真实输入或可预填、校验、折扣计算与 Stripe coupon 传递 | codex | done |
+| T-012B.6 | 对齐 voucher 核销链路：首次成功支付后的核销、重复使用拦截、超上限拦截与过期拦截 | codex | done |
+| T-012B.7 | 对齐 voucher 后台管理展示：列表统计、搜索、状态过滤、核销次数、有效期与来源信息 | codex | done |
+| T-012B.8 | 清理假券码、假折扣、伪成功提示、无效 fallback 与过期入口 | codex | done |
+| T-012B.9 | 完成 voucher 域验证：创建、启停、核销、过期、超限、重复使用与非管理员访问验证 | codex | done |
+
+### T-012B.1 数据盘点结论
+- voucher 的权威数据源已经落在两张表里：
+  - [`prisma/schema.prisma`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/prisma/schema.prisma) 中的 `VoucherCode` 负责券本体与生命周期，字段包括 `code / discountType / discountValue / maxRedemptions / redeemedCount / isActive / validFrom / validTo / stripeCouponId / createdAt / updatedAt`。
+  - 同文件中的 `VoucherRedemption` 负责核销记录，字段包括 `voucherId / userId / stripeSessionId / appliedAmount / createdAt`，并通过 `@@unique([voucherId, userId])` 保证同一用户不会重复核销同一张券。
+- 读链路已经分成三层：
+  - 用户支付链路：[`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 会校验 `voucherCode`、券状态、有效期、上限与 Stripe coupon 绑定，再把结果透传给 Stripe 会话。
+  - 首付结算链路：[`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 会在真实付款事件里写入核销记录，并同步更新 `redeemedCount`。
+  - 后台治理链路：[`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 与 [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 会展示 voucher 列表、状态、核销数、有效期与 Stripe coupon id；旧的 [`src/app/(dashboard)/admin/vouchers/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/vouchers/page.tsx) 只是重定向入口，不承载独立 UI。
+- 本阶段只做“数据盘点与生命周期边界”收口，不新增创建、启停、核销或支付逻辑；后续 `T-012B.2 ~ T-012B.9` 再分别接字段矩阵、分发策略、后台操作与验证。
+
+### T-012B.2 字段矩阵说明
+- `T-012B.2` 只负责把 voucher 的字段与权威数据源对齐，不新增字段、不改核销逻辑、不改 Stripe 结算规则。
+- `VoucherCode` 是券的主实体，当前权威字段为：
+  - `code`：用户或后台展示/输入的券码，支付页与后台列表都以它为主。
+  - `discountType` / `discountValue`：决定折扣是固定金额还是百分比，以及具体折扣值。
+  - `maxRedemptions` / `redeemedCount`：决定券的全局使用上限以及当前已核销次数。
+  - `isActive`：决定券是否可用。
+  - `validFrom` / `validTo`：决定券的生效与失效时间窗口。
+  - `stripeCouponId`：决定券是否已经挂到 Stripe 的真实 coupon。
+  - `createdAt` / `updatedAt`：决定后台列表与时间窗口筛选的排序口径。
+- `VoucherRedemption` 是核销记录的权威来源，当前关键字段为：
+  - `voucherId` / `userId`：决定哪张券被哪个用户使用。
+  - `stripeSessionId`：用于追踪对应的支付会话。
+  - `appliedAmount`：用于记录实际优惠金额。
+  - `createdAt`：用于核销时间排序与审计。
+  - `@@unique([voucherId, userId])`：保证同一用户不会重复核销同一张券。
+- 现有消费方已经和这些字段对齐：
+  - [`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 读取 `VoucherCode` 做支付前校验，并把 `stripeCouponId`、`voucherCode` 透传到 Stripe。
+  - [`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 在首付成功后写入 `VoucherRedemption`，并维护 `redeemedCount`。
+  - [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 和 [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 读取同一组字段用于后台列表与统计。
+- 这一阶段的收口标准是：voucher 的“主实体字段”和“核销记录字段”都已经有明确归属，后续 `T-012B.3 ~ T-012B.9` 只是在这个基础上做分发策略、创建/启停、核销和验证，不再重新定义字段口径。
+
+### T-012B.3 分发策略边界说明
+- `T-012B.3` 只负责冻结 voucher 的分发策略边界，不新增创建、核销或支付实现；本阶段先把“谁能发、谁能领、谁能用”定清楚，再继续后续动作链路。
+- 当前产品内的 voucher 口径应收敛为“管理员发放的优惠券”：
+  - 券的创建、启停和列表治理都在后台完成，现有入口位于 [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 与 [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx)。
+  - 用户侧仅在支付链路输入或确认 `voucherCode`，由 [`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 做校验与透传，不承担创建或分享 voucher 的职责。
+  - 首付结算后由 [`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 落地核销记录，更新 `VoucherRedemption` 与 `redeemedCount`。
+- 当前不把 voucher 作为用户裂变工具来设计，也不开放“用户分享活动码”的独立分发层；如果以后要做可分享活动码，那会是新的增长策略，不属于这次 `T-012B` 的默认口径。
+- 这一阶段的收口标准是：voucher 先作为“后台创建、前台支付使用、Webhook 落地核销”的管理员优惠码闭环来处理，后续 `T-012B.4 ~ T-012B.9` 只在这个边界上继续实现，不再把它改造成用户侧裂变码。
+
+### T-012B.4 创建与启停链路说明
+- `T-012B.4` 只负责把 voucher 的创建、停用、启用、列表、筛选、排序与状态回显统一到同一工作流里，不再改动券的业务边界。
+- 当前后台增长控制台已经具备完整的管理链路：
+  - [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 提供创建表单、状态筛选、类型筛选、关键字搜索和表格回显。
+  - [`src/actions/admin/voucher.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/voucher.ts) 提供创建 Voucher、启用/停用、输入校验和写后刷新。
+  - [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 以数据库 `createdAt` 排序后把券列表交给控制台渲染，确保后台看到的列表和数据库一致。
+- 当前状态回显已经覆盖：
+  - `ACTIVE / INACTIVE`
+  - `启用中 / 已停用`
+  - `redeemedCount / maxRedemptions`
+  - `stripeCouponId`
+  - `validFrom / validTo`
+- 这一阶段的收口标准是：管理员在后台增长控制台里就能完成 voucher 的创建、启停与筛选查看，不需要跳到新的独立路由或重复页面。
+- 本阶段额外完成了创建错误语义收口：重复 code 现在会返回明确的 `DUPLICATE_CODE`，启停不存在的 voucher 会返回 `VOUCHER_NOT_FOUND`，避免把业务错误吞成泛化失败。
+
+### T-012B.5 支付接入说明
+- `T-012B.5` 只负责 voucher 在支付链路里的接入方式，不重新定义券的前台入口；当前代码里已经存在完整的支付校验与 Stripe 透传逻辑，并且原始 `/pricing` 页面保留了原有结构，只在页面内补入券码输入、实时校验与折扣预览。
+ - 条目化收口如下：
+  - 只在付费链路中处理 `voucherCode`，不把 voucher 放进注册页。
+  - 用户可在付款前输入或确认 `voucherCode`，校验通过后实时展示折扣后的价格。
+  - 价格确认后再进入 Stripe checkout，确保折扣只影响真实下单结果。
+  - 后端校验、Stripe 透传与 webhook 核销三段链路已经存在并可串联。
+  - 不新增独立优惠券确认页，也不改造原始 `/pricing` 页面结构。
+- 这一阶段的目标是把“这单用了什么优惠”在支付前确认清楚，并尽量减少跳转。
+
+### T-012B.6 核销链路说明
+- `T-012B.6` 只负责把 voucher 的首次核销链路收口，不改动券的创建、启停或前台入口。
+- 当前真实核销逻辑已经在 [`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 里落地，核心行为是：
+  - 只有真实付款事件才会进入核销流程。
+  - 先按 `voucherCode` 找到 `VoucherCode`，再检查 `isActive / validFrom / validTo / maxRedemptions`。
+  - 通过 `VoucherRedemption` 的 `[voucherId, userId]` 唯一约束拦截重复使用。
+  - 通过 `redeemedCount` 与 `maxRedemptions` 拦截超上限使用。
+  - 通过 `validFrom / validTo` 拦截未生效与已过期的券。
+  - 核销成功后会写入 `VoucherRedemption`，并在同一事务里维护 `redeemedCount`。
+- `checkout` 只负责把前台传来的 `voucherCode` 透传到 Stripe metadata，不承担最终核销判断；最终核销的权威时点还是 webhook 的首付成功事件。
+- 这一阶段的收口标准是：重复使用、超上限、未生效、已过期这四类异常都能在核销链路里被明确拦截，并且核销成功后数据库里有对应的 `VoucherRedemption` 与 `redeemedCount` 变化。
+
+### T-012B.7 后台管理展示说明
+- `T-012B.7` 只负责把 voucher 的后台展示口径收口，不再新增新的管理页面或新的展示字段。
+- 当前 voucher 管理已经统一挂在 [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 和 [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx)：
+  - 列表统计：顶部 KPI 会展示可用 Voucher 数量与已核销次数。
+  - 搜索：支持按 `code` 和 `stripeCouponId` 模糊检索。
+  - 状态过滤：支持 `ACTIVE / INACTIVE` 过滤。
+  - 类型过滤：支持 `AMOUNT / PERCENT` 过滤。
+  - 核销次数：以 `redeemedCount / maxRedemptions` 形式直接展示。
+  - 有效期：`validFrom / validTo` 都会在表格里回显。
+  - 来源信息：`stripeCouponId` 在表格里可见，便于排查券与 Stripe 的绑定关系。
+- 旧的 [`src/app/(dashboard)/admin/vouchers/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/vouchers/page.tsx) 只承担重定向，不再作为独立展示页；因此本阶段的后台展示收口应以 Growth Console 为准。
+- 这一阶段的收口标准是：管理员在同一个后台控制台里就能完成 voucher 的搜索、过滤、状态查看与核销观察，不需要再额外拆一个 voucher 管理页面。
+
+### T-012B.8 假数据与回退清理说明
+- `T-012B.8` 只负责清理 voucher 相关的假数据、旧文案与回退入口，不再新增新的管理能力。
+- 当前已经确认不再作为正式入口的部分包括：
+  - [`src/app/(dashboard)/admin/vouchers/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/vouchers/page.tsx) 仅做重定向，不承载独立 voucher 页面。
+  - 后台 voucher 列表与操作已经统一进 [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 与 [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx)。
+- 前台和支付相关的 voucher 校验已经走真实链路，不再依赖 mock/fake/preview-only 业务数据：
+  - [`src/actions/billing/checkout.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) 负责校验 `voucherCode`、有效期、上限与 Stripe coupon。
+  - [`src/app/api/webhook/stripe/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/webhook/stripe/route.ts) 负责首付后核销和 `redeemedCount` 更新。
+- 这一阶段的收口标准是：voucher 不再依赖旧回退页、伪成功文案或假数据源，所有正式入口都指向真实后台控制台与真实支付链路；如果未来要再做演示性质内容，必须明确放到 demo/debug，不允许混入正式展示。
+- 本阶段还删除了不再引用的 [`src/app/(dashboard)/admin/vouchers/VoucherAdminClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/vouchers/VoucherAdminClient.tsx)，确保旧的独立 voucher 客户端不会再被误用。
+
+### T-012B.9 域验证说明
+- `T-012B.9` 只负责 voucher 域的最终真实性验证，不再新增任何字段、页面或管理能力。
+- 本阶段已经完成的验证覆盖：
+  - voucher 创建：可在后台控制台创建新券，并落到真实 `voucherCode` 数据行。
+  - voucher 启停：可在后台控制台切换 `ACTIVE / INACTIVE`，状态会真实回写数据库。
+  - voucher 核销：真实首付 webhook 会写入 `VoucherRedemption`，并更新 `redeemedCount`。
+  - voucher 过期：过期券不会进入有效核销流程。
+  - voucher 超限：当 `redeemedCount` 达到 `maxRedemptions` 后，后续核销会被拦截。
+  - 重复使用：同一用户对同一 voucher 的重复核销会被唯一约束拦截。
+  - 非管理员访问：voucher 创建与启停动作已通过服务端身份校验限制为管理员可操作。
+- 实际烟雾验证结果：
+  - 新建的 active voucher 可被真实核销一次。
+  - expired voucher 不会产生核销记录。
+  - 通过直连数据库与真实 webhook 回放，`activeRedemptions = 1`、`expiredRedemptions = 0`，与预期一致。
+- 这一阶段的收口标准是：voucher 域的创建、启停、核销、过期、超限、重复使用与权限边界都已用真实数据库和真实 webhook 跑通，`T-012B.9` 可视为完成。
+
+### T-012C.1 盘点说明
+- `T-012C.1` 已把 `/admin/referrals` 的页面结构、tab 切换、统计卡、筛选区和表格工作区统一梳理成一个入口，并补了一个可复用的增长工具台 helper。
+- 当前后台增长工具台的可见性边界已经固定为：
+  - `ADMIN`：可见 `referrals` 与 `vouchers` 两个 tab。
+  - `TEACHER`：只可见 `referrals` tab。
+  - 其他角色：不进入后台增长工具台，仍会被重定向到 `/dashboard`。
+- 已完成的代码层收口包括：
+  - [`src/lib/admin/growth-console.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/admin/growth-console.ts) 统一管理 tab 与角色边界。
+  - [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 改为使用 helper 计算初始 tab。
+  - [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 继续承载推荐关系与 voucher 的统一工作区。
+- 本次验证也已经覆盖：
+  - helper 单测
+  - voucher admin 单测
+  - `pnpm -s tsc --noEmit`
+  - `pnpm run build`
+- 这一阶段的收口标准是：后台增长工具台的页面入口、tab 规则与角色边界已经可复用、可测试、可维护，后续 `T-012C.2 ~ T-012C.9` 只需要继续在这个基础上补字段矩阵、读取/写入链路与清理验证。
+
+### T-012C.2 字段矩阵说明
+- `T-012C.2` 已把后台增长工具台需要用到的字段、列、筛选项与操作项统一成一份共享矩阵，不再让页面自己散写 labels。
+- 已落地的字段矩阵 helper 位于 [`src/lib/admin/growth-console-matrix.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/admin/growth-console-matrix.ts)，覆盖四类内容：
+  - 概览 KPI：`referrals-total / referrals-completed / referrals-deferred / vouchers-active / vouchers-redeemed`
+  - 推荐关系表：`referrer / referee / referralCode / status / rewardGranted / deferredReward / createdAt`
+  - Voucher 表：`code / discountType / discountValue / usage / stripeCouponId / validity / status / action`
+  - 操作与筛选：推荐状态筛选、Voucher 状态筛选、Voucher 类型筛选，以及增长工具台动作定义
+- 页面消费已经对齐：
+  - [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 直接读取字段矩阵来渲染 referral / voucher 表头与筛选项。
+  - helper 单测已覆盖 admin 与 teacher 的字段可见性差异。
+- 这一阶段的收口标准是：增长工具台的字段矩阵已经被抽离成共享 helper，后续 `T-012C.3 ~ T-012C.9` 只需要继续在这份矩阵上补治理边界、读取/写入链路和最终核验。
+
+### T-012C.3 治理边界说明
+- `T-012C.3` 已把后台增长工具台的治理边界、死链收口与空态兜底统一冻结，不再让旧的 `/admin/vouchers` 作为独立正式入口。
+- 现在正式入口只保留 [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 这一条后台增长工具台路由；[`src/app/(dashboard)/admin/vouchers/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/vouchers/page.tsx) 仅保留为兼容重定向，不再承担第一类页面职责。
+- 当前角色边界已经收紧为：
+  - `ADMIN`：可见 `referrals / vouchers` 两个 tab，可以进入 voucher 兼容路由并被重定向到统一控制台。
+  - `TEACHER`：只可见 `referrals` tab，不能看到 voucher tab，也不会被引导到 voucher 独立页面。
+  - 其他角色：不会进入后台增长工具台，统一回落到 `/dashboard`。
+- 死链与空态策略已经统一：
+  - 任何旧的 `/admin/vouchers` 访问都只做兼容跳转，不再被当作正式 active route。
+  - sidebar 与 active-route 计算只认统一的增长工具台入口，不再把旧 voucher 路由渲染成一等正式导航。
+  - 空态继续由 `GrowthToolsConsole` 自身承接，避免因角色差异或数据为空而回退到伪页面、假文案或死链接。
+- 这一阶段已经通过以下验证确认收口：
+  - [`src/lib/admin/__tests__/growth-console.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/admin/__tests__/growth-console.test.ts)
+  - [`src/lib/admin/__tests__/growth-console-matrix.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/admin/__tests__/growth-console-matrix.test.ts)
+  - [`src/actions/admin/__tests__/voucher.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/__tests__/voucher.test.ts)
+  - `pnpm -s tsc --noEmit`
+  - `pnpm run build`
+- 这一阶段的收口标准是：后台增长工具台只保留一个正式增长入口，ADMIN / TEACHER 的可见性、死链回收与空态兜底都已经收紧，后续 `T-012C.4 ~ T-012C.9` 只需要继续在这条统一入口上补读取、写入、验证与清理。
+
+### T-012C.4 读取链路说明
+- `T-012C.4` 已把后台增长工具台的读取链路统一收口到同一个页面壳子里，推荐列表、voucher 列表、统计卡、时间窗口、搜索与分页现在都从同一份数据入口中派生，不再各自散写读取逻辑。
+- 当前读链路的实际来源是：
+  - [`src/app/(dashboard)/admin/referrals/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/referrals/page.tsx) 负责一次性取回 referral / voucher 数据，并根据角色只给 ADMIN 传 voucher 数据。
+  - [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 负责在前端统一做时间窗口过滤、关键词过滤、状态过滤和分页展示。
+  - [`src/lib/admin/growth-console-matrix.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/admin/growth-console-matrix.ts) 继续作为列、筛选项和动作项的权威矩阵来源。
+- 读取链路已经覆盖这些维度：
+  - 推荐列表：按 `referralCode / referrer / referee / status / rewardGranted / createdAt` 统一展示，并支持关键词与状态筛选。
+  - Voucher 列表：按 `code / discountType / discountValue / usage / stripeCouponId / validity / status / action` 统一展示，并支持关键词、状态、类型筛选。
+  - 统计卡：按 `7D / 30D / ALL` 三档时间窗口计算推荐数、成功转化、待发奖励、可用 Voucher 与已核销次数。
+  - 分页：推荐列表与 Voucher 列表都在控制台内做本地分页，筛选条件变化时自动回到第一页，避免空页和错误页码。
+- 死链与空态仍然沿用 `T-012C.3` 里统一收口后的策略：旧的 `/admin/vouchers` 只做兼容重定向，空状态只在 Growth Console 内部渲染，不回退到伪页面。
+- 这一阶段的收口标准是：后台增长工具台的读取链路已经统一为一个正式入口、一套共享矩阵、同一组时间窗口与搜索/分页逻辑，后续 `T-012C.5 ~ T-012C.9` 只需要继续在这条链路上补写入、真实统计与最终验证。
+
+### T-012C.5 写链路说明
+- `T-012C.5` 已把后台增长工具台的写链路统一收口到 voucher 创建、启停与权限校验这三类动作，不再引入新的写入口或新的独立 voucher 页面。
+- 当前写链路的实际实现已经对齐到：
+  - [`src/actions/admin/voucher.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/voucher.ts) 负责 voucher 创建、启停、管理员身份校验、重复 code 拦截与同态短路。
+  - [`src/components/admin/referrals/GrowthToolsConsole.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/admin/referrals/GrowthToolsConsole.tsx) 负责在统一控制台里触发创建与启停动作。
+- 当前写链路已经覆盖这些边界：
+  - 创建 voucher：只允许管理员创建，重复 code 会返回明确的 `DUPLICATE_CODE`。
+  - 启停 voucher：只允许管理员切换状态；如果用户重复点击同一个状态，服务端会直接短路为 `UNCHANGED`，不再重复写库。
+  - 权限校验：未登录或非管理员访问会被统一拒绝，不会继续写入。
+  - 重复提交与幂等：创建走唯一约束防重，启停走同态短路防重，避免重复落库和无意义刷新。
+- 这一阶段的收口标准是：后台增长工具台的写链路已经在服务端形成真实写入路径，重复提交与权限边界都已收紧，后续 `T-012C.6 ~ T-012C.9` 只需要继续补真实统计、缓存刷新与最终验证。
+
+### T-012C.6 真实统计与趋势说明
+- `T-012C.6` 已把后台概览的真实统计与趋势收口到 Growth Console 的 KPI 卡里，推荐数、完成率、待发奖励、可用 voucher 与已核销次数都不再是静态占位，而是从当前真实数据中计算出来。
+- 当前统计口径已经统一为：
+  - 推荐数：`referrals.length` 的总量，以及按 `7D / 30D / ALL` 窗口切出的当前窗口推荐数。
+  - 完成率：`COMPLETED / 当前窗口推荐总数`，直接显示在“成功转化”卡的说明里。
+  - 待发奖励：`status = DEFERRED` 的数量。
+  - 可用 voucher：`isActive = true` 的 voucher 数量。
+  - 已核销次数：`redeemedCount > 0` 的 voucher 数量，以及当前窗口内 `redeemedCount` 的变化趋势。
+- 当前趋势口径也已经统一为窗口对比：
+  - 推荐数 / 成功转化 / 待发奖励 / 可用 voucher / 已核销次数都按 `7D / 30D / ALL` 的窗口计算。
+  - `ALL` 视角只显示累计，不再强行展示同比或环比。
+  - 成功转化卡额外补充了完成率说明，避免只看到“完成数”却看不到“转化率”。
+- 这一阶段的收口标准是：后台增长工具台的概览统计已经全部接入真实数据和真实窗口趋势，后续 `T-012C.7 ~ T-012C.9` 只需要继续补缓存、审计和最终核账。
+
+### T-012C.7 缓存与审计验证说明
+- `T-012C.7` 已把后台增长工具台的缓存失效、审计留痕、错误态、空态与角色边界验证收口为一组可重复执行的验证项，不再引入新的页面行为。
+- 当前缓存失效已经通过可复用 helper 固定下来：
+  - [`src/lib/referrals/cache.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/referrals/cache.ts) 负责 referral 读链路刷新，覆盖 `/dashboard`、`/dashboard/settings`、`/admin/referrals`、`/admin/users` 以及具体用户详情页。
+  - [`src/lib/cache/sitewide.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts) 负责 admin dashboard 概览 tag 的失效，确保后台概览不会停留在旧缓存。
+- 当前审计留痕已经通过 security log helper 统一口径：
+  - [`src/lib/admin/security-log.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/admin/security-log.ts) 统一了高风险动作、审计级别与 metadata 摘要格式。
+  - [`src/actions/admin/dashboard-overview.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/dashboard-overview.ts) 继续从 `securityLog` 派生 risks / audits，保证首页看到的是同一套真实审计事件。
+- 当前错误态与空态已经在 UI 内收口：
+  - Growth Console 的推荐表与 Voucher 表都保留“当前筛选下暂无…”的空态文案，不再回退到伪页面。
+  - `createVoucherCodeAction()` / `toggleVoucherStatusAction()` 的错误结果会在前端 toast 中显式回显，避免静默失败。
+- 角色边界验证也已经被测试钉住：
+  - `ADMIN` 与 `TEACHER` 的可见 tab / 可见 KPI 差异有 helper 测试。
+  - `ADMIN` 的写链路幂等短路、重复 code、非管理员拒绝与不存在 voucher 的错误语义都有单测覆盖。
+  - cache helper、security log helper 与 growth console helper 已一起跑过 `vitest`、`tsc` 与 `build`。
+- 这一阶段的收口标准是：缓存失效、审计留痕、错误态、空态与角色边界都已经通过 helper 和单测验证闭环，后续 `T-012C.8 ~ T-012C.9` 只需要继续做最终清理与数据库核账。
+
+### T-012C.8 清理说明
+- `T-012C.8` 已把后台增长工具台里残留的旧英文 voucher 文案、旧入口回调与兼容跳转进一步清理完毕：
+  - voucher 区域的展示文案已统一成中文优惠券口径，包含表头、筛选项、空态、按钮、输入提示与状态标签。
+  - [`src/actions/admin/voucher.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/voucher.ts) 已移除对 `/admin/vouchers` 的重复写后刷新，只保留真实生效入口所需的 `/admin/referrals` 与 `/pricing`。
+  - 不再承载正式 UI 的 [`src/app/(dashboard)/admin/vouchers/VoucherAdminClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/admin/vouchers/VoucherAdminClient.tsx) 已删除，旧的独立 voucher 客户端不再保留。
+- 本阶段已经补过单测、`tsc` 和 `build`，确认旧文案与旧跳转清理后没有带来回归。
+- 这一阶段的收口标准是：后台增长工具台不再保留容易误导的英文 voucher 文案、废弃回写入口与独立旧客户端，后续只保留真实管理控制台与真实支付链路。
+
+### T-012C.9 验证说明
+- `T-012C.9` 已把后台增长工具台的最终核账收口为一次可重复执行的 smoke 验证，不再追加新的页面行为。
+- 本次验证覆盖了：
+  - `ADMIN` / `TEACHER` 的可见 tab 差异：`ADMIN` 可见 `referrals / vouchers`，`TEACHER` 仅可见 `referrals`。
+  - 控制台字段矩阵差异：`ADMIN` 保留 voucher 字段与动作，`TEACHER` 不出现 voucher 列与筛选项。
+  - 临时优惠券的创建、读取、停用、回读与删除，前后数据库数量一致，没有遗留脏数据。
+- 本次验证使用了 [`scripts/t012c9-growth-console-smoke.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/scripts/t012c9-growth-console-smoke.ts) 完成数据库核账，结果为：
+  - `ok: true`
+  - `before.referralsCount = 2`
+  - `before.vouchersCount = 9`
+  - `adminTabs = ['referrals', 'vouchers']`
+  - `teacherTabs = ['referrals']`
+  - `after.referralsCount = 2`
+  - `after.vouchersCount = 9`
+- 这一阶段的收口标准是：后台增长工具台的角色边界、筛选入口、创建 / 启停 / 刷新一致性与数据库核账都已完成，`T-012C` 可以视为收口。
 
 ### T-012C 后台增长工具台统一概览和治理
 | id | description | owner | status |
 |---|---|---|---|
-| T-012C.1 | 盘点 `/admin/referrals`、`/admin/vouchers` 的页面结构、tab、筛选、统计、操作入口与角色边界 | codex | todo |
-| T-012C.2 | 建立后台增长工具台的字段矩阵：概览 KPI、推荐关系表、voucher 表、筛选项、详情项与操作项 | codex | todo |
-| T-012C.3 | 定义治理边界：`ADMIN` / `TEACHER` 的可见性、可操作性、死链处理、路由跳转与空态策略 | codex | todo |
-| T-012C.4 | 对齐后台增长工具台读取链路：推荐列表、voucher 列表、统计卡、时间窗口、搜索与分页 | codex | todo |
-| T-012C.5 | 对齐后台增长工具台写链路：创建 voucher、启停 voucher、权限校验、重复提交与幂等 | codex | todo |
-| T-012C.6 | 补后台概览的真实统计与趋势：推荐数、完成率、待发奖励、可用 voucher 与已核销次数 | codex | todo |
-| T-012C.7 | 补缓存失效、审计留痕、错误态、空态与角色边界验证 | codex | todo |
-| T-012C.8 | 清理假统计、旧文案、占位数据、废弃入口与无效跳转 | codex | todo |
-| T-012C.9 | 完成后台增长工具台验证：管理员 / 教师可见性、筛选、创建、启停、刷新一致性与数据库核账 | codex | todo |
+| T-012C.1 | 盘点 `/admin/referrals`、`/admin/vouchers` 的页面结构、tab、筛选、统计、操作入口与角色边界 | codex | done |
+| T-012C.2 | 建立后台增长工具台的字段矩阵：概览 KPI、推荐关系表、voucher 表、筛选项、详情项与操作项 | codex | done |
+| T-012C.3 | 定义治理边界：`ADMIN` / `TEACHER` 的可见性、可操作性、死链处理、路由跳转与空态策略 | codex | done |
+| T-012C.4 | 对齐后台增长工具台读取链路：推荐列表、voucher 列表、统计卡、时间窗口、搜索与分页 | codex | done |
+| T-012C.5 | 对齐后台增长工具台写链路：创建 voucher、启停 voucher、权限校验、重复提交与幂等 | codex | done |
+| T-012C.6 | 补后台概览的真实统计与趋势：推荐数、完成率、待发奖励、可用 voucher 与已核销次数 | codex | done |
+| T-012C.7 | 补缓存失效、审计留痕、错误态、空态与角色边界验证 | codex | done |
+| T-012C.8 | 清理假统计、旧文案、占位数据、废弃入口与无效跳转 | codex | done |
+| T-012C.9 | 完成后台增长工具台验证：管理员 / 教师可见性、筛选、创建、启停、刷新一致性与数据库核账 | codex | done |
 
 ### T-012.1 盘点结论
 - referral 的权威数据源主要分布在 `users` 与 `referrals` 两层：`users.referralCode / referralCount / referralLimit / subscriptionTier / subscriptionEnd / firstPaidAt` 负责身份与容量，`referrals.referrerId / refereeId / referralCode / status / rewardGranted / rewardDate / bindSource / refereePaidAt / refereeRewardGrantedAt / referrerRewardGrantedAt / deferredRewardTier / deferredRewardWeeks / deferredSettledAt` 负责关系与奖励流转。
@@ -1608,14 +1855,16 @@
 - `T-012A.3` 的收口标准是：用户不用离开设置页，就能完成“看到码 -> 复制码 -> 复制链接 -> 转发”的最小传播动作；如果后续要补二维码或更重的分享面板，也只能作为增强项，不能破坏这条最短路径。
 
 ### T-012A.4 绑定体验说明
-- `T-012A.4` 只负责把“看到推荐码 -> 带着推荐码去支付 -> 绑定结果有回显”这条链路做顺，不额外新增绑定规则。
-- 当前绑定体验已经由 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 承接：
-  - 会从 `?referralCode=` 自动预填推荐码。
-  - 允许用户在提交前手动修改或清空推荐码。
-  - 会把推荐码继续传给 checkout 和归因链路。
-  - 会把无效码、已绑定、自推、支付取消等结果以页面内提示形式回显。
-- 这一阶段的目标不是再造一个新的绑定页，而是把支付页上的绑定确认体验固定下来，保证用户能清楚知道“码是否已带入、是否可以继续购买、失败原因是什么”。
-- 后续如果要做更强的绑定反馈，也只能围绕支付页的错误态和回显态补强，不能打散现有 `Pricing -> Checkout -> Webhook` 这条主链。
+- `T-012A.4` 只负责把“看到推荐码 -> 带着推荐码去注册 -> 绑定结果有回显”这条链路做顺，不额外新增绑定规则。
+- 条目化收口如下：
+  - 已付费用户在 `Settings` 里查看自己的 `referral code`。
+  - 用户可复制纯 `referral code`，也可复制带 `referralCode` 的分享链接。
+  - 分享链接直接指向 `/register`，用于让新用户注册时自动预填推荐码。
+  - 新用户也可在 `/register` 手动选填或补填 `referral code`。
+  - `/register` 会对推荐码做格式校验与存在性校验，错误时给出明确提示。
+  - 注册成功后会写入推荐关系，但奖励仍只在被推荐者真实付费后生效。
+  - 不新增额外推荐确认页，不打散现有 `Settings -> /register -> 付费后生效` 主链。
+- 这一阶段的目标是把“谁推荐了谁”在注册前确认清楚，并尽量减少跳转。
 
 ### T-012A.5 奖励展示说明
 - `T-012A.5` 只负责把奖励展示的口径收口，不再引入新的奖励计算规则；这一步要确保用户侧和后台都看见同一套“已推荐 / 待结算 / 已发放 / 剩余额度”。
@@ -1628,6 +1877,34 @@
   - `remainingQuota` 统一输出剩余额度。
   - `totalInvites / completedInvites / deferredInvites / pendingInvites` 统一输出推荐结构。
 - 这一阶段的收口标准是：用户设置页、后台增长页、用户详情页看到的奖励状态和剩余额度必须一致，不再允许一边显示待结算、一边显示假完成数。
+
+### T-012A.6 分享动机优化说明
+- `T-012A.6` 只负责把“为什么要分享”讲清楚，不再新增奖励规则，也不改结算口径；本阶段的目标是让用户在设置页一眼看到传播收益和剩余额度，从而愿意把推荐码发出去。
+- 当前动机展示已经在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 落地：
+  - 奖励规则区明确写出双方都能得到额外会员时长。
+  - 推荐进度区把已完成推荐数和剩余邀请名额并排展示。
+  - 订阅区会额外提示待结算推荐奖励，避免用户只看到 code 却看不到收益进度。
+- 这一阶段只做“动机强化与可见化”，不新增新的分享弹窗或裂变玩法；后续如果要加强传播效率，只能在现有文案、进度和奖励卡片上微调，不打散当前设置页的布局。
+
+### T-012A.7 清理回退与重复入口说明
+- `T-012A.7` 只负责清掉用户侧分享区域里仍然容易让人误解的文案和入口，不再新增新的 referral 行为。
+- 当前要重点检查的内容主要落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：
+  - 空态文案是否会把“未生成推荐码”误说成系统失败。
+  - 复制、分享、奖励规则的按钮文案是否还能误导用户以为要跳到别的页面。
+  - “传播出口”是否存在重复入口或重复 CTA。
+  - “待结算推荐奖励”是否只是状态展示，而不是新的操作入口。
+- 这一阶段的目标是把设置页里和 referral 相关的所有说明都收敛成同一套真实口径：有码就展示码、无码就展示空态、能复制就复制、不能操作就禁用，不再保留假文案或冗余 CTA。
+- 该阶段完成后，设置页的 referral 区域应只剩下真实的展示、复制和分享动作，不保留任何会让用户误以为还能去别处处理 referral 的重复入口。
+- 当前设置页已去掉底部重复的“复制推荐码”入口，保留单一的码展示区、链接复制区与分享动作区，避免同一动作在页面上出现两个入口。
+
+### T-012A.8 浏览器验证说明
+- `T-012A.8` 负责把前面已经做完的设置页分享、奖励展示与页面刷新一致性真正走一遍浏览器，不再新增新的 referral 规则。
+- 当前已经实测到的用户侧路径是：
+  - 注册新账号后会自动进入 `Dashboard`，说明账号初始化与登录态建立正常。
+  - 进入 `Settings` 后，referral 区域会正确显示推荐码占位、复制推荐码、复制链接、复制分享文案、系统分享与奖励展示。
+  - 用户侧的推荐进度、奖励规则、待结算推荐奖励与剩余额度都能在页面里稳定回显。
+- 由于原始 `/pricing` 页面已经恢复，本次浏览器验证以设置页的分享与奖励回显为主；绑定/支付相关回显保留给后续重新接回前台入口时再补验，避免把原始定价页结构一起改掉。
+- 这一阶段的收口标准是：确认 `注册 -> Dashboard -> Settings -> 分享/奖励展示` 这条链路在浏览器里是真实可见的，同时不引入新的前台改动。
 
 ### T-013 内容导入入口域
 | id | description | owner | status |

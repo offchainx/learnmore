@@ -12,6 +12,12 @@ import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
 import { triggerWelcomeNotification } from '../notification/triggers'
 import { invalidateAdminDashboardOverview } from '@/lib/cache/sitewide'
+import {
+  lookupReferrerByReferralCode,
+  normalizeReferralCode,
+  recordReferralAttributionEvent,
+} from '@/lib/referrals/attribution'
+import { invalidateReferralReadViews } from '@/lib/referrals/cache'
 import { logPerf } from '@/lib/perf-log'
 
 function isPrismaConnectivityError(error: unknown): boolean {
@@ -166,10 +172,33 @@ function generateReferralCode(): string {
   return alphanumeric.slice(0, 8).padEnd(8, '0')
 }
 
+async function ensureReferralCode(userId: string, currentReferralCode: string | null) {
+  if (currentReferralCode) {
+    return currentReferralCode
+  }
+
+  const referralCode = generateReferralCode()
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      referralCode,
+    },
+  })
+
+  return referralCode
+}
+
 const signupSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z.string().min(6, '密码至少6位'),
   username: z.string().min(2, '用户名至少2位').optional(),
+  referralCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9]{8}$/, '推荐码格式不正确')
+    .optional()
+    .or(z.literal('')),
   utmSource: z.string().max(128).optional(),
   utmMedium: z.string().max(128).optional(),
   utmCampaign: z.string().max(128).optional(),
@@ -253,6 +282,7 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
     email: formData.get('email') as string,
     password: formData.get('password') as string,
     username: formData.get('username') as string | undefined,
+    referralCode: formData.get('referralCode') as string | undefined,
     utmSource: utmData.utmSource,
     utmMedium: utmData.utmMedium,
     utmCampaign: utmData.utmCampaign,
@@ -262,6 +292,15 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   const parsed = signupSchema.safeParse(data)
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message }
+  }
+
+  const normalizedReferralCode = normalizeReferralCode(parsed.data.referralCode)
+  const referrer = normalizedReferralCode
+    ? await lookupReferrerByReferralCode(normalizedReferralCode)
+    : null
+
+  if (normalizedReferralCode && !referrer) {
+    return { error: '推荐码不存在，请确认后重试' }
   }
 
   const supabase = await createClient()
@@ -325,6 +364,41 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
       console.warn('[Auth] User initialized with STARTER tier')
     } catch (e) {
       console.error('[Auth] User upsert error:', e)
+    }
+
+    if (normalizedReferralCode && referrer) {
+      try {
+        const referral = await prisma.referral.create({
+          data: {
+            referrerId: referrer.id,
+            refereeId: authData.user.id,
+            referralCode: normalizedReferralCode,
+            refereeEmail: parsed.data.email,
+            status: 'PENDING',
+            bindSource: 'REGISTER',
+          },
+        })
+
+        await recordReferralAttributionEvent(prisma, {
+          referralCode: normalizedReferralCode,
+          referralId: referral.id,
+          referrerId: referrer.id,
+          refereeId: authData.user.id,
+          eventType: 'BIND',
+          success: true,
+          metadata: {
+            result: 'BOUND',
+            source: 'REGISTER',
+          },
+        })
+
+        invalidateReferralReadViews({
+          userId: authData.user.id,
+          relatedUserId: referrer.id,
+        })
+      } catch (error) {
+        console.error('[Auth] Referral bind during signup failed:', error)
+      }
     }
 
     // 2. 初始化 UserSettings（Trigger 可能已创建，用 upsert 兜底）
@@ -543,6 +617,18 @@ export const getCurrentUser = cache(async function getCurrentUser() {
     return null
   }
 
+  if (dbUser && !dbUser.referralCode) {
+    try {
+      const referralCode = await ensureReferralCode(dbUser.id, dbUser.referralCode ?? null)
+      dbUser = {
+        ...dbUser,
+        referralCode,
+      }
+    } catch (error) {
+      console.warn('[Auth] Failed to backfill referral code in getCurrentUser:', error)
+    }
+  }
+
   // 兜底同步：若 auth.last_sign_in_at 比 public.users 新，补写镜像并累计 sign_in_count
   if (
     dbUser &&
@@ -664,6 +750,18 @@ export const getDashboardCurrentUser = cache(async function getDashboardCurrentU
   if (dbUser && dbUser.status === 'BANNED') {
     console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
     return null
+  }
+
+  if (dbUser && !dbUser.referralCode) {
+    try {
+      const referralCode = await ensureReferralCode(dbUser.id, dbUser.referralCode ?? null)
+      dbUser = {
+        ...dbUser,
+        referralCode,
+      }
+    } catch (error) {
+      console.warn('[Auth] Failed to backfill referral code in getDashboardCurrentUser:', error)
+    }
   }
 
   return dbUser

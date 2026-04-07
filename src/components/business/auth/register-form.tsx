@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { useActionState } from 'react'
 import { signupAction, type AuthFormState } from '@/actions/user/auth'
@@ -9,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useReferralCodeAvailability } from '@/lib/hooks/useReferralCodeAvailability'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -32,6 +34,19 @@ export function RegisterForm() {
   const utmSource = searchParams.get('utm_source') || ''
   const utmMedium = searchParams.get('utm_medium') || ''
   const utmCampaign = searchParams.get('utm_campaign') || ''
+  const referralCodeFromQuery = searchParams.get('referralCode') || ''
+  const referralError = searchParams.get('referralError') || ''
+  const [referralCode, setReferralCode] = useState(referralCodeFromQuery)
+  const referralCodeAvailability = useReferralCodeAvailability(referralCode)
+
+  useEffect(() => {
+    setReferralCode(referralCodeFromQuery)
+  }, [referralCodeFromQuery])
+
+  const referralCodeErrorMessage =
+    referralCode.trim() && referralCodeAvailability.status === 'unavailable'
+      ? referralCodeAvailability.reason || '这个推荐码无效，请检查后重试。'
+      : ''
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -55,9 +70,46 @@ export function RegisterForm() {
             <Input id="email" name="email" type="email" placeholder="name@example.com" required />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="referralCode">推荐码（选填）</Label>
+            <Input
+              id="referralCode"
+              name="referralCode"
+              placeholder="如果有推荐码可填写"
+              value={referralCode}
+              onChange={(event) => setReferralCode(event.target.value)}
+              autoCapitalize="characters"
+              spellCheck={false}
+              className={
+                referralCodeErrorMessage
+                  ? 'border-destructive focus-visible:ring-destructive'
+                  : undefined
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              如果你通过推荐链接进入，这里会自动带入；你也可以手动修改或留空。
+            </p>
+            {referralCodeAvailability.status === 'checking' && referralCode.trim() ? (
+              <p className="text-xs text-muted-foreground">正在验证推荐码...</p>
+            ) : null}
+            {referralCodeErrorMessage ? (
+              <p className="text-xs font-medium text-destructive">
+                这个推荐码无效，请检查后重试。
+              </p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="password">密码</Label>
             <Input id="password" name="password" type="password" minLength={6} required />
           </div>
+          {referralError && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-400">
+              {referralError === 'INVALID_REFERRAL_CODE'
+                ? '推荐链接无效，请检查后重试。'
+                : referralError === 'REFERRAL_NOT_FOUND'
+                  ? '未找到对应的推荐码，请确认后再注册。'
+                  : '推荐码暂时不可用，请稍后重试。'}
+            </div>
+          )}
           {state.error && (
             <div className="text-sm text-red-500 text-center">
               {state.error}

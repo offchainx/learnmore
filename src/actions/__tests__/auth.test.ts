@@ -1,10 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockSignInWithPassword, mockSignOut, mockRedirect, mockRevalidatePath } = vi.hoisted(() => ({
+const { mockSignInWithPassword, mockSignOut, mockSignUp, mockRedirect, mockRevalidatePath } = vi.hoisted(() => ({
   mockSignInWithPassword: vi.fn(),
   mockSignOut: vi.fn(),
+  mockSignUp: vi.fn(),
   mockRedirect: vi.fn(),
   mockRevalidatePath: vi.fn(),
+}))
+
+const {
+  mockLookupReferrerByReferralCode,
+  mockRecordReferralAttributionEvent,
+  mockInvalidateReferralReadViews,
+} = vi.hoisted(() => ({
+  mockLookupReferrerByReferralCode: vi.fn(),
+  mockRecordReferralAttributionEvent: vi.fn(),
+  mockInvalidateReferralReadViews: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -12,6 +23,7 @@ vi.mock('@/lib/supabase/server', () => ({
     auth: {
       signInWithPassword: mockSignInWithPassword,
       signOut: mockSignOut,
+      signUp: mockSignUp,
     },
   })),
 }))
@@ -32,6 +44,9 @@ vi.mock('@/lib/prisma', () => ({
       create: vi.fn(),
       update: vi.fn(),
     },
+    referral: {
+      create: vi.fn(),
+    },
     userSettings: {
       upsert: vi.fn(),
       create: vi.fn(),
@@ -40,11 +55,26 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
+vi.mock('@/lib/referrals/attribution', () => ({
+  lookupReferrerByReferralCode: mockLookupReferrerByReferralCode,
+  normalizeReferralCode: (value: string | null | undefined) =>
+    value?.trim().toUpperCase() || null,
+  recordReferralAttributionEvent: mockRecordReferralAttributionEvent,
+}))
+
+vi.mock('@/lib/referrals/cache', () => ({
+  invalidateReferralReadViews: mockInvalidateReferralReadViews,
+}))
+
 vi.mock('../notification/triggers', () => ({
   triggerWelcomeNotification: vi.fn(),
 }))
 
-import { loginAction, logoutAction } from '../user/auth'
+vi.mock('@/lib/cache/sitewide', () => ({
+  invalidateAdminDashboardOverview: vi.fn(),
+}))
+
+import { loginAction, logoutAction, signupAction } from '../user/auth'
 
 function buildLoginFormData(overrides?: Partial<{ email: string; password: string; redirectTo: string }>) {
   const formData = new FormData()
@@ -61,6 +91,10 @@ describe('auth actions', () => {
     vi.clearAllMocks()
     mockSignInWithPassword.mockResolvedValue({ error: null })
     mockSignOut.mockResolvedValue({ error: null })
+    mockSignUp.mockResolvedValue({ data: { user: null }, error: null })
+    mockLookupReferrerByReferralCode.mockResolvedValue(null)
+    mockRecordReferralAttributionEvent.mockResolvedValue(null)
+    mockInvalidateReferralReadViews.mockReturnValue(undefined)
   })
 
   describe('loginAction', () => {
@@ -138,6 +172,81 @@ describe('auth actions', () => {
 
       expect(mockSignOut).toHaveBeenCalledTimes(1)
       expect(mockRedirect).toHaveBeenCalledWith('/')
+    })
+  })
+
+  describe('signupAction', () => {
+    function buildSignupFormData(overrides?: Partial<{
+      email: string
+      password: string
+      username: string
+      referralCode: string
+      utm_source: string
+      utm_medium: string
+      utm_campaign: string
+    }>) {
+      const formData = new FormData()
+      formData.set('email', overrides?.email ?? 'student@example.com')
+      formData.set('password', overrides?.password ?? 'password123')
+      formData.set('username', overrides?.username ?? 'Student')
+      if (overrides?.referralCode !== undefined) {
+        formData.set('referralCode', overrides.referralCode)
+      }
+      if (overrides?.utm_source !== undefined) {
+        formData.set('utm_source', overrides.utm_source)
+      }
+      if (overrides?.utm_medium !== undefined) {
+        formData.set('utm_medium', overrides.utm_medium)
+      }
+      if (overrides?.utm_campaign !== undefined) {
+        formData.set('utm_campaign', overrides.utm_campaign)
+      }
+      return formData
+    }
+
+    it('注册时携带有效推荐码应完成绑定并跳转', async () => {
+      mockLookupReferrerByReferralCode.mockResolvedValueOnce({
+        id: 'referrer-1',
+        referralCode: 'ABCDEFGH',
+      })
+      mockSignUp.mockResolvedValueOnce({
+        data: { user: { id: 'student-1' } },
+        error: null,
+      })
+
+      const prisma = (await import('@/lib/prisma')).default as any
+      prisma.user.upsert.mockResolvedValueOnce({})
+      prisma.userSettings.upsert.mockResolvedValueOnce({})
+      prisma.referral.create.mockResolvedValueOnce({ id: 'referral-1' })
+
+      const result = await signupAction({}, buildSignupFormData({ referralCode: 'abcdefgh' }))
+
+      expect(result).toBeUndefined()
+      expect(mockLookupReferrerByReferralCode).toHaveBeenCalledWith('ABCDEFGH')
+      expect(mockSignUp).toHaveBeenCalledTimes(1)
+      expect(prisma.user.upsert).toHaveBeenCalledTimes(1)
+      expect(prisma.referral.create).toHaveBeenCalledTimes(1)
+      expect(mockRecordReferralAttributionEvent).toHaveBeenCalled()
+      expect(mockInvalidateReferralReadViews).toHaveBeenCalledWith({
+        userId: 'student-1',
+        relatedUserId: 'referrer-1',
+      })
+      expect(mockRedirect).toHaveBeenCalledWith('/dashboard')
+    })
+
+    it('无效推荐码应阻止注册并返回错误', async () => {
+      mockLookupReferrerByReferralCode.mockResolvedValueOnce(null)
+
+      const prisma = (await import('@/lib/prisma')).default as any
+      prisma.user.upsert.mockResolvedValueOnce({})
+      prisma.userSettings.upsert.mockResolvedValueOnce({})
+
+      const result = await signupAction({}, buildSignupFormData({ referralCode: 'ABCDEFGH' }))
+
+      expect(result).toEqual({ error: '推荐码不存在，请确认后重试' })
+      expect(prisma.user.upsert).not.toHaveBeenCalled()
+      expect(mockSignUp).not.toHaveBeenCalled()
+      expect(mockRedirect).not.toHaveBeenCalled()
     })
   })
 })
