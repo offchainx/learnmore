@@ -162,15 +162,12 @@
 | id | description | owner | status |
 |---|---|---|---|
 | T-001 | 检验：建立线上真实基线与样本 | codex | done |
-| T-001.1 | 使用真实浏览器测量 public 页与游客态受保护路由基线 | codex | done |
-| T-001.2 | 拉取最新 Vercel runtime logs，确认请求样本和可见路由 | codex | done |
-| T-001.3 | 补请求级诊断埋点：`proxy`、`getDashboardStats`、`ensureDailyTasks`、subject 聚合 | codex | done |
-| T-001.4 | 复测已登录态 `/dashboard` 与 dashboard 子页的真实首屏时序 | codex | done |
-| T-002 | 发现问题：定位已登录 dashboard 核心慢点 | codex | done |
-| T-002.1 | 确认登录后 `/dashboard` 首屏存在 30s+ 等待 | codex | done |
-| T-002.2 | 确认 `P2024`、connection pool timeout 与 `daily-tasks` 500 干扰 | codex | done |
-| T-002.3 | 确认首页尾巴从 summary 转移到 `home-subjects` | codex | done |
-| T-002.4 | 继续拆 `home-subjects`，识别 `subjectAndChapters` / `attemptsWithChapter` | codex | in_progress |
+| T-002 | 修复 Dashboard：把 DCL 压到 3s 以内 | codex | in_progress |
+| T-002.1 | 先确认当前 `/dashboard` 的 DCL 基线和首个阻塞点 | codex | done |
+| T-002.2 | 将 `/dashboard` 首页改为先出壳子，再后补主体内容 | codex | in_progress |
+| T-002.3 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
+| T-002.4 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
+| T-002.5 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
 | T-003 | 问题修复清单：列出并验证可执行拆分方案 | codex | done |
 | T-003.1 | 将 `DashboardPage` 拆为流式壳子和更轻的首页数据入口 | codex | done |
 | T-003.2 | 将首页拆成 `home-core`、`home-overview`、`home-activity`、`home-subjects` | codex | done |
@@ -193,6 +190,11 @@
 - 本轮使用真实 Chromium 浏览器、线上 production deployment 以及同一账号完成了两类基线：
   - 不需要登录的 public 页
   - 需要登录的 dashboard 核心路由
+- 对应的四个检验动作已经并入这一节的说明，不再单独占用 `T-001.1 ~ T-001.4` 任务位：
+  - 真实浏览器测量 public 页与游客态受保护路由基线
+  - 拉取最新 Vercel runtime logs，确认请求样本和可见路由
+  - 补请求级诊断埋点：`proxy`、`getDashboardStats`、`ensureDailyTasks`、subject 聚合
+  - 复测已登录态 `/dashboard` 与 dashboard 子页的真实首屏时序
 
 #### public 路由基线
 
@@ -225,14 +227,22 @@
   - dashboard 核心区已经明显快于最初的 30s+，但 `dashboard` 首页正文和若干子页仍然存在尾部加载
   - 这一步把问题范围从“全站未知”收窄到“dashboard 核心区与部分子页仍需继续优化”
 
-### T-002 发现问题结果（已完成）
+### T-002 Dashboard DCL 收口目标（进行中）
 
-- 已通过真实浏览器确认登录后 `/dashboard` 首屏存在 30s+ 等待
-- 已通过 runtime logs 确认过 `P2024`、connection pool timeout 与 `daily-tasks` 500 干扰
-- 已把首页尾巴从 summary / activity 逐步定位到 `home-subjects`
-- 已继续拆到 `subjectAndChapters` / `attemptsWithChapter` 的尾部阶段
+- 当前唯一目标：
+  - 把 `/dashboard` 的 `DOMContentLoaded` 压到 `3s` 以内
+- 当前推进方式：
+  - 先让壳子尽早返回
+  - 再把最重的数据流后补
+  - 如果还是超标，就继续拆最慢尾巴
+- 目前这条线的重点不是把所有 dashboard 数据一次性算完，而是先让用户在 3s 内看到 dashboard 可交互骨架
+
+#### T-002.1 当前基线与首个阻塞点（已完成）
+
+- 这一子任务已经完成，因为上一轮已用真实浏览器建立了 `/dashboard` 的 DCL 基线
+- 当前基线仍显示首页正文明显晚于 shell，说明首个阻塞点仍在 dashboard 首屏数据链路
 - 收口记录：
-  - 慢点不是单一页面故障，而是 dashboard-core 的服务端聚合尾部
+  - 后续所有修复动作都必须服务于 `DCL < 3s` 这个目标
 
 ### T-003 问题修复清单（已完成）
 

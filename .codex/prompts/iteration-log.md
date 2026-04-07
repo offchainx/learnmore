@@ -67,4 +67,6 @@
 
 | 2026-04-07 | 复测模板标准化 | 将 dashboard 性能复测口径压成固定模板，后续每轮直接填表复测 | 已在 `DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md` 的 `2.7` 节加入统一复测模板，覆盖路由、类别、DCL、首屏壳子完成时间、内容完成时间、关键内容标记、runtime log 备注与是否通过 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 统一复测口径后，后续每轮只填表，不再重新组织口径 | 下一步继续按 T-002 推进问题清单与修复闭环 | 这样可以把每轮复测结果保持在同一颗粒度 |
 
+| 2026-04-07 | T-002 目标重定义 | 将 dashboard 推进目标从泛化性能排查收束为 `DCL < 3s` | 已把 `T-001.1 ~ T-001.4` 收回到 `T-001` 说明段，并将 `T-002` 重新定义为“把 `/dashboard` 的 DOMContentLoaded 压到 3s 以内”，任务列表改为单一目标下的子任务推进 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 以后每完成一个 `T-002.x` 子任务，都要单独补说明性内容并复测 | 下一步继续推进 `T-002.2`，先让首页先出壳子再后补主体内容 | 这次重排用于统一 dashboard 性能线的颗粒度 |
+
 ## 约束
