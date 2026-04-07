@@ -63,4 +63,6 @@
 
 | 2026-04-06 | T-PERF.FIX.7 summary stats / overview 再拆分 | 将 dashboard summary 继续拆成 stats 与 overview 两段，先出 stats 再补趋势卡 | 已把 `home-core` 缩为 stats-first，并新增 `home-overview` 独立补 `overviewByWindow`；`DashboardHome` 正在同步更新成先渲染 stats 卡、再补趋势卡的两段式 summary | src/actions/dashboard.ts, src/app/api/dashboard/home-core/route.ts, src/app/api/dashboard/home-overview/route.ts, src/components/dashboard/DashboardHome.tsx, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 目标是继续提前首屏第一批可见内容，同时不删 summary 功能 | 下一轮部署 READY 后再用真实可见浏览器复测 summary 首次可见时间 | 这是 T-PERF.FIX.7 的下一层下拆 |
 
+| 2026-04-07 | T-001 dashboard 全路由真实基线 | 重新从 T-001 开始，使用真实 Chromium + Vercel runtime logs 记录 public 与登录态 dashboard 路由基线 | 已补齐 `T-001` 说明段：public 页 `/`、`/login`、`/pricing`、`/subjects`、`/about-us`、`/how-it-works`、`/register` 的 DCL/加载基线，以及登录后 `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community`、`/dashboard/leaderboard`、`/dashboard/achievements`、`/dashboard/settings` 的 DCL 与正文完成时间 | .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这轮用于把 T-001 从“检验”推进到“可重复的真实浏览器基线记录” | 下一步按 T-002 继续把发现的问题转成修复清单 | 这次基线把 dashboard 首页正文出现时间从 shell 与内容层分开记录 |
+
 ## 约束

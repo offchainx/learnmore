@@ -138,11 +138,40 @@
 
 ### T-001 检验结果（已完成）
 
-- 已通过真实浏览器测量 public 页与游客态受保护路由的基线
-- 已确认 public 区不是 30s 级全站灾难
-- 已确认游客态访问 `/dashboard*` 的重定向链路本身很快
-- 收口记录：
-  - 这一步把问题范围从“全站未知”收窄到“已登录核心区需要继续验证”
+- 本轮使用真实 Chromium 浏览器、线上 production deployment 以及同一账号完成了两类基线：
+  - 不需要登录的 public 页
+  - 需要登录的 dashboard 核心路由
+
+#### public 路由基线
+
+| 路由 | DCL | load | networkidle | 说明 |
+|---|---:|---:|---:|---|
+| `/` | `1717ms` | `2ms` | `6056ms` | 首页 shell 很快，静态资源与后续请求会继续跑 |
+| `/login` | `1070ms` | `3ms` | `3ms` | 登录页很快 |
+| `/pricing` | `840ms` | `242ms` | `1954ms` | 定价页正常 |
+| `/subjects` | `802ms` | `1ms` | `1ms` | 学科页正常 |
+| `/about-us` | `682ms` | `0ms` | `1895ms` | 关于页正常 |
+| `/how-it-works` | `719ms` | `1ms` | `1ms` | 说明页正常 |
+| `/register` | `643ms` | `4ms` | `2244ms` | 注册页正常 |
+
+#### 登录后 dashboard 路由基线
+
+| 路由 | DCL | load | networkidle / content | 说明 |
+|---|---:|---:|---:|---|
+| `/dashboard` | `2443ms` | `0ms` | `学习时长 / 最近练习 / 学习路径 / 排行榜` 约 `17775ms ~ 17783ms` | 首页 shell 先出来，正文内容在后续补齐 |
+| `/dashboard/courses` | `3440ms` | `1ms` | `11ms` | 课程页很快 |
+| `/dashboard/practice` | `3605ms` | `3606ms` | `15580ms` | 练习页有明显尾部请求 |
+| `/dashboard/community` | `7175ms` | `7289ms` | `7289ms` | 社区页正文约 7.3s 可见 |
+| `/dashboard/leaderboard` | `10605ms` | `10660ms` | `10660ms` | 排行榜页正文约 10.6s 可见 |
+| `/dashboard/achievements` | `11903ms` | `11944ms` | `11944ms` | 成就页正文约 11.9s 可见 |
+| `/dashboard/settings` | `3172ms` | `0ms` | `8173ms` | 设置页主体更快，但仍有后台请求尾巴 |
+
+- 登录提交到 `/dashboard` 的那条跳转链路在这轮测量里表现不稳定，因此正式基线以“登录后直接进入各路由”的结果为准
+
+- 当前代码结论：
+  - public 区不是 30s 级全站灾难
+  - dashboard 核心区已经明显快于最初的 30s+，但 `dashboard` 首页正文和若干子页仍然存在尾部加载
+  - 这一步把问题范围从“全站未知”收窄到“dashboard 核心区与部分子页仍需继续优化”
 
 ### T-002 发现问题结果（已完成）
 
