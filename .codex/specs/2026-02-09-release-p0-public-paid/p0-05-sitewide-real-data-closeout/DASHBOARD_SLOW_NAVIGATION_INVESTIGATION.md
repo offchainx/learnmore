@@ -483,6 +483,19 @@
   - 这一步的目标是把 `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 从默认的 `iad1` 路径里收回到与页面壳子一致的区域
   - 预期收益是减少 `sin1 -> iad1` 的额外跨区跳转，让请求路径更稳定，避免壳子和数据层在不同区域之间来回切换
 
+- 最新 runtime logs 的变化：
+  - 当前 production deployment 仍然显示 `regions: ["iad1"]`，所以日志右侧依然会看到 `Received in Singapore (sin1) -> Routed to Washington, D.C. (iad1)`
+  - 这说明 `preferredRegion = 'sin1'` 只是 Next.js 路由段的偏好声明，并没有直接把这次 deployment 的实际函数执行区域改成 `sin1`
+  - 要真正把函数落点收回到 `sin1`，还需要在 Vercel 项目级的 Functions region / Deployment region 配置里同步设置，再重新部署；单靠代码里的 route segment export 不足以改变当前 deployment 的区域元数据
+  - 当前 logs 里真正的高信号仍然是 `getDashboardCurrentUser...` 与 `getSubjectChapters...`，说明区域跳转只是一部分延迟，数据库和 subject 聚合仍是主尾巴
+
+- 继续压 `getDashboardCurrentUser.prisma.user.findUnique` 的动作：
+  - 新增 `getDashboardShellCurrentUser()` 作为 dashboard 首页 / 子页 / dashboard API 的轻量用户读取
+  - `home-core`、`home-overview`、`home-activity`、`home-subjects`、`daily-tasks`、`home-data` 已改用 shell 用户读取，不再为了首屏反复拉完整 `currentUser`
+  - `getDashboardCurrentUser()` 继续保留完整用户字段，专门给 settings 等确实需要 referral / subscription / sign-in mirror 的场景使用
+  - 这样做的目标是把 dashboard 热路径上的 Prisma 查询从“完整用户 + relation / mirror 写回”压成“壳子字段读取”，先减少每个 API 请求的负担，再看后续 runtime logs 是否进一步收敛
+  - 目前这一步还没有新的 runtime logs 复测结果，所以仍先把它记作“已落地代码、待新 deployment 验证”
+
 - 本轮复核结果：
   - 最新 production deployment `dpl_9uqk4JazMaP2S3srsQQimGh7Teqt` 仍显示 `regions: ["iad1"]`
   - 右侧 runtime 路径图仍然是 `Received in Singapore (sin1) -> Middleware -> Routed to Washington, D.C. (iad1)`，说明 source-level `preferredRegion = 'sin1'` 还没有把当前 deployment 的实际函数执行地拉回新加坡

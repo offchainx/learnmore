@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
-import { getCurrentUser, getDashboardCurrentUser } from '@/actions/user/auth'
+import { getCurrentUser, getDashboardCurrentUser, getDashboardShellCurrentUser } from '@/actions/user/auth'
 import { z } from 'zod'
 import { getHandleAvailability } from '@/lib/users/handle-server'
 import { normalizeHandle } from '@/lib/users/handle'
@@ -111,7 +111,7 @@ export async function getDashboardProfile(currentUser?: DashboardCurrentUser | n
 /**
  * Settings 页需要单独加载用户设置，避免把 settings 回源绑在 dashboard 首页首屏。
  */
-export async function getDashboardSettingsProfile(currentUser?: DashboardCurrentUser | null) {
+export async function getDashboardSettingsProfile(currentUser?: Awaited<ReturnType<typeof getDashboardCurrentUser>> | null) {
   const startedAt = performance.now()
   const user = currentUser ?? await getDashboardCurrentUser()
   if (!user) {
@@ -155,7 +155,7 @@ export async function getDashboardSettingsProfile(currentUser?: DashboardCurrent
  * 直接复用 getCurrentUser 结果，减少重复数据库访问。
  */
 export async function getDashboardShellProfile() {
-  const user = await getDashboardCurrentUser()
+  const user = await getDashboardShellCurrentUser()
   if (!user) return null
   return user
 }

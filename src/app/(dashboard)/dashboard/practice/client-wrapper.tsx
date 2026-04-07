@@ -5,10 +5,10 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { getDashboardRoute } from '@/components/layout/dashboard-nav'
 import { PracticeCenterScreen } from '@/components/practice/PracticeView'
 import { useApp } from '@/providers'
-import { User } from '@prisma/client'
+import type { DashboardShellUser } from '@/actions/user/auth'
 
 interface PracticeClientWrapperProps {
-  user: User
+  user: DashboardShellUser
   initialSubjectId?: string
 }
 

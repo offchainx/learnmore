@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getDashboardCurrentUser } from '@/actions/user/auth'
+import { getDashboardShellProfile } from '@/actions/user/profile'
 import { ensureDailyTasks, getTodayTasks } from '@/actions/gamification/daily-tasks'
 
 export const preferredRegion = 'sin1'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const user = await getDashboardCurrentUser()
+  const user = await getDashboardShellProfile()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

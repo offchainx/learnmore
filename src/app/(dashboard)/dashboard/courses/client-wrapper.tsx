@@ -5,10 +5,10 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { getDashboardRoute } from '@/components/layout/dashboard-nav'
 import { CoursesView } from '@/components/courses/CoursesView'
 import { useApp } from '@/providers'
-import { User } from '@prisma/client'
+import type { DashboardShellUser } from '@/actions/user/auth'
 
 interface CoursesClientWrapperProps {
-  user: User
+  user: DashboardShellUser
 }
 
 export function CoursesClientWrapper({ user }: CoursesClientWrapperProps) {

@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { getDashboardRoute } from '@/components/layout/dashboard-nav'
 import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
 import { useApp } from '@/providers'
-import { User } from '@prisma/client'
+import type { DashboardShellUser } from '@/actions/user/auth'
 import type { LeaderboardEntryWithUser } from '@/actions/leaderboard'
 import type {
   AchievementOverview,
@@ -13,7 +13,7 @@ import type {
 } from '@/lib/gamification/achievements-types'
 
 interface LeaderboardClientWrapperProps {
-  user: User
+  user: DashboardShellUser
   initialPeriod: 'WEEKLY' | 'MONTHLY' | 'ALL_TIME'
   initialEntries: LeaderboardEntryWithUser[]
   initialMyRank: number | null

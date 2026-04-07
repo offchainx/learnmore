@@ -4,14 +4,14 @@ import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { getDashboardRoute } from '@/components/layout/dashboard-nav'
 import { AchievementsView } from '@/components/achievements/AchievementsView'
-import { User } from '@prisma/client'
+import type { DashboardShellUser } from '@/actions/user/auth'
 import type {
   AchievementOverview,
   BadgeWithUnlockStatus,
 } from '@/lib/gamification/achievements-types'
 
 interface AchievementsClientWrapperProps {
-  user: User
+  user: DashboardShellUser
   overview: AchievementOverview | null
   badges: BadgeWithUnlockStatus[]
 }

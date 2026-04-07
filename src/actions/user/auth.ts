@@ -8,6 +8,7 @@ import { z } from 'zod'
 import prisma from '@/lib/prisma'
 import { randomBytes } from 'crypto'
 import { cache } from 'react'
+import type { SubscriptionTier, UserRole } from '@prisma/client'
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 import { INTERNAL_AUTH_USER_ID_HEADER } from '@/lib/auth/request-context'
 import { triggerWelcomeNotification } from '../notification/triggers'
@@ -663,6 +664,89 @@ export const getCurrentUser = cache(async function getCurrentUser() {
 
   return dbUser
   
+})
+
+export type DashboardShellUser = {
+  id: string
+  username: string | null
+  avatar: string | null
+  handle: string | null
+  role: UserRole
+  status: 'ACTIVE' | 'BANNED' | 'PAUSED'
+  grade: number | null
+  streak: number | null
+  xp: number | null
+  subscriptionTier: SubscriptionTier | null
+  subscriptionEnd: Date | null
+}
+
+export const getDashboardShellCurrentUser = cache(async function getDashboardShellCurrentUser() {
+  const startedAt = performance.now()
+  const incomingHeaders = await headers()
+  const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+  let userId = forwardedUserId
+  let authUser: SupabaseAuthUser | null = null
+
+  const dashboardShellUserSelect = {
+    id: true,
+    username: true,
+    avatar: true,
+    handle: true,
+    role: true,
+    status: true,
+    grade: true,
+    streak: true,
+    xp: true,
+    subscriptionTier: true,
+    subscriptionEnd: true,
+  } as const
+
+  if (!userId) {
+    const authStartedAt = performance.now()
+    authUser = await getAuthUserFromSupabase()
+    logPerf('getDashboardShellCurrentUser.authUser', authStartedAt, {
+      hasForwardedUserId: Boolean(forwardedUserId),
+      userId: authUser?.id ?? null,
+    })
+    if (!authUser) return null
+    userId = authUser.id
+  }
+
+  try {
+    const dbLookupStartedAt = performance.now()
+    const dbUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: dashboardShellUserSelect,
+    })
+    logPerf('getDashboardShellCurrentUser.prisma.user.findUnique', dbLookupStartedAt, {
+      hasForwardedUserId: Boolean(forwardedUserId),
+      found: Boolean(dbUser),
+    })
+
+    if (!dbUser) return null
+    if (dbUser.status === 'BANNED') {
+      console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
+      return null
+    }
+
+    return dbUser
+  } catch (error) {
+    if (isPrismaConnectivityError(error)) {
+      console.warn('[Auth] Database unavailable in getDashboardShellCurrentUser; returning null.')
+      return null
+    }
+
+    if (isPrismaSchemaMismatchError(error)) {
+      console.warn('[Auth] Database schema mismatch in getDashboardShellCurrentUser; trying fallback query.')
+      const fallbackUser = await getCurrentUserFallbackByRaw(userId)
+      if (fallbackUser) {
+        return fallbackUser as DashboardShellUser
+      }
+      return null
+    }
+
+    throw error
+  }
 })
 
 export const getDashboardCurrentUser = cache(async function getDashboardCurrentUser() {

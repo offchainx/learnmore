@@ -3,11 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { getDashboardRoute } from '@/components/layout/dashboard-nav'
-import { User } from '@prisma/client'
+import type { DashboardShellUser } from '@/actions/user/auth'
 
 interface CommunityClientWrapperProps {
   children: React.ReactNode
-  user: User
+  user: DashboardShellUser
 }
 
 export function CommunityClientWrapper({ children, user }: CommunityClientWrapperProps) {

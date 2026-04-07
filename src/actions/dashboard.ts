@@ -1,7 +1,10 @@
 'use server'
 
 import prisma from '@/lib/prisma'
-import { getDashboardCurrentUser } from '@/actions/user/auth'
+import {
+  getDashboardCurrentUser,
+  getDashboardShellCurrentUser,
+} from '@/actions/user/auth'
 import dayjs from 'dayjs'
 import { ensureDailyTasks } from '@/actions/gamification/daily-tasks'
 import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
@@ -588,7 +591,7 @@ function buildRecentPracticeHref(input: {
 }
 
 async function buildLeaderboardCard(
-  user: Awaited<ReturnType<typeof getDashboardCurrentUser>>,
+  user: DashboardCurrentUser,
   userAccuracy: number,
   minDate: Date
 ): Promise<DashboardLeaderboardModule> {
@@ -706,7 +709,7 @@ async function buildLeaderboardCard(
   }
 }
 
-type DashboardCurrentUser = Awaited<ReturnType<typeof getDashboardCurrentUser>>
+type DashboardCurrentUser = Awaited<ReturnType<typeof getDashboardShellCurrentUser>>
 
 export async function getDashboardStats(
   currentUser?: DashboardCurrentUser | null,
@@ -720,7 +723,7 @@ export async function getDashboardStats(
   } = {}
 ): Promise<DashboardData | null> {
   const startedAt = performance.now()
-  const user = currentUser ?? await getDashboardCurrentUser()
+  const user = currentUser ?? await getDashboardShellCurrentUser()
   if (!user) {
     logPerf('getDashboardStats', startedAt, { status: 'no-user' })
     return null
