@@ -97,4 +97,6 @@
 
 | 2026-04-07 | T-002.3.2 本地 perf 静默 | 减少本地开发环境被轻量 `[Perf]` info 刷屏的噪声 | `src/lib/perf-log.ts` 现在只在生产环境输出低于阈值的 perf info；本地开发环境只保留超阈值 warning，避免本地服务器终端被大量轻量 perf 请求刷屏 | src/lib/perf-log.ts, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了让本地调试时更容易看出真正慢的请求，而不是被大量轻量 perf 记录淹没 | 下一步如果需要，再观察本地和生产环境的日志差异是否足够清晰 | 这一步仍然属于 T-002.3.2 的 warning 清理范围 |
 
+| 2026-04-07 | T-002.3.2 本地 perf 默认静默 | 进一步收口本地开发环境 perf 噪声，默认不输出 `[Perf]` | `src/lib/perf-log.ts` 现在在非生产环境默认直接静默 perf 日志，只有显式设置 `LOCAL_PERF_LOGS=true` 时才打开；生产环境仍然保留阈值内 info / 超阈值 warn 的分级策略 | src/lib/perf-log.ts, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了让本地服务器终端默认保持安静，避免开发调试时被 perf 请求刷屏 | 下一步如果需要调试 perf，再临时打开 `LOCAL_PERF_LOGS=true` | 这一步仍然属于 T-002.3.2 的 warning 清理范围 |
+
 ## 约束
