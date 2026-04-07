@@ -500,6 +500,7 @@
 - 做了什么：
   - 把 `src/lib/perf-log.ts` 的输出策略从“全部 `console.warn`”改成“默认 1s 以内走 `console.info`，只有真正慢的事件才继续 `console.warn`”
   - 这样像 `getDashboardShellCurrentUser.prisma.user.findUnique`、`getDashboardProfile`、`getDashboardStats.total` 这类几十毫秒到几百毫秒的埋点，就不会继续以 warning 形式污染 runtime logs
+  - 进一步把本地开发环境的轻量 perf 埋点静默掉：非生产环境下只保留超阈值的 warning，不再额外输出 info，避免本地服务器终端被 `[Perf]` 请求刷屏
   - 把 Prisma 的旧式 `package.json#prisma` 配置迁到 `prisma.config.ts`，让 build logs 不再提示这项配置已弃用
   - 把 pnpm build scripts 白名单写进 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`，把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 这些已知依赖的构建脚本纳入批准范围，避免 build logs 重复报“ignored build scripts”
   - 把 Gemini 客户端改成惰性初始化，不再在模块加载期直接打印 `GEMINI_API_KEY is not set in environment variables.`，改为只有真正调用 AI 功能时才返回明确错误
@@ -514,6 +515,7 @@
 - 结果预期：
   - 真正慢的 subject 尾部、数据库连接池超时和首屏阻塞仍然会保留 warning
   - 轻量 perf 埋点会降级到 info，runtime logs 只保留对排查真正有帮助的噪声
+  - 本地开发环境不会再刷出大量轻量 perf info，只在真正慢时保留 warning
   - Prisma 的弃用提示与 pnpm 的 ignored build scripts 提示会在后续 build 中收敛掉，只保留真正值得关注的构建异常
   - Gemini 缺 key 的提示不会再在 build 期模块加载时刷屏；如果生产环境真的没配 key，只有调用 AI 功能时才会返回明确错误
   - Next.js 的 `metadataBase` warning 也已经收口，不再默认回退到 `http://localhost:3000`

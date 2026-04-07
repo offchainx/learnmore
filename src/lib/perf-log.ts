@@ -16,5 +16,7 @@ export function logPerf(
     return
   }
 
-  console.info(`[Perf] ${label}`, payload)
+  if (process.env.NODE_ENV === 'production') {
+    console.info(`[Perf] ${label}`, payload)
+  }
 }

@@ -95,4 +95,6 @@
 
 | 2026-04-07 | T-002.3.2 canvas / DOMMatrix 修复 | 收口 `/admin/content/import` 的 PDF 渲染依赖与 SSR 初始化错误 | 旧版 `canvas` 直接依赖已移除，`src/lib/content-pipeline/pdf-utils.ts` 改为仅在真正处理 PDF 时才动态加载 `@napi-rs/canvas` 与 `pdfjs-dist`，并在加载前挂好 `DOMMatrix` / `ImageData` / `Path2D` 全局；`next.config.ts` 里把 `@napi-rs/canvas` 标成 server external，`pnpm run build` 已通过，`/admin/content/import` 不会再在模块初始化期因 `DOMMatrix is not defined` 直接炸掉 | package.json, pnpm-workspace.yaml, next.config.ts, pnpm-lock.yaml, src/lib/content-pipeline/pdf-utils.ts, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了让 build logs 不再出现 canvas 安装噪声，同时把 `/admin/content/import` 的 SSR 错误收口 | 下一步等新的 deployment 再复查 build / runtime logs 是否还会出现 PDF 渲染相关告警 | 这一步仍然属于 T-002.3.2 的 warning 清理范围 |
 
+| 2026-04-07 | T-002.3.2 本地 perf 静默 | 减少本地开发环境被轻量 `[Perf]` info 刷屏的噪声 | `src/lib/perf-log.ts` 现在只在生产环境输出低于阈值的 perf info；本地开发环境只保留超阈值 warning，避免本地服务器终端被大量轻量 perf 请求刷屏 | src/lib/perf-log.ts, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了让本地调试时更容易看出真正慢的请求，而不是被大量轻量 perf 记录淹没 | 下一步如果需要，再观察本地和生产环境的日志差异是否足够清晰 | 这一步仍然属于 T-002.3.2 的 warning 清理范围 |
+
 ## 约束
