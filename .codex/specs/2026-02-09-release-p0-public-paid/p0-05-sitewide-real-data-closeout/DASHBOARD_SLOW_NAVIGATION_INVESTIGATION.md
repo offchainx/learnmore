@@ -506,6 +506,7 @@
   - 在确认 skeleton 仍然“壳味太重”之后，进一步试验性移除了 `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community` 的专用 loading，让这几个路由直接等待真实内容完成；这一步的目的就是验证“如果能直接渲染完成，就不要为了 loading 而 loading”是否更符合体感
   - 继续把 `/dashboard` 页面内部那层“先出壳”的骨架分支拿掉，让主内容直接依赖真实数据或空态兜底渲染，不再在页面内部额外制造一层与最终布局差异很大的 skeleton
   - 一并卸掉 `/admin` 这组父级 loading，以及 `[src/app/course/[subjectId]/loading.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/course/[subjectId]/loading.tsx)`，让 `/admin` 及其子路由、课程详情页都不再先出通用壳子
+  - 紧接着把 `achievements`、`leaderboard`、`settings` 三个 dashboard 子路由的独立 `loading.tsx` 也删掉，让这三页都直接等待真实内容完成，不再先走 route-level skeleton
   - 把 Prisma 的旧式 `package.json#prisma` 配置迁到 `prisma.config.ts`，让 build logs 不再提示这项配置已弃用
   - 把 pnpm build scripts 白名单写进 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`，把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 这些已知依赖的构建脚本纳入批准范围，避免 build logs 重复报“ignored build scripts”
   - 把 Gemini 客户端改成惰性初始化，不再在模块加载期直接打印 `GEMINI_API_KEY is not set in environment variables.`，改为只有真正调用 AI 功能时才返回明确错误
@@ -536,6 +537,7 @@
   - 本地与线上的页面 loading 也已经从“通用壳”继续往“页面专用骨架”推进，后续如果路由本身已经足够快，就按“能直接渲染就直接渲染”的原则继续收紧不必要的 skeleton
   - `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community` 这四个路由已做“拿掉壳子”试验；若真实浏览器和用户反馈都更自然，就保持无壳或极轻骨架，否则再按路由单独加回最小必要 loading
   - `/dashboard` 的内部 skeleton、`/admin` 父级 loading 以及 `[src/app/course/[subjectId]/loading.tsx](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/course/[subjectId]/loading.tsx)` 也已同步卸掉，接下来重点只看真实渲染结果是否更顺滑
+  - `achievements`、`leaderboard`、`settings` 这三个 dashboard 路由也已经同步卸掉 route-level loading，后续如果仍然需要 loading，再按真实耗时和体感单独加回最小骨架
 - 推进规则：
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号
