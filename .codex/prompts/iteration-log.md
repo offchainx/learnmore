@@ -99,4 +99,6 @@
 
 | 2026-04-07 | T-002.3.2 本地 perf 默认静默 | 进一步收口本地开发环境 perf 噪声，默认不输出 `[Perf]` | `src/lib/perf-log.ts` 现在在非生产环境默认直接静默 perf 日志，只有显式设置 `LOCAL_PERF_LOGS=true` 时才打开；生产环境仍然保留阈值内 info / 超阈值 warn 的分级策略 | src/lib/perf-log.ts, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了让本地服务器终端默认保持安静，避免开发调试时被 perf 请求刷屏 | 下一步如果需要调试 perf，再临时打开 `LOCAL_PERF_LOGS=true` | 这一步仍然属于 T-002.3.2 的 warning 清理范围 |
 
+| 2026-04-08 | T-002.3.2 页面级 skeleton 收口 | 将 dashboard 相关 loading 从通用壳改成更贴近真实页面的 route-specific skeleton | 已把 `DashboardRouteLoading` 的主内容区改成按 `dashboard / courses / practice / community / leaderboard / settings / achievements / admin` 分别渲染更贴近真实页面布局的 skeleton，并补上了 `courses` 与 `achievements` 的专用 `loading.tsx`，避免它们回退到通用壳；`tsc` 与 `eslint` 已通过 | src/components/loading/dashboard-route-loading.tsx, src/app/(dashboard)/dashboard/courses/loading.tsx, src/app/(dashboard)/dashboard/achievements/loading.tsx, .codex/specs/2026-04-07-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步是为了兑现“能直接渲染就直接渲染，不为 loading 而 loading”的原则，让必须有 loading 的路由也尽量像它自己，而不是统一通用壳 | 下一步如需再收口，就按各路由实际耗时判断是否还能删掉某些 skeleton | 这一步对应 T-002.3.2 的最后一项收口 |
+
 ## 约束

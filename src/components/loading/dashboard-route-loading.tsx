@@ -4,16 +4,20 @@ import { cn } from '@/lib/utils'
 
 type RouteLoadingVariant =
   | 'dashboard'
+  | 'courses'
   | 'practice'
   | 'leaderboard'
   | 'community'
   | 'settings'
+  | 'achievements'
   | 'admin'
 
 function LoadingHero({
   actionWidth = 'w-28',
+  metricCount = 3,
 }: {
   actionWidth?: string
+  metricCount?: 2 | 3 | 4
 }) {
   return (
     <PageHeroShell
@@ -23,12 +27,32 @@ function LoadingHero({
       subtitle={<Skeleton className="mt-3 h-4 w-full max-w-2xl rounded-full" />}
       actions={<Skeleton className={cn('h-11 rounded-full', actionWidth)} />}
     >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Skeleton className="h-20 rounded-[24px]" />
-        <Skeleton className="h-20 rounded-[24px]" />
-        <Skeleton className="h-20 rounded-[24px]" />
+      <div className={cn('grid gap-3', metricCount === 4 ? 'sm:grid-cols-2 xl:grid-cols-4' : metricCount === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3')}>
+        {Array.from({ length: metricCount }).map((_, index) => (
+          <Skeleton key={`hero-metric-${index}`} className="h-20 rounded-[24px]" />
+        ))}
       </div>
     </PageHeroShell>
+  )
+}
+
+function LoadingPageBanner({
+  actionWidth = 'w-28',
+  titleWidth = 'w-56',
+  subtitleWidth = 'w-full max-w-2xl',
+}: {
+  actionWidth?: string
+  titleWidth?: string
+  subtitleWidth?: string
+}) {
+  return (
+    <PageHeroShell
+      className="border border-borderTone bg-[linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] shadow-surface"
+      eyebrow={<Skeleton className="h-6 w-28 rounded-full" />}
+      title={<Skeleton className={cn('h-10 rounded-2xl', titleWidth)} />}
+      subtitle={<Skeleton className={cn('mt-3 h-4 rounded-full', subtitleWidth)} />}
+      actions={<Skeleton className={cn('h-11 rounded-full', actionWidth)} />}
+    />
   )
 }
 
@@ -139,10 +163,21 @@ function DashboardVariantSkeleton({
   if (variant === 'practice') {
     return (
       <div className="space-y-4">
-        <LoadingHero actionWidth="w-36" />
+        <LoadingPageBanner actionWidth="w-36" titleWidth="w-48" />
+        <div className="rounded-[28px] border border-borderTone bg-surface p-4 shadow-surface">
+          <Skeleton className="h-4 w-24 rounded-full" />
+          <div className="mt-4 flex flex-wrap gap-3">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <Skeleton key={`practice-chip-${index}`} className="h-10 w-24 rounded-full" />
+            ))}
+          </div>
+        </div>
         <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
           <LoadingPanel lines={3} footer />
-          <LoadingPanel lines={4} />
+          <div className="space-y-4">
+            <LoadingPanel lines={3} />
+            <LoadingPanel lines={3} />
+          </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           <LoadingPanel lines={2} className="lg:col-span-1" />
@@ -156,7 +191,7 @@ function DashboardVariantSkeleton({
   if (variant === 'leaderboard') {
     return (
       <div className="space-y-4">
-        <LoadingHero actionWidth="w-32" />
+        <LoadingPageBanner actionWidth="w-32" titleWidth="w-48" />
         <div className="flex flex-wrap gap-2">
           <Skeleton className="h-10 w-24 rounded-full" />
           <Skeleton className="h-10 w-28 rounded-full" />
@@ -173,9 +208,25 @@ function DashboardVariantSkeleton({
   if (variant === 'community') {
     return (
       <div className="space-y-4">
-        <LoadingHero actionWidth="w-32" />
+        <LoadingPageBanner actionWidth="w-32" titleWidth="w-48" />
+        <div className="rounded-[28px] border border-borderTone bg-surface p-4 shadow-surface">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton
+                  key={`community-filter-${index}`}
+                  className="h-10 w-24 rounded-full"
+                />
+              ))}
+            </div>
+            <Skeleton className="h-10 w-32 rounded-full" />
+          </div>
+        </div>
         <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
-          <LoadingPanel lines={4} />
+          <div className="space-y-4">
+            <LoadingPanel lines={4} />
+            <LoadingPanel lines={3} />
+          </div>
           <div className="space-y-4">
             <LoadingPanel lines={3} />
             <LoadingPanel lines={3} />
@@ -188,7 +239,7 @@ function DashboardVariantSkeleton({
   if (variant === 'settings') {
     return (
       <div className="space-y-4">
-        <LoadingHero actionWidth="w-28" />
+        <LoadingPageBanner actionWidth="w-28" titleWidth="w-44" />
         <div className="grid gap-4 xl:grid-cols-[0.28fr_0.72fr]">
           <div className="rounded-[28px] border border-borderTone bg-surface p-4 shadow-surface">
             <div className="space-y-3">
@@ -209,14 +260,57 @@ function DashboardVariantSkeleton({
     )
   }
 
+  if (variant === 'achievements') {
+    return (
+      <div className="space-y-4">
+        <LoadingPageBanner actionWidth="w-28" titleWidth="w-48" />
+        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+          <div className="space-y-4">
+            <LoadingStatGrid columns={3} />
+            <LoadingPanel lines={4} footer />
+          </div>
+          <div className="space-y-4">
+            <LoadingPanel lines={3} />
+            <LoadingList rows={5} />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (variant === 'admin') {
     return (
       <div className="space-y-4">
-        <LoadingHero actionWidth="w-32" />
-        <LoadingStatGrid columns={3} />
-        <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
+        <LoadingPageBanner actionWidth="w-32" titleWidth="w-48" />
+        <LoadingStatGrid columns={4} />
+        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.95fr_0.95fr]">
           <LoadingPanel lines={4} />
-          <LoadingList rows={6} />
+          <LoadingPanel lines={3} />
+          <LoadingList rows={5} />
+        </div>
+      </div>
+    )
+  }
+
+  if (variant === 'courses') {
+    return (
+      <div className="space-y-4">
+        <LoadingPageBanner actionWidth="w-32" titleWidth="w-48" />
+        <div className="rounded-[28px] border border-borderTone bg-surface p-4 shadow-surface">
+          <Skeleton className="h-4 w-24 rounded-full" />
+          <div className="mt-4 flex flex-wrap gap-3">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <Skeleton key={`course-chip-${index}`} className="h-10 w-28 rounded-full" />
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.8fr]">
+          <LoadingPanel lines={4} footer />
+          <LoadingPanel lines={4} />
+        </div>
+        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+          <LoadingList rows={4} />
+          <LoadingPanel lines={3} footer />
         </div>
       </div>
     )
@@ -224,15 +318,16 @@ function DashboardVariantSkeleton({
 
   return (
     <div className="space-y-4">
-      <LoadingHero actionWidth="w-28" />
+      <LoadingHero actionWidth="w-28" metricCount={4} />
       <LoadingStatGrid columns={4} />
-      <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
+        <LoadingPanel lines={3} footer />
         <LoadingPanel lines={3} />
-        <LoadingPanel lines={4} />
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <LoadingPanel lines={2} footer />
-        <LoadingPanel lines={2} footer />
+      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_0.85fr]">
+        <LoadingPanel lines={3} />
+        <LoadingPanel lines={3} />
+        <LoadingPanel lines={2} />
       </div>
     </div>
   )
