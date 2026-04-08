@@ -32,7 +32,7 @@ describe('AppSidebar', () => {
     const dashboardItems = screen.getAllByText('Dashboard')
     expect(dashboardItems.length).toBeGreaterThan(0)
     
-    const coursesItems = screen.getAllByText('My Courses') 
+    const coursesItems = screen.getAllByText('Courses')
     expect(coursesItems.length).toBeGreaterThan(0)
   })
 })

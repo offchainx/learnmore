@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useApp } from '@/providers'
 
 interface NavItem {
   title: string
@@ -130,19 +129,6 @@ const SidebarContent = ({ onClose, userRole }: { onClose?: () => void; userRole?
            <span className="relative z-10 leading-none pt-[1px]">{isPending ? 'Logging out...' : 'Log Out'}</span>
         </button>
 
-        {/* Level Progress Card */}
-        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-indigo-100 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-100 dark:border-white/5 relative overflow-hidden group cursor-pointer">
-          <div className="relative z-10">
-            <h4 className="font-bold text-sm mb-1 text-indigo-900 dark:text-white">Level 12</h4>
-            <div className="flex items-center justify-between text-xs text-indigo-700 dark:text-slate-400 mb-2">
-              <span>1,250 XP</span>
-              <span>/ 2,000</span>
-            </div>
-            <div className="w-full bg-white dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-blue-500 h-1.5 rounded-full w-[65%]"></div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

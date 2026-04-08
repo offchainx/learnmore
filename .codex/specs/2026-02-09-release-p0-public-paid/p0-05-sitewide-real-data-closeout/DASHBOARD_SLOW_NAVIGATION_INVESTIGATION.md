@@ -167,8 +167,8 @@
 | T-002.2 | 拆解当前 `/dashboard` 完整渲染链路、API 批次与主耗时 | codex | done |
 | T-002.3 | 把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块 | codex | done |
 | T-002.3.1 | 三步顺序推进：先收口 dashboard API region，再复测 runtime logs，最后压 `getDashboardCurrentUser.prisma.user.findUnique` | codex | done |
-| T-002.3.2 | 收敛 dashboard 里仍然可见的 warnings，尽量消掉 perf 噪声与误导性慢点提示 | codex | in_progress |
-| T-002.4 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | todo |
+| T-002.3.2 | 收敛 dashboard 里仍然可见的 warnings，尽量消掉 perf 噪声与误导性慢点提示 | codex | done |
+| T-002.4 | 将最重的 dashboard 数据流拆成更小的后补请求 | codex | in_progress |
 | T-002.5 | 复测 `/dashboard` 的 DCL，验证是否进入 `3s` 以内 | codex | todo |
 | T-002.6 | 若 DCL 仍超标，继续拆最慢尾巴直到达标 | codex | todo |
 | T-003 | 问题修复清单：列出并验证可执行拆分方案 | codex | done |
@@ -492,7 +492,7 @@
   - 后续若继续补充，只追加新的“做了什么 / 结果是什么”说明，不回头改变粒度
   - 下一步的新独立任务转到 `T-002.3.2`
 
-#### T-002.3.2 收敛 dashboard warnings（进行中）
+#### T-002.3.2 收敛 dashboard warnings（已完成）
 
 - 目标：
   - 把 runtime logs 里仍然可见的 `[Perf]` warnings 和误导性慢点提示尽量清掉
@@ -542,6 +542,23 @@
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号
   - 不回退已完成的首屏收口，只单独治理 warnings
+
+- 收口结果：
+  - 这组 warning / skeleton 收口项已经完成并进入稳定态，不再继续拆分
+  - 当前 `src/app` 下已经没有剩余的 `loading.tsx`，`/dashboard` 内部 skeleton、`/admin` 父级 loading、`course/[subjectId]` loading 以及 `achievements / leaderboard / settings` 的 route loading 都已经卸掉
+  - `T-002.3.2` 现在只作为收口记录保留，新的推进重点转入 `T-002.4`
+
+#### T-002.4 将最重的 dashboard 数据流拆成更小的后补请求（进行中）
+
+- 目标：
+  - 把当前仍然最重的 dashboard 数据流继续切成更细的后补请求
+  - 优先找出首屏里最慢、但又不必一次性同步完成的那部分数据，继续往后移
+- 当前观察：
+  - 当前 route-level skeleton 已经全部卸掉，首屏主要看真实数据回填速度
+  - `home-subjects` 这类重聚合仍然是后续最值得继续拆的对象
+- 下一步：
+  - 先从真实浏览器和 runtime logs 重新看 `home-subjects` / `home-overview` / `home-activity` 的尾巴
+  - 再决定是继续拆 `home-subjects` 内部，还是把其他数据流再切成更小的后补请求
 
 ### T-003 问题修复清单（已完成）
 

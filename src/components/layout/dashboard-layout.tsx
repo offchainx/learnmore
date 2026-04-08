@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useTransition } from 'react'
+import React, { useEffect, useState, useTransition } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   BookOpen,
@@ -18,6 +18,7 @@ import {
   Users,
   Rocket,
   Loader2,
+  Sparkles,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import { logoutAction } from '@/actions/user/auth'
@@ -191,21 +192,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     pathname?.startsWith('/admin/feedback') ||
     pathname?.startsWith('/admin/referrals') ||
     false
+  const isRewardsAdminRoute = pathname?.startsWith('/admin/rewards') || false
+  const isRewardsAdminVisible = userRole === 'ADMIN'
   const isContentAdminRoute = pathname?.startsWith('/admin/content') || false
   const isAnyAdminRoute = pathname?.startsWith('/admin') || false
   const isPracticeRoute = pathname?.startsWith('/dashboard/practice') || false
   const [isSidebarOpen, setSidebarOpen] = useState(false)
   const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false)
   const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [isLogoutPending, startLogoutTransition] = useTransition()
   const {
     isPending: isNavPending,
     pendingTarget,
     runNavigation,
   } = usePendingNavigation()
-  const effectiveUserAdminExpanded = isUserAdminRoute || isUserAdminExpanded
+  const effectiveUserAdminExpanded =
+    isUserAdminExpanded || (isMounted && isUserAdminRoute)
   const effectiveContentAdminExpanded =
-    isContentAdminRoute || isContentAdminExpanded
+    isContentAdminExpanded || (isMounted && isContentAdminRoute)
 
   const handleLogout = () => {
     startLogoutTransition(async () => {
@@ -254,6 +259,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }
   const normalizedCurrentView = normalizeDashboardView(currentView)
   const isSidebarLocked = isNavPending || isLogoutPending
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
   useRoutePrefetch({
     routes: [
       dashboardViewRoutes.dashboard,
@@ -268,6 +276,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       isAdmin ? '/admin/users' : null,
       isAdmin ? '/admin/feedback' : null,
       isAdmin ? '/admin/referrals' : null,
+      isRewardsAdminVisible ? '/admin/rewards' : null,
       isAdmin ? '/admin/content/import' : null,
       isAdmin ? '/admin/content/review' : null,
       isAdmin ? '/admin/content/reports' : null,
@@ -277,6 +286,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   // Check if any admin route is active
   const isAdminDashboardActive = pathname === '/admin'
   const isUserAdminActive = isUserAdminRoute
+  const isRewardsAdminActive = isRewardsAdminRoute
   const isContentAdminActive = isContentAdminRoute
   const isSettingsActive = isDashboardViewActive(
     'settings',
@@ -469,6 +479,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   />
                 ))}
               </SidebarSection>
+
+              {isRewardsAdminVisible && (
+                <SidebarItem
+                  icon={Sparkles}
+                  label={copy('奖励中心', 'Rewards Center', 'Rewards Center')}
+                  active={isRewardsAdminActive}
+                  onClick={() => handleRouteNavigation('/admin/rewards')}
+                  pending={pendingTarget === 'route:/admin/rewards'}
+                  disabled={isSidebarLocked}
+                />
+              )}
             </div>
           )}
 
