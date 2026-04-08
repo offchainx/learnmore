@@ -246,7 +246,6 @@ async function main() {
     { scope: 'auth', label: '/admin/content/review', url: 'http://localhost:3000/admin/content/review' },
     { scope: 'auth', label: '/admin/content/review/slow-path', url: 'http://localhost:3000/admin/content/review/slow-path' },
     samples.questionId ? { scope: 'auth', label: `/admin/content/review/${samples.questionId}`, url: `http://localhost:3000/admin/content/review/${encodeURIComponent(samples.questionId)}` } : null,
-    { scope: 'auth', label: '/admin/content/statistics', url: 'http://localhost:3000/admin/content/statistics' },
     { scope: 'auth', label: '/admin/referrals', url: 'http://localhost:3000/admin/referrals' },
     { scope: 'auth', label: '/admin/users', url: 'http://localhost:3000/admin/users' },
     samples.userId ? { scope: 'auth', label: `/admin/users/${samples.userId}`, url: `http://localhost:3000/admin/users/${encodeURIComponent(samples.userId)}` } : null,

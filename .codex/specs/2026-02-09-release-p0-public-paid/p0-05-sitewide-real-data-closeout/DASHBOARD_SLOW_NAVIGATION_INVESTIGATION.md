@@ -531,64 +531,24 @@
 
 #### T-002.4 复测所有路由的响应时间，验证是否都达到 3s 以内的收口目标（进行中）
 
-- 已从复测脚本剔除的确认下线路由：
-  - `/checkout/config`
-  - `/dashboard/debug/ui-kit`
-  - `/dashboard/practice/import`
-  - `/dashboard/settings/notifications`
-  - `/admin/content`
+- 本轮复测的完整明细已覆盖到 [t-026-browser-route-timings.md](./t-026-browser-route-timings.md)，本节只保留仍然超标的路由摘要。
 
-| scope | route | status | dcl | load | content | 3s 结果 | 备注 |
-|---|---|---:|---:|---:|---:|---|---|
-| anon | `/` | 200 | 232ms | 296ms | 419ms | 通过 | 首页正文已稳定出现 |
-| anon | `/login` | 200 | 230ms | 244ms | 291ms | 通过 | 登录页主文案快速出现 |
-| anon | `/register` | 200 | 87ms | 133ms | 425ms | 通过 | 创建账号页正常 |
-| anon | `/reset-password` | 200 | 102ms | 147ms | 435ms | 通过 | 找回密码页正常 |
-| anon | `/pricing` | 200 | 97ms | 113ms | 3126ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/subjects` | 200 | 142ms | 147ms | 3156ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/about-us` | 200 | 118ms | 533ms | 3544ms | 未通过 | 内容完成时间超 3s |
-| anon | `/how-it-works` | 200 | 232ms | 238ms | 3244ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/help` | 200 | 131ms | 155ms | 3166ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/contact` | 200 | 127ms | 196ms | 3205ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/privacy` | 200 | 189ms | 192ms | 3201ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/terms` | 200 | 124ms | 126ms | 3137ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/student-care` | 200 | 119ms | 203ms | 3216ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/study-guides` | 200 | 123ms | 149ms | 3151ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/success-stories` | 200 | 127ms | 464ms | 3474ms | 未通过 | 内容完成时间超 3s |
-| anon | `/refund` | 200 | 126ms | 128ms | 3139ms | 未通过 | 内容完成时间略超 3s |
-| anon | `/blog` | 200 | 122ms | 474ms | 3484ms | 未通过 | 内容完成时间超 3s |
-
-| scope | route | status | dcl | load | content | 3s 结果 | 备注 |
-|---|---|---:|---:|---:|---:|---|---|
-| auth | `/dashboard` | 200 | 480ms | 486ms | 564ms | 通过 | 仪表盘主体快速出现 |
-| auth | `/dashboard/courses` | 200 | 180ms | 481ms | 492ms | 通过 | 课程页快速出现 |
-| auth | `/dashboard/practice` | 200 | 673ms | 1012ms | 1065ms | 通过 | 练习中心通过 |
-| auth | `/dashboard/community` | 200 | 830ms | 1457ms | 1473ms | 通过 | 社区页通过 |
-| auth | `/dashboard/community/new` | 200 | 541ms | 839ms | 884ms | 通过 | 发帖页通过 |
-| auth | `/dashboard/leaderboard` | 200 | 687ms | 1067ms | 1112ms | 通过 | 排行榜通过 |
-| auth | `/dashboard/achievements` | 200 | 1082ms | 1490ms | 1536ms | 通过 | 成就页通过 |
-| auth | `/dashboard/settings` | 200 | 550ms | 844ms | 892ms | 通过 | 设置页通过 |
-| auth | `/dashboard/practice/mock-arena` | 200 | 584ms | 1043ms | 1090ms | 通过 | Mock Arena 通过 |
-| auth | `/dashboard/practice/smart-drill` | 200 | 853ms | 854ms | 921ms | 通过 | 路由最终回到 practice |
-| auth | `/dashboard/practice/error-wiper` | 200 | 700ms | 1087ms | 1096ms | 通过 | Error Wiper 通过 |
-| auth | `/admin` | 200 | 1262ms | 2095ms | 2159ms | 通过 | 管理总览通过 |
-| auth | `/admin/content/review` | 200 | 1590ms | 1918ms | 2005ms | 通过 | 审核中心通过 |
-| auth | `/admin/content/import` | 200 | 989ms | 1393ms | 13403ms | 未通过 | 重尾仍在 |
-| auth | `/admin/content/reports` | 200 | 828ms | 1255ms | 13266ms | 未通过 | 重尾仍在 |
-| auth | `/admin/content/statistics` | 200 | 990ms | 991ms | 13008ms | 未通过 | 当前最终落到 review，尾部仍长 |
-| auth | `/admin/feedback` | 200 | 1533ms | 1986ms | 2048ms | 通过 | 反馈中心通过 |
-| auth | `/admin/referrals` | 200 | 611ms | 1065ms | 4073ms | 未通过 | 仍略超 3s |
-| auth | `/admin/users` | 200 | 873ms | 1208ms | 1266ms | 通过 | 用户管理通过 |
-| auth | `/admin/users/:id` | 200 | 1105ms | 1105ms | 1105ms | 通过 | 详情页通过 |
-| auth | `/admin/vouchers` | 200 | 834ms | 835ms | 895ms | 通过 | 最终落到 referrals tab |
-| auth | `/admin/rewards` | 200 | 664ms | 992ms | 13004ms | 未通过 | 重尾仍在 |
+| scope | route | total | dcl | load | 备注 |
+|---|---|---:|---:|---:|---|
+| auth | `/dashboard/achievements` | 4330ms | 4081ms | 4184ms | 成就页仍超标 |
+| auth | `/admin/content/import` | 3460ms | 3165ms | 3319ms | 内容导入仍超标 |
+| auth | `/admin/content/reports` | 3874ms | 3601ms | 0ms | 举报页仍超标 |
+| auth | `/admin/feedback` | 3625ms | 3377ms | 3453ms | 反馈中心仍超标 |
+| auth | `/admin/users` | 3188ms | 2944ms | 0ms | 用户管理刚超线 |
+| auth | `/admin/users/:id` | 3680ms | 3326ms | 3414ms | 用户详情仍超标 |
+| auth | `/dashboard/community` | 3161ms | 2903ms | 0ms | 社区页刚超线 |
 
 - 本轮结论：
-  - dashboard / 大部分 auth 路由已经进入 3s 内
-  - public 登录前页里，登录 / 注册 / 重置密码页已明显达标；营销页仍有一批 3.1s-3.5s 的轻微超标项
-  - 仍然需要单独收口的只剩少数重页面：`/admin/content/import`、`/admin/content/reports`、`/admin/rewards`、`/admin/referrals`
+  - public 路由已全部进入 3s 内
+  - 登录态大部分路由已进入 3s 内
+  - 仍需要单独收口的只剩以上少数 auth 路由
 - 下一步：
-  - 只把仍然超标的少数路由单独拆成新任务
+  - 只把上述仍超标的少数路由单独拆成新任务
   - 其他已进入 3s 内的路由按本轮结果收口，不再扩大修复面
 
 ### T-003 问题修复清单（已完成）
