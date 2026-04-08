@@ -503,6 +503,7 @@
   - 进一步把本地开发环境的轻量 perf 埋点静默掉：非生产环境默认不输出 perf，只有显式设置 `LOCAL_PERF_LOGS=true` 时才临时打开，避免本地服务器终端被 `[Perf]` 请求刷屏
   - 把 dashboard 相关 route loading 从“通用壳子”收敛成更贴近真实页面布局的 route-specific skeleton：`/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community`、`/dashboard/leaderboard`、`/dashboard/settings`、`/dashboard/achievements`、`/admin` 现在都尽量按各自真实页面的 hero、卡片、列表和侧栏结构来出骨架，不再为了“先出壳”而用同一套泛化壳子套所有页面
   - 其中 `courses` 和 `achievements` 之前会回退到通用 dashboard 壳，这次已经补上专用 loading，避免它们在切换时再显示和最终布局不一致的中间态
+  - 在确认 skeleton 仍然“壳味太重”之后，进一步试验性移除了 `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community` 的专用 loading，让这几个路由直接等待真实内容完成；这一步的目的就是验证“如果能直接渲染完成，就不要为了 loading 而 loading”是否更符合体感
   - 把 Prisma 的旧式 `package.json#prisma` 配置迁到 `prisma.config.ts`，让 build logs 不再提示这项配置已弃用
   - 把 pnpm build scripts 白名单写进 `pnpm-workspace.yaml` 的 `onlyBuiltDependencies`，把 `@prisma/client`、`prisma`、`sharp`、`esbuild`、`canvas`、`tesseract.js`、`unrs-resolver` 这些已知依赖的构建脚本纳入批准范围，避免 build logs 重复报“ignored build scripts”
   - 把 Gemini 客户端改成惰性初始化，不再在模块加载期直接打印 `GEMINI_API_KEY is not set in environment variables.`，改为只有真正调用 AI 功能时才返回明确错误
@@ -531,6 +532,7 @@
   - `pnpm run build` 也已验证不会再被 `@prisma/cli` 的 preinstall 中断
   - `/admin/content/import` 的 `DOMMatrix is not defined` 已被延迟加载修复，PDF/OCR 只在真正处理 PDF 时才会去加载 `pdfjs-dist` 和 canvas 绑定
   - 本地与线上的页面 loading 也已经从“通用壳”继续往“页面专用骨架”推进，后续如果路由本身已经足够快，就按“能直接渲染就直接渲染”的原则继续收紧不必要的 skeleton
+  - `/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community` 这四个路由已做“拿掉壳子”试验；若真实浏览器和用户反馈都更自然，就保持无壳或极轻骨架，否则再按路由单独加回最小必要 loading
 - 推进规则：
   - 先区分“真实错误”与“埋点 warning”
   - 再决定哪些 warning 要通过代码继续优化，哪些只是保留为监测信号

@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { getDashboardProfile } from '@/actions/user/profile';
 import { syncCurrentUserToDatabase } from '@/actions/user/auth';
@@ -6,14 +5,9 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
-import { DashboardRouteLoading } from '@/components/loading/dashboard-route-loading';
 
 export default function DashboardPage() {
-  return (
-    <Suspense fallback={<DashboardRouteLoading currentView="dashboard" variant="dashboard" />}>
-      <DashboardPageContent />
-    </Suspense>
-  );
+  return <DashboardPageContent />;
 }
 
 async function DashboardPageContent() {
