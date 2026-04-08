@@ -218,7 +218,6 @@ export const DashboardHome = ({
     learningPath: DashboardData['learningPath']
     subjectProgress: DashboardData['subjectProgress']
   } | null>(null)
-  const [isLoadingCoreData, setIsLoadingCoreData] = useState(!initialData)
   const [isLoadingOverviewData, setIsLoadingOverviewData] = useState(
     !initialData
   )
@@ -238,7 +237,6 @@ export const DashboardHome = ({
     let cancelled = false
 
     const loadCoreData = async () => {
-      setIsLoadingCoreData(true)
       setHomeDataError(null)
       try {
         const response = await fetch('/api/dashboard/home-core', {
@@ -261,10 +259,6 @@ export const DashboardHome = ({
           setHomeDataError(
             error instanceof Error ? error.message : 'Failed to load dashboard data'
           )
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoadingCoreData(false)
         }
       }
     }
@@ -569,77 +563,6 @@ export const DashboardHome = ({
     setSubjectPage(0)
   }, [subjectProgressItems.length])
 
-  if (isLoadingCoreData || !coreData) {
-    return (
-      <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
-        <div className="mx-auto flex w-full min-w-0 max-w-[1820px] flex-col gap-4 pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)]">
-          <Card className="rounded-[30px] border border-borderTone bg-surface p-5 shadow-surface">
-            <div className="flex flex-col gap-4">
-              <div className="space-y-3">
-                <Skeleton className="h-7 w-36 rounded-full" />
-                <Skeleton className="h-4 w-full max-w-2xl rounded-full" />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, index) => (
-                  <div
-                    key={`dash-skeleton-stat-${index}`}
-                    className="rounded-[28px] border border-borderTone bg-surface-subtle p-5 shadow-surface"
-                  >
-                    <Skeleton className="h-4 w-24 rounded-full" />
-                    <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
-                    <Skeleton className="mt-3 h-3 w-28 rounded-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
-
-          <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-            <Card className="rounded-[28px] border border-borderTone bg-surface p-5 shadow-surface">
-              <Skeleton className="h-6 w-40 rounded-full" />
-              <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
-              <div className="mt-5 space-y-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <Skeleton
-                    key={`dash-skeleton-row-${index}`}
-                    className="h-24 rounded-[22px]"
-                  />
-                ))}
-              </div>
-            </Card>
-
-            <div className="space-y-4">
-              <Card className="rounded-[28px] border border-borderTone bg-surface p-5 shadow-surface">
-                <Skeleton className="h-6 w-28 rounded-full" />
-                <Skeleton className="mt-4 h-32 rounded-[24px]" />
-              </Card>
-              <Card className="rounded-[28px] border border-borderTone bg-surface p-5 shadow-surface">
-                <Skeleton className="h-6 w-32 rounded-full" />
-                <div className="mt-4 space-y-3">
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <Skeleton
-                      key={`dash-skeleton-list-${index}`}
-                      className="h-20 rounded-[22px]"
-                    />
-                  ))}
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          {homeDataError ? (
-            <Card className="rounded-[28px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
-              <div className="text-sm font-semibold">
-                Dashboard data is loading slowly.
-              </div>
-              <div className="mt-1 text-sm opacity-80">{homeDataError}</div>
-            </Card>
-          ) : null}
-        </div>
-      </div>
-    )
-  }
-
   const handleActivityWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     if (totalActivityPages <= 1) return
     event.preventDefault()
@@ -660,9 +583,17 @@ export const DashboardHome = ({
 
   return (
     <div className="min-w-0 animate-fade-in-up px-3 py-1.5 sm:px-4 sm:py-2">
-    <div
-      className={`mx-auto flex w-full min-w-0 max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
-    >
+      <div
+        className={`mx-auto flex w-full min-w-0 max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
+      >
+        {homeDataError ? (
+          <Card className="rounded-[28px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
+            <div className="text-sm font-semibold">
+              Dashboard data is loading slowly.
+            </div>
+            <div className="mt-1 text-sm opacity-80">{homeDataError}</div>
+          </Card>
+        ) : null}
         <section
           className={`grid 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
         >
