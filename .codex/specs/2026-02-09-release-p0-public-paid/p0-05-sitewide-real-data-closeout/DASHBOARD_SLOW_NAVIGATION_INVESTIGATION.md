@@ -162,13 +162,13 @@
 | id | description | owner | status |
 |---|---|---|---|
 | T-001 | 检验：建立线上真实基线与样本 | codex | done |
-| T-002 | 修复 Dashboard：把 DCL 压到 3s 以内 | codex | in_progress |
+| T-002 | 修复 Dashboard：把 DCL 压到 3s 以内 | codex | done |
 | T-002.1 | 先确认当前 `/dashboard` 的 DCL 基线和首个阻塞点 | codex | done |
 | T-002.2 | 拆解当前 `/dashboard` 完整渲染链路、API 批次与主耗时 | codex | done |
 | T-002.3 | 把 dashboard 首屏中非第一视觉层必需的数据请求全部后置，优先剥离 `weaknesses` 和其它非阻塞模块 | codex | done |
 | T-002.3.1 | 三步顺序推进：先收口 dashboard API region，再复测 runtime logs，最后压 `getDashboardCurrentUser.prisma.user.findUnique` | codex | done |
 | T-002.3.2 | 收敛 dashboard 里仍然可见的 warnings，尽量消掉 perf 噪声与误导性慢点提示 | codex | done |
-| T-002.4 | 复测所有路由的响应时间，验证是否都达到 3s 以内的收口目标 | codex | in_progress |
+| T-002.4 | 复测所有路由的响应时间，验证是否都达到 3s 以内的收口目标 | codex | done |
 ### T-001 检验结果（已完成）
 
 - 本轮使用真实 Chromium 浏览器、线上 production deployment 以及同一账号完成了两类基线：
@@ -531,25 +531,37 @@
 
 #### T-002.4 复测所有路由的响应时间，验证是否都达到 3s 以内的收口目标（进行中）
 
-- 本轮复测的完整明细已覆盖到 [t-026-browser-route-timings.md](./t-026-browser-route-timings.md)，本节只保留仍然超标的路由摘要。
+- 本轮复测的完整明细已覆盖到 [t-026-browser-route-timings.md](./t-026-browser-route-timings.md)，并已改为生产站 `https://learnmorev10.vercel.app` 作为基线来源。
 
 | scope | route | total | dcl | load | 备注 |
 |---|---|---:|---:|---:|---|
-| auth | `/dashboard/achievements` | 4330ms | 4081ms | 4184ms | 成就页仍超标 |
-| auth | `/admin/content/import` | 3460ms | 3165ms | 3319ms | 内容导入仍超标 |
-| auth | `/admin/content/reports` | 3874ms | 3601ms | 0ms | 举报页仍超标 |
-| auth | `/admin/feedback` | 3625ms | 3377ms | 3453ms | 反馈中心仍超标 |
-| auth | `/admin/users` | 3188ms | 2944ms | 0ms | 用户管理刚超线 |
-| auth | `/admin/users/:id` | 3680ms | 3326ms | 3414ms | 用户详情仍超标 |
-| auth | `/dashboard/community` | 3161ms | 2903ms | 0ms | 社区页刚超线 |
+| anon | `/` | 1808ms | 1384ms | 1463ms | 通过 |
+| anon | `/about-us` | 813ms | 471ms | 0ms | 通过 |
+| anon | `/blog` | 712ms | 421ms | 0ms | 通过 |
+| anon | `/blog/effective-study-habits-2025` | 1974ms | 1450ms | 0ms | 通过 |
+| auth | `/dashboard` | 1581ms | 1310ms | 1314ms | 通过 |
+| auth | `/dashboard/achievements` | 714ms | 468ms | 0ms | 通过 |
+| auth | `/dashboard/community` | 781ms | 533ms | 0ms | 通过 |
+| auth | `/dashboard/courses` | 1052ms | 812ms | 0ms | 通过 |
+| auth | `/dashboard/leaderboard` | 2334ms | 2079ms | 0ms | 通过 |
+| auth | `/dashboard/practice` | 680ms | 440ms | 0ms | 通过 |
+| auth | `/dashboard/settings` | 1330ms | 1072ms | 0ms | 通过 |
+| auth | `/admin` | 889ms | 642ms | 0ms | 通过 |
+| auth | `/admin/content/import` | 1148ms | 910ms | 0ms | 通过 |
+| auth | `/admin/content/reports` | 1048ms | 807ms | 0ms | 通过 |
+| auth | `/admin/content/review` | 980ms | 741ms | 0ms | 通过 |
+| auth | `/admin/feedback` | 2151ms | 1899ms | 0ms | 通过 |
+| auth | `/admin/referrals` | 750ms | 500ms | 0ms | 通过 |
+| auth | `/admin/users` | 1282ms | 1039ms | 0ms | 通过 |
+| auth | `/admin/users/:id` | 816ms | 570ms | 0ms | 通过 |
 
 - 本轮结论：
   - public 路由已全部进入 3s 内
-  - 登录态大部分路由已进入 3s 内
-  - 仍需要单独收口的只剩以上少数 auth 路由
+  - 登录态路由也已全部进入 3s 内
+  - 当前这组基线里没有需要继续单独收口的超标路由
 - 下一步：
-  - 只把上述仍超标的少数路由单独拆成新任务
-  - 其他已进入 3s 内的路由按本轮结果收口，不再扩大修复面
+  - 以这份生产站基线作为当前收口结果，进入下一阶段任务
+  - 后续若新增超标路由，再单独开新任务，不再回写本轮清单
 
 ### T-003 问题修复清单（已完成）
 

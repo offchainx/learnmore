@@ -117,4 +117,6 @@
 
 | 2026-04-08 | T-002.4 再次覆盖基线 | 按用户要求重新跑了一遍浏览器路由实测，并用最新结果覆盖原本的 T-002.4 记录 | 已用 `PW_HEADLESS=false` 重新执行 `scripts/measure-route-timings.ts`，生成了新的 `t-026-browser-route-timings.md`；同时把 `T-002.4` 的正文压缩为“完整明细链接 + 仍超标路由摘要”，把旧版长表覆盖掉，避免继续保留过时结果 | scripts/measure-route-timings.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步保证 T-002.4 只保留最新基线，不再往下追加旧数据 | 下一步继续只处理最新结果里仍然超标的路由 | 这一步属于基线覆盖，不是新增开发 |
 
+| 2026-04-08 | T-002.4 切到生产站复测 | 修正路由基线测量目标，从 localhost 切到线上 production deployment `https://learnmorev10.vercel.app` | `scripts/measure-route-timings.ts` 已支持 `ROUTE_BASE_URL`，并用 headed Chrome 在生产站重新跑完一轮；这次 `t-026-browser-route-timings.md` 已覆盖为生产站数据，当前 public / auth 路由全部进入 3s 内，`T-002.4` 在文档里已收口为 `done` | scripts/measure-route-timings.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步纠正了之前 local-only 测量造成的基线偏差，后续以生产站结果作为验收依据 | 后面若再新增超标路由，再单独开新任务 | 这一步属于验收基线切换与收口 |
+
 ## 约束

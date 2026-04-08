@@ -10,6 +10,7 @@ dotenv.config({ path: '.env.local' })
 const OUT_DIR = '.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout'
 const JSON_OUT = path.join(OUT_DIR, 't-026-browser-route-timings.json')
 const MD_OUT = path.join(OUT_DIR, 't-026-browser-route-timings.md')
+const BASE_URL = process.env.ROUTE_BASE_URL || 'http://localhost:3000'
 
 type RouteSample = {
   scope: 'anon' | 'auth'
@@ -161,7 +162,7 @@ async function measureRoute(page: Page, sample: RouteSample): Promise<RouteMetri
 }
 
 async function login(page: Page) {
-  await page.goto('http://localhost:3000/login', {
+  await page.goto(`${BASE_URL}/login`, {
     waitUntil: 'domcontentloaded',
     timeout: 30000,
   })
@@ -201,55 +202,55 @@ async function main() {
   const headless = process.env.PW_HEADLESS !== 'false'
 
   const publicRoutes: Array<RouteSample | null> = [
-    { scope: 'anon', label: '/', url: 'http://localhost:3000/' },
-    { scope: 'anon', label: '/about-us', url: 'http://localhost:3000/about-us' },
-    { scope: 'anon', label: '/blog', url: 'http://localhost:3000/blog' },
-    samples.blogSlug ? { scope: 'anon', label: `/blog/${samples.blogSlug}`, url: `http://localhost:3000/blog/${encodeURIComponent(samples.blogSlug)}` } : null,
-    { scope: 'anon', label: '/contact', url: 'http://localhost:3000/contact' },
-    { scope: 'anon', label: '/help', url: 'http://localhost:3000/help' },
-    { scope: 'anon', label: '/how-it-works', url: 'http://localhost:3000/how-it-works' },
-    { scope: 'anon', label: '/login', url: 'http://localhost:3000/login' },
-    { scope: 'anon', label: '/pricing', url: 'http://localhost:3000/pricing' },
-    { scope: 'anon', label: '/privacy', url: 'http://localhost:3000/privacy' },
-    { scope: 'anon', label: '/refund', url: 'http://localhost:3000/refund' },
-    { scope: 'anon', label: '/register', url: 'http://localhost:3000/register' },
-    { scope: 'anon', label: '/student-care', url: 'http://localhost:3000/student-care' },
-    { scope: 'anon', label: '/study-guides', url: 'http://localhost:3000/study-guides' },
-    { scope: 'anon', label: '/subjects', url: 'http://localhost:3000/subjects' },
-    { scope: 'anon', label: '/success-stories', url: 'http://localhost:3000/success-stories' },
-    { scope: 'anon', label: '/terms', url: 'http://localhost:3000/terms' },
-    { scope: 'anon', label: '/course/demo', url: 'http://localhost:3000/course/demo' },
-    { scope: 'anon', label: '/course/demo/lesson-1', url: 'http://localhost:3000/course/demo/lesson-1' },
+    { scope: 'anon', label: '/', url: `${BASE_URL}/` },
+    { scope: 'anon', label: '/about-us', url: `${BASE_URL}/about-us` },
+    { scope: 'anon', label: '/blog', url: `${BASE_URL}/blog` },
+    samples.blogSlug ? { scope: 'anon', label: `/blog/${samples.blogSlug}`, url: `${BASE_URL}/blog/${encodeURIComponent(samples.blogSlug)}` } : null,
+    { scope: 'anon', label: '/contact', url: `${BASE_URL}/contact` },
+    { scope: 'anon', label: '/help', url: `${BASE_URL}/help` },
+    { scope: 'anon', label: '/how-it-works', url: `${BASE_URL}/how-it-works` },
+    { scope: 'anon', label: '/login', url: `${BASE_URL}/login` },
+    { scope: 'anon', label: '/pricing', url: `${BASE_URL}/pricing` },
+    { scope: 'anon', label: '/privacy', url: `${BASE_URL}/privacy` },
+    { scope: 'anon', label: '/refund', url: `${BASE_URL}/refund` },
+    { scope: 'anon', label: '/register', url: `${BASE_URL}/register` },
+    { scope: 'anon', label: '/student-care', url: `${BASE_URL}/student-care` },
+    { scope: 'anon', label: '/study-guides', url: `${BASE_URL}/study-guides` },
+    { scope: 'anon', label: '/subjects', url: `${BASE_URL}/subjects` },
+    { scope: 'anon', label: '/success-stories', url: `${BASE_URL}/success-stories` },
+    { scope: 'anon', label: '/terms', url: `${BASE_URL}/terms` },
+    { scope: 'anon', label: '/course/demo', url: `${BASE_URL}/course/demo` },
+    { scope: 'anon', label: '/course/demo/lesson-1', url: `${BASE_URL}/course/demo/lesson-1` },
   ]
 
   const authRoutes: Array<RouteSample | null> = [
-    { scope: 'auth', label: '/dashboard', url: 'http://localhost:3000/dashboard' },
-    { scope: 'auth', label: '/dashboard/achievements', url: 'http://localhost:3000/dashboard/achievements' },
-    { scope: 'auth', label: '/dashboard/community', url: 'http://localhost:3000/dashboard/community' },
-    { scope: 'auth', label: '/dashboard/community/new', url: 'http://localhost:3000/dashboard/community/new' },
-    samples.communityPostId ? { scope: 'auth', label: `/dashboard/community/${samples.communityPostId}`, url: `http://localhost:3000/dashboard/community/${encodeURIComponent(samples.communityPostId)}` } : null,
-    { scope: 'auth', label: '/dashboard/courses', url: 'http://localhost:3000/dashboard/courses' },
-    { scope: 'auth', label: '/dashboard/leaderboard', url: 'http://localhost:3000/dashboard/leaderboard' },
-    { scope: 'auth', label: '/dashboard/practice', url: 'http://localhost:3000/dashboard/practice' },
-    { scope: 'auth', label: '/dashboard/practice/error-wiper', url: 'http://localhost:3000/dashboard/practice/error-wiper' },
-    { scope: 'auth', label: '/dashboard/practice/mock-arena', url: 'http://localhost:3000/dashboard/practice/mock-arena' },
-    { scope: 'auth', label: '/dashboard/practice/mock-arena/browser-measure-exam', url: 'http://localhost:3000/dashboard/practice/mock-arena/browser-measure-exam' },
-    samples.paperId ? { scope: 'auth', label: `/dashboard/practice/past-paper/${samples.paperId}`, url: `http://localhost:3000/dashboard/practice/past-paper/${encodeURIComponent(samples.paperId)}` } : null,
-    { scope: 'auth', label: '/dashboard/practice/smart-drill', url: 'http://localhost:3000/dashboard/practice/smart-drill' },
-    { scope: 'auth', label: '/dashboard/practice/chapter-drill/preview-1', url: 'http://localhost:3000/dashboard/practice/chapter-drill/preview-1' },
-    { scope: 'auth', label: '/dashboard/settings', url: 'http://localhost:3000/dashboard/settings' },
-    { scope: 'auth', label: '/admin', url: 'http://localhost:3000/admin' },
-    { scope: 'auth', label: '/admin/feedback', url: 'http://localhost:3000/admin/feedback' },
-    samples.feedbackId ? { scope: 'auth', label: `/admin/feedback/${samples.feedbackId}`, url: `http://localhost:3000/admin/feedback/${encodeURIComponent(samples.feedbackId)}` } : null,
-    { scope: 'auth', label: '/admin/content/import', url: 'http://localhost:3000/admin/content/import' },
-    { scope: 'auth', label: '/admin/content/reports', url: 'http://localhost:3000/admin/content/reports' },
-    { scope: 'auth', label: '/admin/content/review', url: 'http://localhost:3000/admin/content/review' },
-    { scope: 'auth', label: '/admin/content/review/slow-path', url: 'http://localhost:3000/admin/content/review/slow-path' },
-    samples.questionId ? { scope: 'auth', label: `/admin/content/review/${samples.questionId}`, url: `http://localhost:3000/admin/content/review/${encodeURIComponent(samples.questionId)}` } : null,
-    { scope: 'auth', label: '/admin/referrals', url: 'http://localhost:3000/admin/referrals' },
-    { scope: 'auth', label: '/admin/users', url: 'http://localhost:3000/admin/users' },
-    samples.userId ? { scope: 'auth', label: `/admin/users/${samples.userId}`, url: `http://localhost:3000/admin/users/${encodeURIComponent(samples.userId)}` } : null,
-    { scope: 'auth', label: '/admin/vouchers', url: 'http://localhost:3000/admin/vouchers' },
+    { scope: 'auth', label: '/dashboard', url: `${BASE_URL}/dashboard` },
+    { scope: 'auth', label: '/dashboard/achievements', url: `${BASE_URL}/dashboard/achievements` },
+    { scope: 'auth', label: '/dashboard/community', url: `${BASE_URL}/dashboard/community` },
+    { scope: 'auth', label: '/dashboard/community/new', url: `${BASE_URL}/dashboard/community/new` },
+    samples.communityPostId ? { scope: 'auth', label: `/dashboard/community/${samples.communityPostId}`, url: `${BASE_URL}/dashboard/community/${encodeURIComponent(samples.communityPostId)}` } : null,
+    { scope: 'auth', label: '/dashboard/courses', url: `${BASE_URL}/dashboard/courses` },
+    { scope: 'auth', label: '/dashboard/leaderboard', url: `${BASE_URL}/dashboard/leaderboard` },
+    { scope: 'auth', label: '/dashboard/practice', url: `${BASE_URL}/dashboard/practice` },
+    { scope: 'auth', label: '/dashboard/practice/error-wiper', url: `${BASE_URL}/dashboard/practice/error-wiper` },
+    { scope: 'auth', label: '/dashboard/practice/mock-arena', url: `${BASE_URL}/dashboard/practice/mock-arena` },
+    { scope: 'auth', label: '/dashboard/practice/mock-arena/browser-measure-exam', url: `${BASE_URL}/dashboard/practice/mock-arena/browser-measure-exam` },
+    samples.paperId ? { scope: 'auth', label: `/dashboard/practice/past-paper/${samples.paperId}`, url: `${BASE_URL}/dashboard/practice/past-paper/${encodeURIComponent(samples.paperId)}` } : null,
+    { scope: 'auth', label: '/dashboard/practice/smart-drill', url: `${BASE_URL}/dashboard/practice/smart-drill` },
+    { scope: 'auth', label: '/dashboard/practice/chapter-drill/preview-1', url: `${BASE_URL}/dashboard/practice/chapter-drill/preview-1` },
+    { scope: 'auth', label: '/dashboard/settings', url: `${BASE_URL}/dashboard/settings` },
+    { scope: 'auth', label: '/admin', url: `${BASE_URL}/admin` },
+    { scope: 'auth', label: '/admin/feedback', url: `${BASE_URL}/admin/feedback` },
+    samples.feedbackId ? { scope: 'auth', label: `/admin/feedback/${samples.feedbackId}`, url: `${BASE_URL}/admin/feedback/${encodeURIComponent(samples.feedbackId)}` } : null,
+    { scope: 'auth', label: '/admin/content/import', url: `${BASE_URL}/admin/content/import` },
+    { scope: 'auth', label: '/admin/content/reports', url: `${BASE_URL}/admin/content/reports` },
+    { scope: 'auth', label: '/admin/content/review', url: `${BASE_URL}/admin/content/review` },
+    { scope: 'auth', label: '/admin/content/review/slow-path', url: `${BASE_URL}/admin/content/review/slow-path` },
+    samples.questionId ? { scope: 'auth', label: `/admin/content/review/${samples.questionId}`, url: `${BASE_URL}/admin/content/review/${encodeURIComponent(samples.questionId)}` } : null,
+    { scope: 'auth', label: '/admin/referrals', url: `${BASE_URL}/admin/referrals` },
+    { scope: 'auth', label: '/admin/users', url: `${BASE_URL}/admin/users` },
+    samples.userId ? { scope: 'auth', label: `/admin/users/${samples.userId}`, url: `${BASE_URL}/admin/users/${encodeURIComponent(samples.userId)}` } : null,
+    { scope: 'auth', label: '/admin/vouchers', url: `${BASE_URL}/admin/vouchers` },
   ]
 
   const browser = await chromium.launch({ headless })
