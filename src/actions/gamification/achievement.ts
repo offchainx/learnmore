@@ -5,7 +5,7 @@ import {
   claimDailyTaskRewardForUser,
   completeTodayOnboardingTask,
 } from '@/actions/gamification/daily-tasks'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { DailyTaskType } from '@prisma/client'
 
 export async function completeOnboardingTask(type: DailyTaskType) {
@@ -41,6 +41,8 @@ export async function claimTaskReward(taskId: string) {
     }
 
     revalidatePath('/dashboard')
+    revalidateTag(`achievement-overview:${user.id}`, 'quick')
+    revalidateTag(`user-badges:${user.id}`, 'quick')
     return { success: true, xpGained: result.xpGained }
   } catch (error) {
     console.error('Failed to claim reward:', error)

@@ -1,0 +1,84 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const {
+  mockGetCurrentUser,
+  mockClaimDailyTaskRewardForUser,
+  mockCompleteTodayOnboardingTask,
+  mockRevalidatePath,
+  mockRevalidateTag,
+} = vi.hoisted(() => ({
+  mockGetCurrentUser: vi.fn(),
+  mockClaimDailyTaskRewardForUser: vi.fn(),
+  mockCompleteTodayOnboardingTask: vi.fn(),
+  mockRevalidatePath: vi.fn(),
+  mockRevalidateTag: vi.fn(),
+}))
+
+vi.mock('@/actions/user/auth', () => ({
+  getCurrentUser: mockGetCurrentUser,
+}))
+
+vi.mock('@/actions/gamification/daily-tasks', () => ({
+  claimDailyTaskRewardForUser: mockClaimDailyTaskRewardForUser,
+  completeTodayOnboardingTask: mockCompleteTodayOnboardingTask,
+}))
+
+vi.mock('next/cache', () => ({
+  revalidatePath: mockRevalidatePath,
+  revalidateTag: mockRevalidateTag,
+}))
+
+import { DailyTaskType } from '@prisma/client'
+import { claimTaskReward, completeOnboardingTask } from '../gamification/achievement'
+
+describe('gamification achievement actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetCurrentUser.mockResolvedValue({ id: 'user-1' })
+    mockClaimDailyTaskRewardForUser.mockResolvedValue({
+      success: true,
+      xpGained: 30,
+    })
+    mockCompleteTodayOnboardingTask.mockResolvedValue({
+      success: true,
+      task: {
+        id: 'task-1',
+      },
+    })
+  })
+
+  it('任务领奖成功后应刷新 dashboard 并失效成就页缓存', async () => {
+    const result = await claimTaskReward('task-1')
+
+    expect(result).toEqual({ success: true, xpGained: 30 })
+    expect(mockClaimDailyTaskRewardForUser).toHaveBeenCalledWith(
+      'user-1',
+      'task-1'
+    )
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
+    expect(mockRevalidateTag).toHaveBeenNthCalledWith(
+      1,
+      'achievement-overview:user-1',
+      'quick'
+    )
+    expect(mockRevalidateTag).toHaveBeenNthCalledWith(
+      2,
+      'user-badges:user-1',
+      'quick'
+    )
+  })
+
+  it('完成 onboarding 任务只需要刷新 dashboard', async () => {
+    const result = await completeOnboardingTask(
+      DailyTaskType.ONBOARDING_PROFILE
+    )
+
+    expect(result).toEqual({ success: true })
+    expect(mockCompleteTodayOnboardingTask).toHaveBeenCalledWith(
+      'user-1',
+      DailyTaskType.ONBOARDING_PROFILE
+    )
+    expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
+    expect(mockRevalidateTag).not.toHaveBeenCalled()
+  })
+})

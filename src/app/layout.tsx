@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import '@/lib/suppress-warnings' // 抑制已知的框架警告
 import { ThemeProvider, AppProvider } from '@/providers'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from 'sonner'
 import { BottomTabBar } from '@/components/mobile/BottomTabBar'
 import { MobileHeader } from '@/components/mobile/MobileHeader'
+import { BrowserErrorSuppressor } from '@/components/system/BrowserErrorSuppressor'
 import { UnsupportedBrowserWarning } from '@/components/compatibility/UnsupportedBrowserWarning'
 import { PolyfillsLoader } from '@/components/polyfills/PolyfillsLoader'
 import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBannerWrapper'
@@ -63,6 +63,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning className={fonts.className}>
       <body className="antialiased">
+        <BrowserErrorSuppressor />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

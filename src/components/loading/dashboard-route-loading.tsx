@@ -266,7 +266,7 @@ function DashboardVariantSkeleton({
         <LoadingPageBanner actionWidth="w-28" titleWidth="w-48" />
         <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-4">
-            <LoadingStatGrid columns={3} />
+            <LoadingStatGrid columns={4} />
             <LoadingPanel lines={4} footer />
           </div>
           <div className="space-y-4">

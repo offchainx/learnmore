@@ -121,4 +121,6 @@
 
 | 2026-04-09 | T-016 奖励中心与排行榜真实化收口 | 完成 T-016.4 奖励中心、T-016.6~T-016.12 排行榜与成长进度真实化、核账与交互收口 | 奖励中心已接真实后端支撑，排行榜读链路、接口切换、XP/Level 口径与最终核账完成，并修复 /api/leaderboard/summary 的 route 缓存限制问题 | 奖励中心后端表与 action 接入、leaderboard 真读链路、route 校验、mock 清理、tasks 收口 | git commit 首次被 codex 日志钩子拦截 | 以后在代码提交前先同步 iteration-log，避免提交被仓库规则中断 | 如继续推进，转入 T-017 成就与游戏化域 |
 
+| 2026-04-09 | T-017 成就与游戏化域收口 | 收口 T-017.9 并检查 T-017 全部子任务是否完成 | 确认 T-017.1~T-017.9 均已达到收口条件并在 tasks.md 标记为 done；补充回放核账测试覆盖重复领奖、任务推进、进度回放与徽章发放回放；修复 achievements 错误边界导入并完成页面级验证 | tasks.md, achievement/streak action tests, achievements error boundary | 首次提交因缺少 iteration-log 记录被钩子拦截 | 将成就页、任务链路和徽章回放的幂等与缓存回流边界收口，并补齐验证 | 如需继续，可转入 T-018 设置与通知域 |
+
 ## 约束

@@ -19,7 +19,7 @@
 | T-015 | `/admin/content/reports` + `/admin/content/statistics` 内容质控与统计域真实化 | codex | done |  |
 | T-016 | `/dashboard/leaderboard` 排行榜 + sidebar 经验值卡真实化 | codex | todo |  |
 | T-017 | `/dashboard/achievements` 成就 / XP / streak / 任务域真实化 | codex | todo |  |
-| T-018 | `/dashboard/settings` 全路由族真实化（含 `/dashboard/settings/notifications`） | codex | todo |  |
+| T-018 | `/dashboard/settings` 全路由族真实化（含 `/dashboard/settings/notifications` 与通知深链收口） | codex | todo |  |
 | T-019 | Public / Marketing / Auth 页面 CTA、表单、跳转与权限行为对齐 | codex | todo |  |
 | T-020 | 本地验证：页面冒烟、Action/API 契约、SQL/后台快照留证 | codex | todo |  |
 | T-021 | 预发复测、发布前收口与回滚确认 | codex | todo |  |
@@ -707,7 +707,7 @@
 | T-015 | `/admin/content/reports`、`/admin/content/statistics` | 质控报错与统计域一起推进 |
 | T-016 | `/dashboard/leaderboard` | 榜单、我的排名、周期切换、衍生卡片一起处理 |
 | T-017 | `/dashboard/achievements` | 成就、XP、等级、任务、streak 口径统一 |
-| T-018 | `/dashboard/settings`、`/dashboard/settings/notifications` | 设置与通知偏好统一真实化 |
+| T-018 | `/dashboard/settings`、`/dashboard/settings/notifications` | 设置与通知偏好统一真实化，收口通知深链与兼容路由 |
 | T-019 | 登录、注册、公开页 CTA、联系/帮助/博客等表单与跳转 | 用于承接旧版“Public / Marketing / Auth”范围 |
 
 ## 页面族展开清单（用于开发前对齐颗粒度）
@@ -2157,9 +2157,9 @@
 ### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-017.1 | 盘点 `/dashboard/achievements` 的首屏概览、等级 / XP / streak / 徽章墙、任务入口、CTA、缓存 tag 与当前数据源，明确页面读链路与共享域边界 | codex | todo |
-| T-017.2 | 建立等级、XP、streak、任务、奖励、徽章、领取状态、通知副作用的字段映射与权威数据源矩阵，明确 `users / badges / user_badges / daily_tasks / notifications` 的主从关系 | codex | todo |
-| T-017.3 | 固化状态与约束：未登录、无 profile、无成就、无徽章、任务未生成、任务已领取、缓存失效、接口失败、禁用态 / 空态 / 错误态的渲染与跳转规则 | codex | todo |
+| T-017.1 | 盘点 `/dashboard/achievements` 的首屏概览、等级 / XP / streak / 徽章墙、任务入口、CTA、缓存 tag 与当前数据源，明确页面读链路与共享域边界 | codex | done |
+| T-017.2 | 建立等级、XP、streak、任务、奖励、徽章、领取状态、通知副作用的字段映射与权威数据源矩阵，明确 `users / badges / user_badges / daily_tasks / notifications` 的主从关系 | codex | done |
+| T-017.3 | 固化状态与约束：未登录、无 profile、无成就、无徽章、任务未生成、任务已领取、缓存失效、接口失败、禁用态 / 空态 / 错误态的渲染与跳转规则 | codex | done |
 
 #### T-017.1 边界与数据源说明（盘点基线）
 - 页面入口：[`src/app/(dashboard)/dashboard/achievements/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/page.tsx)
@@ -2230,9 +2230,9 @@
 ### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-017.4 | 对齐读取链路：页面首屏、缓存入口、加载态与错误态接管 `getAchievementOverview` / `listUserBadges` / `getTodayTasks` 等真实数据源，补齐等级 / XP / streak / 徽章 / 任务摘要的展示口径 | codex | todo |
-| T-017.5 | 对齐写链路：奖励领取、任务推进、onboarding 完成、streak 刷新、徽章发放的幂等、重复触发、事务与缓存失效策略，确保页面刷新与副作用回流一致 | codex | todo |
-| T-017.6 | 对齐跨域联动：来自练习 / 社区 / streak 的徽章触发、`achievement-overview` 与 `user-badges` tag 回收、通知写入、错误回滚与边界提示 | codex | todo |
+| T-017.4 | 对齐读取链路：页面首屏、缓存入口、加载态与错误态接管 `getAchievementOverview` / `listUserBadges` / `getTodayTasks` 等真实数据源，补齐等级 / XP / streak / 徽章 / 任务摘要的展示口径 | codex | done |
+| T-017.5 | 对齐写链路：奖励领取、任务推进、onboarding 完成、streak 刷新、徽章发放的幂等、重复触发、事务与缓存失效策略，确保页面刷新与副作用回流一致 | codex | done |
+| T-017.6 | 对齐跨域联动：来自练习 / 社区 / streak 的徽章触发、`achievement-overview` 与 `user-badges` tag 回收、通知写入、错误回滚与边界提示 | codex | done |
 
 #### T-017.4 读取链路说明（盘点基线）
 - 页面首屏当前真实读取链路为：[`src/app/(dashboard)/dashboard/achievements/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/page.tsx) 先通过 `getDashboardShellProfile()` 确认用户，再并行读取 `getCachedAchievementOverview(userId)` 和 `getCachedUserBadges(userId)`。
@@ -2245,32 +2245,103 @@
 - 现阶段读取链路的明确边界是：`overview + badges` 已经是真实首屏合同，`getTodayTasks()` 只属于联动域读源，暂不应被当作成就页主体数据强行接入。
 - 当前尚未完成的读取收口点是：把成就页的低数据态、错误态与任务联动入口统一到同一套页面语义中，并确认是否需要在首屏增加任务摘要而不是完整任务面板。
 
+#### T-017.5 写链路说明（盘点基线）
+- 当前成就页相关的主写入口并不在 [`AchievementsView`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/achievements/AchievementsView.tsx) 内，而是在 [`src/components/dashboard/DailyMissions.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/DailyMissions.tsx) 的任务 CTA、练习提交副作用、社区动作和 streak 刷新链路中。
+- 任务领奖入口 [`src/actions/gamification/achievement.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievement.ts) 里的 `claimTaskReward(taskId)` 会调用 `claimDailyTaskRewardForUser(user.id, taskId)`，底层先用 `updateMany` 原子把 `daily_tasks.isClaimed` 置为 `true`，再给 `users.xp` 做增量；成功后由调用方 `revalidatePath('/dashboard')` 并 `router.refresh()`。
+- onboarding 完成入口同样在 [`src/actions/gamification/achievement.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievement.ts) 的 `completeOnboardingTask(type)`，它只负责推进 `daily_tasks.currentCount` 到完成态，不直接加 XP；任务奖励仍然走领奖动作。
+- `ensureDailyTasks(userId)` 在 [`src/actions/gamification/daily-tasks.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/daily-tasks.ts) 内用 advisory lock `daily_tasks:${userId}:${date}` 防并发生成重复任务行，是任务写链路的生成门禁。
+- `GET /api/dashboard/daily-tasks` 在 [`src/app/api/dashboard/daily-tasks/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/dashboard/daily-tasks/route.ts) 中会先补 `ensureDailyTasks()` 再回传当天任务列表，说明任务数据的读取前置仍然依赖写链路先完成一次生成收口。
+- streak 刷新入口 [`src/actions/gamification/streak.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/streak.ts) 只在有效学习动作发生时更新 `users.lastStudyDate / users.streak`，随后调用 `awardBadgeIfEligible(userId, 'STREAK')`，不允许由页面加载触发。
+- 徽章发放入口 [`src/actions/gamification/achievements.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievements.ts) 的 `awardBadgeIfEligible()` 是共享的发奖收口：先按 `user_attempts / posts / comments / streak` 计算资格，再事务写入 `user_badges` 和 `notifications`，最后回收 `achievement-overview:${userId}` 与 `user-badges:${userId}` 两个缓存 tag。
+- 练习侧统一副作用入口 [`src/actions/practice/submission-effects.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/practice/submission-effects.ts) 是当前最完整的写链路 fan-out：`ensureDailyTasks()`、`checkAndRefreshStreak()`、`awardBadgeIfEligible(..., 'PRACTICE')`、`incrementTotalStudyTime()`、`updateLeaderboardScore()`、`trackDailyProgress()`，结束后再回收成就相关 tag。
+- 社区侧发帖 / 评论动作也会在成功后调用 `awardBadgeIfEligible(user.id, 'COMMUNITY')`，因此 `COMMUNITY` 也是成就页徽章墙的真实上游。
+- 当前写链路的边界是：`claimTaskReward` 负责 XP + 任务领取，`completeOnboardingTask` 负责 onboarding 任务推进，`checkAndRefreshStreak` 负责 streak，`awardBadgeIfEligible` 负责徽章和通知，任何一层都不能把其他层的副作用悄悄吞掉。
+- 已完成的修复是：`claimTaskReward` 现在在 XP 成功入账后同步回收 `achievement-overview:${userId}` 与 `user-badges:${userId}`，并通过动作级测试覆盖了领奖成功与 onboarding 完成两条主路径；`completeOnboardingTask` 继续只负责任务推进与 `dashboard` 刷新，因为它本身不改变成就概览字段。
+- 剩余的跨域写链路收口点已转交 `T-017.6`，重点继续确认徽章发放、通知写入与练习 / 社区 / streak 的联动边界。
+
+#### T-017.6 跨域联动说明（盘点基线）
+- 练习侧已经在 [`src/actions/practice/submission-effects.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/practice/submission-effects.ts) 统一串起 `ensureDailyTasks()`、`checkAndRefreshStreak()`、`awardBadgeIfEligible(..., 'PRACTICE')`、`incrementTotalStudyTime()`、`updateLeaderboardScore()` 与 `trackDailyProgress()`，结束后再回收成就相关 tag，因此练习提交后的 XP / streak / 徽章回流已经收口。
+- 社区侧在 [`src/actions/community/post.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/community/post.ts) 的发帖与评论成功路径中，都会调用 `awardBadgeIfEligible(user.id, 'COMMUNITY')`，并回收 `achievement-overview:${user.id}` 与 `user-badges:${user.id}`，保证发帖 / 评论后的成就墙和概览可见性一致。
+- streak 侧在 [`src/actions/gamification/streak.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/streak.ts) 更新 `users.streak` 后，会先回收 `achievement-overview:${userId}`，再继续走 `awardBadgeIfEligible(userId, 'STREAK')`，从而补齐“只改 streak 但没有新徽章”时的成就页缓存新鲜度。
+- 通知写入继续由 `awardBadgeIfEligible()` 的事务内 `notifications.createMany()` 统一承接，避免练习 / 社区 / streak 各自重复写通知导致口径分叉。
+- 当前跨域联动的边界是：`practice / community / streak` 只负责把真实副作用推到成就域，`awardBadgeIfEligible()` 负责统一发奖与通知，成就页只消费 `achievement-overview` 和 `user-badges` 两个缓存合同，不自己重算上游事件。
+- 已完成的修复是：`streak` 更新后即使没有触发新徽章，也会显式回收成就概览缓存；并补上动作级测试，覆盖了 `streak` 更新与 `same_day` 不写入两类场景，确保跨域回流不会漏掉 `streak` 变化。
+
 ### Phase C：清理和收口验证
 | id | description | owner | status |
 |---|---|---|---|
-| T-017.7 | 清理假 XP、假 streak、假任务状态、假领奖成功、静态占位文案与过时 CTA，避免页面继续依赖本地常量兜底 | codex | todo |
-| T-017.8 | 补齐 `/dashboard/achievements` 的页面级加载 / 错误 / 空态 / 低数据态 / 移动端适配 / 可访问性收口，保证异常场景也能稳定可用 | codex | todo |
-| T-017.9 | 完成成就与游戏化域验证：字段核账、重复领奖 / 重复刷新、徽章发放回放、任务推进回放、缓存失效与 console error 检查 | codex | todo |
+| T-017.7 | 清理假 XP、假 streak、假任务状态、假领奖成功、静态占位文案与过时 CTA，避免页面继续依赖本地常量兜底 | codex | done |
+| T-017.8 | 补齐 `/dashboard/achievements` 的页面级加载 / 错误 / 空态 / 低数据态 / 移动端适配 / 可访问性收口，保证异常场景也能稳定可用 | codex | done |
+| T-017.9 | 完成成就与游戏化域验证：字段核账、重复领奖 / 重复刷新、徽章发放回放、任务推进回放、缓存失效与 console error 检查 | codex | done |
+
+#### T-017.7 清理收口说明（盘点基线）
+- 成就页已移除旧的静态头像占位 URL，不再依赖 `i.pravatar.cc` 伪装用户头像；当用户没有头像时，页面只展示基于用户名首字母生成的中性头像块。
+- 成就页已移除旧的 `Achievement MVP` 装饰文案与顶部固定奖励感 CTA，避免把页面包装成“已完成/已获奖”的假积极状态。
+- 成就页的成长摘要已从 `0` 兜底改为 `—` 中性占位，避免把缺失的 `overview` 误渲染成“真实但为 0”的假数据。
+- 旧的 Dashboard 内嵌 `achievements` / `leaderboard` fallback 已移除，侧边栏现在只跳转到独立路由，不再渲染 `overview={null}` / `badges={[]}` 这类历史空壳。
+- 已补上成就页组件测试，确认缺少概览数据时不会回退到伪 0 值，也不会再出现旧 CTA 或静态占位文案。
+
+#### T-017.8 页面级加载 / 错误 / 空态 / 低数据态 / 可访问性说明（盘点基线）
+- 已确认 `/dashboard/achievements` 不再保留独立的 route-level `loading.tsx`，页面切换时直接等待真实内容完成，不再额外制造一层 skeleton 中间态。
+- 已为 `/dashboard/achievements` 补齐独立的 route-level `error.tsx`，错误时提供重试与返回仪表盘两个动作，避免页面掉进默认错误页后失去明确回路。
+- 成就页的低数据态已从假 `0` 改为中性 `—`，避免缺失 `overview` 被误看成“真实但为 0”的业务结果。
+- 成就页的徽章筛选已补上更清晰的交互语义：筛选区使用分组语义，按钮使用 `aria-pressed`，交互状态对读屏更直接。
+- 成就页现在不会再依赖旧的内嵌 fallback 去填 `overview={null}` / `badges={[]}`，从而保证移动端和异常状态下看到的都是独立路由真实语义，而不是历史空壳。
+
+#### T-017.9 成就与游戏化域验证说明（核账基线）
+- 已补充成就与游戏化域的回放验证测试，覆盖重复领奖、onboarding 重复提交、任务进度重复回放、徽章发放重复触发四类场景。
+- 已确认 `claimDailyTaskRewardForUser` 只会在首次领奖时成功扣写，第二次会直接返回 `Reward already claimed`，不会重复增加用户 XP。
+- 已确认 `completeTodayOnboardingTask` 与 `trackDailyProgress` 都会在锁和条件更新下保持幂等，不会把任务推进到目标值之外，也不会重复写入完成态。
+- 已确认 `awardBadgeIfEligible` 在首次发放时会批量创建 `user_badges` 和 `notifications`，并回收成就页相关缓存；第二次重复触发时不会再重复创建或重复失效。
+- 已完成对应的回放测试与 ESLint 校验，确保成就页和游戏化域的写链路、缓存回流、重复触发边界均处于可控状态。
 
 ### T-018 设置与通知域
+##### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-018.1 | 盘点 `/dashboard/settings`、`/dashboard/settings/notifications` 的表单、模块、CTA 与当前数据源 | codex | todo |
-| T-018.2 | 建立个人资料、偏好设置、通知设置、家长相关设置的字段映射与权威数据源矩阵 | codex | todo |
-| T-018.3 | 对齐设置读取链路：资料、偏好、通知、权限态与初始化回填逻辑 | codex | todo |
-| T-018.4 | 对齐设置写链路：保存资料、保存偏好、保存通知、输入校验、权限与幂等 | codex | todo |
-| T-018.5 | 清理假成功提示、假保存、静态默认值正式兜底，补齐空态/错误态/禁用态 | codex | todo |
-| T-018.6 | 完成设置与通知域验证：保存前后核账、重复保存验证、失败回滚验证 | codex | todo |
+| T-018.1 | 盘点 `/dashboard/settings`、`/dashboard/settings?tab=notifications`、`/dashboard/settings/notifications` 的表单、模块、CTA、深链与当前数据源，明确通知中心与账单入口的目标落点 | codex | todo |
+| T-018.2 | 建立个人资料、AI 配置、通知偏好、家长连接、订阅状态，以及 `user_settings` / `notification_preferences` 新旧字段的权威数据源矩阵，明确哪些字段可写、哪些字段只读、哪些字段必须始终开启 | codex | todo |
+| T-018.3 | 固化设置域状态与路由约束：未登录、无 profile、设置读取失败、通知偏好加载失败、非法 tab、`/dashboard/settings/notifications` 的 404 / redirect 策略、无效 deep link（如 `billing` / `feedback`）处理与禁用态边界 | codex | todo |
+
+##### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-018.4 | 对齐设置读取链路：`getDashboardSettingsProfile`、`getUserSettings`、`getNotificationPreferences`、tab/query 初始化、初始化回填、路由跳转与页面级 loading / error / skeleton 收口 | codex | todo |
+| T-018.5 | 对齐设置写链路：`updateProfile`、`updateAIConfig`、`updatePreferences`、`updateNotificationPreferences`、`generateInviteCode`、`cancelSubscriptionAction` 的输入校验、权限校验、幂等与失败回滚 | codex | todo |
+| T-018.6 | 处理通知偏好独立保存与失败保护：通知偏好未成功拉取时不允许以默认值静默覆盖服务器数据，必须显式展示错误态或锁定保存，避免把“加载失败”误当作“默认开启” | codex | todo |
+| T-018.7 | 收口 settings 深链与兼容入口：通知中心、站内通知、账单通知全部跳到真实 tab 或兼容 redirect，确保不会再落到不存在的页面或 tab | codex | todo |
+| T-018.8 | 修正 `user_settings.notificationDaily` / `notificationWeekly` 与 `notification_preferences` 的桥接 / 迁移策略，避免 profile 保存、通知保存与旧字段回填互相覆盖 | codex | todo |
+
+##### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-018.9 | 清理假成功提示、假保存、静态默认值兜底、外链头像兜底与过时文案，保证页面只在真实成功后给成功反馈 | codex | todo |
+| T-018.10 | 完成设置与通知域验证：保存前后核账、重复保存验证、失败回滚验证、直接访问 / 受控跳转 / query tab / 浏览器 console error 检查 | codex | todo |
 
 ### T-019 Public / Marketing / Auth 域
+##### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-019.1 | 盘点登录、注册、公开页 CTA、联系/帮助/博客等页面与所有表单、跳转、当前数据源 | codex | todo |
-| T-019.2 | 建立登录注册状态、公开页 CTA、联系表单、博客/帮助内容与权威数据源矩阵 | codex | todo |
-| T-019.3 | 对齐公开域读取链路：公开页内容、博客、帮助、跳转目标、权限分流与会话判断 | codex | todo |
-| T-019.4 | 对齐公开域写链路：注册、登录、联系表单、订阅/留资、权限与幂等 | codex | todo |
-| T-019.5 | 清理假 CTA、假可达入口、假表单成功、无后端能力的正式交互，补齐禁用态/错误态 | codex | todo |
-| T-019.6 | 完成 Public / Marketing / Auth 域验证：表单核账、跳转验证、会话/权限验证 | codex | todo |
+| T-019.1 | 盘点登录、注册、重置密码、公开页 CTA、联系/帮助/博客/价格/订阅等页面与所有表单、跳转、当前数据源 | codex | todo |
+| T-019.2 | 建立 Public / Marketing / Auth 的 `route -> page -> component -> action/api -> table/service` 映射矩阵，明确 `landing / pricing / blog / help / contact / login / register / reset-password / checkout-config` 的权威读写责任 | codex | todo |
+| T-019.3 | 建立 CTA 与跳转边界：区分真实可达、登录后可达、付费后可达、仅展示、禁用态、外链态与 404 行为，清理假入口与占位跳转 | codex | todo |
+| T-019.4 | 建立表单与会话矩阵：`signup / login / reset-password / referral / voucher / newsletter / contact / feedback` 的输入校验、幂等、防重复提交、会话恢复与 `redirectTo` 安全约束 | codex | todo |
+| T-019.5 | 建立页面级降级规则：哪些页面需要 `loading / error / empty / 404`，DB 不可用时怎样显示，以及浏览器兼容警告、Cookie Consent、语言切换、移动端菜单的兜底边界 | codex | todo |
+
+##### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-019.6 | 对齐公开首页与营销内容读取链路：`landing / pricing / blog / help / about-us / contact / subjects / study-guides / success-stories / privacy / terms / refund` 的内容、导航、footer、newsletter、FAQ、博客列表/详情、价格方案与优惠信息真实化 | codex | todo |
+| T-019.7 | 对齐 Auth 读取链路：登录、注册、重置密码、已登录回流、reset 成功态、`referralCode / referralError`、`redirectTo` 解析与会话判断 | codex | todo |
+| T-019.8 | 对齐写链路：注册、登录、重置密码、newsletter、`/contact` 提交、`FeedbackModal` 留资、推荐码与优惠券的服务端动作或 API，补齐校验、幂等、重复提交与失败回显 | codex | todo |
+| T-019.9 | 修复假 CTA / 假跳转 / 假表单：将暂未支持入口改为禁用态或真实目标，清理 `LandingPageNavbar`、营销页 CTA、`/contact` 假提交，以及博客/帮助页空状态与按钮语义 | codex | todo |
+| T-019.10 | 对齐交互修复与调试体验：移动端菜单、语言切换、表单 pending/loading、网络失败、空态、权限分流、浏览器兼容警告与 Cookie Consent 的联动表现 | codex | todo |
+
+##### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-019.11 | 清理 mock 文案、占位联系人信息、固定邮箱/电话、临时 dashboard 跳转、伪成功提示、硬编码 CTA 与过时营销副本，确保页面不再依赖本地常量冒充能力 | codex | todo |
+| T-019.12 | 完成 Public / Marketing / Auth 域验证：页面冒烟、表单核账、跳转验证、会话/权限验证、newsletter/contact/signup/login/reset 回流检查、console error 检查与移动端截图 | codex | todo |
 
 ## T-020 本地验证拆解
 | id | description | owner | status |
@@ -2283,13 +2354,31 @@
 | T-020.6 | 形成本地验证报告并经用户确认后进入预发 | user/codex | todo |
 
 ## T-021 预发复测与发布前收口拆解
+### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-021.1 | 在预发复测本地同一批关键页面与写操作，确认环境差异 | codex | todo |
-| T-021.2 | 对关键写操作再次执行幂等、重复提交、越权、异常场景验证 | codex | todo |
-| T-021.3 | 汇总预发字段核账结果、截图、日志与后台证据 | codex | todo |
-| T-021.4 | 确认发布阻断项、残余风险、回滚触发条件与回滚步骤 | codex | todo |
-| T-021.5 | 输出发布前收口结论并等待用户最终批准 | user/codex | todo |
+| T-021.1 | 核对预发与本地的环境差异：`env`、数据库 schema、迁移版本、对象存储、第三方回调、缓存、队列与定时任务状态，先把阻断项列清楚 | codex | todo |
+| T-021.2 | 重新确认本轮复测范围：明确本次要覆盖的页面域、写操作、Action/API、后台任务与不纳入范围的装饰模块 | codex | todo |
+| T-021.3 | 固化发布前门禁与回滚边界：定义失败即阻断的条件、数据回滚粒度、`feature flag` / `kill switch` 关闭策略与权限回收策略 | codex | todo |
+| T-021.4 | 固化预发证据口径：统一截图、录像、日志、SQL 核账、后台快照、接口响应和部署号的命名与存放方式 | codex | todo |
+| T-021.5 | 设定发布审批条件：确认未解决缺陷、残余风险、监控告警阈值与最终批准人，未满足则不进入发布窗口 | codex | todo |
+
+### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-021.6 | 在预发逐页复测本轮改动覆盖的关键页面与写链路，优先验证首页、排行榜、成就、设置、公共页与管理页的真实路径 | codex | todo |
+| T-021.7 | 修复预发暴露出的环境差异与运行问题：路径错误、权限偏差、缓存失效、加载失败、空态异常、移动端布局和控制台报错 | codex | todo |
+| T-021.8 | 重跑关键写操作的幂等、重复提交、越权、异常、超时与断网场景，确保补发、保存、领取、刷新和回滚入口都稳定 | codex | todo |
+| T-021.9 | 对预发字段核账结果做二次比对：关键指标、列表快照、后台记录、接口返回与本地留证逐项对齐，修掉不一致项 | codex | todo |
+| T-021.10 | 校准跨环境刷新与缓存失效行为：确认 `revalidatePath`、`revalidateTag`、路由刷新和客户端回流在预发可正常工作 | codex | todo |
+
+### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-021.11 | 清理临时调试代码、日志开关、测试账户、一次性脚本、临时 mock 与硬编码兜底，确保预发版本只保留正式实现 | codex | todo |
+| T-021.12 | 汇总最终预发验证报告：页面冒烟、写操作回放、SQL/后台核账、截图、日志与风险清单一次性收口 | codex | todo |
+| T-021.13 | 执行或复核回滚演练：确认数据回滚、功能下线、`feature flag` 关闭、入口禁用与通知/公告动作都可执行 | codex | todo |
+| T-021.14 | 输出发布前收口结论并等待用户最终批准；若仍存在阻断项，则回退到修复阶段，不进入正式发布 | user/codex | todo |
 
 ## 旧任务整合说明
 - 旧 `T-004 Dashboard / Achievements / Settings` 已拆入：`T-005`、`T-017`、`T-018`。

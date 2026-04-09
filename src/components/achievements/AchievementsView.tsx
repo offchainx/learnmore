@@ -14,14 +14,12 @@ import {
   pageSectionDescriptionClass,
 } from '@/components/shared/pageTypography'
 import {
-  pageBadgeClass,
   pageEmptyStateClass,
   pageHeroShellClass,
   pagePanelClass,
   pagePillActiveClass,
   pagePillInactiveClass,
   pageShellFrameClass,
-  pageSoftInsetClass,
 } from '@/components/shared/pageSurfaces'
 import {
   pageCardPaddingClass,
@@ -64,6 +62,19 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Star,
 }
 
+function getInitials(name: string | null) {
+  if (!name) return 'U'
+  const trimmed = name.trim()
+  if (!trimmed) return 'U'
+
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+    .slice(0, 2)
+}
+
 export const AchievementsView = ({
   user,
   overview,
@@ -89,36 +100,34 @@ export const AchievementsView = ({
           title={
             <PageHeroTitle title="成就中心" capsuleLabel="Achievement Vault" />
           }
-          subtitle={`查看 ${user.username || 'Student'} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`}
-          titleClassName="font-semibold"
-          actions={
-            <div className={pageBadgeClass}>
-              <span className="h-2 w-2 rounded-full bg-cyan-400" />
-              已解锁 {unlockedCount}/{badges.length}
-            </div>
+          subtitle={
+            user.username
+              ? `查看 ${user.username} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`
+              : '查看真实成长记录、徽章解锁进度与下一步可冲刺的目标。'
           }
+          titleClassName="font-semibold"
+          actions={null}
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <img
-              src={
-                user.avatar || 'https://i.pravatar.cc/160?u=achievement-user'
-              }
-              alt="avatar"
-              className="h-16 w-16 rounded-full border border-borderTone object-cover dark:border-borderTone"
-            />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-borderTone bg-surface text-lg font-black text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary">
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.username ? `${user.username} avatar` : 'user avatar'}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                <span>{getInitials(user.username)}</span>
+              )}
+            </div>
             <div className="flex-1">
               <div className={pageDisplayTitleClass}>
-                {user.username || 'Student'}
+                {user.username || '你的账号'}
               </div>
               <p className={`mt-1 ${pageSectionDescriptionClass}`}>
                 成就完成度 {completionRate}% · 已解锁 {unlockedCount}/
                 {badges.length}
               </p>
-            </div>
-            <div
-              className={`${pageBadgeClass} w-fit px-3 py-1.5 text-[12px] font-semibold`}
-            >
-              <Award className="h-4 w-4 text-amber-300" /> Achievement MVP
             </div>
           </div>
         </PageHeroShell>
@@ -130,45 +139,46 @@ export const AchievementsView = ({
               description="从连胜、题量、正确率和学习时长看本阶段表现。"
               className="flex-1 gap-2"
             />
-            <Badge variant="secondary" className="w-fit">
-              <Award className="mr-1 h-3.5 w-3.5" /> Achievement MVP
-            </Badge>
           </div>
         </Card>
 
-        <div className={`grid grid-cols-2 md:grid-cols-4 ${pageGridGapClass}`}>
+        <dl className={`grid grid-cols-2 md:grid-cols-4 ${pageGridGapClass}`}>
           {[
             {
               label: '连胜',
-              value: `${overview?.streak ?? 0} 天`,
+              value: overview ? `${overview.streak} 天` : '—',
               icon: Flame,
             },
             {
               label: '练习题数',
-              value: `${overview?.questions ?? 0}`,
+              value: overview ? `${overview.questions}` : '—',
               icon: Brain,
             },
             {
               label: '正确率',
-              value: `${overview?.accuracy ?? 0}%`,
+              value: overview ? `${overview.accuracy}%` : '—',
               icon: Target,
             },
             {
               label: '学习时长',
-              value: `${overview?.hours ?? '0.0'} h`,
+              value: overview ? `${overview.hours} h` : '—',
               icon: Clock,
             },
           ].map((item) => (
-            <Card
+            <div
               key={item.label}
               className={cn(pagePanelClass, pageCardPaddingClass)}
             >
-              <item.icon className="mb-2 h-5 w-5 text-blue-500" />
-              <div className={pageNumericValueCompactClass}>{item.value}</div>
+              <dt className="sr-only">{item.label}</dt>
+              <item.icon
+                aria-hidden="true"
+                className="mb-2 h-5 w-5 text-blue-500"
+              />
+              <dd className={pageNumericValueCompactClass}>{item.value}</dd>
               <div className={`mt-1 ${pageMetaTextClass}`}>{item.label}</div>
-            </Card>
+            </div>
           ))}
-        </div>
+        </dl>
 
         <Card className={cn(pagePanelClass, pageCardPaddingClass)}>
           <div className="mb-4 flex items-start justify-between gap-4">
@@ -177,12 +187,13 @@ export const AchievementsView = ({
               description="按已解锁和未解锁状态查看当前阶段最值得冲刺的徽章。"
               className="flex-1 gap-2"
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" role="group" aria-label="徽章筛选">
               {(['all', 'unlocked', 'locked'] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setTab(value)}
+                  aria-pressed={tab === value}
                   className={cn(
                     'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))]',
                     tab === value ? pagePillActiveClass : pagePillInactiveClass

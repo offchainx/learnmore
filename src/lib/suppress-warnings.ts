@@ -1,11 +1,56 @@
 /**
- * 警告抑制工具
- * 用于过滤掉已知的、不影响功能的框架警告
- *
- * ⚠️ 仅在开发环境使用，生产环境会被 removeConsole 配置自动移除
+ * 浏览器噪音过滤工具
+ * 1. 忽略已知的 React 兼容警告
+ * 2. 拦截浏览器扩展注入的运行时错误，避免它们触发 Next.js 红屏
  */
 
-if (typeof window !== 'undefined') {
+const EXTENSION_URL_PATTERN =
+  /(?:chrome|moz|safari-web|ms-browser)-extension:\/\//i
+const METAMASK_ERROR_PATTERN = /failed to connect to metamask/i
+
+type BrowserErrorPayload = {
+  message?: string
+  filename?: string
+  error?: unknown
+  reason?: unknown
+}
+
+function toText(value: unknown): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  if (value instanceof Error) {
+    return [value.name, value.message, value.stack].filter(Boolean).join('\n')
+  }
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    return [record.name, record.message, record.stack]
+      .map(part => (typeof part === 'string' ? part : ''))
+      .filter(Boolean)
+      .join('\n')
+  }
+  return String(value)
+}
+
+export function shouldSuppressBrowserRuntimeError(
+  payload: BrowserErrorPayload
+): boolean {
+  const haystack = [
+    payload.message,
+    payload.filename,
+    toText(payload.error),
+    toText(payload.reason),
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+  return METAMASK_ERROR_PATTERN.test(haystack) || EXTENSION_URL_PATTERN.test(haystack)
+}
+
+export function installBrowserWarningSuppressions() {
+  if (typeof window === 'undefined') {
+    return () => {}
+  }
+
   const originalWarn = console.warn
 
   console.warn = (...args: unknown[]) => {
@@ -16,8 +61,36 @@ if (typeof window !== 'undefined') {
       return
     }
 
-    // 保留其他所有警告
     originalWarn.apply(console, args)
+  }
+
+  const handleError = (event: ErrorEvent) => {
+    if (
+      shouldSuppressBrowserRuntimeError({
+        message: event.message,
+        filename: event.filename,
+        error: event.error,
+      })
+    ) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+    }
+  }
+
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    if (shouldSuppressBrowserRuntimeError({ reason: event.reason })) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+    }
+  }
+
+  window.addEventListener('error', handleError, true)
+  window.addEventListener('unhandledrejection', handleUnhandledRejection, true)
+
+  return () => {
+    window.removeEventListener('error', handleError, true)
+    window.removeEventListener('unhandledrejection', handleUnhandledRejection, true)
+    console.warn = originalWarn
   }
 }
 

@@ -16,9 +16,7 @@ import { DashboardHome } from './DashboardHome'
 import { CommunityView } from './views/CommunityView'
 import { CoursesView } from '@/components/courses/CoursesView'
 import { PracticeCenterScreen } from '@/components/practice/PracticeView'
-import { LeaderboardView } from '@/components/leaderboard/LeaderboardView'
 import { SettingsView } from './views/SettingsView'
-import { AchievementsView } from '@/components/achievements/AchievementsView'
 import { ParentDashboardView } from './views/ParentDashboardView'
 import { User, UserSettings } from '@prisma/client'
 
@@ -39,6 +37,11 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
 
   const handleViewChange = (view: string) => {
     const normalizedView = normalizeDashboardView(view)
+
+    if (normalizedView === 'achievements') {
+      router.push(getDashboardRoute(normalizedView))
+      return
+    }
 
     if (normalizedView === 'dashboard' || normalizedView === 'parent') {
       setCurrentView(normalizedView)
@@ -73,34 +76,10 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
         return <CoursesView t={appT} />
       case 'practice':
         return <PracticeCenterScreen t={appT} />
-      case 'leaderboard':
-        return (
-          <LeaderboardView
-            t={appT}
-            currentUser={{
-              id: user.id,
-              username: user.username,
-              avatar: user.avatar,
-            }}
-            overview={null}
-            badges={[]}
-          />
-        )
       case 'community':
         return <CommunityView />
       case 'settings':
         return <SettingsView user={user} />
-      case 'achievements':
-        return (
-          <AchievementsView
-            user={{
-              username: user.username,
-              avatar: user.avatar,
-            }}
-            overview={null}
-            badges={[]}
-          />
-        )
       default:
         return (
           <DashboardHome

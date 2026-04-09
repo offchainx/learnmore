@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma'
 import dayjs from 'dayjs'
 import { checkStreakStatus, calculateNewStreak } from '@/lib/gamification'
 import { awardBadgeIfEligible } from './achievements'
+import { revalidateTag } from 'next/cache'
 
 /**
  * Gamification Server Actions - Streak Management
@@ -42,5 +43,6 @@ export async function checkAndRefreshStreak(userId: string) {
     },
   })
 
+  revalidateTag(`achievement-overview:${userId}`, 'quick')
   await awardBadgeIfEligible(userId, 'STREAK')
 }
