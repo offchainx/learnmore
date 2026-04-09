@@ -157,6 +157,13 @@ export interface AuditLogEntry {
   timestamp: string
   type: AuditLogType
   comment?: string
+  module?: string
+  result?: string
+  before?: string
+  after?: string
+  failureReason?: string | null
+  idempotencyKey?: string | null
+  source?: string
 }
 
 // ==================== 统计数据相关 ====================

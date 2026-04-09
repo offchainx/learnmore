@@ -119,4 +119,6 @@
 
 | 2026-04-08 | T-002.4 切到生产站复测 | 修正路由基线测量目标，从 localhost 切到线上 production deployment `https://learnmorev10.vercel.app` | `scripts/measure-route-timings.ts` 已支持 `ROUTE_BASE_URL`，并用 headed Chrome 在生产站重新跑完一轮；这次 `t-026-browser-route-timings.md` 已覆盖为生产站数据，当前 public / auth 路由全部进入 3s 内，`T-002.4` 在文档里已收口为 `done` | scripts/measure-route-timings.ts, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md, .codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/DASHBOARD_SLOW_NAVIGATION_INVESTIGATION.md | 这一步纠正了之前 local-only 测量造成的基线偏差，后续以生产站结果作为验收依据 | 后面若再新增超标路由，再单独开新任务 | 这一步属于验收基线切换与收口 |
 
+| 2026-04-09 | T-016 奖励中心与排行榜真实化收口 | 完成 T-016.4 奖励中心、T-016.6~T-016.12 排行榜与成长进度真实化、核账与交互收口 | 奖励中心已接真实后端支撑，排行榜读链路、接口切换、XP/Level 口径与最终核账完成，并修复 /api/leaderboard/summary 的 route 缓存限制问题 | 奖励中心后端表与 action 接入、leaderboard 真读链路、route 校验、mock 清理、tasks 收口 | git commit 首次被 codex 日志钩子拦截 | 以后在代码提交前先同步 iteration-log，避免提交被仓库规则中断 | 如继续推进，转入 T-017 成就与游戏化域 |
+
 ## 约束

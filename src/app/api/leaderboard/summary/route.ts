@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { LeaderboardPeriod } from '@prisma/client'
-import { getUserRank } from '@/actions/leaderboard'
-import { getCachedLeaderboardEntries } from '@/lib/cache/sitewide'
+import { getLeaderboard, getUserRank } from '@/actions/leaderboard'
 import { resolveRequestUserId } from '@/lib/auth/request-user'
 import { createRoutePerfLogger } from '@/lib/observability/perf'
 
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
     const limit = parseLimit(request.nextUrl.searchParams.get('limit'))
 
     const [entries, myRank] = await Promise.all([
-      getCachedLeaderboardEntries(period, limit),
+      getLeaderboard(period, limit),
       getUserRank(userId, period),
     ])
 

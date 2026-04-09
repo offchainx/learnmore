@@ -29,7 +29,7 @@ interface RivalTarget {
   name: string
   rank: number
   xpGap: number
-  avatar: string
+  avatar: string | null
   hint: string
   href: string
   cta: string
@@ -46,6 +46,8 @@ interface FocusPanelProps {
   rivalEmptyDescription: string
   rivalEmptyCta: string
   rivalLeadText: (gap: number) => string
+  challengeEmptyDescription: string
+  challengeEmptyCta: string
 }
 
 export function FocusPanel({
@@ -59,6 +61,8 @@ export function FocusPanel({
   rivalEmptyDescription,
   rivalEmptyCta,
   rivalLeadText,
+  challengeEmptyDescription,
+  challengeEmptyCta,
 }: FocusPanelProps) {
   return (
     <Card className={cn(pagePanelStrongClass, 'rounded-[28px] p-4')}>
@@ -98,6 +102,24 @@ export function FocusPanel({
       </div>
 
       {activeTab === 'challenge' ? (
+        challenges.length === 0 ? (
+          <PageEmptyState
+            icon={Sword}
+            align="left"
+            title={challengeLabel}
+            description={challengeEmptyDescription}
+            className="px-4 py-4"
+            iconClassName="text-red-400"
+            actions={
+              <Link
+                href="/dashboard/practice"
+                className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+              >
+                {challengeEmptyCta}
+              </Link>
+            }
+          />
+        ) : (
         <div className="space-y-3">
           {challenges.map((challenge) => {
             const ChallengeIcon = challenge.icon
@@ -154,6 +176,7 @@ export function FocusPanel({
             )
           })}
         </div>
+        )
       ) : rival ? (
         <div className={cn(pageInsetClass, 'px-4 py-4')}>
           <div className="flex items-center justify-between gap-3">
@@ -167,11 +190,22 @@ export function FocusPanel({
           </div>
 
           <div className="mt-4 flex items-center gap-3">
-            <img
-              src={rival.avatar}
-              alt={rival.name}
-              className="h-12 w-12 rounded-2xl border border-red-400/30 object-cover"
-            />
+            {rival.avatar ? (
+              <img
+                src={rival.avatar}
+                alt={rival.name}
+                className="h-12 w-12 rounded-2xl border border-red-400/30 object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-400/30 bg-red-50 text-sm font-semibold text-red-700 dark:bg-red-500/10 dark:text-red-100">
+                {rival.name
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((part) => part[0]?.toUpperCase() ?? '')
+                  .join('')}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <div className="truncate text-[15px] font-semibold text-text-primary dark:text-white">
                 {rival.name}

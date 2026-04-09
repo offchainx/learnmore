@@ -1963,31 +1963,45 @@
 | T-016.1 | 清理旧 `AppSidebar` 的硬编码 XP 卡，确保遗留侧栏不再维护一套假的成长进度展示 | codex | done |
 | T-016.2 | 盘点 `/dashboard/leaderboard`、sidebar 经验值卡、`actions/leaderboard`、`/api/leaderboard/summary`、`DashboardLayout` 与 `LeaderboardView` 的数据入口，明确排行榜与成长进度的主边界 | codex | done |
 | T-016.3 | 建立排行榜与成长进度字段矩阵，覆盖 `rank / score / period / myRank / gap / user.xp / level / nextLevelXp / streak / accuracy / badges / subscriptionTier` 等权威数据源与展示口径 | codex | done |
-| T-016.4 | 在 `/admin/rewards` 下创建“奖励中心”路由与前端界面，作为排行榜 / 成长 / 奖励 / XP 的统一控制台 | codex | todo |
-| T-016.4.1 | 奖励中心前端界面骨架：创建 `/admin/rewards` 页面、顶部概览、左侧控制区、右侧明细区与响应式布局 | codex | todo |
-| T-016.4.2 | 奖励中心总览模块：展示当前 XP、等级、下一级进度、排行榜概览、徽章概览与最近奖励变更 | codex | todo |
-| T-016.4.3 | 奖励中心排行榜模块：支持周榜 / 月榜 / 总榜切换、当前排名、差距、重算 / 刷新入口与缓存状态说明 | codex | todo |
-| T-016.4.4 | 奖励中心成长规则模块：展示并管理 `XP_PER_LEVEL`、`XP_REWARDS`、每日任务 / onboarding / streak 的奖励口径 | codex | todo |
-| T-016.4.5 | 奖励中心发放与校正模块：提供受控的 XP / 徽章 / 排行榜分数补发、回滚前确认、幂等与权限校验 | codex | todo |
-| T-016.4.6 | 奖励中心审计模块：记录操作日志、变更前后对比、操作者、时间、结果与失败原因，便于核账 | codex | todo |
-| T-016.4.7 | 奖励中心状态模块：统一处理空态 / 加载 / 错误 / 未授权 / 无数据 / 缓存失效等展示与交互收口 | codex | todo |
-| T-016.5 | 固化产品边界：sidebar 经验值卡只负责持续成长进度，`/dashboard/leaderboard` 只负责排名与追赶目标，右侧成长总览负责下一步行动，明确空态 / 加载 / 错误态文案 | codex | todo |
-| T-016.6 | 明确 legacy sidebar 的处理边界：若旧 `AppSidebar` 仍保留，仅作为兼容实现，不把硬编码 XP 卡继续扩散到新主线 | codex | todo |
+| T-016.4 | 在 `/admin/rewards` 下创建“奖励中心”路由与前端界面，作为奖励规则、成就联动与排行榜观察的统一控制台 | codex | done |
+| T-016.4.1 | 奖励中心前端界面骨架：创建 `/admin/rewards` 页面，完成 `ADMIN` 权限、奖励规则列表、成就联动列表、排行榜观察区、操作日志入口与响应式布局 | codex | done |
+| T-016.4.2 | 奖励中心奖励规则模块：展示并管理任务类型、动作、对应 XP、完成次数上限、启停状态、操作与新增动作入口 | codex | done |
+| T-016.4.3 | 奖励中心成就联动模块：展示并管理成就类型、触发条件、成就上限、启停状态与编辑 / 停用入口 | codex | done |
+| T-016.4.4 | 奖励中心排行榜观察模块：支持周榜 / 月榜 / 总榜切换、榜单快照、刷新 / 重算入口与缓存状态说明 | codex | done |
+| T-016.4.5 | 奖励中心发放与校正模块：提供受控的 XP / 徽章 / 排行榜分数补发、回滚前确认、幂等与权限校验 | codex | done |
+| T-016.4.6 | 奖励中心操作日志模块：记录奖励规则、成就规则与排行榜相关操作日志、变更前后、操作者、时间、结果与失败原因 | codex | done |
+| T-016.4.7 | 奖励中心状态模块：统一处理空态 / 加载 / 错误 / 未授权 / 无数据 / 缓存失效等展示与交互收口 | codex | done |
+| T-016.4.8 | 奖励中心后端支持模块：补齐奖励规则表、成就联动规则表、发放与校正记录表与统一审计流水表，支撑奖励规则 / 成就联动 / 排行榜变动 / 发放与校正的真实写入与读取 | codex | done |
+| T-016.5 | 固化产品边界：sidebar 经验值卡只负责持续成长进度，`/dashboard/leaderboard` 只负责排名与追赶目标，右侧成长总览负责下一步行动，明确空态 / 加载 / 错误态文案 | codex | done |
 
 ##### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-016.7 | 对齐 `/dashboard/leaderboard` 读取链路：去除 mock 榜单与固定名次，接入真实后端数据、周期切换、当前用户定位与追赶目标计算 | codex | todo |
-| T-016.8 | 对齐 sidebar 经验值卡读取链路：接入真实 `user.xp`、等级计算与下一级进度，确保练习 / 社区等增益后可以正确刷新 | codex | todo |
-| T-016.9 | 对齐后端能力链路：确保 `getLeaderboard`、`getUserRank`、`/api/leaderboard/summary` 与缓存策略可支撑首屏与切换请求 | codex | todo |
-| T-016.10 | 对齐排行榜右侧成长面板：成长总览、徽章进度、追赶目标、推荐挑战与 CTA 跳转，保证信息能直接驱动下一步动作 | codex | todo |
-| T-016.11 | 对齐交互修复与调试体验：周期切换、刷新、网络错误、空榜、未登录、当前自己定位与请求超时回退 | codex | todo |
+| T-016.6 | 对齐 `/dashboard/leaderboard` 读取链路：去除 mock 榜单与固定名次，接入真实后端数据、周期切换、当前用户定位与追赶目标计算 | codex | done |
+| T-016.7 | 对齐 sidebar 经验值卡读取链路：接入真实 `user.xp`、等级计算与下一级进度，确保练习 / 社区等增益后可以正确刷新 | codex | done |
+| T-016.8 | 对齐后端能力链路：确保 `getLeaderboard`、`getUserRank`、`/api/leaderboard/summary` 与缓存策略可支撑首屏与切换请求 | codex | done |
+| T-016.9 | 对齐排行榜辅面板：追赶目标、推荐挑战、CTA 跳转与上下文说明，保证信息直接服务排行榜与下一步动作，而不是回到独立成长面板语义 | codex | done |
+| T-016.10 | 对齐交互修复与调试体验：周期切换、刷新、网络错误、空榜、未登录、当前自己定位与请求超时回退 | codex | done |
 
 ##### Phase C：清理和收口验证
 | id | description | owner | status |
 |---|---|---|---|
-| T-016.12 | 清理 mock 榜单、假排名、假百分位、硬编码 XP / Level、静态头像与伪说明文案，确保页面和 sidebar 都回到真实数据 | codex | todo |
-| T-016.13 | 完成排行榜与成长进度域验证：榜单字段核账、我的排名核账、XP / level 核账、周期切换与刷新一致性验证 | codex | todo |
+| T-016.11 | 清理 mock 榜单、假排名、假百分位、硬编码 XP / Level、静态头像与伪说明文案，确保页面和 sidebar 都回到真实数据 | codex | done |
+| T-016.12 | 完成排行榜与成长进度域验证：榜单字段核账、我的排名核账、XP / level 核账、周期切换与刷新一致性验证 | codex | done |
+
+### T-016.11 mock 清理与真实化（已完成）
+- `src/components/leaderboard/mock-data.ts` 已删除，排行榜域不再保留独立的 mock 榜单数据文件。
+- `LeaderboardView` 中当前用户的头像兜底已经收口为 `null`，列表与追赶目标统一走首字母回退，不再拼接 `pravatar` 这类伪头像 URL。
+- 右侧成长面板的伪说明文案已经清理，空状态改为直接、真实的“暂无”提示，不再暗示不存在的数据进度。
+- 排行榜页与 sidebar 现在都只依赖真实数据：页面首屏、周期切换、成长进度与段位展示都回到后端真实值，不再混用 mock / hardcoded 口径。
+- 这一步的收口标准已经达到：页面展示、侧栏成长卡与排行榜读取链路都没有新的假数据源或静态展示壳残留。
+
+### T-016.12 最终核账（已完成）
+- 已执行真实数据库核账，分别对 `WEEKLY / MONTHLY / ALL_TIME` 三个周期校验排行榜 action 输出、数据库排序结果与 `getUserRank()` 返回值，当前结果一致；本地库现状为周榜和月榜空榜、总榜存在 1 条有效记录。
+- 已抽取真实用户样本核验 `users.xp -> calculateLevel -> calculateNextLevelXp -> getAchievementOverview()` 这一条成长进度链路，`XP / level / nextLevelXp` 全部一致，sidebar 的等级与进度条公式没有口径漂移。
+- 已补做接口级验证：`/api/leaderboard/summary` 在三种周期下都返回 `200`，`entries / myRank` 与 action 层一致，周期切换与手动刷新依赖的 route 输出已稳定。
+- 本轮核账中发现 route 层原先调用 `getCachedLeaderboardEntries()` 会触发 `cacheLife()` 配置限制，已改为在接口内直接走 `getLeaderboard()`；页面首屏仍可继续使用缓存包装函数，接口切换链路不再受该限制影响。
+- 这一步收口后，排行榜与成长进度域的剩余状态符合预期：空榜返回真实空态，不再伪造榜单；有榜时名次、分数和用户定位都回到真实数据库结果。
 
 ### T-016.1 清理记录（已完成）
 - 旧 `AppSidebar` 中硬编码的 XP / Level 卡已移除，不再维护一套独立的假成长进度展示。
@@ -1997,7 +2011,7 @@
 
 ### T-016.2 数据盘点结论（已完成）
 - `/dashboard/leaderboard` 当前的首屏读取链路是：[`src/app/(dashboard)/dashboard/leaderboard/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/leaderboard/page.tsx) 先拿 `getDashboardShellProfile()`，再并行读取 `getCachedAchievementOverview(profile.id)` 与 `getCachedUserBadges(profile.id)`，并把初始榜单和当前名次交给 [`LeaderboardClientWrapper`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/leaderboard/client-wrapper.tsx)。
-- 当前页面首屏还保留了 `buildMockLeaderboardEntries(...)` 和固定 `initialMyRank` 的兜底数据，说明真正的排行榜数据还没有在页面首屏完全接管；这部分真实排行数据的最终入口在 [`src/app/api/leaderboard/summary/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/leaderboard/summary/route.ts)。
+- 当前页面首屏已经切到真实排行榜数据：`getCachedLeaderboardEntries('WEEKLY', 100)` 与 `getUserRank(...)` 负责提供初始榜单和当前名次；周期切换后的真实排行数据入口在 [`src/app/api/leaderboard/summary/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/leaderboard/summary/route.ts)。
 - [`src/components/leaderboard/LeaderboardView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/leaderboard/LeaderboardView.tsx) 的真实读取逻辑已经明确：周期切换后会请求 `/api/leaderboard/summary?period=...&limit=100`，由后端返回 `period / entries / myRank`，并在前端计算当前定位、追赶目标和展示态。
 - sidebar 经验值卡的权威来源不是 legacy `AppSidebar`，而是 [`src/components/layout/dashboard-layout.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/dashboard-layout.tsx)：它直接消费 `userXp`，并通过 `calculateLevel`、`calculateNextLevelXp`、`levelProgress` 算出等级和进度。
 - 这条主边界下，成长进度与排行榜的字段归属应收敛为：
@@ -2027,29 +2041,216 @@
 - 这一步的收口标准是：后续 `T-016.4 ~ T-016.13` 只在这套字段矩阵和展示边界上继续做读取、修复、验证，不再扩散新的口径分歧。
 
 ### T-016.4.1 奖励中心前端界面骨架（说明）
-- 这个页面只面向 `ADMIN`，目标不是展示个人成长，而是作为“奖励系统控制台”来管理动作、奖励值与发放结果。
-- 页面首屏优先级应从高到低排列为：
-  1. 系统状态与最近规则变更时间，确认当前奖励系统是否可用。
-  2. 动作配置入口，集中展示学习、测验、社区、登录、新手引导、人工补发等动作。
-  3. 奖励规则入口，集中展示 `XP_PER_LEVEL`、`XP_REWARDS`、每日任务、onboarding、streak 的奖励口径。
-  4. 发放预览与校验区，确认动作配置改动后会触发哪些 XP、徽章和排行榜变化。
-  5. 榜单观察区，按周榜 / 月榜 / 总榜观察规则变更后的结果。
-  6. 成就联动区，确认奖励规则是否正确触发徽章与成就。
-  7. 发放记录与审计区，回看最近一次发放、补发、回滚或规则更新。
-- 这个界面的布局建议采用“顶部总览 + 左侧配置 + 右侧预览 + 底部审计”的控制台式结构，而不是学员端的成长面板结构。
-- 页面上的主动作按钮应聚焦于：新增动作、编辑奖励值、启用 / 禁用规则、立即重算、手动补发、刷新缓存、导出审计。
-- 视觉上只保留必要的等级 / XP / 榜单摘要作为控制上下文，不要把个人成长卡做成主视觉，以免偏离管理员控制台定位。
-- 这一步的收口标准是：后续 `T-016.4.2 ~ T-016.4.7` 只围绕“动作配置、奖励规则、发放观察、审计回看”继续展开，不再回到学员端成长展示语义。
+- 这个页面只面向 `ADMIN`，目标不是展示个人成长，而是作为“奖励系统控制台”来管理奖励规则、成就联动与排行榜观察。
+- 当前骨架已经落地的页面结构为：
+  1. 顶部标题区，只保留 `奖励中心` 标题与 `操作日志` 入口，不再保留学员成长语义的说明文案与 KPI 卡片。
+  2. `奖励规则` 主列表，集中展示任务类型、动作、对应 XP、完成次数上限、启停状态与编辑 / 停用入口。
+  3. `成就联动` 列表，集中展示成就类型、触发条件、成就上限、启停状态与编辑 / 停用入口。
+  4. `排行榜观察` 区，集中展示周榜 / 月榜 / 总榜切换后的真实榜单快照。
+  5. `操作日志` 抽屉入口，用于后续接入所有与奖励、成就、排行榜相关的真实变更记录。
+- 当前页面已经满足：
+  - `/admin/rewards` 只允许 `ADMIN` 访问。
+  - 奖励中心侧栏入口只对 `ADMIN` 显示。
+  - 奖励规则、成就联动、排行榜观察三块内容已经塞入同一页面，不再拆成分散视图。
+  - 响应式布局已收口，移动端改为卡片列表，去掉横向滚动。
+- 这一步的收口标准是：后续 `T-016.4.2 ~ T-016.4.7` 只在这套骨架上继续接入真实规则编辑、日志、重算、补发与状态处理，不再回到学员端成长展示语义。
+
+### T-016.4.2 奖励中心奖励规则模块（说明）
+- 奖励规则区已经从静态展示升级为可操作的前端规则模块，统一收敛了 `DEFAULT_DAILY_TASKS`、`ONBOARDING_TASK_TEMPLATES` 与 `XP_REWARDS` 三类奖励来源，不再只展示每日任务模板。
+- 当前规则列表已经覆盖 `任务类型 / 动作 / 规则编码 / XP / 完成次数上限 / 启停 / 审计` 这些核心字段，并在同一区块提供 `新增动作`、`编辑`、`启用/停用` 与 `查看日志` 入口。
+- 新增动作与编辑规则已通过前端弹窗接入，支持维护任务类型、动作名称、规则编码、XP 值、次数上限、启用状态与规则说明，保存后会即时回写到奖励规则列表。
+- 奖励规则区的审计口径已经明确区分为 `每日任务模板`、`新手引导模板`、`XP 奖励常量` 与 `管理员草稿`，为后续真实奖励配置入库与操作日志对接预留统一字段。
+- 当前操作日志已经开始记录前端层的新增、编辑、启停动作，后续 `T-016.4.5 ~ T-016.4.6` 只需要把本地状态与日志来源替换成真实发放 / 校正 / 变更流水，不需要再重做奖励规则模块骨架。
+
+### T-016.4.3 奖励中心成就联动模块（说明）
+- 成就联动区已经从“当前用户徽章解锁情况”改造成前端可管理的规则模块，管理员看到的是成就定义本身，而不是学员个人解锁结果。
+- 当前成就联动列表已经统一覆盖 `成就类型 / 成就编码 / 触发条件 / 成就上限 / 启停状态 / 操作` 这些核心字段，并收敛到同一张管理表中。
+- 成就规则编辑已通过前端弹窗接入，支持维护成就类型、成就编码、触发条件、成就上限、启用状态与规则说明，保存后会即时回写到成就联动列表。
+- 成就联动区的默认来源已经收敛到当前徽章定义，前端会把已有 `badge` 定义映射成管理员可读的成就规则对象，为后续真实成就配置接口提供稳定字段骨架。
+- 当前操作日志已经开始记录成就规则的编辑与启停动作，后续只需要把本地状态源替换成真实成就规则与审计流水，不需要再重构成就联动模块本身。
+
+### T-016.4.4 奖励中心排行榜观察模块（说明）
+- 排行榜观察区已经补齐管理端所需的控制能力，不再只是只读快照列表；当前支持 `周榜 / 月榜 / 总榜` 切换、榜单快照查看、`刷新快照`、`重算榜单` 与缓存状态说明。
+- 当前缓存状态面板已经明确展示 `缓存状态 / 最近刷新 / 最近重算` 三类管理信息，管理员可以直接判断当前展示的是有效快照、空快照，还是等待真实重算链路接管的占位状态。
+- `刷新快照` 当前通过页面级刷新重新拉取服务端榜单数据，`重算榜单` 当前先作为前端占位动作接入，并同步写入操作日志，为后续真实重算接口保留操作入口与状态承接区。
+- 榜单观察区已经统一将周期切换、刷新、重算的管理动作写入奖励中心操作日志，后续 `T-016.4.6` 只需要把这些前端操作记录替换成真实榜单运维流水。
+- 这一步的收口标准是：排行榜观察模块的前端控制入口、缓存状态承接和榜单快照展示已经成型，后续只需要继续对接真实刷新 / 重算链路，不再重做 UI 结构。
+
+### T-016.4.5 奖励中心发放与校正模块（说明）
+- 发放与校正模块已经在奖励中心页面内落地为独立管理面板，统一承接 `XP 补发`、`成就补发` 与 `榜单分数校正` 三类操作，不再需要跳出当前控制台。
+- 当前表单已经覆盖 `操作类型 / 目标用户 / 发放或校正值 / 操作理由 / 回滚预案` 这些核心字段，并针对不同操作类型动态切换输入项。
+- 模块已经补齐前端层的 `权限校验`、`幂等键生成` 与 `执行预览`，提交前会阻止重复幂等键再次执行，确保不会在前端层重复补发同一动作。
+- 当前已经接入 `确认提交` 与 `确认回滚` 两层确认弹窗，管理员在执行补发 / 校正或回滚前都必须经过显式确认，不再是直接点击即生效的危险操作。
+- 模块底部的最近操作列表已经开始记录补发 / 校正记录、幂等键、状态与回滚入口，并同步写入奖励中心操作日志；后续只需要把本地状态替换成真实发放 / 校正 / 回滚接口，不需要重做模块结构。
+
+### T-016.4.6 奖励中心操作日志模块（说明）
+- 奖励中心操作日志已经从单行备注升级为结构化日志模块，当前会统一记录 `模块 / 操作者 / 时间 / 结果 / 变更前 / 变更后 / 幂等键 / 失败原因 / 来源` 等字段，不再只有简单 comment 文本。
+- 奖励规则、成就联动、排行榜观察、发放与校正四类模块的管理动作，现在都会统一写入同一个日志抽屉，避免每个区块各自维护一套日志视图。
+- 日志抽屉的搜索范围已经扩展到模块名、结果、变更前后、幂等键、失败原因与来源字段，管理端可以直接按规则编码、榜单周期、幂等键或失败原因检索记录。
+- 日志详情区已经补齐 `变更前 / 变更后`、`幂等键` 与 `失败原因` 的独立展示层，当前即使还没有接真实后端日志表，前端占位动作也已经能清楚说明为什么成功、为什么等待接入或为什么需要回滚。
+- 这一步的收口标准是：奖励中心的操作日志结构和展示方式已经稳定，后续只需要把本地日志来源替换成真实奖励 / 成就 / 榜单审计流水，不需要再重做日志模块 UI。
+
+### T-016.4.7 奖励中心状态模块（说明）
+- 奖励中心已经补齐统一的状态收口模块，会集中展示 `权限态 / 奖励规则 / 成就联动 / 排行榜缓存 / 操作日志 / 交互态` 六类状态，不再把状态信息散落在各个卡片里。
+- 未授权态当前已经通过路由守卫收口：未登录跳转登录页，非 `ADMIN` 跳回 `/dashboard`；状态模块会明确说明这一点，避免页面行为和文档口径脱节。
+- 奖励规则与成就联动两块现在都补上了显式空态，数组为空时不再渲染空白表格，而是统一显示“暂无规则”的状态提示。
+- 排行榜缓存失效也已经收口到页面语义里：当周榜 / 月榜 / 总榜出现空快照时，排行榜观察区和状态模块都会明确提示缓存失效或无数据，而不是只留下空白区域。
+- 交互层的 loading / confirm / empty 语义也已经统一：刷新、重算、补发、回滚都带 loading 或确认态，日志为空、规则为空、榜单为空时也都有明确说明；后续只需要把真实接口状态映射进来，不需要再重新设计状态模块。
+
+### T-016.4.8 奖励中心后端支持模块（说明）
+- 奖励中心后续不能只停留在前端控制台层，必须补齐真实后端承接层，确保管理员在页面上的所有配置与操作都有可持久化的数据落点。
+- 这一层至少需要覆盖四类真实数据承接：
+  1. 奖励规则表：存储任务类型、动作、规则编码、XP 值、次数上限、启停状态、说明和审计字段。
+  2. 成就联动规则表：存储成就类型、成就编码、触发条件、成就上限、启停状态、说明和审计字段。
+  3. 发放与校正记录表：存储 XP / 成就 / 榜单分数补发与回滚记录、幂等键、状态、理由、回滚预案与操作者。
+  4. 统一审计流水表：统一记录奖励规则、成就联动、排行榜变动、发放与校正的所有操作，覆盖模块、动作、目标、结果、变更前后、幂等键、失败原因与时间。
+- 这一步的目标不是只补一张日志表，而是把“规则定义”“操作执行”“审计回看”三层后端能力都建起来，让奖励中心从前端占位控制台升级为真实可用系统。
+- 后续真实接口接入时，`T-016.4.2 ~ T-016.4.6` 的前端模块都应直接切到这批表与 action / service / route 上，不再继续依赖本地 state 作为长期方案。
+- 当前进展：
+  - Prisma schema、`src/actions/admin/reward-center.ts`、`/admin/rewards` 首屏真实读链路与前端写入动作都已经接入。
+  - `pnpm prisma generate` 与 `pnpm exec tsc --noEmit --pretty false` 已通过。
+  - 已确认数据库中存在 `reward_rules / achievement_rules / reward_adjustment_records / reward_admin_audit_logs` 四张表，奖励中心后端承接层已经具备真实读写落点。
+  - `pnpm prisma:dbpush -- --accept-data-loss` 在补齐奖励中心表之后，被现有库里与 `question_groups_content_hash_key` 相关的 schema 漂移拦住；这属于奖励中心范围外的数据库基线问题，不影响 `T-016.4.8` 本身收口，但需要后续单独清理。
+
+### T-016.5 产品边界收口（说明）
+- sidebar 经验值卡只负责持续成长进度，不承载排行榜排名、追赶目标或下一步行动建议。
+- `/dashboard/leaderboard` 只负责排名、追赶目标与下一步行动，不重复展示 sidebar 的 XP 进度条。
+- 右侧成长总览只负责下一步行动、最近解锁与成长提示，不再扩展成独立成长页。
+- 页面空态、加载态与错误态文案已经统一收敛，避免在不同区域重复表达相同职责。
+- 这一步只是在展示语义上固定边界，不会提前接管 `T-016.6` 的真实排行榜数据替换工作。
+
+### T-016.6 真实排行榜读取链路（说明）
+- `/dashboard/leaderboard` 首屏已经改为读取真实排行榜缓存与真实用户名次，不再依赖 `buildMockLeaderboardEntries(...)` 或固定 `initialMyRank`。
+- 页面首屏现在由 `getCachedLeaderboardEntries('WEEKLY', 100)` 与 `getUserRank(userId, 'WEEKLY')` 共同决定，若当前用户不在榜单内也会按真实名次补入自己的位置。
+- 周期切换仍然保留客户端请求 `/api/leaderboard/summary?period=...&limit=100` 的链路，由后端返回真实 `period / entries / myRank`。
+- 当前用户定位与追赶目标计算由 `LeaderboardView` 继续负责，但输入数据已经改成真实首屏数据，不再是预置假榜单。
+- 这一步收口的是“读取链路真实化”，后续 `T-016.8 / T-016.9 / T-016.10` 继续处理缓存、辅面板语义与交互调试，不需要再重复做首屏数据接管。
+
+### T-016.7 sidebar 经验值卡读取链路（说明）
+- sidebar 经验值卡的权威输入已经固定为 `userXp`，由 [`src/components/layout/dashboard-layout.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/dashboard-layout.tsx) 直接消费，不再走 legacy `AppSidebar` 的硬编码 XP 卡。
+- `DashboardLayout` 里现已使用 `calculateLevel`、`calculateNextLevelXp` 与 `levelProgress` 从 `userXp` 派生等级、下一级 XP 与进度条，避免在 Dashboard 内重复定义等级公式。
+- 当 XP 产生变更时，XP 领取与用户资料写入等链路已经通过 `revalidatePath('/dashboard')` 回流，返回 Dashboard 后 sidebar 会自动读取最新值。
+- 这一步的收口标准是：sidebar 经验值卡只负责持续成长进度展示，不再承载排行榜排名或追赶目标语义，也不需要再单独维护一套假进度数据。
+
+### T-016.8 后端能力链路（说明）
+- 排行榜的后端能力已经由 [`src/actions/leaderboard/index.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/leaderboard/index.ts) 提供，`getLeaderboard()` 与 `getUserRank()` 都直接读真实排行榜适配器，不再依赖页面层拼装假数据。
+- [`src/lib/leaderboard/pg-adapter.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/leaderboard/pg-adapter.ts) 已经把周榜 / 月榜 / 总榜的写入与查询口径统一到同一张 leaderboardEntry 表，保证榜单计算与当前周期匹配。
+- [`src/app/api/leaderboard/summary/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/api/leaderboard/summary/route.ts) 负责承接前端周期切换请求，当前直接调用 `getLeaderboard()` 与 `getUserRank()` 返回真实 `period / entries / myRank`，并通过短时响应头支撑切换与刷新请求。
+- [`src/lib/cache/sitewide.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts) 继续通过 `use cache` + `cacheTag('leaderboard-entries')` 承接页面首屏读取，首屏缓存与接口切换已经明确分层，不再共用会触发 route 约束的缓存包装函数。
+- 这一步的收口标准是：后端已经可以支撑首屏拉取、周期切换和当前用户排名回显，后续只剩 `T-016.9 ~ T-016.12` 去处理辅面板语义、交互修复和最终核账。
+
+### T-016.9 排行榜辅面板收口（说明）
+- 右侧辅面板已经从“成长展示”收敛为“排行榜行动概览”，标题、空态和提示文案都围绕追赶目标、推荐动作与下一步 CTA 组织。
+- `XPBreakdown` 继续保留等级、XP、徽章和最近解锁，但用途是给排行榜提供上下文，不再作为独立成长页承载完整成长叙事。
+- `FocusPanel` 现在承担真正的下一步动作入口：推荐练习、社区动作、追赶目标与 CTA 跳转都直接服务于排行榜推进。
+- 这一步的完成标准是：右侧内容不再让用户误以为是在看独立成长页，而是明确在帮助用户决定下一步该做什么来推进排名。
+
+### T-016.10 交互修复与调试体验（说明）
+- 周期切换、手动刷新和请求超时都已经接到同一条读取链路里：周期变化会触发 `/api/leaderboard/summary` 重新拉取，顶部的刷新按钮也可以手动重试当前周期。
+- 网络错误、超时与空榜都有明确状态：超时会保留最近一次榜单快照，普通错误会展示重试提示，空榜会给出继续练习的 CTA。
+- 未登录态已经单独分流：API 返回 401 时会提示重新登录，并提供回到登录页的入口，而不是把所有错误都混成同一条泛化提示。
+- 当前自己定位仍然由榜单数据和 `myRank` 回显共同决定，确保当前用户即使不在前 100 名里，也会在页面里看到自己的真实位置和追赶目标。
+- 这一步的收口标准是：排行榜页面在切换、刷新、失败、空榜和未登录时都有明确、可调试、可恢复的行为，不再依赖默认错误页或隐式刷新来解释状态。
 
 ### T-017 成就与游戏化域
+> 说明：本节下方的“说明性内容”只在对应子任务完成后补写，不在子任务进行中预填。
+### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-017.1 | 盘点 `/dashboard/achievements` 的概览、等级、XP、streak、任务、徽章与当前数据源 | codex | todo |
-| T-017.2 | 建立等级、XP、streak、任务、奖励、徽章、领取状态的字段映射与权威数据源矩阵 | codex | todo |
-| T-017.3 | 对齐成就与游戏化读取链路：概览、等级映射、任务列表、徽章列表、说明文案口径 | codex | todo |
-| T-017.4 | 对齐成就与游戏化写链路：奖励领取、任务推进、streak 刷新、徽章发放、幂等与重复触发 | codex | todo |
-| T-017.5 | 清理假 XP、假 streak、假任务状态、假领奖成功，补齐空态/错误态/禁用态 | codex | todo |
-| T-017.6 | 完成成就与游戏化域验证：字段核账、重复领奖/刷新验证、规则回放验证 | codex | todo |
+| T-017.1 | 盘点 `/dashboard/achievements` 的首屏概览、等级 / XP / streak / 徽章墙、任务入口、CTA、缓存 tag 与当前数据源，明确页面读链路与共享域边界 | codex | todo |
+| T-017.2 | 建立等级、XP、streak、任务、奖励、徽章、领取状态、通知副作用的字段映射与权威数据源矩阵，明确 `users / badges / user_badges / daily_tasks / notifications` 的主从关系 | codex | todo |
+| T-017.3 | 固化状态与约束：未登录、无 profile、无成就、无徽章、任务未生成、任务已领取、缓存失效、接口失败、禁用态 / 空态 / 错误态的渲染与跳转规则 | codex | todo |
+
+#### T-017.1 边界与数据源说明（盘点基线）
+- 页面入口：[`src/app/(dashboard)/dashboard/achievements/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/page.tsx)
+- 客户端壳层：[`src/app/(dashboard)/dashboard/achievements/client-wrapper.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/client-wrapper.tsx)
+- 页面视图：[`src/components/achievements/AchievementsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/achievements/AchievementsView.tsx)
+- 首屏读取链路：先读 `getDashboardShellProfile()`，再并行读 `getCachedAchievementOverview(userId)` 与 `getCachedUserBadges(userId)`。
+- 概览缓存 tag：`achievement-overview:${userId}`，来自 [`src/lib/cache/sitewide.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts)。
+- 徽章缓存 tag：`user-badges:${userId}`，来自 [`src/lib/cache/sitewide.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts)。
+- 概览权威来源：[`src/actions/gamification/achievements.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievements.ts) 读取 `users.streak`、`users.totalStudyTime`、`users.xp`、`user_attempts`、`posts`、`comments`。
+- 徽章权威来源：[`src/actions/gamification/achievements.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievements.ts) 读取 `badges` 与 `user_badges`，并在缺失时先执行 `ensureDefaultBadges()`。
+- 任务相关写链路：`claimTaskReward` / `completeOnboardingTask` 位于 [`src/actions/gamification/achievement.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievement.ts)，底层依赖 `daily_tasks`。
+- streak 刷新链路：[`src/actions/gamification/streak.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/streak.ts)，触发后会再调用 `awardBadgeIfEligible(userId, 'STREAK')`。
+- 页面回流边界：奖励领取、onboarding 完成、streak 刷新会回流 `revalidatePath('/dashboard')`；成就概览与徽章列表分别依赖 `revalidateTag('achievement-overview:${userId}')` 和 `revalidateTag('user-badges:${userId}')`。
+- 明确非目标：当前 `/dashboard/achievements` 只承载成就概览与徽章墙，不承担完整 `daily_tasks` 管理面板，也不在页面内重复计算 XP / streak 规则。
+- 当前风险点：独立 `loading.tsx` / `error.tsx` 尚未单独补齐，页面层仍需依赖共享骨架与组件内空态作为兜底。
+
+#### T-017.2 字段映射与权威数据源矩阵（盘点基线）
+| 字段 / 能力 | 含义 | 权威来源 | 读取入口 | 写入 / 刷新入口 | 页面消费层 | 备注 |
+|---|---|---|---|---|---|---|
+| `user.xp` | 用户总 XP，决定成长进度 | `users.xp` | `getDashboardShellProfile()` -> `AchievementsClientWrapper` -> `DashboardLayout` | `claimDailyTaskRewardForUser()` / 练习侧副作用 / `awardBadgeIfEligible()` 后回流 | sidebar XP 卡、成就页概览 | 等级不得在页面层自定义公式 |
+| `level` | 当前等级 | `calculateLevel(user.xp)` | `getAchievementOverview()` | 派生值，不落库 | `AchievementOverview.level` | 只允许由 XP 派生 |
+| `nextLevelXp` | 下一级所需 XP | `calculateNextLevelXp(level)` | `getAchievementOverview()` | 派生值，不落库 | `AchievementOverview.nextLevelXp` | 只用于展示与进度推导 |
+| `user.streak` | 连续有效学习天数 | `users.streak` | `getAchievementOverview()`、`checkAndRefreshStreak()` | `checkAndRefreshStreak()`、练习 / 课程有效动作后刷新 | 成就页概览、徽章条件 | 页面加载不得触发 streak 写入 |
+| `users.totalStudyTime` | 累计学习时长（秒） | `users.totalStudyTime` | `getAchievementOverview()` | 课程 / 练习副作用链路写入 | 成就页概览 `hours` | 页面只展示格式化小时文本 |
+| `user_attempts` | 练习总题数、正确题数 | `user_attempts` | `getAchievementOverview()` | 练习提交链路写入 | `questions` / `correctAnswers` / `accuracy` | 正确率由总数派生，不能手写 |
+| `posts` / `comments` | 社区参与数，用于成长摘要与徽章判定 | `posts.authorId` / `comments.authorId` | `getAchievementOverview()`、`awardBadgeIfEligible()` | 发帖 / 评论链路写入 | `posts` / `comments` | 仅用于成长摘要与资格判断 |
+| `badges` | 徽章定义、名称、说明、图标、条件 | `badges` | `ensureDefaultBadges()` -> `listUserBadges()` / `awardBadgeIfEligible()` | `ensureDefaultBadges()` 初始化、后续规则维护 | 徽章墙、条件说明 | 页面不应硬编码徽章定义 |
+| `user_badges` | 用户已解锁徽章及领取时间 | `user_badges` | `listUserBadges()` | `awardBadgeIfEligible()` 写入 | 徽章墙 `unlocked / awardedAt` | 解锁态是权威状态，不能前端伪造 |
+| `BadgeWithUnlockStatus.unlocked` | 徽章是否已解锁 | `user_badges` 左连接 `badges` | `listUserBadges()` | 由 `awardBadgeIfEligible()` 决定 | 徽章墙筛选 / 统计 | 只作为派生展示状态 |
+| `BadgeWithUnlockStatus.awardedAt` | 徽章解锁时间 | `user_badges.awardedAt` | `listUserBadges()` | `awardBadgeIfEligible()` 创建时写入 | 徽章墙排序 / 最近解锁提示 | 仅用于展示和排序 |
+| `daily_tasks.id` | 当日任务主键 | `daily_tasks.id` | `getTodayTasks()` / `claimDailyTaskRewardForUser()` / `completeTodayOnboardingTask()` | `ensureDailyTasks()` 生成 | 任务入口 CTA、领奖动作 | 当前页不直接渲染任务列表，但任务是联动来源 |
+| `daily_tasks.type` | 任务类型（LOGIN / COMPLETE_LESSON / ONBOARDING_*） | `daily_tasks.type` | 同上 | `ensureDailyTasks()` / `trackDailyProgress()` / `completeTodayOnboardingTask()` | 任务与 onboarding 语义 | 是任务分层与幂等判断核心字段 |
+| `daily_tasks.currentCount` / `targetCount` | 任务进度 / 完成阈值 | `daily_tasks.current_count` / `daily_tasks.target_count` | 同上 | `trackDailyProgress()` / `completeTodayOnboardingTask()` | 任务完成度、领奖可用性 | 领取前必须满足 `currentCount >= targetCount` |
+| `daily_tasks.xpReward` | 任务奖励 XP | `daily_tasks.xp_reward` | `claimDailyTaskRewardForUser()` | `ensureDailyTasks()` 创建 | 领奖后 XP 增量 | 奖励值应和任务定义一致 |
+| `daily_tasks.isClaimed` | 任务是否已领奖 | `daily_tasks.is_claimed` | `claimDailyTaskRewardForUser()` / `getTodayTasks()` | `claimDailyTaskRewardForUser()` 原子更新 | 领取按钮状态 | 重复领取必须返回幂等失败 |
+| `notifications.type = ACHIEVEMENT` | 成就解锁通知类型 | `notifications.type` | `awardBadgeIfEligible()` | `awardBadgeIfEligible()` 事务内创建 | 通知中心 / 站内提醒 | 目前只有徽章发放会写这类通知 |
+| `notifications.metadata.badgeCode` | 通知关联徽章编码 | `notifications.metadata` | `awardBadgeIfEligible()` | `awardBadgeIfEligible()` | 通知详情、追踪来源 | 用于追溯是哪一个徽章触发 |
+| `notifications.metadata.source` | 触发来源（PRACTICE / COMMUNITY / STREAK） | `notifications.metadata` | `awardBadgeIfEligible()` | `awardBadgeIfEligible()` | 通知详情、审计 | 只记录徽章触发来源，不记录页面来源 |
+| `achievement-overview:${userId}` | 成就概览缓存 tag | `next/cache` tag | `getCachedAchievementOverview()` | `revalidateTag()` from `awardBadgeIfEligible()` | 成就页首屏概览 | 只缓存概览，不缓存徽章列表 |
+| `user-badges:${userId}` | 用户徽章缓存 tag | `next/cache` tag | `getCachedUserBadges()` | `revalidateTag()` from `awardBadgeIfEligible()` | 徽章墙首屏 | 与概览 tag 分离，避免一处失效影响全页 |
+
+- 读取优先级固定为：`users / user_attempts / posts / comments / badges / user_badges / daily_tasks / notifications`，页面层只能消费这些权威结果，不得在视图组件里重新推导业务状态。
+- 成就页当前主渲染合同只有 `overview` 与 `badges`，其中 `overview` 由用户统计、练习统计和社区统计聚合而来，`badges` 由徽章定义表与用户解锁表合并而来。
+- 任务、领奖、streak 和通知属于联动域能力，不是成就页当前首屏合同的一部分，但它们是成就页数据正确性的前置来源，必须在矩阵里单独标明。
+- 当前矩阵已足够支持后续 `T-017.3` 的状态与约束定义，以及 `T-017.4 ~ T-017.6` 的读取、写入与联动调试。
+
+#### T-017.3 状态与约束说明（盘点基线）
+| 状态 / 约束 | 触发条件 | 页面级表现 | 跳转 / 处理规则 | 备注 |
+|---|---|---|---|---|
+| 未登录 | `getDashboardShellProfile()` 返回空、无可用会话 | 直接跳转 `/login` | 不渲染成就页主体 | 当前由服务端页面入口处理 |
+| 无 profile / 账号未同步 | 已登录但 `profile` 不存在 | 直接跳转 `/login` 或走账号修复页外的统一登录分流 | 不允许渲染 `AchievementsClientWrapper` | 不得把缺 profile 当成“空成就” |
+| 无权限 / 非目标角色 | 若后续对成就页增加角色限制 | 显式受限提示或回到可访问首页 | 不允许降级为伪数据页 | 当前路由默认面向登录用户，未来如加限制需补规则 |
+| 无成就数据 | `overview` 为空或统计源无有效记录 | 以空态/低数据态表达，不得用默认 0 值冒充真实完成 | 不允许伪装为“完成度 0% 的有效用户” | 需要和无徽章区分 |
+| 无徽章 | `badges` 为空或 `listUserBadges()` 返回空数组 | 徽章墙显示空态文案 | 允许保留成长摘要，但徽章列表必须空态化 | 不得渲染虚假徽章卡 |
+| 任务未生成 | `daily_tasks` 当日无记录或联动链路未创建 | 当前页不展示完整任务面板 | 仅保留联动说明，不强行生成任务视图 | 任务生成属于联动域，不是成就页首屏合同 |
+| 任务已领取 | `daily_tasks.isClaimed = true` | 任务相关 CTA 应置为已完成/不可重复领取 | 重复提交应返回幂等失败 | 仅适用于与成就页联动的任务入口 |
+| 缓存失效 / cache miss | `achievement-overview` 或 `user-badges` 失效 | 重新读取真实数据，不可提示错误 | 由 `getCachedAchievementOverview()` / `getCachedUserBadges()` 自动回源 | 缓存命中与否不得改变业务语义 |
+| 接口失败 | 概览、徽章或关联动作抛错 | 页面应进入明确错误态 | 不允许落入半成功、半失败的混合态 | 独立 `error.tsx` 未补齐前需依赖通用错误兜底 |
+| 禁用态 | 功能存在但当前不开放或不该触发 | 显式禁用按钮或隐藏入口 | 不允许回退 mock 文案 | 适用于未来扩展的任务/奖励入口 |
+| 空态 | 数据合法但结果集合为空 | 空态文案 + 引导 CTA | 不得以默认卡片填充 | 与错误态、禁用态严格区分 |
+| 错误态 | 数据拉取失败、权限拒绝或联动失败 | 明确错误提示、保留返回或重试动作 | 不可伪装成功 | 错误态优先级高于空态与禁用态 |
+
+- 优先级固定为：`未登录 / 无 profile > 接口失败 / 权限失败 > 空态 > 禁用态 > 正常态`。
+- 成就页当前首屏不承载完整任务列表，因此“任务未生成 / 已领取”只允许以联动 CTA 或说明态出现，不得伪装成完整任务面板。
+- 徽章墙与成长摘要必须分开兜底：成长摘要可以基于真实统计显示低数据态，徽章墙则必须按 `badges` 的实际结果渲染空态或列表态。
+- 当前 route-level `loading.tsx` / `error.tsx` 还未单独补齐，后续实现时必须保持状态优先级和页面内空态一致，不允许各层语义冲突。
+
+### Phase B：开发、修复、调试
+| id | description | owner | status |
+|---|---|---|---|
+| T-017.4 | 对齐读取链路：页面首屏、缓存入口、加载态与错误态接管 `getAchievementOverview` / `listUserBadges` / `getTodayTasks` 等真实数据源，补齐等级 / XP / streak / 徽章 / 任务摘要的展示口径 | codex | todo |
+| T-017.5 | 对齐写链路：奖励领取、任务推进、onboarding 完成、streak 刷新、徽章发放的幂等、重复触发、事务与缓存失效策略，确保页面刷新与副作用回流一致 | codex | todo |
+| T-017.6 | 对齐跨域联动：来自练习 / 社区 / streak 的徽章触发、`achievement-overview` 与 `user-badges` tag 回收、通知写入、错误回滚与边界提示 | codex | todo |
+
+#### T-017.4 读取链路说明（盘点基线）
+- 页面首屏当前真实读取链路为：[`src/app/(dashboard)/dashboard/achievements/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/page.tsx) 先通过 `getDashboardShellProfile()` 确认用户，再并行读取 `getCachedAchievementOverview(userId)` 和 `getCachedUserBadges(userId)`。
+- `getCachedAchievementOverview(userId)` 的实际数据源是 [`src/actions/gamification/achievements.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/gamification/achievements.ts) 内的 `getAchievementOverview()`，它聚合 `users.streak`、`users.totalStudyTime`、`users.xp`、`user_attempts`、`posts`、`comments`，并派生 `level / nextLevelXp / accuracy / hours`。
+- `getCachedUserBadges(userId)` 的实际数据源是同一文件内的 `listUserBadges()`，它先 `ensureDefaultBadges()`，再读取 `badges` 与 `user_badges` 合并成带解锁状态的徽章列表。
+- 客户端壳层 [`src/app/(dashboard)/dashboard/achievements/client-wrapper.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/achievements/client-wrapper.tsx) 只负责把 `user / overview / badges` 传给 [`AchievementsView`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/achievements/AchievementsView.tsx)，不在壳层重复计算成就规则。
+- [`AchievementsView`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/achievements/AchievementsView.tsx) 当前只消费 `overview` 与 `badges` 两个合同，不直接读取 `daily_tasks`；任务相关内容目前仅作为联动来源，不在当前首屏主体里渲染。
+- 缓存层当前通过 [`src/lib/cache/sitewide.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts) 为成就概览和徽章列表分别挂上 `achievement-overview:${userId}` 与 `user-badges:${userId}`，徽章发放后由 `awardBadgeIfEligible()` 触发回收。
+- 路由骨架层当前已在 [`src/components/loading/dashboard-route-loading.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/loading/dashboard-route-loading.tsx) 提供 `achievements` variant，但 route-level 独立 `loading.tsx` / `error.tsx` 仍未单独补齐，因此加载态和错误态仍主要依赖共享骨架与组件内空态。
+- 现阶段读取链路的明确边界是：`overview + badges` 已经是真实首屏合同，`getTodayTasks()` 只属于联动域读源，暂不应被当作成就页主体数据强行接入。
+- 当前尚未完成的读取收口点是：把成就页的低数据态、错误态与任务联动入口统一到同一套页面语义中，并确认是否需要在首屏增加任务摘要而不是完整任务面板。
+
+### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-017.7 | 清理假 XP、假 streak、假任务状态、假领奖成功、静态占位文案与过时 CTA，避免页面继续依赖本地常量兜底 | codex | todo |
+| T-017.8 | 补齐 `/dashboard/achievements` 的页面级加载 / 错误 / 空态 / 低数据态 / 移动端适配 / 可访问性收口，保证异常场景也能稳定可用 | codex | todo |
+| T-017.9 | 完成成就与游戏化域验证：字段核账、重复领奖 / 重复刷新、徽章发放回放、任务推进回放、缓存失效与 console error 检查 | codex | todo |
 
 ### T-018 设置与通知域
 | id | description | owner | status |

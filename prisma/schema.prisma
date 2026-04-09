@@ -64,6 +64,7 @@ model User {
   dailyTasks         DailyTask[]
   postLikes          PostLike[]
   postBookmarks      PostBookmark[]
+  rewardAdjustments  RewardAdjustmentRecord[] @relation("RewardAdjustmentTargetUser")
 
   // Parent-Student Relations
   parents     ParentStudent[] @relation("StudentToParent")
@@ -692,6 +693,135 @@ enum LeaderboardPeriod {
   WEEKLY
   MONTHLY
   ALL_TIME
+}
+
+enum RewardRuleSource {
+  DAILY_TASK
+  ONBOARDING
+  XP_CONSTANT
+  ADMIN_CUSTOM
+}
+
+enum AchievementRuleSource {
+  BADGE_DEFINITION
+  ADMIN_CUSTOM
+}
+
+enum RewardAdjustmentType {
+  XP
+  BADGE
+  LEADERBOARD_SCORE
+}
+
+enum RewardAdjustmentStatus {
+  EXECUTED
+  ROLLED_BACK
+}
+
+enum RewardAdminAuditModule {
+  REWARD_RULE
+  ACHIEVEMENT_RULE
+  LEADERBOARD
+  ADJUSTMENT
+}
+
+enum RewardAdminAuditResult {
+  SUCCESS
+  WARNING
+  ERROR
+  PENDING
+  ROLLED_BACK
+}
+
+model RewardRule {
+  id         String           @id @default(uuid()) @db.Uuid
+  taskType   String           @map("task_type")
+  actionName String           @map("action_name")
+  ruleCode   String           @unique @map("rule_code")
+  xpValue    Int              @map("xp_value")
+  capValue   String           @map("cap_value")
+  enabled    Boolean          @default(true)
+  note       String           @db.Text
+  auditLabel String           @map("audit_label")
+  source     RewardRuleSource @default(ADMIN_CUSTOM)
+  createdBy  String?          @map("created_by") @db.Uuid
+  updatedBy  String?          @map("updated_by") @db.Uuid
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@index([enabled])
+  @@index([taskType])
+  @@map("reward_rules")
+}
+
+model AchievementRule {
+  id               String                @id @default(uuid()) @db.Uuid
+  achievementType  String                @map("achievement_type")
+  badgeCode        String                @unique @map("badge_code")
+  triggerCondition String                @map("trigger_condition") @db.Text
+  limitValue       String                @map("limit_value")
+  enabled          Boolean               @default(true)
+  note             String                @db.Text
+  auditLabel       String                @map("audit_label")
+  source           AchievementRuleSource @default(ADMIN_CUSTOM)
+  createdBy        String?               @map("created_by") @db.Uuid
+  updatedBy        String?               @map("updated_by") @db.Uuid
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  @@index([enabled])
+  @@map("achievement_rules")
+}
+
+model RewardAdjustmentRecord {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  operationType         RewardAdjustmentType   @map("operation_type")
+  targetUserId          String?                @map("target_user_id") @db.Uuid
+  targetIdentity        String                 @map("target_identity")
+  summary               String                 @db.Text
+  idempotencyKey        String                 @unique @map("idempotency_key")
+  reason                String                 @db.Text
+  rollbackPlan          String                 @map("rollback_plan") @db.Text
+  xpDelta               Int?                   @map("xp_delta")
+  badgeCode             String?                @map("badge_code")
+  leaderboardPeriod     LeaderboardPeriod?     @map("leaderboard_period")
+  leaderboardScoreDelta Int?                   @map("leaderboard_score_delta")
+  status                RewardAdjustmentStatus @default(EXECUTED)
+  metadata              Json?
+  createdBy             String                 @map("created_by") @db.Uuid
+  createdAt             DateTime               @default(now()) @map("created_at")
+  rolledBackAt          DateTime?              @map("rolled_back_at")
+
+  targetUser User? @relation("RewardAdjustmentTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([targetUserId])
+  @@index([status, createdAt])
+  @@map("reward_adjustment_records")
+}
+
+model RewardAdminAuditLog {
+  id             String                 @id @default(uuid()) @db.Uuid
+  module         RewardAdminAuditModule
+  action         String
+  targetType     String                 @map("target_type")
+  targetId       String?                @map("target_id")
+  targetLabel    String                 @map("target_label")
+  operatorId     String                 @map("operator_id") @db.Uuid
+  operatorName   String                 @map("operator_name")
+  operatorAvatar String?                @map("operator_avatar")
+  result         RewardAdminAuditResult
+  comment        String?                @db.Text
+  beforeSnapshot String?                @map("before_snapshot") @db.Text
+  afterSnapshot  String?                @map("after_snapshot") @db.Text
+  failureReason  String?                @map("failure_reason") @db.Text
+  idempotencyKey String?                @map("idempotency_key")
+  source         String                 @default("奖励中心 Web 控制台")
+  metadata       Json?
+  createdAt      DateTime               @default(now()) @map("created_at")
+
+  @@index([module, createdAt])
+  @@index([targetType, targetId])
+  @@map("reward_admin_audit_logs")
 }
 
 // ============ 练习模式枚举 ============

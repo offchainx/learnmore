@@ -3,13 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   BookOpen,
+  RefreshCw,
   MessageCircle,
   Target,
   Trophy,
   Zap,
   type LucideIcon,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useApp } from '@/providers'
+import { Button } from '@/components/ui/button'
 import { TierRoadmap } from './components/TierRoadmap'
 import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
@@ -57,11 +60,18 @@ interface LeaderboardViewProps {
   badges?: BadgeWithUnlockStatus[]
 }
 
+type LeaderboardErrorKind = 'timeout' | 'unauthorized' | 'generic'
+
+interface LeaderboardErrorState {
+  kind: LeaderboardErrorKind
+  message: string
+}
+
 interface RankedUser {
   rank: number
   name: string
   xp: number
-  avatar: string
+  avatar: string | null
   trend: 'up' | 'down' | 'same'
   status: 'promotion' | 'demotion' | 'safe'
   isMe?: boolean
@@ -88,7 +98,7 @@ function mapEntriesToRankedUsers(
     rank: entry.rank,
     name: entry.user.username || 'Anonymous',
     xp: entry.score,
-    avatar: entry.user.avatar || `https://i.pravatar.cc/150?u=${entry.user.id}`,
+    avatar: entry.user.avatar || null,
     trend: 'same',
     status: getStatusByRank(entry.rank),
     isMe: entry.user.id === currentUserId,
@@ -102,7 +112,7 @@ const copyByLang = {
     title: '排行榜',
     heroBadge: 'Competitive Ladder',
     heroSubtitle:
-      '查看当前段位、追赶目标与成长进度，决定下一轮最值得做的动作。',
+      '查看当前段位、排名、追赶目标与下一步行动，不重复展示 sidebar 的 XP 进度。',
     rankLabel: '排名',
     studentLabel: '学员',
     xpLabel: '经验值',
@@ -114,32 +124,38 @@ const copyByLang = {
       MONTHLY: '月榜',
       ALL_TIME: '总榜',
     } as Record<PeriodKey, string>,
-    emptyLeaderboard: '暂无排行榜数据，先去完成一组练习吧。',
-    loadingLeaderboard: '正在加载排行榜...',
-    staleError: '请求超时，已保留上次排行榜数据',
-    genericError: '排行榜加载失败',
+    emptyLeaderboard:
+      '暂无排行榜数据，先完成练习后系统会自动生成排名与追赶目标。',
+    loadingLeaderboard: '正在加载排行榜与追赶目标...',
+    staleError: '请求超时，已保留最近一次榜单快照。',
+    genericError: '排行榜加载失败，请稍后重试。',
+    loginRequiredTitle: '登录已失效',
+    loginRequiredBody: '请重新登录后继续查看排行榜。',
+    refreshLabel: '刷新榜单',
+    retryLabel: '重试',
+    loginLabel: '去登录',
     unranked: '尚未上榜',
     myRank: (rank: number) => `当前第 ${rank} 名`,
     promotionLabel: (gap: number | null) =>
       gap
         ? `还差 ${gap} XP 就能追上前一名`
         : '先做一轮练习，系统会自动锁定追赶目标',
-    growthTitle: '个人成长总览',
+    growthTitle: '排行榜行动概览',
     levelLabel: 'Lv',
     xpText: '当前 XP',
     streakLabel: '连胜',
     accuracyLabel: '正确率',
     unlockedLabel: '徽章',
-    nextFocusLabel: '下一步重点',
+    nextFocusLabel: '下一步行动',
     recentUnlockLabel: '最近解锁：',
     viewAllLabel: '查看全部成就',
     nextLevelText: (xp: number) => `离下一级还差 ${xp} XP`,
-    fallbackFocusText: '继续积累 XP，向下一等级推进',
-    fallbackRecentText: '完成练习、社区互动和连胜都能加速成长。',
-    challengeLabel: '推荐挑战',
-    challengeBadge: '先做最接近完成的目标',
+    challengeEmptyDescription: '完成练习或社区互动后，这里会自动生成推荐动作。',
+    challengeEmptyCta: '去练习',
+    challengeLabel: '推荐动作',
+    challengeBadge: '优先处理最接近完成的动作',
     rivalLabel: '追赶目标',
-    rivalHint: '优先做一组高收益练习或完成最近的徽章目标。',
+    rivalHint: '优先做高收益练习或完成最近的徽章目标。',
     rivalLeadText: (gap: number) => `只领先你 ${gap} XP`,
     rivalCta: '去赚 XP',
     rivalEmpty:
@@ -154,30 +170,6 @@ const copyByLang = {
     meGapText: (gap: number, rank: number) =>
       `还差 ${gap} XP 追上第 ${rank - 1} 名`,
     meFallback: '继续完成挑战，保持当前势头',
-    defaultGoals: [
-      {
-        title: '完成一组练习',
-        subtitle: '先跑出第一笔 XP，系统才会为你生成成长建议',
-        xp: 80,
-        progress: 0,
-        total: 1,
-        href: '/dashboard/practice',
-        cta: '去练习',
-        icon: Target,
-        color: 'text-purple-300 bg-purple-400/10',
-      },
-      {
-        title: '参与一次社区互动',
-        subtitle: '发帖或评论都能解锁更多成长任务',
-        xp: 40,
-        progress: 0,
-        total: 1,
-        href: '/dashboard/community',
-        cta: '去社区',
-        icon: MessageCircle,
-        color: 'text-sky-300 bg-sky-400/10',
-      },
-    ],
   },
   en: {
     tierTitle: 'Current Tier',
@@ -185,7 +177,7 @@ const copyByLang = {
     title: 'Leaderboard',
     heroBadge: 'Competitive Ladder',
     heroSubtitle:
-      'Review your current tier, rival target, and growth signals before the next push.',
+      'Review your current tier, rank, chase target, and next action without duplicating the sidebar XP card.',
     rankLabel: 'Rank',
     studentLabel: 'Student',
     xpLabel: 'XP',
@@ -198,34 +190,39 @@ const copyByLang = {
       ALL_TIME: 'All Time',
     } as Record<PeriodKey, string>,
     emptyLeaderboard:
-      'No leaderboard data yet. Finish a practice set to get ranked.',
-    loadingLeaderboard: 'Loading leaderboard...',
+      'No leaderboard data yet. Finish a practice set and the system will generate a rank and chase target.',
+    loadingLeaderboard: 'Loading leaderboard and chase target...',
     staleError: 'Request timed out. Keeping the latest leaderboard snapshot.',
-    genericError: 'Failed to load leaderboard.',
+    genericError: 'Failed to load leaderboard. Please try again later.',
+    loginRequiredTitle: 'Login expired',
+    loginRequiredBody: 'Please sign in again to view the leaderboard.',
+    refreshLabel: 'Refresh',
+    retryLabel: 'Retry',
+    loginLabel: 'Sign in',
     unranked: 'Not ranked yet',
     myRank: (rank: number) => `Now ranked #${rank}`,
     promotionLabel: (gap: number | null) =>
       gap
         ? `${gap} XP to catch the next player`
         : 'Finish a practice round to lock your rival target',
-    growthTitle: 'Growth Overview',
+    growthTitle: 'Leaderboard Action Overview',
     levelLabel: 'Lv',
     xpText: 'Current XP',
     streakLabel: 'Streak',
     accuracyLabel: 'Accuracy',
     unlockedLabel: 'Badges',
-    nextFocusLabel: 'Next Focus',
+    nextFocusLabel: 'Next Action',
     recentUnlockLabel: 'Recent unlock: ',
     viewAllLabel: 'View achievements',
     nextLevelText: (xp: number) => `${xp} XP to the next level`,
-    fallbackFocusText: 'Keep stacking XP and move to the next level.',
-    fallbackRecentText:
-      'Practice, community actions and streaks all help you climb.',
-    challengeLabel: 'Recommended Challenges',
-    challengeBadge: 'Start with the closest win',
+    challengeEmptyDescription:
+      'Finish a practice or community action and the system will generate recommended actions.',
+    challengeEmptyCta: 'Practice',
+    challengeLabel: 'Recommended Actions',
+    challengeBadge: 'Prioritize the closest win',
     rivalLabel: 'Rival Target',
     rivalHint:
-      'Do one high-yield practice run or finish the closest badge goal.',
+      'Do a high-yield practice run or finish the closest badge goal.',
     rivalLeadText: (gap: number) => `Only ${gap} XP ahead of you`,
     rivalCta: 'Earn XP',
     rivalEmpty:
@@ -240,30 +237,6 @@ const copyByLang = {
     meGapText: (gap: number, rank: number) =>
       `${gap} XP to reach rank #${rank - 1}`,
     meFallback: 'Keep completing challenges and hold your pace.',
-    defaultGoals: [
-      {
-        title: 'Finish one practice set',
-        subtitle: 'Your first XP unlocks the rest of the growth guidance',
-        xp: 80,
-        progress: 0,
-        total: 1,
-        href: '/dashboard/practice',
-        cta: 'Practice',
-        icon: Target,
-        color: 'text-purple-300 bg-purple-400/10',
-      },
-      {
-        title: 'Join one community action',
-        subtitle: 'Post or comment once to open more growth goals',
-        xp: 40,
-        progress: 0,
-        total: 1,
-        href: '/dashboard/community',
-        cta: 'Community',
-        icon: MessageCircle,
-        color: 'text-sky-300 bg-sky-400/10',
-      },
-    ],
   },
   ms: {
     tierTitle: 'Tier Semasa',
@@ -271,7 +244,7 @@ const copyByLang = {
     title: 'Carta Kedudukan',
     heroBadge: 'Competitive Ladder',
     heroSubtitle:
-      'Lihat tier semasa, sasaran kejar dan kemajuan pertumbuhan sebelum pusingan seterusnya.',
+      'Lihat tier semasa, rank, sasaran kejar dan tindakan seterusnya tanpa mengulang kad XP sidebar.',
     rankLabel: 'Rank',
     studentLabel: 'Pelajar',
     xpLabel: 'XP',
@@ -284,34 +257,39 @@ const copyByLang = {
       ALL_TIME: 'Semua Masa',
     } as Record<PeriodKey, string>,
     emptyLeaderboard:
-      'Belum ada data carta. Selesaikan satu set latihan untuk masuk carta.',
-    loadingLeaderboard: 'Memuatkan carta kedudukan...',
+      'Belum ada data carta. Selesaikan latihan dan sistem akan jana rank serta sasaran kejaran.',
+    loadingLeaderboard: 'Memuatkan carta kedudukan dan sasaran kejaran...',
     staleError: 'Permintaan tamat masa. Paparan carta terkini dikekalkan.',
-    genericError: 'Gagal memuatkan carta kedudukan.',
+    genericError: 'Gagal memuatkan carta kedudukan. Sila cuba lagi nanti.',
+    loginRequiredTitle: 'Sesi log masuk tamat',
+    loginRequiredBody: 'Sila log masuk semula untuk melihat carta kedudukan.',
+    refreshLabel: 'Muat semula',
+    retryLabel: 'Cuba lagi',
+    loginLabel: 'Log masuk',
     unranked: 'Belum tersenarai',
     myRank: (rank: number) => `Kini di tempat #${rank}`,
     promotionLabel: (gap: number | null) =>
       gap
         ? `${gap} XP lagi untuk kejar pemain di atas`
         : 'Lengkapkan satu latihan untuk buka sasaran kejaran',
-    growthTitle: 'Ringkasan Perkembangan',
+    growthTitle: 'Ringkasan Tindakan Carta',
     levelLabel: 'Lv',
     xpText: 'XP Semasa',
     streakLabel: 'Streak',
     accuracyLabel: 'Ketepatan',
     unlockedLabel: 'Lencana',
-    nextFocusLabel: 'Fokus Seterusnya',
+    nextFocusLabel: 'Tindakan Seterusnya',
     recentUnlockLabel: 'Baru dibuka: ',
     viewAllLabel: 'Lihat pencapaian',
     nextLevelText: (xp: number) => `${xp} XP lagi ke tahap seterusnya`,
-    fallbackFocusText: 'Kumpul lagi XP untuk naik ke tahap seterusnya.',
-    fallbackRecentText:
-      'Latihan, interaksi komuniti dan streak membantu anda naik lebih cepat.',
-    challengeLabel: 'Cabaran Disyorkan',
-    challengeBadge: 'Mulakan dengan sasaran paling hampir',
+    challengeEmptyDescription:
+      'Selesaikan latihan atau interaksi komuniti dan sistem akan jana tindakan disyorkan.',
+    challengeEmptyCta: 'Latih',
+    challengeLabel: 'Tindakan Disyorkan',
+    challengeBadge: 'Utamakan sasaran paling hampir',
     rivalLabel: 'Sasaran Kejaran',
     rivalHint:
-      'Buat satu latihan berimpak tinggi atau lengkapkan lencana yang paling hampir.',
+      'Buat latihan berimpak tinggi atau lengkapkan lencana yang paling hampir.',
     rivalLeadText: (gap: number) => `Hanya ${gap} XP di hadapan anda`,
     rivalCta: 'Dapatkan XP',
     rivalEmpty:
@@ -326,30 +304,6 @@ const copyByLang = {
     meGapText: (gap: number, rank: number) =>
       `${gap} XP lagi untuk capai rank #${rank - 1}`,
     meFallback: 'Terus lengkapkan cabaran dan kekalkan momentum.',
-    defaultGoals: [
-      {
-        title: 'Selesaikan satu set latihan',
-        subtitle: 'XP pertama anda akan membuka panduan perkembangan penuh',
-        xp: 80,
-        progress: 0,
-        total: 1,
-        href: '/dashboard/practice',
-        cta: 'Latih',
-        icon: Target,
-        color: 'text-purple-300 bg-purple-400/10',
-      },
-      {
-        title: 'Sertai satu interaksi komuniti',
-        subtitle: 'Tulis post atau komen sekali untuk buka sasaran baru',
-        xp: 40,
-        progress: 0,
-        total: 1,
-        href: '/dashboard/community',
-        cta: 'Komuniti',
-        icon: MessageCircle,
-        color: 'text-sky-300 bg-sky-400/10',
-      },
-    ],
   },
 } as const
 
@@ -378,23 +332,35 @@ export const LeaderboardView = ({
   badges = [],
 }: LeaderboardViewProps) => {
   const { lang } = useApp()
+  const router = useRouter()
   const copy = copyByLang[lang as keyof typeof copyByLang] ?? copyByLang.zh
   const [activeTab, setActiveTab] = useState<'global' | 'friends'>('global')
   const [focusTab, setFocusTab] = useState<'challenge' | 'rival'>('challenge')
   const [period, setPeriod] = useState<PeriodKey>(initialPeriod)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const mockFallbackUsers = useMemo(
+  const [refreshNonce, setRefreshNonce] = useState(0)
+  const [errorState, setErrorState] = useState<LeaderboardErrorState | null>(
+    null
+  )
+  const seedLeaderboardUsers = useMemo(
     () => mapEntriesToRankedUsers(initialEntries, currentUser.id),
     [currentUser.id, initialEntries]
   )
   const [rankedUsers, setRankedUsers] =
-    useState<RankedUser[]>(mockFallbackUsers)
+    useState<RankedUser[]>(seedLeaderboardUsers)
   const [myRank, setMyRank] = useState<number | null>(initialMyRank)
-  const requestKey = useMemo(() => `${period}:100`, [period])
+  const requestKey = useMemo(() => `${period}:100:${refreshNonce}`, [
+    period,
+    refreshNonce,
+  ])
   const lastLoadedKeyRef = useRef<string>(
-    initialEntries.length > 0 ? `${initialPeriod}:100` : ''
+    initialEntries.length > 0 ? `${initialPeriod}:100:0` : ''
   )
+  const leaderboardLoginHref = `/login?redirectTo=${encodeURIComponent('/dashboard/leaderboard')}`
+
+  const handleRefresh = () => {
+    setRefreshNonce((current) => current + 1)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -404,7 +370,7 @@ export const LeaderboardView = ({
 
     async function loadLeaderboard() {
       setLoading(true)
-      setError(null)
+      setErrorState(null)
       try {
         const response = await fetchWithTimeout(
           `/api/leaderboard/summary?period=${encodeURIComponent(period)}&limit=100`,
@@ -416,6 +382,9 @@ export const LeaderboardView = ({
           }
         )
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('UNAUTHORIZED_LEADERBOARD_REQUEST')
+          }
           throw new Error(`Failed to load leaderboard: ${response.status}`)
         }
         const result = await response.json()
@@ -437,51 +406,38 @@ export const LeaderboardView = ({
             rank: me.rank,
             name: currentUser.username || copy.youBadge,
             xp: me.score,
-            avatar:
-              currentUser.avatar ||
-              `https://i.pravatar.cc/150?u=${currentUser.id}`,
+            avatar: currentUser.avatar || null,
             trend: 'same',
             status: getStatusByRank(me.rank),
             isMe: true,
           })
         }
 
-        const fallbackMe = mockFallbackUsers.find((user) => user.isMe) ?? null
-        const resolvedUsers =
-          mapped.length > 0
-            ? mapped
-            : mockFallbackUsers.map((user) => ({
-                ...user,
-                rank:
-                  period === 'MONTHLY'
-                    ? user.rank + 2
-                    : period === 'ALL_TIME'
-                      ? Math.max(1, user.rank - 1)
-                      : user.rank,
-                xp:
-                  period === 'MONTHLY'
-                    ? user.xp - 420
-                    : period === 'ALL_TIME'
-                      ? user.xp + 960
-                      : user.xp,
-                status: getStatusByRank(
-                  period === 'MONTHLY'
-                    ? user.rank + 2
-                    : period === 'ALL_TIME'
-                      ? Math.max(1, user.rank - 1)
-                      : user.rank
-                ),
-              }))
-
-        setMyRank(me?.rank ?? fallbackMe?.rank ?? null)
-        setRankedUsers(resolvedUsers.sort((a, b) => a.rank - b.rank))
+        setMyRank(me?.rank ?? null)
+        setRankedUsers(mapped.sort((a, b) => a.rank - b.rank))
       } catch (cause) {
         console.error('Failed to load leaderboard:', cause)
         lastLoadedKeyRef.current = ''
         if (!cancelled) {
-          setError(
-            isAbortLikeError(cause) ? copy.staleError : copy.genericError
-          )
+          if (
+            cause instanceof Error &&
+            cause.message === 'UNAUTHORIZED_LEADERBOARD_REQUEST'
+          ) {
+            setErrorState({
+              kind: 'unauthorized',
+              message: copy.loginRequiredBody,
+            })
+          } else if (isAbortLikeError(cause)) {
+            setErrorState({
+              kind: 'timeout',
+              message: copy.staleError,
+            })
+          } else {
+            setErrorState({
+              kind: 'generic',
+              message: copy.genericError,
+            })
+          }
         }
       } finally {
         if (!cancelled) setLoading(false)
@@ -494,14 +450,15 @@ export const LeaderboardView = ({
     }
   }, [
     copy.genericError,
+    copy.loginRequiredBody,
     copy.staleError,
     copy.youBadge,
     currentUser.avatar,
     currentUser.id,
     currentUser.username,
-    mockFallbackUsers,
     period,
     requestKey,
+    seedLeaderboardUsers,
   ])
 
   const meEntry = useMemo(
@@ -749,12 +706,69 @@ export const LeaderboardView = ({
             titleClassName="font-semibold"
             subtitleClassName={pageSectionDescriptionClass}
             actions={
-              <div className={`${pageBadgeClass} ${pageMetaTextClass}`}>
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                {copy.globalLabel} · {copy.periods[period]}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className={`${pageBadgeClass} ${pageMetaTextClass}`}>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  {copy.globalLabel} · {copy.periods[period]}
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="h-9 rounded-full px-3 text-[13px]"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  {copy.refreshLabel}
+                </Button>
               </div>
             }
           />
+
+          {errorState ? (
+            <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3 text-sm text-text-primary dark:border-borderTone dark:bg-surface-selected dark:text-white">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <div className="font-semibold">
+                    {errorState.kind === 'unauthorized'
+                      ? copy.loginRequiredTitle
+                      : errorState.message}
+                  </div>
+                  <div className="mt-1 text-text-secondary dark:text-text-secondary">
+                    {errorState.kind === 'unauthorized'
+                      ? copy.loginRequiredBody
+                      : errorState.kind === 'timeout'
+                        ? copy.staleError
+                        : copy.genericError}
+                  </div>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleRefresh}
+                    className="rounded-full px-3"
+                    disabled={loading}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                    {copy.retryLabel}
+                  </Button>
+                  {errorState.kind === 'unauthorized' ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => router.push(leaderboardLoginHref)}
+                      className="rounded-full px-3"
+                    >
+                      {copy.loginLabel}
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <TierRoadmap
             tiers={[...copy.tiers]}
@@ -769,12 +783,6 @@ export const LeaderboardView = ({
             className={`grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1.5fr)_360px] ${pageGridGapClass}`}
           >
             <div className="min-h-0">
-              {error ? (
-                <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
-                  {error}
-                </div>
-              ) : null}
-
               <LeaderboardList
                 title={copy.title}
                 rankLabel={copy.rankLabel}
@@ -827,8 +835,6 @@ export const LeaderboardView = ({
                   recentUnlockLabel={copy.recentUnlockLabel}
                   viewAllLabel={copy.viewAllLabel}
                   nextLevelText={copy.nextLevelText}
-                  fallbackFocusText={copy.fallbackFocusText}
-                  fallbackRecentText={copy.fallbackRecentText}
                 />
               ) : null}
 
@@ -838,11 +844,13 @@ export const LeaderboardView = ({
                 challengeLabel={copy.challengeLabel}
                 rivalLabel={copy.rivalLabel}
                 challengeBadge={copy.challengeBadge}
-                challenges={growthSummary?.goals ?? [...copy.defaultGoals]}
+                challenges={growthSummary?.goals ?? []}
                 rival={rivalTarget}
                 rivalEmptyDescription={copy.rivalEmpty}
                 rivalEmptyCta={copy.rivalEmptyCta}
                 rivalLeadText={copy.rivalLeadText}
+                challengeEmptyDescription={copy.challengeEmptyDescription}
+                challengeEmptyCta={copy.challengeEmptyCta}
               />
             </div>
           </div>

@@ -38,7 +38,20 @@ export function AuditLogDrawer({
   const filteredLogs = useMemo(() => {
     if (!normalizedQuery) return logs
     return logs.filter((log) =>
-      [log.user, log.action, log.target, log.comment, log.timestamp]
+      [
+        log.user,
+        log.action,
+        log.target,
+        log.comment,
+        log.timestamp,
+        log.module,
+        log.result,
+        log.before,
+        log.after,
+        log.failureReason,
+        log.idempotencyKey,
+        log.source,
+      ]
         .filter(Boolean)
         .some((value) =>
           String(value).toLowerCase().includes(normalizedQuery)
@@ -107,11 +120,76 @@ export function AuditLogDrawer({
                       </span>
                     </p>
 
+                    {log.module || log.result ? (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {log.module ? (
+                          <span className="rounded-full border border-borderTone bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                            模块：{log.module}
+                          </span>
+                        ) : null}
+                        {log.result ? (
+                          <span className="rounded-full border border-borderTone bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                            结果：{log.result}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {log.before || log.after ? (
+                      <div className="mt-3 grid gap-2">
+                        {log.before ? (
+                          <div className="rounded-md border border-borderTone bg-surface px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                              变更前
+                            </div>
+                            <p className="mt-1 text-xs leading-5 text-text-secondary">
+                              {log.before}
+                            </p>
+                          </div>
+                        ) : null}
+                        {log.after ? (
+                          <div className="rounded-md border border-borderTone bg-surface px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                              变更后
+                            </div>
+                            <p className="mt-1 text-xs leading-5 text-text-secondary">
+                              {log.after}
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {log.idempotencyKey || log.failureReason ? (
+                      <div className="mt-3 grid gap-2">
+                        {log.idempotencyKey ? (
+                          <div className="rounded-md border border-borderTone bg-surface px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                              幂等键
+                            </div>
+                            <p className="mt-1 break-all text-xs leading-5 text-text-secondary">
+                              {log.idempotencyKey}
+                            </p>
+                          </div>
+                        ) : null}
+                        {log.failureReason ? (
+                          <div className="rounded-md border border-borderTone bg-surface px-3 py-2">
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                              失败原因
+                            </div>
+                            <p className="mt-1 text-xs leading-5 text-text-secondary">
+                              {log.failureReason}
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
                     {/* User Info */}
                     <div className="mt-2 flex items-center rounded-md border border-borderTone bg-surface-subtle p-2 transition-colors group-hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:bg-surface-subtle">
                       <History className="mr-2 h-3.5 w-3.5 shrink-0 text-text-tertiary dark:text-text-tertiary" />
                       <span className="truncate text-xs text-text-secondary dark:text-text-secondary">
-                        通过 Web 端执行
+                        {log.source || '通过 Web 端执行'}
                       </span>
                     </div>
                   </div>

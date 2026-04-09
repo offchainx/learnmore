@@ -36,8 +36,6 @@ interface XPBreakdownProps {
   recentUnlockLabel: string
   viewAllLabel: string
   nextLevelText: (xpToNext: number) => string
-  fallbackFocusText: string
-  fallbackRecentText: string
 }
 
 export function XPBreakdown({
@@ -61,8 +59,6 @@ export function XPBreakdown({
   recentUnlockLabel,
   viewAllLabel,
   nextLevelText,
-  fallbackFocusText,
-  fallbackRecentText,
 }: XPBreakdownProps) {
   const xpToNextLevel = Math.max(nextLevelXp - xp, 0)
 
@@ -143,12 +139,12 @@ export function XPBreakdown({
           {nextFocusLabel}
         </div>
         <div className="mt-1 truncate text-[14px] font-semibold text-text-primary dark:text-white">
-          {nextBadgeName || fallbackFocusText}
+          {nextBadgeName || '暂无真实下一步建议'}
         </div>
         <div className={`mt-1 truncate ${pageKickerClass}`}>
           {recentBadgeName
             ? `${recentUnlockLabel}${recentBadgeName}`
-            : fallbackRecentText}
+            : '暂无最近解锁记录'}
         </div>
       </div>
     </Card>

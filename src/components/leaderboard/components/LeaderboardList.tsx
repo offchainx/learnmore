@@ -30,7 +30,7 @@ interface LeaderboardUser {
   rank: number
   name: string
   xp: number
-  avatar: string
+  avatar: string | null
   trend: 'up' | 'down' | 'same'
   status: 'promotion' | 'demotion' | 'safe'
   isMe?: boolean
@@ -93,6 +93,14 @@ export function LeaderboardList({
   myGapToPrevious = null,
 }: LeaderboardListProps) {
   const currentUser = listData.find((user) => user.isMe)
+
+  const renderInitials = (name: string) =>
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('')
 
   return (
     <div
@@ -241,15 +249,27 @@ export function LeaderboardList({
 
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className={`h-10 w-10 rounded-2xl border object-cover ${
-                        user.isMe
-                          ? 'border-blue-300/70 dark:border-blue-400/40'
-                          : 'border-borderTone dark:border-borderTone'
-                      }`}
-                    />
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className={`h-10 w-10 rounded-2xl border object-cover ${
+                          user.isMe
+                            ? 'border-blue-300/70 dark:border-blue-400/40'
+                            : 'border-borderTone dark:border-borderTone'
+                        }`}
+                      />
+                    ) : (
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-2xl border text-[13px] font-semibold ${
+                          user.isMe
+                            ? 'border-blue-300/70 bg-blue-50 text-sky-700 dark:border-blue-400/40 dark:bg-blue-500/10 dark:text-sky-100'
+                            : 'border-borderTone bg-surface-subtle text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
+                        }`}
+                      >
+                        {renderInitials(user.name)}
+                      </div>
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="truncate text-sm font-semibold text-text-primary dark:text-white">

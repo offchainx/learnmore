@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useTransition } from 'react'
+import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   BookOpen,
@@ -197,11 +197,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isContentAdminRoute = pathname?.startsWith('/admin/content') || false
   const isAnyAdminRoute = pathname?.startsWith('/admin') || false
   const isPracticeRoute = pathname?.startsWith('/dashboard/practice') || false
-  const [isSidebarOpen, setSidebarOpen] = useState(false)
-  const [isUserAdminExpanded, setIsUserAdminExpanded] = useState(false)
-  const [isContentAdminExpanded, setIsContentAdminExpanded] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-  const [isLogoutPending, startLogoutTransition] = useTransition()
+  const [isSidebarOpen, setSidebarOpen] = React.useState(false)
+  const [isUserAdminExpanded, setIsUserAdminExpanded] = React.useState(false)
+  const [isContentAdminExpanded, setIsContentAdminExpanded] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false)
+  const [isLogoutPending, startLogoutTransition] = React.useTransition()
   const {
     isPending: isNavPending,
     pendingTarget,
@@ -259,7 +259,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }
   const normalizedCurrentView = normalizeDashboardView(currentView)
   const isSidebarLocked = isNavPending || isLogoutPending
-  useEffect(() => {
+  React.useEffect(() => {
     setIsMounted(true)
   }, [])
   useRoutePrefetch({
