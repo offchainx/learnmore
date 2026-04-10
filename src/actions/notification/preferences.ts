@@ -3,6 +3,64 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '../user/auth';
+import { z } from 'zod';
+import type { UserSettings } from '@prisma/client';
+
+const notificationPreferencesUpdateSchema = z
+  .object({
+    inAppSystem: z.boolean().optional(),
+    inAppSocial: z.boolean().optional(),
+    inAppStudy: z.boolean().optional(),
+    inAppAchievement: z.boolean().optional(),
+    emailSystem: z.boolean().optional(),
+    emailSocial: z.boolean().optional(),
+    emailWeekly: z.boolean().optional(),
+    emailMarketing: z.boolean().optional(),
+  })
+  .strict();
+
+function getLegacyBridgeUpdate(
+  data: z.infer<typeof notificationPreferencesUpdateSchema>
+) {
+  return {
+    ...(data.inAppStudy !== undefined
+      ? { notificationDaily: data.inAppStudy }
+      : {}),
+    ...(data.emailWeekly !== undefined
+      ? { notificationWeekly: data.emailWeekly }
+      : {}),
+    ...(data.emailMarketing !== undefined
+      ? { emailMarketing: data.emailMarketing }
+      : {}),
+    ...(data.emailSocial !== undefined
+      ? { emailActivity: data.emailSocial }
+      : {}),
+  };
+}
+
+function getNotificationPreferenceCreateDataFromLegacySettings(
+  userId: string,
+  oldSettings: Pick<
+    UserSettings,
+    | 'notificationDaily'
+    | 'notificationWeekly'
+    | 'emailMarketing'
+    | 'emailActivity'
+  > | null
+) {
+  return {
+    userId,
+    inAppSystem: true,
+    inAppSocial: true,
+    inAppStudy: oldSettings?.notificationDaily ?? true,
+    inAppAchievement: true,
+    emailSystem: true,
+    emailSocial: oldSettings?.emailActivity ?? true,
+    emailWeekly: oldSettings?.notificationWeekly ?? true,
+    emailMarketing: oldSettings?.emailMarketing ?? true,
+    emailBilling: true,
+  };
+}
 
 /**
  * 获取当前用户通知偏好
@@ -26,18 +84,10 @@ export async function getNotificationPreferences() {
 
       // 创建新的偏好设置，同步旧字段值
       preferences = await prisma.notificationPreference.create({
-        data: {
-          userId: user.id,
-          inAppSystem: true,
-          inAppSocial: true,
-          inAppStudy: oldSettings?.notificationDaily ?? true,
-          inAppAchievement: true,
-          emailSystem: true,
-          emailSocial: true,
-          emailWeekly: oldSettings?.notificationWeekly ?? true,
-          emailMarketing: oldSettings?.emailMarketing ?? true,
-          emailBilling: true,
-        },
+        data: getNotificationPreferenceCreateDataFromLegacySettings(
+          user.id,
+          oldSettings
+        ),
       });
     }
 
@@ -68,21 +118,45 @@ export async function updateNotificationPreferences(
     const user = await getCurrentUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
-    const preferences = await prisma.notificationPreference.upsert({
-      where: { userId: user.id },
-      update: data,
-      create: {
-        userId: user.id,
-        inAppSystem: data.inAppSystem ?? true,
-        inAppSocial: data.inAppSocial ?? true,
-        inAppStudy: data.inAppStudy ?? true,
-        inAppAchievement: data.inAppAchievement ?? true,
-        emailSystem: data.emailSystem ?? true,
-        emailSocial: data.emailSocial ?? true,
-        emailWeekly: data.emailWeekly ?? true,
-        emailMarketing: data.emailMarketing ?? true,
-        emailBilling: true, // 强制为 true
-      },
+    const parsed = notificationPreferencesUpdateSchema.safeParse(data);
+
+    if (!parsed.success) {
+      return { success: false, error: 'Invalid notification preferences payload' };
+    }
+
+    const normalizedData = parsed.data;
+    const legacyBridgeUpdate = getLegacyBridgeUpdate(normalizedData);
+
+    const preferences = await prisma.$transaction(async (tx) => {
+      const nextPreferences = await tx.notificationPreference.upsert({
+        where: { userId: user.id },
+        update: normalizedData,
+        create: {
+          userId: user.id,
+          inAppSystem: normalizedData.inAppSystem ?? true,
+          inAppSocial: normalizedData.inAppSocial ?? true,
+          inAppStudy: normalizedData.inAppStudy ?? true,
+          inAppAchievement: normalizedData.inAppAchievement ?? true,
+          emailSystem: normalizedData.emailSystem ?? true,
+          emailSocial: normalizedData.emailSocial ?? true,
+          emailWeekly: normalizedData.emailWeekly ?? true,
+          emailMarketing: normalizedData.emailMarketing ?? true,
+          emailBilling: true,
+        },
+      });
+
+      if (Object.keys(legacyBridgeUpdate).length > 0) {
+        await tx.userSettings.upsert({
+          where: { userId: user.id },
+          create: {
+            userId: user.id,
+            ...legacyBridgeUpdate,
+          },
+          update: legacyBridgeUpdate,
+        });
+      }
+
+      return nextPreferences;
     });
 
     try {

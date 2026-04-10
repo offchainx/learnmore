@@ -43,6 +43,10 @@ export async function checkAndRefreshStreak(userId: string) {
     },
   })
 
-  revalidateTag(`achievement-overview:${userId}`, 'quick')
+  try {
+    revalidateTag(`achievement-overview:${userId}`, 'quick')
+  } catch (error) {
+    console.warn('[Streak] Cache invalidation skipped outside request context:', error)
+  }
   await awardBadgeIfEligible(userId, 'STREAK')
 }

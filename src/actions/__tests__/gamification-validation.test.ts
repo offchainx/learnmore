@@ -29,6 +29,29 @@ type MockUserBadge = {
   awardedAt: Date
 }
 
+type MockUserSettings = {
+  studyReminderTime: string
+  difficultyCalibration: number
+}
+
+type MockUser = {
+  id: string
+  streak: number
+  xp: number
+  username: string | null
+  grade: number | null
+  settings: MockUserSettings | null
+  lastStudyDate?: Date
+}
+
+type MockNotification = {
+  userId: string
+  type: string
+  title: string
+  content: string
+  metadata: Record<string, unknown>
+}
+
 const fixedNow = new Date('2026-04-09T08:00:00.000Z')
 
 const {
@@ -48,17 +71,11 @@ const {
         studyReminderTime: '08:00',
         difficultyCalibration: 1,
       },
-    },
+    } as MockUser,
     tasks: [] as MockTask[],
     badges: [] as MockBadge[],
     userBadges: [] as MockUserBadge[],
-    notifications: [] as Array<{
-      userId: string
-      type: string
-      title: string
-      content: string
-      metadata: Record<string, unknown>
-    }>,
+    notifications: [] as MockNotification[],
     attempts: 1,
     correctAttempts: 100,
     postCount: 5,
@@ -187,7 +204,11 @@ const {
         if (state.badges.some((badge) => badge.code === row.code)) continue
         state.badges.push({
           id: row.id ?? `badge-${row.code}`,
-          ...row,
+          code: row.code,
+          name: row.name,
+          description: row.description,
+          icon: row.icon,
+          condition: row.condition ?? null,
           createdAt: row.createdAt ?? new Date('2026-04-09T00:00:00.000Z'),
         })
       }
@@ -231,7 +252,7 @@ const {
   }
 
   const notificationTx = {
-    createMany: vi.fn(async ({ data }: { data: Array<Record<string, any>> }) => {
+    createMany: vi.fn(async ({ data }: { data: MockNotification[] }) => {
       state.notifications.push(...data)
       return { count: data.length }
     }),

@@ -73,6 +73,17 @@ describe('checkAndRefreshStreak', () => {
     expect(mockAwardBadgeIfEligible).toHaveBeenCalledWith('user-1', 'STREAK')
   })
 
+  it('缓存失效在非请求上下文中失败时不应中断 streak 更新', async () => {
+    mockRevalidateTag.mockImplementation(() => {
+      throw new Error('no request context')
+    })
+
+    await expect(checkAndRefreshStreak('user-1')).resolves.toBeUndefined()
+
+    expect(mockUpdate).toHaveBeenCalled()
+    expect(mockAwardBadgeIfEligible).toHaveBeenCalledWith('user-1', 'STREAK')
+  })
+
   it('same_day 时不应触发写入或缓存回收', async () => {
     mockCheckStreakStatus.mockReturnValueOnce('same_day')
 

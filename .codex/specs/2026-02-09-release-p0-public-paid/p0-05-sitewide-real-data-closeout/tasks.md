@@ -19,9 +19,9 @@
 | T-015 | `/admin/content/reports` + `/admin/content/statistics` 内容质控与统计域真实化 | codex | done |  |
 | T-016 | `/dashboard/leaderboard` 排行榜 + sidebar 经验值卡真实化 | codex | todo |  |
 | T-017 | `/dashboard/achievements` 成就 / XP / streak / 任务域真实化 | codex | todo |  |
-| T-018 | `/dashboard/settings` 全路由族真实化（含 `/dashboard/settings/notifications` 与通知深链收口） | codex | todo |  |
+| T-018 | `/dashboard/settings` 设置页真实化（含右上角通知弹层与通知深链收口） | codex | done |  |
 | T-019 | Public / Marketing / Auth 页面 CTA、表单、跳转与权限行为对齐 | codex | todo |  |
-| T-020 | 本地验证：页面冒烟、Action/API 契约、SQL/后台快照留证 | codex | todo |  |
+| T-020 | 本地验证：页面冒烟、Action/API 契约、SQL/后台快照留证 | codex | doing |  |
 | T-021 | 预发复测、发布前收口与回滚确认 | codex | todo |  |
 
 ## 实际执行顺序
@@ -707,7 +707,7 @@
 | T-015 | `/admin/content/reports`、`/admin/content/statistics` | 质控报错与统计域一起推进 |
 | T-016 | `/dashboard/leaderboard` | 榜单、我的排名、周期切换、衍生卡片一起处理 |
 | T-017 | `/dashboard/achievements` | 成就、XP、等级、任务、streak 口径统一 |
-| T-018 | `/dashboard/settings`、`/dashboard/settings/notifications` | 设置与通知偏好统一真实化，收口通知深链与兼容路由 |
+| T-018 | `/dashboard/settings`、右上角通知弹层 | 设置与通知偏好统一真实化，`/dashboard/settings/notifications` 保持 404 |
 | T-019 | 登录、注册、公开页 CTA、联系/帮助/博客等表单与跳转 | 用于承接旧版“Public / Marketing / Auth”范围 |
 
 ## 页面族展开清单（用于开发前对齐颗粒度）
@@ -1494,7 +1494,7 @@
 ### T-012.5 读取链路收口说明
 - `T-012.5` 的目标不是再新增 referral 业务规则，而是把“用户侧看到什么、支付页预填什么、后台看什么”三条读取链路统一到同一份口径，避免不同页面各算各的。
 - 用户侧推荐码展示已经落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：它使用 `referralCode / referralCount / referralLimit / referralsGiven` 这组字段展示推荐码、复制链接、奖励说明与当前推荐摘要。
-- 支付页预填已经落在 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx)：它会从 `?referralCode=` 读取推荐码，允许用户在提交前确认或修改，然后再传给 `prepareCheckoutAction()` 与 checkout metadata。
+- 支付页预填已经落在 [`src/app/(marketing)/pricing/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx)：它会从 `?referralCode=` 读取推荐码，并在创建 checkout 会话时继续传给 `prepareCheckoutAction()` 与 checkout metadata。
 
 ### T-012.6 写链路与回流闭环说明
 - `T-012.6` 继续沿用已经确认的 referral 业务边界，不再新增新的奖励规则，而是把“绑定推荐码 -> 发起支付 -> Stripe 首付结算 -> 奖励发放 -> 页面刷新回流”这条写链路补齐并收口。
@@ -1515,7 +1515,7 @@
 ### T-012.8 异常态与调试体验说明
 - `T-012.8` 不再调整 referral 的结算口径，而是把异常态和调试体验做实：未生成码、已绑定、重复绑定、自推、结算失败、空态与错误态都要能被前台明确识别。
 - 用户侧空态主要落在 [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：当推荐码尚未生成时，页面会显示专门的空态说明、禁用传播按钮，并提示先完成账号设置或订阅后再回来查看。
-- 推荐分享与支付入口的错误态主要落在 [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 和 [`src/app/r/[code]/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts)：无效推荐码、未找到推荐码、已绑定、自推、支付取消与优惠码异常都会以页面内状态的方式展示，而不是只弹一个不可追踪的 alert。
+- 推荐分享与支付入口的错误态主要落在 [`src/app/(marketing)/pricing/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx) 和 [`src/app/r/[code]/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts)：无效推荐码、未找到推荐码、已绑定、自推、支付取消与优惠码异常都会以页面内状态的方式展示，而不是只弹一个不可追踪的 alert。
 - 这一阶段的重点是“可调试”：出问题时用户能看见具体原因，开发者也能从归因事件与 URL 参数判断是链接无效、账号已绑定、还是 checkout / voucher 侧失败，而不是把所有问题都混成一个通用失败提示。
 
 ### T-012.9 清理回退与静态文案说明
@@ -1528,7 +1528,7 @@
 ### T-012.10 域验证说明
 - `T-012.10` 是最终收口验证，不新增任何业务实现，只检查 referral 域是否已经在代码、数据库与页面表现上形成闭环。
 - 已通过 [`scripts/p0-01-internal-smoke.mjs`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/scripts/p0-01-internal-smoke.mjs) 做到端核账：临时 smoke 用户完成 referral 绑定、首次支付结算、延迟奖励补发、Stripe webhook 重放幂等与 voucher 核销，结果显示 referral 最终状态为 `COMPLETED`，`referralCount`、`firstPaidAt`、`rewardGranted`、`deferredSettledAt` 都同步写入数据库。
-- 已通过 [`/r/[code]`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts) 和 [`/pricing`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 做页面核对：真实 referral code 会正确 redirect 到 `/pricing?referralCode=...`，而 `Pricing` 页会把该码作为预填值展示出来，不再依赖占位路径。
+- 已通过 [`/r/[code]`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts) 和 [`/pricing`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx) 做页面核对：真实 referral code 会正确 redirect 到 `/pricing?referralCode=...`，而 `Pricing` 页会把该码作为预填值展示出来，不再依赖占位路径。
 - 已做重复提交与重复回放验证：同一条 webhook 重放不会重复生成 `voucherRedemption`，并且 smoke 数据清理后，相关 `user / referral / referral_attribution_events / voucherRedemption / voucherCode` 记录均已清空，避免验证数据污染后续页面。
 - 本阶段的收口标准是：任务表状态、页面表现、数据库状态三者一致，且没有遗留 mock、死链或临时 smoke 数据。
 
@@ -1549,7 +1549,7 @@
 ### T-012A.1 入口盘点结论
 - 当前已落地的用户侧 referral 入口主要有两个：
   - [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 中的推荐卡，负责展示用户自己的推荐码、推荐链接、分享文案、进度与奖励说明。
-  - [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx) 中的推荐码预填区，负责承接 `?referralCode=` 并在支付前允许用户确认或修改。
+  - [`src/app/(marketing)/pricing/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx) 中的推荐码预填区，负责承接 `?referralCode=` 并在支付前完成归因透传。
 - 入口路由里还存在一个中转层：
   - [`src/app/r/[code]/route.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/r/[code]/route.ts) 会把分享链接带来的推荐码跳转到 `/pricing?referralCode=...`，同时保留无效码的错误回流。
 - 目前没有独立的“注册后引导页”或“订阅前提示页”作为 referral 专属页面存在；
@@ -1563,7 +1563,7 @@
 - `T-012A.2` 只负责把前台的交互矩阵定清楚，不直接新增新的分享规则或绑定逻辑；本阶段要明确哪些入口展示什么、点击后去哪里、不同登录状态下如何兜底。
 - 当前需要纳入矩阵的前台交互主要来自两处：
   - [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)：负责展示推荐码、推荐链接、分享文案、奖励说明、进度与复制/分享动作。
-  - [`src/app/(marketing)/pricing/PricingPageClient.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/PricingPageClient.tsx)：负责接收 `?referralCode=`、允许用户确认或修改、并把结果继续传给 checkout。
+  - [`src/app/(marketing)/pricing/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx)：负责接收 `?referralCode=`、展示 query notice，并把结果继续传给 checkout。
 - 交互矩阵需要至少覆盖这些行为：
   - 复制推荐码：用户点击后复制纯 code，不携带上下文。
   - 复制推荐链接：用户点击后复制带 `referralCode` 的深链，通常会落到 `/r/[code]` 或 `/pricing?referralCode=...`。
@@ -2296,81 +2296,946 @@
 - 已完成对应的回放测试与 ESLint 校验，确保成就页和游戏化域的写链路、缓存回流、重复触发边界均处于可控状态。
 
 ### T-018 设置与通知域
-##### Phase A：边界与约束
+### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-018.1 | 盘点 `/dashboard/settings`、`/dashboard/settings?tab=notifications`、`/dashboard/settings/notifications` 的表单、模块、CTA、深链与当前数据源，明确通知中心与账单入口的目标落点 | codex | todo |
-| T-018.2 | 建立个人资料、AI 配置、通知偏好、家长连接、订阅状态，以及 `user_settings` / `notification_preferences` 新旧字段的权威数据源矩阵，明确哪些字段可写、哪些字段只读、哪些字段必须始终开启 | codex | todo |
-| T-018.3 | 固化设置域状态与路由约束：未登录、无 profile、设置读取失败、通知偏好加载失败、非法 tab、`/dashboard/settings/notifications` 的 404 / redirect 策略、无效 deep link（如 `billing` / `feedback`）处理与禁用态边界 | codex | todo |
+| T-018.1 | 盘点 `/dashboard/settings`、右上角通知弹层与相关 CTA、深链、当前数据源，明确通知中心仅作为弹层入口存在；`/dashboard/settings/notifications` 保持 404，不再作为产品路由 | codex | done |
+| T-018.2 | 建立个人资料、AI 配置、通知偏好、家长连接、订阅状态，以及 `user_settings` / `notification_preferences` 新旧字段的权威数据源矩阵，明确哪些字段可写、哪些字段只读、哪些字段必须始终开启 | codex | done |
+| T-018.3 | 固化设置域状态与路由约束：未登录、无 profile、设置读取失败、通知偏好加载失败、非法 tab、`/dashboard/settings/notifications` 的 404 策略、右上角通知弹层的打开/关闭与无效 deep link（如 `billing` / `feedback`）处理边界 | codex | done |
 
-##### Phase B：开发、修复、调试
-| id | description | owner | status |
-|---|---|---|---|
-| T-018.4 | 对齐设置读取链路：`getDashboardSettingsProfile`、`getUserSettings`、`getNotificationPreferences`、tab/query 初始化、初始化回填、路由跳转与页面级 loading / error / skeleton 收口 | codex | todo |
-| T-018.5 | 对齐设置写链路：`updateProfile`、`updateAIConfig`、`updatePreferences`、`updateNotificationPreferences`、`generateInviteCode`、`cancelSubscriptionAction` 的输入校验、权限校验、幂等与失败回滚 | codex | todo |
-| T-018.6 | 处理通知偏好独立保存与失败保护：通知偏好未成功拉取时不允许以默认值静默覆盖服务器数据，必须显式展示错误态或锁定保存，避免把“加载失败”误当作“默认开启” | codex | todo |
-| T-018.7 | 收口 settings 深链与兼容入口：通知中心、站内通知、账单通知全部跳到真实 tab 或兼容 redirect，确保不会再落到不存在的页面或 tab | codex | todo |
-| T-018.8 | 修正 `user_settings.notificationDaily` / `notificationWeekly` 与 `notification_preferences` 的桥接 / 迁移策略，避免 profile 保存、通知保存与旧字段回填互相覆盖 | codex | todo |
+#### T-018.1 盘点结果摘要（已完成）
+- 页面入口是 [`src/app/(dashboard)/dashboard/settings/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/settings/page.tsx)，服务端先走 `getDashboardSettingsProfile()`，再把用户资料传给 [`SettingsClientWrapper`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/settings/client-wrapper.tsx) 与 [`SettingsView`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx)。
+- 设置页当前主模块是 `profile / ai-config / notifications / account / subscription` 五段，页内通过 `tab` query 做定位，`notifications` 只是页面内分段，不是独立路由。
+- 右上角通知入口由 [`src/components/layout/dashboard-layout.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/dashboard-layout.tsx) 固定渲染 [`NotificationBell`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/notification/NotificationBell.tsx)，点击后只打开 [`NotificationDropdown`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/notification/NotificationDropdown.tsx) 弹层，不会跳到独立通知设置页。
+- 通知弹层当前数据源是 `/api/notifications/summary?limit=10`，并通过 `markNotificationAsRead()` / `markAllAsRead()` 维护已读状态；列表中的每条通知则直接消费 `notifications` 表里返回的 `link`。
+- 通知弹层底部“通知设置”入口当前仅作为兼容跳转，目标是 `/dashboard/settings?tab=notifications`；`/dashboard/settings/notifications` 已经是显式 `404`，不再承载产品语义。
+- 设置页写链路目前分别分散在 `updateProfile`、`updateAIConfig`、`updateNotificationPreferences`、`generateInviteCode`、`cancelSubscriptionAction`，通知偏好首次加载则走 `getNotificationPreferences()`，并与 `user_settings` 的旧字段做迁移桥接。
+- 当前需要继续盘点的关键数据源包括：`users`、`user_settings`、`notification_preferences`、`notifications`、`referrals`、`invite_codes`、`subscription` 相关字段，以及页内用于深链和回流的 `tab` query 规则。
 
-##### Phase C：清理和收口验证
+#### T-018.2 权威字段矩阵（已完成）
+| 域 / 字段 | 权威来源 | 读取入口 | 写入入口 | 页面消费 | 约束 |
+|---|---|---|---|---|---|
+| `users.username` / `users.handle` / `users.avatar` / `users.grade` | `users` | `getDashboardSettingsProfile()`、`getCurrentUser()` | `updateProfile()` | 个人资料、账户概览、家长共享卡片 | `handle` 必须先做 normalize + 可用性校验；`avatar` 为空时只允许前端兜底展示，不回写默认图 |
+| `user_settings.language` / `user_settings.theme` | `user_settings` | `getDashboardSettingsProfile()`、`getUserSettings()` | `updateProfile()`、`updatePreferences()` | 个人资料与 App Preferences | `updatePreferences()` 是当前页的正式保存动作，`updateProfile()` 仍承担兼容桥接 |
+| `user_settings.aiPersonality` / `user_settings.difficultyCalibration` / `user_settings.curriculumSystem` / `user_settings.studyReminderTime` | `user_settings` | `getDashboardSettingsProfile()`、`getUserSettings()` | `updateAIConfig()`、`updateGoals()` | AI 配置、提醒节奏、家长相关联动 | `studyReminderTime` 主要服务日常任务与提醒联动，当前设置页不直接提供独立编辑入口 |
+| `notification_preferences.inAppSystem` / `inAppSocial` / `inAppStudy` / `inAppAchievement` / `emailSystem` / `emailSocial` / `emailWeekly` / `emailMarketing` / `emailBilling` | `notification_preferences` | `getNotificationPreferences()` | `updateNotificationPreferences()` | 设置页通知矩阵、右上角通知弹层入口说明 | `emailBilling` 永远为 `true`，不提供关闭能力；该表是通知偏好的正式主表 |
+| `user_settings.notificationDaily` / `notificationWeekly` / `emailMarketing` / `emailActivity` | `user_settings` legacy bridge | `getNotificationPreferences()` 迁移读取、`getDashboardSettingsProfile()` | `updateProfile()` 仅作兼容写入，不作为新主写源 | 旧设置字段兼容、迁移回填 | 旧字段不能覆盖 `notification_preferences` 的正式主表，后续只保留迁移桥接语义 |
+| `notifications.type` / `title` / `content` / `link` / `isRead` / `createdAt` | `notifications` | `/api/notifications/summary?limit=10` | `markNotificationAsRead()`、`markAllAsRead()`、业务通知触发器 | 右上角通知弹层 | Settings 页不直接编辑通知本体，只消费摘要与跳转链接 |
+| `referralCode` / `referralCount` / `referralLimit` / `referralsGiven` | `users` + `referrals` | `getDashboardSettingsProfile()`、`getCurrentUser()` | `signupAction`、`bindReferralCodeAction`、推荐结算链路 | 账户概览、推荐区、待结算展示 | Settings 页只展示，不在页面层重算推荐关系或结算逻辑 |
+| `subscriptionTier` / `subscriptionStatus` / `subscriptionStart` / `subscriptionEnd` / `cancelAtPeriodEnd` / `stripeSubscriptionId` / `firstPaidAt` | `users` | `getDashboardSettingsProfile()`、`getCurrentUser()` | `signupAction` 初始化、`createCheckoutSession()`、Stripe webhook、`cancelSubscriptionAction()` | 订阅区、试用状态、取消计划按钮 | Settings 页只读展示 + 取消计划动作，不直接改订阅层字段 |
+| `invite_codes.code` / `used` / `expiresAt` 与 `parentStudent` 关系 | `invite_codes`、`parentStudent` | `generateInviteCode()`、`getLinkedStudents()` | `generateInviteCode()`、`bindStudent()` | 家长连接区 | 仅学生可生成邀请码，家长侧只做绑定与查看关联 |
+
+- 这套矩阵的收口标准是：`profile`、`AI`、`notification_preferences`、`subscription`、`referral / parent` 各自只认一条主写链路；`user_settings` 里的旧通知字段只保留迁移桥接，不再作为新主权来源。
+- `tab` query 只负责页内定位，不是独立设置数据源；`notifications` 只是在 Settings 页内的一个分段，不应再演化成独立路由。
+
+#### T-018.3 状态与路由约束（已完成）
+- `SettingsPage` 只在无登录态时直接 `redirect('/login')`；只要能拿到当前用户，页面就应继续渲染 Settings 壳层，不把 `settings` 表读取失败升级成整页崩溃。
+- `getDashboardSettingsProfile()` 的数据库 schema mismatch 只能降级为 `settings: null`，不能把 Settings 页本体炸掉；这意味着“无 profile”和“settings 读取失败”是两种不同边界。
+- `SettingsView` 里的 `tab` query 只允许 `profile / ai-config / notifications / account / subscription` 五个值，非法值统一回退到 `profile`，不额外制造 404。
+- `/dashboard/settings/notifications` 维持显式 `404`，不作为产品路由；通知相关入口只能落到 Settings 页内的 `?tab=notifications`。
+- 右上角通知弹层只做本地开合状态管理，行为边界是点击按钮打开、点击外部关闭、切出可见态暂停轮询，不应触发页面路由切换。
+- 通知弹层底部“通知设置”入口保留兼容跳转，但目标必须是 `/dashboard/settings?tab=notifications`，不能再把用户导向独立通知页。
+- 新写入链路已经不再生成 `/dashboard/settings/billing`；历史通知里残留的旧链接需要在前端消费时统一规范到真实页面或真实 tab，不能继续放任跳向假路由。
+- `feedback` 相关入口不应生成 Settings 子路由；如果需要承接反馈，只能走已有的帮助、反馈弹层或真实支持页面，不能在 `/dashboard/settings` 下虚构新路由。
+- `notification_preferences` 加载失败必须在界面上显式降级，不能静默用默认值冒充真实偏好，否则会把“未读取到数据”误判成“用户选择了默认值”。
+- 上述边界现在已经分别由 `SettingsView`、`NotificationDropdown`、通知深链规范层和 `notifications/page.tsx -> notFound()` 落到代码；匿名访问时则先由登录中间层统一接管，表现为受控 `redirectTo` 回流，而不是无约束跳转或运行时错误。
+
+### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-018.9 | 清理假成功提示、假保存、静态默认值兜底、外链头像兜底与过时文案，保证页面只在真实成功后给成功反馈 | codex | todo |
-| T-018.10 | 完成设置与通知域验证：保存前后核账、重复保存验证、失败回滚验证、直接访问 / 受控跳转 / query tab / 浏览器 console error 检查 | codex | todo |
+| T-018.4 | 对齐设置读取链路：`getDashboardSettingsProfile`、`getUserSettings`、`getNotificationPreferences`、tab/query 初始化、初始化回填、右上角通知弹层数据读取 | codex | done |
+| T-018.5 | 对齐设置写链路：`updateProfile`、`updateAIConfig`、`updatePreferences`、`updateNotificationPreferences`、`generateInviteCode`、`cancelSubscriptionAction` 的输入校验、权限校验、幂等与失败回滚 | codex | done |
+| T-018.6 | 处理右上角通知弹层的读取与交互保护：通知列表 / 未读数拉取失败时必须显式降级，不允许空数据假装成功；“通知设置”入口只保留弹层内跳转到 `/dashboard/settings?tab=notifications` 的兼容行为 | codex | done |
+| T-018.7 | 收口 settings 深链与兼容入口：通知中心、站内通知、账单通知全部跳到真实 tab 或真实页面，避免再次生成指向 `/dashboard/settings/notifications` 的无效路由 | codex | done |
+| T-018.8 | 修正 `user_settings.notificationDaily` / `notificationWeekly` 与 `notification_preferences` 的桥接 / 迁移策略，避免 profile 保存、通知保存与旧字段回填互相覆盖 | codex | done |
+
+#### T-018.4 读取链路（已完成）
+- [`src/app/(dashboard)/dashboard/settings/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/settings/page.tsx) 仍然是 Settings 页的唯一服务端入口：无登录态时直接跳 `/login`，有登录态时将 profile 透传给客户端壳层。
+- [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 现在把通知偏好读取拆成三态：`loading / ready / error`；读取失败时明确显示错误和重试按钮，不再回落到默认值伪装成功。
+- `tab` query 仍只接受 `profile / ai-config / notifications / account / subscription` 五个值，非法 tab 会自动规范回 `?tab=profile`，不会保留无效 query。
+- `getUserSettings()` 目前仍只作为旧字段桥接的辅助读取入口，不承担 Settings 页主读取职责；主读取职责仍落在 `getDashboardSettingsProfile()` 与 `getNotificationPreferences()` 上。
+- 右上角通知弹层的读取链路已在 `T-018.6` 完成独立收口；Settings 页与通知弹层的读取失败语义现在都不会再退回到假空态。
+
+#### T-018.5 写链路（已完成）
+- `updateProfile()` 与 `updatePreferences()` 已改成“只在字段真正出现时才写 legacy 通知桥接字段”，避免普通资料保存把旧通知字段误覆盖成 `false`。
+- Settings 页主资料表单已经移除对 `notificationDaily / notificationWeekly` 的隐式隐藏提交，个人资料保存不再顺手改动通知桥接值。
+- `updateNotificationPreferences()` 已补上 payload 白名单校验，并改为事务内同时写 `notification_preferences` 与 `user_settings` 旧桥接字段，避免一边成功一边失败。
+- `generateInviteCode()` 已加幂等保护：同一学生若已有未使用且未过期的邀请码，则直接复用；新码生成则带唯一冲突重试。
+- `cancelSubscriptionAction()` 已补“已设置到期取消”的幂等短路，重复点击不会再次打 Stripe 更新。
+- `cancelSubscriptionAction()` 现在在“Stripe 已设置到期取消，但本地 DB 同步失败”时会尝试补偿回滚 `cancel_at_period_end=false`，不再把外部成功 / 本地失败留成半成功状态。
+
+#### T-018.6 通知弹层读取与交互保护（已完成）
+- [`src/components/notification/NotificationBell.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/notification/NotificationBell.tsx) 已把通知拉取改成显式成功 / 失败态，不再把拉取失败静默表现成空列表。
+- 首次打开弹层时会先显示真实加载态；如果 `/api/notifications/summary` 失败且当前没有缓存数据，则显示错误态与重试按钮，而不是“暂时没有新通知”。
+- 如果用户本地已有上一轮通知缓存，后续刷新失败时会保留旧列表并显示降级提示，避免把失败覆盖成空白。
+- `markNotificationAsRead()` / `markAllAsRead()` 的乐观更新已补回滚；服务端动作失败时会恢复原列表和未读数，并显示明确错误提示。
+- 弹层底部“通知设置”入口继续只保留到 `/dashboard/settings?tab=notifications` 的兼容跳转，没有重新引入 `/dashboard/settings/notifications` 路由。
+
+#### T-018.7 settings 深链与兼容入口（已完成）
+- [`src/actions/notification/triggers.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/notification/triggers.ts) 的账单通知新写入已从 `/dashboard/settings/billing` 改到 `/dashboard/settings?tab=subscription`，不再生成假 settings 子路由。
+- [`src/lib/notification/links.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/notification/links.ts) 新增统一深链规范层，会把历史遗留的 `/dashboard/settings/notifications`、`/dashboard/settings/billing`、`/dashboard/settings?tab=feedback` 分别映射到真实通知 tab、订阅 tab 和 `/help`。
+- [`src/components/notification/NotificationDropdown.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/notification/NotificationDropdown.tsx) 现在渲染通知链接前会先走规范化，确保旧通知数据不会继续把用户带去失效路由。
+
+#### T-018.8 通知桥接 / 迁移策略（已完成）
+- [`src/actions/notification/preferences.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/notification/preferences.ts) 已统一桥接映射口径：`notificationDaily -> inAppStudy`、`notificationWeekly -> emailWeekly`、`emailMarketing -> emailMarketing`、`emailActivity -> emailSocial`，避免创建主表和回写旧字段时各写各的。
+- `getNotificationPreferences()` 在旧字段迁移建表时，已经不再把 `emailSocial` 固定写成 `true`，而是正确继承 `user_settings.emailActivity` 的历史值。
+- 旧的 [`src/components/business/settings/profile-form.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/settings/profile-form.tsx) 通知开关 UI 已下线，改为引导用户进入 `/dashboard/settings?tab=notifications`，避免继续通过 legacy 表单误改桥接字段。
+- 当前收口后的策略是：`notification_preferences` 为唯一正式通知偏好主表；`user_settings` 旧字段只保留迁移 / 兼容桥接语义，不再作为产品层通知设置入口。
+
+### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-018.9 | 清理假成功提示、假保存、静态默认值兜底、外链头像兜底与过时文案，保证页面只在真实成功后给成功反馈 | codex | done |
+| T-018.10 | 完成设置与通知域验证：保存前后核账、重复保存验证、失败回滚验证、直接访问 / 受控跳转 / query tab / 浏览器 console error 检查 | codex | done |
+
+#### T-018.9 展示层假状态与占位文案清理（已完成）
+- [`src/components/dashboard/views/SettingsView.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/SettingsView.tsx) 已移除外链 `Unsplash` 头像兜底，改为直接消费当前账号头像；若未设置头像，则退回到用户名 / handle / 邮箱缩写，不再引入站外占位图。
+- 设置页头像区说明文案已从“后续再接入真实链路”改成当前真实语义：头像跟随账号资料显示，未设置时展示缩写，避免继续暴露开发期占位说明。
+- AI 配置区的课程体系展示已从硬编码 `IGCSE (Cambridge International)` 改成读取 `user.settings.curriculumSystem`；若当前账号还没有真实课程体系，则明确显示“尚未设置课程体系”，不再拿静态样例冒充真实数据。
+- 订阅区“下次扣款 / 到期时间”已改成按真实状态兜底：有 `subscriptionEnd` 时展示真实时间；`STARTER / CANCELED` 才显示“当前未开通付费订阅”；其余状态若缺失账期则明确显示“暂未同步到期时间”，避免把所有缺失值都误判成免费版。
+- 通知偏好读取失败时的辅助说明已改成用户可理解的保护语义，不再直接暴露“默认值兜底 / 读取失败误判”这类内部实现表述。
+
+#### T-018.10 设置与通知域验证（已完成）
+- 自动化验证已覆盖 `query tab`、深链规范、通知弹层读取保护、通知偏好桥接迁移与订阅取消失败回滚：`pnpm exec vitest run src/components/dashboard/views/__tests__/SettingsView.test.tsx src/components/notification/__tests__/NotificationDropdown.test.tsx src/lib/notification/__tests__/links.test.ts src/actions/__tests__/notification-preferences.test.ts src/actions/__tests__/stripe-cancel.test.ts` 共 `17` 条测试全部通过。
+- [`src/components/dashboard/views/__tests__/SettingsView.test.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/__tests__/SettingsView.test.tsx) 已新增 Settings 页验证：非法 `tab` 会规范到 `?tab=profile`；合法 `?tab=notifications` 不会被额外重写；头像 fallback 与订阅账期缺失兜底文案已锁定；合法通知 tab 渲染过程中没有新的 `console.error` / `console.warn`。
+- `updateNotificationPreferences()` 的主表 + legacy bridge 同步、旧字段迁移建表，以及 `cancelSubscriptionAction()` 的幂等短路与 Stripe 补偿回滚，继续由 [`notification-preferences.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/__tests__/notification-preferences.test.ts) 与 [`stripe-cancel.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/__tests__/stripe-cancel.test.ts) 留证。
+- 通知深链与弹层兼容入口继续由 [`links.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/notification/__tests__/links.test.ts) 与 [`NotificationDropdown.test.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/notification/__tests__/NotificationDropdown.test.tsx) 验证，确保旧 `/dashboard/settings/billing`、`/dashboard/settings?tab=feedback` 等链接会回落到真实目标。
+- 直接访问 `/dashboard/settings/notifications` 的产品边界保持不变：源码中的 [`src/app/(dashboard)/dashboard/settings/notifications/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(dashboard)/dashboard/settings/notifications/page.tsx) 继续显式执行 `notFound()`；但在本地运行实例里，未登录态会先被中间层重定向到 `/login?redirectTo=...`，因此 HTTP 冒烟看到的是受控登录跳转而不是匿名 404 页面。
+- 浏览器级 headless console 检查在当前沙箱下尝试过一次，但 Chromium 启动被宿主权限拦截，不属于应用 runtime error；本轮以组件级 `console.error / console.warn` 断言和现有路由 / 动作测试作为留证收口。
 
 ### T-019 Public / Marketing / Auth 域
 ##### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-019.1 | 盘点登录、注册、重置密码、公开页 CTA、联系/帮助/博客/价格/订阅等页面与所有表单、跳转、当前数据源 | codex | todo |
-| T-019.2 | 建立 Public / Marketing / Auth 的 `route -> page -> component -> action/api -> table/service` 映射矩阵，明确 `landing / pricing / blog / help / contact / login / register / reset-password / checkout-config` 的权威读写责任 | codex | todo |
-| T-019.3 | 建立 CTA 与跳转边界：区分真实可达、登录后可达、付费后可达、仅展示、禁用态、外链态与 404 行为，清理假入口与占位跳转 | codex | todo |
-| T-019.4 | 建立表单与会话矩阵：`signup / login / reset-password / referral / voucher / newsletter / contact / feedback` 的输入校验、幂等、防重复提交、会话恢复与 `redirectTo` 安全约束 | codex | todo |
-| T-019.5 | 建立页面级降级规则：哪些页面需要 `loading / error / empty / 404`，DB 不可用时怎样显示，以及浏览器兼容警告、Cookie Consent、语言切换、移动端菜单的兜底边界 | codex | todo |
+| T-019.1 | 盘点登录、注册、重置密码、公开页 CTA、联系/帮助/博客/价格/订阅等页面与所有表单、跳转、当前数据源 | codex | done |
+| T-019.2 | 建立 Public / Marketing / Auth 的 `route -> page -> component -> action/api -> table/service` 映射矩阵，明确 `landing / pricing / blog / help / contact / login / register / reset-password / checkout-config` 的权威读写责任 | codex | done |
+| T-019.3 | 建立 CTA 与跳转边界：区分真实可达、登录后可达、付费后可达、仅展示、禁用态、外链态与 404 行为，清理假入口与占位跳转 | codex | done |
+| T-019.4 | 建立表单与会话矩阵：`signup / login / reset-password / referral / voucher / newsletter / contact / feedback` 的输入校验、幂等、防重复提交、会话恢复与 `redirectTo` 安全约束 | codex | done |
+| T-019.5 | 建立页面级降级规则：统一不再使用独立 `loading` 页面，仅定义 `error / empty / 404` 与 DB 不可用时的显示方式，同时明确浏览器兼容警告、Cookie Consent、语言切换、移动端菜单的兜底边界 | codex | done |
 
-##### Phase B：开发、修复、调试
+#### T-019.1 边界与数据源说明（盘点基线）
+- 首页入口：[`src/app/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/page.tsx) 为静态首屏入口，消费 [`getCachedPlatformStats()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts) 后把统计值传给 [`LandingPage`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/marketing/landing-page.tsx)。
+- 营销内容页：[`/pricing`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx)、[`/help`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/help/page.tsx)、[`/blog`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/blog/page.tsx)、[`/blog/[slug]`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/blog/[slug]/page.tsx)、[`/about-us`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/about-us/page.tsx)、[`/contact`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/contact/page.tsx)、[`/privacy`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/privacy/page.tsx)、[`/terms`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/terms/page.tsx)、[`/refund`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/refund/page.tsx)、[`/subjects`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/subjects/page.tsx)、[`/study-guides`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/study-guides/page.tsx)、[`/success-stories`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/success-stories/page.tsx) 主要承担内容展示、CTA、FAQ、订阅与导航收口。
+- Auth 入口：[`/login`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(auth)/login/page.tsx)、[`/register`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(auth)/register/page.tsx)、[`/reset-password`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(auth)/reset-password/page.tsx) 分别承接登录、注册与密码重置链路。
+- 主要写链路：[`loginAction`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/user/auth.ts)、[`signupAction`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/user/auth.ts)、[`reset-password` panel 的 Supabase 恢复动作](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/reset-password-panel.tsx)、[`prepareCheckoutAction`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts)、[`subscribeToNewsletter`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/marketing/campaign.ts)、[`submitFeedback`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/support/ticket.ts)。
+- 主要读链路：主页统计读 `getCachedPlatformStats()`；博客读 `getBlogPosts()` / `getBlogPostBySlug()`；帮助页读取本地 FAQ 文案与 `FeedbackModal`；定价页读取 `referralCode` / `referralError` / `payment` query；注册页读取 `referralCode`、`referralError` 与 `utm_*`；登录页读取 `redirectTo` / `reset`；重置页读取 `code` / `token_hash` / `type`。
+- 主要 CTA / 跳转：Landing hero 默认登录态去 `/dashboard`、未登录去 `/register`；Navbar 去 `/login`、`/register`、`/pricing`、`/about-us`；登录页去 `/reset-password` 与 `/register`；注册页去 `/login`；定价页 starter 去 `/register`，其余方案进入 checkout；博客列表与详情都链接到文章详情或回到 `/blog`；帮助页反馈入口打开 `FeedbackModal`；`/contact` 当前只是静态提交按钮，没有真实提交动作。
+- 当前数据源边界：`blogPost`、`subscriber`、`user`、`userSettings`、Supabase auth session、`notifications` / `userFeedback` / 支付会话相关 action、以及全局 `CookieConsent` / `FeedbackWidget` / `UnsupportedBrowserWarning`。
+- 当前风险点：`/contact` 仍是静态表单；`LandingPageNavbar` 仍存在指向 `/dashboard` 的占位导航；博客/帮助/政策页大部分为静态内容，缺少明确的空态与服务端失败分支；定价页和注册页都依赖 query 参数分流，必须继续防止无效链接和重复提交。
+
+#### T-019.2 映射矩阵（已完成）
+| route | page / component | 读取入口 | 写入口 / action / api | table / service | 结论 |
+|---|---|---|---|---|---|
+| `/` | [`src/app/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/page.tsx) -> [`LandingPage`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/marketing/landing-page.tsx) | `getCachedPlatformStats()` -> `getPlatformStats()` | hero CTA 跳 `/register` / `/dashboard`，仅做路由跳转 | `users`、`user_attempts` | 首页为营销首屏，读真实统计，不承担写入 |
+| `/pricing` | [`src/app/(marketing)/pricing/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx) | `referralCode`、`referralError`、`payment` query；`useVoucherCodeAvailability()` | `prepareCheckoutAction()`；starter CTA 跳 `/register` | 支付会话、`referrals`、`vouchers`、`stripe` checkout | 定价页既读 query，也发起支付会话，是营销 + 付费入口 |
+| `/blog` | [`src/app/(marketing)/blog/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/blog/page.tsx) -> [`BlogList`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/blog/blog-list.tsx) | `getBlogPosts()` | `NewsletterForm` -> `subscribeToNewsletter()` | `blogPost`、`subscriber` | 列表页读发布文章并承接订阅 |
+| `/blog/[slug]` | [`src/app/(marketing)/blog/[slug]/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/blog/[slug]/page.tsx) -> [`BlogDetailClient`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/blog/blog-detail.tsx) | `getBlogPostBySlug(slug)` | `NewsletterForm` -> `subscribeToNewsletter()` | `blogPost`、`subscriber` | 详情页读单篇文章并承接订阅 |
+| `/help` | [`src/app/(marketing)/help/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/help/page.tsx) | 本地 FAQ 文案、`useApp()` 翻译、`searchQuery` | `FeedbackModal` -> `submitFeedback()` | `userFeedback`、`userFeedbackEvent`、`notifications` | 帮助页主要是 FAQ + 留资入口 |
+| `/contact` | [`src/app/(marketing)/contact/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/contact/page.tsx) | 仅静态联系方式与文案 | 当前无真实提交链路 | 无 | 现状是静态联系页，不能假装是已接通表单 |
+| `/about-us` | [`src/app/(marketing)/about-us/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/about-us/page.tsx) | 本地文案、语言切换 | CTA 只跳转，不写后端 | 无 | 纯营销内容页 |
+| `/privacy` | [`src/app/(marketing)/privacy/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/privacy/page.tsx) | 静态政策文本 | 无 | 无 | 纯静态政策页 |
+| `/terms` | [`src/app/(marketing)/terms/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/terms/page.tsx) | 静态政策文本 | 无 | 无 | 纯静态政策页 |
+| `/refund` | [`src/app/(marketing)/refund/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/refund/page.tsx) | 静态退款条款 | 无 | 无 | 纯静态政策页 |
+| `/subjects` | [`src/app/(marketing)/subjects/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/subjects/page.tsx) | 本地文案、语言切换 | CTA 跳 `/login` | 无 | 纯营销内容页，当前 CTA 仅做跳转 |
+| `/study-guides` | [`src/app/(marketing)/study-guides/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/study-guides/page.tsx) | 本地挑战文案、滚动进度 | CTA 多数跳 `/dashboard` | 无 | 纯引导页，主要是路由跳转壳 |
+| `/success-stories` | [`src/app/(marketing)/success-stories/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/success-stories/page.tsx) | 本地故事文案、语言切换 | CTA 跳 `/register` / `/dashboard` | 无 | 纯营销内容页 |
+| `/login` | [`src/app/(auth)/login/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(auth)/login/page.tsx) -> [`LoginForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/login-form.tsx) | `redirectTo`、`reset` query | `loginAction()` -> `supabase.auth.signInWithPassword()` | Supabase auth session、`revalidatePath('/login')` | 登录页是纯 auth 写入口 |
+| `/register` | [`src/app/(auth)/register/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(auth)/register/page.tsx) -> [`RegisterForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/register-form.tsx) | `referralCode`、`referralError`、`utm_*` query | `signupAction()` -> `supabase.auth.signUp()` | `users`、`userSettings`、`referrals`、Supabase auth session | 注册页承接归因、推荐码与建号 |
+| `/reset-password` | [`src/app/(auth)/reset-password/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(auth)/reset-password/page.tsx) -> [`ResetPasswordPanel`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/reset-password-panel.tsx) | `code`、`token_hash`、`type` query | `exchangeCodeForSession()` / `verifyOtp()` / `resetPasswordForEmail()` / `updateUser()` / `signOut()` | Supabase auth session | 密码恢复链路，核心是 session 恢复与改密 |
+| `/checkout/config` | [`src/app/(marketing)/checkout/config/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/checkout/config/page.tsx) | 无 | `notFound()` | 无 | 明确的 404 入口，不承载产品功能 |
+| 全局壳层 | [`src/app/layout.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/layout.tsx) -> [`CookieConsent`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/CookieConsent.tsx) / [`FeedbackWidget`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/support/FeedbackWidget.tsx) / [`UnsupportedBrowserWarning`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/compatibility/UnsupportedBrowserWarning.tsx) | `localStorage`、`usePathname()`、浏览器检测、Supabase session | `FeedbackModal` -> `submitFeedback()` | `userFeedback`、`notifications` | 这些不是页面路由，但属于全站公共交互面 |
+
+#### T-019.3 CTA 与跳转边界（已完成）
+- 边界原则 1：营销页 CTA 只能落到真实可达页面、真实表单动作、真实支付动作或显式 404，不能把占位目标当作正式产品入口。
+- 边界原则 2：凡是需要登录后才能完成的动作，营销侧只能做登录前引导，不允许静默把用户导向不能直接使用的后台深页。
+- 边界原则 3：凡是需要付费才能完成的动作，必须先进入 checkout / 订阅链路，不能直接伪装成“已开通”或“已购买”。
+- 边界原则 4：纯内容页只负责展示，不应该制造伪写入、伪成功或伪提交。
+- 边界原则 5：外部动作只允许以 `mailto:` / 支付会话 / 支持弹层这类明确语义存在，不能伪装成站内页面。
+
+| surface | 当前 CTA / 跳转 | 边界分类 | 处理结论 |
+|---|---|---|---|
+| `LandingPage` hero | 未登录去 `/register`，已登录去 `/dashboard` | 登录后可达 | 保留，作为首屏主转化路径 |
+| `LandingPageNavbar` | `/login`、`/register`、`/` | 真实可达 | 保留 |
+| `LandingPageNavbar` 占位项 | `Subjects / Question Bank / Community` 指向 `/dashboard` | 占位跳转 / 登录后可达 | 不能继续作为正式文案，需改成真实路由或隐藏 |
+| `LandingBelowFold` footer | `/how-it-works`、`/pricing`、`/success-stories`、`/blog`、`/study-guides`、`/student-care`、`/terms`、`/privacy`、`/contact` | 真实可达 / 纯内容页 | 保留；其中 `contact` 只能做联系入口，不能假装成已接通表单 |
+| `/pricing` | Starter -> `/register`；Standard / Smart Plus / Premier -> `prepareCheckoutAction()` | 付费后可达 | 保留，属于正式付费漏斗 |
+| `/blog` / `/blog/[slug]` | 文章点击、返回博客、Newsletter 订阅 | 真实可达 + 表单提交 | 保留 |
+| `/help` | FAQ 搜索、`FeedbackModal`、邮箱联系、电话卡片 | 仅展示 / 外部动作 / 禁用态 | `FeedbackModal` 保留；电话卡片保持禁用态；邮箱联系可视为外部动作 |
+| `/contact` | 静态联系表单 + `mailto:` 信息 | 仅展示 / 外部动作 | 当前必须按静态联系页处理，不能冒充已接通的写链路 |
+| `/about-us`、`/privacy`、`/terms`、`/refund`、`/success-stories` | 内容浏览、少量 CTA 跳转 | 仅展示 / 真实可达 | 保留为内容页 |
+| `/subjects` | 课程浏览 + `Preview Lesson` 跳 `/login` | 登录后可达 | 保留为登录前导流 |
+| `/study-guides` | 日程卡片与 Day CTA 多数跳 `/dashboard` | 登录后可达 | 保留，但必须被视为进入产品内路径，不是公开页终点 |
+| `/student-care` | 表单 `preventDefault()`，底部导航回 `/how-it-works`、`/pricing`、`/success-stories`、`/blog`、`/study-guides`、`/student-care` | 仅展示 / 占位表单 | 该页的表单目前不是真实写链路，不能伪装成提交成功 |
+| `/reset-password` | 发送重置邮件、恢复 session、更新密码、成功后回 `/login?reset=success` | 真实写入口 | 保留 |
+| `/checkout/config` | `notFound()` | 404 | 保留为显式 404，不承载产品语义 |
+| 右上角通知弹层 | 打开弹层、标记已读、跳到 `/dashboard/settings?tab=notifications` | 真实可达 / 登录后可达 | 保留为兼容入口，不再产生独立通知设置路由 |
+
+#### T-019.4 表单与会话矩阵（已完成）
+- 约束原则 1：所有前端即时校验都只能作为体验优化，服务端 action / API 必须保留二次校验，不能把 hook 或客户端禁用按钮当成安全边界。
+- 约束原则 2：`redirectTo` 只允许站内相对路径，且不能回到 `/login` / `/register`；密码恢复回跳必须固定在 `/reset-password`，不能接受外部注入。
+- 约束原则 3：幂等要区分“客户端防连点”和“服务端抗并发”；前者只能减少误触，后者才是正式收口标准。
+- 约束原则 4：匿名写链路必须显式要求联系邮箱或明确声明不写库；不能出现没有写入口却展示“提交成功”的假表单。
+- 约束原则 5：Auth 会话边界要把“未登录、已登录、恢复中、恢复失败、已使用链接、重复提交”视为不同状态，不允许混成一个成功分支。
+
+| flow | 当前入口 | 输入校验 | 幂等 / 防重复提交 | 会话 / redirect 约束 | 当前结论 |
+|---|---|---|---|---|---|
+| `signup` | [`RegisterForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/register-form.tsx) -> [`signupAction()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/user/auth.ts) | 服务端 `zod` 校验 `email`、`password >= 6`、`username >= 2`、`referralCode` 必须为 8 位大写字母数字、`utm_* <= 128`；若带推荐码还会二次检查推荐人是否存在 | 前端通过 `useFormStatus()` 提供 `pending`；服务端无独立幂等 token，重复邮箱主要依赖 Supabase Auth 自身约束，推荐绑定在注册路径上没有显式并发去重逻辑 | 注册成功固定 `redirect('/dashboard')`，当前没有 `redirectTo`；已登录用户访问注册页也不会被服务端提前回流，这一条留给 `T-019.7` 继续收口 | 注册主链路已具备基本校验与推荐码二次校验，但“已登录回流”和更强的重复提交保护仍未完全收口 |
+| `login` | [`LoginForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/login-form.tsx) -> [`loginAction()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/user/auth.ts) | 服务端 `zod` 校验合法邮箱和非空密码；错误统一回显为“邮箱或密码错误” | 前端 `pending` 防连点；服务端无显式幂等或限流，重复提交会重复调用 `supabase.auth.signInWithPassword()` | `redirectTo` 在服务端通过 `resolvePostLoginRedirect()` 过滤：必须以 `/` 开头、不能是 `//`、不能回 `/login` 或 `/register`，否则统一回 `/dashboard` | 登录的 `redirectTo` 安全边界是明确的，但“已登录访问登录页自动回流”与服务端限流仍未覆盖 |
+| `reset-password` | [`ResetPasswordPanel`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/reset-password-panel.tsx) | 发送邮件时仅校验邮箱非空，真正邮箱合法性由 Supabase 返回；设置新密码时要求 `password >= 6` 且两次输入一致 | 客户端 `isSubmitting` 防止重复点击；服务端无独立幂等 token，但恢复链接失效/已使用会被识别为失败分支 | `code` 或 `token_hash + type=recovery` 会先尝试恢复 session；成功后进入改密态，失败或链接已失效则回到申请重置态；发送邮件的 `redirectTo` 固定为当前站点 `/reset-password`；改密成功后强制登出并跳 `/login?reset=success` | 密码恢复链路的会话恢复边界比较完整，但申请重置阶段还没有前端邮箱格式即时校验，且当前页面仍保留 `Suspense fallback` 文案，不属于正式页面级降级策略 |
+| `referral` | [`RegisterForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/register-form.tsx) 的推荐码输入、[`bindReferralCodeAction()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/referral.ts)、[`prepareCheckoutAction()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) | 前端通过 [`useReferralCodeAvailability()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/hooks/useReferralCodeAvailability.ts) 和 `/api/referral-code-availability` 做格式与存在性预检查；服务端再次校验格式、存在性、不能绑自己 | 服务端依赖 `Referral.refereeId` 唯一约束实现“每人只绑一次”；已绑定同码返回 `ALREADY_BOUND`，绑定不同码返回 `REFERRAL_ALREADY_BOUND`；属于有服务端去重的正式链路 | Checkout 绑定要求当前用户已登录；注册路径可在建号时一次性写入推荐归因；当前 `/pricing` 底部“Invite” 邮箱输入只是展示 UI，不属于真实 referral 写链路 | 推荐码主链路有前后双重校验和唯一约束，但营销页上的 referral 表单仍是假入口，后续必须清理或接真实动作 |
+| `voucher` | [`/pricing`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/pricing/page.tsx) -> [`useVoucherCodeAvailability()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/hooks/useVoucherCodeAvailability.ts) -> [`prepareCheckoutAction()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/billing/checkout.ts) | 前端预检查码长与可用性；服务端再次校验激活状态、生效时间、过期时间、可用次数、Stripe coupon 是否就绪 | 前端在校验中或不可用时禁用购买按钮，并在提交时用 `loadingPlan` 防连点；服务端通过 `voucherRedemption(voucherId,userId)` 唯一约束避免同一用户重复使用已核销优惠券，但 checkout session 本身没有幂等键 | 使用 voucher 前必须先登录，因为 checkout action 直接依赖当前用户；当前页面实际传给 checkout 的 `referralCode` 为空，说明 voucher 已接真链路，而 referral 仍未在 pricing 正式接通 | Voucher 的校验链已经比较完整，但 checkout session 仍缺少更强的服务端幂等设计，防连点主要依赖客户端 |
+| `newsletter` | [`NewsletterForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/marketing/newsletter-form.tsx) -> [`subscribeToNewsletter()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/marketing/campaign.ts) | 服务端仅校验邮箱格式 | 先查重再创建；`Subscriber.email` 有唯一约束，因此已有订阅能拦住，但并发重复提交当前大概率会落到通用错误而不是稳定返回“已订阅” | 不依赖登录态，无 `redirectTo`；提交后仅在当前页显示消息 | 这是已接通的匿名写链路，但幂等回显不够稳，Phase B 应把并发唯一约束冲突显式转成“已订阅”而不是通用失败 |
+| `contact` | [`/contact`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/(marketing)/contact/page.tsx) 静态 `<form>` | 只有原生 `type=\"email\"` 和占位文案，没有 `name`、没有 `zod`、没有服务端 action | 没有 `pending`、没有去重、没有写库、没有成功/失败回执；本质上不是正式表单 | 不依赖会话，也没有 redirect 语义；点击提交不应被定义为业务写入 | `contact` 现在只能被视为静态联系页。它不在正式表单矩阵内，直到接入真实 action 之前都不能宣称“已支持提交” |
+| `feedback` | [`FeedbackModal`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/support/FeedbackModal.tsx) -> [`submitFeedback()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/support/ticket.ts) | 前端 `zod` 校验 `category`、`title >= 2`、`content >= 5`、匿名邮箱格式；服务端再次 `trim` 后检查标题、内容和匿名邮箱是否存在 | 客户端 `isSubmitting` 防连点；服务端对相同 `category + title + content + actor/email` 设置 2 分钟去重窗口，重复提交直接返回已存在记录 | 登录用户会自动带出邮箱并锁定字段；匿名用户必须填写邮箱；不涉及 `redirectTo`，但会记录 `sourceType` / `sourcePath` 作为来源上下文 | 反馈链路是目前 Public / Marketing 域里最完整的匿名/登录双态写入口，可作为 `/contact` 真正接线时优先复用的基线 |
+
+- 当前补充结论 1：`redirectTo` 的正式安全边界只存在于 `loginAction()`，注册与联系页都没有类似跳转语义，后续不要把 query 透传扩散到其他表单。
+- 当前补充结论 2：Auth 页现在没有“已登录用户直接回流 `/dashboard`”的统一服务端守卫，这属于会话矩阵缺口，应在 `T-019.7` 处理。
+- 当前补充结论 3：`/pricing` 的 voucher 已接真实链路，但 referral 邀请框仍是假 UI；`/contact` 更是完全未接线，这两者都不能被当成已完成表单。
+- 当前补充结论 4：Public / Marketing 区域里真正具备服务端去重能力的只有 `referral` 与 `feedback`；`newsletter` 目前只有唯一约束兜底，还缺更稳定的并发回显。
+
+#### T-019.5 页面级降级规则（已完成）
+- 降级原则 1：Public / Marketing / Auth 域统一不再引入独立 `loading.tsx` 页面；需要等待的状态只能留在组件内，例如表单 `pending`、局部提示或必要的 `Suspense fallback`，后续再逐步收口旧残留。
+- 降级原则 2：`error / empty / 404` 必须分开定义。读库失败不能静默伪装成“正常但没数据”，除非该模块明确约定了安全 fallback。
+- 降级原则 3：DB 不可用时优先保住页面壳层与核心导航，能安全回退为静态内容的模块就回退，不能安全回退的模块必须显式错误或 `404`。
+- 降级原则 4：浏览器兼容警告、Cookie Consent、语言切换、移动端菜单都属于增强层，不得阻断主内容渲染；这些增强层失败时只能降级为“不显示/不生效”，不能炸整页。
+- 降级原则 5：全站当前只有极少数路由使用显式 `notFound()`；在没有专门 `error.tsx` 的前提下，需要把“服务端异常回空数组”和“真实空数据”视为不同风险，并在后续 Phase B 修补。
+
+| surface | 当前读取/交互形态 | `error / empty / 404` 现状 | DB / 运行失败时的降级规则 | 当前结论 |
+|---|---|---|---|---|
+| `/` 首页 | 服务端读 [`getCachedPlatformStats()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/lib/cache/sitewide.ts) -> [`getPlatformStats()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/marketing/campaign.ts) | 没有独立 `error`/`empty` 页面，也没有 `404` 语义 | `getPlatformStats()` 已在 DB 不可用或异常时回退为 `0 / 0` 统计值，页面继续渲染首屏 | 首页统计模块已具备“安全回零、不炸页”的正式降级，是当前 Public 域最明确的正例 |
+| `/blog` 列表 | 服务端读 [`getBlogPosts()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/community/blog.ts) -> [`BlogList`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/blog/blog-list.tsx) | 目前把 `posts || []` 直接传给列表；没有独立错误提示；列表组件也没有专门 empty 区块 | 查询失败会被当前实现吞成空数组，页面继续渲染，但用户无法区分“暂无文章”和“查询失败” | 当前是“错误伪装成空态”的典型缺口，应在 `T-019.6 / T-019.10` 补显式错误文案与空态区分 |
+| `/blog/[slug]` 详情 | 服务端读 [`getBlogPostBySlug()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/community/blog.ts) -> [`BlogDetailClient`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/blog/blog-detail.tsx) | `post` 为空时已显式 `notFound()`；没有专门 `error.tsx` | 真实不存在文章会 404；但查询异常目前也会返回 `data: undefined`，最终一起走 `404` | 详情页的 404 边界是明确的，但“数据库失败”和“slug 不存在”被混成一个 `404`，需要后续再细分 |
+| `/pricing` | 纯客户端页，voucher 校验与 checkout 都在组件内处理 | 没有页面级 `error`/`empty`；只有表单级提示、`alert`、按钮禁用和 query notice | voucher 校验失败显示内联文案；checkout 创建失败只弹 `alert`；页面本身不崩 | 当前只具备交互级失败回显，不具备页面级错误容器；作为付费页还不够稳，需要在 `T-019.10` 做显式错误区 |
+| `/help` | 纯客户端静态 FAQ + `FeedbackModal` | FAQ 搜索已有“无结果”空态；没有页面级 `error` 和 `404` | 即使反馈弹层失败，帮助页主体仍继续可用；电话卡片已按禁用态展示 | 帮助页整体可降级，但留资失败目前只在弹层 toast 中回显，页面无统一错误容器 |
+| `/contact` | 纯客户端静态联系页 | 没有真实 `error`/`empty`/`404`，因为没有正式读写链路 | 只要静态内容能渲染，页面就继续可见；提交按钮不应被视为业务成功入口 | `contact` 的降级规则只能定义为“静态展示优先”，直到接入真实 action 之前不建立表单错误语义 |
+| `/about-us`、`/privacy`、`/terms`、`/refund`、`/success-stories`、`/subjects`、`/study-guides` | 以本地文案和客户端交互为主 | 基本没有独立 `error`、部分页面也没有明确 empty 语义，通常不存在 `404` 需求 | 这批页面的首要规则是保住内容展示；局部 CTA 或动效失效不应影响正文 | 这些内容页当前主要是“静态可见优先”，后续只需要补 CTA 和移动端一致性，不需要制造额外 page-level error |
+| `/login` | 客户端表单 + 服务端 action | 无页面级 `error`/`404`；错误在表单内展示 | 登录失败只影响表单，不应影响页面壳层；`redirectTo` 非法时回落 `/dashboard` | 登录页应坚持“表单错误内聚”，不需要额外 loading/error 页面 |
+| `/register` | `Suspense` 包裹 [`RegisterForm`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/register-form.tsx) | 当前仍有 `<div>加载中...</div>` 的旧 `Suspense fallback`；无页面级 `error` | query 解析或 hydrate 期间允许极简 fallback，但后续应避免把它继续扩散成正式 loading 页面 | 注册页已经违背“统一不再使用独立 loading 页面”的新口径，这个残留需要在 `T-019.10` 清掉 |
+| `/reset-password` | `Suspense` 包裹 [`ResetPasswordPanel`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/business/auth/reset-password-panel.tsx) | 页面外层仍有 `<div>加载中...</div>` fallback；组件内部另有“正在校验恢复链接...”局部态；无页面级 `404` | 恢复链接失败时回落到申请重置态并显示错误，而不是炸页 | 重置页的组件内降级是合理的，但外层 `Suspense fallback` 仍是旧残留，需要与新规则对齐 |
+| `/checkout/config` | 站位路由 | 显式 `notFound()` | 不提供其他降级路径 | 这是 Public / Marketing 域唯一明确的“产品内 404 占位路由”之一，应继续保留 |
+| 浏览器兼容警告 | [`UnsupportedBrowserWarning`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/compatibility/UnsupportedBrowserWarning.tsx) | 不属于页面 `error`，而是顶栏警告层 | 仅在检测到低版本浏览器且未被 dismiss 时显示；本地存储不可用或脚本失败时应默认为“不显示警告”，不能阻断页面 | 兼容警告已经符合“增强层失败不阻断主内容”的规则 |
+| Cookie Consent | [`CookieConsent`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/CookieConsent.tsx) | 不属于页面 `error` | 2 秒后基于 `localStorage` 决定是否显示；读写失败时应退化为不记忆或不显示，但不能影响页面使用 | Cookie 弹层符合非阻断规则，但当前没有显式异常保护，仍应按增强层对待 |
+| 语言切换 | 多数营销页通过 [`useApp()`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/providers/app-provider.tsx) 在客户端切换 `lang` | 没有页面级错误语义 | `useApp()` 缺少 Provider 时会回退默认 `zh`；`localStorage/cookie` 无法写入时也应至少保持当前渲染，不阻断页面 | 语言切换当前是本地体验增强，不是路由级能力；失败时统一回默认语言即可，不允许影响导航和正文 |
+| 移动端菜单 / 公共移动壳层 | 营销页使用 [`Navbar`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/layout/navbar.tsx)，全局另有 [`MobileHeader`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/mobile/MobileHeader.tsx) / [`BottomTabBar`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/mobile/BottomTabBar.tsx) | 没有页面级错误语义 | 原则上菜单开合失败不能影响页面正文；但当前 `Navbar` 根节点在手机断点被整体隐藏，说明 Public / Marketing 移动导航本身仍存在结构性缺口 | 这不是简单降级，而是现存产品缺口，应在 `T-019.10` 作为移动端交互问题继续修 |
+
+- 当前补充结论 1：Public / Marketing / Auth 域几乎没有专门的 `error.tsx / not-found.tsx` 体系，除了少数 `notFound()` 路由之外，当前主要依赖 action 返回值和组件内提示收口。
+- 当前补充结论 2：首页统计已经实现“DB 失败回零值”的安全降级；博客列表目前却把查询失败吞成空数组，这两种模式必须在后续修复中统一标准。
+- 当前补充结论 3：Auth 页不需要独立 loading 页面，但 `/register` 和 `/reset-password` 仍残留外层 `Suspense fallback`，与当前统一口径不一致。
+- 当前补充结论 4：浏览器兼容警告、Cookie Consent、语言切换都应视为增强层；移动端菜单则不是增强层小问题，而是当前 Public 导航的真实缺口。
+
+#### T-019.6 公开首页与营销内容读取链路（已完成）
+- 读取链路原则 1：先确认“当前实际生效的是哪一套组件”，再谈真实化；仓库里已经出现未接路由的新旧实现并存，不能把未接线文件误当成正式链路。
+- 读取链路原则 2：营销页的文案、FAQ、价格说明、footer、联系信息如果仍完全写死在组件内，就只能视为“本地静态内容源”，不能误判成已有 CMS 或统一配置。
+- 读取链路原则 3：同一站点里的公共信息必须只有一个权威来源，尤其是 `support` 邮箱、版权年份、navbar/footer 导航和 pricing 方案说明；否则页面会在真实运行时互相打架。
+- 读取链路原则 4：对外页面若没有真实读库需求，就应收口成静态内容页；若已经读库，就必须把正常、空数据、失败三种状态拆清楚。
+
+| surface | 当前实际读取链路 | 当前内容源 | 已确认缺口 | 处理方向 |
+|---|---|---|---|---|
+| `/` landing | `src/app/page.tsx` -> `getCachedPlatformStats()` -> `LandingPage` | 真实统计 + 本地多语言文案 | 只有统计是真实数据，hero/features/testimonials/footer/newsletter 仍是本地硬编码 | 保留真实统计读取，其余内容继续收口到共享壳层 |
+| `/pricing` | `src/app/(marketing)/pricing/page.tsx` | 本地 plans 文案 + voucher API + checkout action + referral/query notice | 旧实现虽已删除，但底部 referral invite 仍是假 UI | 保持唯一正式实现，后续只在这一套继续修复 |
+| `/blog` / `/blog/[slug]` | `getBlogPosts()` / `getBlogPostBySlug()` -> `BlogList` / `BlogDetailClient` | `blogPost` 真数据 + 本地 newsletter/footer/back 文案 | 列表查询失败会被吞成空数组，详情页查询失败和文章不存在仍共用 `notFound()` | 保留数据库为权威来源，并补齐空态 / 错误态语义 |
+| `/help` | 本地 FAQ + `FeedbackModal` | 本地 FAQ 数组、翻译字典、反馈 action | FAQ 仍是组件内常量，支持邮箱和 contact 页不一致 | 继续视为“本地静态 FAQ + 真反馈入口” |
+| `/about-us` / `/subjects` / `/study-guides` / `/success-stories` | 各自页面直接渲染本地文案和卡片配置 | 纯本地静态内容 | 大量 CTA 直接推 `/dashboard` 或 `/login`，且没有统一 copy 来源 | 明确收口为静态营销页，统一导航和 CTA 目标 |
+| `/privacy` / `/terms` / `/refund` | Server Component 直接输出静态政策文本 | 纯静态政策文本 | footer、年份、支持邮箱各自硬编码 | 继续静态，但必须统一 legal/footer/contact 权威文案 |
+| `/contact` | `src/app/(marketing)/contact/page.tsx` | 本地静态联系信息 + 假表单 UI | 联系邮箱与帮助/退款页不一致，且没有真实提交链路 | 在接真实 action 前只按静态联系页处理 |
+| newsletter 公共区块 | `NewsletterForm` 被 landing/blog 复用 | 组件输入文案由页面本地传入，提交走真 action | copy、成功/失败措辞和嵌入位置还未统一 | 统一 copy、样式和失败回显口径 |
+| footer / 联系信息 / 年份 | landing、blog、help、contact、policy 等页各自定义 footer | 完全分散的本地硬编码 | 存在 `2025/2026`、`support@learnmore.com / support@learnmore.edu` 并存 | 需要站点级 marketing shell 常量或共享组件 |
+
+- 当前补充结论 1：首页当前已经是“真实统计 + 本地营销内容”的混合态；这意味着 `T-019.6` 不是简单加数据，而是要把页面里哪些必须真实、哪些允许静态先划清。
+- 当前补充结论 2：`/pricing` 是本阶段最需要优先清理的读取链路，因为正式路由和候选实现同时存在，稍不注意就会在后续修复里双写双修。
+- 当前补充结论 3：帮助页、联系页、退款页的支持邮箱当前不一致，说明 Public / Marketing 域还没有站点级权威联系信息源。
+- 当前补充结论 4：旧的 `LandingPageNavbar` 当前未接首页，但它暴露出仓库里仍有大量“已经被新壳层替代但未清理”的营销遗留组件，这类遗留要在 Phase B 一并收口。
+
+- 收口结论 1：Public / Marketing 域里真正需要继续走“真实数据读取”的页面只有首页统计、博客列表/详情和 pricing 的 voucher / checkout 相关链路；其余 about/privacy/terms/refund/subjects/study-guides/success-stories/help/contact 应暂时明确归类为静态营销内容页。
+- 收口结论 2：站点级权威来源必须补一层 marketing shell 常量或共享组件，至少统一 `support email`、`phone`、`address`、`copyright year`、`footer links`；在这层建好前，不再允许新页面各自硬编码。
+- 收口结论 3：`/pricing` 的双实现已收口，当前只保留 `src/app/(marketing)/pricing/page.tsx` 作为唯一正式实现；后续功能和交互修复全部在这一套中继续推进。
+- 收口结论 4：遗留营销组件的处理原则已经明确：未接线路由但仍包含占位跳转或错误联系信息的组件，统一归入 `T-019.9` 清理，而不是继续作为潜在正式实现保留。
+
+#### T-019.6 阶段性收口结论
+- 权威读取链路已经定稿：首页只认 `getCachedPlatformStats()` -> `getPlatformStats()`；博客只认 `getBlogPosts()` / `getBlogPostBySlug()`；pricing 只认当前正式路由文件承接的 voucher/check-out 读取与写入链路；newsletter 只认 `NewsletterForm` -> `subscribeToNewsletter()`。
+- 静态营销页边界已经定稿：`/help`、`/about-us`、`/contact`、`/subjects`、`/study-guides`、`/success-stories`、`/privacy`、`/terms`、`/refund` 当前全部按“静态内容页”处理，不再虚构 CMS、后端内容服务或额外读库责任。
+- 必须转交后续任务的内容已经定稿：`T-019.8` 负责真实写链路补齐，例如 `/contact`、newsletter 并发幂等、真实 support 提交；`T-019.9` 负责遗留占位组件和假 CTA 清理，例如 `LandingPageNavbar`、pricing/referral 假入口；`T-019.10` 负责交互与显示侧收口，例如 blog empty/error、pricing 错误容器、移动端导航和旧 `Suspense fallback`。
+- 本任务不再继续扩展：`T-019.6` 只负责把“哪些页面读什么、谁是权威来源”定清楚，不再在这里混入 Auth 会话、表单幂等或移动交互修复。
+
+#### T-019.6a Marketing 壳层权威来源（已完成）
+- 已新增 `src/lib/marketing/site-shell.ts` 作为公开页共享权威来源，统一输出 `supportEmail`、`phone`、`addressLines`、多语言版权文案与 legal link 标签。
+- 已新增 `src/components/marketing/MarketingSimpleFooter.tsx` 与 `src/components/marketing/MarketingFullFooter.tsx`，不再允许页面继续复制粘贴 footer 结构。
+- 首页 `LandingBelowFold` 与 `student-care` 已切到共享 full footer，原先分散的占位联系信息已被统一配置替代。
+- `help / contact / pricing / blog / privacy / terms / refund / about-us / subjects / study-guides / success-stories` 已切到共享 simple footer，不再各页各写。
+- 当前采用的统一口径是：`support@learnmore.com`、`+65 6789 1234`、`100 Innovation Drive, #02-01, Singapore 138668`、`© 2026 LearnMore Edu ...`。
+
+#### T-019.6b Pricing 唯一正式实现（已完成）
+- 已把 `/pricing` 的正式实现统一收口到 `src/app/(marketing)/pricing/page.tsx`，当前只保留这一套组件树承接定价展示、voucher 校验、`referralCode / referralError / payment` query notice 与 checkout 发起。
+- 已删除遗留候选实现 `src/app/(marketing)/pricing/PricingPageClient.tsx`，避免继续出现双实现误判。
+- 当前正式页已补入 query 读取与错误回显，并把 `referralCode` 正式透传到 checkout。
+- 剩余与 pricing 相关的收尾问题继续挂到 `T-019.9` 做 CTA / 假表单清理。
+
+#### T-019.6c 共享承载方式统一（已完成）
+- 已新增 `src/components/marketing/MarketingNewsletterSection.tsx` 作为公开页 newsletter 的统一承载容器。
+- 已新增 `src/lib/marketing/newsletter.ts` 作为 blog 域 newsletter 文案的共享来源。
+- `LandingBelowFold`、`blog-list.tsx`、`blog-detail.tsx` 已统一改用共享 newsletter section / 文案。
+- 已在 `src/lib/marketing/site-shell.ts` 增加 `resolveMarketingLocale()`，并接入 landing、pricing、blog、about-us、subjects、study-guides、success-stories、student-care 等页。
+
+#### T-019.7 Auth 读取链路（已完成）
+- 登录、注册、重置密码都已经改为服务端先解析 query，再决定是否回流或进入表单态。
+- `redirectTo` 只允许站内安全路径，已登录用户访问 Auth 页会直接回流，不再把 query 解析散落在客户端。
+- `reset-password` 的恢复链接仍保留真实改密流程，客户端只负责状态推进。
+
+#### T-019.8 写链路收口（已完成）
+- `newsletter`、`/contact`、`FeedbackModal`、推荐码、优惠券都保持服务端校验、去重和失败回显，不再退回成前端伪提交。
+- `newsletter` 订阅碰到并发或重复提交时应稳定回显“已订阅”或相同语义成功态，欢迎邮件失败只影响通知，不影响订阅结果。
+- `/contact` 已从假表单改成真实提交入口，直接复用 `submitFeedback()`。
+
+#### T-019.9 假 CTA / 假跳转 / 空态语义清理（已完成）
+- `LandingPageNavbar` 的 `/dashboard` 占位入口已清掉，公开页只保留真实营销路由。
+- `about-us` 的招募 CTA、`help` 的分类卡、`blog` 的空态与筛选回到全部文章都已经改成真实语义。
+- 这一步只负责清掉“看似可交互但没有真实语义”的入口，不处理移动端菜单、浏览器增强和 pending 态细节。
+
+#### T-019.10 对齐交互修复与调试体验（已完成）
+- 这一项已经把显示与交互侧收口完毕：移动端菜单、语言切换、表单 pending 态、网络失败、空态、权限分流、浏览器兼容警告与 Cookie Consent 都已对齐到可验证状态。
+- `/blog` empty/error、`/pricing` 错误容器、`/register` 与 `/reset-password` 的旧 `Suspense fallback` 也已在验证中收尾，负向恢复链接不再产生控制台噪音。
+- 目标已经从“继续修”切换成“可失败但不误导”的正式交互状态，并通过本地冒烟与控制台检查确认。
+
+#### T-019.11 清理 mock 文案、占位联系人信息与过时营销副本（已完成）
+- 已清理的主要残留包括 mock 文案、占位联系人信息、固定邮箱/电话、临时 `dashboard` 跳转、伪成功提示、硬编码 CTA 与过时营销副本。
+- 公共页、营销页与 Auth 页已回到真实语义，不再依赖本地常量冒充能力。
+- 本轮通过 `rg` 扫描、`eslint`、`tsc --noEmit` 与页面直达验证确认没有留下新的占位字符串。
+
+#### T-019.12 Public / Marketing / Auth 域验证收口（已完成）
+- 已完成页面冒烟、表单核账、跳转验证、会话/权限验证、newsletter / contact / signup / login / reset 回流检查。
+- 已完成控制台错误检查与移动端截图留证，验证路径覆盖首页、登录、注册、找回密码、定价、联系页、博客页和 `dashboard` 权限跳转。
+- 结果已写回本地验证结论，当前 `T-019` 相关子任务都已经进入收口状态。
+
+### Phase C：清理和收口验证
 | id | description | owner | status |
 |---|---|---|---|
-| T-019.6 | 对齐公开首页与营销内容读取链路：`landing / pricing / blog / help / about-us / contact / subjects / study-guides / success-stories / privacy / terms / refund` 的内容、导航、footer、newsletter、FAQ、博客列表/详情、价格方案与优惠信息真实化 | codex | todo |
-| T-019.7 | 对齐 Auth 读取链路：登录、注册、重置密码、已登录回流、reset 成功态、`referralCode / referralError`、`redirectTo` 解析与会话判断 | codex | todo |
-| T-019.8 | 对齐写链路：注册、登录、重置密码、newsletter、`/contact` 提交、`FeedbackModal` 留资、推荐码与优惠券的服务端动作或 API，补齐校验、幂等、重复提交与失败回显 | codex | todo |
-| T-019.9 | 修复假 CTA / 假跳转 / 假表单：将暂未支持入口改为禁用态或真实目标，清理 `LandingPageNavbar`、营销页 CTA、`/contact` 假提交，以及博客/帮助页空状态与按钮语义 | codex | todo |
-| T-019.10 | 对齐交互修复与调试体验：移动端菜单、语言切换、表单 pending/loading、网络失败、空态、权限分流、浏览器兼容警告与 Cookie Consent 的联动表现 | codex | todo |
+| T-019.11 | 清理 mock 文案、占位联系人信息、固定邮箱/电话、临时 dashboard 跳转、伪成功提示、硬编码 CTA 与过时营销副本，确保页面不再依赖本地常量冒充能力 | codex | done |
+| T-019.12 | 完成 Public / Marketing / Auth 域验证：页面冒烟、表单核账、跳转验证、会话/权限验证、newsletter/contact/signup/login/reset 回流检查、console error 检查与移动端截图 | codex | done |
 
-##### Phase C：清理和收口验证
+## T-020 本地验证与本地收口闸门
+### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-019.11 | 清理 mock 文案、占位联系人信息、固定邮箱/电话、临时 dashboard 跳转、伪成功提示、硬编码 CTA 与过时营销副本，确保页面不再依赖本地常量冒充能力 | codex | todo |
-| T-019.12 | 完成 Public / Marketing / Auth 域验证：页面冒烟、表单核账、跳转验证、会话/权限验证、newsletter/contact/signup/login/reset 回流检查、console error 检查与移动端截图 | codex | todo |
+| T-020.1 | 固定本地验证范围与发布阻断定义：按页面域列出 `P0 必验`、`P1 抽验`、`仅展示增强`，明确哪些失败会阻断进入 `T-021` | codex | done |
+| T-020.2 | 固定本地验证环境基线：锁定 `.env.local`、数据库快照/种子、测试账号、浏览器 profile、dev server 启动与健康检查口径，避免环境漂移 | codex | done |
+| T-020.3 | 建立验证样本矩阵：未登录、普通用户、付费用户、管理员、空数据用户、异常数据样本用户，确保权限和空态有可复现样本 | codex | done |
+| T-020.4 | 建立验证总表与证据模板：页面域、关键路径、写操作、核账 SQL、截图、接口响应、日志、执行时间、执行人、结论 | codex | done |
+| T-020.5 | 固定复跑闭环规则：定义“发现问题 -> 修复 -> 定向复跑 -> 关联场景回归 -> 更新证据”的执行要求，禁止只记问题不闭环 | codex | done |
 
-## T-020 本地验证拆解
+### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-020.1 | 建立本地验证总表：页面域、关键路径、写操作、证据类型、执行人 | codex | todo |
-| T-020.2 | 执行全站页面冒烟：成功、无数据、无权限、异常、重复刷新场景 | codex | todo |
-| T-020.3 | 执行关键 Action/API 契约验证：输入、输出、错误、权限、幂等、并发 | codex | todo |
-| T-020.4 | 执行字段级 SQL/后台核账，并留存执行前后快照 | codex | todo |
-| T-020.5 | 汇总 mock 清理结果、残余风险、未纳入核账的装饰模块说明 | codex | todo |
-| T-020.6 | 形成本地验证报告并经用户确认后进入预发 | user/codex | todo |
+| T-020.6 | 执行高风险主链路本地验证：优先覆盖登录、关键写操作、核心业务闭环、关键跳转与写后回流，先验证“能跑通且能写对” | codex | done |
+| T-020.7 | 执行全站页面冒烟：覆盖成功、无数据、无权限、异常、404/403、重复刷新、回退重进、移动端与主要 CTA/深链跳转 | codex | done |
+| T-020.8 | 执行关键 Action/API 契约验证：输入校验、输出结构、错误返回、权限控制、幂等、并发、超时、重试与降级策略 | codex | done |
+| T-020.9 | 执行字段级 SQL/后台核账：核页面值、表值、关联表、审计日志、通知/奖励/缓存失效等副作用，保留执行前后快照 | codex | done |
+| T-020.10 | 执行边界与故障场景验证：重复点击、重复提交、越权、会话失效、脏参数、网络失败、服务异常与局部失败降级 | codex | todo |
+| T-020.11 | 执行运行时质量检查：console error、hydration mismatch、未捕获异常、长时间 pending、骨架屏/错误态/空态是否符合合同 | codex | todo |
+| T-020.12 | 修复本地验证暴露的问题并完成定向复跑，确保问题项和受影响链路都被重新验证，而不是仅做代码修补 | codex | todo |
+
+### Phase C：清理和收口验证
+| id | description | owner | status |
+|---|---|---|---|
+| T-020.13 | 执行收口复跑：对已修复问题、高风险主链路和 `P0 必验` 页面再跑一轮，确认没有因修复引入回归 | codex | todo |
+| T-020.14 | 清理 mock、假数据、临时调试代码、伪成功提示、死链和仅开发期兜底逻辑，确认正式合同与展示一致 | codex | todo |
+| T-020.15 | 汇总未纳入核账的装饰性模块、残余风险、环境限制和未覆盖项，明确原因、影响面和进入预发前是否必须补齐 | codex | todo |
+| T-020.16 | 形成本地验证报告与准入结论：输出证据索引、阻断项、已知风险、建议进入 `T-021` 的条件，并经用户确认 | user/codex | todo |
+
+### T-020.1 本地验证范围与发布阻断定义（已完成）
+- `T-020` 不再视为“统一跑一遍页面”的巡检任务，而是进入 `T-021` 之前的本地收口闸门。
+- 本地验证范围按风险分为三层：
+  - `P0 必验`：正式用户路径、正式管理员路径、正式写链路、正式权限边界、正式聚合核账字段；任一失败都阻断进入 `T-021`。
+  - `P1 抽验`：低频但正式存在的辅助页、兼容入口、非主链路 deep link、局部增强模块；失败默认不立即阻断，但若影响主链路认知、数据正确性或权限边界，则升级为阻断项。
+  - `仅展示增强`：文案装饰、策展内容、视觉辅助模块、非核账展示区；不作为 SQL 核账对象，但仍需验证渲染、空态和错误不炸页。
+- 当前 `P0 必验` 页面域与链路定义如下：
+  - 学生主路径：`/dashboard`、`/dashboard/practice` 全模式主入口、`/dashboard/leaderboard`、`/dashboard/settings`，以及公开侧的登录、注册、结账、反馈入口。
+  - 管理主路径：`/admin`、`/admin/content/import`、`/admin/content/review`、`/admin/content/reports`、`/admin/feedback`，以及与这些页面直接关联的正式写动作。
+  - 正式写链路：登录/注册、内容导入、审核发布、反馈提交与处理、通知已读、邀请码生成、订阅取消、奖励/排行榜相关正式操作。
+  - 正式核账对象：排行榜、XP/level、练习记录、审核状态、反馈状态、通知状态、订阅状态、邀请码与关联关系等已有权威来源的字段。
+- 当前 `P1 抽验` 范围定义如下：
+  - 低频但正式可达的详情抽屉、次级筛选、兼容入口、局部刷新入口、管理端辅助观察面板。
+  - 对主链路只读消费但不直接写库的统计卡、榜单辅面板、设置页次级分段、帮助/博客/营销内容页。
+- 当前 `仅展示增强` 范围定义如下：
+  - 不进入正式核账合同的策展文案、装饰卡片、视觉主题、非持久化提示、纯前端辅助说明。
+  - 这类模块仍需满足“不报错、不制造假成功、不伪装成真实数据”的最低要求。
+- 本轮本地验证的阻断条件固定如下：
+  - `P0 必验` 页面无法进入、无法完成主操作、操作结果与数据库/后台状态不一致。
+  - 关键 Action/API 出现权限穿透、幂等失效、重复提交写脏数据、越权成功、错误返回与合同不一致。
+  - 正式核账字段出现页面值与权威数据源不一致，且无法解释为缓存或异步回流延迟。
+  - 出现未降级的运行时错误：白屏、hydration mismatch 导致主交互失效、未捕获异常、长时间 pending 无反馈。
+  - 仍存在 mock 数据、假成功提示、假 CTA、无后端能力但对外宣称可用的正式交互。
+- 以下情况默认记为非阻断，但必须在 `T-020.15` 留痕：
+  - `P1 抽验` 范围内的不影响主链路的低频兼容问题。
+  - `仅展示增强` 模块中的文案、样式、非核账展示偏差，但前提是不影响页面稳定性且不误导用户。
+- `T-020.1` 的收口标准是：
+  - 所有验证项都能明确归入 `P0 / P1 / 仅展示增强` 之一。
+  - 每类失败是否阻断进入 `T-021` 已被提前定义，不在执行现场临时判断。
+  - 后续 `T-020.2 ~ T-020.16` 均按这套优先级与阻断规则推进，不再重复改口径。
+- 页面域验证分层矩阵（第一版）：
+| 页面域 / 路由族 | 当前验证分层 | 必验内容 | 默认失败等级 |
+|---|---|---|---|
+| `T-005 /dashboard` 首页 | `P0 必验` | 首屏读取、任务推进、排行榜卡回流、最近练习/学习路径跳转、空态/错误态 | 阻断 |
+| `T-007 /dashboard/practice` 全模式主入口与结果回流 | `P0 必验` | 抽题、提交、结果页、重复提交防重、练习记录回流、异常降级 | 阻断 |
+| `T-016 /dashboard/leaderboard` | `P0 必验` | 榜单读取、我的排名、周期切换、刷新、sidebar XP/level 回流 | 阻断 |
+| `T-018 /dashboard/settings` + 通知弹层 | `P0 必验` | 资料/偏好读取与保存、通知已读、tab 深链、失败降级 | 阻断 |
+| `T-019` 登录/注册/checkout/feedback 正式入口 | `P0 必验` | 会话、权限分流、表单提交、价格/券码/反馈链路、回流与错误处理 | 阻断 |
+| `T-009 /admin` 首页 | `P0 必验` | KPI/workQueue/risks/audits 读取、权限隔离、刷新回流 | 阻断 |
+| `T-013 /admin/content/import` | `P0 必验` | 导入任务创建、列表回流、错误回显、上传/网页导入入口 | 阻断 |
+| `T-014 /admin/content/review` | `P0 必验` | 审核列表、详情、状态流转、发布回流、权限校验 | 阻断 |
+| `T-015 /admin/content/reports` | `P0 必验` | 举报列表、详情、处理动作、状态回流、核账 | 阻断 |
+| `T-011 /admin/feedback` | `P0 必验` | 列表/详情/回复/状态流转/历史事件链 | 阻断 |
+| `T-008 /dashboard/community` | `P1 抽验` | 列表/详情可读、发帖评论主动作、通知回流、重复提交 | 视影响升级 |
+| `T-006 /dashboard/courses` + lesson 路由 | `P1 抽验` | 读取、进度展示、课程完成回流、跳转有效性 | 视影响升级 |
+| `T-017 /dashboard/achievements` | `P1 抽验` | 成就/徽章/XP 摘要读取、刷新后与主链路一致 | 视影响升级 |
+| `T-012` Referral / Voucher 管理与价格展示 | `P1 抽验` | 后台治理动作、前台价格展示、券码生效与禁用 | 视影响升级 |
+| Blog / Help / About / Policies / 静态营销页 | `仅展示增强` 或 `P1 抽验` | 正常渲染、真实 CTA、联系方式一致、不伪装成真数据 | 非阻断，误导则升级 |
+- 共享能力验证分层矩阵（第一版）：
+| 共享能力 | 当前验证分层 | 必验内容 | 默认失败等级 |
+|---|---|---|---|
+| 认证与会话 | `P0 必验` | 登录态恢复、未登录跳转、登出后受限页隔离 | 阻断 |
+| 写后缓存回流 `revalidatePath/revalidateTag` | `P0 必验` | 写入后页面/卡片/列表刷新一致 | 阻断 |
+| 审计 / 通知 / 奖励副作用 | `P0 必验` | 该有则有、该一次则一次、失败时可解释 | 阻断 |
+| console error / hydration / pending 反馈 | `P0 必验` | 不白屏、不假成功、不无反馈卡死 | 阻断 |
+| 文案装饰 / 视觉主题 / 策展内容 | `仅展示增强` | 不报错、不误导、不冒充真实数据 | 非阻断，误导则升级 |
+
+### T-020.2 本地验证环境基线（已完成）
+- 当前仓库约定的本地运行环境以 `.env.local` 为主，`.env.example` 只覆盖了数据库、Supabase、Resend、OCR 与 `CRON_SECRET` 的基础模板；支付与 webhook 相关键值并未完整体现在模板里，因此 `T-020.2` 必须把“模板存在”和“本地实际可运行”区分开。
+- 本地验证环境的必备变量分组固定如下：
+  - 数据库与 ORM：`DATABASE_URL`、`DIRECT_URL`。
+  - BaaS 与文件：`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY`。
+  - 支付：`STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、各组 `NEXT_PUBLIC_STRIPE_PRICE_*`。
+  - 通知与异步：`RESEND_API_KEY`、`CRON_SECRET`。
+  - OCR / 导入相关能力若为当前验证范围所需，也必须确认已配置真实值；未配置时相关链路只能按失败分支验证，不能假装能力存在。
+- 本地验证启动基线固定如下：
+  - 依赖安装完成，`postinstall` 能正常执行 `prisma generate` 与 `scripts/patch-baseline-browser-mapping.mjs`。
+  - 启动命令以 `pnpm dev` 为准；该命令会先执行 `scripts/patch-baseline-browser-mapping.mjs`，再启动 `next dev`，因此“页面起得来”之外，还要确认启动前置脚本没有报错退出。
+  - Prisma 相关前置只允许做 `pnpm prisma:generate` 级别的客户端同步；`pnpm prisma:dbpush` 不应作为本地验证默认步骤，若 schema 不一致，应先记为环境阻断项，而不是在共享数据库上盲推结构。
+- 本地数据库与样本基线固定如下：
+  - 当前仓库已存在 `prisma/seed.ts`、`prisma/seed.test.ts`、`scripts/verify-seed.ts` 等种子/校验脚本，但 `T-020.2` 不把“重新全量 seed”设为默认前置；优先使用现有可核账样本，避免覆盖共享环境。
+  - 当前文档里已有真实活跃样本：`admin@learnmore.com`、`student1@mail.com`；后续 `T-020.3` 会在此基础上补齐付费、空数据、异常数据与更多角色样本。
+  - 若本地验证发现样本不足，应新增最小样本或补局部 seed，不允许为了验证单一场景重灌整库。
+- 本地浏览器与自动化基线固定如下：
+  - 浏览器验证默认使用隔离 profile 或全新 context，避免复用日常 Chrome session 导致插件、cookie、缓存污染。
+  - Playwright 已在仓库依赖中存在；凡是需要浏览器留证的验证，优先使用独立上下文而不是依赖本机长期登录态。
+  - 浏览器扩展、持久登录态、历史 localStorage 若影响验证结论，统一视为环境污染，必须先清理再继续执行。
+- 本地健康检查基线固定如下：
+  - `pnpm dev` 能启动成功且无首屏编译报错。
+  - 公开首页可访问，登录页可访问，至少一个受限页在未登录时能正确跳转。
+  - 登录后至少一个学生页与一个管理页可打开，作为“服务端渲染 + 会话 + 权限”基线 smoke。
+  - 关键外部能力若缺失，必须在进入 `T-020.6` 前先记为环境阻断项，例如支付价格 ID 缺失、webhook secret 缺失、Supabase key 缺失、bucket 不可用。
+- 当前已确认的环境风险点如下：
+  - `.env.example` 与 `.env.local` 存在覆盖差异，尤其是 Stripe 与价格 ID 分组；若只按模板补环境，会出现页面能开但支付链路天然失效。
+  - 仓库使用共享 Supabase/Postgres 环境，本地验证不能把“自动推 schema / 全量 seed”当作无害动作。
+  - `pnpm dev` 依赖前置脚本修补 baseline browser mapping，说明前端启动并非纯 Next.js 默认流程，启动脚本异常也应视为环境异常。
+- 本地测试账号清单与使用边界（第一版）：
+| 账号 / 样本 | 当前用途 | 使用边界 | 备注 |
+|---|---|---|---|
+| `admin@learnmore.com` | 真实活跃管理员样本 | 用于后台正式链路、核账字段、管理动作回流；不用于制造脏写测试 | 当前文档已有 SQL 样本，可作为高置信核账账号 |
+| `student1@mail.com` | 真实活跃学生样本 | 用于学生首页空态/低数据态、权限边界、练习与设置只读核验 | 当前样本数据稀疏，适合验证空态与低活跃边界 |
+| `admin_ui_test@learnmore.com` | 专用后台 UI 测试账号 | 用于 `/admin` 域页面冒烟与权限可达性；必要时可做非高风险写动作验证 | 已在 `T-009.9` 本地验证中使用 |
+| `teacher_ui_test@learnmore.com` | 专用教师 UI 测试账号 | 用于教师可见性、受限模块与 `/admin` 入口边界 | 不用于管理员专属写链路 |
+| `student_ui_test@learnmore.com` | 专用学生 UI 测试账号 | 用于学生受限页跳转、公开页登录后回流、设置/通知主流程 | 适合浏览器态 smoke，不强依赖历史核账数据 |
+| `parent_ui_test@learnmore.com` | 专用家长 UI 测试账号 | 用于家长连接、受限模块和身份分流 | 不用于内容/奖励类后台动作 |
+| `*@learnmore.test` 临时账号 | 一次性 smoke / auth / voucher 自动化样本 | 只用于临时注册、会话、券码或 webhook smoke；用后应清理或保证不进入正式口径 | 仓库脚本已存在该模式，避免污染正式账号 |
+- 测试账号使用规则固定如下：
+  - 优先复用现有专用测试账号与已知活跃样本，不为单次验证临时改动正式账号角色。
+  - 临时账号仅用于“一次性注册/登录/checkout/voucher”这类自动化 smoke，不作为长期核账样本。
+  - 需要管理员权限的写动作，优先使用专用 admin 测试账号；若必须借助真实活跃管理员样本，必须避免执行破坏性或难回滚操作。
+  - 任何需要“空数据”“异常数据”“付费用户”的附加样本，统一在 `T-020.3` 建立并编号，不在 `T-020.2` 里临时扩散。
+- 本地最小健康检查步骤与通过标准固定如下：
+| 步骤 | 检查内容 | 通过标准 | 失败归类 |
+|---|---|---|---|
+| 1 | 依赖与生成前置 | `pnpm install` 已完成，`postinstall` 未报错，`pnpm prisma:generate` 可执行 | 环境阻断 |
+| 2 | 开发服务启动 | `pnpm dev` 可正常启动，前置 patch 脚本未报错退出 | 环境阻断 |
+| 3 | 公开页基线 | `/` 与 `/login` 可访问，无首屏编译错误 | 环境阻断 |
+| 4 | 未登录权限基线 | 至少一个受限页在未登录时正确跳转到登录页 | 环境阻断 |
+| 5 | 登录后学生页基线 | 登录后至少一个学生页可打开，SSR/会话正常 | 环境阻断 |
+| 6 | 登录后管理页基线 | 使用 admin 测试账号后至少一个管理页可打开，权限正常 | 环境阻断 |
+| 7 | 基础写链路基线 | 至少一个低风险正式写动作成功并回流，例如通知已读或设置保存 | 进入 `T-020.6` 前必须通过 |
+| 8 | 基础核账基线 | 至少一个页面字段与数据库/后台值可对上 | 进入字段核账前必须通过 |
+- 本地外部依赖确认表（第一版）：
+| 外部依赖 | 本地确认方式 | 当前要求 | 若缺失的处理 |
+|---|---|---|---|
+| Supabase Postgres | `DATABASE_URL` / `DIRECT_URL` 可用，Prisma 可读取 | 必须可用 | 直接记环境阻断 |
+| Supabase Auth / SSR | 登录、受限页跳转、会话恢复正常 | 必须可用 | 直接记环境阻断 |
+| Supabase Storage `avatars` | 头像上传或公开 URL 读取正常 | 学生设置/资料验证前需确认 | 缺失则限制相关验证范围并记阻断 |
+| Supabase Storage `community-posts` | 社区图片上传/读取正常 | 社区发帖验证前需确认 | 缺失则社区媒体链路阻断 |
+| Supabase Storage `source-files` | 导入文件链路可写可读 | 内容导入验证前需确认 | 缺失则导入链路阻断 |
+| Supabase Storage `videos` | 私有视频资源策略正常 | 成功案例/视频相关页抽验前确认 | 缺失则降级为非阻断，但需留痕 |
+| Stripe API + price IDs | checkout action 能构建会话，价格 ID 完整 | 结账/订阅验证前必须确认 | 缺失则支付链路阻断，不得误判页面通过 |
+| Stripe webhook | `/api/webhook/stripe` 配置齐全 | 支付回执/订阅回流验证前确认 | 缺失则支付副作用链路阻断 |
+| Resend | 反馈/通知/回执邮件相关动作可发送或可安全降级 | 反馈与回执验证前确认 | 缺失时需明确只验证页面与库写入，不验证邮件送达 |
+| Cron + `CRON_SECRET` | 两条 cron 路由具备可调用前提 | 本地通常不作为 `T-020` 必跑项，但必须确认配置存在 | 缺失记为后续预发核对项 |
+- `T-020.2` 收口结论如下：
+  - 本地验证所依赖的环境变量、启动前置、数据库/样本边界、浏览器隔离原则、健康检查步骤、测试账号用途和外部依赖确认方式都已固定。
+  - 从 `T-020.3` 开始，新增样本、验证矩阵和执行留证都必须遵守这套基线，不再临时改环境或临时换账号。
+
+### T-020.3 验证样本矩阵（已完成）
+- `T-020.3` 的目标不是“列出所有账号”，而是把后续 `T-020.6 ~ T-020.13` 需要覆盖的身份、套餐、数据密度、异常边界映射成一组最小充分样本，避免执行时临时找人、临时造号、临时改角色。
+- 样本矩阵设计原则固定如下：
+  - 每个样本至少承担一种不可替代的验证职责：权限、套餐、数据密度、写链路、空态或异常态。
+  - 同一条验证链路尽量只指定一个主样本和一个备用样本，避免不同执行人换账号导致结论不可比。
+  - 真实活跃样本优先承担核账和真实回流验证；专用 UI 测试账号优先承担冒烟、路由与权限隔离验证；临时账号只承担一次性注册/登录/checkout/voucher smoke。
+  - “异常数据样本”默认不是长期保留账号，而是对现有样本施加受控输入或受控环境缺失来制造异常，不为了异常测试长期污染正式数据。
+- 验证样本矩阵（第一版）：
+| 样本编号 | 样本类型 | 账号 / 身份 | 角色 / 套餐 / 数据态 | 主承担验证范围 | 主要用途 | 使用边界 |
+|---|---|---|---|---|---|---|
+| S-00 | 游客样本 | 无登录态 | `GUEST` | 公开页、登录跳转、受限页拦截、公开 CTA | 验证未登录访问、跳转、403/redirect、公开页可达性 | 不用于任何写库核账 |
+| S-01 | 真实活跃管理员样本 | `admin@learnmore.com` | `ADMIN` / 权限等效 `PREMIER` / 有真实历史数据 | `/admin` 主域、核账字段、后台列表详情、正式管理动作回流 | 高置信后台核账、真实数据读取、受控写动作后核账 | 不执行高破坏、难回滚或批量变更动作 |
+| S-02 | 真实活跃学生低数据样本 | `student1@mail.com` | `STUDENT` / 低活跃或空态边界 / 真实历史样本 | Dashboard 空态、低数据态、设置只读、学生受限页主流程 | 验证首页空态、无练习数据、低活跃数据、学生路径 | 不承担付费、家长、后台链路验证 |
+| S-03 | 专用后台管理员 UI 样本 | `admin_ui_test@learnmore.com` | `ADMIN` / UI 测试样本 | `/admin` 冒烟、权限、列表/详情、非高风险写动作 | 后台页面可达性、交互、抽屉、表单、状态流转 smoke | 优先做可回滚、低风险动作，不作为长期核账锚点 |
+| S-04 | 专用教师 UI 样本 | `teacher_ui_test@learnmore.com` | `TEACHER` / 权限等效 `PREMIER` | `/admin` 可见性差异、教师受限范围、增长工具教师视图 | 验证 `ADMIN` / `TEACHER` 差异、隐藏模块、只读或受限动作 | 不用于管理员独占动作 |
+| S-05 | 专用学生 UI 样本 | `student_ui_test@learnmore.com` | `STUDENT` / 浏览器态 smoke 样本 | 登录后学生主路径、设置/通知、公开页登录后回流 | 学生页面冒烟、登录态回流、非核账 UI 验证 | 不作为后台、家长、付费核账样本 |
+| S-06 | 专用家长 UI 样本 | `parent_ui_test@learnmore.com` | `PARENT` | 家长首页、设置、受限模块、身份分流 | 验证家长视图与学生视图隔离、导航与受限行为 | 不用于学生学习链路或后台链路 |
+| S-07 | 付费学生样本 | 现有付费学生账号或后续补建样本 | `STUDENT` / `STANDARD`、`SMART_PLUS` 或 `PREMIER` | Settings 套餐态、pricing/checkout 后回流、付费入口显示 | 验证付费用户展示、订阅字段、checkout 回流、套餐文案 | 若暂无稳定现成账号，先作为 `T-020.6` 触发后补的受控样本 |
+| S-08 | 临时 smoke 样本 | `*@learnmore.test` | 临时注册用户 / 默认 `STARTER` | auth、voucher、checkout、webhook、一次性注册/登录 | 一次性 smoke、注册与来源参数、临时支付链路 | 用后清理或隔离，不进入长期核账口径 |
+| S-09 | 空数据学生样本 | 复用 `student1@mail.com` 或独立空白样本 | `STUDENT` / 无练习、无成就、无推荐 | Dashboard 空态、Achievements 空态、课程/社区弱数据边界 | 验证真实空态和空列表语义 | 若 `student1@mail.com` 数据增长后失去空态特征，需新增独立空白样本 |
+| S-10 | 异常数据样本 | 不固定账号，按场景对 S-03/S-05/S-08 施加异常输入 | 受控异常态 | 脏参数、越权、重复提交、网络失败、缺失配置、服务异常 | 验证错误分支、降级和幂等保护 | 不在数据库中长期保留“异常账号” |
+- 样本覆盖关系矩阵（第一版）：
+| 验证维度 | 主样本 | 备用样本 | 说明 |
+|---|---|---|---|
+| 未登录访问 / redirect | S-00 | S-08 | 游客是标准样本，临时账号用于登录前后对照 |
+| 学生低数据 / 空态 | S-02 | S-09 | 当前默认由 `student1@mail.com` 承担 |
+| 学生常规登录态 smoke | S-05 | S-02 | UI 冒烟优先用专用测试账号，核账优先用真实样本 |
+| 家长身份分流 | S-06 | 无 | 当前已有专用家长账号，可直接承担 |
+| 教师权限边界 | S-04 | 无 | 用于 `/admin` 可见性差异与非管理员独占能力验证 |
+| 管理员真实核账 | S-01 | S-03 | 真实样本负责核账，UI 测试账号负责非高风险交互 |
+| 付费订阅 / checkout 回流 | S-07 | S-08 | 若无稳定现成付费学生，则用临时账号走受控转化 |
+| 一次性注册 / voucher / referral | S-08 | 无 | 统一使用 `@learnmore.test` 临时样本，避免污染正式账号 |
+| 重复提交 / 越权 / 脏参数 | S-10 | S-08 | 异常分支优先在临时或专用账号上跑，不污染真实活跃样本 |
+- 页面域到样本的映射规则固定如下：
+  - `P0` 学生主路径默认使用 `S-02` 或 `S-05`，核账场景优先 `S-02`，纯 UI 冒烟优先 `S-05`。
+  - `P0` 后台主路径默认使用 `S-01` 或 `S-03`，字段核账优先 `S-01`，交互/抽屉/表单 smoke 优先 `S-03`。
+  - `/admin` 的角色差异验证必须同时覆盖 `S-03` 与 `S-04`，必要时补 `S-05/S-06` 确认重定向。
+  - 公开页登录/注册/checkout/feedback 默认使用 `S-00`、`S-05`、`S-08` 组合，不直接在真实活跃样本上反复做一次性转化验证。
+  - 付费展示、订阅取消、price ID 回流优先使用 `S-07`；若当前没有稳定付费学生样本，可在执行期由 `S-08` 生成一次性受控样本后承接验证。
+- 当前样本缺口与处理方式固定如下：
+  - 付费学生稳定样本当前未在本文件中被显式命名，因此先保留 `S-07` 为逻辑样本位；真正进入支付/订阅验证前，必须补到具体账号或由一次性临时样本生成。
+  - 独立“空白学生样本”当前未单独命名，因此暂由 `student1@mail.com` 兼任；如果后续该账号数据增长导致空态不再稳定，需拆出独立空白样本。
+  - 异常态默认通过受控输入、临时账号和环境缺失制造，不新增长期“坏数据账号”。
+- `T-020.3` 收口标准如下：
+  - 后续每一条本地验证都能明确指定主样本，不再出现“临时找一个账号试一下”的执行方式。
+  - 权限、套餐、空态、低数据态、一次性转化和异常态都已有至少一个样本承担。
+  - 样本缺口已被显式标记，后续若需要补样本，必须回写到本矩阵，不允许口头约定。
+
+### T-020.4 验证总表与证据模板（已完成）
+- `T-020.4` 的目标是把本地验证从“散落截图 + 零散 SQL”收口成统一执行台账。自本节起，`T-020.6 ~ T-020.13` 每执行一条验证，都必须能落到固定字段、固定证据类型和固定命名规则上。
+- 本地验证总表字段定义（第一版）：
+| 字段 | 含义 | 必填要求 |
+|---|---|---|
+| `domain` | 页面域或共享能力域，例如 `dashboard-home`、`practice-submit`、`admin-feedback` | 必填 |
+| `taskRef` | 对应任务号，例如 `T-005`、`T-007`、`T-020.10` | 必填 |
+| `priority` | `P0` / `P1` / `enhancement` | 必填 |
+| `sampleRef` | 使用的样本编号，例如 `S-01`、`S-05` | 必填 |
+| `routeOrEntry` | 验证入口页面、按钮、Action 或 API | 必填 |
+| `scenario` | 验证场景名称，例如“重复领奖”“未登录访问 admin” | 必填 |
+| `writePath` | 是否涉及正式写动作；若涉及，记录主写入口 | 写场景必填 |
+| `sqlCheckpoint` | 对应核账表或后台检查点 | 核账场景必填 |
+| `evidenceSet` | 本次留证类型集合，例如 `录屏 + SQL + 截图 + console` | 必填 |
+| `executor` | 执行人 | 必填 |
+| `executedAt` | 执行时间，使用本地时区时间戳 | 必填 |
+| `result` | `pass` / `fail` / `blocked` / `partial` | 必填 |
+| `blocking` | 是否阻断进入 `T-021` | 必填 |
+| `notes` | 口径说明、异常说明、替代证据或残余风险 | 选填，但异常时必填 |
+- 证据类型枚举固定如下：
+| 证据类型 | 适用场景 | 最低要求 |
+|---|---|---|
+| 页面截图 | 页面冒烟、空态、错误态、移动端、回流前后对比 | 至少能看到路由、核心区块或错误提示 |
+| 页面录屏 | 写动作、跳转、回流、重复点击、失败回滚 | 至少覆盖动作前、动作中、动作后 |
+| Action/API 响应 | 表单提交、正式 Action、接口错误、权限拒绝 | 至少保留关键字段或状态码摘要 |
+| SQL / 后台快照 | 字段核账、状态流转、副作用核账 | 至少保留关键表、关键字段、执行前后值 |
+| console / runtime 检查 | hydration、未捕获异常、红字报错、长 pending | 至少说明“是否出现错误”及触发场景 |
+| 平台后台截图 | Stripe、Resend、Supabase Storage、管理后台事件流 | 仅在本地验证确需依赖外部能力时使用 |
+- 本地执行总表（第一版）：
+| 执行域 | 对应任务 | 主样本 | 关键路径 | 核心核账点 | 最低证据类型 |
+|---|---|---|---|---|---|
+| Dashboard 首页 | `T-005` / `T-020.6` | `S-02`、`S-05` | 首页加载、任务推进、排行榜卡回流、7D/30D 切换 | `users`、`daily_tasks`、`exam_records`、`leaderboard_entries` | 截图、SQL 快照、console 检查 |
+| 练习主链路 | `T-007` / `T-020.6` | `S-02`、`S-05` | 抽题、提交、结果页、重复提交、防重、回流 | `exam_records`、`user_attempts`、`users.streak/xp`、`leaderboard_entries` | 录屏、Action/API 响应、SQL 快照 |
+| 排行榜与成长 | `T-016 / T-017` / `T-020.7` | `S-02`、`S-07` | 榜单读取、周期切换、XP/level、成就摘要 | `leaderboard_entries`、`users`、`user_badges`、`daily_tasks` | 截图、SQL 快照、缓存回流截图 |
+| 设置与通知 | `T-018` / `T-020.6` | `S-05`、`S-02`、`S-07` | 设置保存、通知已读、偏好保存、tab 深链 | `users`、`user_settings`、`notification_preferences`、`notifications`、`invite_codes` | 录屏、Action 返回、SQL 快照 |
+| 公开与转化 | `T-019 / T-012` / `T-020.7` | `S-00`、`S-05`、`S-08` | 登录/注册、pricing、voucher、feedback、newsletter | `users`、`voucher_redemptions`、`user_feedbacks`、`user_feedback_events`、`subscribers` | 录屏、响应摘要、URL/query 证据、必要 SQL |
+| 后台管理 | `T-009 ~ T-015` / `T-020.7` | `S-01`、`S-03`、`S-04` | admin 首页、导入、审核、举报、反馈、权限隔离 | `users`、`source_files`、`questions`、`user_feedbacks`、`reward_*` | 录屏、详情截图、SQL 快照、403 证据 |
+| 共享写链路 | `T-020.8 ~ T-020.10` | `S-01`、`S-02`、`S-03`、`S-08`、`S-10` | 奖励、保存、通知、支付、反馈、导入、缓存回流 | `daily_tasks`、`users`、`notifications`、`leaderboard_entries`、`voucher_redemptions`、`source_files` | 录屏、响应摘要、SQL 前后对比 |
+- 单条验证记录模板固定如下：
+```md
+#### [domain] [scenario]
+- `taskRef`:
+- `priority`:
+- `sampleRef`:
+- `routeOrEntry`:
+- `writePath`:
+- `sqlCheckpoint`:
+- `executor`:
+- `executedAt`:
+- `result`:
+- `blocking`:
+- `evidenceSet`:
+- `结论`:
+- `备注 / 残余风险`:
+```
+- 写场景证据模板固定如下：
+```md
+#### [domain] 写链路验证
+- 动作前状态：
+- 执行动作：
+- 页面回显结果：
+- Action/API 摘要：
+- SQL / 后台前后快照：
+- 是否发生副作用：
+- 重复执行结果：
+- 最终结论：
+```
+- 核账场景证据模板固定如下：
+```md
+#### [domain] 字段核账
+| 页面字段 | 页面值 | SQL / 后台值 | 口径说明 | 结论 |
+|---|---|---|---|---|
+|  |  |  |  |  |
+```
+- 命名与归档规则固定如下：
+  - 同一轮本地验证统一使用 `T020-local-YYYYMMDD` 作为批次前缀。
+  - 截图、录屏、SQL、日志在记录中至少保留“证据名称 + 触发场景 + 样本编号”，避免出现 `screenshot-1.png` 这类无法追溯的文件名。
+  - 若某条验证没有截图或录屏，必须在记录中写明“无此类证据”的原因，例如 CLI-only 验证或 SQL-only 验证。
+  - 若某条验证失败，但已有替代证据，也必须明确标注“主证据缺失，替代证据为何成立”。
+- 最低留证要求固定如下：
+  - `P0` 写场景：必须同时具备页面证据和 SQL/后台证据。
+  - `P0` 只读场景：至少具备页面证据和 console/runtime 检查结果。
+  - `P1` 场景：至少具备页面证据或响应摘要；若涉及正式写动作，仍必须补 SQL/后台证据。
+  - `enhancement` 场景：页面截图 + console 检查即可，不进入 SQL 核账。
+  - `blocked` 场景：必须保留阻断原因和当前环境状态，不能只写“未跑”。
+- 执行约束固定如下：
+  - 同一条验证若复跑，必须保留“原结果 + 修复后结果”，不能直接覆盖旧结论。
+  - 如果复用共享写链路的 SQL 快照，页面域记录里也必须注明引用来源，不能只写“见别处”。
+  - 本地验证总表服务于 `T-020`，预发执行表服务于 `T-021`；两者可以复用格式，但不得混写执行结论。
+- `T-020.4` 收口标准如下：
+  - 后续本地验证的页面域、共享链路、样本、核账点和证据类型都已有统一记录格式。
+  - 执行中不再需要临时发明“这次怎么留证”，只需要按模板填充。
+  - 到 `T-020.16` 输出本地验证报告时，可以直接按本节字段汇总成证据索引与阻断清单。
+
+### T-020.5 复跑闭环规则（已完成）
+- `T-020.5` 的目标是把“发现问题”变成一条固定闭环，而不是停留在问题登记。自本节起，本地验证中出现的 `fail / blocked / partial` 都必须按同一条闭环推进，直到转成“已修复并复跑”或“明确残余风险且暂不阻断”。
+- 复跑闭环主流程固定如下：
+  1. 发现问题：在验证总表中记录原始场景、样本、入口、触发步骤、当前结果和初始证据。
+  2. 分类定级：判断是否属于 `阻断 / 非阻断 / 环境阻断 / 已知残余风险`，并标明影响域。
+  3. 定位与修复：只修当前问题与直接关联代码，不借机扩大改动范围。
+  4. 定向复跑：至少复跑“原问题场景 + 原样本 + 原入口”，确认问题真正消失。
+  5. 关联回归：对同链路、同组件、同共享能力的受影响场景做最小回归，避免修一处坏一片。
+  6. 更新证据：保留原失败证据、修复后证据、关联回归结果，不得只留最终通过结果。
+  7. 更新结论：将问题归档为 `已修复`、`已缓解但有残余风险`、`环境阻断待后续处理` 三类之一。
+- 问题分级规则固定如下：
+| 问题类型 | 定义 | 默认处理要求 |
+|---|---|---|
+| 阻断问题 | 影响 `P0 必验` 主链路、正式写链路、权限边界、正式核账字段、运行时稳定性 | 必须修复并完成定向复跑 + 关联回归后才能继续 |
+| 非阻断问题 | `P1` 范围内的低频问题，且不影响主链路正确性与权限安全 | 可先登记，但进入 `T-020.15` 前必须明确是否升级 |
+| 环境阻断 | 由本地环境、第三方配置、共享数据态缺失导致，非当前代码修复可解 | 保留阻断证据，不伪装成“代码通过” |
+| 残余风险 | 已知问题存在，但当前已确认不阻断本轮进入下一步 | 必须写清影响面、原因和后续处理条件 |
+- 定向复跑规则固定如下：
+  - 修复后必须先复跑原始失败场景，且样本、入口、关键步骤保持一致，不能换一个更容易通过的路径。
+  - 若原问题是写链路问题，复跑时必须再次保留页面回显 + SQL/后台快照两套证据。
+  - 若原问题是权限或越权问题，复跑时必须同时覆盖“合法路径再次通过”和“非法路径仍被拒绝”。
+  - 若原问题是运行时错误，复跑时必须包含触发动作和 console/runtime 检查，而不是只看页面能打开。
+- 关联回归范围规则固定如下：
+| 问题来源 | 最低关联回归范围 |
+|---|---|
+| 页面局部渲染问题 | 同页面相邻模块 + 同视口（桌面/移动）复跑 |
+| 共享组件问题 | 所有直接复用该组件的 `P0` 页面至少各抽一页复跑 |
+| 共享写链路问题 | 所有消费该写链路结果的页面至少各补一条回流验证 |
+| 权限判断问题 | 当前角色 + 相邻角色各复跑一条，例如 `ADMIN` 修复后补 `TEACHER` / `STUDENT` |
+| 缓存回流问题 | 原页面 + 一个下游消费页同时确认刷新后结果 |
+| 外部依赖问题 | 当前入口 + 同类依赖的另一入口补一条 smoke，确认不是单点偶然 |
+- 证据更新规则固定如下：
+  - 失败证据不能删除，必须与修复后证据并存。
+  - 同一问题的记录顺序固定为：`失败证据 -> 修复说明 -> 定向复跑 -> 关联回归 -> 最终结论`。
+  - 如果修复后仍未完全解决，必须保留“当前仍失败/部分通过”的证据，不能只写口头说明。
+  - 若问题最终被认定为环境阻断，必须补“为何不是代码问题”的证明依据。
+- 闭环记录模板固定如下：
+```md
+#### [domain] [scenario] 问题闭环
+- `issueLevel`:
+- `发现时间`:
+- `原始结果`:
+- `影响范围`:
+- `失败证据`:
+- `修复说明`:
+- `定向复跑结果`:
+- `关联回归范围`:
+- `关联回归结果`:
+- `最终状态`: `resolved` / `mitigated` / `env_blocked`
+- `残余风险`:
+```
+- 禁止事项固定如下：
+  - 不允许只在代码里修掉问题而不补复跑记录。
+  - 不允许用“换账号、换入口、换环境后通过”替代原场景复跑。
+  - 不允许把原失败记录覆盖成通过状态，导致问题历史消失。
+  - 不允许把 `P0` 阻断问题直接降级为“已知问题”绕过本地收口。
+- 与后续子任务的衔接关系固定如下：
+  - `T-020.6 ~ T-020.11` 负责发现问题。
+  - `T-020.12` 负责执行修复与定向复跑。
+  - `T-020.13` 负责对已修复问题和高风险链路做收口复跑。
+  - `T-020.15` 负责承接未关闭的问题、残余风险和环境阻断项。
+  - `T-020.16` 负责按本节闭环状态汇总最终本地验证结论。
+- `T-020.5` 收口标准如下：
+  - 后续每个失败项都能落到固定闭环步骤，不再出现“修了但没复跑”或“复跑了但没留证”的情况。
+  - 修复结果、复跑结果、关联回归结果和残余风险都有统一记录方式。
+  - 到 `T-020.16` 汇总时，可以明确区分“已解决”“环境阻断”“保留风险”三类结论。
+
+### T-020.6 高风险主链路本地验证（已完成）
+- 当前执行策略先从“认证守卫 + 主入口可达性”开始，先确认 `P0` 主路径至少满足“未登录拦截正确、学生可进入学生主域、管理员可进入后台主域”，再继续推进写后回流和字段核账。
+- 本轮第一批有效证据使用批次前缀 `T020-local-20260409`，证据目录固定为：
+  [`evidence/T020-local-20260409`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409)
+- 本轮执行时发现一个非应用级环境噪音：
+  - MCP Playwright Chrome profile `mcp-chrome-8a5edab` 已被占用，导致 MCP 浏览器会话无法复用。
+  - 为避免把工具锁误判成应用失败，当前已切换为仓库内 Playwright headless 直接执行验证；此问题暂记为“工具侧噪音”，不阻断 `T-020.6`。
+- 本轮执行时还发现一个真实代码阻断，并已在本任务内闭环：
+  - 本地 `/login` 一度返回 `500`，根因是 `src/actions/user/auth.ts` 作为 `'use server'` 模块仍导出同步 helper，触发 Next 16 `Server Actions must be async functions` 编译错误。
+  - 当前已将 redirect 解析 helper 拆到 `src/lib/auth/redirects.ts`，并在登录页与认证 action 两侧复用；修复后 `http://127.0.0.1:3101/login` 已恢复 `200`，后续认证与主链路验证均基于修复后的本地服务继续执行。
+- 第一批认证与入口守卫结果如下：
+
+#### [auth-guard] 匿名访问受限页跳转
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-00`
+- `routeOrEntry`: `/dashboard`、`/admin`
+- `writePath`: 无
+- `sqlCheckpoint`: 无
+- `executor`: codex
+- `executedAt`: `2026-04-09`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `curl 响应头 + 页面截图`
+- `结论`:
+  - `GET /` 返回 `200`。
+  - `GET /login` 返回 `200`。
+  - 匿名访问 `/dashboard` 返回 `307`，跳转到 `/login?redirectTo=%2Fdashboard`。
+  - 匿名访问 `/admin` 返回 `307`，跳转到 `/login?redirectTo=%2Fadmin`。
+- `备注 / 残余风险`:
+  - 页面留证见 [`guest-dashboard-redirect.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/guest-dashboard-redirect.png) 与 [`guest-admin-redirect.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/guest-admin-redirect.png)。
+  - 当前只确认了服务端重定向守卫，尚未覆盖匿名态下各 CTA 的前端按钮行为。
+
+#### [auth-student] 学生登录进入主域
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-05`
+- `routeOrEntry`: `/login?redirectTo=/dashboard`
+- `writePath`: `loginAction`
+- `sqlCheckpoint`: 暂无，本轮先验证会话与主域进入
+- `executor`: codex
+- `executedAt`: `2026-04-09`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `Playwright headless 截图 + JSON 结果`
+- `结论`:
+  - 使用 `student_ui_test@learnmore.com` 登录后可进入 `/dashboard`。
+  - 页面可见“今日任务”，说明学生主域首屏已成功进入。
+- `备注 / 残余风险`:
+  - 证据见 [`student-login-dashboard-home.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-login-dashboard-home.png)。
+  - JSON 摘要见 [`t020-6-login-checks.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/t020-6-login-checks.json)。
+  - 当前只验证“能进主域”，尚未验证首页任务、最近练习与排行榜卡的回流正确性。
+
+#### [auth-admin] 管理员登录进入后台主域
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-03`
+- `routeOrEntry`: `/login?redirectTo=/admin`
+- `writePath`: `loginAction`
+- `sqlCheckpoint`: 暂无，本轮先验证会话与后台进入
+- `executor`: codex
+- `executedAt`: `2026-04-09`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `Playwright headless 截图 + JSON 结果`
+- `结论`:
+  - 使用 `admin_ui_test@learnmore.com` 登录后可进入 `/admin`。
+  - 页面可见“管理概览”，说明后台主域 SSR + 会话 + 权限分流基线正常。
+- `备注 / 残余风险`:
+  - 证据见 [`admin-login-admin-home.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-login-admin-home.png)。
+  - 与学生登录结果共用 [`t020-6-login-checks.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/t020-6-login-checks.json)。
+  - 当前只确认后台主入口可达，尚未覆盖 `/admin/content/import`、`/admin/content/review`、`/admin/feedback` 等关键后台工作台。
+
+#### [settings-notification] 学生通知偏好保存与回滚
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-05`
+- `routeOrEntry`: `/dashboard/settings?tab=notifications`
+- `writePath`: `updateNotificationPreferences`
+- `sqlCheckpoint`: `notification_preferences.emailMarketing`、`user_settings.emailMarketing`
+- `executor`: codex
+- `executedAt`: `2026-04-09`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `Playwright headless 截图 + DB 快照 + 结构化摘要`
+- `结论`:
+  - 使用 `student_ui_test@learnmore.com` 进入设置页通知分区，切换“活动信息”邮件开关（`emailMarketing`）后保存成功。
+  - 保存后页面开关从 `true -> false`，数据库同步变更为 `notification_preferences.emailMarketing=false`、`user_settings.emailMarketing=false`。
+  - 随后已执行恢复动作，将同一开关从 `false -> true` 保存回初始状态；最终数据库已恢复为 `true`。
+- `备注 / 残余风险`:
+  - 首次读取通知设置前，`student_ui_test@learnmore.com` 没有 `notification_preferences` 记录；进入设置页后，系统会从 `user_settings` 自动补建通知偏好记录并带入旧值。这说明当前通知偏好“读取”自带迁移写入副作用，属于已观察行为，后续在 `T-020.8 / T-020.9` 需要继续确认是否符合正式合同。
+  - 关闭态页面留证见 [`student-settings-email-marketing-off.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-off.png)。
+  - 恢复态页面留证见 [`student-settings-email-marketing-restored.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-restored.png)。
+  - 最终数据库快照见 [`student-settings-email-marketing-final-db.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-final-db.json)。
+  - 本次完整过程摘要见 [`student-settings-email-marketing-summary.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-summary.json)。
+
+#### [dashboard-login-reward] 学生每日登录奖励领取
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-05`
+- `routeOrEntry`: `/dashboard`
+- `writePath`: `claimTaskReward`
+- `sqlCheckpoint`: `daily_tasks(LOGIN).isClaimed`、`users.xp`
+- `executor`: codex
+- `executedAt`: `2026-04-09`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `Playwright headless 截图 + DB 快照 + JSON 摘要`
+- `结论`:
+  - 使用 `student_ui_test@learnmore.com` 在 Dashboard 首页领取“每日登录”奖励后，页面出现 `+50 XP` 与 `已领取` 状态。
+  - 数据库同步变更为 `daily_tasks(LOGIN).isClaimed=true`，并将 `users.xp` 从 `0 -> 50`。
+- `备注 / 残余风险`:
+  - 操作前后页面留证见 [`student-dashboard-login-reward-before.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-dashboard-login-reward-before.png) 与 [`student-dashboard-login-reward-after.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-dashboard-login-reward-after.png)。
+  - 数据库快照见 [`student-dashboard-login-reward-db-after.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-dashboard-login-reward-db-after.json)。
+  - 当前场景不做业务回滚；奖励领取本身属于单日正向事实写入，后续若需验证重复点击/并发/幂等，将在 `T-020.8 / T-020.10` 单独展开。
+
+#### [practice-smart-drill] 学生 Smart Drill 真实提交流程
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-05`
+- `routeOrEntry`: `/dashboard/practice/smart-drill?subjectId=72844ae3-6f0d-4cfd-8add-70de535aa316&autostart=1`
+- `writePath`: `submitPracticeSession`
+- `sqlCheckpoint`: `exam_records`、`user_attempts`、`daily_tasks(QUIZ_SCORE)`、`users.streak`、`users.totalStudyTime`
+- `executor`: codex
+- `executedAt`: `2026-04-10`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `Playwright headless 截图 + 题组快照 + DB 快照 + UI 摘要`
+- `结论`:
+  - 使用 `student_ui_test@learnmore.com` 进入真实 Smart Drill 入口，自动拉取当前推荐题组并完成 6 题提交，结果页显示 `Smart Drill 完成` 且 `结果保存=已保存`。
+  - 提交后数据库新增 1 条 `exam_record` 与 6 条 `user_attempts`，最新记录 `score=100`、`correctCount=6`、`mode=SMART_DRILL`。
+  - 同步观察到成长侧副作用已落地：`daily_tasks(QUIZ_SCORE).currentCount=1`、`users.streak=1`、`users.totalStudyTime=183`。
+- `备注 / 残余风险`:
+  - 当前推荐题组快照见 [`student-smart-drill-question-pack.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-question-pack.json)。
+  - 页面提交前后截图见 [`student-smart-drill-before-submit.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-before-submit.png) 与 [`student-smart-drill-after-submit.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-after-submit.png)。
+  - UI 摘要见 [`student-smart-drill-ui-summary.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-ui-summary.json)。
+  - 数据库快照见 [`student-smart-drill-final-db.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-final-db.json)。
+  - 额外观察：若在非请求上下文里直接白盒调用 `submitPracticeSession`，`revalidatePath` / `revalidateTag` 相关副作用会触发 invariant。这不属于正式用户入口结果，但说明异常路径下“持久化已提交而返回失败”的合同仍需在 `T-020.8 / T-020.10` 继续压测。
+
+#### [admin-feedback-status] 后台反馈状态切换与回滚
+- `taskRef`: `T-020.6`
+- `priority`: `P0`
+- `sampleRef`: `S-03`
+- `routeOrEntry`: `/admin/feedback/5a5f9b42-1f99-4fc5-83c3-d702f2a7f498`
+- `writePath`: `addAdminFeedbackNote`
+- `sqlCheckpoint`: `user_feedbacks.status`、`feedback_events`
+- `executor`: codex
+- `executedAt`: `2026-04-09`
+- `result`: `pass`
+- `blocking`: `no`
+- `evidenceSet`: `Playwright headless 截图 + DB 快照`
+- `结论`:
+  - 使用 `admin_ui_test@learnmore.com` 将目标反馈从 `CLOSED -> RESOLVED`，页面出现成功提示且详情页状态同步切换到 `已解决`。
+  - 随后按同一路径回滚 `RESOLVED -> CLOSED`，页面与数据库均恢复到初始 `已关闭` 状态。
+  - 两次状态切换均新增对应 `feedback_events` 审计记录，说明后台低风险正式写动作与可逆回滚链路可用。
+- `备注 / 残余风险`:
+  - 切到 `RESOLVED` 的前后截图见 [`admin-feedback-resolved-before.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-resolved-before.png) 与 [`admin-feedback-resolved-after.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-resolved-after.png)。
+  - `RESOLVED` 状态数据库快照见 [`admin-feedback-resolved-db.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-resolved-db.json)。
+  - 回滚到 `CLOSED` 的前后截图见 [`admin-feedback-closed-before.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-closed-before.png) 与 [`admin-feedback-closed-after.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-closed-after.png)。
+  - 回滚后数据库快照见 [`admin-feedback-closed-db.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-closed-db.json)。
+
+- 当前阶段性结论：
+  - `T-020.6` 已完成认证守卫、学生主域进入、管理员后台进入、学生设置保存与回滚、Dashboard 奖励领取、Smart Drill 真实提交、后台反馈状态可逆写入 7 组高风险主链路验证。
+  - 当前已覆盖三类关键写链路：学生侧轻量设置写入、学生侧成长写入、后台侧正式状态写入，并且都保留了页面留证与数据库核账。
+  - 本轮中途发现的 `/login` 编译阻断已在任务内修复并复测通过，因此不再作为 `T-020.6` 阻断项保留。
+  - `T-020.6` 到此收口完成；更深的契约异常、幂等/并发、越权、缓存失效与异常路径验证转入 `T-020.8 ~ T-020.10` 继续展开。
+
+### T-020.7 全站页面冒烟（已完成）
+- 本轮执行口径固定为“公开页 + 学生域 + 后台域 + 移动端 + 404 / 回退 / 刷新”，证据批次前缀固定为 `T020-local-20260410`，证据目录固定为：
+  [`evidence/T020-local-20260410`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260410)
+- 本轮结构化报告见：
+  [`t020-7-smoke-report.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260410/t020-7-smoke-report.json)
+- 公共页面冒烟结果：
+  - `/`、`/pricing`、`/blog`、`/contact`、`/help`、`/subjects`、`/login` 均可稳定加载并渲染核心首屏内容。
+  - `does-not-exist-for-smoke` 返回标准 `404` 结果页，确认兜底路由存在且未炸页。
+- 学生页面冒烟结果：
+  - `/dashboard`、`/dashboard/practice`、`/dashboard/leaderboard`、`/dashboard/achievements`、`/dashboard/settings`、`/dashboard/settings?tab=notifications`、`/dashboard/community`、`/dashboard/community/new`、`/dashboard/practice/smart-drill?subjectId=72844ae3-6f0d-4cfd-8add-70de535aa316&preview=mock` 均可加载。
+  - `dashboard` 页面完成一次刷新复核，URL 路径保持不变；`leaderboard -> achievements -> back` 的回退链路也正常回到榜单页。
+  - 页面首屏均能看到真实标题与真实文案，没有出现空白页、崩溃页或被 mock 回退覆盖的情况。
+- 后台页面冒烟结果：
+  - `/admin`、`/admin/feedback`、`/admin/content/import`、`/admin/content/review`、`/admin/users`、`/admin/rewards` 均可加载并显示对应管理工作台。
+  - 本轮未发现需要阻断的页面级 403 / 404 漏洞；权限类问题仍按既有登录态与路由守卫承接，不在本轮 smoke 中新增阻断项。
+- 移动端冒烟结果：
+  - 390px 宽度下的 `/pricing` 与 `/dashboard` 均能正常渲染，未出现首屏溢出或路由失配。
+- 当前阶段性结论：
+  - `T-020.7` 已完成全站最小冒烟面，公开页、学生域、后台域和移动端都能稳定进入。
+  - 本轮没有引入新的页面级阻断项；更深层的 Action/API 契约、幂等、异常态、缓存回流与核账继续在 `T-020.8 ~ T-020.12` 展开。
+
+### T-020.8 关键 Action/API 契约验证（已完成）
+- 本轮把验证重心从页面可进入，切到共享写链路的输入、输出、权限、幂等和异常态合同。
+- 重点核验对象包括：
+  - `claimTaskReward` / `completeOnboardingTask`
+  - `checkAndRefreshStreak`
+  - `awardBadgeIfEligible`
+  - `applyPracticeSubmissionEffects`
+  - 作为对照回归的 `updateNotificationPreferences`、`createVoucherCodeAction`、`toggleVoucherStatusAction`、`submitQuiz`
+- 本轮收敛出的合同修正如下：
+  - `claimTaskReward` 与 `completeOnboardingTask` 在未登录时改为稳定返回 `{ success: false, error: 'Unauthorized' }`，不再直接抛异常，避免客户端 Promise 被打断。
+  - `applyPracticeSubmissionEffects` 改为 best-effort：核心提交已落库后，副作用失败或缓存失效失败不再把主流程标记为失败。
+  - `checkAndRefreshStreak`、`awardBadgeIfEligible`、`claimTaskReward` 的缓存失效已改为非请求上下文容错，保证业务结果优先，缓存刷新仅作为附加动作。
+- 已验证的合同面：
+  - 输入校验与输出结构：通知偏好、优惠券、练习提交等动作的返回形态稳定，错误码与错误文案明确。
+  - 权限控制：未登录 / 非管理员路径返回结构化错误，不再依赖抛异常作为控制流。
+  - 幂等与重复：优惠券重复创建、通知偏好重复保存、领奖重复入口等已有回归样本保持稳定。
+  - 异常态：副作用 rejection、`revalidatePath` / `revalidateTag` 的非请求上下文失败不再污染主写入结果。
+- 本轮测试证据：
+  - [`src/actions/__tests__/achievement.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/__tests__/achievement.test.ts)
+  - [`src/actions/__tests__/streak.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/__tests__/streak.test.ts)
+  - [`src/actions/practice/__tests__/submission-effects.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/practice/__tests__/submission-effects.test.ts)
+  - 现有回归套件 [`notification-preferences.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/__tests__/notification-preferences.test.ts)、[`voucher.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/admin/__tests__/voucher.test.ts)、[`quiz.test.ts`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/actions/__tests__/quiz.test.ts) 也保持通过。
+- 当前阶段性结论：
+  - `T-020.8` 已完成收口，关键 Action/API 的输入、输出、权限和异常态合同已被统一。
+  - 下一步按顺序进入 `T-020.9`，专门做字段级 SQL / 后台核账，把已确认的写入和副作用与权威数据源逐项对齐。
+
+### T-020.9 字段级 SQL / 后台核账（已完成）
+- 本轮目标是把前面已经验证过的写链路，落到“页面值、主表值、关联表值、事件流水、后台状态”五层一致性核对上，避免只看成功 toast 或页面状态。
+- 本轮统一生成的核账报告见：
+  [`t020-9-ledger-report.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260410/t020-9-ledger-report.json)
+- 本轮按四条链路完成字段级核账：
+  - 设置 / 通知偏好：
+    - `notification_preferences.emailMarketing` 与 `user_settings.emailMarketing` 已对齐；
+    - 既有页面留证显示首次进入设置页会触发偏好记录补建，随后保存与回滚均能回到数据库一致状态。
+  - Dashboard 奖励领取：
+    - `daily_tasks.LOGIN` 已被领取，`isClaimed = true`；
+    - `users.xp = 50` 与奖励金额一致；
+    - 页面与数据库快照均指向同一批学生样本。
+  - Smart Drill 真实提交：
+    - `exam_records` 最新提交的 `SMART_DRILL` 记录分数、题量、正确数均为 100 / 6 / 6；
+    - `user_attempts` 的明细数量与题量一致；
+    - `daily_tasks.QUIZ_SCORE.currentCount = 1`，`users.streak = 1`，`users.totalStudyTime = 183`，说明成长副作用已回流。
+  - 反馈状态流转：
+    - `user_feedbacks.status` 已稳定落在 `CLOSED`；
+    - `user_feedback_events` 保留了 `RESOLVED` 与 `CLOSED` 的事件轨迹，状态流转可追溯；
+    - 反馈主表与事件表可直接构成后台审计链路。
+- 本轮结论：
+  - 页面值、主表值、关联表值与事件流水在本轮核账中已经对齐；
+  - 共享写链路的奖励、练习、反馈、设置等结果均有可追踪证据；
+  - 下一步进入 `T-020.10`，专门做重复点击、越权、会话失效、网络失败、超时与局部降级等故障边界验证。
 
 ## T-021 预发复测与发布前收口拆解
 ### Phase A：边界与约束
 | id | description | owner | status |
 |---|---|---|---|
-| T-021.1 | 核对预发与本地的环境差异：`env`、数据库 schema、迁移版本、对象存储、第三方回调、缓存、队列与定时任务状态，先把阻断项列清楚 | codex | todo |
-| T-021.2 | 重新确认本轮复测范围：明确本次要覆盖的页面域、写操作、Action/API、后台任务与不纳入范围的装饰模块 | codex | todo |
-| T-021.3 | 固化发布前门禁与回滚边界：定义失败即阻断的条件、数据回滚粒度、`feature flag` / `kill switch` 关闭策略与权限回收策略 | codex | todo |
-| T-021.4 | 固化预发证据口径：统一截图、录像、日志、SQL 核账、后台快照、接口响应和部署号的命名与存放方式 | codex | todo |
-| T-021.5 | 设定发布审批条件：确认未解决缺陷、残余风险、监控告警阈值与最终批准人，未满足则不进入发布窗口 | codex | todo |
+| T-021.1 | 核对预发与本地的环境差异：`env`、数据库 schema、迁移版本、对象存储、第三方回调、缓存、队列与定时任务状态，先把阻断项列清楚 | codex | done |
+| T-021.2 | 重新确认本轮复测范围：明确本次要覆盖的页面域、写操作、Action/API、后台任务与不纳入范围的装饰模块 | codex | done |
+| T-021.3 | 固化发布前门禁与回滚边界：定义失败即阻断的条件、数据回滚粒度、`feature flag` / `kill switch` 关闭策略与权限回收策略 | codex | done |
+| T-021.4 | 固化预发证据口径：统一截图、录像、日志、SQL 核账、后台快照、接口响应和部署号的命名与存放方式 | codex | done |
+| T-021.5 | 设定发布审批条件：确认未解决缺陷、残余风险、监控告警阈值与最终批准人，未满足则不进入发布窗口 | codex | done |
 
 ### Phase B：开发、修复、调试
 | id | description | owner | status |
 |---|---|---|---|
-| T-021.6 | 在预发逐页复测本轮改动覆盖的关键页面与写链路，优先验证首页、排行榜、成就、设置、公共页与管理页的真实路径 | codex | todo |
-| T-021.7 | 修复预发暴露出的环境差异与运行问题：路径错误、权限偏差、缓存失效、加载失败、空态异常、移动端布局和控制台报错 | codex | todo |
-| T-021.8 | 重跑关键写操作的幂等、重复提交、越权、异常、超时与断网场景，确保补发、保存、领取、刷新和回滚入口都稳定 | codex | todo |
-| T-021.9 | 对预发字段核账结果做二次比对：关键指标、列表快照、后台记录、接口返回与本地留证逐项对齐，修掉不一致项 | codex | todo |
-| T-021.10 | 校准跨环境刷新与缓存失效行为：确认 `revalidatePath`、`revalidateTag`、路由刷新和客户端回流在预发可正常工作 | codex | todo |
+| T-021.6 | 复测用户学习主域：按 `T-005 / T-006 / T-007 / T-008` 覆盖 Dashboard、课程、练习、社区的关键页面、主 CTA、提交链路、回流跳转与移动端表现，并修正预发专有异常 | codex | done |
+| T-021.7 | 复测成长与账户域：按 `T-016 / T-017 / T-018` 覆盖排行榜、成就、XP / streak、设置、通知深链与右上角通知入口，确认真实数据、权限边界、刷新回流与空态 / 错误态在预发可用 | codex | done |
+| T-021.8 | 复测公开与转化域：按 `T-012 / T-019 / T-022` 覆盖 landing、pricing、blog、help、contact、signup、login、reset-password、referral、voucher、feedback 等页面与表单，确认会话分流、表单回执、来源参数与转化入口稳定 | codex | doing |
+| T-021.9 | 复测后台管理域：按 `T-009 ~ T-015 / T-023 / T-024` 覆盖 admin 首页、用户、反馈、内容导入、审核、报错、统计、增长工具与奖励/补发相关后台操作，确认权限、列表详情一致性、处理动作、审计留痕与管理端异常态 | codex | todo |
+| T-021.10 | 复测共享写链路与跨域副作用：统一重跑奖励领取、保存资料、通知偏好、练习提交、评论发帖、排行榜刷新、补发/回滚、缓存失效、`revalidatePath` / `revalidateTag`、幂等、越权、异常、超时与断网场景，并对字段核账结果做预发二次比对 | codex | todo |
 
 ### Phase C：清理和收口验证
 | id | description | owner | status |
@@ -2379,6 +3244,364 @@
 | T-021.12 | 汇总最终预发验证报告：页面冒烟、写操作回放、SQL/后台核账、截图、日志与风险清单一次性收口 | codex | todo |
 | T-021.13 | 执行或复核回滚演练：确认数据回滚、功能下线、`feature flag` 关闭、入口禁用与通知/公告动作都可执行 | codex | todo |
 | T-021.14 | 输出发布前收口结论并等待用户最终批准；若仍存在阻断项，则回退到修复阶段，不进入正式发布 | user/codex | todo |
+
+### T-021.10 共享写链路核验矩阵（第一版）
+| 写链路 | 主要入口 | 核心写入 / 副作用 | 预发必须核验 | 证据类型 |
+|---|---|---|---|---|
+| 日常任务 / 奖励领取链路 | `claimTaskReward`、`completeOnboardingTask`、`daily_tasks` 生成与推进 | `daily_tasks` 进度推进、领奖幂等、`users.xp` 增量、`achievement-overview` / `user-badges` 回流 | 首次成功、重复点击、并发领取、任务未完成、任务已领取、刷新后状态一致 | 页面录屏、Action 返回、`daily_tasks` / `users.xp` SQL 前后快照 |
+| 练习提交与成长副作用链路 | 练习提交、`checkAndRefreshStreak`、`awardBadgeIfEligible`、`updateLeaderboardScore` | `exam_records`、`user_attempts`、`users.streak`、`users.total_study_time`、`leaderboard_entries`、`user_badges`、`notifications`、任务推进与缓存 tag 回收 | 提交成功、重复提交防重、streak 同日不重复、徽章只发一次、排行榜分数回流、Dashboard / Achievements / Leaderboard 刷新一致 | 页面录屏、接口响应、相关表 SQL 核账、tag/页面刷新截图 |
+| 社区互动副作用链路 | `createPost`、`createComment`、点赞 / 收藏 / 删除 / 置顶等社区动作 | `posts`、`comments`、社区 feed 缓存、提及/回复通知、成就徽章回流 | 发帖评论成功、重复提交、未授权、提及通知、回帖通知、成就摘要与徽章墙刷新、详情页与列表一致 | 页面录屏、通知记录、`posts` / `comments` SQL、社区页截图 |
+| 用户资料 / 偏好 / 通知链路 | `updateProfile`、`updatePreferences`、`updateNotificationPreferences`、`generateInviteCode` | `users`、`user_settings`、`notification_preferences`、邀请码生成与旧桥接字段同步、设置页回流 | 保存成功、重复保存幂等、通知偏好单独保存、拉取失败时禁止误覆盖、邀请码复用 / 冲突重试、设置页 query tab 回流 | 表单录屏、Action 返回、`users` / `user_settings` / `notification_preferences` SQL |
+| 支付 / 订阅 / 回执链路 | `createCheckoutSession`、Stripe webhook、`cancelSubscriptionAction` | Stripe 会话、订阅状态更新、`users.subscription_*`、回执通知、`/dashboard` 与 `/dashboard/settings` 刷新 | 下单成功、取消订阅幂等、webhook 缺签名 / 重放保护、支付后订阅状态回流、价格 ID 与环境变量一致 | Stripe 后台事件、接口日志、用户订阅字段 SQL、页面截图 |
+| Referral / Voucher / 转化链路 | voucher 创建 / 启停 / 核销、推荐归因与缓存回流 | `voucher*`、推荐归因记录、`/pricing`、`/admin/referrals`、用户详情页缓存回流 | 券码创建、启停、核销、防重复核销、价格页可见性、后台与前台状态一致 | 前后台录屏、Action 返回、相关表 SQL、价格页截图 |
+| 反馈与支持链路 | `submitFeedback`、后台反馈处理动作 | `user_feedback*`、事件流水、状态流转、后台列表/详情回流 | 前台提交、重复提交、未登录 / 已登录来源、后台受理 / 关闭 / 回复、详情与列表状态一致 | 前后台录屏、接口返回、反馈表 SQL、后台截图 |
+| 奖励中心补发 / 校正 / 回滚链路 | `src/actions/admin/reward-center.ts` 下奖励规则、成就规则、补发与回滚动作 | `reward_rules`、`achievement_rules`、`reward_adjustment_records`、`reward_admin_audit_logs`、`leaderboard_entries`、成就 tag 回流 | 管理员权限、补发幂等、回滚前确认、排行榜刷新、审计日志完整、目标用户页面回流 | 管理后台录屏、审计日志截图、相关表 SQL、目标用户页面截图 |
+| 内容导入队列式链路 | 内容导入、文件上传、队列消费、审核回流 | `source_files`、导入诊断、内容导入任务认领、`storage.objects`、内容页 revalidate | 文件上传成功、队列认领不重复、失败重试、bucket fallback、生效后管理页可见 | 导入录屏、接口日志、`source_files` / `storage.objects` SQL、管理页截图 |
+
+### T-021.1 环境差异核对（已完成）
+- 当前代码基线确认的环境面包括：Supabase PostgreSQL、Supabase Storage、Stripe、Resend、两条 cron 路由、Stripe webhook、以及依赖 `revalidatePath` / `revalidateTag` 的页面回流；预发核对不能只看页面是否能打开，必须逐项确认这些外部依赖和缓存能力是否齐备。
+- `env` 基线已出现明显模板缺口：
+  - `.env.example` 只覆盖 `DATABASE_URL`、`DIRECT_URL`、Supabase、Resend、`CRON_SECRET` 与 OCR 变量；
+  - `.env.local` 额外依赖 `STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET` 与多组 `NEXT_PUBLIC_STRIPE_PRICE_*`；
+  - 这意味着预发若只照 `.env.example` 配置，会直接缺失支付、Webhook 和价格映射能力。
+- 数据库基线当前是 Prisma 连接 Supabase Postgres，数据源依赖 `DATABASE_URL` 与 `DIRECT_URL`；脚本层使用 `pnpm prisma:dbpush` / `pnpm prisma:generate`，但实际 schema 变更历史主要记录在 `supabase/migrations/`，预发需要额外确认“目标库 schema 是否已同步到当前代码基线”，不能只看本地 Prisma client 是否可生成。
+- 存储基线当前至少依赖四个 bucket：
+  - `avatars`
+  - `videos`
+  - `community-posts`
+  - `source-files`
+  同时内容导入链路带有 bucket fallback 语义；预发必须确认 bucket 存在、策略生效、公开/签名 URL 行为正确，不能只验证上传接口返回成功。
+- 第三方回调与通知基线当前至少包括：
+  - Stripe webhook：`/api/webhook/stripe`
+  - 欢迎通知：注册后触发
+  - 收据通知：支付后触发
+  - 试用到期通知：cron 触发
+  预发需确认 webhook secret、邮件服务、回调 URL 和实际事件投递链路，不然页面层会表现正常但异步副作用失效。
+- 定时任务基线当前已发现两条 cron 路由：
+  - `/api/cron/trial-expiry`
+  - `/api/cron/cleanup-leaderboard`
+  两者都受 `CRON_SECRET` 保护；仓库内未发现独立的调度配置文件，因此预发环境还需要到部署平台确认是否已真正挂载调度，而不是仅有路由实现。
+- 部署平台基线已确认：
+  - 仓库已绑定 Vercel 项目 `learn_more_v1.0`，框架为 `nextjs`，运行时为 `Node 24.x`；
+  - 当前最新生产部署处于 `READY`；
+  - 历史部署中同时存在近期 `ERROR` 的生产部署记录，说明发布链并非稳定无风险，`T-021` 需要把“构建通过率 / 最近失败原因”也纳入阻断项，而不只是看页面功能。
+- 队列 / 异步任务基线当前没有发现独立的 Redis / MQ 基础设施，内容导入更像是 DB 驱动的“队列式处理”；这类链路在预发要重点核对并发认领、失败重试和二次消费行为，避免本地单人串行可用、预发并发下重复消费。
+- 缓存基线当前明显依赖多个共享失效点：
+  - `leaderboard-entries`
+  - `achievement-overview:${userId}`
+  - `user-badges:${userId}`
+  - `community-feed`
+  - `community-categories`
+  预发必须实测 `revalidatePath` / `revalidateTag` 是否在真实请求上下文生效，否则会出现“写入成功但页面不刷新”的假故障。
+- 本轮已经确认的阻断项清单如下：
+  - 预发变量清单与模板差异
+  - 预发 DB schema / migration 版本差异
+  - bucket / policy / signed URL 差异
+  - Stripe webhook / cron 调度是否真正挂载
+  - 缓存失效在预发是否稳定生效
+
+#### T-021.1 收口结论（已完成）
+- 预发 / 发布链已经具备基本基础设施：
+  - Vercel 项目已绑定，项目名为 `learn_more_v1.0`；
+  - 最近生产部署为 `READY`；
+  - 数据库中已确认关键表存在：`users`、`user_settings`、`notification_preferences`、`daily_tasks`、`leaderboard_entries`、`reward_rules`、`achievement_rules`、`reward_adjustment_records`、`reward_admin_audit_logs`、`notifications`、`voucher_redemptions`、`user_feedbacks`、`user_feedback_events`、`source_files`；
+  - Storage bucket 已确认存在：`avatars`、`community-posts`、`source-files`、`videos`，其中 `videos` 为私有 bucket，其余当前为公开 bucket。
+- 当前已确认的环境差异与发布阻断结论如下：
+  1. `env` 模板不完整。`.env.example` 未覆盖 `STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET` 和多组 `NEXT_PUBLIC_STRIPE_PRICE_*`，因此不能作为预发完整配置基线。
+  2. 数据库连接存在双连接语义。`DATABASE_URL` 带 `pgbouncer` 查询参数，适合应用运行；管理核验和 SQL 对账应统一使用 `DIRECT_URL`，否则连最基础的 `psql` 管理查询都会失败。
+  3. 发布链历史上存在真实失败。最近两次失败生产部署都不是偶发波动，而是同一类构建问题：安装阶段触发了过时 `@prisma/cli` 的 preinstall 报错，直接导致 `pnpm install` 失败；当前仓库已经不再引用 `@prisma/cli`，且后续生产部署恢复为 `READY`，这一项视为“已修复、需保留发布回归检查”。
+  4. schema 基线从代码侧看是“Prisma schema + Supabase migrations”双轨，预发不能只看 Prisma Client 可生成，必须以目标库实际表结构为准。当前关键业务表已实库确认存在，因此 `T-021` 后续不需要再把“表不存在”作为高优先风险。
+  5. Storage 基线已实库确认存在，但 bucket 存在不等于策略和签名 URL 一定正确；后续预发执行时仍需按 `avatars / community-posts / source-files / videos` 四条链路逐个验证上传、公开 URL、签名 URL 和权限。
+  6. 异步能力已确认依赖 Stripe webhook 与两条 cron 路由，但仓库内没有独立调度配置文件，因此“路由实现存在”不等于“预发已挂调度”。这一项保留为平台侧核对项，而不是代码阻断项。
+  7. 缓存失效是显式依赖项，不是锦上添花。`leaderboard-entries`、`achievement-overview:${userId}`、`user-badges:${userId}`、`community-feed`、`community-categories` 都属于正式业务刷新链，预发必须实测，不能靠代码审阅视为通过。
+- 因此，`T-021.1` 现阶段可以收口为“环境差异审计完成，阻断项已明确”：
+  - 已排除的阻断：关键表缺失、关键 bucket 缺失、Vercel 项目未绑定、近期构建链持续损坏。
+  - 仍需在后续预发执行中落地验证的阻断：Vercel 环境变量是否齐全、Stripe webhook 是否真正挂载、cron 是否真正挂载、Storage 策略和 signed URL 是否符合预期、缓存失效是否在预发稳定生效。
+
+### T-021 业务测试基线（进入 T-021.2 前完成）
+- 已执行一轮面向正式业务链路的 Vitest 回归，命中 Auth、Gamification、Notification Preferences、Profile、Parent Invite、Stripe Cancel、Voucher Admin、Permission Override、Content Review、Practice Session / Error Book、Notification Link、Referral Cache、Sitewide Cache 等核心业务测试。
+- 本轮测试结果：
+  - `51` 个 test files 全通过
+  - `287` 个 tests 全通过
+  - 总耗时约 `13.64s`
+- 本轮测试的价值不是替代预发复测，而是为 `T-021.2` 提供一条“本地业务基线已通过”的起跑线；因此后续预发复测重点应放在环境差异、真实外部依赖、缓存回流、权限边界和写后核账，而不是再把同一批纯单测结果当作预发证据。
+- 本轮执行中出现的日志型输出主要来自预期错误分支、警告分支与测试模拟环境：
+  - `VideoPlayer` 的 `act(...)` 警告
+  - `AI Structurer` / `storage` / `auth` 的预期错误日志
+  - `RESEND_API_KEY is not set` 的测试环境警告
+  这些没有造成用例失败，但在预发执行中仍需和真实运行时错误区分看待，不能直接视为可忽略。
+
+### T-021.2 复测范围确认（已完成）
+- 进入预发前，本轮复测范围先按“页面域 + 共享写链路 + 外部依赖”三层固定，不再只按页面列表罗列。
+- 当前已确认必须纳入预发复测的 `P0` 范围包括：
+  - 学生主域：`T-021.6` 对应的 Dashboard、课程、练习、社区
+  - 成长与账户域：`T-021.7` 对应的排行榜、成就、设置、通知入口
+  - 公开与转化域：`T-021.8` 对应的登录、注册、重置密码、pricing、referral、voucher、feedback
+  - 后台管理域：`T-021.9` 对应的 admin 首页、用户、反馈、内容导入、审核、报错、统计、奖励/补发
+  - 共享写链路：`T-021.10` 核验矩阵列出的奖励领取、练习副作用、社区互动、资料/通知、支付订阅、voucher、反馈、奖励中心、内容导入
+- 当前明确不纳入 `P0` 正式核账、仅保留冒烟或展示检查的内容包括：
+  - 静态营销内容页的纯文案区块
+  - 非核账展示模块
+  - 只影响视觉增强但不影响数据正确性、权限边界和正式交互的装饰层
+
+#### 页面域执行表
+| 页面域 | 对应任务 | 预发测试账号 / 权限样本 | 核心 SQL / 后台核账点 | 证据类型 |
+|---|---|---|---|---|
+| 学生学习主域 | `T-021.6` / `T-005 / T-006 / T-007 / T-008` | `student_ui_test@learnmore.com`、`student1@mail.com`、未登录态 | `users`、`user_settings`、`daily_tasks`、`exam_records`、`user_attempts`、`posts`、`comments`、`notifications` | 页面录屏、关键页面截图、Action/API 响应、SQL 前后快照、console error 检查 |
+| 成长与账户域 | `T-021.7` / `T-016 / T-017 / T-018` | `student_ui_test@learnmore.com`、`student1@mail.com`、付费学生样本、未登录态 | `users.xp/streak/subscription_*`、`leaderboard_entries`、`daily_tasks`、`user_badges`、`notification_preferences`、`notifications`、`invite_codes` | 页面录屏、排行榜/成就/设置截图、Action 返回、SQL 快照、缓存回流截图 |
+| 公开与转化域 | `T-021.8` / `T-012 / T-019 / T-022` | 未登录态、`student_ui_test@learnmore.com`、`*@learnmore.test` 临时账号 | `users`、`referrals`、`voucher_redemptions`、`subscribers`、`user_feedbacks`、`user_feedback_events`、`notifications`、`users.subscription_*` | 表单录屏、跳转录屏、邮件/支付后台截图、SQL 快照、URL/query 证据 |
+| 后台管理域 | `T-021.9` / `T-009 ~ T-015 / T-023 / T-024` | `admin_ui_test@learnmore.com`、`admin@learnmore.com`、`teacher_ui_test@learnmore.com`、非管理员样本 | `users`、`user_feedbacks`、`user_feedback_events`、`source_files`、`content_review_logs`、`questions`、`reward_rules`、`achievement_rules`、`reward_adjustment_records`、`reward_admin_audit_logs`、`leaderboard_entries` | 管理端录屏、列表/详情截图、审计日志截图、SQL 快照、403/受限态截图 |
+| 共享写链路域 | `T-021.10` | `student_ui_test@learnmore.com`、`student1@mail.com`、`admin_ui_test@learnmore.com`、`*@learnmore.test`、未登录态 | `daily_tasks`、`users`、`exam_records`、`user_attempts`、`posts`、`comments`、`notification_preferences`、`notifications`、`leaderboard_entries`、`voucher_redemptions`、`user_feedbacks`、`reward_adjustment_records`、`source_files` | 单次操作录屏、接口/Action 返回、SQL 前后对比、缓存回流截图、后台事件/日志截图 |
+
+#### 外部依赖与平台核对表
+| 外部依赖 / 平台项 | 预发核对动作 | 失败时归类 | 证据类型 |
+|---|---|---|---|
+| Vercel 环境变量 | 核对 `Supabase / Stripe / Resend / CRON / price IDs` 是否齐全 | 阻断 | 平台配置截图、变量清单对照 |
+| Stripe webhook | 确认 `/api/webhook/stripe` 已挂载、secret 正确、事件能投递 | 阻断 | Stripe dashboard 事件截图、接口日志 |
+| Vercel cron | 确认 `trial-expiry`、`cleanup-leaderboard` 已挂调度且 secret 生效 | 阻断 | 平台调度截图、路由响应/日志 |
+| Supabase Storage | 核对 `avatars / community-posts / source-files / videos` 的 bucket、policy、public/signed URL 行为 | 阻断 | bucket 配置截图、上传/签名链接证据 |
+| Resend | 确认可发送或明确按“只验写库、不验送达”降级 | 非阻断或条件阻断 | 邮件后台截图、发送日志 |
+| 缓存回流 | 核对 `revalidatePath` / `revalidateTag` 在预发真实请求中生效 | 阻断 | 操作前后页面截图、缓存回流录屏 |
+| 数据库 schema | 确认关键表与关键字段已在目标库存在 | 阻断 | SQL 查询结果、后台数据截图 |
+
+#### 页面域与账号样本绑定规则
+- 学生主域默认使用 `student_ui_test@learnmore.com` 做主流程，`student1@mail.com` 做低数据/空态补样本，未登录态专门验证受限跳转。
+- 成长与账户域优先使用已有成长数据的学生样本；涉及付费订阅、价格展示和取消订阅时，必须切到付费学生样本，不允许拿免费账号误判。
+- 后台管理域优先使用 `admin_ui_test@learnmore.com` 做页面与低风险动作，只有在必须核对真实历史数据时才切到 `admin@learnmore.com`。
+- 教师与家长只承担权限边界、可见性和受限态验证，不承担管理员写链路或学生主核账路径。
+- `*@learnmore.test` 临时账号只用于注册、登录、voucher、payment、feedback 这类一次性 smoke，不进入正式长期核账样本集合。
+
+#### 核账点固定规则
+- 只要页面触发正式写动作，就必须同时保留“页面回显”和“SQL/后台状态”两套证据，不能只看 toast 或按钮状态。
+- 共享写链路的正式核账表以 `T-021.10` 矩阵为准，不允许在预发现场临时改成别的表或仅靠推断。
+- 如果某页面域只消费共享写链路结果，则页面域核账可以引用共享写链路的 SQL 快照，但仍需补本页面的回流截图。
+- 静态营销页、非核账展示区和纯视觉增强不进入 SQL 核账，但仍需保留页面截图与 console error 结果。
+
+#### T-021.2 收口结论（已完成）
+- 本轮预发复测范围已经固定为“五个执行域 + 一张平台依赖表”：
+  - 学生学习主域
+  - 成长与账户域
+  - 公开与转化域
+  - 后台管理域
+  - 共享写链路域
+- 每个执行域都已经绑定了测试账号/权限样本、固定 SQL/后台核账点和证据类型，后续 `T-021.6 ~ T-021.10` 只需按表执行，不再重新讨论范围。
+- 本轮明确排除项也已经固定：静态营销文案、非核账展示模块、纯视觉增强层只做展示检查，不进入 `P0` 正式核账。
+- 因此，`T-021.2` 现阶段可以收口为“预发复测执行范围、样本、核账点、证据类型已冻结”，后续执行若发现缺口，应在对应域下增补，不回退重开范围定义。
+
+### T-021.3 发布前门禁与回滚边界（已完成）
+- `T-021.3` 的目标不是再列一遍风险，而是把“什么情况必须拦发布、出了问题先回什么、谁有权先停入口”写成固定规则，避免预发复测完成后临场拍脑袋。
+- 发布前阻断门禁固定如下：
+  - 任一 `P0` 页面主链路不能稳定跑通，阻断发布。
+  - 任一正式写链路出现“页面成功但 SQL / 后台状态错误”，阻断发布。
+  - 任一权限边界出现越权写入、越权读取敏感后台页、未登录误放行，阻断发布。
+  - 任一平台依赖项缺失且无可接受降级方案，例如 `Stripe webhook`、`Vercel cron`、`Storage policy`、关键环境变量缺失，阻断发布。
+  - 任一高频页面存在稳定复现的未捕获运行时错误、长 pending、白屏或 hydration 红错，阻断发布。
+- 回滚粒度固定如下：
+  - 页面入口级：隐藏入口、下线 CTA、移除导航入口，适用于公开入口、学生入口和后台入口的快速止损。
+  - 功能链路级：关闭单条写链路或单个异步副作用，例如支付入口、发帖入口、奖励补发入口、内容导入入口。
+  - 平台依赖级：禁用 webhook、暂停 cron、撤销外部回调或临时切只读策略。
+  - 数据修正级：优先使用补偿写入、状态回退和审计补记，不直接对核心事实表做不可追溯硬删。
+- 数据回滚边界固定如下：
+  - `voucher_redemptions`、`reward_adjustment_records`、`reward_admin_audit_logs`、内容导入结果、后台处理状态这类“运营 / 管理动作表”允许按单条记录或单批次回滚。
+  - `users.subscription_*`、`daily_tasks`、`notifications`、`user_feedback*` 允许按明确事件批次做补偿回写，但必须保留审计痕迹。
+  - `exam_records`、`user_attempts`、课程进度这类学习事实表默认不做物理删除式回滚，只允许通过补偿记录、状态修正和入口下线止损；除非确认是测试污染数据且范围完全可控。
+- `feature flag` / `kill switch` 关闭策略固定如下：
+  - 若已有正式 flag，则优先走 flag 关闭。
+  - 若没有正式 flag，不允许临时口头约定“先别点那个功能”；必须至少落实为“入口隐藏 + 后端动作拒绝 + 平台回调暂停”三层之一。
+  - 对支付、导入、奖励补发、后台高风险操作，默认要求同时具备“页面不可见”与“服务端拒绝”两层止损，避免只关前端入口仍可被直调。
+- 权限回收策略固定如下：
+  - 后台高风险权限优先通过角色/权限覆写回收，不以“通知相关人别再操作”代替。
+  - 若本轮预发新增了临时管理员、教师或测试账号权限，发布前必须确认是否回收到最小权限集。
+  - 对无法即时删除的数据副作用，至少先冻结入口和角色权限，再补数据修正。
+
+#### T-021.3 收口结论（已完成）
+- 发布门禁已经从“发现问题再讨论”收口为固定阻断清单：主链路失败、写后核账错误、越权、平台依赖缺失、稳定运行时故障，任一成立即不进入发布窗口。
+- 回滚边界已经固定为“入口下线 -> 链路关闭 -> 平台暂停 -> 数据补偿”四层，不再把数据库硬回滚当默认方案。
+- 核心学习事实表已明确不采用粗暴物理删除回滚；运营/管理动作表才允许做单条或批次级回退。
+- 因此，`T-021.3` 现阶段可以收口为“发布阻断条件、止损顺序和回滚边界已冻结”。
+
+### T-021.4 预发证据口径（已完成）
+- `T-021.4` 的目标是让预发留证可检索、可复核、可对应到部署，而不是留下大量无法追溯的截图和临时 SQL。
+- 本轮预发统一证据批次前缀固定为 `T021-staging-YYYYMMDD`；若同日多轮复测，则追加部署号或轮次后缀，例如 `T021-staging-20260409-dpl_xxx-r2`。
+- 证据命名固定如下：
+  - 页面截图：`[batch]-[domain]-[route]-[scenario]-[sampleRef]-screen`
+  - 页面录屏：`[batch]-[domain]-[scenario]-[sampleRef]-video`
+  - SQL / 后台快照：`[batch]-[domain]-[table]-[scenario]-[sampleRef]-sql`
+  - Action/API 响应：`[batch]-[domain]-[action]-[scenario]-response`
+  - 平台证据：`[batch]-[platform]-[resource]-[scenario]`
+  - 部署证据：`[batch]-deployment-summary`
+- 证据内容最低要求固定如下：
+  - 页面截图必须能看见路由、关键模块或错误态。
+  - 页面录屏必须覆盖动作前、动作中、动作后。
+  - SQL 快照必须至少包含关键表、关键字段、执行前后值或查询时间点。
+  - Action/API 响应必须至少保留状态、关键返回字段或错误摘要。
+  - 平台证据必须能对应到具体资源，例如 webhook 事件、cron 配置、Storage bucket、部署号。
+- 场景与证据的绑定规则固定如下：
+  - 每个 `P0` 写场景必须同时具备页面证据和 SQL / 后台证据。
+  - 每个 `P0` 只读场景必须至少具备页面证据和 console/runtime 结果。
+  - 若证据引用共享写链路或平台截图，必须在当前场景记录中明确写出引用来源，不允许只写“见群里截图”。
+  - 每条证据必须绑定 `taskRef`、`sampleRef`、执行时间和部署号，避免同一场景跨部署串证。
+- 预发单条执行记录模板固定如下：
+```md
+#### [domain] [scenario]
+- `taskRef`:
+- `sampleRef`:
+- `routeOrEntry`:
+- `deploymentRef`:
+- `executedAt`:
+- `result`:
+- `blocking`:
+- `evidenceSet`:
+- `sqlCheckpoint`:
+- `结论`:
+- `残余风险 / 备注`:
+```
+- 部署号绑定规则固定如下：
+  - 同一轮预发复测必须明确对应一个 Vercel deployment id 或 hostname。
+  - 若中途重新部署，后续证据必须切换到新的 `deploymentRef`，旧证据不可直接沿用为新部署通过证明。
+  - 最终发布审批只接受“最新待发部署”的证据包，不接受跨部署拼接的通过结论。
+
+#### T-021.4 收口结论（已完成）
+- 预发证据已经固定为“批次前缀 + 场景命名 + 部署绑定”的统一口径，后续不会再出现无法追溯到部署和样本的散落证据。
+- `P0` 写场景、只读场景、平台依赖场景的最低留证要求已明确，后续执行只需按模板填充。
+- 因此，`T-021.4` 现阶段可以收口为“预发证据命名、最小留证标准和部署绑定规则已冻结”。
+
+### T-021.5 发布审批条件（已完成）
+- `T-021.5` 的目标是把“什么时候允许发、谁来拍板、哪些风险必须先写清楚”收口成明确门槛，避免复测结束后默认滑进发布窗口。
+- 发布前必须同时满足以下审批条件：
+  1. `T-021.6 ~ T-021.10` 的 `P0` 场景已执行完毕，且不存在未关闭的阻断问题。
+  2. `T-021.1` 标记的环境阻断项都已关闭，或已被明确降级且有批准记录。
+  3. 最新待发部署已完成对应证据留存，不接受旧部署结果代替新部署审批。
+  4. 未解决缺陷、残余风险、降级策略、回滚入口和负责人均已写入最终报告。
+  5. 若存在条件放行项，必须明确“影响面、监控项、观察窗口、谁负责盯盘”，否则视为未满足审批条件。
+- 缺陷分层与放行规则固定如下：
+  - `阻断缺陷`：主链路、正式写链路、权限、安全、平台依赖、稳定运行时错误；必须关闭后才能发布。
+  - `条件放行缺陷`：不影响 `P0` 正确性，但可能影响低频路径、展示细节或人工兜底可控链路；必须登记影响面和观察方案后才能放行。
+  - `观察项`：当前未复现为缺陷，但属于高风险波动点，例如历史构建失败点、缓存回流、异步回调；必须进入发布后监控清单。
+- 发布后首轮监控阈值固定如下：
+  - 不接受持续性 `5xx` 或核心 Action 大面积失败。
+  - 不接受 Stripe webhook 连续失败且无人接手。
+  - 不接受 cron 首轮执行失败且无补跑方案。
+  - 不接受 Storage 上传 / 签名 URL 主链路失效。
+  - 不接受学生主域或后台管理域出现稳定白屏、长 pending 或权限穿透。
+- 批准角色固定如下：
+  - 技术核验责任人：确认复测证据、阻断项和回滚方案完整。
+  - 业务批准人：确认条件放行项和业务风险可接受。
+  - 发布执行人：确认实际部署对象、发布时间窗和回滚入口清晰。
+  - 若三者中任一角色缺位，则默认不进入发布窗口。
+- 最终审批输出固定如下：
+  - `发布对象`：具体 deployment id / hostname
+  - `审批结果`：`go` / `conditional go` / `no-go`
+  - `未解决项`：
+  - `残余风险`：
+  - `监控重点`：
+  - `回滚入口`：
+  - `批准人 / 时间`：
+
+#### T-021.5 收口结论（已完成）
+- 发布审批已经从“口头确认差不多可以发”收口为固定门槛：执行完成、阻断关闭、证据绑定到最新部署、风险和回滚入口写清、角色批准齐备。
+- 缺陷分层、条件放行规则和发布后监控重点都已明确，后续不会把“观察项”混成“已通过”。
+- 因此，`T-021.5` 现阶段可以收口为“发布审批条件、放行等级与批准角色已冻结”。
+
+### T-021.6 用户学习主域复测执行表（进行中）
+- 当前执行目标固定为学生学习主域四块页面子域：
+  - Dashboard 首页
+  - 课程域
+  - 练习域
+  - 社区域
+- 本子任务不再重复定义范围，只负责按固定样本执行、留证、发现预发专有异常并回填。
+
+#### 页面子域执行矩阵
+| 页面子域 | 对应任务 | 关键路由 | 主样本 / 边界样本 | 主 CTA / 关键动作 | 核心 SQL / 后台核账点 | 最低证据类型 | 阻断级别 |
+|---|---|---|---|---|---|---|---|
+| Dashboard 首页 | `T-005` | `/dashboard` | `student_ui_test@learnmore.com`、`student1@mail.com`、未登录态 | 首页加载、`7D/30D` 切换、任务领奖、学习路径跳转、最近练习重开、排行榜卡跳转 | `users`、`daily_tasks`、`exam_records`、`leaderboard_entries` | 首页截图、领奖录屏、SQL 前后快照、console 检查 | 阻断 |
+| 课程域 | `T-006` | `/dashboard/courses`、`/course/[subjectId]`、`/course/[subjectId]/[lessonId]` | `student_ui_test@learnmore.com`、`student1@mail.com`、未登录态 | 课程列表读取、进入学科、进入课时、完成课时、返回课程页 / Dashboard 验证回流 | `user_progress`、`users.totalStudyTime`、`users.streak`、`daily_tasks` | 页面截图、课时完成录屏、SQL 快照、返回页回流截图 | 阻断 |
+| 练习域 | `T-007` | `/dashboard/practice`、`/dashboard/practice/smart-drill`、`/dashboard/practice/chapter-drill/[chapterId]`、`/dashboard/practice/mock-arena`、`/dashboard/practice/mock-arena/[examId]`、`/dashboard/practice/past-paper/[paperId]`、`/dashboard/practice/error-wiper` | `student_ui_test@learnmore.com`、`student1@mail.com`、未登录态 | 练习入口读取、开始练习、提交结果、重复提交防重、结果页回流、回 Dashboard / 排行榜验证刷新 | `exam_records`、`user_attempts`、`users.streak`、`users.xp`、`leaderboard_entries`、`daily_tasks` | 提交录屏、Action/API 响应、结果页截图、SQL 前后快照、console 检查 | 阻断 |
+| 社区域 | `T-008` | `/dashboard/community`、`/dashboard/community/new`、`/dashboard/community/[postId]` | `student_ui_test@learnmore.com`、`student1@mail.com`、未登录态 | 社区列表读取、发帖、评论、提及、详情跳转、列表回流、未登录受限跳转 | `posts`、`comments`、`notifications` | 前后台截图、发帖/评论录屏、SQL 快照、通知留证、403/跳转截图 | 阻断 |
+
+#### 固定执行顺序
+1. 先用 `student_ui_test@learnmore.com` 验证 `/dashboard` 首屏加载、主 CTA 可点、未出现阻断级 console error，作为学生主域基线。
+2. 再进入练习域执行至少一条正式提交链路，并返回 `/dashboard` 与 `/dashboard/leaderboard` 验证 `recentPractice / streak / xp / leaderboard` 是否按既定回流策略更新。
+3. 再进入课程域执行至少一条课时完成或进度推进链路，并返回课程列表和 `/dashboard` 验证 `user_progress / daily_tasks / studyTime` 是否一致。
+4. 最后进入社区域执行发帖或评论链路，验证列表、详情、通知与受限跳转；涉及提及时必须同时检查通知留痕。
+5. `student1@mail.com` 只承担低数据 / 空态 / 弱数据边界复测；未登录态只承担受限跳转、按钮行为和入口守卫，不承担正式核账。
+
+#### 预发判定约束
+- Dashboard 已明确采用“返回页刷新 / 下次进页刷新”策略，不要求驻页实时自动变更；预发执行时不能把“停留当前页不自动刷新”误判为故障。
+- 练习域的正式写入以 `submitPracticeSession`、`submitExam`、`submitErrorWiperSession` 为准；只要结果页出现成功提示，必须继续核对 `exam_records`、`user_attempts` 与成长副作用，不允许只看前端文案。
+- 课程域的完成链路会触发 `checkAndRefreshStreak()` 与 `trackDailyProgress()`；因此课程复测不是只看播放和跳转，还必须检查任务推进和 streak 边界。
+- 社区域的 `createPost` / `createComment` 会带提及通知与社区成就副作用；预发执行时若帖子写入成功但通知或详情页不同步，仍按阻断级缺陷记录。
+- 移动端固定抽检 `390x844` 视口下的 `/dashboard`、一个练习提交页、`/dashboard/community` 三个页面，避免学生主域只在桌面可用。
+
+#### T-021.6 收口条件（预设）
+- `/dashboard`、课程主链路、至少一种练习提交链路、社区发帖或评论链路都已完成一轮正式留证。
+- 至少完成一条学生正式写动作的 SQL 前后核账，并能回流到页面展示层。
+- `student1@mail.com` 的低数据 / 空态路径与未登录态受限跳转均已复测，不存在“空态崩溃”或“未登录误放行”。
+- 学生主域关键页面在桌面与移动端都没有阻断级布局错乱、长 pending、未捕获异常或红字报错。
+- 若发现问题，必须直接挂到 `T-021.6` 下的页面子域场景，不回退重开 `T-021.2` 范围定义。
+
+### T-021.6 用户学习主域复测结果（已完成，结构性阻断已解除，仍有数据层残余风险）
+- 本轮学生主域结论已经从“结构性路由阻断”推进到“路由已恢复、仍需补齐真实课时数据”的状态，因此 `T-021.6` 作为复测任务可以收口，但课程域的最终放行仍要等 `T-006` 完成后再做真实课时核账。
+- 当前可直接复用的同日浏览器证据如下：
+  - `student_ui_test@learnmore.com` 登录后进入 `/dashboard` 的页面留证已存在，见 [`student-login-dashboard-home.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-login-dashboard-home.png) 与 [`t020-6-login-checks.json`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/t020-6-login-checks.json)。
+  - 未登录态对 `/dashboard` 的守卫留证已存在，见 [`guest-dashboard-redirect.png`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/guest-dashboard-redirect.png)。
+  - 同日浏览器路由测量已确认以下 student 路由返回 `200`：`/dashboard`、`/dashboard/courses`、`/dashboard/practice`、`/dashboard/community`、`/dashboard/community/new`、`/dashboard/practice/chapter-drill/preview-1`、`/dashboard/practice/past-paper/2306416`，证据见 [t-026-browser-route-timings.md:36](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L36)、[t-026-browser-route-timings.md:38](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L38)、[t-026-browser-route-timings.md:40](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L40)、[t-026-browser-route-timings.md:41](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L41)、[t-026-browser-route-timings.md:43](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L43)、[t-026-browser-route-timings.md:44](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L44)、[t-026-browser-route-timings.md:48](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/t-026-browser-route-timings.md#L48)。
+- 当前识别出的核心阻断项已经从“路由不存在”变成“真实课时数据尚未完全落地”：
+  - 课程深链路由已补齐为真实页面结构。`src/app/course/[subjectId]/layout.tsx`、[`src/app/course/[subjectId]/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/course/[subjectId]/page.tsx#L1) 与 [`src/app/course/[subjectId]/[lessonId]/page.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/app/course/[subjectId]/[lessonId]/page.tsx#L1) 已不再直接 `notFound()`。
+  - `CourseNavigation` 已改为继续跳转到下一课时，`updateUserLessonProgress()` 也已兼容无 `duration` 的完成动作，避免内容课时在完成收口上再次卡死。
+  - 当前数据库里 `lessons` 仍为空，因此课程页会先以章节概览作为过渡入口；这属于数据层残余风险，不再是结构性路由阻断。
+- 因此，学生主域的当前状态应拆开看：
+  - `Dashboard / Practice / Community`：已有同日本地真实路由证据，至少达到“路由可打开、登录守卫生效、主壳存在”的基线。
+  - `Courses` 列表页：已有 `/dashboard/courses` 的本地浏览器 `200` 证据，且课程深链现在已恢复可进入。
+  - `Course 深链 / 课时完成`：路由层已恢复，但真实课时数据仍需 `T-006` 补齐后再做完整写链路核账。
+- 当前线程里尝试补跑一轮新的浏览器自动化，但执行环境本身存在限制：
+  - 当前 Codex 沙箱中，独立 Playwright 浏览器启动被系统权限拦截；
+  - 内置 Playwright MCP 又被现有 Chrome 会话锁占用；
+  - 因此本节的最终结论是基于“同日已有本地浏览器留证 + 当前代码路由审计 + 当前数据库样本基线”收口，而不是伪造一轮并未真正跑过的预发记录。
+
+#### T-021.6 收口结论（已完成）
+- `T-021.6` 作为“学生主域复测与结论输出”任务已经完成，当前不再是 `notFound()` 级别的结构性阻断。
+- 课程域已恢复成可进入、可导航、可回流的真实路由结构；剩余风险主要是 `lessons` 数据尚未补齐，因此当前先以章节概览过渡，完整课时写链路仍建议在 `T-006` 完成后再做一次正式核账。
+- 后续如果要把课程域从“可进入”推进到“可完成”，正确动作是先完成 `T-006` 的课时数据与内容落地，再回到学生主域执行一轮新的课程链路复测与回流核账。
+
+### T-021.7 成长与账户域复测执行表（进行中）
+- 当前 `T-021.7` 先按“排行榜 / 成就 / 设置 / 通知”四块收口，不再和学生主域混跑：
+  - 排行榜：`/dashboard/leaderboard`
+  - 成就：`/dashboard/achievements`
+  - 设置：`/dashboard/settings`
+  - 通知入口：右上角通知 Bell -> `/dashboard/settings?tab=notifications`
+- 已确认的路由与组件级证据：
+  - `t-026-browser-route-timings.md` 已有同日浏览器 `200` 证据，覆盖 `/dashboard/achievements`、`/dashboard/leaderboard`、`/dashboard/settings`，说明成长与账户域主入口当前可达。
+  - [`src/components/dashboard/views/__tests__/SettingsView.test.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/dashboard/views/__tests__/SettingsView.test.tsx) 已验证合法 `notifications` tab 不会被额外重写，非法 tab 会回流到 `profile`。
+  - [`src/components/notification/__tests__/NotificationDropdown.test.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/notification/__tests__/NotificationDropdown.test.tsx) 已验证通知详情链接会规范到真实落点，历史 `/dashboard/settings?tab=feedback` 深链也已被收口。
+  - [`src/components/achievements/__tests__/AchievementsView.test.tsx`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/src/components/achievements/__tests__/AchievementsView.test.tsx) 已验证成就概览缺失时会显示中性占位，不伪造 0 值或旧 CTA。
+- 已确认的真实数据样本：
+  - `student_ui_test@learnmore.com` 当前具备 `xp=50`、`streak=1`、`totalStudyTime=183`，并已存在 `notification_preferences` 记录与 1 个已解锁徽章。
+  - `student1@mail.com` 当前具备低数据基线：`xp=0`、`streak=0`、`totalStudyTime=120`，且没有通知偏好、徽章和排行榜名次，适合作为空态 / 弱数据样本。
+  - 当前库内 `leaderboardEntry`、`badge`、`notificationPreference` 都有足够样本量，说明成长与账户域不是“空库假通过”。
+- 当前判断：
+  - 成长与账户域没有出现像课程深链那样的结构性 `notFound()` 阻断。
+  - 这里更需要继续核对的是缓存回流、设置保存、通知 read/write 行为是否与正式合同完全一致。
+  - 其中 `notificationPreferences` 读取会在缺失时自动补建，这属于已观察到的读侧副作用，后续预发复测时仍要留意它是否符合产品合同。
+  - 浏览器级留证已补齐，证据目录见 [`evidence/T021-browser-20260410`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T021-browser-20260410/)：游客态 `leaderboard-guest / achievements-guest / settings-guest` 均回流到登录页；登录态 `login-auth-redirect / leaderboard-auth / achievements-auth / settings-auth / settings-notifications-tab` 均保持 `200` 并命中真实内容，其中 `leaderboard-auth` 命中“排行榜 / Competitive Ladder”，`achievements-auth` 命中“成就 / Achievement”，`settings-auth` 命中“设置 / Preference Console”，`settings-notifications-tab` 命中“通知 / Preference Console”。
+
+### T-021.8 公开与转化域复测执行表（进行中）
+- 当前 `T-021.8` 先按“营销页 / Auth / 转化入口 / 反馈入口”四块收口：
+  - 营销页：`/`、`/pricing`、`/blog`、`/help`、`/contact`
+  - Auth：`/register`、`/login`、`/reset-password`
+  - 转化入口：`/r/[code]`、`/pricing?referralCode=...`、`voucherCode` 输入
+  - 反馈入口：`/help` 内反馈弹窗、`/contact` 联系表单
+- 已确认的路由与组件级证据：
+  - `T-019` 已把 public / marketing / auth 的路由、页面、组件、动作与数据源边界收口完成，`signup / login / reset-password / referral / voucher / contact` 的权威链路已经明确。
+  - `T-022` 已把全站 feedback 入口与 `submitFeedback` 写链路收口完成，因此本步只需要核对“公开页可见与入口稳定”，不重复做 feedback 写入闭环。
+  - `pricing` 页面已接通 `referralCode / voucherCode` 与 checkout 预检查逻辑，`register` 页面已接通 `referralCode` 预填与推荐码存在性校验。
+- 当前准备使用的真实样本：
+  - `student_ui_test@learnmore.com` 与 `admin_ui_test@learnmore.com` 仍作为稳定登录样本
+  - `codex.authprobe.1774884507912@example.com` 的 `referralCode=JKAE31EI` 可用于 `/register` 预填与 `/r/[code]` 落地验证
+  - `V27067247` 可用于 `/pricing` 的 voucher 可用性与价格回写验证
+- 当前判断：
+  - 公共与转化域没有结构性 `notFound()` 阻断。
+  - 这里最需要继续核对的是：公开页展示、推荐码与优惠券预填、注册/登录/重置回执、以及 feedback/contact 的真实提交回显是否仍然一致。
 
 ## 旧任务整合说明
 - 旧 `T-004 Dashboard / Achievements / Settings` 已拆入：`T-005`、`T-017`、`T-018`。

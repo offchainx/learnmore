@@ -55,7 +55,7 @@ export async function triggerReceiptNotification(
       type: 'BILLING',
       title: '支付成功确认',
       content: `你已成功支付 ${amount} 元订阅 ${planName}。`,
-      link: '/dashboard/settings/billing',
+      link: '/dashboard/settings?tab=subscription',
       metadata: { orderId, amount, planName } as NotificationMetadata,
     });
 

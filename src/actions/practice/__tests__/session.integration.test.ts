@@ -27,6 +27,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     question: {
       findMany: vi.fn(),
+      updateMany: vi.fn(),
     },
     examRecord: {
       create: vi.fn(),
@@ -36,6 +37,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     userAttempt: {
       createMany: vi.fn(),
+      groupBy: vi.fn(),
     },
     errorBook: {
       upsert: vi.fn(),
@@ -55,6 +57,7 @@ describe('Exam Session Integration (Mocked)', () => {
     prismaMock.$transaction.mockImplementation(async (callback: (tx: typeof prismaMock) => Promise<unknown>) =>
       callback(prismaMock)
     )
+    prismaMock.userAttempt.groupBy.mockResolvedValue([])
   })
 
   describe('startExam', () => {

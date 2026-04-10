@@ -1,0 +1,49 @@
+{
+  "at": "2026-04-10T01:02:02.178Z",
+  "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+  "subjectId": "72844ae3-6f0d-4cfd-8add-70de535aa316",
+  "questions": [
+    {
+      "id": "26659f9c-7851-488d-b581-8be3edc94b57",
+      "type": "SINGLE_CHOICE",
+      "answer": "A",
+      "chapterId": "61508436-4800-45d4-a9c5-d6a8ee6dcca6",
+      "content": "下列哪一古代人类遗址，把我国的人类历史推进到大约170万年前(　　)"
+    },
+    {
+      "id": "a0b308c9-9d4b-403d-bf23-f9ab87c6ac9a",
+      "type": "SINGLE_CHOICE",
+      "answer": "D",
+      "chapterId": null,
+      "content": "1973年，浙江省余姚市农民在建排涝站挖地基时，意外地发现一处原始时期人类生活遗址。遗址中有稻谷、稻秆堆积。这处遗址是(　　)"
+    },
+    {
+      "id": "f142e4c6-4871-43e7-9c9f-3abd74a31015",
+      "type": "SINGLE_CHOICE",
+      "answer": "D",
+      "chapterId": null,
+      "content": "考古发现是了解史前社会的主要证据。下面一组邮票反映的是河姆渡遗址发掘出的文物,它们见证了我国河姆渡原始居民的生产生活状况。据此可以得出的结论有( )\n\n![题图](https://img.examcoo.com/paper/148011/202011/160480009345950.png)\n\n①他们种植的农作物是水稻②他们主要使用青铜农具③他们居住的是干栏式房屋④他们已学会了制作舟船"
+    },
+    {
+      "id": "5b868ef7-092a-4c2e-a898-e281034cdbd5",
+      "type": "SINGLE_CHOICE",
+      "answer": "C",
+      "chapterId": "61508436-4800-45d4-a9c5-d6a8ee6dcca6",
+      "content": "一代伟人孙中山的诗句“中华开国五千年，神州轩辕自古传。”反映了我们经常讲的“上下五千年”的历史是从下面哪一人物开始(　　)"
+    },
+    {
+      "id": "c1f52dc3-205f-4e03-99f7-29e1d742e771",
+      "type": "SINGLE_CHOICE",
+      "answer": "D",
+      "chapterId": null,
+      "content": "“人猿相揖别。只几个石头磨过，小儿时节。”据考古发现，下列使用磨制石器的远古居民是(　　)\n①元谋人　②北京人　③半坡居民　④河姆渡居民"
+    },
+    {
+      "id": "48a30f9e-6905-458b-b682-b9379d9ed06d",
+      "type": "SINGLE_CHOICE",
+      "answer": "C",
+      "chapterId": null,
+      "content": "南方地区气候潮湿闷热，在远古时代有哪一远古人群建造干栏式房屋，为自己提供一个比较舒适的居住环境(　　)"
+    }
+  ]
+}

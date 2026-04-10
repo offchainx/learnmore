@@ -11,7 +11,7 @@ import { DailyTaskType } from '@prisma/client'
 export async function completeOnboardingTask(type: DailyTaskType) {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Error('Unauthorized')
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
@@ -20,7 +20,11 @@ export async function completeOnboardingTask(type: DailyTaskType) {
       return { success: false, message: result.error }
     }
 
-    revalidatePath('/dashboard')
+    try {
+      revalidatePath('/dashboard')
+    } catch (error) {
+      console.warn('[Achievement] Dashboard refresh skipped outside request context:', error)
+    }
     return { success: true }
   } catch (error) {
     console.error('Failed to complete onboarding task:', error)
@@ -31,7 +35,7 @@ export async function completeOnboardingTask(type: DailyTaskType) {
 export async function claimTaskReward(taskId: string) {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Error('Unauthorized')
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
@@ -40,9 +44,13 @@ export async function claimTaskReward(taskId: string) {
       return { success: false, error: result.error }
     }
 
-    revalidatePath('/dashboard')
-    revalidateTag(`achievement-overview:${user.id}`, 'quick')
-    revalidateTag(`user-badges:${user.id}`, 'quick')
+    try {
+      revalidatePath('/dashboard')
+      revalidateTag(`achievement-overview:${user.id}`, 'quick')
+      revalidateTag(`user-badges:${user.id}`, 'quick')
+    } catch (error) {
+      console.warn('[Achievement] Cache invalidation skipped outside request context:', error)
+    }
     return { success: true, xpGained: result.xpGained }
   } catch (error) {
     console.error('Failed to claim reward:', error)

@@ -45,7 +45,17 @@ export async function applyPracticeSubmissionEffects(
       break
   }
 
-  await Promise.all(sideEffects)
-  revalidateTag(`achievement-overview:${input.userId}`, 'quick')
-  revalidateTag(`user-badges:${input.userId}`, 'quick')
+  const settledSideEffects = await Promise.allSettled(sideEffects)
+  for (const result of settledSideEffects) {
+    if (result.status === 'rejected') {
+      console.warn('[Practice] Side effect failed but submission already persisted:', result.reason)
+    }
+  }
+
+  try {
+    revalidateTag(`achievement-overview:${input.userId}`, 'quick')
+    revalidateTag(`user-badges:${input.userId}`, 'quick')
+  } catch (error) {
+    console.warn('[Practice] Cache invalidation skipped outside request context:', error)
+  }
 }

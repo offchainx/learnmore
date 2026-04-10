@@ -1,0 +1,332 @@
+{
+  "capturedAt": "2026-04-10T10:15:00.000Z",
+  "sourceMode": "existing-page-evidence-plus-db-snapshots",
+  "notes": [
+    "本轮核账合成了既有页面留证与既有数据库快照，用于把页面值、关联表和后台状态对齐。",
+    "设置、奖励、练习、反馈四条链路都保留了页面证据与数据库证据的对应文件引用。"
+  ],
+  "settings": {
+    "page": {
+      "summaryFile": "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-summary.json",
+      "screenshotFiles": [
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-off.png",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-restored.png"
+      ],
+      "summary": {
+        "scenario": "student-settings-email-marketing-toggle",
+        "sampleRef": "S-05",
+        "userEmail": "student_ui_test@learnmore.com",
+        "observations": {
+          "beforeBootstrap": {
+            "notificationPreferenceRow": false,
+            "userSettingsEmailMarketing": true
+          },
+          "afterBootstrap": {
+            "notificationPreferenceRow": true,
+            "notificationPreferenceEmailMarketing": true,
+            "userSettingsEmailMarketing": true
+          },
+          "afterSaveOff": {
+            "uiSwitchBefore": "true",
+            "uiSwitchAfter": "false",
+            "dbNotificationPreferenceEmailMarketing": false,
+            "dbUserSettingsEmailMarketing": false,
+            "dbUpdatedAt": "2026-04-09T14:28:15.691Z"
+          },
+          "afterRestore": {
+            "uiSwitchBefore": "false",
+            "uiSwitchAfter": "true",
+            "dbNotificationPreferenceEmailMarketing": true,
+            "dbUserSettingsEmailMarketing": true,
+            "dbUpdatedAt": "2026-04-09T14:28:40.545Z"
+          }
+        }
+      }
+    },
+    "db": {
+      "snapshotFile": "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-settings-email-marketing-final-db.json",
+      "snapshot": {
+        "capturedAt": "2026-04-09T14:29:02.448Z",
+        "user": {
+          "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+          "email": "student_ui_test@learnmore.com"
+        },
+        "prefs": {
+          "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+          "inAppSystem": true,
+          "inAppSocial": true,
+          "inAppStudy": true,
+          "inAppAchievement": true,
+          "emailSystem": true,
+          "emailSocial": true,
+          "emailWeekly": true,
+          "emailMarketing": true,
+          "emailBilling": true,
+          "updatedAt": "2026-04-09T14:28:40.545Z"
+        },
+        "settings": {
+          "id": "15aecaf4-acc6-478e-8297-6308535feb38",
+          "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+          "theme": "light",
+          "language": "en",
+          "aiPersonality": "ENCOURAGING",
+          "difficultyCalibration": 50,
+          "curriculumSystem": null,
+          "studyReminderTime": null,
+          "notificationDaily": true,
+          "notificationWeekly": true,
+          "emailMarketing": true,
+          "emailActivity": true
+        }
+      }
+    },
+    "checks": {
+      "preferenceRowExists": true,
+      "emailMarketingAligned": true,
+      "afterRestoreAligned": true
+    }
+  },
+  "dashboardReward": {
+    "page": {
+      "screenshotFiles": [
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-dashboard-login-reward-before.png",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-dashboard-login-reward-after.png"
+      ],
+      "note": "页面回显已在 T-020.6 留证，本节引用对应截图与最终 DB 快照做核账。"
+    },
+    "db": {
+      "snapshotFile": "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-dashboard-login-reward-db-after.json",
+      "snapshot": {
+        "capturedAt": "2026-04-09T14:53:06.454Z",
+        "user": {
+          "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+          "email": "student_ui_test@learnmore.com",
+          "xp": 50,
+          "streak": 0,
+          "totalStudyTime": 0
+        },
+        "tasks": [
+          {
+            "id": "90a6fd1e-9f92-4071-aeb2-af804ce2cf25",
+            "type": "LOGIN",
+            "title": "每日登录",
+            "currentCount": 1,
+            "targetCount": 1,
+            "isClaimed": true,
+            "xpReward": 50,
+            "date": "2026-04-08T00:00:00.000Z"
+          },
+          {
+            "id": "6ed584b9-b939-4426-8f7f-848bba29ecdc",
+            "type": "COMPLETE_LESSON",
+            "title": "完成 1 节课程",
+            "currentCount": 0,
+            "targetCount": 1,
+            "isClaimed": false,
+            "xpReward": 100,
+            "date": "2026-04-08T00:00:00.000Z"
+          },
+          {
+            "id": "aaddb86b-b7a3-4856-9217-a09c88b6acbc",
+            "type": "QUIZ_SCORE",
+            "title": "完成 1 次测验",
+            "currentCount": 0,
+            "targetCount": 1,
+            "isClaimed": false,
+            "xpReward": 80,
+            "date": "2026-04-08T00:00:00.000Z"
+          },
+          {
+            "id": "f7cf8d23-8c47-490f-a141-cdbdafd7eef1",
+            "type": "ONBOARDING_PROFILE",
+            "title": "完善个人资料",
+            "currentCount": 0,
+            "targetCount": 1,
+            "isClaimed": false,
+            "xpReward": 60,
+            "date": "2026-04-08T00:00:00.000Z"
+          },
+          {
+            "id": "40aab8f5-8020-4524-be97-f8b13de0490a",
+            "type": "ONBOARDING_GOALS",
+            "title": "设置学习目标",
+            "currentCount": 0,
+            "targetCount": 1,
+            "isClaimed": false,
+            "xpReward": 60,
+            "date": "2026-04-08T00:00:00.000Z"
+          }
+        ]
+      }
+    },
+    "checks": {
+      "rewardClaimed": true,
+      "loginTaskClaimed": true,
+      "relatedDailyTasksPresent": true
+    }
+  },
+  "smartDrill": {
+    "page": {
+      "summaryFile": "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-ui-summary.json",
+      "screenshotFiles": [
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-before-submit.png",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-after-submit.png"
+      ],
+      "summary": {
+        "at": "2026-04-10T01:02:29.505Z",
+        "scenario": "smart-drill-submit",
+        "subjectId": "72844ae3-6f0d-4cfd-8add-70de535aa316",
+        "questionIds": [
+          "f142e4c6-4871-43e7-9c9f-3abd74a31015",
+          "26659f9c-7851-488d-b581-8be3edc94b57",
+          "48a30f9e-6905-458b-b682-b9379d9ed06d",
+          "c1f52dc3-205f-4e03-99f7-29e1d742e771",
+          "5b868ef7-092a-4c2e-a898-e281034cdbd5",
+          "a0b308c9-9d4b-403d-bf23-f9ab87c6ac9a"
+        ],
+        "finalUrl": "http://127.0.0.1:3101/dashboard/practice/smart-drill?subjectId=72844ae3-6f0d-4cfd-8add-70de535aa316&autostart=1",
+        "resultSaved": true,
+        "containsCompletionTitle": true,
+        "beforeScreenshot": "student-smart-drill-before-submit.png",
+        "afterScreenshot": "student-smart-drill-after-submit.png"
+      }
+    },
+    "db": {
+      "snapshotFile": "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/student-smart-drill-final-db.json",
+      "snapshot": {
+        "at": "2026-04-10T01:02:01.315Z",
+        "user": {
+          "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+          "email": "student_ui_test@learnmore.com",
+          "xp": 50,
+          "streak": 1,
+          "totalStudyTime": 183
+        },
+        "quizTask": {
+          "id": "5a9925a7-95f7-4e41-be67-3a963b26550e",
+          "currentCount": 1,
+          "targetCount": 1,
+          "isClaimed": false,
+          "date": "2026-04-09T00:00:00.000Z"
+        },
+        "examCount": 2,
+        "exams": [
+          {
+            "id": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+            "clientSessionId": "84c24e6a-8aa1-4699-b553-2dd4fbe3b29e",
+            "mode": "SMART_DRILL",
+            "score": 100,
+            "totalQuestions": 6,
+            "correctCount": 6,
+            "duration": 3,
+            "createdAt": "2026-04-10T01:01:15.664Z"
+          },
+          {
+            "id": "09d43b3e-f05e-4bc9-b8f3-7eb7714be25e",
+            "clientSessionId": "t020-6-practice-20260410-a",
+            "mode": "SMART_DRILL",
+            "score": 100,
+            "totalQuestions": 2,
+            "correctCount": 2,
+            "duration": 180,
+            "createdAt": "2026-04-10T00:57:52.519Z"
+          }
+        ]
+      }
+    },
+    "checks": {
+      "resultSaved": true,
+      "completionTitleVisible": true,
+      "examCountAligned": true,
+      "latestExamAligned": true,
+      "quizTaskAligned": true,
+      "growthAligned": true
+    }
+  },
+  "feedback": {
+    "page": {
+      "screenshotFiles": [
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-resolved-before.png",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-resolved-after.png",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-closed-before.png",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-closed-after.png"
+      ],
+      "dbFiles": [
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-resolved-db.json",
+        "/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T020-local-20260409/admin-feedback-closed-db.json"
+      ],
+      "resolvedDb": {
+        "capturedAt": "2026-04-09T15:04:58.929Z",
+        "feedback": {
+          "id": "5a5f9b42-1f99-4fc5-83c3-d702f2a7f498",
+          "title": "T009 closeout feedback 1775186777640",
+          "status": "RESOLVED",
+          "updatedAt": "2026-04-09T15:04:44.269Z"
+        },
+        "events": [
+          {
+            "id": "40538adb-4da0-48a1-b4f2-15656d12b209",
+            "eventType": "STATUS_CHANGED",
+            "fromStatus": "CLOSED",
+            "toStatus": "RESOLVED",
+            "message": "T020.6 closeout reopen to resolved for reversible admin validation",
+            "createdAt": "2026-04-09T15:04:44.301Z",
+            "actorId": "fbee5de2-a253-4fcc-9903-e95306700158"
+          },
+          {
+            "id": "44a54629-bff5-4c62-8a3b-fbdcf806e21e",
+            "eventType": "CLOSED",
+            "fromStatus": "PENDING",
+            "toStatus": "CLOSED",
+            "message": "T-009.5 closeout: close feedback and verify /admin queue refresh",
+            "createdAt": "2026-04-03T03:27:31.040Z",
+            "actorId": "fbee5de2-a253-4fcc-9903-e95306700158"
+          }
+        ]
+      },
+      "closedDb": {
+        "capturedAt": "2026-04-09T15:05:09.082Z",
+        "feedback": {
+          "id": "5a5f9b42-1f99-4fc5-83c3-d702f2a7f498",
+          "title": "T009 closeout feedback 1775186777640",
+          "status": "CLOSED",
+          "updatedAt": "2026-04-09T15:04:55.181Z"
+        },
+        "events": [
+          {
+            "id": "40538adb-4da0-48a1-b4f2-15656d12b209",
+            "eventType": "STATUS_CHANGED",
+            "fromStatus": "CLOSED",
+            "toStatus": "RESOLVED",
+            "message": "T020.6 closeout reopen to resolved for reversible admin validation",
+            "createdAt": "2026-04-09T15:04:44.301Z",
+            "actorId": "fbee5de2-a253-4fcc-9903-e95306700158"
+          },
+          {
+            "id": "44a54629-bff5-4c62-8a3b-fbdcf806e21e",
+            "eventType": "CLOSED",
+            "fromStatus": "PENDING",
+            "toStatus": "CLOSED",
+            "message": "T-009.5 closeout: close feedback and verify /admin queue refresh",
+            "createdAt": "2026-04-03T03:27:31.040Z",
+            "actorId": "fbee5de2-a253-4fcc-9903-e95306700158"
+          }
+        ]
+      }
+    },
+    "db": {
+      "snapshot": {
+        "id": "5a5f9b42-1f99-4fc5-83c3-d702f2a7f498",
+        "title": "T009 closeout feedback 1775186777640",
+        "status": "CLOSED",
+        "updatedAt": "2026-04-09T15:04:55.181Z"
+      }
+    },
+    "checks": {
+      "resolvedTransitionObserved": true,
+      "closedTransitionObserved": true,
+      "eventTrailLength": true,
+      "finalStateClosed": true
+    }
+  }
+}

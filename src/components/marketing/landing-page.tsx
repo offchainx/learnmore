@@ -17,6 +17,7 @@ import {
 import { useApp } from '@/providers';
 import type { PlatformStats } from '@/actions/marketing/campaign';
 import { createClient as createSupabaseClient } from '@/lib/supabase/client';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { emitClientPerfEvent } from '@/lib/observability/perf';
 
 type LandingCopy = Record<string, any>;
@@ -540,7 +541,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ stats, isLoggedIn = fa
         </div>
       </section>
 
-      <LandingBelowFold t={t} onCtaClick={handleCTAClick} />
+      <LandingBelowFold t={t} onCtaClick={handleCTAClick} locale={resolveMarketingLocale(lang)} />
     </div>
   );
 };

@@ -5,6 +5,27 @@ import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { z } from 'zod'
 
+function parseOptionalBooleanField(
+  formData: FormData,
+  key: string
+): boolean | undefined {
+  const rawValue = formData.get(key)
+
+  if (rawValue === null) {
+    return undefined
+  }
+
+  if (rawValue === 'true' || rawValue === 'on') {
+    return true
+  }
+
+  if (rawValue === 'false') {
+    return false
+  }
+
+  return undefined
+}
+
 const aiConfigSchema = z.object({
   aiPersonality: z.enum(['ENCOURAGING', 'SOCRATIC', 'STRICT']),
   difficultyCalibration: z.coerce.number().min(0).max(100),
@@ -124,8 +145,8 @@ export async function updatePreferences(prevState: SettingsFormState, formData: 
   const rawData = {
     language: formData.get('language'),
     theme: formData.get('theme'),
-    notificationDaily: formData.get('notificationDaily') === 'on',
-    notificationWeekly: formData.get('notificationWeekly') === 'on',
+    notificationDaily: parseOptionalBooleanField(formData, 'notificationDaily'),
+    notificationWeekly: parseOptionalBooleanField(formData, 'notificationWeekly'),
   }
 
   const result = preferencesSchema.safeParse(rawData)
@@ -135,20 +156,27 @@ export async function updatePreferences(prevState: SettingsFormState, formData: 
   }
 
   try {
+    const legacyPreferenceData = {
+      ...(result.data.notificationDaily !== undefined
+        ? { notificationDaily: result.data.notificationDaily }
+        : {}),
+      ...(result.data.notificationWeekly !== undefined
+        ? { notificationWeekly: result.data.notificationWeekly }
+        : {}),
+    }
+
     await prisma.userSettings.upsert({
       where: { userId: user.id },
       create: {
         userId: user.id,
         language: result.data.language,
         theme: result.data.theme,
-        notificationDaily: result.data.notificationDaily || false,
-        notificationWeekly: result.data.notificationWeekly || false,
+        ...legacyPreferenceData,
       },
       update: {
         language: result.data.language,
         theme: result.data.theme,
-        notificationDaily: result.data.notificationDaily || false,
-        notificationWeekly: result.data.notificationWeekly || false,
+        ...legacyPreferenceData,
       },
     })
 

@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY?.trim();
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 interface SendEmailParams {
   to: string;
@@ -15,7 +16,7 @@ export const sendEmail = async ({
   html,
   from = 'Learn More <onboarding@resend.dev>', // Default sender for testing
 }: SendEmailParams) => {
-  if (!process.env.RESEND_API_KEY) {
+  if (!resend) {
     console.warn('RESEND_API_KEY is not set. Email sending skipped.');
     return { success: false, error: 'Missing API Key' };
   }

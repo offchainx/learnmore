@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Button } from '@/components/ui/button';
 import { 
   Map, Play, Zap, Target, Timer, MessageCircle, Trophy, 
@@ -39,15 +41,14 @@ const StudyGuidePage: React.FC = () => {
       progress: "Journey Progress",
       startBtn: "Start Day 1",
       days: [
-        { day: 1, title: "The Awakening", desc: "Every hero needs a map. Take the AI Diagnostic Test to reveal your hidden strengths and weaknesses.", action: "Start Diagnosis", link: "/dashboard", icon: Map, color: "from-blue-400 to-cyan-400", shadow: "shadow-cyan-500/50" },
-        { day: 2, title: "First Blood", desc: "Step into the arena. Complete your first 5-minute adaptive micro-lesson.", action: "Start Lesson", link: "/dashboard", icon: Play, color: "from-emerald-400 to-green-400", shadow: "shadow-emerald-500/50" },
-        { day: 3, title: "Mistake Crusher", desc: "Failure is just data. Visit your Mistake Book and fix 5 errors to turn them into XP.", action: "Fix Mistakes", link: "/dashboard", icon: Zap, color: "from-orange-400 to-red-400", shadow: "shadow-orange-500/50" },
-        { day: 4, title: "Precision Strike", desc: "Master a 'Low Confidence' concept. Turn that red indicator into green.", action: "Practice Now", link: "/dashboard", icon: Target, color: "from-purple-400 to-pink-400", shadow: "shadow-purple-500/50" },
-        { day: 5, title: "Speed Run", desc: "Race against the clock. Complete a timed quiz with >80% accuracy.", action: "Start Quiz", link: "/dashboard", icon: Timer, color: "from-red-500 to-rose-500", shadow: "shadow-red-500/50" },
-        { day: 6, title: "Guild Hall", desc: "You are not alone. Ask a question or share a tip in the Community Hub.", action: "Visit Community", link: "/dashboard", icon: MessageCircle, color: "from-indigo-400 to-violet-400", shadow: "shadow-indigo-500/50" },
-        { day: 7, title: "Champion's Rise", desc: "Check the Leaderboard. Have you cracked the top 10%? Claim your weekly chest.", action: "Check Rank", link: "/dashboard", icon: Trophy, color: "from-yellow-300 to-amber-500", shadow: "shadow-yellow-500/50" }
+        { day: 1, title: "The Awakening", desc: "Every hero needs a map. Take the AI Diagnostic Test to reveal your hidden strengths and weaknesses.", action: "Start Diagnosis", link: "/register", icon: Map, color: "from-blue-400 to-cyan-400", shadow: "shadow-cyan-500/50" },
+        { day: 2, title: "First Blood", desc: "Step into the arena. Complete your first 5-minute adaptive micro-lesson.", action: "Start Lesson", link: "/register", icon: Play, color: "from-emerald-400 to-green-400", shadow: "shadow-emerald-500/50" },
+        { day: 3, title: "Mistake Crusher", desc: "Failure is just data. Visit your Mistake Book and fix 5 errors to turn them into XP.", action: "Fix Mistakes", link: "/register", icon: Zap, color: "from-orange-400 to-red-400", shadow: "shadow-orange-500/50" },
+        { day: 4, title: "Precision Strike", desc: "Master a 'Low Confidence' concept. Turn that red indicator into green.", action: "Practice Now", link: "/register", icon: Target, color: "from-purple-400 to-pink-400", shadow: "shadow-purple-500/50" },
+        { day: 5, title: "Speed Run", desc: "Race against the clock. Complete a timed quiz with >80% accuracy.", action: "Start Quiz", link: "/register", icon: Timer, color: "from-red-500 to-rose-500", shadow: "shadow-red-500/50" },
+        { day: 6, title: "Guild Hall", desc: "You are not alone. Ask a question or share a tip in the Community Hub.", action: "Visit Community", link: "/register", icon: MessageCircle, color: "from-indigo-400 to-violet-400", shadow: "shadow-indigo-500/50" },
+        { day: 7, title: "Champion's Rise", desc: "Check the Leaderboard. Have you cracked the top 10%? Claim your weekly chest.", action: "Check Rank", link: "/register", icon: Trophy, color: "from-yellow-300 to-amber-500", shadow: "shadow-yellow-500/50" }
       ],
-      footer: "© 2025 LearnMore Edu. All rights reserved."
     },
     zh: {
       title: "7天新手极速挑战",
@@ -55,15 +56,14 @@ const StudyGuidePage: React.FC = () => {
       progress: "挑战进度",
       startBtn: "开始第 1 天",
       days: [
-        { day: 1, title: "觉醒时刻", desc: "每个英雄都需要地图。完成 AI 诊断测试，揭示你隐藏的强项与弱点。", action: "开始诊断", link: "/dashboard", icon: Map, color: "from-blue-400 to-cyan-400", shadow: "shadow-cyan-500/50" },
-        { day: 2, title: "首战告捷", desc: "踏入竞技场。完成你的第一节 5 分钟自适应微课。", action: "开始学习", link: "/dashboard", icon: Play, color: "from-emerald-400 to-green-400", shadow: "shadow-emerald-500/50" },
-        { day: 3, title: "错题粉碎机", desc: "失败只是数据。访问错题本并修正 5 个错误，将它们转化为经验值。", action: "消灭错题", link: "/dashboard", icon: Zap, color: "from-orange-400 to-red-400", shadow: "shadow-orange-500/50" },
-        { day: 4, title: "精准打击", desc: "攻克一个“低置信度”概念。把那个红色指标变成绿色。", action: "立即练习", link: "/dashboard", icon: Target, color: "from-purple-400 to-pink-400", shadow: "shadow-purple-500/50" },
-        { day: 5, title: "极速挑战", desc: "与时间赛跑。完成一次计时测验，并达到 80% 以上准确率。", action: "开始测验", link: "/dashboard", icon: Timer, color: "from-red-500 to-rose-500", shadow: "shadow-red-500/50" },
-        { day: 6, title: "公会大厅", desc: "你并不孤单。在社区发布一个问题或分享一条学习技巧。", action: "访问社区", link: "/dashboard", icon: MessageCircle, color: "from-indigo-400 to-violet-400", shadow: "shadow-indigo-500/50" },
-        { day: 7, title: "王者加冕", desc: "查看排行榜。你进入前 10% 了吗？领取你的周宝箱。", action: "查看排名", link: "/dashboard", icon: Trophy, color: "from-yellow-300 to-amber-500", shadow: "shadow-yellow-500/50" }
+        { day: 1, title: "觉醒时刻", desc: "每个英雄都需要地图。完成 AI 诊断测试，揭示你隐藏的强项与弱点。", action: "开始诊断", link: "/register", icon: Map, color: "from-blue-400 to-cyan-400", shadow: "shadow-cyan-500/50" },
+        { day: 2, title: "首战告捷", desc: "踏入竞技场。完成你的第一节 5 分钟自适应微课。", action: "开始学习", link: "/register", icon: Play, color: "from-emerald-400 to-green-400", shadow: "shadow-emerald-500/50" },
+        { day: 3, title: "错题粉碎机", desc: "失败只是数据。访问错题本并修正 5 个错误，将它们转化为经验值。", action: "消灭错题", link: "/register", icon: Zap, color: "from-orange-400 to-red-400", shadow: "shadow-orange-500/50" },
+        { day: 4, title: "精准打击", desc: "攻克一个“低置信度”概念。把那个红色指标变成绿色。", action: "立即练习", link: "/register", icon: Target, color: "from-purple-400 to-pink-400", shadow: "shadow-purple-500/50" },
+        { day: 5, title: "极速挑战", desc: "与时间赛跑。完成一次计时测验，并达到 80% 以上准确率。", action: "开始测验", link: "/register", icon: Timer, color: "from-red-500 to-rose-500", shadow: "shadow-red-500/50" },
+        { day: 6, title: "公会大厅", desc: "你并不孤单。在社区发布一个问题或分享一条学习技巧。", action: "访问社区", link: "/register", icon: MessageCircle, color: "from-indigo-400 to-violet-400", shadow: "shadow-indigo-500/50" },
+        { day: 7, title: "王者加冕", desc: "查看排行榜。你进入前 10% 了吗？领取你的周宝箱。", action: "查看排名", link: "/register", icon: Trophy, color: "from-yellow-300 to-amber-500", shadow: "shadow-yellow-500/50" }
       ],
-      footer: "© 2025 LearnMore Edu. 保留所有权利。"
     }
   };
 
@@ -193,8 +193,8 @@ const StudyGuidePage: React.FC = () => {
               </div>
               <h2 className="text-3xl font-bold text-white mt-8 mb-4">Ready for Greatness?</h2>
               <p className="text-slate-400 mb-8">Your journey to mastery begins now.</p>
-              <Button size="xl" variant="glow" onClick={() => router.push('/dashboard')} className="px-12 rounded-full">
-                 Enter Dashboard
+              <Button size="xl" variant="glow" onClick={() => router.push('/register')} className="px-12 rounded-full">
+                 Get Started
               </Button>
            </div>
 
@@ -202,11 +202,7 @@ const StudyGuidePage: React.FC = () => {
 
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>{currentT.footer}</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale={resolveMarketingLocale(lang)} />
     </div>
   );
 };

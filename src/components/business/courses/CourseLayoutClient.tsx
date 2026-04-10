@@ -16,7 +16,7 @@ import {
 interface SidebarContentProps {
   title?: string;
   chapters: CourseChapter[];
-  selectedChapterId: string;
+  selectedChapterId: string | null;
   onChapterSelect: (chapterId: string) => void;
 }
 
@@ -40,15 +40,16 @@ const SidebarContent = ({ title, chapters, selectedChapterId, onChapterSelect }:
 );
 
 interface CourseSidebarProps {
+  subjectId?: string;
   chapters: CourseChapter[];
   title?: string;
   children: React.ReactNode;
 }
 
-export function CourseLayoutClient({ chapters, title, children }: CourseSidebarProps) {
+export function CourseLayoutClient({ subjectId, chapters, title, children }: CourseSidebarProps) {
   const router = useRouter();
   const params = useParams();
-  const lessonId = params?.lessonId as string;
+  const lessonId = params?.lessonId as string | undefined;
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
@@ -61,8 +62,35 @@ export function CourseLayoutClient({ chapters, title, children }: CourseSidebarP
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleChapterSelect = () => {
-    router.push('/dashboard/courses');
+  const handleChapterSelect = (chapterId: string) => {
+    if (!subjectId) {
+      router.push('/dashboard/courses');
+      setIsOpen(false);
+      return;
+    }
+
+    const findTargetId = (items: CourseChapter[], targetId: string): string | null => {
+      for (const item of items) {
+        if (item.id === targetId) {
+          if (item.children && item.children.length > 0) {
+            return findTargetId(item.children, item.children[0].id) ?? item.children[0].id
+          }
+          return item.id
+        }
+
+        if (item.children && item.children.length > 0) {
+          const nested = findTargetId(item.children, targetId)
+          if (nested) {
+            return nested
+          }
+        }
+      }
+
+      return null
+    }
+
+    const targetId = findTargetId(chapters, chapterId) ?? chapterId
+    router.push(`/course/${subjectId}/${targetId}`)
     setIsOpen(false);
   };
 
@@ -82,7 +110,7 @@ export function CourseLayoutClient({ chapters, title, children }: CourseSidebarP
                     <SidebarContent 
                       title={title} 
                       chapters={chapters} 
-                      selectedChapterId={lessonId} 
+                      selectedChapterId={lessonId ?? null} 
                       onChapterSelect={handleChapterSelect} 
                     />
                 </SheetContent>
@@ -101,7 +129,7 @@ export function CourseLayoutClient({ chapters, title, children }: CourseSidebarP
         <SidebarContent 
             title={title} 
             chapters={chapters} 
-            selectedChapterId={lessonId} 
+            selectedChapterId={lessonId ?? null} 
             onChapterSelect={handleChapterSelect} 
         />
       </ResizablePanel>

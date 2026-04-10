@@ -9,10 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { AvatarUpload } from './AvatarUpload'
 import { useToast } from '@/components/ui/use-toast'
-import { Switch } from '@/components/ui/switch'
 import { Loader2 } from 'lucide-react'
 import type { User, UserSettings } from '@prisma/client'
 import { useHandleAvailability } from '@/lib/hooks/useHandleAvailability'
+import Link from 'next/link'
 
 interface ProfileFormProps {
   user: User & { settings?: UserSettings | null }
@@ -58,9 +58,9 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile & Preferences</CardTitle>
+        <CardTitle>Profile & Appearance</CardTitle>
         <CardDescription>
-          Manage your personal information and application preferences.
+          Manage your personal information, language and appearance preferences.
         </CardDescription>
       </CardHeader>
       <form action={formAction}>
@@ -163,33 +163,18 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
              </div>
           </div>
 
-          <div className="border-t pt-6 space-y-4">
+          <div className="border-t pt-6 space-y-3">
             <h3 className="text-lg font-medium">Notifications</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="notificationDaily" className="flex flex-col space-y-1">
-                  <span>Daily Reminders</span>
-                  <span className="font-normal text-xs text-muted-foreground">Receive daily reminders to maintain your streak.</span>
-                </Label>
-                <Switch 
-                    id="notificationDaily" 
-                    name="notificationDaily" 
-                    defaultChecked={user.settings?.notificationDaily ?? true} 
-                />
-              </div>
-
-              <div className="flex items-center justify-between space-x-2">
-                <Label htmlFor="notificationWeekly" className="flex flex-col space-y-1">
-                  <span>Weekly Report</span>
-                  <span className="font-normal text-xs text-muted-foreground">Receive a summary of your weekly progress.</span>
-                </Label>
-                <Switch 
-                    id="notificationWeekly" 
-                    name="notificationWeekly" 
-                    defaultChecked={user.settings?.notificationWeekly ?? true} 
-                />
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Notification preferences now use the dedicated settings matrix so
+              this profile dialog no longer edits legacy bridge fields.
+            </p>
+            <Link
+              href="/dashboard/settings?tab=notifications"
+              className="inline-flex text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Open notification settings
+            </Link>
           </div>
 
         </CardContent>

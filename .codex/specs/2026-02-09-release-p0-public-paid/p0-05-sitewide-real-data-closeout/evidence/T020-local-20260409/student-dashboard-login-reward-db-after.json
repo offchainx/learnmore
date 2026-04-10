@@ -1,0 +1,62 @@
+{
+  "capturedAt": "2026-04-09T14:53:06.454Z",
+  "user": {
+    "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+    "email": "student_ui_test@learnmore.com",
+    "xp": 50,
+    "streak": 0,
+    "totalStudyTime": 0
+  },
+  "tasks": [
+    {
+      "id": "90a6fd1e-9f92-4071-aeb2-af804ce2cf25",
+      "type": "LOGIN",
+      "title": "每日登录",
+      "currentCount": 1,
+      "targetCount": 1,
+      "isClaimed": true,
+      "xpReward": 50,
+      "date": "2026-04-08T00:00:00.000Z"
+    },
+    {
+      "id": "6ed584b9-b939-4426-8f7f-848bba29ecdc",
+      "type": "COMPLETE_LESSON",
+      "title": "完成 1 节课程",
+      "currentCount": 0,
+      "targetCount": 1,
+      "isClaimed": false,
+      "xpReward": 100,
+      "date": "2026-04-08T00:00:00.000Z"
+    },
+    {
+      "id": "aaddb86b-b7a3-4856-9217-a09c88b6acbc",
+      "type": "QUIZ_SCORE",
+      "title": "完成 1 次测验",
+      "currentCount": 0,
+      "targetCount": 1,
+      "isClaimed": false,
+      "xpReward": 80,
+      "date": "2026-04-08T00:00:00.000Z"
+    },
+    {
+      "id": "f7cf8d23-8c47-490f-a141-cdbdafd7eef1",
+      "type": "ONBOARDING_PROFILE",
+      "title": "完善个人资料",
+      "currentCount": 0,
+      "targetCount": 1,
+      "isClaimed": false,
+      "xpReward": 60,
+      "date": "2026-04-08T00:00:00.000Z"
+    },
+    {
+      "id": "40aab8f5-8020-4524-be97-f8b13de0490a",
+      "type": "ONBOARDING_GOALS",
+      "title": "设置学习目标",
+      "currentCount": 0,
+      "targetCount": 1,
+      "isClaimed": false,
+      "xpReward": 60,
+      "date": "2026-04-08T00:00:00.000Z"
+    }
+  ]
+}

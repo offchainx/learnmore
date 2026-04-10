@@ -3,6 +3,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Button } from '@/components/ui/button';
 import { Quote, Play, Star, TrendingUp, Heart, Sparkles, ArrowRight } from 'lucide-react';
 import { useApp } from '@/providers';
@@ -62,7 +64,6 @@ const SuccessStoriesPage: React.FC = () => {
           title: "Write Your Own Success Story",
           btn: "Start Your Journey"
       },
-      footer: "© 2025 LearnMore Edu. All rights reserved."
     },
     zh: {
       hero: {
@@ -109,7 +110,6 @@ const SuccessStoriesPage: React.FC = () => {
           title: "书写你自己的成功故事",
           btn: "开启学习之旅"
       },
-      footer: "© 2025 LearnMore Edu. 保留所有权利。"
     }
   };
 
@@ -295,11 +295,7 @@ const SuccessStoriesPage: React.FC = () => {
 
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>{currentT.footer}</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale={resolveMarketingLocale(lang)} />
     </div>
   );
 };

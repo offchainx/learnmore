@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter'
 import { Navbar } from '@/components/layout/navbar';
+import { marketingSiteConfig } from '@/lib/marketing/site-shell'
 
 export const metadata: Metadata = {
   title: 'Refund Policy | LearnMore',
@@ -49,21 +51,17 @@ export default function RefundPage() {
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">4. Refund Process</h2>
           <p>
-            To request a refund, please contact our support team at <span className="text-blue-400">support@learnmore.com</span> with your account details and reason for the request. Once approved, the refund will be processed to your original method of payment within 5-10 business days.
+            To request a refund, please contact our support team at <span className="text-blue-400">{marketingSiteConfig.supportEmail}</span> with your account details and reason for the request. Once approved, the refund will be processed to your original method of payment within 5-10 business days.
           </p>
 
           <h2 className="text-2xl font-semibold text-white mt-8 mb-4">5. Contact Us</h2>
           <p>
-            If you have any questions about our Refund Policy, please contact us via our support center or email us at support@learnmore.com.
+            If you have any questions about our Refund Policy, please contact us via our support center or email us at {marketingSiteConfig.supportEmail}.
           </p>
         </div>
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>© 2026 LearnMore Edu. All rights reserved.</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale="en" />
     </div>
   );
 }

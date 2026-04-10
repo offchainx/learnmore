@@ -214,8 +214,12 @@ export async function awardBadgeIfEligible(
     })
   })
 
-  revalidateTag(`achievement-overview:${userId}`, 'quick')
-  revalidateTag(`user-badges:${userId}`, 'quick')
+  try {
+    revalidateTag(`achievement-overview:${userId}`, 'quick')
+    revalidateTag(`user-badges:${userId}`, 'quick')
+  } catch (error) {
+    console.warn('[Achievements] Cache invalidation skipped outside request context:', error)
+  }
 
   return { awardedCodes: newBadges.map((badge) => badge.code) }
 }

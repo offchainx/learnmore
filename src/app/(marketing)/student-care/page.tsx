@@ -3,13 +3,14 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingFullFooter } from '@/components/marketing/MarketingFullFooter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LabeledInput as Input } from '@/components/ui/labeled-input';
 import { 
   Heart, HandHeart, Globe, GraduationCap, 
-  Users, School, Share2, 
-  Phone, Mail, MapPin, BookOpen
+  Users, School
 } from 'lucide-react';
 import { useApp } from '@/providers';
 
@@ -226,59 +227,20 @@ const StudentCarePage: React.FC = () => {
 
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 pt-20 pb-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 grid grid-cols-2 gap-8 tablet:grid-cols-4 desktop:grid-cols-5">
-            <div className="col-span-2 desktop:col-span-2">
-               <div className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><BookOpen className="w-4 h-4 text-white" /></div>
-                  <span className="text-xl font-bold text-white">LearnMore</span>
-               </div>
-               <p className="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
-                  Empowering the next generation of learners with AI-driven insights and adaptive pathways.
-               </p>
-               <div className="flex gap-4">
-                  <div className="w-8 h-8 rounded bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"><Share2 className="w-4 h-4" /></div>
-               </div>
-            </div>
-            
-            <div>
-               <h4 className="font-bold text-white mb-6">{currentT.footer.product}</h4>
-               <ul className="space-y-4 text-sm text-slate-400">
-                  <li><button onClick={() => router.push('/how-it-works')} className="hover:text-blue-400 transition-colors text-left">{currentT.footer.features}</button></li>
-                  <li><button onClick={() => router.push('/pricing')} className="hover:text-blue-400 transition-colors text-left">{currentT.footer.pricing}</button></li>
-                  <li><button onClick={() => router.push('/success-stories')} className="hover:text-blue-400 transition-colors text-left">{currentT.footer.stories}</button></li>
-               </ul>
-            </div>
-
-            <div>
-               <h4 className="font-bold text-white mb-6">{currentT.footer.resources}</h4>
-               <ul className="space-y-4 text-sm text-slate-400">
-                  <li><button onClick={() => router.push('/blog')} className="hover:text-blue-400 transition-colors text-left">{currentT.footer.blog}</button></li>
-                  <li><button onClick={() => router.push('/study-guides')} className="hover:text-blue-400 transition-colors text-left">{currentT.footer.guides}</button></li>
-                  <li><button onClick={() => router.push('/student-care')} className="hover:text-blue-400 transition-colors text-left">{currentT.footer.care}</button></li>
-               </ul>
-            </div>
-
-            <div>
-               <h4 className="font-bold text-white mb-6">{currentT.footer.contact}</h4>
-               <ul className="space-y-4 text-sm text-slate-400">
-                  <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +1 (555) 123-4567</li>
-                  <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> support@learnmore.ai</li>
-                  <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> San Francisco, CA</li>
-               </ul>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-900 pt-8 text-sm text-slate-600 tablet:flex-row">
-             <div>{currentT.footer.rights}</div>
-             <div className="flex gap-6">
-                <a href="#" className="hover:text-slate-400">Privacy Policy</a>
-                <a href="#" className="hover:text-slate-400">Terms of Service</a>
-             </div>
-          </div>
-        </div>
-      </footer>
+      <MarketingFullFooter
+        locale={resolveMarketingLocale(lang)}
+        labels={{
+          product: currentT.footer.product,
+          resources: currentT.footer.resources,
+          contact: currentT.footer.contact,
+          features: currentT.footer.features,
+          pricing: currentT.footer.pricing,
+          stories: currentT.footer.stories,
+          blog: currentT.footer.blog,
+          guides: currentT.footer.guides,
+          care: currentT.footer.care,
+        }}
+      />
     </div>
   );
 };

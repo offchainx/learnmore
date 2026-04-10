@@ -20,6 +20,10 @@ import {
 } from '@/lib/referrals/attribution'
 import { invalidateReferralReadViews } from '@/lib/referrals/cache'
 import { logPerf } from '@/lib/perf-log'
+import {
+  DEFAULT_POST_LOGIN_REDIRECT,
+  resolvePostLoginRedirectValue,
+} from '@/lib/auth/redirects'
 
 function isPrismaConnectivityError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
@@ -210,8 +214,6 @@ const loginSchema = z.object({
   password: z.string().min(1, '请输入密码'),
 })
 
-const DEFAULT_POST_LOGIN_REDIRECT = '/dashboard'
-
 export type AuthFormState = {
   error?: string
 }
@@ -264,16 +266,16 @@ function getUtmDataFromAuthMetadata(metadata: unknown): UTMData {
 
 function resolvePostLoginRedirect(rawValue: FormDataEntryValue | null): string {
   if (typeof rawValue !== 'string') return DEFAULT_POST_LOGIN_REDIRECT
+  return resolvePostLoginRedirectValue(rawValue)
+}
 
-  const redirectTo = rawValue.trim()
-  if (!redirectTo) return DEFAULT_POST_LOGIN_REDIRECT
-  if (!redirectTo.startsWith('/')) return DEFAULT_POST_LOGIN_REDIRECT
-  if (redirectTo.startsWith('//')) return DEFAULT_POST_LOGIN_REDIRECT
-  if (redirectTo.startsWith('/login') || redirectTo.startsWith('/register')) {
-    return DEFAULT_POST_LOGIN_REDIRECT
-  }
+export async function getAuthenticatedAuthPageRedirectTarget(
+  rawRedirectTo?: string | null
+): Promise<string | null> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return null
 
-  return redirectTo
+  return resolvePostLoginRedirectValue(rawRedirectTo)
 }
 
 export async function signupAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {

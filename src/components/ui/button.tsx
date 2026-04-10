@@ -67,9 +67,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
     ) => {
-    const Comp = asChild ? Slot : 'button'
+    const canUseAsChild =
+      asChild && React.isValidElement(children) && React.Children.count(children) === 1
+    const Comp = canUseAsChild ? Slot : 'button'
     const isDisabled = disabled || isLoading
-    const content = asChild ? children : isLoading ? (loadingText ?? children) : children
+    const content = canUseAsChild ? children : isLoading ? (loadingText ?? children) : children
     return (
       <Comp
         aria-busy={isLoading || undefined}
@@ -77,14 +79,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           buttonVariants({ variant, size, className }),
           fullWidth && 'w-full',
           isLoading && 'cursor-wait',
-          asChild && isLoading && 'pointer-events-none opacity-70'
+          canUseAsChild && isLoading && 'pointer-events-none opacity-70'
         )}
         data-loading={isLoading ? 'true' : undefined}
-        disabled={!asChild ? isDisabled : undefined}
+        disabled={!canUseAsChild ? isDisabled : undefined}
         ref={ref}
         {...props}
       >
-        {!asChild && isLoading ? (
+        {!canUseAsChild && isLoading ? (
           loadingIcon ?? <Loader2 className="animate-spin" aria-hidden="true" />
         ) : null}
         {content}

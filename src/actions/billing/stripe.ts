@@ -337,6 +337,15 @@ export async function cancelSubscriptionAction(): Promise<CancelSubscriptionResu
     };
   }
 
+  if (user.cancelAtPeriodEnd) {
+    return {
+      ok: true,
+      code: 'ALREADY_SCHEDULED',
+      message: '已设置到期自动取消',
+      cancelAt: user.subscriptionEnd?.toISOString?.() ?? null,
+    };
+  }
+
   try {
     const updated = await stripe.subscriptions.update(user.stripeSubscriptionId, {
       cancel_at_period_end: true,
@@ -346,14 +355,32 @@ export async function cancelSubscriptionAction(): Promise<CancelSubscriptionResu
       ? new Date(updated.items.data[0].current_period_end * 1000)
       : null;
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        cancelAtPeriodEnd: true,
-        subscriptionStatus: 'CANCEL_AT_PERIOD_END',
-        ...(periodEnd ? { subscriptionEnd: periodEnd } : {}),
-      },
-    });
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          cancelAtPeriodEnd: true,
+          subscriptionStatus: 'CANCEL_AT_PERIOD_END',
+          ...(periodEnd ? { subscriptionEnd: periodEnd } : {}),
+        },
+      });
+    } catch (dbError) {
+      console.error('[Stripe] cancel subscription database update failed', dbError);
+
+      try {
+        await stripe.subscriptions.update(user.stripeSubscriptionId, {
+          cancel_at_period_end: false,
+        });
+      } catch (rollbackError) {
+        console.error('[Stripe] cancel subscription rollback failed', rollbackError);
+      }
+
+      return {
+        ok: false,
+        code: 'CANCEL_SYNC_FAILED',
+        message: '取消订阅状态同步失败，请稍后重试',
+      };
+    }
 
     revalidatePath('/dashboard/settings');
     revalidatePath('/dashboard');
