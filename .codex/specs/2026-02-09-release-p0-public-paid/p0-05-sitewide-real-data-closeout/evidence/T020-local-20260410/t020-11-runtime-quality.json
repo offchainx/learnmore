@@ -1,0 +1,347 @@
+{
+  "at": "2026-04-10T03:37:59.816Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "console": [
+    {
+      "scope": "public",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "location": {
+        "url": "http://127.0.0.1:3000/does-not-exist-for-runtime-check",
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "pageerrors": [],
+  "requestfailed": [],
+  "pages": [
+    {
+      "url": "http://127.0.0.1:3000/",
+      "title": "LearnMore AI | Your Personal AI Tutor for Middle School",
+      "heading": "不仅仅是刷题，更是你的 AI 私人导师。",
+      "snippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n2025 新课标已更新\n不仅仅是刷题，\n更是你的 AI 私人导师。\n\n基于 AI 的自适应学习，让每一分钟的学习都转化为实实在在的进步。\n\n获取免费诊断报告\n观看演示\n100\n活跃学员\n62\n累计刷题\nConcept Mastered\nQuadratic Formula\n",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/",
+      "elapsedMs": 1725
+    },
+    {
+      "url": "http://127.0.0.1:3000/pricing",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "选择你的方案",
+      "snippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n选择你的方案\n\n为你的学习方式量身定制，轻松取得进步。\n\n月付\n年付 (省 10%)\n\n应用优惠券\n\n在结账前输入优惠券码。有效优惠券会立即更新下方价格。\n\n体验版 (Starter)\n\n尝试核心功能。社区共建，一起成长。\n\n永久免费\n基础练习（课本难度）\n仅参考答案\n社",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/pricing",
+      "elapsedMs": 1614
+    },
+    {
+      "url": "http://127.0.0.1:3000/blog",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "动态资讯",
+      "snippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n动态资讯\n\n来自 LearnMore 团队的最新更新、学习技巧和技术洞察。\n\n精选故事\nLEARNING TIPS\n10 Effective Study Habits for 2025\n\nBoost your productivity with these proven ",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/blog",
+      "elapsedMs": 1833
+    },
+    {
+      "url": "http://127.0.0.1:3000/contact",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "Contact Us",
+      "snippet": "LearnMore Pro\nHow It Works\nSubjects\nPricing\nAbout Us\nLog in\nStart Learning\nContact Us\n\nHave questions about our curriculum? Need technical support? We're here to help you on your l",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/contact",
+      "elapsedMs": 1469
+    },
+    {
+      "url": "http://127.0.0.1:3000/help",
+      "title": "Help Center | LearnMore | LearnMore",
+      "heading": "我们可以如何帮助您？",
+      "snippet": "LearnMore Pro\nHow It Works\nSubjects\nPricing\nAbout Us\nLog in\nStart Learning\n我们可以如何帮助您？\n常见问题\nHow do I start a mock exam?\nCan I use LearnMore on my phone?\nWhat happens if I encounter ",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/help",
+      "elapsedMs": 1425
+    },
+    {
+      "url": "http://127.0.0.1:3000/subjects",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "一个平台，伴随每一个里程碑。",
+      "snippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n一个平台，伴随每一个里程碑。\n\n你的学习数据伴你随行。从初一到大学，我们始终相伴。\n\n小学\n初中 (UEC 统考)\nCURRENT STAGE\n高中 / IGCSE / SPM\n大学预科 / 大学\n当前核心：初中 (UEC 统考)\nUEC 课标对齐\n华文\n试听课程\nUEC",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/subjects",
+      "elapsedMs": 1403
+    },
+    {
+      "url": "http://127.0.0.1:3000/login",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "Back to Home\n欢迎回来\n\n登录您的 LearnMore 账户\n\n邮箱\n密码\n忘记密码?\n登录\n还没有账号? 立即注册\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our tra",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/login",
+      "elapsedMs": 31002
+    },
+    {
+      "url": "http://127.0.0.1:3000/does-not-exist-for-runtime-check",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "404",
+      "snippet": "404\nThis page could not be found.",
+      "has404": true,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/does-not-exist-for-runtime-check",
+      "elapsedMs": 1447
+    },
+    {
+      "kind": "login",
+      "role": "student",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.1h\n本周期累计投入\n完成题数\n14\n本周期作答总量\n正确率\n",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.1h\n本周期累计投入\n完成题数\n14\n本周期作答总量\n正确率\n",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard",
+      "elapsedMs": 915
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/settings",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n设置\nPreference Console\n\n把个人资料、AI 配置、通知、账户安全与订阅管理放在同一张工作台里，减少跳转和重复操作。\n\n账户概览\nui_student\nstudent_",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/settings",
+      "elapsedMs": 31784
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/settings?tab=notifications",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n设置\nPreference Console\n\n把个人资料、AI 配置、通知、账户安全与订阅管理放在同一张工作台里，减少跳转和重复操作。\n\n账户概览\nui_student\nstudent_",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/settings?tab=notifications",
+      "elapsedMs": 31264
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/practice",
+      "title": "Practice - LearnMore",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n练习中心\nPractice\n\n先从三种主要练习模式里选一个开始，再往下查看章节地图、历年真题和分析结果。\n\n选择科目\n中文\n马来西亚文\n英文\n数学\n科学\n历史\n地理\n其他\n三种主要练习模",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/practice",
+      "elapsedMs": 31861
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/leaderboard",
+      "title": "Leaderboard - Learn More",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n排行榜\nCompetitive Ladder\n\n查看当前段位、排名、追赶目标与下一步行动，不重复展示 sidebar 的 XP 进度。\n\n全站 · 周榜\n刷新榜单\n当前段位\n王者\n当前第",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/leaderboard",
+      "elapsedMs": 32740
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/achievements",
+      "title": "Achievements - LearnMore",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n成就中心\nAchievement Vault\n\n查看 ui_student 的成长记录、徽章解锁进度与下一步可冲刺的目标。\n\nU\nui_student\n\n成就完成度 25% · 已解锁 ",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/achievements",
+      "elapsedMs": 31649
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/community",
+      "title": "Community - LearnMore",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n学员社区\nCommunity Hub\n\n连接、分享、共同进步\n\n发布帖子\n所有\n已关注\n按日期查看\n排序方式\n最近回复\n最近发帖\n最多评论\nAnonymous\n提问\n板块：中文\n•\n1 ",
+      "has404": false,
+      "has403": true,
+      "hasLoading": false,
+      "entry": "/dashboard/community",
+      "elapsedMs": 32317
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/community/new",
+      "title": "New Post - LearnMore",
+      "heading": "发帖子",
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n发帖子\n\n按论坛发布结构整理标题、板块、标签和正文，方便社区快速浏览和检索。\n\n帖子类型、板块、标签、可见性、正文、附件和提及用户都会真实提交。\n帖子类型\n选择帖子类型，帮助社区正确展示",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/community/new",
+      "elapsedMs": 1778
+    },
+    {
+      "url": "http://127.0.0.1:3000/dashboard/practice/smart-drill?subjectId=72844ae3-6f0d-4cfd-8add-70de535aa316&preview=mock",
+      "title": "Smart Drill | LearnMore",
+      "heading": "Smart Drill 视觉预览题组",
+      "snippet": "SMART DRILL MOCK PREVIEW\nSmart Drill 视觉预览题组\n\n当前展示的是本地 mock 题组，用来预览 Smart Drill 的启动页、做题页和结果页效果，不会写入正式训练记录。\n\nQUESTIONS\n5\nESTIMATE\n6 min\nFOCUS\nWarm-up intensity\nWHY THIS PACK\n覆盖单选、多选、",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/practice/smart-drill?subjectId=72844ae3-6f0d-4cfd-8add-70de535aa316&preview=mock",
+      "elapsedMs": 1160
+    },
+    {
+      "kind": "reload",
+      "role": "student",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n100 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.1h\n本周期累计投入\n完成题数\n14\n本周期作答总量\n正确率\n",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false
+    },
+    {
+      "kind": "login",
+      "role": "admin",
+      "url": "http://127.0.0.1:3000/admin",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n管理总览\nCommand Center\n\n聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。\n\n今日视角\n管理概览\n\n保留后台",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false
+    },
+    {
+      "url": "http://127.0.0.1:3000/admin",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n管理总览\nCommand Center\n\n聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。\n\n今日视角\n管理概览\n\n保留后台",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/admin",
+      "elapsedMs": 30926
+    },
+    {
+      "url": "http://127.0.0.1:3000/admin/feedback",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n反馈中心\nInbox Console\n\n集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作",
+      "has404": true,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/admin/feedback",
+      "elapsedMs": 33550
+    },
+    {
+      "url": "http://127.0.0.1:3000/admin/content/import",
+      "title": "批量导入 - 内容管理",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n批量导入\nImport Pipeline v1.0\n\n统一管理 PDF、图像与网页抓取导入任务。\n\n刷新\n",
+      "has404": false,
+      "has403": true,
+      "hasLoading": false,
+      "entry": "/admin/content/import",
+      "elapsedMs": 33505
+    },
+    {
+      "url": "http://127.0.0.1:3000/admin/content/review",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n内容管理\nReview Console\n\n审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。\n",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/admin/content/review",
+      "elapsedMs": 33542
+    },
+    {
+      "url": "http://127.0.0.1:3000/admin/users",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "用户管理User Directory",
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n用户管理\nUser Directory\n\n集中查看用户状态、订阅等级、最近活跃与高风险动作，保持筛选、分页与快捷",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/admin/users",
+      "elapsedMs": 3466
+    },
+    {
+      "url": "http://127.0.0.1:3000/admin/rewards",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n管理端 / 奖励中心\n奖励中心\nAdmin Control\n操作日志\n奖励规则\n新增动作\n任务类型\n动作 / 规则\nXP\n上限\n启停\n审计\n操",
+      "has404": false,
+      "has403": false,
+      "hasLoading": true,
+      "entry": "/admin/rewards",
+      "elapsedMs": 33020
+    }
+  ],
+  "mobilePages": [
+    {
+      "url": "http://127.0.0.1:3000/pricing",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "选择你的方案",
+      "snippet": "LearnMore Pro\n选择你的方案\n\n为你的学习方式量身定制，轻松取得进步。\n\n月付\n年付 (省 10%)\n\n应用优惠券\n\n在结账前输入优惠券码。有效优惠券会立即更新下方价格。\n\n体验版 (Starter)\n\n尝试核心功能。社区共建，一起成长。\n\n永久免费\n基础练习（课本难度）\n仅参考答案\n社区浏览（仅读）\n社区数据贡献者\n立即开始\n自学版 (Stan",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/pricing",
+      "elapsedMs": 1336
+    },
+    {
+      "url": "http://127.0.0.1:3000/login?redirectTo=%2Fdashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore Pro\nBack to Home\n欢迎回来\n\n登录您的 LearnMore 账户\n\n邮箱\n密码\n忘记密码?\n登录\n还没有账号? 立即注册\n仪表盘\n课程学习\n练习中心\n学员社区\n设置\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve perso",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard",
+      "elapsedMs": 31316
+    },
+    {
+      "url": "http://127.0.0.1:3000/login?redirectTo=%2Fdashboard%2Fsettings%3Ftab%3Dnotifications",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "snippet": "LearnMore Pro\nBack to Home\n欢迎回来\n\n登录您的 LearnMore 账户\n\n邮箱\n密码\n忘记密码?\n登录\n还没有账号? 立即注册\n仪表盘\n课程学习\n练习中心\n学员社区\n设置\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve perso",
+      "has404": false,
+      "has403": false,
+      "hasLoading": false,
+      "entry": "/dashboard/settings?tab=notifications",
+      "elapsedMs": 31355
+    }
+  ],
+  "summary": {
+    "consoleErrors": 1,
+    "consoleWarnings": 0,
+    "pageErrors": 0,
+    "requestFailures": 0
+  }
+}

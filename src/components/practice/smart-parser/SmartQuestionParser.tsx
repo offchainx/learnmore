@@ -29,8 +29,7 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
                    file.name.toLowerCase().endsWith('.heif');
 
     if (isHEIC) {
-      console.log('⚠️ HEIC 格式图片，跳过压缩（浏览器 Canvas 不支持）');
-      // 对于 HEIC，不进行压缩，直接返回占位符
+      // 对于 HEIC，不进行压缩，直接走上层回退逻辑。
       throw new Error('HEIC format - skip compression');
     }
 
@@ -60,7 +59,6 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
 
             // 转换为 JPEG 格式，质量 0.85 (平衡清晰度和大小)
             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-            console.log(`✅ 图片压缩完成: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedBase64.length / 1024 / 1024).toFixed(2)}MB`);
             resolve(compressedBase64);
           } catch (err) {
             reject(err);
@@ -89,9 +87,7 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
       let previewData: string;
       try {
         previewData = await compressImageForPreview(file);
-        console.log('✅ 图片压缩成功，用于预览');
       } catch (compressError) {
-        console.warn('⚠️ 图片压缩失败，使用原始文件预览:', compressError);
         // Fallback: 如果压缩失败，直接读取原始 Base64
         previewData = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -106,15 +102,7 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('📤 [前端] 发送解析请求...', {
-        fileName: file.name,
-        fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-        fileType: file.type,
-      });
-
       const result = await parseQuestionImage(formData);
-
-      console.log('📥 [前端] 收到后端响应:', result);
 
       if (!result.success) {
         const errorMsg = result.error || "Failed to parse image";
@@ -125,13 +113,6 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
       if (!result.data || result.data.length === 0) {
         console.error('❌ 未识别到题目');
         throw new Error("No questions found in the image. Please try a clearer photo.");
-      }
-
-      console.log(`✅ 解析成功！识别到 ${result.data.length} 道题目`);
-
-      // 🔍 调试：打印第一道题的原始数据
-      if (result.data.length > 0) {
-        console.log('🔍 [调试] 第一道题的原始数据:', JSON.stringify(result.data[0], null, 2));
       }
 
       // Map Server Action result to UI Type (add temporary IDs)
@@ -148,24 +129,8 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
           createdAt: Date.now() + idx
         };
 
-        // 🔍 调试：检查每道题的字段
-        if (idx === 0) {
-          console.log('🔍 [调试] 映射后的第一道题:', {
-            hasContent: !!mapped.content,
-            hasType: !!mapped.type,
-            hasOptions: !!mapped.options,
-            hasAnswer: !!mapped.answer,
-            hasExplanation: !!mapped.explanation,
-            contentLength: mapped.content?.length || 0,
-            optionsKeys: Object.keys(mapped.options || {}),
-          });
-        }
-
         return mapped;
       });
-
-      console.log('🔍 [调试] mappedData 数组长度:', mappedData.length);
-      console.log('🔍 [调试] 完整 mappedData:', mappedData);
 
       setParsedQuestions(mappedData);
       setCurrentIndex(0);
@@ -194,8 +159,6 @@ export const SmartQuestionParser: React.FC<SmartQuestionParserProps> = ({ onSave
   const handleSaveCurrent = async (data: ParsedQuestion) => {
     try {
       await onSave(data);
-
-      console.log('✅ [前端] 题目保存成功，剩余', parsedQuestions.length - 1, '道题目');
 
       // If there are more questions, remove current and show next
       const remaining = parsedQuestions.filter((_, idx) => idx !== currentIndex);

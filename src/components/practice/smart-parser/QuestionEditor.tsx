@@ -25,8 +25,6 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
 }) => {
   const [formData, setFormData] = useState<ParsedQuestion>(initialData);
   const [viewMode, setViewMode] = useState<'EDIT' | 'PREVIEW'>('EDIT');
-  // Raw view toggle reserved for future use
-  void useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -111,7 +109,6 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                   onLoad={() => {
                     setImageLoaded(true);
                     setImageError(null);
-                    console.log('✅ 图片加载成功');
                   }}
                   onError={(e) => {
                     setImageError('图片渲染错误（可能是 HEIC 格式）');
@@ -124,17 +121,6 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                   }}
                 />
               </div>
-
-              {/* 调试信息 */}
-              <details className="text-xs bg-slate-800 text-green-400 p-2 rounded font-mono">
-                <summary className="cursor-pointer hover:text-green-300">调试信息 (Debug Info)</summary>
-                <div className="mt-2 space-y-1 text-[10px]">
-                  <div>格式: {imagePreview.substring(0, 30)}...</div>
-                  <div>长度: {imagePreview.length.toLocaleString()} chars</div>
-                  <div>大小: {(imagePreview.length / 1024 / 1024).toFixed(2)} MB</div>
-                  <div>状态: {imageLoaded ? '✓ 已渲染' : imageError ? '✗ 失败' : '⏳ 加载中'}</div>
-                </div>
-              </details>
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">

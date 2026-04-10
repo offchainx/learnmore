@@ -209,15 +209,35 @@ export const DashboardHome = ({
   )
   const [overviewData, setOverviewData] = useState<{
     overviewByWindow: DashboardData['overviewByWindow']
-  } | null>(null)
+  } | null>(
+    initialData
+      ? {
+          overviewByWindow: initialData.overviewByWindow,
+        }
+      : null
+  )
   const [activityData, setActivityData] = useState<{
     recentPractice: DashboardData['recentPractice']
     leaderboard: DashboardData['leaderboard']
-  } | null>(null)
+  } | null>(
+    initialData
+      ? {
+          recentPractice: initialData.recentPractice,
+          leaderboard: initialData.leaderboard,
+        }
+      : null
+  )
   const [subjectData, setSubjectData] = useState<{
     learningPath: DashboardData['learningPath']
     subjectProgress: DashboardData['subjectProgress']
-  } | null>(null)
+  } | null>(
+    initialData
+      ? {
+          learningPath: initialData.learningPath,
+          subjectProgress: initialData.subjectProgress,
+        }
+      : null
+  )
   const [isLoadingOverviewData, setIsLoadingOverviewData] = useState(
     !initialData
   )

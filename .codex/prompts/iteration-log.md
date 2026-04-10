@@ -128,4 +128,6 @@
 
 | 2026-04-10 | merge codex/p0-05-closeout into main | 把 codex/p0-05-closeout 的可合并改动并回 main，同时保留 main 上已完成的 T-020.10 边界收口 | 已完成 merge 冲突处理并通过针对性回归，准备重新提交 merge commit | - | - | - | - |
 
+| 2026-04-10 | T-021 closeout and full workspace snapshot | 整理 T-021.1~T-021.14 的说明性文档，补齐收口段并按顺序重排，同时准备全量提交推送 | 已补齐 T-021 全部子任务的说明性文档与最终报告，重排为 1~14 顺序，所有子任务收口完成并可提交推送 | tasks.md, t-021-preprod-validation-report.md, iteration-log.md | - | 任务总表与最终报告口径统一，顺序对齐，便于追溯 | 提交并推送当前全量改动 |
+
 ## 约束

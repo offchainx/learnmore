@@ -1,0 +1,284 @@
+{
+  "at": "2026-04-10T02:52:30.805Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "samples": {
+    "admin": {
+      "id": "fbee5de2-a253-4fcc-9903-e95306700158",
+      "email": "admin_ui_test@learnmore.com",
+      "role": "ADMIN"
+    },
+    "student": {
+      "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+      "email": "student_ui_test@learnmore.com",
+      "role": "STUDENT"
+    },
+    "feedback": {
+      "id": "4231542f-800e-4b37-b42d-7ffbb7c707ef",
+      "title": "T0218 public smoke 1775787399203",
+      "status": "PENDING"
+    },
+    "question": {
+      "id": "c722ed5c-cc3b-4c6e-8496-f54921d76c8c",
+      "subject": {
+        "id": "0415b5a1-b5df-455e-8868-e745372067ef",
+        "key": "science",
+        "name": "科学",
+        "icon": "Atom",
+        "order": 50
+      }
+    }
+  },
+  "adminUserId": "fbee5de2-a253-4fcc-9903-e95306700158",
+  "studentUserId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+  "feedbackId": "4231542f-800e-4b37-b42d-7ffbb7c707ef",
+  "questionId": "c722ed5c-cc3b-4c6e-8496-f54921d76c8c",
+  "guestResults": [
+    {
+      "name": "admin-guest-admin-route",
+      "url": "http://127.0.0.1:3000/login?redirectTo=%2Fadmin",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/login?redirectTo=%2Fadmin",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "登录"
+      ],
+      "bodySnippet": "Back to Home\n欢迎回来\n\n登录您的 LearnMore 账户\n\n邮箱\n密码\n忘记密码?\n登录\n还没有账号? 立即注册\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", you consent to our use of cookies. Read our Privacy Policy to learn more.\n\nDecline\nAccept"
+    },
+    {
+      "name": "admin-guest-feedback-route",
+      "url": "http://127.0.0.1:3000/login?redirectTo=%2Fadmin%2Ffeedback",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/login?redirectTo=%2Fadmin%2Ffeedback",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "登录"
+      ],
+      "bodySnippet": "Back to Home\n欢迎回来\n\n登录您的 LearnMore 账户\n\n邮箱\n密码\n忘记密码?\n登录\n还没有账号? 立即注册\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", you consent to our use of cookies. Read our Privacy Policy to learn more.\n\nDecline\nAccept"
+    }
+  ],
+  "studentResults": [
+    {
+      "name": "student-session",
+      "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+      "cookieNames": [
+        "sb-kyepcpkzmoxiyrpmwlnu-auth-token"
+      ]
+    },
+    {
+      "name": "admin-student-admin-route",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "detectedMarkers": [],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n50 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.0h\n本周期累计投入\n完成题数\n0\n本周期作答总量\n今日任务\n今日任务\n\n默认展示 3 条，滚动滑鼠滚轮可一次切换下一组任务。\n\n进行中\n0 条\n正在加载今日任务\n学习路径\n\n根据当前答题表现推荐下一步章节练习，可直接深链进入对应章节训练。\n\n0 条\n练习中心\n学科进度\n\n按学科汇总章节练习表现，帮助你快速判断当前最稳和最需要补强的方向。\n\n"
+    },
+    {
+      "name": "admin-student-feedback-route",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "detectedMarkers": [],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n50 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.0h\n本周期累计投入\n完成题数\n0\n本周期作答总量\n今日任务\n今日任务\n\n默认展示 3 条，滚动滑鼠滚轮可一次切换下一组任务。\n\n进行中\n0 条\n正在加载今日任务\n学习路径\n\n根据当前答题表现推荐下一步章节练习，可直接深链进入对应章节训练。\n\n0 条\n练习中心\n学科进度\n\n按学科汇总章节练习表现，帮助你快速判断当前最稳和最需要补强的方向。\n\n"
+    }
+  ],
+  "adminResults": [
+    {
+      "name": "admin-session",
+      "userId": "fbee5de2-a253-4fcc-9903-e95306700158",
+      "cookieNames": [
+        "sb-kyepcpkzmoxiyrpmwlnu-auth-token"
+      ]
+    },
+    {
+      "name": "admin-home",
+      "url": "http://127.0.0.1:3000/admin",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "管理概览",
+        "审计"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n管理总览\nCommand Center\n\n聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。\n\n今日视角\n管理概览\n\n保留后台当下最关键的业务体量、推进效率和处理压力指标。\n\n今日\n本周\n本月\n更新于 10:53\n刷新\n\n活跃用户\n\n8\n\n较上窗口\n+100%\n\n关注今日活跃与近期访问波动。\n\n付费用户\n\n8\n\n较上窗口新增\n0%\n\n观察新增付费与存量转化表现。\n\n课程完成率\n\n0.0%\n\n较上窗口\n0"
+    },
+    {
+      "name": "admin-users",
+      "url": "http://127.0.0.1:3000/admin/users",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/users",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "用户管理User Directory",
+      "detectedMarkers": [
+        "用户管理",
+        "用户",
+        "管理"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n用户管理\nUser Directory\n\n集中查看用户状态、订阅等级、最近活跃与高风险动作，保持筛选、分页与快捷操作在同一工作区内完成。\n\n用户概览\n\n聚焦全站用户结构、付费档位分布与风险账号规模，并补充相对上周期的变化。\n\n近 7 天\n近 30 天\n累计\n更新于 10:54:12\n\n总用户\n\n99\n\n30 Days\n较上窗口新增\n+385.7%\n\n30 Days 新增 68 位，上一周期"
+    },
+    {
+      "name": "admin-user-detail",
+      "url": "http://127.0.0.1:3000/admin/users/463aab4b-44a4-49de-9fce-0079fcf5b978?tab=audit",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/users/463aab4b-44a4-49de-9fce-0079fcf5b978?tab=audit",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "ui_student",
+      "detectedMarkers": [
+        "审计"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n返回列表\nU\nui_student\nActive\nStarter\nstudent_ui_test@learnmore.com\n加入于 2026/4/3\n\n用户ID: 463aab4b-44a4-49de-9fce-0079fcf5b978\n\n封禁用户\n伪装登录\n重置密码\n\n8\n\n答题总数\n\n100%\n\n正确率\n\n0\n\n错题数\n\n1\n\n连续学习天数\n\n概览\n订阅\n学习行为\n增长\n审计\nAll"
+    },
+    {
+      "name": "admin-feedback",
+      "url": "http://127.0.0.1:3000/admin/feedback",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/feedback",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "反馈",
+        "处理",
+        "队列"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n反馈中心\nInbox Console\n\n集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。\n\n反馈概览\n\n以时间范围为基准查看反馈体量、待办压力与处理闭环效率。\n\n刷新\n7 Days\n30 Days\nAll Time\n更新于 10:54:17\n\n总反馈\n\n30\n\n30 Days\n较上窗口新增\n+100%\n\n30 Days 新增 23 条，上一周期 0 条\n\n"
+    },
+    {
+      "name": "admin-feedback-detail",
+      "url": "http://127.0.0.1:3000/admin/feedback/4231542f-800e-4b37-b42d-7ffbb7c707ef",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/feedback/4231542f-800e-4b37-b42d-7ffbb7c707ef",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "T0218 public smoke 1775787399203",
+      "detectedMarkers": [
+        "处理时间线",
+        "处理工作台"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n反馈处理\n待处理\nOTHER\nFEEDBACK / #4231542F\n•\n2026-04-10 10:16\nT0218 public smoke 1775787399203\n刷新\n返回列表\n#4231542F\n4231542f-800e-4b37-b42d-7ffbb7c707ef\n提交者\ncodex.t0218.1775787292195@learnmore.test\n· codex."
+    },
+    {
+      "name": "admin-content-import",
+      "url": "http://127.0.0.1:3000/admin/content/import",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/content/import",
+      "title": "批量导入 - 内容管理",
+      "heading": null,
+      "detectedMarkers": [
+        "批量导入",
+        "导入任务"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n批量导入\nImport Pipeline v1.0\n\n统一管理 PDF、图像与网页抓取导入任务。\n\n刷新\n操作日志\n批量导入\n\n今日新建任务\n\n0\n\n有进行中任务时自动轮询\n\n等待新的导入批次\n\n进行中任务\n\n0\n\n33 个已完成批次\n\n当前队列空闲\n\n解析成功率\n\n89%\n\n建议优先处理失败项\n\n成功 33 / 失败 4\n\n待审核题目\n\n585\n\n建议联动已完成批次处理\n\n审核队列"
+    },
+    {
+      "name": "admin-content-review",
+      "url": "http://127.0.0.1:3000/admin/content/review?tab=pending",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/content/review?tab=pending",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "待审核",
+        "待处理报错"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n内容管理\nReview Console\n\n审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。\n\n刷新\n操作日志\n审核概览\n\n聚焦审核积压、驳回回流、用户报错与当前时间范围内的入库量。\n\n7 Days\n30 Days\nAll Time\n\n待审核\n\n0\n\n7 天范围\n\n当前需要处理\n\n已驳回\n\n0\n\n7 天范围\n\n可回看问题题\n\n待处理报错\n\n0\n\n7 天范围\n\n来自用户纠错"
+    },
+    {
+      "name": "admin-content-review-detail",
+      "url": "http://127.0.0.1:3000/admin/content/review/c722ed5c-cc3b-4c6e-8496-f54921d76c8c?returnTo=%2Fadmin%2Fcontent%2Freview",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/content/review/c722ed5c-cc3b-4c6e-8496-f54921d76c8c?returnTo=%2Fadmin%2Fcontent%2Freview",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "题目 c722ed5c",
+      "detectedMarkers": [
+        "审核",
+        "题目"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n题目 c722ed5c\n题目ID: c722ed5c-cc3b-4c6e-8496-f54921d76c8c\n待审核\n快速通过\n审核工作台视图\n\n可以在“审核视图”中编辑题目，在“用户端预览”中确认这题在前台真实练习页里的表现。\n\n审核视图\n用户端预览\n题目题干\n编辑\n下表显示黄豆和牛奶内若干营养成分的重量，而某成年人对此类营养成分的每日需求量也一并列出： 养分黄豆内的含量（g/10"
+    },
+    {
+      "name": "admin-content-reports-drawer",
+      "url": "http://127.0.0.1:3000/admin/content/reports",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/content/reports",
+      "drawerOpened": false,
+      "drawerError": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /查看详情|View Details|Lihat Butiran/ }).first()\u001b[22m\n",
+      "before": {
+        "url": "http://127.0.0.1:3000/admin/content/reports",
+        "title": "LearnMore - 中学生在线教育平台",
+        "heading": null,
+        "detectedMarkers": [
+          "Report Console",
+          "待处理报错"
+        ],
+        "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n用户报错管理\nReport Console\n\n审核、跟踪并处理学员上报的内容问题。\n\n报错队列\n\n集中处理学员上报问题，快速判断是否需要修题、复审或直接关闭。\n\n7 Days\n30 Days\nAll Time\n\n待处理报错\n\n0\n\n7 Days\n\n待处理与审核中总量\n\n已解决\n\n0\n\n7 Days\n\n当前时间范围内关闭\n\n平均处理时长\n\n0.0小时\n\n7 Days\n\n按已解决报错计算"
+      },
+      "after": {
+        "url": "http://127.0.0.1:3000/admin/content/reports",
+        "title": "LearnMore - 中学生在线教育平台",
+        "heading": null,
+        "detectedMarkers": [],
+        "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n用户报错管理\nReport Console\n\n审核、跟踪并处理学员上报的内容问题。\n\n报错队列\n\n集中处理学员上报问题，快速判断是否需要修题、复审或直接关闭。\n\n7 Days\n30 Days\nAll Time\n\n待处理报错\n\n0\n\n7 Days\n\n待处理与审核中总量\n\n已解决\n\n0\n\n7 Days\n\n当前时间范围内关闭\n\n平均处理时长\n\n0.0小时\n\n7 Days\n\n按已解决报错计算"
+      },
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n用户报错管理\nReport Console\n\n审核、跟踪并处理学员上报的内容问题。\n\n报错队列\n\n集中处理学员上报问题，快速判断是否需要修题、复审或直接关闭。\n\n7 Days\n30 Days\nAll Time\n\n待处理报错\n\n0\n\n7 Days\n\n待处理与审核中总量\n\n已解决\n\n0\n\n7 Days\n\n当前时间范围内关闭\n\n平均处理时长\n\n0.0小时\n\n7 Days\n\n按已解决报错计算"
+    },
+    {
+      "name": "admin-content-statistics-redirect",
+      "url": "http://127.0.0.1:3000/admin/content/review",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/content/review",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "待审核",
+        "待处理报错"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n内容管理\n批量导入\n内容审核/统计\n用户报错\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n内容管理\nReview Console\n\n审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。\n\n刷新\n操作日志\n审核概览\n\n聚焦审核积压、驳回回流、用户报错与当前时间范围内的入库量。\n\n7 Days\n30 Days\nAll Time\n\n待审核\n\n0\n\n7 天范围\n\n当前需要处理\n\n已驳回\n\n0\n\n7 天范围\n\n可回看问题题\n\n待处理报错\n\n0\n\n7 天范围\n\n来自用户纠错"
+    },
+    {
+      "name": "admin-referrals",
+      "url": "http://127.0.0.1:3000/admin/referrals",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/referrals",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "增长工具Growth Console",
+      "detectedMarkers": [
+        "增长",
+        "推荐",
+        "优惠券"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n增长工具\nGrowth Console\n\n在同一工作台内查看推荐关系链路、奖励状态与优惠券 发放/核销情况，减少在多个后台工具间切换。\n\n增长概览\n\n聚焦推荐转化、待发奖励与优惠券 使用情况，并补充相对上周期的变化。\n\n7 Days\n30 Days\nAll Time\n\n总推荐数\n\n2\n\n30 Days\n较上窗口新增\n-100%\n\n当前推荐链路累计记录总数\n\n成功转化\n\n0\n\n30 Days"
+    },
+    {
+      "name": "admin-referrals-vouchers",
+      "url": "http://127.0.0.1:3000/admin/referrals?tab=vouchers",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/referrals?tab=vouchers",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "增长工具Growth Console",
+      "detectedMarkers": [
+        "优惠券"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n增长工具\nGrowth Console\n\n在同一工作台内查看推荐关系链路、奖励状态与优惠券 发放/核销情况，减少在多个后台工具间切换。\n\n增长概览\n\n聚焦推荐转化、待发奖励与优惠券 使用情况，并补充相对上周期的变化。\n\n7 Days\n30 Days\nAll Time\n\n总推荐数\n\n2\n\n30 Days\n较上窗口新增\n-100%\n\n当前推荐链路累计记录总数\n\n成功转化\n\n0\n\n30 Days"
+    },
+    {
+      "name": "admin-vouchers-redirect",
+      "url": "http://127.0.0.1:3000/admin/referrals?tab=vouchers",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/admin/referrals?tab=vouchers",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "增长工具Growth Console",
+      "detectedMarkers": [
+        "优惠券"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n管理\n管理仪表盘\n用户管理\n用户列表\n反馈中心\n增长工具\n内容管理\n奖励中心\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n增长工具\nGrowth Console\n\n在同一工作台内查看推荐关系链路、奖励状态与优惠券 发放/核销情况，减少在多个后台工具间切换。\n\n增长概览\n\n聚焦推荐转化、待发奖励与优惠券 使用情况，并补充相对上周期的变化。\n\n7 Days\n30 Days\nAll Time\n\n总推荐数\n\n2\n\n30 Days\n较上窗口新增\n-100%\n\n当前推荐链路累计记录总数\n\n成功转化\n\n0\n\n30 Days"
+    }
+  ]
+}

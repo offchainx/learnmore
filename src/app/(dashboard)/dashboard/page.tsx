@@ -1,5 +1,6 @@
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
 import { getDashboardProfile } from '@/actions/user/profile';
+import { getDashboardStats } from '@/actions/dashboard';
 import { syncCurrentUserToDatabase } from '@/actions/user/auth';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
@@ -92,5 +93,7 @@ async function DashboardPageContent() {
     redirect('/login');
   }
 
-  return <DashboardClient user={profile} initialData={null} />;
+  const initialData = await getDashboardStats()
+
+  return <DashboardClient user={profile} initialData={initialData} />;
 }
