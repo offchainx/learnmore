@@ -130,4 +130,6 @@
 
 | 2026-04-10 | T-021 closeout and full workspace snapshot | 整理 T-021.1~T-021.14 的说明性文档，补齐收口段并按顺序重排，同时准备全量提交推送 | 已补齐 T-021 全部子任务的说明性文档与最终报告，重排为 1~14 顺序，所有子任务收口完成并可提交推送 | tasks.md, t-021-preprod-validation-report.md, iteration-log.md | - | 任务总表与最终报告口径统一，顺序对齐，便于追溯 | 提交并推送当前全量改动 |
 
+| 2026-04-10 | pricing build error fix and push prep | 修复 /pricing 的 Next.js 16 预渲染 build error，并准备提交推送 | 已将 /pricing 拆成服务端 Suspense 壳 + 客户端实现，解决 `useSearchParams()` 缺少 Suspense boundary 的构建失败，`pnpm build` 已通过，准备提交并推送 | src/app/(marketing)/pricing/page.tsx, src/app/(marketing)/pricing/PricingPageClient.tsx | Vercel build 在 `/pricing` 预渲染阶段因 `useSearchParams()` 触发 CSR bailout 失败 | 后续如再改动 pricing 相关查询参数逻辑，继续保持客户端组件包裹在 Suspense 内 | 本次改动已通过本地生产构建验证 |
+
 ## 约束
