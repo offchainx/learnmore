@@ -24,14 +24,22 @@ export async function updateUserLessonProgress(lessonId: string, progressInSecon
     select: { duration: true },
   });
 
-  if (!lesson || lesson.duration === null) {
-    return { success: false, error: 'Lesson not found or duration not set' };
+  if (!lesson) {
+    return { success: false, error: 'Lesson not found' };
   }
 
-  const progressPercentage = (progressInSeconds / lesson.duration) * 100;
+  const lessonDuration = lesson.duration ?? 0;
+  const hasDuration = lessonDuration > 0;
+  const progressPercentage = hasDuration
+    ? (progressInSeconds / lessonDuration) * 100
+    : progressInSeconds > 0
+      ? 100
+      : 0;
   const clampedProgressPercentage = Math.min(Math.max(progressPercentage, 0), 100);
   const normalizedProgressInSeconds = Math.max(0, Math.round(progressInSeconds));
-  const boundedProgressInSeconds = Math.min(normalizedProgressInSeconds, lesson.duration);
+  const boundedProgressInSeconds = hasDuration
+    ? Math.min(normalizedProgressInSeconds, lessonDuration)
+    : normalizedProgressInSeconds;
 
   try {
     const existingProgress = await prisma.userProgress.findUnique({

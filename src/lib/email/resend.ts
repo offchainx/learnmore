@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
 
-if (!process.env.RESEND_API_KEY) {
+const resendApiKey = process.env.RESEND_API_KEY?.trim();
+
+if (!resendApiKey) {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Missing RESEND_API_KEY environment variable');
   } else {
@@ -8,7 +10,7 @@ if (!process.env.RESEND_API_KEY) {
   }
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 export const FROM_EMAIL = process.env.NEXT_PUBLIC_FROM_EMAIL || 'LearnMore <noreply@learnmore.com>';
 
@@ -21,6 +23,10 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail({ to, subject, react, text, replyTo }: SendEmailOptions) {
+  if (!resend) {
+    return { success: false, error: 'Missing API Key' };
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,

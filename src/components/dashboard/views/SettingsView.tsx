@@ -1,6 +1,7 @@
 'use client'
 
 import React, {
+  useCallback,
   useActionState,
   useEffect,
   useMemo,
@@ -14,6 +15,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/labeled-input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useApp } from '@/providers'
 import type { Lang } from '@/providers/app-provider'
 import { updateProfile } from '@/actions/user/profile'
@@ -235,6 +237,7 @@ type UserProfile = {
   settings?: {
     aiPersonality?: string | null
     difficultyCalibration?: number | null
+    curriculumSystem?: string | null
     language?: string | null
     theme?: string | null
     notificationDaily?: boolean | null
@@ -246,6 +249,35 @@ type UserProfile = {
 
 type SettingsViewProps = {
   user?: UserProfile | null
+}
+
+function getAvatarFallbackLabel(user?: UserProfile | null) {
+  const source =
+    user?.username?.trim() ||
+    user?.handle?.trim() ||
+    user?.email?.trim() ||
+    ''
+  const normalized = source.replace(/^@/, '').trim()
+
+  if (!normalized) {
+    return 'U'
+  }
+
+  return normalized.slice(0, 2).toUpperCase()
+}
+
+function formatCurriculumLabel(curriculumSystem?: string | null) {
+  if (!curriculumSystem) {
+    return null
+  }
+
+  return curriculumSystem
+    .split('_')
+    .filter(Boolean)
+    .map((segment) =>
+      segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+    )
+    .join(' ')
 }
 
 function SectionSubmitButton({
@@ -820,6 +852,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   const [initialNotifPrefs, setInitialNotifPrefs] =
     useState<NotificationPreferenceState>(DEFAULT_NOTIFICATION_PREFS)
   const [isNotifLoading, setIsNotifLoading] = useState(true)
+  const [notificationLoadError, setNotificationLoadError] = useState<
+    string | null
+  >(null)
   const [isNotifSaving, setIsNotifSaving] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
@@ -872,6 +907,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           '查看当前套餐、到期状态和推荐奖励待结算情况，在同一区域完成升级与续费决策。',
         preferenceSaveHint: '保存后同步到当前设备与账号偏好。',
         notificationPending: '有未保存的通知改动。',
+        notificationsLoadFailed: '通知偏好读取失败，请重试。',
+        notificationsLoadHelp:
+          '本次不会用默认值覆盖你已有的通知设置，重试成功后再进行修改。',
+        retryNotifications: '重试加载',
         subscriptionHealthy: '当前按计划续期。',
         savedToAccount: '已同步到当前账号偏好。',
         profileSave: '保存个人资料',
@@ -889,7 +928,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         gradeLabel: '年级',
         emailLabel: '邮箱地址',
         avatarLabel: '头像',
-        avatarHint: '当前先保留头像展示，上传入口后续再接入真实链路。',
+        avatarHint: '头像跟随当前账号资料显示；未设置时会展示昵称缩写。',
         appearance: '外观',
         language: '语言 / Bahasa',
         darkMode: '深色模式',
@@ -911,12 +950,14 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         accountSummary: '账户概览',
         currentPlan: '当前套餐',
         nextCharge: '下次扣款 / 到期时间',
-        freeTier: '免费版长期有效',
+        freeTier: '当前未开通付费订阅',
+        missingRenewalDate: '暂未同步到期时间',
         upgrade: '升级套餐',
         cancelPlan: '到期取消',
         canceling: '提交中...',
         canceledStatus: '已设置到期取消',
         pendingReward: '待结算推荐奖励',
+        curriculumUnset: '尚未设置课程体系',
         notificationChannels: '渠道偏好',
         inApp: '站内',
         email: '邮件',
@@ -946,6 +987,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
           'Simpan dahulu untuk diselaraskan ke peranti ini dan keutamaan akaun.',
         notificationPending:
           'Terdapat perubahan notifikasi yang belum disimpan.',
+        notificationsLoadFailed:
+          'Gagal memuat keutamaan notifikasi. Sila cuba lagi.',
+        notificationsLoadHelp:
+          'Tetapan sedia ada anda tidak akan ditimpa dengan nilai lalai. Cuba semula selepas bacaan berjaya.',
+        retryNotifications: 'Cuba lagi',
         subscriptionHealthy: 'Langganan sedang diperbaharui seperti biasa.',
         savedToAccount: 'Telah diselaraskan ke keutamaan akaun semasa.',
         profileSave: 'Simpan profil',
@@ -964,7 +1010,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         emailLabel: 'Emel',
         avatarLabel: 'Avatar',
         avatarHint:
-          'Paparan avatar dikekalkan dahulu. Muat naik sebenar akan disambung kemudian.',
+          'Avatar mengikut profil akaun semasa; jika tiada, inisial nama akan dipaparkan.',
         appearance: 'Rupa',
         language: 'Bahasa',
         darkMode: 'Mod gelap',
@@ -988,12 +1034,14 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         accountSummary: 'Ringkasan akaun',
         currentPlan: 'Pelan semasa',
         nextCharge: 'Caj seterusnya / tamat tempoh',
-        freeTier: 'Pelan percuma tidak luput',
+        freeTier: 'Tiada langganan berbayar aktif',
+        missingRenewalDate: 'Tarikh tamat tempoh belum tersedia',
         upgrade: 'Naik taraf',
         cancelPlan: 'Batal pada tempoh tamat',
         canceling: 'Menghantar...',
         canceledStatus: 'Sudah ditanda untuk dibatalkan',
         pendingReward: 'Ganjaran rujukan tertunda',
+        curriculumUnset: 'Kurikulum belum ditetapkan',
         notificationChannels: 'Saluran',
         inApp: 'Dalam app',
         email: 'Emel',
@@ -1022,6 +1070,11 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         'Save first to sync this device and your account preference.',
       notificationPending:
         'You have notification changes that are not saved yet.',
+      notificationsLoadFailed:
+        'Failed to load notification preferences. Please try again.',
+      notificationsLoadHelp:
+        'Your existing settings were not replaced with defaults. Retry after the preferences load succeeds.',
+      retryNotifications: 'Retry load',
       subscriptionHealthy: 'Your subscription is renewing as scheduled.',
       savedToAccount: 'Synced to your current account preference.',
       profileSave: 'Save profile',
@@ -1041,7 +1094,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       emailLabel: 'Email',
       avatarLabel: 'Avatar',
       avatarHint:
-        'Avatar display is kept for now. Upload flow can be wired later.',
+        'Avatar follows your current account profile. If none is set, your initials are shown.',
       appearance: 'Appearance',
       language: 'Language',
       darkMode: 'Dark mode',
@@ -1065,12 +1118,14 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
       accountSummary: 'Account summary',
       currentPlan: 'Current plan',
       nextCharge: 'Next charge / end date',
-      freeTier: 'Free tier does not expire',
+      freeTier: 'No paid subscription on record',
+      missingRenewalDate: 'Renewal date not available yet',
       upgrade: 'Upgrade plan',
       cancelPlan: 'Cancel at period end',
       canceling: 'Submitting...',
       canceledStatus: 'Cancel at period end enabled',
       pendingReward: 'Pending referral rewards',
+      curriculumUnset: 'Curriculum not set yet',
       notificationChannels: 'Channels',
       inApp: 'In-app',
       email: 'Email',
@@ -1210,6 +1265,17 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     (total, item) => total + (item.deferredRewardWeeks || 0),
     0
   )
+  const avatarFallbackLabel = getAvatarFallbackLabel(user)
+  const curriculumLabel =
+    formatCurriculumLabel(user?.settings?.curriculumSystem) ||
+    copy.curriculumUnset
+  const subscriptionDateLabel = subscriptionEndDate
+    ? subscriptionEndDate.toLocaleString(
+        lang === 'zh' ? 'zh-CN' : lang === 'ms' ? 'ms-MY' : 'en-US'
+      )
+    : normalizedTier === 'STARTER' || normalizedStatus === 'CANCELED'
+      ? copy.freeTier
+      : copy.missingRenewalDate
   const notifDirty =
     JSON.stringify(notifPrefs) !== JSON.stringify(initialNotifPrefs)
   const railTopOffset = 28
@@ -1260,10 +1326,19 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
     )
   }
 
-  useEffect(() => {
-    const fetchPrefs = async () => {
-      setIsNotifLoading(true)
+  const loadNotificationPreferences = useCallback(async () => {
+    setIsNotifLoading(true)
+    setNotificationLoadError(null)
+    const loadErrorMessage =
+      lang === 'zh'
+        ? '通知偏好读取失败，请重试。'
+        : lang === 'ms'
+          ? 'Gagal memuat keutamaan notifikasi. Sila cuba lagi.'
+          : 'Failed to load notification preferences. Please try again.'
+
+    try {
       const result = await getNotificationPreferences()
+
       if (result.success && result.data) {
         const nextState = {
           inAppSystem: result.data.inAppSystem,
@@ -1277,15 +1352,24 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         }
         setNotifPrefs(nextState)
         setInitialNotifPrefs(nextState)
-      } else {
-        setNotifPrefs(DEFAULT_NOTIFICATION_PREFS)
-        setInitialNotifPrefs(DEFAULT_NOTIFICATION_PREFS)
+        return
       }
+
+      setNotificationLoadError(loadErrorMessage)
+    } catch (error) {
+      console.warn(
+        '[SettingsView] Failed to load notification preferences',
+        error
+      )
+      setNotificationLoadError(loadErrorMessage)
+    } finally {
       setIsNotifLoading(false)
     }
+  }, [lang])
 
-    void fetchPrefs()
-  }, [])
+  useEffect(() => {
+    void loadNotificationPreferences()
+  }, [loadNotificationPreferences])
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current
@@ -1319,6 +1403,18 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   }, [])
 
   useEffect(() => {
+    if (!tabFromQuery || isTabId(tabFromQuery)) {
+      return
+    }
+
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', 'profile')
+    router.replace(`${pathname}?${params.toString()}`, {
+      scroll: false,
+    })
+  }, [pathname, router, searchParams, tabFromQuery])
+
+  useEffect(() => {
     if (!isTabId(tabFromQuery)) return
     const node = resolveScrollTarget(tabFromQuery)
     if (!node) return
@@ -1342,6 +1438,10 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   }
 
   const handleSaveNotificationPreferences = async () => {
+    if (notificationLoadError) {
+      return
+    }
+
     setIsNotifSaving(true)
 
     const result = await updateNotificationPreferences(notifPrefs)
@@ -1644,20 +1744,6 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
               <form action={profileAction} className="space-y-5">
                 <input type="hidden" name="language" value={profileLang} />
                 <input type="hidden" name="theme" value={profileTheme} />
-                <input
-                  type="checkbox"
-                  name="notificationDaily"
-                  checked={notifPrefs.inAppStudy}
-                  readOnly
-                  className="hidden"
-                />
-                <input
-                  type="checkbox"
-                  name="notificationWeekly"
-                  checked={notifPrefs.emailWeekly}
-                  readOnly
-                  className="hidden"
-                />
 
                 {profileState.success ? (
                   <div className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100">
@@ -1679,14 +1765,16 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                     </div>
                     <div className="flex flex-col items-center gap-4 text-center">
                       <div className="relative">
-                        <img
-                          src={
-                            user?.avatar ||
-                            'https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=400&auto=format&fit=crop'
-                          }
-                          alt="Avatar"
-                          className="h-28 w-28 rounded-full border border-borderTone object-cover dark:border-borderTone"
-                        />
+                        <Avatar className="h-28 w-28 border border-borderTone dark:border-borderTone">
+                          <AvatarImage
+                            src={user?.avatar || undefined}
+                            alt={user?.username || user?.email || 'Avatar'}
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="bg-surface-subtle text-xl font-semibold text-text-secondary dark:bg-surface-subtle dark:text-text-secondary">
+                            {avatarFallbackLabel}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="bg-slate-950/18 dark:bg-slate-950/24 absolute inset-0 flex items-center justify-center rounded-full">
                           <Camera className="h-6 w-6 text-white" />
                         </div>
@@ -1964,7 +2052,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                       {copy.curriculumNote}
                     </div>
                     <div className={`${dataBlockClass} text-sm`}>
-                      IGCSE (Cambridge International)
+                      {curriculumLabel}
                     </div>
                     <div className={`mt-3 ${pageSectionDescriptionClass}`}>
                       {t.settings.ai.desc}
@@ -1995,6 +2083,27 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
             >
               {isNotifLoading ? (
                 <NotificationPreferencesSkeleton />
+              ) : notificationLoadError ? (
+                <div className="space-y-4">
+                  <div className="rounded-[28px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-100">
+                    <div className="font-semibold">
+                      {copy.notificationsLoadFailed}
+                    </div>
+                    <div className="mt-1 leading-6">
+                      {copy.notificationsLoadHelp}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 rounded-full px-5 text-sm font-semibold"
+                      onClick={() => void loadNotificationPreferences()}
+                    >
+                      {copy.retryNotifications}
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div className={`${insetCardClassName} overflow-hidden`}>
@@ -2072,7 +2181,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                       type="button"
                       className="h-11 rounded-full px-5 text-sm font-semibold"
                       onClick={handleSaveNotificationPreferences}
-                      disabled={isNotifSaving || !notifDirty}
+                      disabled={
+                        isNotifSaving || !notifDirty || !!notificationLoadError
+                      }
                       isLoading={isNotifSaving}
                       loadingText={copy.notifSaving}
                     >
@@ -2188,15 +2299,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                   <div className={`${insetCardClassName} p-5`}>
                     <div className={pageKickerClass}>{copy.nextCharge}</div>
                     <div className={pageNumericValueClass}>
-                      {subscriptionEndDate
-                        ? subscriptionEndDate.toLocaleString(
-                            lang === 'zh'
-                              ? 'zh-CN'
-                              : lang === 'ms'
-                                ? 'ms-MY'
-                                : 'en-US'
-                          )
-                        : copy.freeTier}
+                      {subscriptionDateLabel}
                     </div>
                     <div className={pageMetaTextClass}>
                       {user?.cancelAtPeriodEnd

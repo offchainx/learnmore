@@ -8,6 +8,27 @@ import { getHandleAvailability } from '@/lib/users/handle-server'
 import { normalizeHandle } from '@/lib/users/handle'
 import { logPerf } from '@/lib/perf-log'
 
+function parseOptionalBooleanField(
+  formData: FormData,
+  key: string
+): boolean | undefined {
+  const rawValue = formData.get(key)
+
+  if (rawValue === null) {
+    return undefined
+  }
+
+  if (rawValue === 'true' || rawValue === 'on') {
+    return true
+  }
+
+  if (rawValue === 'false') {
+    return false
+  }
+
+  return undefined
+}
+
 const profileSchema = z.object({
   username: z.string().min(2, 'Username must be at least 2 characters').optional(),
   handle: z.string().optional(),
@@ -172,8 +193,14 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
   const avatar = formData.get('avatar')
   const language = formData.get('language')
   const theme = formData.get('theme')
-  const notificationDaily = formData.get('notificationDaily') === 'on'
-  const notificationWeekly = formData.get('notificationWeekly') === 'on'
+  const notificationDaily = parseOptionalBooleanField(
+    formData,
+    'notificationDaily'
+  )
+  const notificationWeekly = parseOptionalBooleanField(
+    formData,
+    'notificationWeekly'
+  )
 
   const rawData = {
     username: username && username !== '' ? username : undefined,
@@ -214,6 +241,17 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
       }
     }
 
+    const settingsBridgeData = {
+      ...(data.language ? { language: data.language } : {}),
+      ...(data.theme ? { theme: data.theme } : {}),
+      ...(data.notificationDaily !== undefined
+        ? { notificationDaily: data.notificationDaily }
+        : {}),
+      ...(data.notificationWeekly !== undefined
+        ? { notificationWeekly: data.notificationWeekly }
+        : {}),
+    }
+
     // Transaction to update both tables
     await prisma.$transaction(async (tx) => {
       // 1. Update User
@@ -228,22 +266,16 @@ export async function updateProfile(prevState: ProfileFormState, formData: FormD
       })
 
       // 2. Update Settings
-      await tx.userSettings.upsert({
-        where: { userId: user.id },
-        create: {
-          userId: user.id,
-          language: data.language || 'en',
-          theme: data.theme || 'system',
-          notificationDaily: data.notificationDaily || false,
-          notificationWeekly: data.notificationWeekly || false,
-        },
-        update: {
-          ...(data.language && { language: data.language }),
-          ...(data.theme && { theme: data.theme }),
-          notificationDaily: data.notificationDaily,
-          notificationWeekly: data.notificationWeekly,
-        }
-      })
+      if (Object.keys(settingsBridgeData).length > 0) {
+        await tx.userSettings.upsert({
+          where: { userId: user.id },
+          create: {
+            userId: user.id,
+            ...settingsBridgeData,
+          },
+          update: settingsBridgeData,
+        })
+      }
     })
 
     revalidatePath('/dashboard/settings')

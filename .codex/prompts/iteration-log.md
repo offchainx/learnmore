@@ -126,4 +126,6 @@
 
 | 2026-04-10 | T-020/T-021 closeout snapshot for branch commit | 先收口 T-020.9 字段级 SQL/后台核账，并为 codex/p0-05-closeout 分支提交推送做准备 | 已整理并落档 T-020.9 核账与相关证据，准备重新提交并推送分支 | - | - | - | - |
 
+| 2026-04-10 | merge codex/p0-05-closeout into main | 把 codex/p0-05-closeout 的可合并改动并回 main，同时保留 main 上已完成的 T-020.10 边界收口 | 已完成 merge 冲突处理并通过针对性回归，准备重新提交 merge commit | - | - | - | - |
+
 ## 约束

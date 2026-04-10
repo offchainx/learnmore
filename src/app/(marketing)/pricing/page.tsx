@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input'
 import { Check, X, Gift, Send, Loader2 } from 'lucide-react';
@@ -34,6 +36,142 @@ interface ComparisonSection {
   features: ComparisonRow[];
 }
 
+type CheckoutNoticeTone = 'info' | 'error';
+
+type CheckoutNotice = {
+  tone: CheckoutNoticeTone;
+  title: string;
+  message: string;
+};
+
+function buildCheckoutNotice(
+  lang: 'en' | 'zh',
+  code: string | null,
+  tone: CheckoutNoticeTone
+): CheckoutNotice | null {
+  if (!code) return null;
+
+  const map = {
+    zh: {
+      INVALID_REFERRAL_CODE: {
+        title: '推荐链接无效',
+        message: '这条分享链接里的推荐码格式不正确，请检查后再试。',
+      },
+      REFERRAL_NOT_FOUND: {
+        title: '推荐码不存在',
+        message: '这条分享链接对应的推荐码未找到，请联系分享者确认。',
+      },
+      PAYMENT_CANCELLED: {
+        title: '支付已取消',
+        message: '你可以继续检查推荐码或优惠券，然后重新选择方案。',
+      },
+      REFERRAL_ALREADY_BOUND: {
+        title: '推荐码已绑定',
+        message: '你已经绑定过其他推荐码，当前账号暂不支持修改。',
+      },
+      SELF_REFERRAL: {
+        title: '不能绑定自己的推荐码',
+        message: '请使用别人的推荐码，或者直接继续购买。',
+      },
+      BIND_FAILED: {
+        title: '绑定失败',
+        message: '推荐码绑定暂时失败，请稍后重试。',
+      },
+      PAYMENT_MODE_NOT_READY: {
+        title: '支付方式未就绪',
+        message: '当前仅支持 Stripe 支付，其他方式稍后开放。',
+      },
+      VOUCHER_ALREADY_USED: {
+        title: '优惠码已使用',
+        message: '当前账号已经使用过这个优惠码。',
+      },
+      VOUCHER_EXPIRED: {
+        title: '优惠码已过期',
+        message: '这张优惠码已过期，请更换后重试。',
+      },
+      VOUCHER_EXHAUSTED: {
+        title: '优惠码已用完',
+        message: '这张优惠码已经达到使用上限。',
+      },
+      VOUCHER_NOT_STARTED: {
+        title: '优惠码未生效',
+        message: '这张优惠码尚未到可用时间。',
+      },
+      VOUCHER_NOT_READY: {
+        title: '优惠码暂不可用',
+        message: '这张优惠码尚未配置好 Stripe 折扣，暂时不能使用。',
+      },
+      INVALID_VOUCHER: {
+        title: '优惠码无效',
+        message: '这张优惠码不存在或已失效。',
+      },
+    },
+    en: {
+      INVALID_REFERRAL_CODE: {
+        title: 'Invalid referral link',
+        message: 'The referral code in this link is malformed. Please check and try again.',
+      },
+      REFERRAL_NOT_FOUND: {
+        title: 'Referral code not found',
+        message: 'We could not find the referral code in this link. Please ask the sender to confirm it.',
+      },
+      PAYMENT_CANCELLED: {
+        title: 'Payment cancelled',
+        message: 'You can review the referral code or voucher and try again.',
+      },
+      REFERRAL_ALREADY_BOUND: {
+        title: 'Referral already bound',
+        message: 'This account has already bound another referral code.',
+      },
+      SELF_REFERRAL: {
+        title: 'Self-referral is not allowed',
+        message: 'Please use another person’s referral code or continue without one.',
+      },
+      BIND_FAILED: {
+        title: 'Referral binding failed',
+        message: 'The referral code could not be bound right now. Please retry later.',
+      },
+      PAYMENT_MODE_NOT_READY: {
+        title: 'Payment method not ready',
+        message: 'Only Stripe checkout is enabled right now.',
+      },
+      VOUCHER_ALREADY_USED: {
+        title: 'Voucher already used',
+        message: 'This account has already redeemed the voucher code.',
+      },
+      VOUCHER_EXPIRED: {
+        title: 'Voucher expired',
+        message: 'This voucher code has already expired.',
+      },
+      VOUCHER_EXHAUSTED: {
+        title: 'Voucher exhausted',
+        message: 'This voucher code has reached its redemption limit.',
+      },
+      VOUCHER_NOT_STARTED: {
+        title: 'Voucher not active yet',
+        message: 'This voucher code is not active yet.',
+      },
+      VOUCHER_NOT_READY: {
+        title: 'Voucher not ready',
+        message: 'This voucher is not linked to a Stripe coupon yet.',
+      },
+      INVALID_VOUCHER: {
+        title: 'Invalid voucher',
+        message: 'This voucher code does not exist or is no longer valid.',
+      },
+    },
+  } as const;
+
+  const normalized = map[lang][code as keyof (typeof map)['en']];
+  if (!normalized) return null;
+
+  return {
+    tone,
+    title: normalized.title,
+    message: normalized.message,
+  };
+}
+
 // ─── 单元格渲染组件 ──────────────────────────────────────────
 function CellRenderer({ value }: { value: CellValue }) {
   if (typeof value === 'boolean') {
@@ -63,16 +201,48 @@ function CellRenderer({ value }: { value: CellValue }) {
 // ─────────────────────────────────────────────────────────────
 const PricingPage: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isAnnual, setIsAnnual] = useState(false);
   const { lang, setLang } = useApp();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [voucherCode, setVoucherCode] = useState('')
+  const [checkoutNotice, setCheckoutNotice] = useState<CheckoutNotice | null>(null);
   const voucherAvailability = useVoucherCodeAvailability(voucherCode)
+  const isZh = lang === 'zh';
+  const referralCodeFromQuery = useMemo(
+    () => searchParams.get('referralCode')?.trim().toUpperCase() || '',
+    [searchParams]
+  );
+  const referralErrorFromQuery = useMemo(
+    () => searchParams.get('referralError')?.trim().toUpperCase() || '',
+    [searchParams]
+  );
+  const paymentStatusFromQuery = useMemo(
+    () => searchParams.get('payment')?.trim().toLowerCase() || '',
+    [searchParams]
+  );
 
   const toggleLang = () => {
     const nextLang = lang === 'en' ? 'zh' : 'en';
     setLang(nextLang);
   };
+
+  useEffect(() => {
+    if (paymentStatusFromQuery === 'cancelled') {
+      setCheckoutNotice(buildCheckoutNotice(isZh ? 'zh' : 'en', 'PAYMENT_CANCELLED', 'info'));
+      return;
+    }
+
+    if (referralErrorFromQuery) {
+      const notice = buildCheckoutNotice(isZh ? 'zh' : 'en', referralErrorFromQuery, 'error');
+      if (notice) {
+        setCheckoutNotice(notice);
+        return;
+      }
+    }
+
+    setCheckoutNotice(null);
+  }, [isZh, paymentStatusFromQuery, referralErrorFromQuery]);
 
   const handleSubscribe = async (
     planName: string,
@@ -100,7 +270,7 @@ const PricingPage: React.FC = () => {
         planKey,
         billingCycle,
         paymentMode: 'stripe',
-        referralCode: '',
+        referralCode: referralCodeFromQuery,
         voucherCode:
           voucherAvailability.status === 'available'
             ? voucherAvailability.normalizedVoucherCode
@@ -108,7 +278,20 @@ const PricingPage: React.FC = () => {
       });
 
       if (!result.ok || !result.checkoutUrl) {
-        alert(result.message || '暂时无法创建支付会话，请稍后重试。');
+        const notice = buildCheckoutNotice(
+          isZh ? 'zh' : 'en',
+          result.code.toUpperCase(),
+          'error'
+        );
+        setCheckoutNotice(
+          notice || {
+            tone: 'error',
+            title: isZh ? '暂时无法继续支付' : 'Unable to continue checkout',
+            message:
+              result.message ||
+              (isZh ? '暂时无法创建支付会话，请稍后重试。' : 'Unable to create a checkout session right now. Please try again later.'),
+          }
+        );
         setLoadingPlan(null);
         return;
       }
@@ -116,12 +299,17 @@ const PricingPage: React.FC = () => {
       window.location.assign(result.checkoutUrl);
     } catch (error) {
       console.error('[Pricing] prepare checkout failed', error);
-      alert('暂时无法创建支付会话，请稍后重试。');
+      setCheckoutNotice({
+        tone: 'error',
+        title: isZh ? '支付会话创建失败' : 'Checkout session failed',
+        message:
+          isZh
+            ? '暂时无法创建支付会话，请稍后重试。'
+            : 'Unable to create a checkout session right now. Please try again later.',
+      });
       setLoadingPlan(null);
     }
   };
-
-  const isZh = lang === 'zh';
   const activeVoucher = useMemo(() => {
     if (voucherAvailability.status !== 'available') {
       return null
@@ -180,7 +368,6 @@ const PricingPage: React.FC = () => {
       voucherInvalid: "This voucher code is invalid. Please check and try again.",
       voucherApplied: (code: string) => `Voucher ${code} applied. Prices below have been updated.`,
       voucherClear: "Clear",
-      footer: "© 2025 LearnMore Edu. All rights reserved.",
       perMo: "/mo",
       plans: [
         {
@@ -266,7 +453,6 @@ const PricingPage: React.FC = () => {
       voucherInvalid: "这个优惠券无效，请检查后重试。",
       voucherApplied: (code: string) => `已应用优惠券 ${code}，下方价格已更新。`,
       voucherClear: "清空",
-      footer: "© 2025 LearnMore Edu. 保留所有权利。",
       perMo: "/月",
       plans: [
         {
@@ -336,7 +522,6 @@ const PricingPage: React.FC = () => {
   const currentT = t[lang as keyof typeof t] || t['en'];
 
   // ─── 定价数据 ──────────────────────────────────────────────
-  // TODO: 价格占位 — 待定价确认后更新。Stripe Price ID 也需同步更新。
   const plansData = [
     {
       key: 'starter' as const,
@@ -512,6 +697,34 @@ const PricingPage: React.FC = () => {
            </div>
 
            <div className="mt-10 rounded-3xl border border-slate-800 bg-[#0f111a]/80 p-5 text-left shadow-2xl shadow-black/20 backdrop-blur-sm">
+              {checkoutNotice ? (
+                <div
+                  className={`mb-4 rounded-2xl border px-4 py-3 text-sm leading-6 ${
+                    checkoutNotice.tone === 'error'
+                      ? 'border-red-400/30 bg-red-400/10 text-red-100'
+                      : 'border-cyan-400/30 bg-cyan-400/10 text-cyan-100'
+                  }`}
+                >
+                  <div className="font-semibold">{checkoutNotice.title}</div>
+                  <div className="mt-1 text-slate-200">{checkoutNotice.message}</div>
+                </div>
+              ) : null}
+
+              {referralCodeFromQuery ? (
+                <div className="mb-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm leading-6 text-emerald-100">
+                  <div className="font-semibold">
+                    {isZh ? '已检测到推荐码' : 'Referral code detected'}
+                  </div>
+                  <div className="mt-1">
+                    <span className="font-mono tracking-wide">{referralCodeFromQuery}</span>
+                    {' · '}
+                    {isZh
+                      ? '结账时会继续传入推荐归因链路。'
+                      : 'It will be forwarded into the checkout attribution flow.'}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div className="space-y-2">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
@@ -727,12 +940,18 @@ const PricingPage: React.FC = () => {
                        <input
                          type="email"
                          placeholder={currentT.referralPlaceholder}
+                         disabled
                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
                        />
-                       <Button variant="glow" className="bg-pink-600 hover:bg-pink-500 shadow-pink-500/25 border-none">
+                       <Button variant="glow" disabled className="bg-pink-600 hover:bg-pink-500 shadow-pink-500/25 border-none">
                           <Send className="w-4 h-4 mr-2" /> {currentT.referralBtn}
                        </Button>
                     </div>
+                    <p className="mt-3 text-xs text-slate-500">
+                      {isZh
+                        ? '推荐邀请入口当前未启用；正式推荐链路只认结账时的分享链接归因。'
+                        : 'Referral invites are not enabled in this UI. The formal referral path uses share-link attribution at checkout only.'}
+                    </p>
                  </div>
               </div>
            </div>
@@ -740,12 +959,7 @@ const PricingPage: React.FC = () => {
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>{currentT.footer}</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale={resolveMarketingLocale(lang)} />
 
     </div>
   );

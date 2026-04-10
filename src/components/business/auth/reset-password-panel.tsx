@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Loader2, Mail, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -27,9 +27,22 @@ function getResetRedirectUrl() {
   return `${window.location.origin}/reset-password`
 }
 
-export function ResetPasswordPanel() {
+function isLikelyRecoveryCode(value: string) {
+  return /^[A-Za-z0-9_-]{20,}$/.test(value)
+}
+
+interface ResetPasswordPanelProps {
+  recoveryCode?: string
+  tokenHash?: string
+  recoveryType?: string
+}
+
+export function ResetPasswordPanel({
+  recoveryCode = '',
+  tokenHash = '',
+  recoveryType = '',
+}: ResetPasswordPanelProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [mode, setMode] = useState<PanelMode>('loading')
   const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -41,20 +54,21 @@ export function ResetPasswordPanel() {
   useEffect(() => {
     let mounted = true
 
-    const bootstrap = async () => {
+      const bootstrap = async () => {
       const supabase = createClient()
-      const code = searchParams.get('code')
-      const tokenHash = searchParams.get('token_hash')
-      const type = searchParams.get('type')
-      const hasRecoverySignal = Boolean(code || tokenHash)
+      const hasRecoverySignal = Boolean(recoveryCode || tokenHash)
 
       try {
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        if (recoveryCode && isLikelyRecoveryCode(recoveryCode)) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(recoveryCode)
           if (exchangeError) {
             throw exchangeError
           }
-        } else if (tokenHash && type === 'recovery') {
+        } else if (recoveryCode) {
+          setError('重置链接已失效或已使用，请重新发送密码重置邮件。')
+          setMode('request')
+          return
+        } else if (tokenHash && recoveryType === 'recovery') {
           const { error: verifyError } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
             type: 'recovery',
@@ -96,7 +110,7 @@ export function ResetPasswordPanel() {
     return () => {
       mounted = false
     }
-  }, [searchParams])
+  }, [recoveryCode, recoveryType, tokenHash])
 
   const handleSendResetEmail = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

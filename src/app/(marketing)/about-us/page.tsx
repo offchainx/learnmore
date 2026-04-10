@@ -1,13 +1,17 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Globe, Users, Brain, ArrowRight, Linkedin, Twitter } from 'lucide-react';
 import { useApp } from '@/providers';
 
 const AboutUsPage: React.FC = () => {
+  const router = useRouter();
   const { lang, setLang } = useApp();
 
   const toggleLang = () => {
@@ -117,10 +121,9 @@ const AboutUsPage: React.FC = () => {
       },
       join: {
         title: "Join Our Mission",
-        desc: "We are always looking for passionate people to join our remote-first team.",
-        btn: "View Open Positions"
+        desc: "We are always looking for passionate people to collaborate with our remote-first team.",
+        btn: "Contact Us"
       },
-      footer: "© 2025 LearnMore Edu. All rights reserved."
     },
     zh: {
       hero: {
@@ -223,10 +226,9 @@ const AboutUsPage: React.FC = () => {
       },
       join: {
         title: "加入我们",
-        desc: "我们一直在寻找充满激情的人才加入我们的远程优先团队。",
-        btn: "查看在招职位"
+        desc: "我们一直在寻找充满激情的人才，与我们的远程优先团队合作。",
+        btn: "联系我们"
       },
-      footer: "© 2025 LearnMore Edu. 保留所有权利。"
     }
   };
 
@@ -424,7 +426,7 @@ const AboutUsPage: React.FC = () => {
                  {currentT.join.desc}
               </p>
               
-              <Button size="lg" variant="glow" className="shadow-lg shadow-blue-500/20">
+              <Button size="lg" variant="glow" className="shadow-lg shadow-blue-500/20" onClick={() => router.push('/contact')}>
                  {currentT.join.btn} <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
            </div>
@@ -432,11 +434,7 @@ const AboutUsPage: React.FC = () => {
 
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>{currentT.footer}</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale={resolveMarketingLocale(lang)} />
       
       <style>{`
         @keyframes widthGrow {

@@ -41,6 +41,14 @@ vi.mock('../providers', () => {
     processImage = processImageMock
     constructor(config: any) { super() }
   }
+
+  class MockOCRProvider extends MockProviderBase {
+    name = 'mock'
+    isConfigured = true
+    costPerPage = 0
+    processImage = processImageMock
+    constructor() { super() }
+  }
   
   class BaseOCRProvider {}
 
@@ -48,6 +56,7 @@ vi.mock('../providers', () => {
     GoogleVisionProvider,
     MathpixProvider,
     TesseractProvider,
+    MockOCRProvider,
     BaseOCRProvider
   }
 })

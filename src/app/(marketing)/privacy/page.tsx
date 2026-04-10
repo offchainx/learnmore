@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter'
 import { Navbar } from '@/components/layout/navbar';
 
 export const metadata: Metadata = {
@@ -59,11 +60,7 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>© 2026 LearnMore Edu. All rights reserved.</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale="en" />
     </div>
   );
 }

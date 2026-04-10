@@ -31,6 +31,7 @@ vi.mock('@/lib/prisma', () => ({
 
 describe('data-service', () => {
   const prismaMock = prisma as unknown as PrismaMock
+  const chapterId = '11111111-1111-4111-8111-111111111111'
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -53,21 +54,22 @@ describe('data-service', () => {
 
     it('should return chapter stats correctly', async () => {
       prismaMock.chapter.findUnique.mockResolvedValue({
-        id: 'chap-1',
+        id: chapterId,
         title: 'Chapter 1',
         subjectId: 'sub-1',
         parentId: null,
         order: 1,
+        children: [],
         _count: { questions: 10 },
       })
 
       prismaMock.userAttempt.count.mockResolvedValueOnce(5)
       prismaMock.userAttempt.count.mockResolvedValueOnce(4)
 
-      const result = await getChapterWithStats('chap-1', 'user-1')
+      const result = await getChapterWithStats(chapterId, 'user-1')
 
       expect(result).toEqual({
-        id: 'chap-1',
+        id: chapterId,
         title: 'Chapter 1',
         subjectId: 'sub-1',
         parentId: null,
@@ -83,17 +85,18 @@ describe('data-service', () => {
 
     it('should handle zero attempts', async () => {
       prismaMock.chapter.findUnique.mockResolvedValue({
-        id: 'chap-1',
+        id: chapterId,
         title: 'Chapter 1',
         subjectId: 'sub-1',
         parentId: null,
         order: 1,
+        children: [],
         _count: { questions: 10 },
       })
 
       prismaMock.userAttempt.count.mockResolvedValue(0)
 
-      const result = await getChapterWithStats('chap-1', 'user-1')
+      const result = await getChapterWithStats(chapterId, 'user-1')
       expect(result?.stats.masteryLevel).toBe(0)
     })
   })

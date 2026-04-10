@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { useReferralCodeAvailability } from '@/lib/hooks/useReferralCodeAvailability'
 
 function SubmitButton() {
@@ -28,20 +27,28 @@ function SubmitButton() {
 
 const initialState: AuthFormState = {}
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  initialReferralCode?: string
+  referralError?: string
+  initialUtmSource?: string
+  initialUtmMedium?: string
+  initialUtmCampaign?: string
+}
+
+export function RegisterForm({
+  initialReferralCode = '',
+  referralError = '',
+  initialUtmSource = '',
+  initialUtmMedium = '',
+  initialUtmCampaign = '',
+}: RegisterFormProps) {
   const [state, formAction] = useActionState(signupAction, initialState)
-  const searchParams = useSearchParams()
-  const utmSource = searchParams.get('utm_source') || ''
-  const utmMedium = searchParams.get('utm_medium') || ''
-  const utmCampaign = searchParams.get('utm_campaign') || ''
-  const referralCodeFromQuery = searchParams.get('referralCode') || ''
-  const referralError = searchParams.get('referralError') || ''
-  const [referralCode, setReferralCode] = useState(referralCodeFromQuery)
+  const [referralCode, setReferralCode] = useState(initialReferralCode)
   const referralCodeAvailability = useReferralCodeAvailability(referralCode)
 
   useEffect(() => {
-    setReferralCode(referralCodeFromQuery)
-  }, [referralCodeFromQuery])
+    setReferralCode(initialReferralCode)
+  }, [initialReferralCode])
 
   const referralCodeErrorMessage =
     referralCode.trim() && referralCodeAvailability.status === 'unavailable'
@@ -57,9 +64,9 @@ export function RegisterForm() {
         </CardDescription>
       </CardHeader>
       <form action={formAction}>
-        <input type="hidden" name="utm_source" value={utmSource} />
-        <input type="hidden" name="utm_medium" value={utmMedium} />
-        <input type="hidden" name="utm_campaign" value={utmCampaign} />
+        <input type="hidden" name="utm_source" value={initialUtmSource} />
+        <input type="hidden" name="utm_medium" value={initialUtmMedium} />
+        <input type="hidden" name="utm_campaign" value={initialUtmCampaign} />
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="username">用户名</Label>

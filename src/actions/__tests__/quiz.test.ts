@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { mockPrisma } = vi.hoisted(() => {
   const mp = {
-    question: { findMany: vi.fn() },
+    question: { findMany: vi.fn(), updateMany: vi.fn() },
     examRecord: { create: vi.fn() },
-    userAttempt: { createMany: vi.fn() },
+    userAttempt: { createMany: vi.fn(), groupBy: vi.fn() },
     errorBook: { upsert: vi.fn() },
     $transaction: vi.fn(),
   };
@@ -42,6 +42,10 @@ vi.mock('@/actions/gamification/achievements', () => ({
   awardBadgeIfEligible: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../practice/submission-effects', () => ({
+  applyPracticeSubmissionEffects: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { submitQuiz } from '../practice/quiz';
 import { QuestionType } from '@prisma/client';
 import { getCurrentUser } from '../user/auth';
@@ -52,6 +56,7 @@ const mockGetCurrentUser = getCurrentUser as unknown as ReturnType<typeof vi.fn>
 describe('submitQuiz Server Action', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.userAttempt.groupBy.mockResolvedValue([]);
   });
 
   it('should reject unauthorized users', async () => {

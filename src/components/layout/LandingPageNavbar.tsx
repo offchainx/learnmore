@@ -20,11 +20,10 @@ export const LandingPageNavbar: React.FC = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Dashboard', path: '/dashboard' },
-    // Temporarily pointing these to dashboard as placeholders
-    { name: 'Subjects', path: '/dashboard' },
-    { name: 'Question Bank', path: '/dashboard' },
-    { name: 'Community', path: '/dashboard' },
+    { name: 'How It Works', path: '/how-it-works' },
+    { name: 'Subjects', path: '/subjects' },
+    { name: 'Pricing', path: '/pricing' },
+    { name: 'About Us', path: '/about-us' },
   ];
 
   return (
@@ -57,11 +56,7 @@ export const LandingPageNavbar: React.FC = () => {
               <Link 
                 key={item.name}
                 href={item.path} 
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center ${
-                  item.name === 'Dashboard' 
-                    ? 'text-white bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] border border-white/5' 
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center text-slate-300 hover:text-white hover:bg-white/5`}
               >
                 {item.name}
               </Link>

@@ -2,13 +2,16 @@
 
 import React from 'react';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingNewsletterSection } from '@/components/marketing/MarketingNewsletterSection';
 import { useApp } from '@/providers';
-import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { BlogPost } from '@prisma/client';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { getBlogNewsletterContent } from '@/lib/marketing/newsletter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -28,29 +31,14 @@ export function BlogDetailClient({ post }: BlogDetailProps) {
   const t = {
     en: {
       back: "Back to Blog",
-      newsletter: {
-        title: "Get smarter every week.",
-        desc: "Join 50,000+ students receiving our weekly study hacks and product updates.",
-        placeholder: "Enter your email",
-        btn: "Subscribe",
-        note: "No spam, unsubscribe anytime."
-      },
-      footer: "© 2025 LearnMore Edu. All rights reserved."
     },
     zh: {
       back: "返回博客",
-      newsletter: {
-        title: "每周变强一点点。",
-        desc: "加入 50,000+ 学员，接收我们每周发送的学习黑客技巧和产品更新。",
-        placeholder: "输入您的邮箱",
-        btn: "订阅",
-        note: "无垃圾邮件，随时退订。"
-      },
-      footer: "© 2025 LearnMore Edu. 保留所有权利。"
     }
   };
 
   const currentT = t[lang as keyof typeof t] || t['en'];
+  const locale = resolveMarketingLocale(lang);
 
   return (
     <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-blue-500/30 selection:text-blue-100">
@@ -118,17 +106,11 @@ export function BlogDetailClient({ post }: BlogDetailProps) {
         </article>
 
         {/* Newsletter Signup */}
-        <section className="px-6 max-w-4xl mx-auto">
-           <NewsletterForm content={currentT.newsletter} />
-        </section>
+        <MarketingNewsletterSection content={getBlogNewsletterContent(locale)} />
 
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>{currentT.footer}</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale={locale} />
     </div>
   );
 }

@@ -13,6 +13,8 @@ import { CookieConsent } from '@/components/layout/CookieConsent'
 import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import Script from 'next/script'
+import { getBrowserWarningSuppressorScript } from '@/lib/suppress-warnings'
 
 export const metadata: Metadata = {
   title: 'LearnMore - 中学生在线教育平台',
@@ -63,6 +65,13 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning className={fonts.className}>
       <body className="antialiased">
+        <Script
+          id="browser-warning-suppressor"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: getBrowserWarningSuppressorScript(),
+          }}
+        />
         <BrowserErrorSuppressor />
         <ThemeProvider
           attribute="class"

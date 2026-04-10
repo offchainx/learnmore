@@ -15,6 +15,8 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<NotificationWithMetadata[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -24,6 +26,7 @@ export function NotificationBell() {
 
   const fetchNotifications = useCallback(async (isInitial = false) => {
     if (isInitial) setIsLoading(true);
+
     try {
       const response = await fetch('/api/notifications/summary?limit=10', {
         method: 'GET',
@@ -31,17 +34,28 @@ export function NotificationBell() {
         cache: 'no-store',
       });
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        setLoadError('通知加载失败，请稍后重试。');
+        return;
+      }
 
       const result: NotificationListResponse = await response.json();
       if (result.success && result.data) {
         setNotifications(result.data as NotificationWithMetadata[]);
         setUnreadCount(result.unreadCount || 0);
+        setLoadError(null);
+        setActionError(null);
+        hasLoadedRef.current = true;
+        return;
       }
+
+      setLoadError('通知加载失败，请稍后重试。');
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+      setLoadError('通知加载失败，请稍后重试。');
+    } finally {
+      if (isInitial) setIsLoading(false);
     }
-    if (isInitial) setIsLoading(false);
   }, []);
 
   // 仅在下拉打开时拉取并轮询，避免空闲态持续请求
@@ -82,7 +96,6 @@ export function NotificationBell() {
     };
 
     void fetchNotifications(!hasLoadedRef.current);
-    hasLoadedRef.current = true;
     startPolling();
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -93,22 +106,38 @@ export function NotificationBell() {
   }, [fetchNotifications, isOpen]);
 
   const handleMarkAsRead = async (id: string) => {
-    // 乐观更新
+    const previousNotifications = notifications;
+    const previousUnreadCount = unreadCount;
+
+    setActionError(null);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     setUnreadCount(prev => Math.max(0, prev - 1));
     
     startTransition(async () => {
-      await markNotificationAsRead(id);
+      const result = await markNotificationAsRead(id);
+      if (!result.success) {
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+        setActionError('通知状态更新失败，请稍后重试。');
+      }
     });
   };
 
   const handleMarkAllAsRead = async () => {
-    // 乐观更新
+    const previousNotifications = notifications;
+    const previousUnreadCount = unreadCount;
+
+    setActionError(null);
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     setUnreadCount(0);
 
     startTransition(async () => {
-      await markAllAsRead();
+      const result = await markAllAsRead();
+      if (!result.success) {
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnreadCount);
+        setActionError('通知状态更新失败，请稍后重试。');
+      }
     });
   };
 
@@ -116,6 +145,8 @@ export function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="打开通知中心"
+        aria-expanded={isOpen}
         className={`relative p-2.5 rounded-xl transition-all duration-300 group ${
           isOpen 
             ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
@@ -140,6 +171,9 @@ export function NotificationBell() {
             onMarkAsRead={handleMarkAsRead}
             onMarkAllAsRead={handleMarkAllAsRead}
             isLoading={isLoading}
+            loadError={loadError}
+            actionError={actionError}
+            onRetry={() => void fetchNotifications(true)}
           />
         </div>
       )}

@@ -3,6 +3,17 @@
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/actions/user/auth'
 import { revalidatePath } from 'next/cache'
+import { Prisma } from '@prisma/client'
+import { randomBytes } from 'crypto'
+
+function generateInviteCodeToken(): string {
+  const alphanumeric = randomBytes(8)
+    .toString('base64')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+
+  return alphanumeric.slice(0, 6).padEnd(6, '0')
+}
 
 /**
  * 学生生成 6 位邀请码
@@ -13,20 +24,49 @@ export async function generateInviteCode() {
     return { success: false, error: 'Only students can generate invite codes.' }
   }
 
-  // 生成随机 6 位大写字母数字组合
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-  const expiresAt = new Date()
-  expiresAt.setHours(expiresAt.getHours() + 24) // 24小时有效
-
   try {
-    const invite = await prisma.inviteCode.create({
-      data: {
-        code,
+    const existingInvite = await prisma.inviteCode.findFirst({
+      where: {
         studentId: user.id,
-        expiresAt,
+        used: false,
+        expiresAt: { gt: new Date() },
       },
+      orderBy: { createdAt: 'desc' },
     })
-    return { success: true, code: invite.code }
+
+    if (existingInvite) {
+      return { success: true, code: existingInvite.code }
+    }
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 24)
+
+      try {
+        const invite = await prisma.inviteCode.create({
+          data: {
+            code: generateInviteCodeToken(),
+            studentId: user.id,
+            expiresAt,
+          },
+        })
+
+        revalidatePath('/dashboard/settings')
+        revalidatePath('/dashboard')
+        return { success: true, code: invite.code }
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          continue
+        }
+
+        throw error
+      }
+    }
+
+    return { success: false, error: 'Failed to generate a unique code.' }
   } catch (error) {
     console.error('Error generating invite code:', error)
     return { success: false, error: 'Failed to generate code.' }

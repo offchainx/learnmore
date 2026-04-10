@@ -208,5 +208,30 @@ describe('Profile Server Actions', () => {
         })
       });
     });
+
+    it('should not overwrite legacy notification bridge fields when they are absent', async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.update.mockResolvedValue(mockProfile);
+
+      const formData = new FormData();
+      formData.append('language', 'zh');
+      formData.append('theme', 'dark');
+
+      const result = await updateProfile({}, formData);
+      expect(result.success).toBe(true);
+      expect(mockPrisma.userSettings.upsert).toHaveBeenCalledWith({
+        where: { userId: mockUser.id },
+        create: expect.objectContaining({
+          userId: mockUser.id,
+          language: 'zh',
+          theme: 'dark',
+        }),
+        update: {
+          language: 'zh',
+          theme: 'dark',
+        },
+      });
+    });
   });
 });

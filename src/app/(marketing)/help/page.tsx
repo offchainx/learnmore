@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { FAQAccordion } from '@/components/support/FAQAccordion';
 import { Input } from '@/components/ui/input';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { marketingSiteConfig } from '@/lib/marketing/site-shell';
 import { Search, Mail, MessageCircle, Phone } from 'lucide-react';
 import { FeedbackModal } from '@/components/support/FeedbackModal';
 import { useApp } from '@/providers';
@@ -12,6 +14,13 @@ export default function HelpPage() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useApp();
+
+  const helpTopics = [
+    { label: t.support.categoriesList[0], query: 'start' },
+    { label: t.support.categoriesList[1], query: 'password' },
+    { label: t.support.categoriesList[2], query: 'study' },
+    { label: t.support.categoriesList[3], query: 'subscription' },
+  ];
 
   return (
     <div className="dark min-h-screen bg-[#020617] text-white font-sans">
@@ -74,7 +83,7 @@ export default function HelpPage() {
                     <h3 className="text-lg font-semibold mb-1">{t.support.emailSupportTitle}</h3>
                     <p className="text-slate-400 text-sm">
                       {t.support.emailSupportDescriptionPrefix}{' '}
-                      <span className="text-blue-400">support@learnmore.com</span>{' '}
+                      <span className="text-blue-400">{marketingSiteConfig.supportEmail}</span>{' '}
                       {t.support.emailSupportDescriptionSuffix}
                     </p>
                   </div>
@@ -100,10 +109,24 @@ export default function HelpPage() {
         <section className="mt-20">
           <h2 className="text-2xl font-bold mb-8 text-center">{t.support.browseTitle}</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 desktop:grid-cols-4">
-            {t.support.categoriesList.map((cat) => (
-              <div key={cat} className="p-6 bg-slate-900/30 border border-slate-800 rounded-2xl text-center hover:bg-slate-800/50 transition-all cursor-pointer">
-                <p className="font-medium text-slate-300">{cat}</p>
-              </div>
+            {helpTopics.map((topic) => (
+              <button
+                key={topic.label}
+                type="button"
+                onClick={() =>
+                  setSearchQuery((current) =>
+                    current.trim().toLowerCase() === topic.query ? '' : topic.query
+                  )
+                }
+                aria-pressed={searchQuery.trim().toLowerCase() === topic.query}
+                className={`rounded-2xl border p-6 text-center transition-all ${
+                  searchQuery.trim().toLowerCase() === topic.query
+                    ? 'border-blue-500/60 bg-blue-500/10 text-white'
+                    : 'border-slate-800 bg-slate-900/30 text-slate-300 hover:bg-slate-800/50 hover:border-slate-700'
+                }`}
+              >
+                <p className="font-medium">{topic.label}</p>
+              </button>
             ))}
           </div>
         </section>
@@ -115,11 +138,7 @@ export default function HelpPage() {
         sourceType="help-page"
       />
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>© 2026 LearnMore Edu. All rights reserved.</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale="en" />
     </div>
   );
 }

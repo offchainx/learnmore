@@ -68,6 +68,29 @@ describe('gamification achievement actions', () => {
     )
   })
 
+  it('未登录时应返回稳定的授权错误而不是抛异常', async () => {
+    mockGetCurrentUser.mockResolvedValue(null)
+
+    await expect(claimTaskReward('task-1')).resolves.toEqual({
+      success: false,
+      error: 'Unauthorized',
+    })
+  })
+
+  it('缓存失效失败不应把已成功领奖标记成失败', async () => {
+    mockRevalidatePath.mockImplementation(() => {
+      throw new Error('no request context')
+    })
+
+    const result = await claimTaskReward('task-1')
+
+    expect(result).toEqual({ success: true, xpGained: 30 })
+    expect(mockClaimDailyTaskRewardForUser).toHaveBeenCalledWith(
+      'user-1',
+      'task-1'
+    )
+  })
+
   it('完成 onboarding 任务只需要刷新 dashboard', async () => {
     const result = await completeOnboardingTask(
       DailyTaskType.ONBOARDING_PROFILE

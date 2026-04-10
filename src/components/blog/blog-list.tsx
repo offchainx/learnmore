@@ -2,10 +2,13 @@
 
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/navbar';
+import { MarketingNewsletterSection } from '@/components/marketing/MarketingNewsletterSection';
 import { Button } from '@/components/ui/button';
-import { Tag, ArrowRight } from 'lucide-react';
+import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
+import { getBlogNewsletterContent } from '@/lib/marketing/newsletter';
+import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
+import { Tag, ArrowRight, SearchX } from 'lucide-react';
 import { useApp } from '@/providers';
-import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { BlogPost } from '@prisma/client';
 import Link from 'next/link';
 
@@ -26,38 +29,23 @@ export function BlogList({ initialPosts }: BlogListProps) {
     en: {
       title: "Blog & Newsroom",
       subtitle: "Updates, learning tips, and engineering insights from the LearnMore team.",
-      newsletter: {
-        title: "Get smarter every week.",
-        desc: "Join 50,000+ students receiving our weekly study hacks and product updates.",
-        placeholder: "Enter your email",
-        btn: "Subscribe",
-        note: "No spam, unsubscribe anytime."
-      },
       categories: ["All", "Product Updates", "Learning Tips", "Edu News", "Engineering"], // Updated categories based on mock data logic but simplified
       featured: "Featured Story",
       readMore: "Read Article",
       minRead: "min read",
-      footer: "© 2025 LearnMore Edu. All rights reserved."
     },
     zh: {
       title: "动态资讯",
       subtitle: "来自 LearnMore 团队的最新更新、学习技巧和技术洞察。",
-      newsletter: {
-        title: "每周变强一点点。",
-        desc: "加入 50,000+ 学员，接收我们每周发送的学习黑客技巧和产品更新。",
-        placeholder: "输入您的邮箱",
-        btn: "订阅",
-        note: "无垃圾邮件，随时退订。"
-      },
       categories: ["全部", "产品更新", "学习技巧", "教育新闻", "工程技术"],
       featured: "精选故事",
       readMore: "阅读全文",
       minRead: "分钟阅读",
-      footer: "© 2025 LearnMore Edu. 保留所有权利。"
     }
   };
 
   const currentT = t[lang as keyof typeof t] || t['en'];
+  const locale = resolveMarketingLocale(lang);
 
   // Derive categories from available posts + 'All'
   const uniqueCategories = Array.from(new Set(initialPosts.map(p => p.category)));
@@ -67,6 +55,8 @@ export function BlogList({ initialPosts }: BlogListProps) {
   const featuredPost = initialPosts[0]; 
   const remainingPosts = initialPosts.slice(1);
   const displayPosts = activeCategory === 'All' ? remainingPosts : initialPosts.filter(p => p.category === activeCategory && p.id !== featuredPost?.id);
+  const hasAnyPosts = initialPosts.length > 0;
+  const hasVisiblePosts = displayPosts.length > 0;
 
 
   return (
@@ -150,58 +140,77 @@ export function BlogList({ initialPosts }: BlogListProps) {
 
         {/* Article Grid */}
         <section className="px-6 max-w-7xl mx-auto mb-24">
-           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-              {displayPosts.map((post) => (
-                <Link href={`/blog/${post.slug}`} key={post.id}>
-                 <article className="group cursor-pointer flex flex-col h-full">
-                    <div className="relative aspect-[16/10] mb-6 overflow-hidden rounded-2xl border border-slate-800">
-                       <img 
-                          src={post.coverImage || ''} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                       />
-                       <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur text-xs font-bold text-slate-300 px-3 py-1 rounded-full border border-slate-700/50">
-                          {post.category}
-                       </div>
-                    </div>
-                    
-                    <div className="flex-1 flex flex-col">
-                       <h3 className="text-xl font-bold text-white mb-3 leading-snug group-hover:text-blue-400 transition-colors">
-                          {post.title}
-                       </h3>
-                       <p className="text-slate-400 text-sm leading-relaxed mb-6 line-clamp-3">
-                          {post.excerpt}
-                       </p>
-                       
-                       <div className="mt-auto flex items-center gap-3 pt-4 border-t border-slate-900">
-                          {/* Avatar removed as not in DB schema yet, or hardcode/placeholder */}
-                          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
-                             {post.author.charAt(0)}
-                          </div>
-                          <div className="text-xs">
-                             <div className="font-bold text-slate-200">{post.author}</div>
-                             <div className="text-slate-500">{new Date(post.publishedAt).toLocaleDateString()}</div>
-                          </div>
-                       </div>
-                    </div>
-                 </article>
-                 </Link>
-              ))}
-           </div>
+           {hasVisiblePosts ? (
+             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                {displayPosts.map((post) => (
+                  <Link href={`/blog/${post.slug}`} key={post.id}>
+                   <article className="group cursor-pointer flex flex-col h-full">
+                      <div className="relative aspect-[16/10] mb-6 overflow-hidden rounded-2xl border border-slate-800">
+                         <img 
+                            src={post.coverImage || ''} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                         />
+                         <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur text-xs font-bold text-slate-300 px-3 py-1 rounded-full border border-slate-700/50">
+                            {post.category}
+                         </div>
+                      </div>
+                      
+                      <div className="flex-1 flex flex-col">
+                         <h3 className="text-xl font-bold text-white mb-3 leading-snug group-hover:text-blue-400 transition-colors">
+                            {post.title}
+                         </h3>
+                         <p className="text-slate-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                            {post.excerpt}
+                         </p>
+                         
+                         <div className="mt-auto flex items-center gap-3 pt-4 border-t border-slate-900">
+                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
+                               {post.author.charAt(0)}
+                            </div>
+                            <div className="text-xs">
+                               <div className="font-bold text-slate-200">{post.author}</div>
+                               <div className="text-slate-500">{new Date(post.publishedAt).toLocaleDateString()}</div>
+                            </div>
+                         </div>
+                      </div>
+                   </article>
+                   </Link>
+                ))}
+             </div>
+           ) : (
+             <div className="rounded-3xl border border-slate-800 bg-slate-900/30 px-6 py-14 text-center">
+               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400">
+                 <SearchX className="h-7 w-7" />
+               </div>
+               <h3 className="text-2xl font-bold text-white">
+                 {hasAnyPosts ? 'No articles match this category yet.' : 'No articles published yet.'}
+               </h3>
+               <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-slate-400">
+                 {hasAnyPosts
+                   ? 'Try another category or reset the filter to browse the full newsroom.'
+                   : 'Our editorial team is still preparing the first set of posts. Please check back soon.'}
+               </p>
+               {activeCategory !== 'All' ? (
+                 <Button
+                   type="button"
+                   variant="glow"
+                   className="mt-6"
+                   onClick={() => setActiveCategory('All')}
+                 >
+                   Show all posts
+                 </Button>
+               ) : null}
+             </div>
+           )}
         </section>
 
         {/* Newsletter Signup */}
-        <section className="px-6 max-w-4xl mx-auto">
-           <NewsletterForm content={currentT.newsletter} />
-        </section>
+        <MarketingNewsletterSection content={getBlogNewsletterContent(locale)} />
 
       </main>
 
-      <footer className="bg-[#020617] border-t border-slate-900 py-10 text-center text-slate-600 text-sm">
-         <div className="max-w-7xl mx-auto px-4">
-            <p>{currentT.footer}</p>
-         </div>
-      </footer>
+      <MarketingSimpleFooter locale={locale} />
     </div>
   );
 }

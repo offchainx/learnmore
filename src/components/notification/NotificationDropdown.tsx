@@ -5,18 +5,23 @@ import { formatDistanceToNow } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { 
   Bell, CheckCheck, Info, MessageSquare, 
-  Trophy, CreditCard, ExternalLink, Inbox
+  Trophy, CreditCard, ExternalLink, Inbox, Loader2, RefreshCw
 } from 'lucide-react';
 import { NotificationType } from '@prisma/client';
 import { NotificationWithMetadata } from '@/lib/notification/types';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { normalizeNotificationLink } from '@/lib/notification/links';
 
 interface NotificationDropdownProps {
   notifications: NotificationWithMetadata[];
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   isLoading: boolean;
+  loadError: string | null;
+  actionError: string | null;
+  onRetry: () => void;
 }
 
 const NotificationIcon = ({ type }: { type: NotificationType }) => {
@@ -34,7 +39,10 @@ export function NotificationDropdown({
   notifications,
   onMarkAsRead,
   onMarkAllAsRead,
-  isLoading
+  isLoading,
+  loadError,
+  actionError,
+  onRetry,
 }: NotificationDropdownProps) {
   return (
     <div className="w-80 sm:w-96 max-h-[500px] flex flex-col bg-surface dark:bg-slate-900 rounded-2xl shadow-surface-md border border-borderTone dark:border-slate-800 overflow-hidden">
@@ -60,7 +68,40 @@ export function NotificationDropdown({
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {notifications.length === 0 ? (
+        {isLoading && notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-surface-subtle dark:bg-slate-800 flex items-center justify-center mb-3">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+            <p className="text-text-secondary dark:text-slate-400 text-sm font-medium">正在加载通知</p>
+            <p className="text-text-tertiary dark:text-slate-500 text-xs mt-1">我们正在同步最新的未读消息和提醒</p>
+          </div>
+        ) : loadError && notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center mb-3">
+              <Bell className="w-6 h-6 text-rose-500" />
+            </div>
+            <p className="text-rose-600 dark:text-rose-300 text-sm font-medium">{loadError}</p>
+            <p className="text-text-tertiary dark:text-slate-500 text-xs mt-1">这次没有回退为空列表，避免把读取失败误判成没有通知</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4 h-8 gap-1.5 text-xs"
+              onClick={onRetry}
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              重试加载
+            </Button>
+          </div>
+        ) : (
+          <div>
+            {(loadError || actionError) ? (
+              <div className="border-b border-borderTone bg-amber-50/80 px-4 py-3 text-xs text-amber-800 dark:border-slate-800 dark:bg-amber-500/10 dark:text-amber-200">
+                {actionError || loadError}
+              </div>
+            ) : null}
+            {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="w-12 h-12 rounded-full bg-surface-subtle dark:bg-slate-800 flex items-center justify-center mb-3">
               <Bell className="w-6 h-6 text-text-tertiary dark:text-slate-400" />
@@ -68,74 +109,78 @@ export function NotificationDropdown({
             <p className="text-text-secondary dark:text-slate-400 text-sm font-medium">暂时没有新通知</p>
             <p className="text-text-tertiary dark:text-slate-500 text-xs mt-1">当你有新的动态时，我们会在这里提醒你</p>
           </div>
-        ) : (
-          <div className="divide-y divide-borderTone dark:divide-slate-800">
-            {notifications.map((notification) => (
-              <div 
-                key={notification.id}
-                onClick={() => !notification.isRead && onMarkAsRead(notification.id)}
-                className={`group p-4 transition-all duration-200 cursor-pointer flex gap-3 ${
-                  notification.isRead 
-                    ? 'opacity-70 grayscale-[0.2]' 
-                    : 'bg-blue-50/30 dark:bg-blue-900/10'
-                } hover:bg-surface-subtle dark:hover:bg-slate-800/50`}
-              >
-                <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  notification.isRead 
-                    ? 'bg-surface-muted dark:bg-slate-800' 
-                    : 'bg-blue-100 dark:bg-blue-900/30'
-                }`}>
-                  <NotificationIcon type={notification.type} />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-0.5">
-                    <p className={`text-sm font-semibold truncate pr-2 ${
-                      notification.isRead ? 'text-text-secondary dark:text-slate-400' : 'text-text-primary dark:text-white'
+            ) : (
+              <div className="divide-y divide-borderTone dark:divide-slate-800">
+                {notifications.map((notification) => {
+                  const normalizedLink = normalizeNotificationLink(notification.link)
+
+                  return (
+                  <div 
+                    key={notification.id}
+                    onClick={() => !notification.isRead && onMarkAsRead(notification.id)}
+                    className={`group p-4 transition-all duration-200 cursor-pointer flex gap-3 ${
+                      notification.isRead 
+                        ? 'opacity-70 grayscale-[0.2]' 
+                        : 'bg-blue-50/30 dark:bg-blue-900/10'
+                    } hover:bg-surface-subtle dark:hover:bg-slate-800/50`}
+                  >
+                    <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      notification.isRead 
+                        ? 'bg-surface-muted dark:bg-slate-800' 
+                        : 'bg-blue-100 dark:bg-blue-900/30'
                     }`}>
-                      {notification.title}
-                    </p>
-                    <span className="text-[10px] text-text-tertiary dark:text-slate-500 whitespace-nowrap mt-1">
-                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: zhCN })}
-                    </span>
+                      <NotificationIcon type={notification.type} />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-0.5">
+                        <p className={`text-sm font-semibold truncate pr-2 ${
+                          notification.isRead ? 'text-text-secondary dark:text-slate-400' : 'text-text-primary dark:text-white'
+                        }`}>
+                          {notification.title}
+                        </p>
+                        <span className="text-[10px] text-text-tertiary dark:text-slate-500 whitespace-nowrap mt-1">
+                          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: zhCN })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-text-secondary dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">
+                        {notification.content}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        {normalizedLink && (
+                          <Link 
+                            href={normalizedLink}
+                            className="text-[11px] font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            查看详情
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </Link>
+                        )}
+                        {!notification.isRead && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-text-secondary dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">
-                    {notification.content}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    {notification.link && (
-                      <Link 
-                        href={notification.link}
-                        className="text-[11px] font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        查看详情
-                        <ExternalLink className="w-2.5 h-2.5" />
-                      </Link>
-                    )}
-                    {!notification.isRead && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                    )}
-                  </div>
-                </div>
+                )})}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
 
       <div className="p-3 border-t border-borderTone dark:border-slate-800 bg-surface-subtle dark:bg-slate-900/30">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full text-xs font-medium rounded-xl h-9"
-          asChild
+        <Link
+          href="/dashboard/settings?tab=notifications"
+          className={cn(
+            buttonVariants({ variant: 'outline', size: 'sm' }),
+            'h-9 w-full rounded-xl text-xs font-medium'
+          )}
         >
-          <Link href="/dashboard/settings?tab=notifications">
-            通知设置
-          </Link>
-        </Button>
+          通知设置
+        </Link>
       </div>
     </div>
   );

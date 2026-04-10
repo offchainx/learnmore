@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { NewsletterForm } from '@/components/marketing/newsletter-form'
+import { MarketingFullFooter } from '@/components/marketing/MarketingFullFooter'
+import { MarketingNewsletterSection } from '@/components/marketing/MarketingNewsletterSection'
 import { emitClientPerfEvent } from '@/lib/observability/perf'
 import {
   Activity,
@@ -15,22 +15,20 @@ import {
   CircleCheck,
   CircleX,
   HelpCircle,
-  Mail,
   Map,
-  MapPin,
-  Phone,
   Quote,
-  Share2,
   Sparkles,
   TrendingUp,
   Users,
 } from 'lucide-react'
+import type { MarketingLocale } from '@/lib/marketing/site-shell'
 
 type LandingCopy = Record<string, any>
 
 interface LandingBelowFoldProps {
   t: LandingCopy
   onCtaClick: () => void
+  locale: MarketingLocale
 }
 
 const testimonialImages = [
@@ -39,8 +37,7 @@ const testimonialImages = [
   'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=200&auto=format&fit=crop',
 ]
 
-export function LandingBelowFold({ t, onCtaClick }: LandingBelowFoldProps) {
-  const router = useRouter()
+export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProps) {
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
   useEffect(() => {
@@ -292,66 +289,25 @@ export function LandingBelowFold({ t, onCtaClick }: LandingBelowFoldProps) {
         </div>
       </section>
 
-      <section className="py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <NewsletterForm content={t.newsletter} />
-        </div>
-      </section>
+      <MarketingNewsletterSection
+        content={t.newsletter}
+        className="py-20 px-4 max-w-4xl mx-auto"
+      />
 
-      <footer className="bg-[#020617] border-t border-slate-900 pt-20 pb-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 grid grid-cols-2 gap-8 tablet:grid-cols-4 desktop:grid-cols-5">
-            <div className="col-span-2 desktop:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><BookOpen className="w-4 h-4 text-white" /></div>
-                <span className="text-xl font-bold text-white">LearnMore</span>
-              </div>
-              <p className="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
-                Empowering the next generation of learners with AI-driven insights and adaptive pathways.
-              </p>
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"><Share2 className="w-4 h-4" /></div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-white mb-6">{t.footer.product}</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                <li><button onClick={() => router.push('/how-it-works')} className="hover:text-blue-400 transition-colors text-left">{t.footer.features}</button></li>
-                <li><button onClick={() => router.push('/pricing')} className="hover:text-blue-400 transition-colors text-left">{t.footer.pricing}</button></li>
-                <li><button onClick={() => router.push('/success-stories')} className="hover:text-blue-400 transition-colors text-left">{t.footer.stories}</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-white mb-6">{t.footer.resources}</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                <li><button onClick={() => router.push('/blog')} className="hover:text-blue-400 transition-colors text-left">{t.footer.blog}</button></li>
-                <li><button onClick={() => router.push('/study-guides')} className="hover:text-blue-400 transition-colors text-left">{t.footer.guides}</button></li>
-                <li><button onClick={() => router.push('/student-care')} className="hover:text-blue-400 transition-colors text-left">{t.footer.care}</button></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-white mb-6">{t.footer.contact}</h4>
-              <ul className="space-y-4 text-sm text-slate-400">
-                <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> +1 (555) 123-4567</li>
-                <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> support@learnmore.ai</li>
-                <li className="flex items-center gap-2"><MapPin className="w-4 h-4" /> San Francisco, CA</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-900 pt-8 text-sm text-slate-600 tablet:flex-row">
-            <div>{t.footer.rights}</div>
-            <div className="flex gap-6">
-              <button onClick={() => router.push('/terms')} className="hover:text-slate-400 transition-colors">Terms</button>
-              <button onClick={() => router.push('/privacy')} className="hover:text-slate-400 transition-colors">Privacy</button>
-              <button onClick={() => router.push('/contact')} className="hover:text-slate-400 transition-colors">Contact us</button>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <MarketingFullFooter
+        locale={locale}
+        labels={{
+          product: t.footer.product,
+          resources: t.footer.resources,
+          contact: t.footer.contact,
+          features: t.footer.features,
+          pricing: t.footer.pricing,
+          stories: t.footer.stories,
+          blog: t.footer.blog,
+          guides: t.footer.guides,
+          care: t.footer.care,
+        }}
+      />
 
       <style>{`
         @keyframes growDown {

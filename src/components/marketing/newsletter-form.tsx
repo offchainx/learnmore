@@ -3,7 +3,7 @@
 import React, { useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LabeledInput as Input } from '@/components/ui/labeled-input';
-import { subscribeToNewsletter } from '@/actions/marketing/campaign';
+import { subscribeToNewsletter, type NewsletterState } from '@/actions/marketing/campaign';
 import { Mail } from 'lucide-react';
 
 interface NewsletterFormProps {
@@ -16,13 +16,20 @@ interface NewsletterFormProps {
   };
 }
 
-const initialState = {
+const initialState: NewsletterState = {
   success: false,
+  code: 'IDLE',
   message: '',
 };
 
 export function NewsletterForm({ content }: NewsletterFormProps) {
   const [state, action, isPending] = useActionState(subscribeToNewsletter, initialState);
+  const isWarning = state.success && state.code !== 'SUBSCRIBED';
+  const statusClassName = state.success
+    ? isWarning
+      ? 'text-amber-300'
+      : 'text-green-400'
+    : 'text-red-400';
 
   return (
     <div className="bg-gradient-to-br from-blue-900/20 to-slate-900/20 border border-slate-800 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
@@ -39,6 +46,7 @@ export function NewsletterForm({ content }: NewsletterFormProps) {
           <div className="flex-1">
             <Input
               name="email"
+              type="email"
               placeholder={content.placeholder}
               className="bg-slate-950 border-slate-700 text-white h-12 w-full"
               required
@@ -50,7 +58,11 @@ export function NewsletterForm({ content }: NewsletterFormProps) {
         </form>
         
         {state?.message && (
-          <p className={`text-sm mt-4 ${state.success ? 'text-green-400' : 'text-red-400'}`}>
+          <p
+            role="status"
+            aria-live="polite"
+            className={`text-sm mt-4 ${statusClassName}`}
+          >
             {state.message}
           </p>
         )}

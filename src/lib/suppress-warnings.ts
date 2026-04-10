@@ -94,4 +94,65 @@ export function installBrowserWarningSuppressions() {
   }
 }
 
+export function getBrowserWarningSuppressorScript() {
+  return `
+    (function () {
+      var extensionPattern = /(?:chrome|moz|safari-web|ms-browser)-extension:\\/\\//i;
+      var metamaskPattern = /failed to connect to metamask/i;
+
+      function toText(value) {
+        if (!value) return '';
+        if (typeof value === 'string') return value;
+        if (value instanceof Error) {
+          return [value.name, value.message, value.stack].filter(Boolean).join('\\n');
+        }
+        if (typeof value === 'object') {
+          var record = value;
+          return [record.name, record.message, record.stack]
+            .map(function (part) { return typeof part === 'string' ? part : ''; })
+            .filter(Boolean)
+            .join('\\n');
+        }
+        return String(value);
+      }
+
+      function shouldSuppress(payload) {
+        var haystack = [
+          payload.message,
+          payload.filename,
+          toText(payload.error),
+          toText(payload.reason),
+        ]
+          .filter(Boolean)
+          .join('\\n');
+
+        return metamaskPattern.test(haystack) || extensionPattern.test(haystack);
+      }
+
+      function handleError(event) {
+        if (
+          shouldSuppress({
+            message: event.message,
+            filename: event.filename,
+            error: event.error,
+          })
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }
+
+      function handleUnhandledRejection(event) {
+        if (shouldSuppress({ reason: event.reason })) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }
+
+      window.addEventListener('error', handleError, true);
+      window.addEventListener('unhandledrejection', handleUnhandledRejection, true);
+    })();
+  `
+}
+
 export {}
