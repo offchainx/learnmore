@@ -124,4 +124,6 @@
 
 | 2026-04-09 | T-017 成就与游戏化域收口 | 收口 T-017.9 并检查 T-017 全部子任务是否完成 | 确认 T-017.1~T-017.9 均已达到收口条件并在 tasks.md 标记为 done；补充回放核账测试覆盖重复领奖、任务推进、进度回放与徽章发放回放；修复 achievements 错误边界导入并完成页面级验证 | tasks.md, achievement/streak action tests, achievements error boundary | 首次提交因缺少 iteration-log 记录被钩子拦截 | 将成就页、任务链路和徽章回放的幂等与缓存回流边界收口，并补齐验证 | 如需继续，可转入 T-018 设置与通知域 |
 
+| 2026-04-10 | T-020/T-021 closeout snapshot for branch commit | 先收口 T-020.9 字段级 SQL/后台核账，并为 codex/p0-05-closeout 分支提交推送做准备 | 已整理并落档 T-020.9 核账与相关证据，准备重新提交并推送分支 | - | - | - | - |
+
 ## 约束

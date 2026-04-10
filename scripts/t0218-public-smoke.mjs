@@ -216,13 +216,36 @@ async function submitRegisterForm(page, email, password, referralCode = '') {
   }
 }
 
-async function submitResetPassword(page, email) {
+async function submitResetPassword(page, email, newPassword = 'T0218Reset123!') {
   await page.goto(`${BASE_URL}/reset-password`, {
     waitUntil: 'domcontentloaded',
     timeout: 30000,
   })
-  await page.waitForTimeout(1000)
+  await page.waitForFunction(
+    () => Boolean(document.querySelector('#email') || document.querySelector('#new-password')),
+    {
+      timeout: 30000,
+    },
+  )
   const emailInput = page.locator('#email')
+  const newPasswordInput = page.locator('#new-password')
+
+  if ((await newPasswordInput.count()) > 0) {
+    await newPasswordInput.fill(newPassword)
+    await page.locator('#confirm-password').fill(newPassword)
+    await page.getByRole('button', { name: /更新密码|Update password|更新中/i }).click()
+    await page.waitForTimeout(2500)
+    const result = await pageSummary(page, ['/login?reset=success', '登录页', 'Login'])
+    await takeScreenshot(page, 'reset-password-submit')
+    return {
+      name: 'reset-password-submit',
+      url: '/reset-password',
+      status: 200,
+      finalUrl: result.url,
+      ...result,
+    }
+  }
+
   await emailInput.waitFor({ timeout: 30000 })
   await emailInput.fill(email)
   await page.getByRole('button', { name: /发送重置邮件|Send reset|发送中/i }).click()
@@ -274,6 +297,8 @@ async function main() {
 
   const guestContext = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const guestPage = await guestContext.newPage()
+  const resetContext = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const resetPage = await resetContext.newPage()
 
   const report = {
     at: new Date().toISOString(),
@@ -323,6 +348,7 @@ async function main() {
 
   report.publicResults.push(await logStep('help-feedback-modal', () => openFeedbackModal(guestPage)))
   report.publicResults.push(await logStep('contact-submit', () => submitContactForm(guestPage, tempEmail)))
+  report.publicResults.push(await logStep('reset-request', () => submitResetPassword(resetPage, tempEmail)))
 
   report.publicResults.push(await logStep('register-submit', () => submitRegisterForm(guestPage, tempEmail, tempPassword)))
 
@@ -341,8 +367,7 @@ async function main() {
   report.authResults.push(await logStep('auth-register-redirect', () => openPage(authPage, 'auth-register-redirect', '/register', ['/dashboard'])))
   report.authResults.push(await logStep('auth-dashboard', () => openPage(authPage, 'auth-dashboard', '/dashboard', ['Dashboard', '仪表盘'])))
 
-  report.authResults.push(await logStep('reset-password-submit', () => submitResetPassword(authPage, tempEmail)))
-
+  await resetContext.close()
   await authContext.close()
   await guestContext.close()
   await browser.close()

@@ -3233,7 +3233,7 @@
 |---|---|---|---|
 | T-021.6 | 复测用户学习主域：按 `T-005 / T-006 / T-007 / T-008` 覆盖 Dashboard、课程、练习、社区的关键页面、主 CTA、提交链路、回流跳转与移动端表现，并修正预发专有异常 | codex | done |
 | T-021.7 | 复测成长与账户域：按 `T-016 / T-017 / T-018` 覆盖排行榜、成就、XP / streak、设置、通知深链与右上角通知入口，确认真实数据、权限边界、刷新回流与空态 / 错误态在预发可用 | codex | done |
-| T-021.8 | 复测公开与转化域：按 `T-012 / T-019 / T-022` 覆盖 landing、pricing、blog、help、contact、signup、login、reset-password、referral、voucher、feedback 等页面与表单，确认会话分流、表单回执、来源参数与转化入口稳定 | codex | doing |
+| T-021.8 | 复测公开与转化域：按 `T-012 / T-019 / T-022` 覆盖 landing、pricing、blog、help、contact、signup、login、reset-password、referral、voucher、feedback 等页面与表单，确认会话分流、表单回执、来源参数与转化入口稳定 | codex | done |
 | T-021.9 | 复测后台管理域：按 `T-009 ~ T-015 / T-023 / T-024` 覆盖 admin 首页、用户、反馈、内容导入、审核、报错、统计、增长工具与奖励/补发相关后台操作，确认权限、列表详情一致性、处理动作、审计留痕与管理端异常态 | codex | todo |
 | T-021.10 | 复测共享写链路与跨域副作用：统一重跑奖励领取、保存资料、通知偏好、练习提交、评论发帖、排行榜刷新、补发/回滚、缓存失效、`revalidatePath` / `revalidateTag`、幂等、越权、异常、超时与断网场景，并对字段核账结果做预发二次比对 | codex | todo |
 
@@ -3585,7 +3585,7 @@
   - 其中 `notificationPreferences` 读取会在缺失时自动补建，这属于已观察到的读侧副作用，后续预发复测时仍要留意它是否符合产品合同。
   - 浏览器级留证已补齐，证据目录见 [`evidence/T021-browser-20260410`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T021-browser-20260410/)：游客态 `leaderboard-guest / achievements-guest / settings-guest` 均回流到登录页；登录态 `login-auth-redirect / leaderboard-auth / achievements-auth / settings-auth / settings-notifications-tab` 均保持 `200` 并命中真实内容，其中 `leaderboard-auth` 命中“排行榜 / Competitive Ladder”，`achievements-auth` 命中“成就 / Achievement”，`settings-auth` 命中“设置 / Preference Console”，`settings-notifications-tab` 命中“通知 / Preference Console”。
 
-### T-021.8 公开与转化域复测执行表（进行中）
+### T-021.8 公开与转化域复测执行表（已完成）
 - 当前 `T-021.8` 先按“营销页 / Auth / 转化入口 / 反馈入口”四块收口：
   - 营销页：`/`、`/pricing`、`/blog`、`/help`、`/contact`
   - Auth：`/register`、`/login`、`/reset-password`
@@ -3602,6 +3602,7 @@
 - 当前判断：
   - 公共与转化域没有结构性 `notFound()` 阻断。
   - 这里最需要继续核对的是：公开页展示、推荐码与优惠券预填、注册/登录/重置回执、以及 feedback/contact 的真实提交回显是否仍然一致。
+- 浏览器级留证已补齐，证据目录见 [`evidence/T021-browser-20260410`](/Users/victorsim/Desktop/Projects/learn_more_v1.0/.codex/specs/2026-02-09-release-p0-public-paid/p0-05-sitewide-real-data-closeout/evidence/T021-browser-20260410/)：`public-home / public-pricing / public-blog / public-help / public-contact / public-login / referral-route / register-prefill / pricing-voucher-applied / help-feedback-modal / contact-submit / reset-request / register-submit / auth-login-redirect / auth-register-redirect / auth-dashboard` 均已落盘；其中 `register-prefill` 命中 `referralCode=JKAE31EI`，`pricing-voucher-applied` 命中 `V27067247`，`contact-submit` 命中成功回显，`reset-request` 命中重置邮件发送成功回显，`auth-login-redirect / auth-register-redirect / auth-dashboard` 验证了登录态回流与守卫分流。
 
 ## 旧任务整合说明
 - 旧 `T-004 Dashboard / Achievements / Settings` 已拆入：`T-005`、`T-017`、`T-018`。
