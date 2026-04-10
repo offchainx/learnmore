@@ -214,8 +214,15 @@ export async function awardBadgeIfEligible(
     })
   })
 
-  revalidateTag(`achievement-overview:${userId}`, 'quick')
-  revalidateTag(`user-badges:${userId}`, 'quick')
+  try {
+    revalidateTag(`achievement-overview:${userId}`, 'quick')
+    revalidateTag(`user-badges:${userId}`, 'quick')
+  } catch (error) {
+    console.warn('[gamification/achievements] Cache invalidation failed', {
+      userId,
+      error,
+    })
+  }
 
   return { awardedCodes: newBadges.map((badge) => badge.code) }
 }

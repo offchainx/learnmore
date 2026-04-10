@@ -45,7 +45,24 @@ export async function applyPracticeSubmissionEffects(
       break
   }
 
-  await Promise.all(sideEffects)
-  revalidateTag(`achievement-overview:${input.userId}`, 'quick')
-  revalidateTag(`user-badges:${input.userId}`, 'quick')
+  const settled = await Promise.allSettled(sideEffects)
+  const rejected = settled.filter((item) => item.status === 'rejected')
+  if (rejected.length > 0) {
+    console.warn('[practice/submission-effects] Side effects rejected', {
+      userId: input.userId,
+      mode: input.mode,
+      rejectedCount: rejected.length,
+    })
+  }
+
+  try {
+    revalidateTag(`achievement-overview:${input.userId}`, 'quick')
+    revalidateTag(`user-badges:${input.userId}`, 'quick')
+  } catch (error) {
+    console.warn('[practice/submission-effects] Cache invalidation failed', {
+      userId: input.userId,
+      mode: input.mode,
+      error,
+    })
+  }
 }

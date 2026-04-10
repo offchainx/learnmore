@@ -43,6 +43,13 @@ export async function checkAndRefreshStreak(userId: string) {
     },
   })
 
-  revalidateTag(`achievement-overview:${userId}`, 'quick')
+  try {
+    revalidateTag(`achievement-overview:${userId}`, 'quick')
+  } catch (error) {
+    console.warn('[gamification/streak] Cache invalidation failed', {
+      userId,
+      error,
+    })
+  }
   await awardBadgeIfEligible(userId, 'STREAK')
 }

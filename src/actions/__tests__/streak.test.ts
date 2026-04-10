@@ -82,4 +82,21 @@ describe('checkAndRefreshStreak', () => {
     expect(mockRevalidateTag).not.toHaveBeenCalled()
     expect(mockAwardBadgeIfEligible).not.toHaveBeenCalled()
   })
+
+  it('缓存失效失败时仍应继续完成 streak 更新', async () => {
+    mockRevalidateTag.mockImplementationOnce(() => {
+      throw new Error('cache failed')
+    })
+
+    await expect(checkAndRefreshStreak('user-1')).resolves.toBeUndefined()
+
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: {
+        lastStudyDate: expect.any(Date),
+        streak: 1,
+      },
+    })
+    expect(mockAwardBadgeIfEligible).toHaveBeenCalledWith('user-1', 'STREAK')
+  })
 })

@@ -11,16 +11,24 @@ import { DailyTaskType } from '@prisma/client'
 export async function completeOnboardingTask(type: DailyTaskType) {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Error('Unauthorized')
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
     const result = await completeTodayOnboardingTask(user.id, type)
     if (!result.success) {
-      return { success: false, message: result.error }
+      return { success: false, error: result.error }
     }
 
-    revalidatePath('/dashboard')
+    try {
+      revalidatePath('/dashboard')
+    } catch (error) {
+      console.warn('[gamification/achievement] Cache invalidation failed', {
+        userId: user.id,
+        type,
+        error,
+      })
+    }
     return { success: true }
   } catch (error) {
     console.error('Failed to complete onboarding task:', error)
@@ -31,7 +39,7 @@ export async function completeOnboardingTask(type: DailyTaskType) {
 export async function claimTaskReward(taskId: string) {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Error('Unauthorized')
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
@@ -40,9 +48,17 @@ export async function claimTaskReward(taskId: string) {
       return { success: false, error: result.error }
     }
 
-    revalidatePath('/dashboard')
-    revalidateTag(`achievement-overview:${user.id}`, 'quick')
-    revalidateTag(`user-badges:${user.id}`, 'quick')
+    try {
+      revalidatePath('/dashboard')
+      revalidateTag(`achievement-overview:${user.id}`, 'quick')
+      revalidateTag(`user-badges:${user.id}`, 'quick')
+    } catch (error) {
+      console.warn('[gamification/achievement] Cache invalidation failed', {
+        userId: user.id,
+        taskId,
+        error,
+      })
+    }
     return { success: true, xpGained: result.xpGained }
   } catch (error) {
     console.error('Failed to claim reward:', error)

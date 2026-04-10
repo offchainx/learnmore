@@ -163,7 +163,19 @@ export const DailyMissions = ({ tasks = [], user, lazyLoadTasks = false }: Daily
         ),
       })
       router.refresh()
+      return
     }
+
+    toast({
+      title: copy('任务失败', 'Task Failed'),
+      description:
+        result.error ||
+        copy(
+          '当前会话已失效或任务无法完成，请重新登录后重试。',
+          'Your session may have expired. Please sign in again and retry.'
+        ),
+      variant: 'destructive',
+    })
   }
 
   const sortedTasks = useMemo(

@@ -81,4 +81,20 @@ describe('gamification achievement actions', () => {
     expect(mockRevalidatePath).toHaveBeenCalledWith('/dashboard')
     expect(mockRevalidateTag).not.toHaveBeenCalled()
   })
+
+  it('未登录时应返回结构化错误而不是抛异常', async () => {
+    mockGetCurrentUser.mockResolvedValue(null)
+
+    await expect(
+      claimTaskReward('task-1')
+    ).resolves.toEqual({ success: false, error: 'Unauthorized' })
+    await expect(
+      completeOnboardingTask(DailyTaskType.ONBOARDING_PROFILE)
+    ).resolves.toEqual({ success: false, error: 'Unauthorized' })
+
+    expect(mockClaimDailyTaskRewardForUser).not.toHaveBeenCalled()
+    expect(mockCompleteTodayOnboardingTask).not.toHaveBeenCalled()
+    expect(mockRevalidatePath).not.toHaveBeenCalled()
+    expect(mockRevalidateTag).not.toHaveBeenCalled()
+  })
 })
