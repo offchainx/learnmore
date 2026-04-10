@@ -1,0 +1,88 @@
+[
+  {
+    "name": "leaderboard-guest",
+    "url": "/dashboard/leaderboard",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/login?redirectTo=%2Fdashboard%2Fleaderboard",
+    "title": "LearnMore - 中学生在线教育平台",
+    "detectedMarkers": []
+  },
+  {
+    "name": "achievements-guest",
+    "url": "/dashboard/achievements",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/login?redirectTo=%2Fdashboard%2Fachievements",
+    "title": "LearnMore - 中学生在线教育平台",
+    "detectedMarkers": []
+  },
+  {
+    "name": "settings-guest",
+    "url": "/dashboard/settings",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/login?redirectTo=%2Fdashboard%2Fsettings",
+    "title": "LearnMore - 中学生在线教育平台",
+    "detectedMarkers": []
+  },
+  {
+    "name": "auth-session",
+    "url": "/login?redirectTo=/dashboard/leaderboard",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/login?redirectTo=%2Fdashboard%2Fsettings",
+    "title": "LearnMore - 中学生在线教育平台",
+    "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+    "cookieNames": [
+      "sb-kyepcpkzmoxiyrpmwlnu-auth-token"
+    ]
+  },
+  {
+    "name": "login-auth-redirect",
+    "url": "/login?redirectTo=/dashboard/leaderboard",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/dashboard/leaderboard",
+    "title": "Leaderboard - Learn More"
+  },
+  {
+    "name": "leaderboard-auth",
+    "url": "/dashboard/leaderboard",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/dashboard/leaderboard",
+    "title": "Leaderboard - Learn More",
+    "detectedMarkers": [
+      "排行榜",
+      "Competitive Ladder"
+    ]
+  },
+  {
+    "name": "achievements-auth",
+    "url": "/dashboard/achievements",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/dashboard/achievements",
+    "title": "Achievements - LearnMore",
+    "detectedMarkers": [
+      "成就",
+      "Achievement"
+    ]
+  },
+  {
+    "name": "settings-auth",
+    "url": "/dashboard/settings",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/dashboard/settings",
+    "title": "LearnMore - 中学生在线教育平台",
+    "detectedMarkers": [
+      "设置",
+      "Preference Console"
+    ]
+  },
+  {
+    "name": "settings-notifications-tab",
+    "url": "/dashboard/settings?tab=notifications",
+    "status": 200,
+    "finalUrl": "http://127.0.0.1:3000/dashboard/settings?tab=notifications",
+    "title": "LearnMore - 中学生在线教育平台",
+    "detectedMarkers": [
+      "通知",
+      "Preference Console"
+    ]
+  }
+]

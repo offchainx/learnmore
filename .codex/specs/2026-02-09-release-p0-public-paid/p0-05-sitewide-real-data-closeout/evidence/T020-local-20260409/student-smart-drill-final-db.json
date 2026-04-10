@@ -1,0 +1,99 @@
+{
+  "at": "2026-04-10T01:02:01.315Z",
+  "user": {
+    "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+    "email": "student_ui_test@learnmore.com",
+    "xp": 50,
+    "streak": 1,
+    "totalStudyTime": 183
+  },
+  "quizTask": {
+    "id": "5a9925a7-95f7-4e41-be67-3a963b26550e",
+    "currentCount": 1,
+    "targetCount": 1,
+    "isClaimed": false,
+    "date": "2026-04-09T00:00:00.000Z"
+  },
+  "examCount": 2,
+  "exams": [
+    {
+      "id": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "clientSessionId": "84c24e6a-8aa1-4699-b553-2dd4fbe3b29e",
+      "mode": "SMART_DRILL",
+      "score": 100,
+      "totalQuestions": 6,
+      "correctCount": 6,
+      "duration": 3,
+      "createdAt": "2026-04-10T01:01:15.664Z"
+    },
+    {
+      "id": "09d43b3e-f05e-4bc9-b8f3-7eb7714be25e",
+      "clientSessionId": "t020-6-practice-20260410-a",
+      "mode": "SMART_DRILL",
+      "score": 100,
+      "totalQuestions": 2,
+      "correctCount": 2,
+      "duration": 180,
+      "createdAt": "2026-04-10T00:57:52.519Z"
+    }
+  ],
+  "attemptCount": 8,
+  "attempts": [
+    {
+      "id": "29b72ed3-6bbe-4630-b838-0d6ce7f8c643",
+      "questionId": "a0b308c9-9d4b-403d-bf23-f9ab87c6ac9a",
+      "examRecordId": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T01:01:15.699Z"
+    },
+    {
+      "id": "586b588d-80ae-40a5-bc75-4f5698cf23ca",
+      "questionId": "c1f52dc3-205f-4e03-99f7-29e1d742e771",
+      "examRecordId": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T01:01:15.699Z"
+    },
+    {
+      "id": "318565e8-22e6-4b8b-ac8d-50fd05cca37e",
+      "questionId": "5b868ef7-092a-4c2e-a898-e281034cdbd5",
+      "examRecordId": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T01:01:15.699Z"
+    },
+    {
+      "id": "6395aa0b-4035-4942-91d5-fd3a0a9d5296",
+      "questionId": "f142e4c6-4871-43e7-9c9f-3abd74a31015",
+      "examRecordId": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T01:01:15.699Z"
+    },
+    {
+      "id": "d92223f6-1744-4308-bf44-5a9d54582dc0",
+      "questionId": "26659f9c-7851-488d-b581-8be3edc94b57",
+      "examRecordId": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T01:01:15.699Z"
+    },
+    {
+      "id": "9f5185b7-9ca3-4768-9156-7ee3a7b3dc92",
+      "questionId": "48a30f9e-6905-458b-b682-b9379d9ed06d",
+      "examRecordId": "1e7ffca2-fb89-4fff-b5e6-83295d666e87",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T01:01:15.699Z"
+    },
+    {
+      "id": "4d2062a4-6ff6-423b-86d7-6fa82c7ee364",
+      "questionId": "0fce725e-a288-4c88-becd-7434d80ce7ce",
+      "examRecordId": "09d43b3e-f05e-4bc9-b8f3-7eb7714be25e",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T00:57:52.588Z"
+    },
+    {
+      "id": "65ffdf8f-0636-4778-a67a-a66c6ab4358e",
+      "questionId": "03fd408b-727b-4363-809c-051fdd2aac31",
+      "examRecordId": "09d43b3e-f05e-4bc9-b8f3-7eb7714be25e",
+      "isCorrect": true,
+      "createdAt": "2026-04-10T00:57:52.588Z"
+    }
+  ]
+}

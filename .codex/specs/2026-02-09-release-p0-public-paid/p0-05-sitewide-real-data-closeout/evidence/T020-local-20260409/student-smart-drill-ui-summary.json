@@ -1,0 +1,18 @@
+{
+  "at": "2026-04-10T01:02:29.505Z",
+  "scenario": "smart-drill-submit",
+  "subjectId": "72844ae3-6f0d-4cfd-8add-70de535aa316",
+  "questionIds": [
+    "f142e4c6-4871-43e7-9c9f-3abd74a31015",
+    "26659f9c-7851-488d-b581-8be3edc94b57",
+    "48a30f9e-6905-458b-b682-b9379d9ed06d",
+    "c1f52dc3-205f-4e03-99f7-29e1d742e771",
+    "5b868ef7-092a-4c2e-a898-e281034cdbd5",
+    "a0b308c9-9d4b-403d-bf23-f9ab87c6ac9a"
+  ],
+  "finalUrl": "http://127.0.0.1:3101/dashboard/practice/smart-drill?subjectId=72844ae3-6f0d-4cfd-8add-70de535aa316&autostart=1",
+  "resultSaved": true,
+  "containsCompletionTitle": true,
+  "beforeScreenshot": "student-smart-drill-before-submit.png",
+  "afterScreenshot": "student-smart-drill-after-submit.png"
+}

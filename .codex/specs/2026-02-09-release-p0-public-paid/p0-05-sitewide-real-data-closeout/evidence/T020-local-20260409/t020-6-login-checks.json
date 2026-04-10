@@ -1,0 +1,18 @@
+[
+  {
+    "email": "admin_ui_test@learnmore.com",
+    "redirectTo": "/admin",
+    "finalUrl": "http://127.0.0.1:3000/admin",
+    "loginError": false,
+    "matchedText": true,
+    "outcome": "settled"
+  },
+  {
+    "email": "student_ui_test@learnmore.com",
+    "redirectTo": "/dashboard",
+    "finalUrl": "http://127.0.0.1:3000/dashboard",
+    "loginError": false,
+    "matchedText": true,
+    "outcome": "settled"
+  }
+]

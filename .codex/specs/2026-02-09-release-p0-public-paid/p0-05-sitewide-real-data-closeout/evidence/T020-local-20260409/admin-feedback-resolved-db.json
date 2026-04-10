@@ -1,0 +1,29 @@
+{
+  "capturedAt": "2026-04-09T15:04:58.929Z",
+  "feedback": {
+    "id": "5a5f9b42-1f99-4fc5-83c3-d702f2a7f498",
+    "title": "T009 closeout feedback 1775186777640",
+    "status": "RESOLVED",
+    "updatedAt": "2026-04-09T15:04:44.269Z"
+  },
+  "events": [
+    {
+      "id": "40538adb-4da0-48a1-b4f2-15656d12b209",
+      "eventType": "STATUS_CHANGED",
+      "fromStatus": "CLOSED",
+      "toStatus": "RESOLVED",
+      "message": "T020.6 closeout reopen to resolved for reversible admin validation",
+      "createdAt": "2026-04-09T15:04:44.301Z",
+      "actorId": "fbee5de2-a253-4fcc-9903-e95306700158"
+    },
+    {
+      "id": "44a54629-bff5-4c62-8a3b-fbdcf806e21e",
+      "eventType": "CLOSED",
+      "fromStatus": "PENDING",
+      "toStatus": "CLOSED",
+      "message": "T-009.5 closeout: close feedback and verify /admin queue refresh",
+      "createdAt": "2026-04-03T03:27:31.040Z",
+      "actorId": "fbee5de2-a253-4fcc-9903-e95306700158"
+    }
+  ]
+}

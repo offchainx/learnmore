@@ -1,0 +1,216 @@
+{
+  "at": "2026-04-10T02:14:52.963Z",
+  "baseUrl": "http://127.0.0.1:3000",
+  "referralCode": "JKAE31EI",
+  "referralOwnerEmail": "codex.authprobe.1774884507912@example.com",
+  "voucherCode": "V27067247",
+  "voucherMeta": {
+    "code": "V27067247",
+    "discountType": "AMOUNT",
+    "discountValue": 10,
+    "maxRedemptions": null,
+    "redeemedCount": 1,
+    "validFrom": null,
+    "validTo": null
+  },
+  "tempEmail": "codex.t0218.1775787292195@learnmore.test",
+  "publicResults": [
+    {
+      "name": "public-home",
+      "url": "http://127.0.0.1:3000/",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/",
+      "title": "LearnMore AI | Your Personal AI Tutor for Middle School",
+      "heading": "不仅仅是刷题，更是你的 AI 私人导师。",
+      "detectedMarkers": [
+        "LearnMore",
+        "开始学习"
+      ],
+      "bodySnippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n2025 新课标已更新\n不仅仅是刷题，\n更是你的 AI 私人导师。\n\n基于 AI 的自适应学习，让每一分钟的学习都转化为实实在在的进步。\n\n获取免费诊断报告\n观看演示\n97\n活跃学员\n56\n累计刷题\nConcept Mastered\nQuadratic Formula\n为什么努力了成绩没提高？\n\n我们解决了阻碍学生进步的核心问题。\n\n分数停滞不前？\n\n盲目刷题却不知道错在哪里。AI 精准归因，帮你找到薄弱的底层知识点。\n\n私教太"
+    },
+    {
+      "name": "public-pricing",
+      "url": "http://127.0.0.1:3000/pricing",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/pricing",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "选择你的方案",
+      "detectedMarkers": [
+        "选择你的方案"
+      ],
+      "bodySnippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n选择你的方案\n\n为你的学习方式量身定制，轻松取得进步。\n\n月付\n年付 (省 10%)\n\n应用优惠券\n\n在结账前输入优惠券码。有效优惠券会立即更新下方价格。\n\n体验版 (Starter)\n\n尝试核心功能。社区共建，一起成长。\n\n永久免费\n基础练习（课本难度）\n仅参考答案\n社区浏览（仅读）\n社区数据贡献者\n立即开始\n自学版 (Standard)\n\n按照自己的节奏自学，灵活自由。\n\nRM60\n/月\n包含体验版所有功能，另外还有：\n历年"
+    },
+    {
+      "name": "public-blog",
+      "url": "http://127.0.0.1:3000/blog",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/blog",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "动态资讯",
+      "detectedMarkers": [
+        "动态资讯"
+      ],
+      "bodySnippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n动态资讯\n\n来自 LearnMore 团队的最新更新、学习技巧和技术洞察。\n\n精选故事\nLEARNING TIPS\n10 Effective Study Habits for 2025\n\nBoost your productivity with these proven techniques.\n\nDr. Sarah Smith\n1/27/2026\nAll\nLearning Tips\nMathematics\nTechnology\n"
+    },
+    {
+      "name": "public-help",
+      "url": "http://127.0.0.1:3000/help",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/help",
+      "title": "Help Center | LearnMore | LearnMore",
+      "heading": "我们可以如何帮助您？",
+      "detectedMarkers": [
+        "我们可以如何帮助您"
+      ],
+      "bodySnippet": "LearnMore Pro\nHow It Works\nSubjects\nPricing\nAbout Us\nLog in\nStart Learning\n我们可以如何帮助您？\n常见问题\nHow do I start a mock exam?\nCan I use LearnMore on my phone?\nWhat happens if I encounter a mistake in a question?\nHow do I reset my password?\nWhat are AI Tokens?\nWhat su"
+    },
+    {
+      "name": "public-contact",
+      "url": "http://127.0.0.1:3000/contact",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/contact",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "Contact Us",
+      "detectedMarkers": [
+        "Contact Us"
+      ],
+      "bodySnippet": "LearnMore Pro\nHow It Works\nSubjects\nPricing\nAbout Us\nLog in\nStart Learning\nContact Us\n\nHave questions about our curriculum? Need technical support? We're here to help you on your learning journey.\n\nGet in Touch\nEmail Us\n\nOur friendly team is here to help.\n\nsup"
+    },
+    {
+      "name": "public-login",
+      "url": "http://127.0.0.1:3000/login",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/login",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "欢迎回来"
+      ],
+      "bodySnippet": "Back to Home\n欢迎回来\n\n登录您的 LearnMore 账户\n\n邮箱\n密码\n忘记密码?\n登录\n还没有账号? 立即注册\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", you consent to our use of cookies. Read our Privacy "
+    },
+    {
+      "name": "referral-route",
+      "url": "http://localhost:3000/register?referralCode=JKAE31EI",
+      "status": 200,
+      "finalUrl": "http://localhost:3000/register?referralCode=JKAE31EI",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [],
+      "bodySnippet": "Back to Home\n创建账号\n\n加入 LearnMore 开启学习之旅\n\n用户名\n邮箱\n推荐码（选填）\n\n如果你通过推荐链接进入，这里会自动带入；你也可以手动修改或留空。\n\n密码\n创建账号\n已有账号? 直接登录\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", you cons"
+    },
+    {
+      "name": "register-prefill",
+      "url": "http://127.0.0.1:3000/register?referralCode=JKAE31EI",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/register?referralCode=JKAE31EI",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "创建账号"
+      ],
+      "bodySnippet": "Back to Home\n创建账号\n\n加入 LearnMore 开启学习之旅\n\n用户名\n邮箱\n推荐码（选填）\n\n如果你通过推荐链接进入，这里会自动带入；你也可以手动修改或留空。\n\n密码\n创建账号\n已有账号? 直接登录\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", you cons",
+      "referralInputValue": "JKAE31EI"
+    },
+    {
+      "name": "pricing-voucher-applied",
+      "url": "http://127.0.0.1:3000/pricing",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/pricing",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "选择你的方案",
+      "detectedMarkers": [
+        "V27067247",
+        "已应用优惠券"
+      ],
+      "bodySnippet": "LearnMore Pro\n工作原理\n课程体系\n价格方案\n关于我们\n中\n登录\n开始学习\n选择你的方案\n\n为你的学习方式量身定制，轻松取得进步。\n\n月付\n年付 (省 10%)\n\n应用优惠券\n\n在结账前输入优惠券码。有效优惠券会立即更新下方价格。\n\n清空\n已应用优惠券 V27067247，下方价格已更新。\n体验版 (Starter)\n\n尝试核心功能。社区共建，一起成长。\n\n永久免费\n基础练习（课本难度）\n仅参考答案\n社区浏览（仅读）\n社区数据贡献者\n立即开始\n自学版 (Standard)\n\n按照自己的节奏自学，灵活自由"
+    },
+    {
+      "name": "help-feedback-modal",
+      "url": "http://127.0.0.1:3000/help",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/help",
+      "title": "Help Center | LearnMore | LearnMore",
+      "heading": "我们可以如何帮助您？",
+      "detectedMarkers": [
+        "分享您的想法"
+      ],
+      "bodySnippet": "LearnMore Pro\nHow It Works\nSubjects\nPricing\nAbout Us\nLog in\nStart Learning\n我们可以如何帮助您？\n常见问题\nHow do I start a mock exam?\nCan I use LearnMore on my phone?\nWhat happens if I encounter a mistake in a question?\nHow do I reset my password?\nWhat are AI Tokens?\nWhat su"
+    },
+    {
+      "name": "contact-submit",
+      "url": "http://127.0.0.1:3000/contact",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/contact",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "Contact Us",
+      "detectedMarkers": [
+        "Thanks, your message has been sent"
+      ],
+      "bodySnippet": "LearnMore Pro\nHow It Works\nSubjects\nPricing\nAbout Us\nLog in\nStart Learning\nContact Us\n\nHave questions about our curriculum? Need technical support? We're here to help you on your learning journey.\n\nGet in Touch\nEmail Us\n\nOur friendly team is here to help.\n\nsup"
+    },
+    {
+      "name": "reset-password-submit",
+      "url": "http://127.0.0.1:3000/reset-password",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/reset-password",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": null,
+      "detectedMarkers": [
+        "重置邮件已发送"
+      ],
+      "bodySnippet": "Back to Home\n找回密码\n\n输入邮箱后，我们会发送密码重置链接。\n\n如果邮箱存在，重置邮件已发送，请检查收件箱和垃圾箱。\n邮箱\n我们只会发送一封重置邮件，不会公开显示该邮箱是否存在。\n发送重置邮件\n想直接登录? 返回登录\nWe use cookies\n\nWe use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", y"
+    },
+    {
+      "name": "register-submit",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "detectedMarkers": [],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.0h\n本周期累计投入\n完成题数\n0\n本周期作答总量\n今日任务\n今日任务\n\n默认展示 3 条，滚动滑鼠滚轮可一次切换下一组任务。\n\n进行中\n0 条\n正在加载今日任务\n学习路径\n\n根据当前答题表现推荐下一步章节练习，可直接深链进入"
+    }
+  ],
+  "authResults": [
+    {
+      "name": "auth-session",
+      "userId": "319cab2a-2c87-4ee0-af53-a67b904f1a3d",
+      "cookieNames": [
+        "sb-kyepcpkzmoxiyrpmwlnu-auth-token"
+      ]
+    },
+    {
+      "name": "auth-login-redirect",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "detectedMarkers": [],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.0h\n本周期累计投入\n完成题数\n0\n本周期作答总量\n今日任务\n今日任务\n\n默认展示 3 条，滚动滑鼠滚轮可一次切换下一组任务。\n\n进行中\n0 条\n正在加载今日任务\n学习路径\n\n根据当前答题表现推荐下一步章节练习，可直接深链进入"
+    },
+    {
+      "name": "auth-register-redirect",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "detectedMarkers": [],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.0h\n本周期累计投入\n完成题数\n0\n本周期作答总量\n今日任务\n今日任务\n\n默认展示 3 条，滚动滑鼠滚轮可一次切换下一组任务。\n\n进行中\n0 条\n正在加载今日任务\n学习路径\n\n根据当前答题表现推荐下一步章节练习，可直接深链进入"
+    },
+    {
+      "name": "auth-dashboard",
+      "url": "http://127.0.0.1:3000/dashboard",
+      "status": 200,
+      "finalUrl": "http://127.0.0.1:3000/dashboard",
+      "title": "LearnMore - 中学生在线教育平台",
+      "heading": "每日灵感",
+      "detectedMarkers": [
+        "Dashboard",
+        "仪表盘"
+      ],
+      "bodySnippet": "LearnMore\nStarter\n仪表盘\n课程学习\n练习中心\n学员社区\n升级套餐\n解锁更多训练与 AI 功能\n账户\n等级 1\n0 XP\n/ 1,000\n设置\n退出登录\n仪表盘\nDashboard\n\n集中查看最近学习节奏、今日任务、章节练习建议和整体学科稳定度。\n\n7天\n30天\n学习时长\n0.0h\n本周期累计投入\n完成题数\n0\n本周期作答总量\n今日任务\n今日任务\n\n默认展示 3 条，滚动滑鼠滚轮可一次切换下一组任务。\n\n进行中\n0 条\n正在加载今日任务\n学习路径\n\n根据当前答题表现推荐下一步章节练习，可直接深链进入"
+    }
+  ]
+}

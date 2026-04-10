@@ -1,3 +1,4 @@
+- 2026-04-10: Finish T-019/T-020 closeout snapshot for commit and push (confirm T-019.1~T-019.12 and T-020 smoke evidence are all收口完成, revalidate public/marketing/auth routes with tsc/eslint/playwright smoke, then stage the full workspace snapshot for git commit/push).
 - 2026-04-07: Recheck T-002.3 after stripping dashboard subject white-run payload (headed Chrome incognito run; dashboard shell visible at ~3.3s, main stable content at ~13.6s, and the subject area stayed in empty state instead of dragging the page back to the 40s tail).
 - 2026-04-07: Reposition T-002.3 explanation block ahead of T-003/T-004/T-005 so the docs keep one task list and one explanation stream; T-002.3 now starts by stripping `weaknesses` out of `/api/dashboard/home-subjects` and `DashboardHome` so the non-first-visual-layer payload no longer sits on the critical path.
 - 2026-04-06: Degrade dashboard daily-tasks to non-blocking fallback and add subject-stage summary logging (daily-tasks API now catches ensureDailyTasks failures instead of 500ing the page; getSubjectChapters emits userScope/subjectAndChapters/attemptsWithChapter/total timings for the next deployment check).
@@ -123,6 +124,6 @@
 
 | 2026-04-09 | T-017 成就与游戏化域收口 | 收口 T-017.9 并检查 T-017 全部子任务是否完成 | 确认 T-017.1~T-017.9 均已达到收口条件并在 tasks.md 标记为 done；补充回放核账测试覆盖重复领奖、任务推进、进度回放与徽章发放回放；修复 achievements 错误边界导入并完成页面级验证 | tasks.md, achievement/streak action tests, achievements error boundary | 首次提交因缺少 iteration-log 记录被钩子拦截 | 将成就页、任务链路和徽章回放的幂等与缓存回流边界收口，并补齐验证 | 如需继续，可转入 T-018 设置与通知域 |
 
-| 2026-04-10 | T-020.10 boundary and failure hardening on main | 继续推进 T-020.10 的边界与故障场景验证，收紧主提交链路的失败扩散 | 已将练习副作用、成就刷新和每日任务领奖改为容错合同，并补齐未登录与缓存失效回归测试 | - | - | - | - |
+| 2026-04-10 | T-020/T-021 closeout snapshot for branch commit | 先收口 T-020.9 字段级 SQL/后台核账，并为 codex/p0-05-closeout 分支提交推送做准备 | 已整理并落档 T-020.9 核账与相关证据，准备重新提交并推送分支 | - | - | - | - |
 
 ## 约束

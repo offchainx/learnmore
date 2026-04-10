@@ -1,0 +1,35 @@
+{
+  "scenario": "student-settings-email-marketing-toggle",
+  "sampleRef": "S-05",
+  "userEmail": "student_ui_test@learnmore.com",
+  "observations": {
+    "beforeBootstrap": {
+      "notificationPreferenceRow": false,
+      "userSettingsEmailMarketing": true
+    },
+    "afterBootstrap": {
+      "notificationPreferenceRow": true,
+      "notificationPreferenceEmailMarketing": true,
+      "userSettingsEmailMarketing": true
+    },
+    "afterSaveOff": {
+      "uiSwitchBefore": "true",
+      "uiSwitchAfter": "false",
+      "dbNotificationPreferenceEmailMarketing": false,
+      "dbUserSettingsEmailMarketing": false,
+      "dbUpdatedAt": "2026-04-09T14:28:15.691Z"
+    },
+    "afterRestore": {
+      "uiSwitchBefore": "false",
+      "uiSwitchAfter": "true",
+      "dbNotificationPreferenceEmailMarketing": true,
+      "dbUserSettingsEmailMarketing": true,
+      "dbUpdatedAt": "2026-04-09T14:28:40.545Z"
+    }
+  },
+  "evidenceFiles": [
+    "student-settings-email-marketing-off.png",
+    "student-settings-email-marketing-restored.png",
+    "student-settings-email-marketing-final-db.json"
+  ]
+}

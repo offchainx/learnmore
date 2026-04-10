@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-04-09T14:29:02.448Z",
+  "user": {
+    "id": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+    "email": "student_ui_test@learnmore.com"
+  },
+  "prefs": {
+    "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+    "inAppSystem": true,
+    "inAppSocial": true,
+    "inAppStudy": true,
+    "inAppAchievement": true,
+    "emailSystem": true,
+    "emailSocial": true,
+    "emailWeekly": true,
+    "emailMarketing": true,
+    "emailBilling": true,
+    "updatedAt": "2026-04-09T14:28:40.545Z"
+  },
+  "settings": {
+    "id": "15aecaf4-acc6-478e-8297-6308535feb38",
+    "userId": "463aab4b-44a4-49de-9fce-0079fcf5b978",
+    "theme": "light",
+    "language": "en",
+    "aiPersonality": "ENCOURAGING",
+    "difficultyCalibration": 50,
+    "curriculumSystem": null,
+    "studyReminderTime": null,
+    "notificationDaily": true,
+    "notificationWeekly": true,
+    "emailMarketing": true,
+    "emailActivity": true
+  }
+}
