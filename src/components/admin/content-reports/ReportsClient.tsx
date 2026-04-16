@@ -118,6 +118,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   const [issueFilter, setIssueFilter] = useState<IssueFilter>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkNote, setBulkNote] = useState('')
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false)
@@ -154,7 +155,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   useEffect(() => {
     setSelectedIds([])
     setBulkNote('')
-  }, [currentPage, issueFilter, searchQuery, statusFilter, timeRange])
+  }, [currentPage, issueFilter, pageSize, searchQuery, statusFilter, timeRange])
 
   const handleSelectReport = (report: ReportRecord) => {
     setSelectedReportId(report.id)
@@ -213,7 +214,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   }, [issueFilter, reportsInRange, searchQuery, statusFilter])
 
   const totalPages =
-    filteredReports.length === 0 ? 0 : Math.ceil(filteredReports.length / PAGE_SIZE)
+    filteredReports.length === 0 ? 0 : Math.ceil(filteredReports.length / pageSize)
 
   useEffect(() => {
     if (totalPages === 0) {
@@ -229,9 +230,9 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   }, [currentPage, totalPages])
 
   const pagedReports = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE
-    return filteredReports.slice(start, start + PAGE_SIZE)
-  }, [currentPage, filteredReports])
+    const start = (currentPage - 1) * pageSize
+    return filteredReports.slice(start, start + pageSize)
+  }, [currentPage, filteredReports, pageSize])
 
   const selectedCount = selectedIds.length
 
@@ -267,6 +268,16 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
     }
 
     setIsBulkSubmitting(false)
+  }
+
+  const handlePageChange = (nextPage: number, nextPageSize: number) => {
+    if (nextPageSize !== pageSize) {
+      setPageSize(nextPageSize)
+      setCurrentPage(1)
+      return
+    }
+
+    setCurrentPage(nextPage)
   }
 
   const rangeLabel =
@@ -522,10 +533,9 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
               filteredCount={filteredReports.length}
               totalCount={reportsInRange.length}
               currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={PAGE_SIZE}
+              pageSize={pageSize}
               selectedIds={selectedIds}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
               onToggleSelectRow={toggleSelectRow}
               onToggleSelectAll={toggleSelectAll}
               onSelectReport={handleSelectReport}

@@ -35,9 +35,23 @@ import {
 import { AlertCircle, Clock3, FolderKanban, RefreshCcw } from 'lucide-react'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 
+const REVIEW_PAGE_SIZE = 20
+const REVIEW_PAGE_SIZE_OPTIONS = [10, 20, 50] as const
+
+function parsePageSize(raw?: string) {
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed <= 0) return REVIEW_PAGE_SIZE
+  return REVIEW_PAGE_SIZE_OPTIONS.includes(
+    parsed as (typeof REVIEW_PAGE_SIZE_OPTIONS)[number]
+  )
+    ? parsed
+    : REVIEW_PAGE_SIZE
+}
+
 interface AdminContentPageProps {
   searchParams: Promise<{
     page?: string
+    pageSize?: string
     subjectId?: string
     status?: string
     tab?: string
@@ -58,6 +72,7 @@ export default async function AdminContentPage({
   // Parse search params
   const resolvedSearchParams = await searchParams
   const page = Number(resolvedSearchParams.page) || 1
+  const reviewPageSize = parsePageSize(resolvedSearchParams.pageSize)
   const subjectId = resolvedSearchParams.subjectId
   const statusParam = resolvedSearchParams.status
   const currentTab = resolvedSearchParams.tab || 'all'
@@ -104,8 +119,12 @@ export default async function AdminContentPage({
   const [questionsResult, subjectsResult, contentStatsResult, activityLogsResult] =
     await Promise.all([
       currentTab === 'pending'
-        ? getPendingReviewQuestions({ page, pageSize: 20 }, filter, currentSort)
-        : getQuestions({ page, pageSize: 20 }, filter, currentSort),
+        ? getPendingReviewQuestions(
+            { page, pageSize: reviewPageSize },
+            filter,
+            currentSort
+          )
+        : getQuestions({ page, pageSize: reviewPageSize }, filter, currentSort),
       getAllSubjects(),
       getContentStats(currentRange, { subjectId }),
       getContentReviewActivityLogs({ limit: 40, subjectId }),
@@ -117,6 +136,7 @@ export default async function AdminContentPage({
       tab: string
       subjectId: string
       page: string
+      pageSize: string
       range: string
       sortField: string
       sortOrder: string
@@ -126,6 +146,7 @@ export default async function AdminContentPage({
     const nextTab = overrides.tab ?? currentTab
     const nextSubjectId = overrides.subjectId ?? subjectId
     const nextPage = overrides.page ?? String(page)
+    const nextPageSize = overrides.pageSize ?? String(reviewPageSize)
     const nextRange = overrides.range ?? currentRange
     const nextSortField = overrides.sortField ?? currentSort.field
     const nextSortOrder = overrides.sortOrder ?? currentSort.order
@@ -133,6 +154,11 @@ export default async function AdminContentPage({
     params.set('tab', nextTab)
     if (nextSubjectId) params.set('subjectId', nextSubjectId)
     if (nextPage && nextPage !== '1') params.set('page', nextPage)
+    if (nextPageSize && nextPageSize !== String(REVIEW_PAGE_SIZE)) {
+      params.set('pageSize', nextPageSize)
+    } else {
+      params.delete('pageSize')
+    }
     if (nextRange && nextRange !== '7d') params.set('range', nextRange)
     if (nextSortField && nextSortField !== 'sourceFileCreatedAt') {
       params.set('sortField', nextSortField)
@@ -393,12 +419,13 @@ export default async function AdminContentPage({
                   </div>
                 }
               >
-                <QuestionReviewTable
-                  questions={questions}
-                  page={questionsResult.page}
-                  totalPages={questionsResult.totalPages}
-                  currentTab={currentTab}
-                />
+              <QuestionReviewTable
+                questions={questions}
+                page={questionsResult.page}
+                total={questionsResult.total}
+                pageSize={questionsResult.pageSize}
+                currentTab={currentTab}
+              />
               </Suspense>
             </CardContent>
           </Card>

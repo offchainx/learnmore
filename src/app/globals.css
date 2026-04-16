@@ -219,6 +219,75 @@ html:not(.dark) .drawer-glass {
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
 }
 
+/* Ant Design Pagination */
+.pagination-ant {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-ant .ant-pagination-item,
+.pagination-ant .ant-pagination-prev .ant-pagination-item-link,
+.pagination-ant .ant-pagination-next .ant-pagination-item-link {
+  margin-inline-end: 0;
+  border: 1px solid hsl(var(--border-default));
+  background: hsl(var(--surface-default));
+  color: hsl(var(--text-secondary));
+  border-radius: 9999px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pagination-ant .ant-pagination-item a {
+  color: inherit;
+}
+
+.pagination-ant .ant-pagination-item:hover,
+.pagination-ant .ant-pagination-prev .ant-pagination-item-link:hover,
+.pagination-ant .ant-pagination-next .ant-pagination-item-link:hover {
+  border-color: hsl(var(--primary) / 0.35);
+  color: hsl(var(--text-primary));
+}
+
+.pagination-ant .ant-pagination-item-active {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary));
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+}
+
+.pagination-ant .ant-pagination-item-active a,
+.pagination-ant .ant-pagination-item-active:hover a {
+  color: hsl(var(--primary-foreground));
+}
+
+.pagination-ant .ant-pagination-disabled .ant-pagination-item-link,
+.pagination-ant .ant-pagination-disabled:hover .ant-pagination-item-link {
+  border-color: hsl(var(--border-default));
+  background: hsl(var(--surface-subtle));
+  color: hsl(var(--text-disabled));
+}
+
+.pagination-ant .ant-pagination-jump-prev .ant-pagination-item-container,
+.pagination-ant .ant-pagination-jump-next .ant-pagination-item-container {
+  color: hsl(var(--text-tertiary));
+}
+
+.pagination-ant .ant-select-selector {
+  border-radius: 9999px !important;
+  border-color: hsl(var(--border-default)) !important;
+  background: hsl(var(--surface-default)) !important;
+  color: hsl(var(--text-primary)) !important;
+}
+
+.dark .pagination-ant .ant-select-selector,
+.dark .pagination-ant .ant-select-arrow {
+  color: hsl(var(--text-primary));
+}
+
 .surface-card {
   background-color: hsl(var(--surface-default));
   border: 1px solid hsl(var(--border-default));

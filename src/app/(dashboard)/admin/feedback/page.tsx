@@ -6,12 +6,22 @@ import { getFeedbackList, getFeedbackOverview } from '@/actions/support/ticket'
 import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 
 const PAGE_SIZE = 20
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const
 
 function parsePage(raw: string | string[] | undefined) {
   const value = Array.isArray(raw) ? raw[0] : raw
   const page = Number.parseInt(value || '1', 10)
   if (Number.isNaN(page)) return 1
   return Math.max(1, page)
+}
+
+function parsePageSize(raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const size = Number.parseInt(value || String(PAGE_SIZE), 10)
+  if (!Number.isFinite(size) || size <= 0) return PAGE_SIZE
+  return PAGE_SIZE_OPTIONS.includes(size as (typeof PAGE_SIZE_OPTIONS)[number])
+    ? size
+    : PAGE_SIZE
 }
 
 function parseStatus(raw: string | string[] | undefined) {
@@ -37,6 +47,7 @@ export default async function AdminFeedbackPage({
 }: {
   searchParams?: Promise<{
     page?: string | string[]
+    pageSize?: string | string[]
     search?: string | string[]
     status?: string | string[]
     category?: string | string[]
@@ -45,6 +56,7 @@ export default async function AdminFeedbackPage({
   const profile = await getProfile()
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const page = parsePage(resolvedSearchParams?.page)
+  const pageSize = parsePageSize(resolvedSearchParams?.pageSize)
   const search = Array.isArray(resolvedSearchParams?.search)
     ? resolvedSearchParams?.search[0]
     : resolvedSearchParams?.search || ''
@@ -62,8 +74,8 @@ export default async function AdminFeedbackPage({
 
   const [initialData, initialOverview] = await Promise.all([
     getFeedbackList({
-      limit: PAGE_SIZE,
-      offset: (page - 1) * PAGE_SIZE,
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
       search,
       status,
       category,
@@ -87,7 +99,7 @@ export default async function AdminFeedbackPage({
             }
             totalCount={initialData.success ? initialData.total || 0 : 0}
             initialPage={page}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
             initialSearch={search}
             initialStatus={status ?? 'ALL'}
             initialCategory={category ?? 'ALL'}

@@ -14,9 +14,26 @@ export const metadata: Metadata = {
   title: '批量导入 - 内容管理',
 }
 
+const PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const
+
+function parsePage(raw?: string) {
+  const parsedPage = Number(raw)
+  return Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1
+}
+
+function parsePageSize(raw?: string) {
+  const parsedSize = Number(raw)
+  if (!Number.isFinite(parsedSize) || parsedSize <= 0) return PAGE_SIZE
+  return PAGE_SIZE_OPTIONS.includes(parsedSize as (typeof PAGE_SIZE_OPTIONS)[number])
+    ? parsedSize
+    : PAGE_SIZE
+}
+
 interface ImportPageProps {
   searchParams?: Promise<{
     page?: string
+    pageSize?: string
   }>
 }
 
@@ -36,9 +53,8 @@ export default async function ImportPage({ searchParams }: ImportPageProps) {
   const subjects = subjectsResult.success ? subjectsResult.data || [] : []
 
   const resolvedSearchParams = (await searchParams) || {}
-  const parsedPage = Number(resolvedSearchParams.page)
-  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1
-  const pageSize = 10
+  const page = parsePage(resolvedSearchParams.page)
+  const pageSize = parsePageSize(resolvedSearchParams.pageSize)
 
   // Fetch import history
   const tasksResult = await getImportTasks({

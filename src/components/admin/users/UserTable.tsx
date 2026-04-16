@@ -18,8 +18,6 @@ import {
   MoreHorizontal,
   ArrowUp,
   ArrowDown,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   Eye,
   Ban,
@@ -36,6 +34,7 @@ import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
 import { toggleUserStatus } from '@/actions/admin/user-ops'
 import { OverrideModal } from '@/components/admin/permissions/OverrideModal'
 import { pageHeroTitleClass } from '@/components/shared/pageTypography'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import { toast } from 'sonner'
 
 // --- Helper Components ---
@@ -477,99 +476,6 @@ export const UserTable: React.FC<UserTableProps> = ({
     ) : (
       <ArrowDown className="ml-1 h-4 w-4 text-primary dark:text-[#60A5FA]" />
     )
-  }
-
-  const renderPaginationButtons = () => {
-    const { totalPages } = data
-    const items: React.ReactNode[] = []
-
-    if (totalPages <= 7) {
-      // Show all pages directly
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${
-              currentPage === i
-                ? 'border-[#33527B] bg-[#2563EB] text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]'
-                : 'border-[#24324D] bg-[#151F36] text-[#8FA4C2] hover:bg-[#1A2744] hover:text-[#E6EDF7]'
-            }`}
-          >
-            {i}
-          </button>
-        )
-      }
-    } else {
-      // Determine window around current page
-      const start = Math.max(2, currentPage - 1)
-      const end = Math.min(totalPages - 1, currentPage + 1)
-
-      // Always show first page
-      items.push(
-        <button
-          key={1}
-          onClick={() => handlePageChange(1)}
-          className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${currentPage === 1 ? 'border-primary/50 bg-primary text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]' : 'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-[#E6EDF7]'}`}
-        >
-          1
-        </button>
-      )
-
-      // Left ellipsis
-      if (start > 2) {
-        items.push(
-          <span
-            key="ellipsis-left"
-            className="flex h-8 w-8 items-center justify-center text-sm text-[#5C708F]"
-          >
-            …
-          </span>
-        )
-      }
-
-      // Middle pages
-      for (let i = start; i <= end; i++) {
-        items.push(
-          <button
-            key={i}
-            onClick={() => handlePageChange(i)}
-            className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${
-              currentPage === i
-                ? 'border-[#33527B] bg-[#2563EB] text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]'
-                : 'border-[#24324D] bg-[#151F36] text-[#8FA4C2] hover:bg-[#1A2744] hover:text-[#E6EDF7]'
-            }`}
-          >
-            {i}
-          </button>
-        )
-      }
-
-      // Right ellipsis
-      if (end < totalPages - 1) {
-        items.push(
-          <span
-            key="ellipsis-right"
-            className="flex h-8 w-8 items-center justify-center text-sm text-[#5C708F]"
-          >
-            …
-          </span>
-        )
-      }
-
-      // Always show last page
-      items.push(
-        <button
-          key={totalPages}
-          onClick={() => handlePageChange(totalPages)}
-          className={`h-8 w-8 rounded-xl border text-sm font-medium transition-all ${currentPage === totalPages ? 'border-primary/50 bg-primary text-white shadow-[0_8px_20px_rgba(37,99,235,0.3)]' : 'border-borderTone bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-[#E6EDF7]'}`}
-        >
-          {totalPages}
-        </button>
-      )
-    }
-
-    return items
   }
 
   if (isLoading && data.data.length === 0) {
@@ -1106,43 +1012,22 @@ export const UserTable: React.FC<UserTableProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="rounded-xl border border-borderTone bg-surface p-2 text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-30 disabled:hover:bg-surface disabled:hover:text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-white dark:disabled:hover:bg-[#151F36] dark:disabled:hover:text-[#8FA4C2]"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <div className="flex items-center gap-1">
-              {renderPaginationButtons()}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={
-                currentPage === data.totalPages || data.totalPages === 0
-              }
-              className="rounded-xl border border-borderTone bg-surface p-2 text-text-secondary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:opacity-30 disabled:hover:bg-surface disabled:hover:text-text-secondary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#8FA4C2] dark:hover:bg-[#1A2744] dark:hover:text-white dark:disabled:hover:bg-[#151F36] dark:disabled:hover:text-[#8FA4C2]"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-[#8FA4C2]">
-            <span>每页</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value))
-                setCurrentPage(1)
+            <PaginationAnt
+              current={currentPage}
+              total={data.total}
+              pageSize={itemsPerPage}
+              showSizeChanger
+              pageSizeOptions={['10', '20', '50']}
+              showLessItems
+              onChange={(nextPage, nextPageSize) => {
+                if (nextPageSize !== itemsPerPage) {
+                  setItemsPerPage(nextPageSize)
+                  setCurrentPage(1)
+                  return
+                }
+                handlePageChange(nextPage)
               }}
-              className="rounded-xl border border-borderTone bg-surface px-2.5 py-1.5 text-text-primary outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+            />
           </div>
         </div>
       </div>

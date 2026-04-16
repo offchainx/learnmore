@@ -11,6 +11,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import {
   Bookmark,
   Bot,
@@ -1541,28 +1542,14 @@ export function CommunityView({
                   <div className="text-[12px] text-text-tertiary dark:text-text-tertiary">
                     {paginationSummary}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-9 rounded-full px-4 text-[12px]"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage <= 1}
-                    >
-                      {copy.prevPage}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-9 rounded-full px-4 text-[12px]"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={
-                        currentPage >= Math.max(1, pageMetadata.totalPages)
-                      }
-                    >
-                      {copy.nextPage}
-                    </Button>
-                  </div>
+                  <PaginationAnt
+                    current={currentPage}
+                    total={Math.max(1, pageMetadata.total)}
+                    pageSize={pageMetadata.limit}
+                    showSizeChanger={false}
+                    showLessItems
+                    onChange={(nextPage) => handlePageChange(nextPage)}
+                  />
                 </div>
               </Card>
             ) : null}

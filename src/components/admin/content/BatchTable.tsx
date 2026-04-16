@@ -29,8 +29,6 @@ import {
   Clock,
   Search,
   MoreVertical,
-  ChevronLeft,
-  ChevronRight,
   RefreshCcw,
   Trash2,
   ExternalLink,
@@ -54,6 +52,7 @@ import {
 } from '@/actions/content-pipeline/import-service'
 import { useToast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import {
   Dialog,
   DialogContent,
@@ -65,10 +64,10 @@ import {
 interface BatchTableProps {
   batches: BatchData[]
   currentPage: number
-  totalPages: number
   totalItems: number
+  pageSize: number
   onDataChanged?: () => void
-  onPageChange?: (page: number) => void
+  onPageChange?: (page: number, pageSize: number) => void
   isAutoRefreshing?: boolean
   lastSyncedAt?: Date | null
 }
@@ -250,8 +249,8 @@ function buildProcessingMeta(batch: BatchData): string | null {
 export function BatchTable({
   batches,
   currentPage,
-  totalPages,
   totalItems,
+  pageSize,
   onDataChanged,
   onPageChange,
   isAutoRefreshing = false,
@@ -309,7 +308,7 @@ export function BatchTable({
     [filteredBatches]
   )
   const leadProcessingBatch = processingBatches[0] ?? null
-  const startIndex = (currentPage - 1) * 10
+  const startIndex = (currentPage - 1) * pageSize
   const endIndex = startIndex + filteredBatches.length
 
   const refreshData = () => {
@@ -802,44 +801,17 @@ export function BatchTable({
               分页导航已增强，可快速切换处理结果与异常任务。
             </p>
           </div>
-          <div>
-            <nav className="relative z-0 inline-flex rounded-2xl border border-borderTone bg-surface p-1 shadow-sm dark:border-borderTone dark:bg-surface">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-xl border-0 bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
-                onClick={() => onPageChange?.(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <Button
-                    key={page}
-                    variant="outline"
-                    className={`h-9 rounded-xl border-0 px-4 ${
-                      currentPage === page
-                        ? 'bg-primary text-white shadow-[0_10px_20px_rgba(29,78,216,0.18)] dark:bg-primary dark:text-primary-foreground'
-                        : 'bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary'
-                    }`}
-                    onClick={() => onPageChange?.(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              )}
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-xl border-0 bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
-                onClick={() => onPageChange?.(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </nav>
-          </div>
+          <PaginationAnt
+            current={currentPage}
+            total={Math.max(1, totalItems)}
+            pageSize={pageSize}
+            showSizeChanger
+            pageSizeOptions={['10', '20', '50']}
+            showLessItems
+            onChange={(nextPage, nextPageSize) =>
+              onPageChange?.(nextPage, nextPageSize || pageSize)
+            }
+          />
         </div>
       </div>
 

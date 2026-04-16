@@ -135,7 +135,6 @@ export function ImportClient({
   )
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const totalPages = Math.max(1, Math.ceil(totalTasks / initialPageSize))
 
   const handleImportQueued = (optimisticBatch: BatchData) => {
     if (initialPage === 1) {
@@ -243,8 +242,19 @@ export function ImportClient({
     })()
   }
 
-  const handlePageChange = (nextPage: number) => {
+  const handlePageChange = (nextPage: number, nextPageSize: number) => {
     const params = new URLSearchParams(searchParams.toString())
+    if (nextPageSize !== initialPageSize) {
+      if (nextPageSize === 10) {
+        params.delete('pageSize')
+      } else {
+        params.set('pageSize', String(nextPageSize))
+      }
+      params.delete('page')
+      router.push(params.toString() ? `${pathname}?${params.toString()}` : pathname)
+      return
+    }
+
     if (nextPage <= 1) {
       params.delete('page')
     } else {
@@ -318,8 +328,8 @@ export function ImportClient({
               <BatchTable
                 batches={batches}
                 currentPage={initialPage}
-                totalPages={totalPages}
                 totalItems={totalTasks}
+                pageSize={initialPageSize}
                 onDataChanged={handleImportSuccess}
                 onPageChange={handlePageChange}
                 isAutoRefreshing={isAutoRefreshing}

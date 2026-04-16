@@ -47,20 +47,23 @@ import {
   pageSectionHeaderBandClass,
   pageTableShellClass,
 } from '@/components/shared/pageSurfaces'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import { cn } from '@/lib/utils'
 import { normalizeExamcooImageUrl } from '@/lib/content-pipeline/examcoo-image'
 
 interface QuestionReviewTableProps {
   questions: QuestionWithRelations[]
   page: number
-  totalPages: number
+  total: number
+  pageSize: number
   currentTab?: string
 }
 
 export function QuestionReviewTable({
   questions,
   page,
-  totalPages,
+  total,
+  pageSize,
   currentTab = 'all',
 }: QuestionReviewTableProps) {
   const router = useRouter()
@@ -77,6 +80,7 @@ export function QuestionReviewTable({
       ? reviewActionParam
       : null
   const nextQuestionId = searchParams.get('nextQuestionId')
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   useEffect(() => {
     setMounted(true)
@@ -255,9 +259,17 @@ export function QuestionReviewTable({
   }
 
   // Pagination helpers
-  const goToPage = (newPage: number) => {
+  const goToPage = (newPage: number, nextPageSize?: number) => {
+    const safePage = Math.min(Math.max(1, newPage), totalPages)
     const params = new URLSearchParams(searchParams.toString())
-    params.set('page', newPage.toString())
+    params.set('page', safePage.toString())
+    if (nextPageSize && nextPageSize !== pageSize) {
+      if (nextPageSize === 20) {
+        params.delete('pageSize')
+      } else {
+        params.set('pageSize', nextPageSize.toString())
+      }
+    }
     params.delete('questionId')
     params.delete('reviewAction')
     params.delete('nextQuestionId')
@@ -645,31 +657,23 @@ export function QuestionReviewTable({
           <TableFooter className="border-t border-borderTone bg-surface-subtle text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary">
             <TableRow className="border-b-0 hover:bg-transparent">
               <TableCell colSpan={11}>
-                <div className="flex w-full items-center justify-between">
+                <div className="flex w-full flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
                   <div className="text-xs text-text-secondary dark:text-text-secondary">
                     第 {page} 页 / 共 {totalPages} 页
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => goToPage(page - 1)}
-                      disabled={page <= 1}
-                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-white dark:hover:bg-surface-subtle"
-                      
-                    >
-                      上一页
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => goToPage(page + 1)}
-                      disabled={page >= totalPages}
-                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-white dark:hover:bg-surface-subtle"
-                    >
-                      下一页
-                    </Button>
-                  </div>
+                  <PaginationAnt
+                    current={page}
+                    total={Math.max(1, total)}
+                    pageSize={pageSize}
+                    showSizeChanger
+                    pageSizeOptions={['10', '20', '50']}
+                    showLessItems
+                    onChange={(nextPage, nextPageSize) =>
+                      nextPageSize && nextPageSize !== pageSize
+                        ? goToPage(1, nextPageSize)
+                        : goToPage(nextPage)
+                    }
+                  />
                 </div>
               </TableCell>
             </TableRow>

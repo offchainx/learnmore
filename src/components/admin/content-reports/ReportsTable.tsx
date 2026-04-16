@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { ChevronLeft, ChevronRight, Eye, Hash } from 'lucide-react'
+import { Eye, Hash } from 'lucide-react'
 import { useApp } from '@/providers'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import { getReportsI18n } from './i18n'
 import type { ReportRecord, ReportIssueType, ReportStatus } from './types'
 
@@ -23,10 +24,9 @@ interface ReportsTableProps {
   filteredCount: number
   totalCount: number
   currentPage: number
-  totalPages: number
   pageSize: number
   selectedIds: string[]
-  onPageChange: (page: number) => void
+  onPageChange: (page: number, pageSize: number) => void
   onToggleSelectRow: (reportId: string) => void
   onToggleSelectAll: (reportIds: string[]) => void
   onSelectReport: (report: ReportRecord) => void
@@ -96,7 +96,6 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
   filteredCount,
   totalCount,
   currentPage,
-  totalPages,
   pageSize,
   selectedIds,
   onPageChange,
@@ -109,6 +108,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
   const selectedSet = new Set(selectedIds)
   const allSelected = reports.length > 0 && reports.every((report) => selectedSet.has(report.id))
   const someSelected = !allSelected && reports.some((report) => selectedSet.has(report.id))
+  const totalPages = Math.max(1, Math.ceil(filteredCount / pageSize))
 
   const start = filteredCount === 0 ? 0 : (currentPage - 1) * pageSize + 1
   const end = filteredCount === 0 ? 0 : start + reports.length - 1
@@ -276,7 +276,7 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
           <TableFooter>
             <TableRow className="border-b-0 hover:bg-transparent">
               <TableCell colSpan={7}>
-                <div className="flex w-full items-center justify-between gap-3">
+                <div className="flex w-full flex-col gap-3 desktop:flex-row desktop:items-center desktop:justify-between">
                   <div className="text-xs text-text-secondary dark:text-text-secondary">
                     {text.table.showing} {start} {text.table.to} {end}{' '}
                     {text.table.of} {filteredCount} {text.table.results}
@@ -284,30 +284,17 @@ export const ReportsTable: React.FC<ReportsTableProps> = ({
                       / {totalCount} {text.table.results}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage <= 1}
-                      onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-text-primary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage >= Math.max(1, totalPages)}
-                      onClick={() =>
-                        onPageChange(
-                          Math.min(Math.max(1, totalPages), currentPage + 1)
-                        )
-                      }
-                      className="border-borderTone bg-surface text-text-primary hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface dark:text-text-primary dark:hover:bg-surface-subtle dark:hover:text-text-primary"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <PaginationAnt
+                    current={currentPage}
+                    total={Math.max(1, filteredCount)}
+                    pageSize={pageSize}
+                    showSizeChanger
+                    pageSizeOptions={['10', '20', '50']}
+                    showLessItems
+                    onChange={(nextPage, nextPageSize) =>
+                      onPageChange(nextPage, nextPageSize || pageSize)
+                    }
+                  />
                 </div>
               </TableCell>
             </TableRow>

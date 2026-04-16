@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { VoucherDiscountType } from '@prisma/client'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import {
   ArrowDown,
   ArrowUp,
@@ -43,7 +44,8 @@ import {
 type GrowthTab = 'referrals' | 'vouchers'
 type TimeRange = '7D' | '30D' | 'ALL'
 
-const GROWTH_CONSOLE_PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = [10, 20, 50] as const
 
 type ReferralRow = {
   id: string
@@ -194,6 +196,8 @@ export function GrowthToolsConsole({
   )
   const [referralPage, setReferralPage] = useState(1)
   const [voucherPage, setVoucherPage] = useState(1)
+  const [referralPageSize, setReferralPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const [voucherPageSize, setVoucherPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -442,22 +446,22 @@ export function GrowthToolsConsole({
 
   const referralPageCount = Math.max(
     1,
-    Math.ceil(filteredReferrals.length / GROWTH_CONSOLE_PAGE_SIZE)
+    Math.ceil(filteredReferrals.length / referralPageSize)
   )
   const voucherPageCount = Math.max(
     1,
-    Math.ceil(filteredVouchers.length / GROWTH_CONSOLE_PAGE_SIZE)
+    Math.ceil(filteredVouchers.length / voucherPageSize)
   )
 
   const paginatedReferrals = useMemo(() => {
-    const start = (Math.min(referralPage, referralPageCount) - 1) * GROWTH_CONSOLE_PAGE_SIZE
-    return filteredReferrals.slice(start, start + GROWTH_CONSOLE_PAGE_SIZE)
-  }, [filteredReferrals, referralPage, referralPageCount])
+    const start = (Math.min(referralPage, referralPageCount) - 1) * referralPageSize
+    return filteredReferrals.slice(start, start + referralPageSize)
+  }, [filteredReferrals, referralPage, referralPageCount, referralPageSize])
 
   const paginatedVouchers = useMemo(() => {
-    const start = (Math.min(voucherPage, voucherPageCount) - 1) * GROWTH_CONSOLE_PAGE_SIZE
-    return filteredVouchers.slice(start, start + GROWTH_CONSOLE_PAGE_SIZE)
-  }, [filteredVouchers, voucherPage, voucherPageCount])
+    const start = (Math.min(voucherPage, voucherPageCount) - 1) * voucherPageSize
+    return filteredVouchers.slice(start, start + voucherPageSize)
+  }, [filteredVouchers, voucherPage, voucherPageCount, voucherPageSize])
 
   useEffect(() => {
     setReferralPage(1)
@@ -474,6 +478,26 @@ export function GrowthToolsConsole({
   useEffect(() => {
     setVoucherPage((current) => Math.min(current, voucherPageCount))
   }, [voucherPageCount])
+
+  const handleReferralPageChange = (nextPage: number, nextPageSize: number) => {
+    if (nextPageSize !== referralPageSize) {
+      setReferralPageSize(nextPageSize)
+      setReferralPage(1)
+      return
+    }
+
+    setReferralPage(nextPage)
+  }
+
+  const handleVoucherPageChange = (nextPage: number, nextPageSize: number) => {
+    if (nextPageSize !== voucherPageSize) {
+      setVoucherPageSize(nextPageSize)
+      setVoucherPage(1)
+      return
+    }
+
+    setVoucherPage(nextPage)
+  }
 
   const copyCode = async (code: string) => {
     try {
@@ -848,28 +872,19 @@ export function GrowthToolsConsole({
             <div className="flex flex-col gap-3 border-t border-borderTone bg-surface-subtle px-5 py-4 text-sm text-text-secondary sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between">
               <span>
                 第 {Math.min(referralPage, referralPageCount)} / {referralPageCount}{' '}
-                页，当前每页 {GROWTH_CONSOLE_PAGE_SIZE} 条
+                页，当前每页 {referralPageSize} 条
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReferralPage((current) => Math.max(1, current - 1))}
-                  disabled={referralPage <= 1}
-                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  上一页
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setReferralPage((current) => Math.min(referralPageCount, current + 1))
-                  }
-                  disabled={referralPage >= referralPageCount}
-                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  下一页
-                </button>
-              </div>
+              <PaginationAnt
+                current={referralPage}
+                total={Math.max(1, filteredReferrals.length)}
+                pageSize={referralPageSize}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS.map(String)}
+                showLessItems
+                onChange={(nextPage, nextPageSize) =>
+                  handleReferralPageChange(nextPage, nextPageSize || referralPageSize)
+                }
+              />
             </div>
           </>
         ) : (
@@ -1175,28 +1190,19 @@ export function GrowthToolsConsole({
             <div className="flex flex-col gap-3 border-t border-borderTone bg-surface-subtle px-5 py-4 text-sm text-text-secondary sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between">
               <span>
                 第 {Math.min(voucherPage, voucherPageCount)} / {voucherPageCount}{' '}
-                页，当前每页 {GROWTH_CONSOLE_PAGE_SIZE} 条
+                页，当前每页 {voucherPageSize} 条
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setVoucherPage((current) => Math.max(1, current - 1))}
-                  disabled={voucherPage <= 1}
-                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  上一页
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setVoucherPage((current) => Math.min(voucherPageCount, current + 1))
-                  }
-                  disabled={voucherPage >= voucherPageCount}
-                  className="rounded-xl border border-borderTone bg-surface px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  下一页
-                </button>
-              </div>
+              <PaginationAnt
+                current={voucherPage}
+                total={Math.max(1, filteredVouchers.length)}
+                pageSize={voucherPageSize}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS.map(String)}
+                showLessItems
+                onChange={(nextPage, nextPageSize) =>
+                  handleVoucherPageChange(nextPage, nextPageSize || voucherPageSize)
+                }
+              />
             </div>
           </>
         )}

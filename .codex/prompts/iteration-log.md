@@ -132,4 +132,6 @@
 
 | 2026-04-10 | pricing build error fix and push prep | 修复 /pricing 的 Next.js 16 预渲染 build error，并准备提交推送 | 已将 /pricing 拆成服务端 Suspense 壳 + 客户端实现，解决 `useSearchParams()` 缺少 Suspense boundary 的构建失败，`pnpm build` 已通过，准备提交并推送 | src/app/(marketing)/pricing/page.tsx, src/app/(marketing)/pricing/PricingPageClient.tsx | Vercel build 在 `/pricing` 预渲染阶段因 `useSearchParams()` 触发 CSR bailout 失败 | 后续如再改动 pricing 相关查询参数逻辑，继续保持客户端组件包裹在 Suspense 内 | 本次改动已通过本地生产构建验证 |
 
+| 2026-04-16 | learn_more_v1.0 admin pagination | 统一 7 个管理页分页为 antd Pagination，并为指定页面补充可选 page size 与 URL 同步 | 已完成分页重构，保留或补齐 URL 同步；反馈、导入、审核页支持 page size 进 URL；增长工具和报错中心支持本地 page size；lint 和 TypeScript 通过。 | src/components/ui/pagination-ant.tsx, src/app/layout.tsx, src/app/globals.css, 10 个目标分页文件 | - | - | 如需继续，可统一这些页脚的视觉密度或把 page size 选项收敛到同一组。 |
+
 ## 约束

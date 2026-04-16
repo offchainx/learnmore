@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import 'antd/dist/reset.css'
 import './globals.css'
 import { ThemeProvider, AppProvider } from '@/providers'
 import { Toaster } from '@/components/ui/toaster'

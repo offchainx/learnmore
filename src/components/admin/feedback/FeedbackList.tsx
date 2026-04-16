@@ -15,8 +15,6 @@ import {
   ArrowUp,
   CheckCircle2,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Clock3,
   Filter,
   Inbox,
@@ -32,6 +30,7 @@ import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import PaginationAnt from '@/components/ui/pagination-ant'
 import {
   pageKpiCardClass,
   pageSectionHeaderBandClass,
@@ -179,8 +178,12 @@ export function FeedbackList({
     1,
     Number.parseInt(searchParams.get('page') || String(initialPage), 10) || 1
   )
-  const initialQueryKey = `search=${encodeURIComponent(initialSearch)}&status=${initialStatus}&category=${initialCategory}&limit=${pageSize}&offset=${
-    (initialPage - 1) * pageSize
+  const currentPageSize = Math.max(
+    1,
+    Number.parseInt(searchParams.get('pageSize') || String(pageSize), 10) || pageSize
+  )
+  const initialQueryKey = `search=${encodeURIComponent(initialSearch)}&status=${initialStatus}&category=${initialCategory}&limit=${currentPageSize}&offset=${
+    (initialPage - 1) * currentPageSize
   }`
   const lastLoadedListKey = React.useRef<string>(
     initialData.length > 0 || totalCount >= 0 ? initialQueryKey : ''
@@ -188,7 +191,7 @@ export function FeedbackList({
   const lastLoadedOverviewWindow = React.useRef<FeedbackOverviewWindow | ''>(
     initialOverview?.window || ''
   )
-  const totalPages = Math.max(1, Math.ceil(currentTotal / pageSize))
+  const totalPages = Math.max(1, Math.ceil(currentTotal / currentPageSize))
 
   const updateQueryInUrl = useCallback(
     (
@@ -197,6 +200,7 @@ export function FeedbackList({
         status?: 'ALL' | FeedbackStatus
         category?: 'ALL' | FeedbackCategory
         page?: number
+        pageSize?: number
       },
       mode: 'push' | 'replace' = 'push'
     ) => {
@@ -205,6 +209,7 @@ export function FeedbackList({
       const nextStatus = nextValues.status ?? statusFilter
       const nextCategory = nextValues.category ?? categoryFilter
       const nextPage = nextValues.page ?? currentPage
+      const nextPageSize = nextValues.pageSize ?? currentPageSize
 
       if (nextSearch.trim()) {
         params.set('search', nextSearch.trim())
@@ -230,6 +235,12 @@ export function FeedbackList({
         params.set('page', nextPage.toString())
       }
 
+      if (nextPageSize === 20) {
+        params.delete('pageSize')
+      } else {
+        params.set('pageSize', nextPageSize.toString())
+      }
+
       const query = params.toString()
       const target = query ? `?${query}` : '?'
       if (mode === 'replace') {
@@ -238,7 +249,15 @@ export function FeedbackList({
         router.push(target, { scroll: false })
       }
     },
-    [categoryFilter, currentPage, router, search, searchParams, statusFilter]
+    [
+      categoryFilter,
+      currentPage,
+      currentPageSize,
+      router,
+      search,
+      searchParams,
+      statusFilter,
+    ]
   )
 
   useEffect(() => {
@@ -261,12 +280,12 @@ export function FeedbackList({
   }, [searchParams])
 
   const loadFeedbackList = useCallback(async () => {
-    const offset = (currentPage - 1) * pageSize
+    const offset = (currentPage - 1) * currentPageSize
     const queryParams = new URLSearchParams({
       search,
       status: statusFilter,
       category: categoryFilter,
-      limit: pageSize.toString(),
+      limit: currentPageSize.toString(),
       offset: offset.toString(),
     })
     const queryKey = queryParams.toString()
@@ -295,7 +314,7 @@ export function FeedbackList({
       }
 
       const nextTotal = result.total || 0
-      const nextTotalPages = Math.max(1, Math.ceil(nextTotal / pageSize))
+      const nextTotalPages = Math.max(1, Math.ceil(nextTotal / currentPageSize))
       if (currentPage > nextTotalPages) {
         lastLoadedListKey.current = ''
         updateQueryInUrl({ page: nextTotalPages }, 'push')
@@ -314,7 +333,7 @@ export function FeedbackList({
   }, [
     categoryFilter,
     currentPage,
-    pageSize,
+    currentPageSize,
     search,
     statusFilter,
     updateQueryInUrl,
@@ -437,7 +456,10 @@ export function FeedbackList({
     setStatusFilter('ALL')
     setCategoryFilter('ALL')
     lastLoadedListKey.current = ''
-    updateQueryInUrl({ search: '', status: 'ALL', category: 'ALL', page: 1 }, 'replace')
+    updateQueryInUrl(
+      { search: '', status: 'ALL', category: 'ALL', page: 1 },
+      'replace'
+    )
   }
 
   const refreshAll = () => {
@@ -465,6 +487,16 @@ export function FeedbackList({
     if (safePage === currentPage) return
     lastLoadedListKey.current = ''
     updateQueryInUrl({ page: safePage }, 'push')
+  }
+
+  const handlePaginationChange = (nextPage: number, nextPageSize: number) => {
+    if (nextPageSize !== currentPageSize) {
+      lastLoadedListKey.current = ''
+      updateQueryInUrl({ page: 1, pageSize: nextPageSize }, 'push')
+      return
+    }
+
+    goToPage(nextPage)
   }
 
   const openFeedback = (id: string, title: string) => {
@@ -810,7 +842,7 @@ export function FeedbackList({
                     当前命中 <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">{currentTotal}</span> 条反馈
                   </span>
                   <span className="text-xs text-text-tertiary dark:text-[#6F86A8]">
-                    第 {currentPage} 页 / 共 {totalPages} 页，每页 {pageSize} 条
+                    第 {currentPage} 页 / 共 {totalPages} 页，每页 {currentPageSize} 条
                   </span>
                 </div>
               </div>
@@ -912,26 +944,17 @@ export function FeedbackList({
             <div className="text-xs text-text-secondary dark:text-[#8FA4C2]">
               第 {currentPage} 页 / 共 {totalPages} 页
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage <= 1 || isListLoading}
-                className="inline-flex h-9 items-center gap-1 rounded-xl border border-borderTone bg-surface px-3 text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                上一页
-              </button>
-              <button
-                type="button"
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage >= totalPages || isListLoading}
-                className="inline-flex h-9 items-center gap-1 rounded-xl border border-borderTone bg-surface px-3 text-sm text-text-primary transition-colors hover:bg-surface-subtle hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744]"
-              >
-                下一页
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+            <PaginationAnt
+              current={currentPage}
+              total={Math.max(1, currentTotal)}
+              pageSize={currentPageSize}
+              showSizeChanger
+              pageSizeOptions={['10', '20', '50']}
+              disabled={isListLoading}
+              onChange={(nextPage, nextPageSize) =>
+                handlePaginationChange(nextPage, nextPageSize || currentPageSize)
+              }
+            />
           </div>
         </div>
       </div>
