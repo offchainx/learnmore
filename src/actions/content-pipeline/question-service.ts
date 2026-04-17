@@ -531,8 +531,34 @@ function toValidTypeList(
   return list.length > 0 ? list : undefined
 }
 
-function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
+const QUESTION_ID_PREFIX_RE = /^[0-9a-f-]{4,36}$/i
+
+function shouldSearchQuestionIdPrefix(searchText: string): boolean {
+  return QUESTION_ID_PREFIX_RE.test(searchText) && !isUuid(searchText)
+}
+
+async function resolveQuestionIdPrefixMatches(
+  searchText: string
+): Promise<string[]> {
+  if (!shouldSearchQuestionIdPrefix(searchText)) return []
+
+  const rows = await prisma.$queryRaw<Array<{ id: string }>>`
+    SELECT id::text AS id
+    FROM questions
+    WHERE id::text ILIKE ${`${searchText}%`}
+    ORDER BY created_at DESC
+    LIMIT 200
+  `
+
+  return rows.map((row) => row.id)
+}
+
+function buildQuestionWhere(
+  filter: QuestionFilter,
+  questionIdPrefixMatches: string[] = []
+): Prisma.QuestionWhereInput {
   const where: Prisma.QuestionWhereInput = {}
+  const searchText = filter.searchText?.trim()
 
   if (filter.deletedOnly) {
     where.deletedAt = { not: null }
@@ -585,8 +611,29 @@ function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
   if (filter.source) where.source = filter.source
   if (filter.isPastPaper !== undefined) where.isPastPaper = filter.isPastPaper
   if (filter.paperId) where.paperId = filter.paperId
-  if (filter.searchText)
-    where.content = { contains: filter.searchText, mode: 'insensitive' }
+  if (searchText) {
+    const searchConditions: Prisma.QuestionWhereInput[] = [
+      ...(questionIdPrefixMatches.length > 0
+        ? [{ id: { in: questionIdPrefixMatches } }]
+        : []),
+      {
+        content: { contains: searchText, mode: 'insensitive' },
+      },
+      {
+        group: {
+          is: {
+            title: { contains: searchText, mode: 'insensitive' },
+          },
+        },
+      },
+    ]
+
+    if (isUuid(searchText)) {
+      searchConditions.unshift({ id: searchText })
+    }
+
+    where.OR = searchConditions
+  }
   if (isUuid(filter.createdBy)) where.createdBy = filter.createdBy
   if (isUuid(filter.reviewedBy)) where.reviewedBy = filter.reviewedBy
   if (filter.createdAfter || filter.createdBefore) {
@@ -596,6 +643,151 @@ function buildQuestionWhere(filter: QuestionFilter): Prisma.QuestionWhereInput {
     }
   }
   return where
+}
+
+const SQL_AND = Prisma.sql`AND`
+const SQL_OR = Prisma.sql`OR`
+
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, '\\$&')
+}
+
+function combineSqlClauses(
+  clauses: Prisma.Sql[],
+  separator: Prisma.Sql
+): Prisma.Sql {
+  if (clauses.length === 0) return Prisma.sql`TRUE`
+  return clauses.slice(1).reduce(
+    (combined, clause) => Prisma.sql`${combined} ${separator} ${clause}`,
+    clauses[0]
+  )
+}
+
+function buildQuestionSqlWhere(
+  filter: QuestionFilter,
+  questionIdPrefixMatches: string[] = []
+): Prisma.Sql {
+  const clauses: Prisma.Sql[] = []
+
+  if (filter.deletedOnly) {
+    clauses.push(Prisma.sql`q.deleted_at IS NOT NULL`)
+  } else if (!filter.includeDeleted) {
+    clauses.push(Prisma.sql`q.deleted_at IS NULL`)
+  }
+
+  const statusList = toValidStatusList(filter.status)
+  if (statusList) {
+    const statusClause =
+      statusList.length === 1
+        ? Prisma.sql`q.status::text = ${statusList[0]}`
+        : Prisma.sql`q.status::text IN (${Prisma.join(
+            statusList.map((status) => Prisma.sql`${status}`)
+          )})`
+    clauses.push(statusClause)
+  }
+
+  const typeList = toValidTypeList(filter.type)
+  if (typeList) {
+    const typeClause =
+      typeList.length === 1
+        ? Prisma.sql`q.type::text = ${typeList[0]}`
+        : Prisma.sql`q.type::text IN (${Prisma.join(
+            typeList.map((type) => Prisma.sql`${type}`)
+          )})`
+    clauses.push(typeClause)
+  }
+
+  if (filter.difficulty) {
+    if (typeof filter.difficulty === 'number') {
+      clauses.push(Prisma.sql`q.difficulty = ${filter.difficulty}`)
+    } else if (
+      filter.difficulty.min !== undefined ||
+      filter.difficulty.max !== undefined
+    ) {
+      const difficultyRange: Prisma.Sql[] = []
+      if (filter.difficulty.min !== undefined) {
+        difficultyRange.push(Prisma.sql`q.difficulty >= ${filter.difficulty.min}`)
+      }
+      if (filter.difficulty.max !== undefined) {
+        difficultyRange.push(Prisma.sql`q.difficulty <= ${filter.difficulty.max}`)
+      }
+      clauses.push(combineSqlClauses(difficultyRange, SQL_AND))
+    }
+  }
+
+  if (filter.curriculum) {
+    clauses.push(
+      Array.isArray(filter.curriculum)
+        ? Prisma.sql`q.curriculum IN (${Prisma.join(
+            filter.curriculum.map((item) => Prisma.sql`${item}`)
+          )})`
+        : Prisma.sql`q.curriculum = ${filter.curriculum}`
+    )
+  }
+
+  if (filter.grade) {
+    if (typeof filter.grade === 'number') {
+      clauses.push(Prisma.sql`q.grade = ${filter.grade}`)
+    } else if (filter.grade.min !== undefined || filter.grade.max !== undefined) {
+      const gradeRange: Prisma.Sql[] = []
+      if (filter.grade.min !== undefined) {
+        gradeRange.push(Prisma.sql`q.grade >= ${filter.grade.min}`)
+      }
+      if (filter.grade.max !== undefined) {
+        gradeRange.push(Prisma.sql`q.grade <= ${filter.grade.max}`)
+      }
+      clauses.push(combineSqlClauses(gradeRange, SQL_AND))
+    }
+  }
+
+  if (isUuid(filter.chapterId)) clauses.push(Prisma.sql`q.chapter_id = ${filter.chapterId}`)
+  if (isUuid(filter.subjectId)) clauses.push(Prisma.sql`q.subject_id = ${filter.subjectId}`)
+  if (isUuid(filter.sourceFileId)) {
+    clauses.push(Prisma.sql`q.source_file_id = ${filter.sourceFileId}`)
+  }
+  if (filter.source) clauses.push(Prisma.sql`q.source = ${filter.source}`)
+  if (filter.isPastPaper !== undefined) {
+    clauses.push(Prisma.sql`q.is_past_paper = ${filter.isPastPaper}`)
+  }
+  if (filter.paperId) clauses.push(Prisma.sql`q.paper_id = ${filter.paperId}`)
+
+  if (filter.createdBy && isUuid(filter.createdBy)) {
+    clauses.push(Prisma.sql`q.created_by = ${filter.createdBy}`)
+  }
+  if (filter.reviewedBy && isUuid(filter.reviewedBy)) {
+    clauses.push(Prisma.sql`q.reviewed_by = ${filter.reviewedBy}`)
+  }
+  if (filter.createdAfter || filter.createdBefore) {
+    const createdAtRange: Prisma.Sql[] = []
+    if (filter.createdAfter) {
+      createdAtRange.push(Prisma.sql`q.created_at >= ${filter.createdAfter}`)
+    }
+    if (filter.createdBefore) {
+      createdAtRange.push(Prisma.sql`q.created_at <= ${filter.createdBefore}`)
+    }
+    clauses.push(combineSqlClauses(createdAtRange, SQL_AND))
+  }
+
+  const searchText = filter.searchText?.trim()
+  if (searchText) {
+    const searchClauses: Prisma.Sql[] = []
+    if (isUuid(searchText)) {
+      searchClauses.push(Prisma.sql`q.id = ${searchText}`)
+    }
+    if (questionIdPrefixMatches.length > 0) {
+      searchClauses.push(
+        Prisma.sql`q.id IN (${Prisma.join(
+          questionIdPrefixMatches.map((id) => Prisma.sql`${id}`)
+        )})`
+      )
+    }
+    const searchPattern = `%${escapeLikePattern(searchText)}%`
+    searchClauses.push(Prisma.sql`q.content ILIKE ${searchPattern}`)
+    searchClauses.push(Prisma.sql`g.title ILIKE ${searchPattern}`)
+    clauses.push(combineSqlClauses(searchClauses, SQL_OR))
+  }
+
+  return combineSqlClauses(clauses, SQL_AND)
 }
 
 export async function getPendingReviewQuestions(
@@ -953,28 +1145,59 @@ export async function getQuestions(
   const page = params.page ?? 1
   const pageSize = Math.min(params.pageSize ?? 20, MAX_PAGE_SIZE)
   const skip = (page - 1) * pageSize
-  const where = buildQuestionWhere(filter)
-  const orderBy: Prisma.QuestionOrderByWithRelationInput[] =
+  const searchText = filter.searchText?.trim()
+  const questionIdPrefixMatches = searchText
+    ? await resolveQuestionIdPrefixMatches(searchText)
+    : []
+  const where = buildQuestionWhere(filter, questionIdPrefixMatches)
+  const [total, data] =
     sort.field === 'sourceFileCreatedAt'
-      ? [
-          { sourceFile: { createdAt: sort.order } },
-          { createdAt: 'desc' },
-        ]
-      : [
-          { [sort.field]: sort.order } as Prisma.QuestionOrderByWithRelationInput,
-          { createdAt: 'desc' },
-        ]
-
-  const [total, data] = await prisma.$transaction([
-    prisma.question.count({ where }),
-    prisma.question.findMany({
-      where,
-      select: selectQuestionRelations(),
-      orderBy,
-      skip,
-      take: pageSize,
-    }),
-  ])
+      ? await prisma.$transaction(async (tx) => {
+          const whereSql = buildQuestionSqlWhere(filter, questionIdPrefixMatches)
+          const orderDirection = sort.order === 'asc' ? Prisma.sql`ASC` : Prisma.sql`DESC`
+          const idRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+            SELECT q.id::text AS id
+            FROM questions q
+            LEFT JOIN question_groups g ON g.id = q.group_id
+            LEFT JOIN source_files sf ON sf.id = q.source_file_id
+            WHERE ${whereSql}
+            ORDER BY
+              CASE WHEN q.source_file_id IS NULL THEN 1 ELSE 0 END ASC,
+              sf.created_at ${orderDirection},
+              q.created_at DESC,
+              q.id DESC
+            OFFSET ${skip}
+            LIMIT ${pageSize}
+          `)
+          const ids = idRows.map((row) => row.id)
+          const [count, rows] = await Promise.all([
+            tx.question.count({ where }),
+            ids.length
+              ? tx.question.findMany({
+                  where: { id: { in: ids } },
+                  select: selectQuestionRelations(),
+                })
+              : Promise.resolve([] as QuestionWithRelations[]),
+          ])
+          const rowMap = new Map(rows.map((row) => [row.id, row as QuestionWithRelations]))
+          const orderedRows = ids
+            .map((id) => rowMap.get(id))
+            .filter((row): row is QuestionWithRelations => Boolean(row))
+          return [count, orderedRows] as const
+        })
+      : await prisma.$transaction([
+          prisma.question.count({ where }),
+          prisma.question.findMany({
+            where,
+            select: selectQuestionRelations(),
+            orderBy: [
+              { [sort.field]: sort.order } as Prisma.QuestionOrderByWithRelationInput,
+              { createdAt: 'desc' },
+            ],
+            skip,
+            take: pageSize,
+          }),
+        ])
 
   const totalPages = Math.ceil(total / pageSize)
   return {

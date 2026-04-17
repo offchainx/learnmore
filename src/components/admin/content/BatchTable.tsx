@@ -15,6 +15,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/components/ui/native-select'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -60,6 +64,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
+import { pageSectionHeaderBandClass } from '@/components/shared/pageSurfaces'
 
 interface BatchTableProps {
   batches: BatchData[]
@@ -70,6 +76,52 @@ interface BatchTableProps {
   onPageChange?: (page: number, pageSize: number) => void
   isAutoRefreshing?: boolean
   lastSyncedAt?: Date | null
+}
+
+type BatchStatusFilter = 'all' | 'processing' | 'completed' | 'error'
+
+const STATUS_FILTER_OPTIONS: Array<{
+  value: BatchStatusFilter
+  label: string
+}> = [
+  {
+    value: 'all',
+    label: '全部',
+  },
+  {
+    value: 'processing',
+    label: '处理中',
+  },
+  {
+    value: 'completed',
+    label: '完成',
+  },
+  {
+    value: 'error',
+    label: '错误',
+  },
+]
+
+function getStatusFilterCount(
+  statusCounts: {
+    total: number
+    processing: number
+    completed: number
+    error: number
+  },
+  value: BatchStatusFilter
+) {
+  switch (value) {
+    case 'processing':
+      return statusCounts.processing
+    case 'completed':
+      return statusCounts.completed
+    case 'error':
+      return statusCounts.error
+    case 'all':
+    default:
+      return statusCounts.total
+  }
 }
 
 function getStatusBadge(status: BatchStatusUI) {
@@ -268,12 +320,13 @@ export function BatchTable({
   const [diagnosticsData, setDiagnosticsData] = useState<BatchData['importDiagnostics'] | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<BatchStatusFilter>('all')
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  const filteredBatches = useMemo(
+  const searchedBatches = useMemo(
     () =>
       batches.filter((batch) => {
         const keyword = searchQuery.trim().toLowerCase()
@@ -290,15 +343,32 @@ export function BatchTable({
   )
   const statusCounts = useMemo(
     () => ({
-      total: filteredBatches.length,
-      processing: filteredBatches.filter(
+      total: searchedBatches.length,
+      processing: searchedBatches.filter(
         (batch) => batch.status === 'Processing'
       ).length,
-      completed: filteredBatches.filter((batch) => batch.status === 'Completed')
+      completed: searchedBatches.filter((batch) => batch.status === 'Completed')
         .length,
-      error: filteredBatches.filter((batch) => batch.status === 'Error').length,
+      error: searchedBatches.filter((batch) => batch.status === 'Error').length,
     }),
-    [filteredBatches]
+    [searchedBatches]
+  )
+  const filteredBatches = useMemo(
+    () =>
+      searchedBatches.filter((batch) => {
+        if (statusFilter === 'all') return true
+        if (statusFilter === 'processing') {
+          return batch.status === 'Processing' || batch.status === 'Pending'
+        }
+        if (statusFilter === 'completed') {
+          return batch.status === 'Completed'
+        }
+        if (statusFilter === 'error') {
+          return batch.status === 'Error'
+        }
+        return true
+      }),
+    [searchedBatches, statusFilter]
   )
   const processingBatches = useMemo(
     () =>
@@ -440,87 +510,80 @@ export function BatchTable({
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface">
-      <div className="border-b border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
-        <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
-          <div className="group relative w-full 2xl:max-w-[26rem]">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-text-tertiary transition-colors group-focus-within:text-primary dark:text-text-tertiary dark:group-focus-within:text-primary" />
-            </div>
-            <Input
-              className="h-10 border-borderTone bg-surface pl-10 text-text-primary placeholder:text-text-tertiary focus-visible:ring-primary/20 dark:border-borderTone dark:bg-surface dark:text-text-primary dark:placeholder:text-text-tertiary"
-              placeholder="搜索来源备注、ID 或科目..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+      <div className={pageSectionHeaderBandClass}>
+        <SectionBlockHeader
+          title="批量任务管理"
+          description="查看、重试和清理所有导入批次。"
+          actions={
+            <div className="flex w-full min-w-0 flex-col items-end gap-3">
+              <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+                <div className="group relative w-full min-w-0 sm:w-[240px] sm:shrink-0">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <Search className="h-5 w-5 text-text-tertiary transition-colors group-focus-within:text-primary dark:text-text-tertiary dark:group-focus-within:text-primary" />
+                  </div>
+                  <Input
+                    className="h-10 border-borderTone bg-surface pl-10 text-text-primary placeholder:text-text-tertiary focus-visible:ring-primary/20 dark:border-borderTone dark:bg-surface dark:text-text-primary dark:placeholder:text-text-tertiary"
+                    placeholder="搜索来源备注、ID 或科目..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {[
-              {
-                label: '全部',
-                value: statusCounts.total,
-                tone: 'border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]',
-              },
-              {
-                label: '处理中',
-                value: statusCounts.processing,
-                tone: 'border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))]',
-              },
-              {
-                label: '完成',
-                value: statusCounts.completed,
-                tone: 'border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))]',
-              },
-              {
-                label: '错误',
-                value: statusCounts.error,
-                tone: 'border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))]',
-              },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className={cn(
-                  'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium',
-                  item.tone
-                )}
-              >
-                <span>{item.label}</span>
-                <span className="rounded-full bg-surface/80 px-1.5 py-0.5 text-[11px] dark:bg-surface-subtle">
-                  {item.value}
-                </span>
+                <div className="w-full sm:w-[120px] sm:shrink-0">
+                  <NativeSelect
+                    value={statusFilter}
+                    onChange={(event) =>
+                      setStatusFilter(event.target.value as BatchStatusFilter)
+                    }
+                    aria-label="按状态筛选导入批次"
+                  >
+                    {STATUS_FILTER_OPTIONS.map((option) => (
+                      <NativeSelectOption key={option.value} value={option.value}>
+                        {option.label} (
+                        {getStatusFilterCount(statusCounts, option.value)})
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-secondary dark:text-text-secondary">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <span>
-            当前页 {filteredBatches.length} 条 / 总计 {totalItems} 条
-          </span>
-          <span className="text-text-tertiary dark:text-text-tertiary">•</span>
-          <span>支持按来源备注、任务 ID、科目、课程搜索</span>
-          {lastSyncedAt ? (
-            <>
-              <span className="text-text-tertiary dark:text-text-tertiary">•</span>
-              <span>
-                上次同步{' '}
-                {format(lastSyncedAt, 'HH:mm:ss', {
-                  locale: zhCN,
-                })}
-              </span>
-            </>
-          ) : null}
-          {isAutoRefreshing ? (
-            <>
-              <span className="text-text-tertiary dark:text-text-tertiary">•</span>
-              <span className="inline-flex items-center gap-1 text-primary">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                自动刷新中
-              </span>
-            </>
-          ) : null}
-        </div>
+              <div className="flex flex-wrap items-center justify-end gap-2 text-xs text-text-secondary dark:text-text-secondary">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span>
+                  当前页 {filteredBatches.length} 条 / 总计 {totalItems} 条
+                </span>
+                <span className="text-text-tertiary dark:text-text-tertiary">
+                  •
+                </span>
+                <span>支持按来源备注、任务 ID、科目、课程搜索</span>
+                {lastSyncedAt ? (
+                  <>
+                    <span className="text-text-tertiary dark:text-text-tertiary">
+                      •
+                    </span>
+                    <span>
+                      上次同步{' '}
+                      {format(lastSyncedAt, 'HH:mm:ss', {
+                        locale: zhCN,
+                      })}
+                    </span>
+                  </>
+                ) : null}
+                {isAutoRefreshing ? (
+                  <>
+                    <span className="text-text-tertiary dark:text-text-tertiary">
+                      •
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-primary">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      自动刷新中
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          }
+        />
 
         {leadProcessingBatch ? (
           <div className="mt-4 rounded-2xl border border-[hsl(var(--state-info-bg))] bg-[hsl(var(--state-info-bg))]/50 px-4 py-3 text-sm text-text-primary dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/20 dark:text-text-primary">
@@ -534,9 +597,7 @@ export function BatchTable({
                     ? '任务创建'
                     : '处理中')}
               </span>
-              <span className="font-medium">
-                {leadProcessingBatch.name}
-              </span>
+              <span className="font-medium">{leadProcessingBatch.name}</span>
               <span className="text-text-secondary dark:text-text-secondary">
                 {leadProcessingBatch.statusMessage || '正在处理...'}
               </span>

@@ -8,8 +8,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
-import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
-import { pageTableShellClass } from '@/components/shared/pageSurfaces'
 import { StatsCards } from '@/components/admin/content/StatsCards'
 import { BatchTable } from '@/components/admin/content/BatchTable'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
@@ -318,25 +316,16 @@ export function ImportClient({
             </Alert>
           ) : null}
 
-          <div className={pageTableShellClass}>
-            <SectionBlockHeader
-              title="批量任务管理"
-              description="查看、重试和清理所有导入批次。"
-              className="border-b border-borderTone px-5 py-5 dark:border-[#24324D]"
-            />
-            <div className="p-4 sm:p-5">
-              <BatchTable
-                batches={batches}
-                currentPage={initialPage}
-                totalItems={totalTasks}
-                pageSize={initialPageSize}
-                onDataChanged={handleImportSuccess}
-                onPageChange={handlePageChange}
-                isAutoRefreshing={isAutoRefreshing}
-                lastSyncedAt={lastSyncedAt}
-              />
-            </div>
-          </div>
+          <BatchTable
+            batches={batches}
+            currentPage={initialPage}
+            totalItems={totalTasks}
+            pageSize={initialPageSize}
+            onDataChanged={handleImportSuccess}
+            onPageChange={handlePageChange}
+            isAutoRefreshing={isAutoRefreshing}
+            lastSyncedAt={lastSyncedAt}
+          />
         </div>
       </div>
 

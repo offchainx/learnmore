@@ -7,7 +7,6 @@ import prisma from '@/lib/prisma';
 import type { ChapterWithStats } from '@/lib/practice/types';
 import { getEffectiveTier } from '@/lib/permissions/engine';
 import { PageEmptyState } from '@/components/shared/PageEmptyState';
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { BookOpen } from 'lucide-react';
 import { type PracticeQuestionRecord } from '@/lib/practice/question-groups';
@@ -169,9 +168,12 @@ export default async function ChapterDrillPage({ params }: PageProps) {
           titleClassName="text-lg text-amber-900 dark:text-amber-100"
           descriptionClassName="max-w-lg text-sm leading-6 text-amber-700 dark:text-amber-200"
           actions={
-            <Button asChild variant="outline" className="rounded-2xl">
-              <Link href={practiceCenterHref}>返回练习中心</Link>
-            </Button>
+            <Link
+              href={practiceCenterHref}
+              className="inline-flex h-10 items-center justify-center rounded-2xl border border-borderTone bg-surface px-4 text-sm font-medium text-text-primary shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--page-bg))] dark:border-borderTone dark:bg-surface dark:text-text-primary dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-subtle"
+            >
+              返回练习中心
+            </Link>
           }
         />
       </div>

@@ -397,68 +397,68 @@ export function QuestionReviewTable({
         <div className="ml-1 text-sm text-text-secondary dark:text-text-secondary">
           {isDeletedView ? (
             <span>已删除题目仅用于追踪，不参与审核流转。</span>
-          ) : selectedIds.length > 0 ? (
+          ) : selectedIds.length >= 2 ? (
             <span>已选择 {selectedIds.length} 项，支持批量审核</span>
+          ) : selectedIds.length === 1 ? (
+            <span>已选择 1 项，再选择 1 项后显示批量操作</span>
           ) : (
             <span>勾选题目后可批量通过、驳回或发布</span>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {!isDeletedView ? (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selectedIds.length === 0 || isUpdating}
-                onClick={() => handleBulkStatusUpdate('VERIFIED')}
-                className="border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]"
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                通过
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selectedIds.length === 0 || isUpdating}
-                onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
-                className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                驳回
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selectedIds.length === 0 || isUpdating}
-                onClick={() => handleBulkAutoTag()}
-                className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                AI补章节
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selectedIds.length === 0 || isUpdating}
-                onClick={() => handleBulkStatusUpdate('PUBLISHED')}
-                className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
-              >
-                <ArrowUpCircle className="mr-2 h-4 w-4" />
-                发布
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selectedIds.length === 0 || isUpdating}
-                onClick={handleBulkDelete}
-                className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                删除
-              </Button>
-            </>
-          ) : null}
-        </div>
+        {selectedIds.length >= 2 && !isDeletedView ? (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.length === 0 || isUpdating}
+              onClick={() => handleBulkStatusUpdate('VERIFIED')}
+              className="border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]"
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              通过
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.length === 0 || isUpdating}
+              onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
+              className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              驳回
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.length === 0 || isUpdating}
+              onClick={() => handleBulkAutoTag()}
+              className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              AI补章节
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.length === 0 || isUpdating}
+              onClick={() => handleBulkStatusUpdate('PUBLISHED')}
+              className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
+            >
+              <ArrowUpCircle className="mr-2 h-4 w-4" />
+              发布
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={selectedIds.length === 0 || isUpdating}
+              onClick={handleBulkDelete}
+              className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              删除
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       {/* Table */}
