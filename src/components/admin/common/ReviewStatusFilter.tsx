@@ -5,25 +5,30 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
 
-interface Subject {
-  id: string
-  name: string
-  slug: string
-}
+type ReviewTabValue = 'all' | 'pending' | 'published' | 'rejected' | 'deleted'
 
-interface SubjectFilterProps {
-  subjects: Subject[]
+const REVIEW_STATUS_OPTIONS: Array<{
+  value: ReviewTabValue
+  label: string
+}> = [
+  { value: 'all', label: '全部' },
+  { value: 'pending', label: '待审核' },
+  { value: 'published', label: '已发布' },
+  { value: 'rejected', label: '已驳回' },
+  { value: 'deleted', label: '已删除' },
+]
+
+interface ReviewStatusFilterProps {
   triggerClassName?: string
 }
 
-export function SubjectFilter({
-  subjects,
+export function ReviewStatusFilter({
   triggerClassName,
-}: SubjectFilterProps) {
+}: ReviewStatusFilterProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [mounted, setMounted] = useState(false)
-  const currentSubjectId = searchParams.get('subjectId') || 'all'
+  const currentValue = (searchParams.get('tab') || 'all') as ReviewTabValue
 
   useEffect(() => {
     setMounted(true)
@@ -32,13 +37,11 @@ export function SubjectFilter({
   const handleValueChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value && value !== 'all') {
-      params.set('subjectId', value)
+      params.set('tab', value)
     } else {
-      params.delete('subjectId')
+      params.delete('tab')
     }
-    // Reset page when filter changes
     params.delete('page')
-
     router.push(`?${params.toString()}`)
   }
 
@@ -56,15 +59,14 @@ export function SubjectFilter({
 
   return (
     <NativeSelect
-      value={currentSubjectId}
+      value={currentValue}
       onChange={(event) => handleValueChange(event.target.value)}
       className={triggerClassName}
-      aria-label="筛选科目"
+      aria-label="切换审核状态"
     >
-      <NativeSelectOption value="all">所有科目</NativeSelectOption>
-      {subjects.map((subject) => (
-        <NativeSelectOption key={subject.id} value={subject.id}>
-          {subject.name}
+      {REVIEW_STATUS_OPTIONS.map((option) => (
+        <NativeSelectOption key={option.value} value={option.value}>
+          {option.label}
         </NativeSelectOption>
       ))}
     </NativeSelect>

@@ -8,7 +8,12 @@ import {
 } from '@/actions/content-pipeline/question-service'
 import { getAllSubjects } from '@/actions/courses/subject'
 import { QuestionReviewTable } from '@/components/admin/questions'
-import { ReviewSortControl, SubjectFilter } from '@/components/admin/common'
+import {
+  AdminSearchBar,
+  ReviewSortControl,
+  ReviewStatusFilter,
+  SubjectFilter,
+} from '@/components/admin/common'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { QuestionFilter, QuestionSortOptions } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
@@ -58,6 +63,7 @@ interface AdminContentPageProps {
     range?: string
     sortField?: string
     sortOrder?: string
+    q?: string
   }>
 }
 
@@ -80,6 +86,7 @@ export default async function AdminContentPage({
     resolvedSearchParams.range === '30d' || resolvedSearchParams.range === 'all'
       ? resolvedSearchParams.range
       : '7d'
+  const searchText = resolvedSearchParams.q?.trim() || undefined
   const sortField = resolvedSearchParams.sortField
   const sortOrder = resolvedSearchParams.sortOrder
   const currentSort: QuestionSortOptions = {
@@ -113,6 +120,7 @@ export default async function AdminContentPage({
     subjectId,
     status: statusFilter,
     deletedOnly: currentTab === 'deleted',
+    searchText,
   }
 
   // Fetch data in parallel
@@ -140,6 +148,7 @@ export default async function AdminContentPage({
       range: string
       sortField: string
       sortOrder: string
+      q: string
     }>
   ) => {
     const params = new URLSearchParams()
@@ -150,6 +159,7 @@ export default async function AdminContentPage({
     const nextRange = overrides.range ?? currentRange
     const nextSortField = overrides.sortField ?? currentSort.field
     const nextSortOrder = overrides.sortOrder ?? currentSort.order
+    const nextSearchText = overrides.q ?? searchText
 
     params.set('tab', nextTab)
     if (nextSubjectId) params.set('subjectId', nextSubjectId)
@@ -170,14 +180,14 @@ export default async function AdminContentPage({
     } else {
       params.delete('sortOrder')
     }
+    if (nextSearchText) {
+      params.set('q', nextSearchText)
+    } else {
+      params.delete('q')
+    }
 
     return `?${params.toString()}`
   }
-  const buildTabHref = (tab: string) =>
-    buildReviewHref({
-      tab,
-      page: '1',
-    })
   const buildRangeHref = (range: '7d' | '30d' | 'all') =>
     buildReviewHref({
       range,
@@ -368,45 +378,21 @@ export default async function AdminContentPage({
                   description="统一处理题目审核、发布与驳回动作，优先消化批量导入待审核项。"
                 />
 
-                <div className="flex flex-wrap items-center gap-2 2xl:justify-end">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SubjectFilter
-                      subjects={subjects}
-                      triggerClassName="w-[200px] rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
-                      contentClassName="border-borderTone bg-surface text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7]"
-                    />
-                    <ReviewSortControl
-                      triggerClassName="w-[220px] rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
-                      contentClassName="border-borderTone bg-surface text-text-primary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7]"
-                    />
-                  </div>
-
-                  <div
-                    className={`${pageSegmentedControlCompactClass} flex-wrap gap-1`}
-                  >
-                    {[
-                      { key: 'all', label: '全部' },
-                      { key: 'pending', label: '待审核' },
-                      { key: 'published', label: '已发布' },
-                      { key: 'rejected', label: '已驳回' },
-                      { key: 'deleted', label: '已删除' },
-                    ].map((tab) => {
-                      const isActive = currentTab === tab.key
-                      return (
-                        <Link
-                          key={tab.key}
-                          href={buildTabHref(tab.key)}
-                          className={`${pageSegmentedButtonCompactClass} ${
-                            isActive
-                              ? pagePillActiveClass
-                              : pagePillInactiveClass
-                          }`}
-                        >
-                          {tab.label}
-                        </Link>
-                      )
-                    })}
-                  </div>
+                <div className="grid w-full gap-3 xl:grid-cols-[minmax(0,240px)_repeat(3,120px)] 2xl:ml-auto 2xl:w-fit">
+                  <AdminSearchBar
+                    placeholder="搜索题干、题目 ID 或题组标题..."
+                    className="w-full"
+                  />
+                  <ReviewStatusFilter
+                    triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
+                  />
+                  <SubjectFilter
+                    subjects={subjects}
+                    triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
+                  />
+                  <ReviewSortControl
+                    triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
+                  />
                 </div>
               </div>
             </CardHeader>

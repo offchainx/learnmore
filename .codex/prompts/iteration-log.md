@@ -134,4 +134,6 @@
 
 | 2026-04-16 | learn_more_v1.0 admin pagination | 统一 7 个管理页分页为 antd Pagination，并为指定页面补充可选 page size 与 URL 同步 | 已完成分页重构，保留或补齐 URL 同步；反馈、导入、审核页支持 page size 进 URL；增长工具和报错中心支持本地 page size；lint 和 TypeScript 通过。 | src/components/ui/pagination-ant.tsx, src/app/layout.tsx, src/app/globals.css, 10 个目标分页文件 | - | - | 如需继续，可统一这些页脚的视觉密度或把 page size 选项收敛到同一组。 |
 
+| 2026-04-17 | worktree sync and bug fixes | 把当前工作区全部改动一起提交推送 | 已完成本地改动收口，包含题目审核 skill、两处运行时修复和相关工作区变更，准备重新提交并推送远端 | question-audit-cleanup skill, source-file/page query fixes, chapter drill crash fix, admin UI adjustments and support files | initial git commit blocked by iteration-log requirement | commit hook now has the required iteration log entry | re-run git commit and push branch codex/worktree-sync |
+
 ## 约束

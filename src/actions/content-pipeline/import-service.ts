@@ -19,7 +19,7 @@ import { resolveWebImportAdapter, runWebImport } from '@/lib/content-pipeline/we
 import { bulkCreateQuestions } from './question-service'
 import { getCurrentUser } from '@/actions/user/auth'
 import { createClient as createSupabaseClient } from '@/lib/supabase/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseServiceClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { ImportDiagnostics } from '@/types/content-pipeline'
 import type {
   ImportFromPDFInput,
@@ -58,6 +58,29 @@ interface ImportFromWebUrlInput {
 }
 
 const WEB_IMPORT_IMAGE_CONCURRENCY = 2
+
+function isMissingRequestScopeError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+  return message.includes('cookies') && message.includes('outside a request scope')
+}
+
+async function createImportSupabaseClient(): Promise<SupabaseClient> {
+  try {
+    return await createSupabaseClient()
+  } catch (error) {
+    if (!isMissingRequestScopeError(error)) {
+      throw error
+    }
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!supabaseUrl || !supabaseServiceRoleKey) {
+      throw error
+    }
+
+    return createSupabaseServiceClient(supabaseUrl, supabaseServiceRoleKey)
+  }
+}
 
 type QueuedWebImportPayload = {
   pageUrl: string
@@ -970,7 +993,7 @@ async function persistQuestionImagesToSupabase(params: {
     }
   }
 
-  const supabase = params.supabase ?? (await createSupabaseClient())
+  const supabase = params.supabase ?? (await createImportSupabaseClient())
 
   // bucket 优先使用更语义化的 bucket；若未创建则回退到现有 source-files bucket，保证功能可用。
   const primaryBucket = 'question-assets'
@@ -1797,7 +1820,7 @@ export async function importFromWebUrl(
     const questionsToCreateDraft: CreateQuestionInput[] = []
     const questionGroupsToCreateDraft: PersistedQuestionGroupDraft[] = []
     const stemImageSupabase =
-      webImportData.adapterName === 'examcoo-view' ? await createSupabaseClient() : null
+      webImportData.adapterName === 'examcoo-view' ? await createImportSupabaseClient() : null
     const stemImageUrlCache = new Map<string, Promise<string | null>>()
     const totalQuestionCount = webImportData.normalized.questions.length
     const totalAssetCount = webImportData.diagnostics.assetCount ?? 0
