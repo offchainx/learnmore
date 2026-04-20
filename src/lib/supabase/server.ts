@@ -1,10 +1,15 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export async function createClient() {
+type ServerClientOptions = {
+  cookieMaxAgeSeconds?: number
+}
+
+export async function createClient(options: ServerClientOptions = {}) {
   const cookieStore = await cookies()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const cookieMaxAgeSeconds = options.cookieMaxAgeSeconds ?? 3600
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
@@ -29,7 +34,7 @@ export async function createClient() {
             secure: process.env.NODE_ENV === 'production', // 生产环境强制HTTPS
             sameSite: 'lax', // CSRF防护
             path: '/', // 全站有效
-            maxAge: 3600, // ⭐ 强制设置：1小时 = 3600秒（滑动窗口核心）
+            maxAge: cookieMaxAgeSeconds, // 可根据 remember me 调整会话时长
             // 注意：完全不使用 ...options，避免被 Supabase 的默认值覆盖
           })
         } catch {

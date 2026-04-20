@@ -212,6 +212,7 @@ const signupSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email('请输入有效的邮箱地址'),
   password: z.string().min(1, '请输入密码'),
+  rememberMe: z.boolean().default(false),
 })
 
 export type AuthFormState = {
@@ -436,6 +437,7 @@ export async function loginAction(prevState: AuthFormState, formData: FormData):
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
+    rememberMe: formData.get('rememberMe') === 'true',
   }
 
   const parsed = loginSchema.safeParse(data)
@@ -443,7 +445,9 @@ export async function loginAction(prevState: AuthFormState, formData: FormData):
     return { error: parsed.error.issues[0].message }
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient({
+    cookieMaxAgeSeconds: parsed.data.rememberMe ? 60 * 60 * 24 * 7 : 60 * 60,
+  })
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
