@@ -20,7 +20,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   }
 
   return (
-    <div className="container flex min-h-screen min-w-0 items-center justify-center py-12">
+    <div className="flex w-full min-w-0 justify-center">
       <RegisterForm
         initialReferralCode={Array.isArray(referralCodeParam) ? referralCodeParam[0] : referralCodeParam || ''}
         referralError={Array.isArray(referralErrorParam) ? referralErrorParam[0] : referralErrorParam || ''}

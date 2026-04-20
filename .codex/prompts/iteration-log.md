@@ -136,4 +136,6 @@
 
 | 2026-04-17 | worktree sync and bug fixes | 把当前工作区全部改动一起提交推送 | 已完成本地改动收口，包含题目审核 skill、两处运行时修复和相关工作区变更，准备重新提交并推送远端 | question-audit-cleanup skill, source-file/page query fixes, chapter drill crash fix, admin UI adjustments and support files | initial git commit blocked by iteration-log requirement | commit hook now has the required iteration log entry | re-run git commit and push branch codex/worktree-sync |
 
+| 2026-04-20 | login/register auth polish | 继续收紧 /login 与 /register 的视觉和交互，并修正 remember me 会话时长 | 统一两页圆角、标题、输入框和按钮样式，remember me 改为 7 天 cookie，保留现有登录与 Google 登录链路 | src/actions/user/auth.ts, src/lib/supabase/server.ts, src/app/(auth)/layout.tsx, src/app/(auth)/login/page.tsx, src/app/(auth)/register/page.tsx, src/components/business/auth/login-form.tsx, src/components/business/auth/register-form.tsx, src/components/business/auth/login-hero.tsx, src/components/ui/theme-switch-button.tsx, src/app/auth/callback/route.ts | worktree contains many unrelated user changes; only auth files were staged | added explicit iteration-log entry so commit hook can pass | 继续按用户反馈微调 auth 页视觉 |
+
 ## 约束
