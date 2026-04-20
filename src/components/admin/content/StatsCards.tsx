@@ -74,8 +74,8 @@ export function StatsCards({ stats }: StatsCardsProps) {
       value: String(stats.pendingReviewQuestions),
       meta:
         stats.pendingReviewQuestions > 0
-          ? '审核队列等待人工确认'
-          : '审核队列已清空',
+          ? '待审核队列等待人工确认'
+          : '待审核队列已清空',
       caption: '建议联动已完成批次处理',
       icon: ClipboardClock,
       iconClassName: 'text-[hsl(var(--state-warning-fg))]',

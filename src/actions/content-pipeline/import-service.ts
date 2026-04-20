@@ -115,8 +115,8 @@ function toQueuedWebImportPayload(input: ImportFromWebUrlInput): QueuedWebImport
     source: input.source?.trim() || undefined,
     chapterId: input.chapterId,
     maxQuestions: input.maxQuestions,
-    isPastPaper: input.isPastPaper ?? false,
-    paperId: input.paperId ?? null,
+    isPastPaper: false,
+    paperId: null,
   })
 }
 
@@ -141,8 +141,8 @@ function toQueuedFileImportPayload(input: ImportFromPDFInput): QueuedFileImportP
     sourceYear: input.sourceYear,
     sourcePaper: input.sourcePaper?.trim() || undefined,
     chapterId: input.chapterId,
-    isPastPaper: input.isPastPaper ?? false,
-    paperId: input.paperId ?? null,
+    isPastPaper: false,
+    paperId: null,
   })
 }
 
@@ -209,6 +209,14 @@ function parseQueuedFileImportPayload(
 function clampPercentage(value: number): number {
   if (!Number.isFinite(value)) return 0
   return Math.max(0, Math.min(100, Math.round(value)))
+}
+
+function extractCreatedQuestionIds(
+  results: Array<{ success: boolean; data?: { id: string } | null }>
+): string[] {
+  return results.flatMap((result) =>
+    result.success && result.data?.id ? [result.data.id] : []
+  )
 }
 
 function buildWebImportProgressState(input: {
@@ -577,72 +585,6 @@ function buildWebImportQuestionSource(
   return buildSourceLabel(input, fallbackMeta?.trim() || 'web-import')
 }
 
-async function moveImportedQuestionsToReviewPending(
-  questionIds: string[],
-  reviewerId: string
-): Promise<string[]> {
-  if (questionIds.length === 0) return []
-
-  const draftQuestions = await prisma.question.findMany({
-    where: {
-      id: { in: questionIds },
-      status: ContentStatus.DRAFT,
-    },
-    select: { id: true },
-  })
-
-  const draftQuestionIds = draftQuestions.map((question) => question.id)
-  if (draftQuestionIds.length === 0) return []
-
-  const now = new Date()
-  await prisma.$transaction([
-    prisma.question.updateMany({
-      where: {
-        id: { in: draftQuestionIds },
-        status: ContentStatus.DRAFT,
-      },
-      data: { status: ContentStatus.REVIEW_PENDING },
-    }),
-    prisma.contentReviewLog.createMany({
-      data: draftQuestionIds.map((questionId) => ({
-        contentType: 'question',
-        contentId: questionId,
-        action: ReviewAction.SUBMIT_REVIEW,
-        fromStatus: ContentStatus.DRAFT,
-        toStatus: ContentStatus.REVIEW_PENDING,
-        reviewerId,
-        comment: '系统自动提交审核（批量导入）',
-        createdAt: now,
-      })),
-    }),
-  ])
-
-  return draftQuestionIds
-}
-
-async function resolveImportReviewerId(preferredReviewerId?: string | null): Promise<string> {
-  if (preferredReviewerId) {
-    const preferred = await prisma.user.findUnique({
-      where: { id: preferredReviewerId },
-      select: { id: true },
-    })
-    if (preferred?.id) return preferred.id
-  }
-
-  const admin = await prisma.user.findFirst({
-    where: { role: 'ADMIN' },
-    select: { id: true },
-  })
-  if (admin?.id) return admin.id
-
-  const fallback = await prisma.user.findFirst({
-    select: { id: true },
-  })
-  if (fallback?.id) return fallback.id
-
-  throw new Error('没有可用的导入审核人')
-}
-
 async function recoverImportedBatchToCompleted(params: {
   sourceFileId: string
   preferredReviewerId?: string | null
@@ -656,14 +598,11 @@ async function recoverImportedBatchToCompleted(params: {
     where: { sourceFileId: params.sourceFileId },
     select: { id: true },
   })
-
   const questionIds = questions.map((question) => question.id)
-  if (questionIds.length === 0) {
+
+  if (questions.length === 0) {
     return { recovered: false, questionIds: [] }
   }
-
-  const reviewerId = await resolveImportReviewerId(params.preferredReviewerId)
-  await moveImportedQuestionsToReviewPending(questionIds, reviewerId)
 
   const sourceFile = await prisma.sourceFile.findUnique({
     where: { id: params.sourceFileId },
@@ -1520,8 +1459,8 @@ export async function importFromPDF(
           subjectId: input.subjectId,
           sourceFileId: sourceFileRef.id,
           source: input.source,
-          isPastPaper: input.isPastPaper ?? false,
-          paperId: input.isPastPaper ? input.paperId ?? null : null,
+          isPastPaper: false,
+          paperId: null,
           qualityScore,
         })
       })
@@ -1545,6 +1484,7 @@ export async function importFromPDF(
         sourceFileId: sourceFileRef.id,
         createdBy: currentUserId ?? currentUser!.id,
       })
+      const questionIds = extractCreatedQuestionIds(bulkResult.results)
 
       // 统计结果
       const questionsCreated = bulkResult.results.filter((r) => r.success).length
@@ -1552,10 +1492,6 @@ export async function importFromPDF(
         (r) => !r.success && r.error?.includes('重复')
       ).length
       const questionsFailed = bulkResult.failed - questionsDuplicated
-      const questionIds = bulkResult.results
-        .filter((r) => r.success && r.data)
-        .map((r) => r.data!.id)
-      await moveImportedQuestionsToReviewPending(questionIds, currentUserId ?? currentUser!.id)
 
       // 更新源文件状态
       await prisma.sourceFile.update({
@@ -1983,11 +1919,8 @@ export async function importFromWebUrl(
                     : null
               ),
               tags: [webImportData.normalized.sourceSite, 'web-import', 'question-group'],
-              isPastPaper: input.isPastPaper ?? false,
-              paperId:
-                input.isPastPaper
-                  ? input.paperId ?? webImportData.normalized.paperId ?? null
-                  : null,
+              isPastPaper: false,
+              paperId: null,
               contentHash,
               status: ContentStatus.DRAFT,
               createdBy: currentUserId,
@@ -2028,8 +1961,8 @@ export async function importFromWebUrl(
         tags: [question.sourceSite, 'web-import'],
         assetUrl: persisted.assetUrl,
         imageUrls: persisted.imageUrls,
-        isPastPaper: input.isPastPaper ?? false,
-        paperId: input.isPastPaper ? input.paperId ?? question.paperId ?? null : null,
+        isPastPaper: false,
+        paperId: null,
         qualityScore: null,
         createdBy: currentUserId,
       })
@@ -2076,6 +2009,7 @@ export async function importFromWebUrl(
       sourceFileId: sourceFileId!,
       createdBy: currentUserId,
     })
+    const questionIds = extractCreatedQuestionIds(bulkResult.results)
     stageDurations.saveMs = Date.now() - saveStartTime
 
     const reviewSubmitStartTime = Date.now()
@@ -2122,10 +2056,6 @@ export async function importFromWebUrl(
       (r) => !r.success && isDuplicateBulkCreateError(r.error)
     ).length
     const questionsFailed = bulkResult.failed - questionsDuplicated
-    const questionIds = bulkResult.results
-      .filter((r) => r.success && r.data)
-      .map((r) => r.data!.id)
-    await moveImportedQuestionsToReviewPending(questionIds, currentUserId)
     stageDurations.reviewSubmitMs = Date.now() - reviewSubmitStartTime
     stageDurations.totalMs = Date.now() - startTime
     if (pendingImportDiagnostics) {
@@ -2421,6 +2351,7 @@ async function resumeFromStructuring(
       sourceFileId,
       createdBy: currentUser.id,
     })
+    const questionIds = extractCreatedQuestionIds(bulkResult.results)
 
     // 统计结果
     const questionsCreated = bulkResult.results.filter((r) => r.success).length
@@ -2428,10 +2359,6 @@ async function resumeFromStructuring(
       (r) => !r.success && r.error?.includes('重复')
     ).length
     const questionsFailed = bulkResult.failed - questionsDuplicated
-    const questionIds = bulkResult.results
-      .filter((r) => r.success && r.data)
-      .map((r) => r.data!.id)
-    await moveImportedQuestionsToReviewPending(questionIds, currentUser.id)
 
     // 更新源文件状态
     await prisma.sourceFile.update({
@@ -2826,7 +2753,7 @@ export async function getImportDashboardStats(): Promise<ServiceResult<StatsData
           where: { status: ProcessingStatus.FAILED },
         }),
         prisma.question.count({
-          where: { status: ContentStatus.REVIEW_PENDING },
+          where: { status: ContentStatus.DRAFT },
         }),
         prisma.question.count({
           where: {

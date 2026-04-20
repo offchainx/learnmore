@@ -103,19 +103,15 @@ describe('内容审核域收口验证', () => {
     })
   })
 
-  it('审核通过会按 VERIFIED -> PUBLISHED 两段写入，并生成真实审核日志', async () => {
+  it('审核通过会直接写入 PUBLISHED，并生成真实审核日志', async () => {
     mockPrisma.question.findUnique
       .mockResolvedValueOnce({
         id: 'question-1',
         status: ContentStatus.REVIEW_PENDING,
       })
-      .mockResolvedValueOnce({
-        id: 'question-1',
-        status: ContentStatus.VERIFIED,
-      })
     mockPrisma.question.update.mockResolvedValue({
       id: 'question-1',
-      status: ContentStatus.VERIFIED,
+      status: ContentStatus.PUBLISHED,
     })
     mockPrisma.contentReviewLog.create.mockResolvedValue({ id: 'log-1' })
 
@@ -123,33 +119,21 @@ describe('内容审核域收口验证', () => {
 
     expect(result).toEqual({
       success: true,
-      message: '审核通过成功',
+      message: '已发布',
     })
-    expect(mockPrisma.question.update).toHaveBeenCalledTimes(2)
-    expect(mockPrisma.contentReviewLog.create).toHaveBeenCalledTimes(2)
+    expect(mockPrisma.question.update).toHaveBeenCalledTimes(1)
+    expect(mockPrisma.contentReviewLog.create).toHaveBeenCalledTimes(1)
     expect(mockPrisma.contentReviewLog.create).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
           data: expect.objectContaining({
-            action: ReviewAction.APPROVE,
-            fromStatus: ContentStatus.REVIEW_PENDING,
-            toStatus: ContentStatus.VERIFIED,
-            reviewerId: TEST_REVIEWER_ID,
-            comment: '核账通过',
-          }),
-        })
-    )
-    expect(mockPrisma.contentReviewLog.create).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-          data: expect.objectContaining({
             action: ReviewAction.PUBLISH,
-            fromStatus: ContentStatus.VERIFIED,
-            toStatus: ContentStatus.PUBLISHED,
-            reviewerId: TEST_REVIEWER_ID,
-            comment: '核账通过',
-          }),
-        })
+            fromStatus: ContentStatus.REVIEW_PENDING,
+          toStatus: ContentStatus.PUBLISHED,
+          reviewerId: TEST_REVIEWER_ID,
+          comment: '核账通过',
+        }),
+      })
     )
     expect(mockRevalidatePath).toHaveBeenCalledWith('/admin/content/review')
   })

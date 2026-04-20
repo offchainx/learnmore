@@ -66,8 +66,12 @@ export function QuestionReviewClient({
   const handleApprove = async (feedback?: string) => {
     setIsSaving(true)
     try {
-      await approveQuestion(question.id, feedback)
-      toast.success('审核通过！')
+      const result = await approveQuestion(question.id, feedback)
+      if (!result.success) {
+        toast.error(result.message || '发布失败')
+        return
+      }
+      toast.success(result.message || '已发布')
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
         router.push(reviewReturnUrl)
@@ -83,8 +87,12 @@ export function QuestionReviewClient({
   const handleReject = async (reason: string) => {
     setIsSaving(true)
     try {
-      await rejectQuestion(question.id, reason)
-      toast.error('已拒绝该题目')
+      const result = await rejectQuestion(question.id, reason)
+      if (!result.success) {
+        toast.error(result.message || '归档失败')
+        return
+      }
+      toast.success(result.message || '已归档该题目')
       setTimeout(() => {
         router.push(reviewReturnUrl)
       }, 1000)
@@ -121,7 +129,15 @@ export function QuestionReviewClient({
                   题目ID: {question.id}
                 </span>
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-transparent">
-                  待审核
+                  {question.status === 'DRAFT'
+                    ? '待审核'
+                    : question.status === 'REVIEW_PENDING'
+                      ? '待复核'
+                      : question.status === 'PUBLISHED'
+                        ? '已发布'
+                        : question.status === 'ARCHIVED'
+                          ? '已归档'
+                          : question.status}
                 </span>
               </div>
             </div>
@@ -135,7 +151,7 @@ export function QuestionReviewClient({
             className="hidden tablet:flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 font-medium text-white shadow-sm transition-colors hover:bg-green-700 disabled:bg-green-400"
           >
             <CheckCircle className="h-4 w-4" />
-            快速通过
+            快速发布
           </button>
         </div>
       </header>

@@ -346,8 +346,8 @@ export function MetadataPanel({
           <div className="space-y-3">
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300">
               {reviewCompletedAction === 'approved'
-                ? '当前题目已通过，可继续处理下一题。'
-                : '当前题目已驳回，可继续处理下一题。'}
+                ? '当前题目已发布，可继续处理下一题。'
+                : '当前题目已归档，可继续处理下一题。'}
             </div>
             <button
               type="button"
@@ -358,12 +358,10 @@ export function MetadataPanel({
               {hasNextQuestion ? '下一题' : '返回审核列表'}
             </button>
           </div>
-        ) : data.status === 'VERIFIED' || data.status === 'PUBLISHED' ? (
+        ) : data.status === 'PUBLISHED' ? (
           <div className="space-y-3">
             <div className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              {data.status === 'PUBLISHED'
-                ? '当前题目已发布，不再提供通过 / 驳回操作。'
-                : '当前题目已审核完成，不再提供通过 / 驳回操作。'}
+              当前题目已发布，不再提供发布 / 归档操作。
             </div>
             <button
               type="button"
@@ -371,11 +369,25 @@ export function MetadataPanel({
               className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-slate-400 bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
             >
               <Check className="h-4 w-4 mr-2" />
-              {data.status === 'PUBLISHED' ? '已发布' : '已审核'}
+              已发布
+            </button>
+          </div>
+        ) : data.status === 'ARCHIVED' ? (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              当前题目已归档，仅可在列表中恢复回待审核或待复核。
+            </div>
+            <button
+              type="button"
+              disabled
+              className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-slate-400 bg-slate-300 dark:bg-slate-700 cursor-not-allowed"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              已归档
             </button>
           </div>
         ) : (
-          // 待审核状态：显示通过和拒绝按钮
+          // 待审核 / 待复核状态：显示发布和归档按钮
           <>
             <div className="mb-3">
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -393,15 +405,15 @@ export function MetadataPanel({
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm('确定拒绝这道题目吗？')) {
-                    onReject(feedback || '审核未通过')
+                  if (confirm('确定归档这道题目吗？')) {
+                    onReject(feedback || '不适合加入题库，已归档')
                   }
                 }}
                 disabled={isProcessing}
                 className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
               >
                 <X className="h-4 w-4 mr-2" />
-                {isProcessing ? '处理中...' : '拒绝'}
+                {isProcessing ? '处理中...' : '归档'}
               </button>
               <button
                 type="button"
@@ -412,7 +424,7 @@ export function MetadataPanel({
                 className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
               >
                 <Check className="h-4 w-4 mr-2" />
-                {isProcessing ? '处理中...' : '通过'}
+                {isProcessing ? '处理中...' : '发布'}
               </button>
             </div>
           </>

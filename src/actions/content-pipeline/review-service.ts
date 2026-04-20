@@ -53,7 +53,7 @@ function buildHistoryStatusLabel(
     case ReviewAction.APPROVE:
       return '审核通过'
     case ReviewAction.REJECT:
-      return '驳回题目'
+      return '归档题目'
     case ReviewAction.PUBLISH:
       return '发布题目'
     case ReviewAction.ARCHIVE:
@@ -81,7 +81,7 @@ function buildHistoryColor(
     case ReviewAction.PUBLISH:
       return 'bg-emerald-500'
     case ReviewAction.REJECT:
-      return 'bg-rose-500'
+      return 'bg-slate-500'
     case ReviewAction.ARCHIVE:
       return 'bg-slate-500'
     case ReviewAction.REQUEST_CHANGE:
@@ -544,31 +544,23 @@ export async function approveQuestion(questionId: string, feedback?: string) {
   const reviewerId = await getReviewerId()
   const verify = await updateQuestionStatus({
     questionId,
-    newStatus: ContentStatus.VERIFIED,
-    reviewerId,
-    comment: feedback,
-  })
-
-  if (!verify.success) return { success: false, message: verify.error }
-
-  const publish = await updateQuestionStatus({
-    questionId,
     newStatus: ContentStatus.PUBLISHED,
     reviewerId,
     comment: feedback,
   })
 
-  return { success: publish.success, message: publish.success ? '审核通过成功' : publish.error }
+  if (!verify.success) return { success: false, message: verify.error }
+  return { success: true, message: '已发布' }
 }
 
 export async function rejectQuestion(questionId: string, reason: string) {
   const reviewerId = await getReviewerId()
   const result = await updateQuestionStatus({
     questionId,
-    newStatus: ContentStatus.REVIEW_REJECTED,
+    newStatus: ContentStatus.ARCHIVED,
     reviewerId,
     comment: reason,
   })
 
-  return { success: result.success, message: result.success ? '已拒绝该题目' : result.error }
+  return { success: result.success, message: result.success ? '已归档该题目' : result.error }
 }

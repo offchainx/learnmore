@@ -11,6 +11,7 @@ import { PracticeHeader } from '@/components/practice/modes/shared/PracticeHeade
 import { PracticeResultPanel } from '@/components/practice/modes/shared/PracticeResultPanel'
 import type { PracticeModeTheme } from '@/components/practice/modes/shared/theme'
 import { QuestionReportButton } from '@/components/business/question'
+import { hasProvidedPracticeAnswer, isRelaxedPracticeAnswerCorrect } from '@/lib/practice/answer-evaluation'
 
 interface QuizSessionProps {
   questions: Question[]
@@ -89,22 +90,7 @@ export default function QuizSession({
   const checkAnswer = () => {
     const uAnswer = userAnswers[currentQuestion.id]
     const qAnswer = formattedQuestion.answer
-
-    let isCorrect = false
-
-    if (formattedQuestion.type === 'SINGLE_CHOICE') {
-      isCorrect = uAnswer === qAnswer
-    } else if (formattedQuestion.type === 'MULTIPLE_CHOICE') {
-      const uArr = Array.isArray(uAnswer) ? uAnswer : [uAnswer]
-      const qArr = Array.isArray(qAnswer) ? qAnswer : [qAnswer]
-      if (uArr && qArr && uArr.length === qArr.length) {
-        const sortedU = [...(uArr as string[])].sort()
-        const sortedQ = [...(qArr as string[])].sort()
-        isCorrect = sortedU.every((val, index) => val === sortedQ[index])
-      }
-    } else if (formattedQuestion.type === 'FILL_BLANK') {
-      isCorrect = uAnswer === qAnswer
-    }
+    const isCorrect = isRelaxedPracticeAnswerCorrect(formattedQuestion.type, uAnswer, qAnswer)
 
     setResults(prev => ({
       ...prev,
@@ -209,7 +195,7 @@ export default function QuizSession({
   }
 
   const isChecked = results[currentQuestion.id] !== undefined
-  const hasAnswered = !!userAnswers[currentQuestion.id] && (Array.isArray(userAnswers[currentQuestion.id]) ? (userAnswers[currentQuestion.id] as string[]).length > 0 : true)
+  const hasAnswered = hasProvidedPracticeAnswer(userAnswers[currentQuestion.id] ?? null)
   const progressLabel = checkedCount === 0
     ? '先完成当前题目，系统才会开始计算准确率。'
     : `已判定 ${checkedCount} / ${totalQuestions} 题，当前准确率 ${liveAccuracy}%。`

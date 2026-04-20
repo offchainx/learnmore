@@ -99,32 +99,31 @@ describe('Content Pipeline - Question Service', () => {
       expect(result.error).toBeUndefined()
     })
 
-    it('should allow valid transition: REVIEW_PENDING -> VERIFIED', async () => {
+    it('should allow valid transition: REVIEW_PENDING -> PUBLISHED', async () => {
       const result = await validateStatusTransition(
         ContentStatus.REVIEW_PENDING,
-        ContentStatus.VERIFIED
-      )
-
-      expect(result.valid).toBe(true)
-    })
-
-    it('should allow valid transition: VERIFIED -> PUBLISHED', async () => {
-      const result = await validateStatusTransition(
-        ContentStatus.VERIFIED,
         ContentStatus.PUBLISHED
       )
 
       expect(result.valid).toBe(true)
     })
 
-    it('should reject invalid transition: DRAFT -> PUBLISHED', async () => {
+    it('should allow valid transition: PUBLISHED -> REVIEW_PENDING', async () => {
+      const result = await validateStatusTransition(
+        ContentStatus.PUBLISHED,
+        ContentStatus.REVIEW_PENDING
+      )
+
+      expect(result.valid).toBe(true)
+    })
+
+    it('should allow valid transition: DRAFT -> PUBLISHED', async () => {
       const result = await validateStatusTransition(
         ContentStatus.DRAFT,
         ContentStatus.PUBLISHED
       )
 
-      expect(result.valid).toBe(false)
-      expect(result.error).toContain('不允许')
+      expect(result.valid).toBe(true)
     })
 
     it('should reject invalid transition: PUBLISHED -> DRAFT', async () => {
@@ -163,6 +162,15 @@ describe('Content Pipeline - Question Service', () => {
       expect(result.valid).toBe(true)
     })
 
+    it('should allow restore from ARCHIVED to REVIEW_PENDING', async () => {
+      const result = await validateStatusTransition(
+        ContentStatus.ARCHIVED,
+        ContentStatus.REVIEW_PENDING
+      )
+
+      expect(result.valid).toBe(true)
+    })
+
     it('should return allowed next statuses', async () => {
       const result = await validateStatusTransition(
         ContentStatus.DRAFT,
@@ -172,6 +180,7 @@ describe('Content Pipeline - Question Service', () => {
       expect(result.allowedNextStatuses).toBeDefined()
       expect(result.allowedNextStatuses).toContain(ContentStatus.REVIEW_PENDING)
       expect(result.allowedNextStatuses).toContain(ContentStatus.ARCHIVED)
+      expect(result.allowedNextStatuses).toContain(ContentStatus.PUBLISHED)
     })
 
     it('should handle OCR workflow: DRAFT -> OCR_PROCESSING', async () => {
@@ -210,13 +219,13 @@ describe('Content Pipeline - Question Service', () => {
       expect(result.valid).toBe(true)
     })
 
-    it('should allow unpublish: PUBLISHED -> VERIFIED', async () => {
+    it('should reject unpublish: PUBLISHED -> VERIFIED', async () => {
       const result = await validateStatusTransition(
         ContentStatus.PUBLISHED,
         ContentStatus.VERIFIED
       )
 
-      expect(result.valid).toBe(true)
+      expect(result.valid).toBe(false)
     })
   })
 
@@ -236,8 +245,7 @@ describe('Content Pipeline - Question Service', () => {
       // 模拟完整的题目生命周期
       const workflow = [
         { from: ContentStatus.DRAFT, to: ContentStatus.REVIEW_PENDING },
-        { from: ContentStatus.REVIEW_PENDING, to: ContentStatus.VERIFIED },
-        { from: ContentStatus.VERIFIED, to: ContentStatus.PUBLISHED },
+        { from: ContentStatus.REVIEW_PENDING, to: ContentStatus.PUBLISHED },
       ]
 
       for (const { from, to } of workflow) {
@@ -263,10 +271,10 @@ describe('Content Pipeline - Question Service', () => {
     it('should allow rejection and re-submission workflow', async () => {
       const workflow = [
         { from: ContentStatus.DRAFT, to: ContentStatus.REVIEW_PENDING },
-        { from: ContentStatus.REVIEW_PENDING, to: ContentStatus.REVIEW_REJECTED },
-        { from: ContentStatus.REVIEW_REJECTED, to: ContentStatus.DRAFT },
+        { from: ContentStatus.REVIEW_PENDING, to: ContentStatus.ARCHIVED },
+        { from: ContentStatus.ARCHIVED, to: ContentStatus.DRAFT },
         { from: ContentStatus.DRAFT, to: ContentStatus.REVIEW_PENDING },
-        { from: ContentStatus.REVIEW_PENDING, to: ContentStatus.VERIFIED },
+        { from: ContentStatus.REVIEW_PENDING, to: ContentStatus.PUBLISHED },
       ]
 
       for (const { from, to } of workflow) {

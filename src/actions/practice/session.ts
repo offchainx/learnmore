@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma'
 import { Prisma, PracticeMode, QuestionType } from '@prisma/client'
 import { persistPracticeSession } from './submission-core'
 import { applyPracticeSubmissionEffects } from './submission-effects'
+import { isRelaxedPracticeAnswerCorrect } from '@/lib/practice/answer-evaluation'
 
 export interface SessionAnswerInput {
   questionId: string
@@ -36,28 +37,11 @@ function gradeAnswer(
   userAnswer: string | string[] | number | null,
   correctAnswer: Prisma.JsonValue
 ): boolean {
-  if (userAnswer === null || userAnswer === undefined) return false
-
-  if (questionType === 'SINGLE_CHOICE' || questionType === 'TRUE_FALSE') {
-    return String(userAnswer).trim().toLowerCase() === String(correctAnswer).trim().toLowerCase()
-  }
-
-  if (questionType === 'MULTIPLE_CHOICE') {
-    const u = Array.isArray(userAnswer) ? userAnswer.map(String) : [String(userAnswer)]
-    const c = Array.isArray(correctAnswer) ? correctAnswer.map(String) : [String(correctAnswer)]
-    if (u.length !== c.length) return false
-    const su = [...u].sort()
-    const sc = [...c].sort()
-    return su.every((v, i) => v === sc[i])
-  }
-
-  if (questionType === 'FILL_BLANK') {
-    const val = String(userAnswer).trim()
-    if (Array.isArray(correctAnswer)) return correctAnswer.map(String).includes(val)
-    return String(correctAnswer).trim() === val
-  }
-
-  return false
+  return isRelaxedPracticeAnswerCorrect(
+    questionType,
+    userAnswer,
+    correctAnswer as string | string[] | null
+  )
 }
 
 export async function submitPracticeSession(

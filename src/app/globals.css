@@ -12,7 +12,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 221 83% 53%;
+    --primary: 217 75% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -51,7 +51,7 @@
     --border-default: 216 18% 84%;
     --border-strong: 215 18% 62%;
 
-    --focus-ring: 221 83% 53%;
+    --focus-ring: 217 75% 60%;
     --shadow-color: 220 40% 2%;
     --shadow-surface-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
     --shadow-surface-md: 0 20px 48px rgba(15, 23, 42, 0.09);
@@ -64,7 +64,7 @@
     --state-danger-bg: 0 86% 97%;
     --state-danger-fg: 0 74% 42%;
     --state-info-bg: 214 100% 97%;
-    --state-info-fg: 221 83% 53%;
+    --state-info-fg: 217 75% 60%;
 
     /* Safe Area Insets for iOS notch/island support */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
@@ -79,7 +79,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 217 91% 60%;
+    --primary: 217 84% 68%;
     --primary-foreground: 222 47% 11%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -118,7 +118,7 @@
     --border-default: 217 19% 22%;
     --border-strong: 215 14% 38%;
 
-    --focus-ring: 217 91% 60%;
+    --focus-ring: 217 84% 68%;
     --shadow-color: 222 80% 2%;
     --shadow-surface-sm: 0 10px 24px rgba(2, 6, 23, 0.28);
     --shadow-surface-md: 0 20px 48px rgba(2, 6, 23, 0.42);
@@ -257,6 +257,62 @@ html:not(.dark) .drawer-glass {
   border-color: hsl(var(--primary));
   background: hsl(var(--primary));
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+}
+
+/* Marketing / anonymous pages light theme overrides.
+   These pages intentionally use dark utility classes by default, so we scope
+   a light-mode rewrite to the shared marketing shell only. */
+html:not(.dark) :is(.marketing-shell, .auth-shell) {
+  background-color: hsl(var(--page-bg));
+  color: hsl(var(--text-primary));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-[#020617]'], [class*='bg-[#050b14]']) {
+  background-color: hsl(var(--surface-default));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-slate-95'], [class*='bg-slate-90'], [class*='bg-slate-80'], [class*='bg-slate-70']) {
+  background-color: hsl(var(--surface-default));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-slate-8'], [class*='bg-slate-7']) {
+  background-color: hsl(var(--surface-muted));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-white/']) {
+  background-color: hsl(var(--surface-subtle));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-white'], [class*='text-slate-1'], [class*='text-slate-2']) {
+  color: hsl(var(--text-primary));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-slate-3'], [class*='text-slate-4']) {
+  color: hsl(var(--text-secondary));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-slate-5'], [class*='text-slate-6'], [class*='text-slate-7']) {
+  color: hsl(var(--text-tertiary));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-white/']) {
+  color: hsl(var(--text-disabled));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='border-slate-9'], [class*='border-slate-8'], [class*='border-slate-7']) {
+  border-color: hsl(var(--border-default));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='border-white/5'], [class*='border-white/10'], [class*='border-white/20'], [class*='border-white/30']) {
+  border-color: hsl(var(--border-subtle));
+}
+
+html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-[#0a0a0a]'], [class*='bg-[#0f0f0f]']) {
+  background-color: hsl(var(--surface-default));
+}
+
+html:not(.dark) .auth-shell :is([class*='bg-[linear-gradient(180deg,rgba(18,22,35,0.94)_0%,rgba(11,14,22,0.98)_100%)]'], [class*='bg-[linear-gradient(180deg,rgba(14,17,29,0.92)_0%,rgba(8,11,20,0.98)_100%)]']) {
+  background: hsl(var(--surface-default));
 }
 
 .pagination-ant .ant-pagination-item-active a,

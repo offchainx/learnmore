@@ -10,6 +10,8 @@ import { FillBlank } from './FillBlank';
 import { QuestionCardProps } from './types';
 import { cn } from '@/lib/utils';
 import { HelpCircle, CircleCheck, CircleX } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { hasProvidedPracticeAnswer, isRelaxedPracticeAnswerCorrect } from '@/lib/practice/answer-evaluation';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
@@ -23,28 +25,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 }) => {
   const isCorrect = React.useMemo(() => {
     if (!showResult) return undefined;
-    if (question.type === 'SINGLE_CHOICE' || question.type === 'TRUE_FALSE' || question.type === 'MCQ') {
-      return userAnswer === question.answer;
-    }
-    if (question.type === 'MULTIPLE_CHOICE') {
-        const answerArr = Array.isArray(question.answer) ? question.answer : [question.answer as string];
-        const userArr = Array.isArray(userAnswer) ? userAnswer : [userAnswer as string];
-        
-        if (!userArr) return false;
-        
-        if (answerArr.length !== userArr.length) return false;
-        const sortedAnswer = [...answerArr].sort();
-        const sortedUser = [...userArr].sort();
-        return sortedAnswer.every((val, index) => val === sortedUser[index]);
-    }
-    if (question.type === 'FILL_BLANK') {
-        const val = userAnswer as string;
-        if (Array.isArray(question.answer)) {
-            return question.answer.includes(val);
-        }
-        return question.answer === val;
-    }
-    return false;
+    return isRelaxedPracticeAnswerCorrect(question.type, userAnswer ?? null, question.answer ?? null);
   }, [question, userAnswer, showResult]);
 
   return (
@@ -87,8 +68,24 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             />
         )}
         {question.type === 'ESSAY' && (
-            <div className="p-4 bg-muted rounded-md text-muted-foreground text-sm">
-                This question type is not fully supported in this preview yet.
+            <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground" htmlFor={`essay-answer-${question.id}`}>
+                    你的答案
+                </label>
+                <Textarea
+                    id={`essay-answer-${question.id}`}
+                    value={typeof userAnswer === 'string' ? userAnswer : ''}
+                    onChange={(event) => onAnswerChange?.(event.target.value)}
+                    disabled={readOnly || showResult}
+                    placeholder="请在这里输入你的作答"
+                    className={cn(
+                        'min-h-32 resize-y',
+                        showResult &&
+                          (hasProvidedPracticeAnswer(userAnswer ?? null)
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 focus-visible:ring-green-500'
+                            : 'border-destructive bg-destructive/10 focus-visible:ring-destructive')
+                    )}
+                />
             </div>
         )}
       </CardContent>

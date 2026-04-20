@@ -9,7 +9,7 @@ import { ContactForm } from '@/components/support/ContactForm';
 
 export default function ContactPage() {
   return (
-    <div className="dark min-h-screen bg-[#020617] text-white font-sans">
+    <div className="marketing-shell min-h-screen bg-[#020617] text-white font-sans">
       <Navbar />
       <main className="mx-auto max-w-6xl min-w-0 px-4 pb-20 pt-32">
         <div className="text-center mb-16">

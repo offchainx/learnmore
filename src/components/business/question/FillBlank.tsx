@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Question } from './types';
 import { cn } from '@/lib/utils';
+import { hasProvidedPracticeAnswer } from '@/lib/practice/answer-evaluation';
 
 interface FillBlankProps {
   question: Question;
@@ -19,10 +20,7 @@ export const FillBlank: React.FC<FillBlankProps> = ({
   disabled,
   showResult
 }) => {
-  // Simple exact match check for styling
-  const isCorrect = Array.isArray(question.answer) 
-    ? question.answer.includes(value || '')
-    : question.answer === value;
+  const isCorrect = showResult ? hasProvidedPracticeAnswer(value ?? null) : false;
 
   return (
     <div className="space-y-3">
@@ -36,8 +34,8 @@ export const FillBlank: React.FC<FillBlankProps> = ({
         className={cn(
             "max-w-md",
             showResult && (
-                isCorrect 
-                    ? "border-green-500 bg-green-50 dark:bg-green-900/20 focus-visible:ring-green-500" 
+                isCorrect
+                    ? "border-green-500 bg-green-50 dark:bg-green-900/20 focus-visible:ring-green-500"
                     : "border-destructive bg-destructive/10 focus-visible:ring-destructive"
             )
         )}

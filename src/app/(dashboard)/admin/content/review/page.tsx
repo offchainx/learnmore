@@ -4,7 +4,8 @@ import {
   getContentStats,
   getContentReviewActivityLogs,
   getQuestions,
-  getPendingReviewQuestions,
+  getDraftQuestions,
+  getManualReviewQuestions,
 } from '@/actions/content-pipeline/question-service'
 import { getAllSubjects } from '@/actions/courses/subject'
 import { QuestionReviewTable } from '@/components/admin/questions'
@@ -39,6 +40,8 @@ import {
 } from '@/components/shared/pageTypography'
 import { AlertCircle, Clock3, FolderKanban, RefreshCcw } from 'lucide-react'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
+
+type ReviewTabValue = 'all' | 'pending' | 'manual' | 'published' | 'archived' | 'deleted'
 
 const REVIEW_PAGE_SIZE = 20
 const REVIEW_PAGE_SIZE_OPTIONS = [10, 20, 50] as const
@@ -81,7 +84,9 @@ export default async function AdminContentPage({
   const reviewPageSize = parsePageSize(resolvedSearchParams.pageSize)
   const subjectId = resolvedSearchParams.subjectId
   const statusParam = resolvedSearchParams.status
-  const currentTab = resolvedSearchParams.tab || 'all'
+  const rawTab = resolvedSearchParams.tab || 'all'
+  const currentTab: ReviewTabValue =
+    rawTab === 'rejected' ? 'archived' : (rawTab as ReviewTabValue)
   const currentRange =
     resolvedSearchParams.range === '30d' || resolvedSearchParams.range === 'all'
       ? resolvedSearchParams.range
@@ -107,11 +112,13 @@ export default async function AdminContentPage({
   let statusFilter: ContentStatus[] | undefined = undefined
 
   if (currentTab === 'pending') {
+    statusFilter = [ContentStatus.DRAFT]
+  } else if (currentTab === 'manual') {
     statusFilter = [ContentStatus.REVIEW_PENDING]
   } else if (currentTab === 'published') {
     statusFilter = [ContentStatus.PUBLISHED]
-  } else if (currentTab === 'rejected') {
-    statusFilter = [ContentStatus.REVIEW_REJECTED]
+  } else if (currentTab === 'archived') {
+    statusFilter = [ContentStatus.ARCHIVED]
   } else if (statusParam) {
     statusFilter = [statusParam as ContentStatus]
   }
@@ -127,11 +134,17 @@ export default async function AdminContentPage({
   const [questionsResult, subjectsResult, contentStatsResult, activityLogsResult] =
     await Promise.all([
       currentTab === 'pending'
-        ? getPendingReviewQuestions(
+        ? getDraftQuestions(
             { page, pageSize: reviewPageSize },
             filter,
             currentSort
           )
+        : currentTab === 'manual'
+          ? getManualReviewQuestions(
+              { page, pageSize: reviewPageSize },
+              filter,
+              currentSort
+            )
         : getQuestions({ page, pageSize: reviewPageSize }, filter, currentSort),
       getAllSubjects(),
       getContentStats(currentRange, { subjectId }),
@@ -225,7 +238,7 @@ export default async function AdminContentPage({
     {
       key: 'pending',
       label: '待审核',
-      value: contentStats?.byStatus.REVIEW_PENDING || 0,
+      value: contentStats?.byStatus.DRAFT || 0,
       hint: '当前需要处理',
       icon: Clock3,
       caption: rangeLabel,
@@ -235,10 +248,10 @@ export default async function AdminContentPage({
       borderClassName: 'border-amber-200 dark:border-[#5C4520]',
     },
     {
-      key: 'rejected',
-      label: '已驳回',
-      value: contentStats?.byStatus.REVIEW_REJECTED || 0,
-      hint: '可回看问题题',
+      key: 'manual',
+      label: '待复核',
+      value: contentStats?.byStatus.REVIEW_PENDING || 0,
+      hint: '等待人工复核',
       icon: RefreshCcw,
       caption: rangeLabel,
       iconClassName: 'text-rose-700 dark:text-[#F87171]',
@@ -279,9 +292,9 @@ export default async function AdminContentPage({
           <PageHeroShell
             className="sm:py-4.5 px-4 py-4 sm:px-5"
             title={
-              <PageHeroTitle title="内容管理" capsuleLabel="Review Console" />
-            }
-            subtitle="审核批量导入后的题目内容，集中处理待发布、已发布和已驳回题目。"
+            <PageHeroTitle title="内容管理" capsuleLabel="Review Console" />
+          }
+            subtitle="审核批量导入后的题目内容，集中处理待审核、待复核、已发布和已归档题目。"
             titleClassName="font-semibold"
             actions={
               <AdminActivityActions
@@ -299,7 +312,7 @@ export default async function AdminContentPage({
             <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
               <SectionBlockHeader
                 title="审核概览"
-                description="聚焦审核积压、驳回回流、用户报错与当前时间范围内的入库量。"
+                description="聚焦待审核积压、人工复核回流、用户报错与当前时间范围内的入库量。"
                 className="flex-1"
               />
 
@@ -375,7 +388,7 @@ export default async function AdminContentPage({
               <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-end 2xl:justify-between">
                 <SectionBlockHeader
                   title="题目列表"
-                  description="统一处理题目审核、发布与驳回动作，优先消化批量导入待审核项。"
+                  description="统一处理题目审核、发布、人工复核与归档动作。"
                 />
 
                 <div className="grid w-full gap-3 xl:grid-cols-[minmax(0,240px)_repeat(3,120px)] 2xl:ml-auto 2xl:w-fit">

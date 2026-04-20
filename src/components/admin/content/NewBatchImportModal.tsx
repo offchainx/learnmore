@@ -423,16 +423,16 @@ export function NewBatchImportModal({
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between rounded-xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
                       <div className="space-y-1">
-                        <FormLabel className="mb-0">是否为真题</FormLabel>
+                        <FormLabel className="mb-0">真题标签（当前关闭）</FormLabel>
                         <FormDescription className="text-xs">
-                          开启后导入题目进入真题池；关闭后进入普通练习池。
+                          当前版本统一归入普通练习池，真题标签暂不写入数据库。
                         </FormDescription>
                       </div>
                       <FormControl>
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
-                          disabled={isUploading}
+                          disabled
                         />
                       </FormControl>
                     </FormItem>
@@ -580,7 +580,7 @@ export function NewBatchImportModal({
                   </div>
                   <p className="text-text-secondary dark:text-text-secondary leading-relaxed">
                     <span className="text-text-primary dark:text-text-primary font-semibold">审核入库</span>
-                    ：导入后题目进入 <span className="text-primary dark:text-primary font-semibold">待审核</span> 状态，需人工确认后发布。
+                    ：导入后题目先进入 <span className="text-primary dark:text-primary font-semibold">待审核</span> 状态，skills 会先自动清洗并判定；无法自动处理的题目再进入人工复核。
                   </p>
                 </div>
               </CardContent>

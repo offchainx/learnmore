@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { ThemeSwitchButton } from '@/components/ui/theme-switch-button';
 import { BookOpen, Menu, X, Sparkles, Globe } from 'lucide-react';
 
 interface NavbarProps {
@@ -114,6 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
 
           {/* Auth Buttons & Lang Toggle */}
           <div className="hidden desktop:flex items-center space-x-3">
+            <ThemeSwitchButton />
             {onToggleLang && (
               <button
                 onClick={onToggleLang}
@@ -164,6 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({ lang = 'en', onToggleLang, isLog
 
           {/* Mobile Menu Button */}
           <div className="flex items-center desktop:hidden gap-4">
+             <ThemeSwitchButton />
              {onToggleLang && (
               <button 
                 onClick={onToggleLang}

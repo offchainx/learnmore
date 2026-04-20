@@ -93,7 +93,7 @@ function mapReviewActionLabel(action: ReviewAction): string {
     case ReviewAction.APPROVE:
       return '审核通过'
     case ReviewAction.REJECT:
-      return '驳回题目'
+      return '归档题目'
     case ReviewAction.PUBLISH:
       return '发布题目'
     case ReviewAction.ARCHIVE:
@@ -187,15 +187,15 @@ export async function generateContentHash(
 }
 
 const STATUS_TRANSITIONS: Record<ContentStatus, ContentStatus[]> = {
-  DRAFT: ['OCR_PROCESSING', 'STRUCTURING', 'REVIEW_PENDING', 'ARCHIVED'],
+  DRAFT: ['OCR_PROCESSING', 'STRUCTURING', 'REVIEW_PENDING', 'PUBLISHED', 'ARCHIVED'],
   OCR_PROCESSING: ['OCR_COMPLETED', 'DRAFT'],
   OCR_COMPLETED: ['STRUCTURING', 'REVIEW_PENDING', 'DRAFT'],
-  STRUCTURING: ['REVIEW_PENDING', 'DRAFT'],
-  REVIEW_PENDING: ['VERIFIED', 'REVIEW_REJECTED', 'DRAFT'],
+  STRUCTURING: ['DRAFT', 'REVIEW_PENDING', 'PUBLISHED', 'ARCHIVED'],
+  REVIEW_PENDING: ['DRAFT', 'PUBLISHED', 'ARCHIVED'],
   REVIEW_REJECTED: ['DRAFT', 'REVIEW_PENDING', 'ARCHIVED'],
   VERIFIED: ['PUBLISHED', 'REVIEW_PENDING', 'ARCHIVED'],
-  PUBLISHED: ['ARCHIVED', 'VERIFIED', 'REVIEW_PENDING'],
-  ARCHIVED: ['DRAFT'],
+  PUBLISHED: ['REVIEW_PENDING', 'ARCHIVED'],
+  ARCHIVED: ['DRAFT', 'REVIEW_PENDING'],
 }
 
 export async function validateStatusTransition(
@@ -426,8 +426,10 @@ export async function updateQuestionStatus(
       }
     }
 
-    let action: ReviewAction = ReviewAction.SUBMIT_REVIEW
-    if (input.newStatus === ContentStatus.VERIFIED)
+    let action: ReviewAction = ReviewAction.REQUEST_CHANGE
+    if (input.newStatus === ContentStatus.REVIEW_PENDING)
+      action = ReviewAction.SUBMIT_REVIEW
+    else if (input.newStatus === ContentStatus.VERIFIED)
       action = ReviewAction.APPROVE
     else if (input.newStatus === ContentStatus.REVIEW_REJECTED)
       action = ReviewAction.REJECT
@@ -740,10 +742,10 @@ function buildQuestionSqlWhere(
     }
   }
 
-  if (isUuid(filter.chapterId)) clauses.push(Prisma.sql`q.chapter_id = ${filter.chapterId}`)
-  if (isUuid(filter.subjectId)) clauses.push(Prisma.sql`q.subject_id = ${filter.subjectId}`)
+  if (isUuid(filter.chapterId)) clauses.push(Prisma.sql`q.chapter_id::text = ${filter.chapterId}`)
+  if (isUuid(filter.subjectId)) clauses.push(Prisma.sql`q.subject_id::text = ${filter.subjectId}`)
   if (isUuid(filter.sourceFileId)) {
-    clauses.push(Prisma.sql`q.source_file_id = ${filter.sourceFileId}`)
+    clauses.push(Prisma.sql`q.source_file_id::text = ${filter.sourceFileId}`)
   }
   if (filter.source) clauses.push(Prisma.sql`q.source = ${filter.source}`)
   if (filter.isPastPaper !== undefined) {
@@ -752,10 +754,10 @@ function buildQuestionSqlWhere(
   if (filter.paperId) clauses.push(Prisma.sql`q.paper_id = ${filter.paperId}`)
 
   if (filter.createdBy && isUuid(filter.createdBy)) {
-    clauses.push(Prisma.sql`q.created_by = ${filter.createdBy}`)
+    clauses.push(Prisma.sql`q.created_by::text = ${filter.createdBy}`)
   }
   if (filter.reviewedBy && isUuid(filter.reviewedBy)) {
-    clauses.push(Prisma.sql`q.reviewed_by = ${filter.reviewedBy}`)
+    clauses.push(Prisma.sql`q.reviewed_by::text = ${filter.reviewedBy}`)
   }
   if (filter.createdAfter || filter.createdBefore) {
     const createdAtRange: Prisma.Sql[] = []
@@ -772,11 +774,11 @@ function buildQuestionSqlWhere(
   if (searchText) {
     const searchClauses: Prisma.Sql[] = []
     if (isUuid(searchText)) {
-      searchClauses.push(Prisma.sql`q.id = ${searchText}`)
+      searchClauses.push(Prisma.sql`q.id::text = ${searchText}`)
     }
     if (questionIdPrefixMatches.length > 0) {
       searchClauses.push(
-        Prisma.sql`q.id IN (${Prisma.join(
+        Prisma.sql`q.id::text IN (${Prisma.join(
           questionIdPrefixMatches.map((id) => Prisma.sql`${id}`)
         )})`
       )
@@ -790,7 +792,19 @@ function buildQuestionSqlWhere(
   return combineSqlClauses(clauses, SQL_AND)
 }
 
-export async function getPendingReviewQuestions(
+export async function getDraftQuestions(
+  params: PaginationParams = {},
+  filter: QuestionFilter = {},
+  sort: QuestionSortOptions = { field: 'createdAt', order: 'desc' }
+): Promise<PaginatedResult<QuestionWithRelations>> {
+  const nextFilter: QuestionFilter = {
+    ...filter,
+    status: ContentStatus.DRAFT,
+  }
+  return getQuestions(params, nextFilter, sort)
+}
+
+export async function getManualReviewQuestions(
   params: PaginationParams = {},
   filter: QuestionFilter = {},
   sort: QuestionSortOptions = { field: 'createdAt', order: 'desc' }
@@ -937,6 +951,16 @@ export async function bulkAutoTagQuestionChapters(
         tags: true,
         subjectId: true,
         chapterId: true,
+        source: true,
+        sourceFileId: true,
+        sourceFile: {
+          select: {
+            id: true,
+            filename: true,
+            sourceNote: true,
+            fileUrl: true,
+          },
+        },
       },
     })
 
@@ -949,6 +973,15 @@ export async function bulkAutoTagQuestionChapters(
         tags: question.tags,
         subjectId: question.subjectId,
         chapterId: question.chapterId,
+        source: question.source,
+        sourceFileId: question.sourceFileId,
+        sourceFile: question.sourceFile
+          ? {
+              filename: question.sourceFile.filename,
+              sourceNote: question.sourceFile.sourceNote,
+              fileUrl: question.sourceFile.fileUrl,
+            }
+          : null,
       }))
     )
     const suggestionMap = new Map(

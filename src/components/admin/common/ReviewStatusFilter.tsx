@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
 
-type ReviewTabValue = 'all' | 'pending' | 'published' | 'rejected' | 'deleted'
+type ReviewTabValue = 'all' | 'pending' | 'manual' | 'published' | 'archived' | 'deleted'
 
 const REVIEW_STATUS_OPTIONS: Array<{
   value: ReviewTabValue
@@ -13,8 +13,9 @@ const REVIEW_STATUS_OPTIONS: Array<{
 }> = [
   { value: 'all', label: '全部' },
   { value: 'pending', label: '待审核' },
+  { value: 'manual', label: '待复核' },
   { value: 'published', label: '已发布' },
-  { value: 'rejected', label: '已驳回' },
+  { value: 'archived', label: '已归档' },
   { value: 'deleted', label: '已删除' },
 ]
 

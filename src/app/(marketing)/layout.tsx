@@ -24,7 +24,7 @@ export default function MarketingLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <div className="marketing-shell">
       {/*
         营销页面布局
         注意：大部分营销页面已经包含了自己的 Navbar 和 Footer
@@ -33,6 +33,6 @@ export default function MarketingLayout({
         2. 未来添加营销页面专属功能（如分析追踪、CTA Banner等）
       */}
       {children}
-    </>
+    </div>
   )
 }

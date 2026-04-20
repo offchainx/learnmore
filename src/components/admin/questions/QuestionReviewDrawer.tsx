@@ -150,7 +150,7 @@ export function QuestionReviewDrawer({
         ...question,
         status: 'PUBLISHED',
       })
-      toast.success('审核通过')
+      toast.success('已发布')
     } catch (error) {
       console.error('审核失败:', error)
       toast.error('审核操作失败')
@@ -165,19 +165,19 @@ export function QuestionReviewDrawer({
     try {
       const result = await rejectQuestion(questionId, reason)
       if (!result.success) {
-        toast.error(result.message || '驳回失败')
+        toast.error(result.message || '归档失败')
         return
       }
       setReviewCompletedAction('rejected')
       onMarkReviewCompleted('rejected', nextQuestionId)
       setQuestion({
         ...question,
-        status: 'REVIEW_REJECTED',
+        status: 'ARCHIVED',
       })
-      toast.success('已驳回该题目')
+      toast.success('已归档该题目')
     } catch (error) {
-      console.error('驳回失败:', error)
-      toast.error('驳回失败')
+      console.error('归档失败:', error)
+      toast.error('归档失败')
     } finally {
       setIsSaving(false)
     }

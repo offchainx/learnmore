@@ -46,8 +46,8 @@ interface StatisticsClientProps {
 
 const STATUS_COLORS: Record<string, string> = {
   PUBLISHED: '#22c55e', // green-500
-  REVIEW_PENDING: '#f97316', // orange-500
-  DRAFT: '#94a3b8', // slate-400
+  DRAFT: '#f97316', // orange-500
+  REVIEW_PENDING: '#94a3b8', // slate-400
   REVIEW_REJECTED: '#ef4444', // red-500
   ARCHIVED: '#64748b', // slate-500
   OCR_PROCESSING: '#3b82f6', // blue-500
@@ -55,6 +55,19 @@ const STATUS_COLORS: Record<string, string> = {
   STRUCTURING: '#8b5cf6', // violet-500
   VERIFIED: '#10b981', // emerald-500
   FAILED: '#ef4444', // red-500
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  DRAFT: '待审核',
+  REVIEW_PENDING: '待复核',
+  PUBLISHED: '已发布',
+  ARCHIVED: '已归档',
+  REVIEW_REJECTED: '已归档(旧)',
+  VERIFIED: '已发布(旧)',
+  OCR_PROCESSING: 'OCR处理中',
+  OCR_COMPLETED: 'OCR完成',
+  STRUCTURING: '结构化中',
+  FAILED: '失败',
 }
 
 const TYPE_NAMES: Record<string, string> = {
@@ -70,7 +83,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
   const statusData = Object.entries(stats.byStatus)
     .filter(([_, value]) => value > 0)
     .map(([key, value]) => ({
-      name: key,
+      name: STATUS_LABELS[key] || key,
       value,
       color: STATUS_COLORS[key] || '#cbd5e1'
     }))
@@ -145,7 +158,7 @@ export function StatisticsClient({ userRole, stats }: StatisticsClientProps) {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-text-primary dark:text-white">
-                {stats.byStatus.REVIEW_PENDING || 0}
+                {stats.byStatus.DRAFT || 0}
               </div>
               <p className="text-xs text-text-tertiary dark:text-slate-500 mt-1">
                 需要尽快处理

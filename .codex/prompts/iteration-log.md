@@ -138,4 +138,6 @@
 
 | 2026-04-20 | login/register auth polish | 继续收紧 /login 与 /register 的视觉和交互，并修正 remember me 会话时长 | 统一两页圆角、标题、输入框和按钮样式，remember me 改为 7 天 cookie，保留现有登录与 Google 登录链路 | src/actions/user/auth.ts, src/lib/supabase/server.ts, src/app/(auth)/layout.tsx, src/app/(auth)/login/page.tsx, src/app/(auth)/register/page.tsx, src/components/business/auth/login-form.tsx, src/components/business/auth/register-form.tsx, src/components/business/auth/login-hero.tsx, src/components/ui/theme-switch-button.tsx, src/app/auth/callback/route.ts | worktree contains many unrelated user changes; only auth files were staged | added explicit iteration-log entry so commit hook can pass | 继续按用户反馈微调 auth 页视觉 |
 
+| 2026-04-20 | workspace batch closeout | 提交当前剩余的非 auth 工作区改动 | 收口当前工作区内其余代码改动并准备推送 | src/actions/content-pipeline/*, src/actions/practice/*, src/app/(dashboard)/admin/content/*, src/app/(marketing)/*, src/app/globals.css, src/components/admin/*, src/components/business/question/*, src/components/dashboard/*, src/components/layout/*, src/components/marketing/*, src/components/practice/*, src/components/shared/pageSurfaces.ts, src/lib/content-pipeline/* | worktree contains temp screenshots and helper scripts that should stay untracked | appended a fresh iteration-log entry so codex commit hook can pass | commit and push remaining worktree changes |
+
 ## 约束

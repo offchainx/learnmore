@@ -31,6 +31,7 @@ const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
   QuestionType.SINGLE_CHOICE,
   QuestionType.MULTIPLE_CHOICE,
   QuestionType.FILL_BLANK,
+  QuestionType.ESSAY,
   QuestionType.TRUE_FALSE,
   QuestionType.MCQ,
 ]

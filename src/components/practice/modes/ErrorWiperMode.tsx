@@ -8,6 +8,7 @@ import UnifiedPracticeWorkspace, {
 } from '@/components/practice/session/UnifiedPracticeWorkspace';
 import { Question } from '@/components/business/question';
 import type { TierKey } from '@/lib/permissions/types';
+import { isRelaxedPracticeAnswerCorrect } from '@/lib/practice/answer-evaluation';
 
 export interface ErrorBookEntry {
   id: string;
@@ -36,29 +37,11 @@ interface ErrorWiperSessionProps {
 }
 
 function isCorrectAnswer(question: Question, userAnswer: string | string[] | undefined) {
-  if (!userAnswer || question.answer === null || question.answer === undefined) return false;
-
-  if (question.type === 'SINGLE_CHOICE' || question.type === 'TRUE_FALSE' || question.type === 'MCQ') {
-    return String(userAnswer).trim().toLowerCase() === String(question.answer).trim().toLowerCase();
-  }
-
-  if (question.type === 'MULTIPLE_CHOICE') {
-    const actual = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
-    const expected = Array.isArray(question.answer) ? question.answer : [question.answer];
-    if (actual.length !== expected.length) return false;
-    const sortedActual = [...actual].map(String).sort();
-    const sortedExpected = [...expected].map(String).sort();
-    return sortedActual.every((value, index) => value === sortedExpected[index]);
-  }
-
-  if (question.type === 'FILL_BLANK') {
-    if (Array.isArray(question.answer)) {
-      return question.answer.map((item) => String(item).trim()).includes(String(userAnswer).trim());
-    }
-    return String(userAnswer).trim() === String(question.answer).trim();
-  }
-
-  return false;
+  return isRelaxedPracticeAnswerCorrect(
+    question.type,
+    userAnswer,
+    question.answer as string | string[] | null
+  );
 }
 
 export const ErrorWiperSession: React.FC<ErrorWiperSessionProps> = ({

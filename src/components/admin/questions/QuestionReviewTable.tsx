@@ -24,10 +24,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   MoreHorizontal,
-  CheckCircle,
-  XCircle,
-  ArrowUpCircle,
+  CheckCircle2,
   ClipboardCheck,
+  Archive,
+  RotateCcw,
+  Copy,
   Trash2,
   Sparkles,
 } from 'lucide-react'
@@ -36,7 +37,6 @@ import { QualityScoreBadge } from '../common/QualityScoreBadge'
 import { QuestionWithRelations } from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import {
-  bulkDeleteQuestions,
   bulkAutoTagQuestionChapters,
   bulkUpdateQuestionStatus,
   deleteQuestion,
@@ -73,6 +73,9 @@ export function QuestionReviewTable({
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
   const isDeletedView = currentTab === 'deleted'
+  const isDraftView = currentTab === 'pending'
+  const isManualReviewView = currentTab === 'manual'
+  const isArchivedView = currentTab === 'archived'
   const selectedQuestionId = searchParams.get('questionId')
   const reviewActionParam = searchParams.get('reviewAction')
   const reviewCompletedAction =
@@ -85,6 +88,10 @@ export function QuestionReviewTable({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    setSelectedIds([])
+  }, [currentTab])
 
   // Handle row selection
   const toggleSelectAll = () => {
@@ -135,44 +142,6 @@ export function QuestionReviewTable({
           variant: 'destructive',
           title: '操作失败',
           description: firstError ? `更新失败: ${firstError}` : `更新失败: ${result.failed} 个错误`,
-        })
-      }
-    } catch {
-      toast({
-        variant: 'destructive',
-        title: '错误',
-        description: '发生未知错误',
-      })
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const handleBulkDelete = async () => {
-    if (selectedIds.length === 0 || isDeletedView) return
-    if (!window.confirm(`确认删除已选中的 ${selectedIds.length} 道题目？删除后会移入“已删除”列表。`)) {
-      return
-    }
-
-    setIsUpdating(true)
-    try {
-      const result = await bulkDeleteQuestions(selectedIds, undefined, {
-        comment: 'Bulk delete via Admin Interface',
-      })
-
-      if (result.success) {
-        toast({
-          title: '删除成功',
-          description: `已删除 ${result.succeeded} 道题目`,
-        })
-        setSelectedIds([])
-        router.refresh()
-      } else {
-        const firstError = result.results.find((item) => !item.success)?.error
-        toast({
-          variant: 'destructive',
-          title: '删除失败',
-          description: firstError ? `删除失败: ${firstError}` : `删除失败: ${result.failed} 个错误`,
         })
       }
     } catch {
@@ -313,7 +282,7 @@ export function QuestionReviewTable({
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
     switch (status) {
       case 'DRAFT':
-        return 'secondary'
+        return 'warning'
       case 'REVIEW_PENDING':
         return 'warning'
       case 'VERIFIED':
@@ -321,7 +290,7 @@ export function QuestionReviewTable({
       case 'PUBLISHED':
         return 'success'
       case 'REVIEW_REJECTED':
-        return 'destructive'
+        return 'neutral'
       case 'ARCHIVED':
         return 'neutral'
       default:
@@ -331,13 +300,13 @@ export function QuestionReviewTable({
 
   const getStatusLabel = (status: string) => {
     const map: Record<string, string> = {
-      DRAFT: '草稿',
+      DRAFT: '待审核',
       OCR_PROCESSING: 'OCR处理中',
       OCR_COMPLETED: 'OCR完成',
       STRUCTURING: '结构化中',
-      REVIEW_PENDING: '待审核',
-      REVIEW_REJECTED: '已驳回',
-      VERIFIED: '已校对',
+      REVIEW_PENDING: '待复核',
+      REVIEW_REJECTED: '已归档(旧)',
+      VERIFIED: '已发布(旧)',
       PUBLISHED: '已发布',
       ARCHIVED: '已归档',
     }
@@ -397,12 +366,14 @@ export function QuestionReviewTable({
         <div className="ml-1 text-sm text-text-secondary dark:text-text-secondary">
           {isDeletedView ? (
             <span>已删除题目仅用于追踪，不参与审核流转。</span>
+          ) : isArchivedView ? (
+            <span>已归档题目可恢复回待审核或待复核。</span>
           ) : selectedIds.length >= 2 ? (
             <span>已选择 {selectedIds.length} 项，支持批量审核</span>
           ) : selectedIds.length === 1 ? (
             <span>已选择 1 项，再选择 1 项后显示批量操作</span>
           ) : (
-            <span>勾选题目后可批量通过、驳回或发布</span>
+            <span>勾选题目后可批量送交复核、直接发布或归档</span>
           )}
         </div>
         {selectedIds.length >= 2 && !isDeletedView ? (
@@ -411,52 +382,66 @@ export function QuestionReviewTable({
               size="sm"
               variant="outline"
               disabled={selectedIds.length === 0 || isUpdating}
-              onClick={() => handleBulkStatusUpdate('VERIFIED')}
-              className="border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]"
+              onClick={() =>
+                handleBulkStatusUpdate(
+                  isArchivedView ? 'DRAFT' : isManualReviewView ? 'PUBLISHED' : 'REVIEW_PENDING'
+                )
+              }
+              className={
+                isArchivedView
+                  ? 'border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]'
+                  : isManualReviewView
+                    ? 'border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]'
+                    : 'border-borderTone bg-[hsl(var(--state-warning-bg))] text-[hsl(var(--state-warning-fg))] hover:bg-[hsl(var(--state-warning-bg))] hover:text-[hsl(var(--state-warning-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-warning-bg))] dark:text-[hsl(var(--state-warning-fg))] dark:hover:bg-[hsl(var(--state-warning-bg))] dark:hover:text-[hsl(var(--state-warning-fg))]'
+              }
             >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              通过
+              {isArchivedView ? (
+                <RotateCcw className="mr-2 h-4 w-4" />
+              ) : isManualReviewView ? (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              ) : (
+                <ClipboardCheck className="mr-2 h-4 w-4" />
+              )}
+              {isArchivedView ? '恢复待审' : isManualReviewView ? '发布' : '送交复核'}
             </Button>
             <Button
               size="sm"
               variant="outline"
               disabled={selectedIds.length === 0 || isUpdating}
-              onClick={() => handleBulkStatusUpdate('REVIEW_REJECTED')}
-              className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
+              onClick={() =>
+                handleBulkStatusUpdate(
+                  isArchivedView ? 'REVIEW_PENDING' : isManualReviewView ? 'ARCHIVED' : 'PUBLISHED'
+                )
+              }
+              className={
+                isArchivedView
+                  ? 'border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]'
+                  : isManualReviewView
+                    ? 'border-borderTone bg-surface-subtle text-text-secondary hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
+                    : 'border-borderTone bg-[hsl(var(--state-success-bg))] text-[hsl(var(--state-success-fg))] hover:bg-[hsl(var(--state-success-bg))] hover:text-[hsl(var(--state-success-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-success-bg))] dark:text-[hsl(var(--state-success-fg))] dark:hover:bg-[hsl(var(--state-success-bg))] dark:hover:text-[hsl(var(--state-success-fg))]'
+              }
             >
-              <XCircle className="mr-2 h-4 w-4" />
-              驳回
+              {isArchivedView ? (
+                <RotateCcw className="mr-2 h-4 w-4" />
+              ) : isManualReviewView ? (
+                <Archive className="mr-2 h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
+              {isArchivedView ? '恢复复核' : isManualReviewView ? '归档' : '直接发布'}
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={selectedIds.length === 0 || isUpdating}
-              onClick={() => handleBulkAutoTag()}
-              className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              AI补章节
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={selectedIds.length === 0 || isUpdating}
-              onClick={() => handleBulkStatusUpdate('PUBLISHED')}
-              className="border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] hover:bg-[hsl(var(--state-info-bg))] hover:text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))] dark:text-[hsl(var(--state-info-fg))] dark:hover:bg-[hsl(var(--state-info-bg))] dark:hover:text-[hsl(var(--state-info-fg))]"
-            >
-              <ArrowUpCircle className="mr-2 h-4 w-4" />
-              发布
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={selectedIds.length === 0 || isUpdating}
-              onClick={handleBulkDelete}
-              className="border-borderTone bg-[hsl(var(--state-danger-bg))] text-[hsl(var(--state-danger-fg))] hover:bg-[hsl(var(--state-danger-bg))] hover:text-[hsl(var(--state-danger-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-danger-bg))] dark:text-[hsl(var(--state-danger-fg))] dark:hover:bg-[hsl(var(--state-danger-bg))] dark:hover:text-[hsl(var(--state-danger-fg))]"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              删除
-            </Button>
+            {!isArchivedView && !isManualReviewView ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selectedIds.length === 0 || isUpdating}
+                onClick={() => handleBulkStatusUpdate('ARCHIVED')}
+                className="border-borderTone bg-surface-subtle text-text-secondary hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary"
+              >
+                <Archive className="mr-2 h-4 w-4" />
+                归档
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -539,8 +524,23 @@ export function QuestionReviewTable({
                         {getQuestionPreview(question.content) || '题干为空'}
                       </span>
                     </button>
-                    <div className="mt-1 text-xs text-text-secondary dark:text-text-secondary">
-                      ID: {question.id.substring(0, 8)}
+                    <div className="mt-1 flex items-center gap-2 text-xs text-text-secondary dark:text-text-secondary">
+                      <span className="truncate">ID: {question.id.substring(0, 8)}</span>
+                      <button
+                        type="button"
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-md border border-borderTone text-text-tertiary transition-colors hover:border-blue-400 hover:text-blue-600 dark:border-borderTone dark:hover:border-blue-400 dark:hover:text-blue-400"
+                        aria-label="复制完整题目ID"
+                        title="复制完整题目ID"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(question.id)
+                          toast({
+                            title: '已复制',
+                            description: '完整题目 ID 已复制到剪贴板',
+                          })
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -616,11 +616,15 @@ export function QuestionReviewTable({
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>操作</DropdownMenuLabel>
                         <DropdownMenuItem
-                          onClick={() =>
-                            navigator.clipboard.writeText(question.id)
-                          }
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(question.id)
+                            toast({
+                              title: '已复制',
+                              description: '完整题目 ID 已复制到剪贴板',
+                            })
+                          }}
                         >
-                          复制ID
+                          复制完整ID
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

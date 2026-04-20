@@ -13,6 +13,7 @@ import {
   type PracticeQuestionRecord,
   toQuestionMaterialGroup,
 } from '@/lib/practice/question-groups'
+import { isRelaxedPracticeAnswerCorrect } from '@/lib/practice/answer-evaluation'
 
 interface SmartDrillContinuousSessionProps {
   questions: PracticeQuestionRecord[]
@@ -28,31 +29,11 @@ interface SmartDrillContinuousSessionProps {
 }
 
 function isCorrectAnswer(question: PracticeQuestionRecord, userAnswer: string | string[] | undefined) {
-  const correctAnswer = question.answer as string | string[] | null
-
-  if (!userAnswer || !correctAnswer) return false
-
-  if (question.type === QuestionType.SINGLE_CHOICE || question.type === QuestionType.TRUE_FALSE) {
-    return String(userAnswer).trim().toLowerCase() === String(correctAnswer).trim().toLowerCase()
-  }
-
-  if (question.type === QuestionType.MULTIPLE_CHOICE) {
-    const actual = Array.isArray(userAnswer) ? userAnswer : [userAnswer]
-    const expected = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer]
-    if (actual.length !== expected.length) return false
-    const sortedActual = [...actual].map(String).sort()
-    const sortedExpected = [...expected].map(String).sort()
-    return sortedActual.every((value, index) => value === sortedExpected[index])
-  }
-
-  if (question.type === QuestionType.FILL_BLANK) {
-    if (Array.isArray(correctAnswer)) {
-      return correctAnswer.map((item) => String(item).trim()).includes(String(userAnswer).trim())
-    }
-    return String(userAnswer).trim() === String(correctAnswer).trim()
-  }
-
-  return false
+  return isRelaxedPracticeAnswerCorrect(
+    question.type,
+    userAnswer,
+    question.answer as string | string[] | null
+  )
 }
 
 function formatQuestion(question: PracticeQuestionRecord): Question {

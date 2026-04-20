@@ -23,7 +23,7 @@ export default function HelpPage() {
   ];
 
   return (
-    <div className="dark min-h-screen bg-[#020617] text-white font-sans">
+    <div className="marketing-shell min-h-screen bg-[#020617] text-white font-sans">
       <Navbar />
       
       {/* Hero Section */}

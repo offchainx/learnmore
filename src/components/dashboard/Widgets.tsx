@@ -305,49 +305,48 @@ export const DailyInspiration = ({
 
   return (
     <div
-      className={`group relative w-full overflow-hidden rounded-[28px] border border-borderTone bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] shadow-surface-lg dark:border-borderTone dark:bg-[linear-gradient(180deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_100%)] dark:shadow-[0_18px_48px_rgba(2,8,23,0.28)] ${className || 'h-56 sm:h-64'}`}
+      className={`group relative w-full overflow-hidden rounded-[24px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none ${className || 'h-56 sm:h-64'}`}
     >
       <div
-        className={`absolute inset-0 transition-transform duration-700 group-hover:scale-105 ${activeBackground.shellLight} ${activeBackground.shellDark}`}
+        className={`absolute inset-0 opacity-90 ${activeBackground.shellLight} ${activeBackground.shellDark}`}
       />
       <div
-        className={`pointer-events-none absolute -right-10 top-0 h-32 w-32 rounded-full blur-3xl ${activeBackground.glowLight} ${activeBackground.glowDark}`}
+        className={`pointer-events-none absolute -right-12 top-0 h-28 w-28 rounded-full blur-3xl ${activeBackground.glowLight} ${activeBackground.glowDark}`}
       />
       <div
-        className={`pointer-events-none absolute left-6 top-6 h-16 w-16 rounded-full blur-sm ${activeBackground.orbPrimaryLight} ${activeBackground.orbPrimaryDark}`}
+        className={`pointer-events-none absolute left-6 top-6 h-14 w-14 rounded-full blur-sm ${activeBackground.orbPrimaryLight} ${activeBackground.orbPrimaryDark}`}
       />
       <div
-        className={`pointer-events-none absolute bottom-10 right-20 h-24 w-24 rounded-full blur-md ${activeBackground.orbSecondaryLight} ${activeBackground.orbSecondaryDark}`}
+        className={`pointer-events-none absolute bottom-10 right-16 h-20 w-20 rounded-full blur-md ${activeBackground.orbSecondaryLight} ${activeBackground.orbSecondaryDark}`}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-white/18 via-transparent to-transparent dark:from-white/8" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white/92 via-white/56 to-transparent dark:from-slate-950/92 dark:via-slate-950/52 dark:to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/12 via-transparent to-transparent dark:from-white/4" />
+      <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent dark:from-slate-950/92 dark:via-slate-950/60 dark:to-transparent" />
       <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-5">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/78 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-secondary backdrop-blur-md dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/82 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-secondary backdrop-blur-md dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200">
             <Sparkles className="h-3 w-3 text-primary dark:text-sky-300" />
             {t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
           </div>
           <h1 className="mt-3 text-lg font-semibold tracking-tight text-text-primary dark:text-slate-50 sm:text-[20px]">
             {welcomeTitle}
           </h1>
-          <p className="mt-1.5 max-w-lg text-[12px] font-medium leading-5 text-text-secondary dark:text-slate-300 sm:text-[13px]">
-            {welcomeSub}
-          </p>
+          {welcomeSub ? (
+            <p className="mt-1.5 max-w-lg text-[12px] leading-5 text-text-secondary dark:text-slate-300 sm:text-[13px]">
+              {welcomeSub}
+            </p>
+          ) : null}
         </div>
         <div className="flex items-end justify-between gap-4">
           <div className="max-w-3xl">
-            <p className="text-sm italic leading-6 text-text-primary dark:text-slate-50 sm:text-[15px]">
+            <p className="text-sm leading-6 text-text-primary dark:text-slate-50 sm:text-[15px]">
               &quot;{quote}&quot;
-            </p>
-            <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-text-secondary/85 dark:text-slate-300/85">
-              {copy('展示增强模块', 'Display enhancement only')}
             </p>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setManualOffset((value) => value + 1)}
-            className="shrink-0 rounded-2xl border border-white/70 bg-white/78 px-3 text-[11px] font-semibold text-text-secondary backdrop-blur-sm hover:bg-white hover:text-text-primary dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white"
+            className="shrink-0 rounded-xl border border-white/70 bg-white/82 px-3 text-[11px] font-semibold text-text-secondary backdrop-blur-sm hover:bg-white hover:text-text-primary dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white"
           >
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             {copy('换一张', 'Refresh')}

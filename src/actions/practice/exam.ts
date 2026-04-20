@@ -10,6 +10,7 @@ import { QuestionType } from '@prisma/client'
 import type { PracticeMode, Prisma } from '@prisma/client'
 import { applyPracticeSubmissionEffects } from './submission-effects'
 import { recalibrateQuestionDifficulties } from './submission-core'
+import { isRelaxedPracticeAnswerCorrect } from '@/lib/practice/answer-evaluation'
 import {
   practiceQuestionWithGroupInclude,
   type PracticeQuestionRecord,
@@ -75,6 +76,7 @@ const PRACTICE_SUPPORTED_TYPES: QuestionType[] = [
   QuestionType.SINGLE_CHOICE,
   QuestionType.MULTIPLE_CHOICE,
   QuestionType.FILL_BLANK,
+  QuestionType.ESSAY,
   QuestionType.TRUE_FALSE,
   QuestionType.MCQ,
 ]
@@ -493,23 +495,5 @@ function checkAnswer(
   correctAnswer: string | string[],
   questionType: string
 ): boolean {
-  if (questionType === 'SINGLE_CHOICE' || questionType === 'FILL_BLANK') {
-    const uStr = (Array.isArray(userAnswer) ? userAnswer[0] : userAnswer) || ''
-    const cStr = (Array.isArray(correctAnswer) ? correctAnswer[0] : correctAnswer) || ''
-    return uStr.trim().toLowerCase() === cStr.trim().toLowerCase()
-  }
-
-  if (questionType === 'MULTIPLE_CHOICE') {
-    const uArr = Array.isArray(userAnswer) ? userAnswer : [userAnswer]
-    const cArr = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer]
-
-    if (uArr.length !== cArr.length) return false
-
-    const sortedU = [...uArr].sort()
-    const sortedC = [...cArr].sort()
-
-    return sortedU.every((val, idx) => val === sortedC[idx])
-  }
-
-  return false
+  return isRelaxedPracticeAnswerCorrect(questionType, userAnswer, correctAnswer)
 }

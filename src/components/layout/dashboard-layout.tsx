@@ -46,22 +46,6 @@ interface SidebarItemProps {
   disabled?: boolean
 }
 
-function getSidebarIconHoverClass(Icon: React.ElementType) {
-  if (Icon === LayoutDashboard) return 'group-hover:text-primary dark:group-hover:text-primary'
-  if (Icon === BookOpen) return 'group-hover:text-primary dark:group-hover:text-primary'
-  if (Icon === PenTool) return 'group-hover:text-emerald-600 dark:group-hover:text-emerald-300'
-  if (Icon === MessageCircle) return 'group-hover:text-violet-600 dark:group-hover:text-violet-300'
-  if (Icon === Settings) return 'group-hover:text-amber-600 dark:group-hover:text-amber-300'
-  if (Icon === LogOut) return 'group-hover:text-rose-600 dark:group-hover:text-rose-300'
-  if (Icon === Users) return 'group-hover:text-teal-600 dark:group-hover:text-teal-300'
-  if (Icon === ShieldCheck) return 'group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-300'
-  if (Icon === Upload) return 'group-hover:text-primary dark:group-hover:text-primary'
-  if (Icon === CheckSquare) return 'group-hover:text-emerald-600 dark:group-hover:text-emerald-300'
-  if (Icon === AlertCircle) return 'group-hover:text-red-600 dark:group-hover:text-red-300'
-  if (Icon === Rocket) return 'group-hover:text-indigo-600 dark:group-hover:text-indigo-300'
-  return 'group-hover:text-primary dark:group-hover:text-primary'
-}
-
 const SidebarItem = ({
   icon: Icon,
   label,
@@ -76,30 +60,21 @@ const SidebarItem = ({
     onClick={onClick}
     disabled={disabled}
     aria-busy={pending || undefined}
-    className={`flex w-full items-center ${indent ? 'pl-8 pr-4' : 'px-4'} group relative overflow-hidden rounded-2xl py-3 text-sm font-medium transition-all duration-200 ${
+    className={`flex w-full items-center ${indent ? 'pl-8 pr-4' : 'px-4'} group relative overflow-hidden rounded-xl py-3 text-sm font-medium transition-colors duration-200 ${
       active
-        ? 'bg-surface-selected text-primary shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-surface-inverse dark:text-text-inverse'
-        : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-text-primary'
+        ? 'border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/16 dark:text-text-primary dark:shadow-none'
+        : 'border border-transparent text-text-secondary hover:border-borderTone/80 hover:bg-surface hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-text-primary'
     } ${disabled ? 'cursor-not-allowed' : ''}`}
   >
-    {active && (
-      <div className="absolute inset-0 border-l-4 border-primary bg-gradient-to-r from-[hsl(var(--state-info-bg))]/80 to-transparent dark:from-[hsl(var(--state-info-bg))]/20 dark:to-transparent" />
-    )}
     <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
       {pending ? (
-        <Loader2 className="h-full w-full animate-spin text-primary dark:text-text-inverse" />
+        <Loader2 className="h-full w-full animate-spin text-primary dark:text-primary" />
       ) : (
         <Icon
           className={`h-full w-full transition-all duration-200 ${
             active
-              ? 'text-primary dark:text-text-inverse'
-              : `text-text-tertiary group-hover:scale-105 dark:text-text-tertiary ${getSidebarIconHoverClass(Icon)}`
-          } ${
-            Icon === Settings
-              ? 'group-hover:rotate-12'
-              : Icon === LogOut
-                ? 'group-hover:translate-x-0.5'
-                : 'group-hover:-translate-y-0.5'
+              ? 'text-primary dark:text-primary'
+              : 'text-text-tertiary group-hover:text-primary dark:text-text-tertiary dark:group-hover:text-primary'
           }`}
         />
       )}
@@ -109,7 +84,7 @@ const SidebarItem = ({
 )
 
 const SectionLabel = ({ label }: { label: string }) => (
-  <div className="px-2 pb-1 pt-3 text-[11px] font-semibold tracking-[0.08em] text-text-tertiary dark:text-text-tertiary">
+  <div className="px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
     {label}
   </div>
 )
@@ -138,21 +113,18 @@ const SidebarSection = ({
       type="button"
       onClick={onToggle}
       disabled={disabled}
-      className={`group relative flex w-full items-center overflow-hidden rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+      className={`group relative flex w-full items-center overflow-hidden rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 ${
         isActive
-          ? 'bg-surface-selected text-primary shadow-[inset_0_0_0_1px_hsl(var(--border-default))] dark:bg-surface-inverse dark:text-text-inverse'
-          : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary dark:text-text-secondary dark:hover:bg-surface-selected dark:hover:text-text-primary'
+          ? 'border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/16 dark:text-text-primary dark:shadow-none'
+          : 'border border-transparent text-text-secondary hover:border-borderTone/80 hover:bg-surface hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-text-primary'
       } ${disabled ? 'cursor-not-allowed' : ''}`}
     >
-      {isActive && (
-        <div className="absolute inset-0 border-l-4 border-primary bg-gradient-to-r from-[hsl(var(--state-info-bg))]/80 to-transparent dark:from-[hsl(var(--state-info-bg))]/20 dark:to-transparent" />
-      )}
       <div className="relative z-10 mr-3 flex h-5 w-5 shrink-0 items-center justify-center">
         <Icon
           className={`h-full w-full transition-all duration-200 ${
             isActive
-              ? 'text-primary dark:text-text-inverse'
-              : `text-text-tertiary group-hover:-translate-y-0.5 group-hover:scale-105 dark:text-text-tertiary ${getSidebarIconHoverClass(Icon)}`
+              ? 'text-primary dark:text-primary'
+              : 'text-text-tertiary group-hover:text-primary dark:text-text-tertiary dark:group-hover:text-primary'
           }`}
         />
       </div>
@@ -352,9 +324,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div className="dashboard-shell flex h-screen min-w-0 overflow-hidden font-sans text-text-primary transition-colors duration-300 dark:text-white">
+    <div className="dashboard-shell flex h-screen min-w-0 overflow-hidden bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white">
       <div className="pointer-events-none fixed right-4 top-4 z-[70] hidden desktop:block desktop:right-6">
-        <div className="pointer-events-auto rounded-2xl border border-borderTone bg-surface p-1.5 shadow-surface-md backdrop-blur-xl dark:border-borderTone dark:bg-surface dark:shadow-none">
+        <div className="pointer-events-auto rounded-xl border border-borderTone/80 bg-surface/92 p-1.5 shadow-surface backdrop-blur-xl dark:border-borderTone dark:bg-surface/92 dark:shadow-none">
           <NotificationBell />
         </div>
       </div>
@@ -362,14 +334,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm desktop:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm desktop:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r transition-transform duration-300 ease-out desktop:relative desktop:flex desktop:translate-x-0 desktop:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out desktop:relative desktop:flex desktop:translate-x-0 desktop:shadow-none dark:border-borderTone/70 dark:bg-page-elevated/95 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
         <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
           <button
@@ -380,7 +352,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             }
             disabled={isSidebarLocked}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/95 shadow-[0_10px_24px_rgba(96,145,235,0.24)]">
               {pendingTarget === `view:${isParent ? 'parent' : 'dashboard'}` ? (
                 <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
               ) : (
@@ -391,7 +363,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <span className="text-lg font-bold tracking-tight text-text-primary dark:text-text-primary">
                 LearnMore
               </span>
-              <span className="w-fit rounded-full border border-borderTone bg-surface-selected px-2 py-0.5 text-[10px] font-semibold text-primary dark:border-borderTone dark:bg-surface-selected dark:text-primary">
+              <span className="w-fit rounded-full border border-borderTone bg-[hsl(var(--state-info-bg))] px-2.5 py-0.5 text-[10px] font-semibold text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/18 dark:text-primary">
                 {tierLabel}
               </span>
             </div>
@@ -499,10 +471,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 type="button"
                 onClick={() => handleRouteNavigation('/pricing')}
                 disabled={isSidebarLocked}
-                className="group w-full rounded-2xl border border-borderTone bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] px-4 py-3.5 text-left shadow-surface transition-all hover:border-[hsl(var(--border-strong))] disabled:cursor-not-allowed dark:border-borderTone dark:bg-[linear-gradient(135deg,hsl(var(--surface-default)),hsl(var(--surface-muted)))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] dark:hover:border-[hsl(var(--border-strong))]"
+                className="group w-full rounded-xl border border-borderTone bg-surface px-4 py-3.5 text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle disabled:cursor-not-allowed dark:border-borderTone dark:bg-surface dark:shadow-none dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-subtle"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-state-info-bg text-state-info-fg dark:bg-state-info-bg dark:text-state-info-fg">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/18 dark:text-primary">
                     {pendingTarget === 'route:/pricing' ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -529,21 +501,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Bottom Section - ABSOLUTELY POSITIONED */}
-        <div className="z-20 shrink-0 border-t border-borderTone/70 bg-page p-4 dark:border-borderTone/70 dark:bg-page">
+        <div className="z-20 shrink-0 border-t border-borderTone/70 bg-page-elevated/92 p-4 dark:border-borderTone/70 dark:bg-page-elevated/92">
           <SectionLabel label={copy('账户', 'Account', 'Akaun')} />
           {!isParent && (
             <button
               type="button"
               onClick={() => handleRouteNavigation(getDashboardRoute('leaderboard'))}
               disabled={isSidebarLocked}
-              className={`group mb-3 mt-1 w-full cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-br p-4 text-left shadow-lg transition-all ${
+              className={`group mb-3 mt-1 w-full cursor-pointer overflow-hidden rounded-xl border p-4 text-left shadow-surface transition-colors ${
                 isDashboardViewActive(
                   'leaderboard',
                   pathname,
                   normalizedCurrentView
                 )
-                  ? 'border-primary/40 from-surface to-surface-selected shadow-surface-md dark:from-surface-selected dark:to-surface-subtle dark:shadow-surface-md'
-                  : 'border-borderTone from-surface to-surface-muted shadow-surface hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:from-surface dark:to-surface-subtle dark:shadow-none dark:hover:border-[hsl(var(--border-strong))]'
+                  ? 'border-borderTone bg-[hsl(var(--state-info-bg))]/70 dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/14'
+                  : 'border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:shadow-none dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-subtle'
               } ${isSidebarLocked ? 'cursor-not-allowed' : ''}`}
               aria-busy={
                 pendingTarget === `route:${getDashboardRoute('leaderboard')}`
@@ -568,7 +540,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-subtle dark:bg-surface-subtle">
                   <div
-                    className="h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(37,99,235,0.32)]"
+                    className="h-1.5 rounded-full bg-primary"
                     style={{ width: `${Math.max(4, levelProgress)}%` }}
                   />
                 </div>
@@ -602,7 +574,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             ? 'p-2 sm:p-4'
             : isPracticeRoute
               ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
-              : 'p-4 sm:p-8'
+              : 'p-4 sm:p-6'
         } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}
       >
         <TrialBanner
