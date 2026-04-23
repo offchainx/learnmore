@@ -28,6 +28,7 @@ interface DailyMissionsProps {
   tasks?: DailyTask[]
   user?: User & { settings?: UserSettings | null }
   lazyLoadTasks?: boolean
+  className?: string
 }
 
 const TASKS_PER_PAGE = 3
@@ -51,7 +52,12 @@ function SectionHelpTooltip({ content }: { content: string }) {
   )
 }
 
-export const DailyMissions = ({ tasks = [], user, lazyLoadTasks = false }: DailyMissionsProps) => {
+export const DailyMissions = ({
+  tasks = [],
+  user,
+  lazyLoadTasks = false,
+  className,
+}: DailyMissionsProps) => {
   const { t, lang } = useApp()
   const router = useRouter()
   const { toast } = useToast()
@@ -239,7 +245,9 @@ export const DailyMissions = ({ tasks = [], user, lazyLoadTasks = false }: Daily
 
   return (
     <TooltipProvider delayDuration={120}>
-      <Card className="h-full overflow-hidden rounded-[24px] border border-borderTone bg-surface p-0 text-text-primary shadow-surface dark:border-borderTone dark:bg-surface dark:text-text-primary dark:shadow-none xl:h-[418px]">
+      <Card
+        className={`h-full overflow-hidden rounded-[24px] border border-borderTone bg-surface p-0 text-text-primary shadow-surface dark:border-borderTone dark:bg-surface dark:text-text-primary dark:shadow-none ${className || ''}`}
+      >
 
         <div className="relative z-10 flex h-full flex-col p-5">
         <div className="mb-3 flex items-start justify-between gap-4">

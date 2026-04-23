@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Plus, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,8 @@ import type {
   BatchData,
   StatsData,
 } from '@/types/content-pipeline'
+
+const IMPORT_REFRESH_INTERVAL_MS = 5000
 
 interface RawSubject {
   id: string
@@ -94,6 +96,8 @@ export function ImportClient({
   const [stats, setStats] = useState<StatsData>(initialStats)
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(false)
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date())
+  const refreshInFlightRef = useRef(false)
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setBatches(normalizedInitialBatches)
@@ -168,17 +172,25 @@ export function ImportClient({
 
     let disposed = false
 
-    const syncLiveImportData = async () => {
+    const scheduleNextRefresh = () => {
       if (disposed) return
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current)
+      }
+      refreshTimerRef.current = setTimeout(() => {
+        void syncLiveImportData()
+      }, IMPORT_REFRESH_INTERVAL_MS)
+    }
+
+    const syncLiveImportData = async () => {
+      if (disposed || refreshInFlightRef.current) return
+      refreshInFlightRef.current = true
       setIsAutoRefreshing(true)
       try {
-        const [tasksResult, statsResult] = await Promise.all([
-          getImportTasks({
-            limit: initialPageSize,
-            offset: (initialPage - 1) * initialPageSize,
-          }),
-          getImportDashboardStats(),
-        ])
+        const tasksResult = await getImportTasks({
+          limit: initialPageSize,
+          offset: (initialPage - 1) * initialPageSize,
+        })
 
         if (!disposed && tasksResult.success && tasksResult.data) {
           const nextBatches = normalizeBatches(
@@ -188,6 +200,8 @@ export function ImportClient({
           setTotalTasks(tasksResult.data.total)
         }
 
+        const statsResult = await getImportDashboardStats()
+
         if (!disposed && statsResult.success && statsResult.data) {
           setStats(statsResult.data)
         }
@@ -196,33 +210,31 @@ export function ImportClient({
           setLastSyncedAt(new Date())
         }
       } finally {
+        refreshInFlightRef.current = false
         if (!disposed) {
           setIsAutoRefreshing(false)
+          scheduleNextRefresh()
         }
       }
     }
 
     void syncLiveImportData()
 
-    const timer = setInterval(() => {
-      void syncLiveImportData()
-    }, 3000)
-
     return () => {
       disposed = true
-      if (timer) clearInterval(timer)
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current)
+        refreshTimerRef.current = null
+      }
     }
-  }, [hasActiveBatches])
+  }, [hasActiveBatches, initialPage, initialPageSize])
 
   const handleImportSuccess = () => {
     void (async () => {
-      const [tasksResult, statsResult] = await Promise.all([
-        getImportTasks({
-          limit: initialPageSize,
-          offset: (initialPage - 1) * initialPageSize,
-        }),
-        getImportDashboardStats(),
-      ])
+      const tasksResult = await getImportTasks({
+        limit: initialPageSize,
+        offset: (initialPage - 1) * initialPageSize,
+      })
 
       if (tasksResult.success && tasksResult.data) {
         setBatches(
@@ -232,6 +244,8 @@ export function ImportClient({
       } else {
         router.refresh()
       }
+
+      const statsResult = await getImportDashboardStats()
 
       if (statsResult.success && statsResult.data) {
         setStats(statsResult.data)

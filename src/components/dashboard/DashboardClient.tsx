@@ -100,6 +100,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
+      lockShellScroll={currentView === 'dashboard'}
     >
       {renderContent()}
     </DashboardLayout>

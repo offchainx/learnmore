@@ -10,7 +10,7 @@ VALUES (
   'source-files',
   true,  -- 公开访问
   52428800,  -- 50MB = 50 * 1024 * 1024
-  ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+  ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']
 )
 ON CONFLICT (id) DO NOTHING;
 

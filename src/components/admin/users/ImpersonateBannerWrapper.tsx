@@ -4,12 +4,10 @@
  * Impersonate Banner Wrapper Component
  * Story-046: 用户全生命周期管理后台 - Task B
  *
- * 全局伪装登录警告条包装组件
- * 用于在 layout 层条件渲染
+ * 仅在后台布局中挂载，避免全站都带着伪装状态检查。
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ImpersonateBanner } from './ImpersonateBanner'
 
 interface ImpersonationStatus {
@@ -18,93 +16,114 @@ interface ImpersonationStatus {
   expiresAt?: string
 }
 
-export const ImpersonateBannerWrapper: React.FC = () => {
-  const pathname = usePathname()
+function useImpersonationBannerStatus(): {
+  status: ImpersonationStatus
+  isLoading: boolean
+} {
   const [status, setStatus] = useState<ImpersonationStatus>({ isImpersonating: false })
   const [isLoading, setIsLoading] = useState(true)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isMountedRef = useRef(true)
 
-  const shouldTrackPath = pathname?.startsWith('/admin') || pathname?.startsWith('/dashboard')
-
-  const clearPolling = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
+  const clearScheduledCheck = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
     }
   }, [])
 
   useEffect(() => {
     return () => {
       isMountedRef.current = false
-      clearPolling()
+      clearScheduledCheck()
     }
-  }, [clearPolling])
+  }, [clearScheduledCheck])
 
-  const checkStatus = useCallback(async (showLoading = false): Promise<ImpersonationStatus> => {
-    if (showLoading) setIsLoading(true)
+  const checkStatus = useCallback(
+    async (showLoading = false): Promise<ImpersonationStatus> => {
+      if (showLoading) setIsLoading(true)
 
-    try {
-      const res = await fetch('/api/auth/impersonate/status', { cache: 'no-store' })
-      if (!res.ok) {
+      try {
+        const res = await fetch('/api/auth/impersonate/status', { cache: 'no-store' })
+        if (!res.ok) {
+          return { isImpersonating: false }
+        }
+
+        const data: ImpersonationStatus = await res.json()
+        if (!isMountedRef.current) return { isImpersonating: false }
+
+        setStatus(data)
+        if (!data.isImpersonating) {
+          clearScheduledCheck()
+        }
+        return data
+      } catch (error) {
+        console.error('Failed to check impersonation status:', error)
+        if (isMountedRef.current) setStatus({ isImpersonating: false })
+        clearScheduledCheck()
         return { isImpersonating: false }
+      } finally {
+        if (showLoading && isMountedRef.current) setIsLoading(false)
       }
+    },
+    [clearScheduledCheck]
+  )
 
-      const data: ImpersonationStatus = await res.json()
-      if (!isMountedRef.current) return { isImpersonating: false }
-      setStatus(data)
-      return data
-    } catch (error) {
-      console.error('Failed to check impersonation status:', error)
-      if (isMountedRef.current) setStatus({ isImpersonating: false })
-      return { isImpersonating: false }
-    } finally {
-      if (showLoading && isMountedRef.current) setIsLoading(false)
-    }
-  }, [])
+  const scheduleExpiryCheck = useCallback(
+    (expiresAt?: string) => {
+      clearScheduledCheck()
+      if (!expiresAt) return
+
+      const expiryTime = new Date(expiresAt).getTime()
+      const delay = Math.max(1000, expiryTime - Date.now() + 1000)
+
+      timeoutRef.current = setTimeout(() => {
+        void checkStatus(false)
+      }, delay)
+    },
+    [checkStatus, clearScheduledCheck]
+  )
 
   useEffect(() => {
-    if (!shouldTrackPath) {
-      clearPolling()
-      setStatus({ isImpersonating: false })
-      setIsLoading(false)
-      return
-    }
-
-    const setupPolling = (isImpersonating: boolean) => {
-      clearPolling()
-      if (isImpersonating && document.visibilityState === 'visible') {
-        intervalRef.current = setInterval(() => {
-          void checkStatus(false)
-        }, 30000)
-      }
-    }
+    let disposed = false
 
     const init = async () => {
       const current = await checkStatus(true)
-      setupPolling(current.isImpersonating)
+      if (disposed) return
+
+      if (current.isImpersonating) {
+        scheduleExpiryCheck(current.expiresAt)
+      }
     }
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState !== 'visible') {
-        clearPolling()
+        clearScheduledCheck()
         return
       }
 
       const current = await checkStatus(false)
-      setupPolling(current.isImpersonating)
+      if (current.isImpersonating) {
+        scheduleExpiryCheck(current.expiresAt)
+      }
     }
 
     void init()
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
+      disposed = true
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      clearPolling()
+      clearScheduledCheck()
     }
-  }, [checkStatus, clearPolling, shouldTrackPath])
+  }, [checkStatus, clearScheduledCheck, scheduleExpiryCheck])
 
-  // 加载中或非伪装状态时不渲染
+  return { status, isLoading }
+}
+
+export const ImpersonateBannerWrapper: React.FC = () => {
+  const { status, isLoading } = useImpersonationBannerStatus()
+
   if (isLoading || !status.isImpersonating || !status.targetEmail || !status.expiresAt) {
     return null
   }

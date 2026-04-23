@@ -9,7 +9,6 @@ import { MobileHeader } from '@/components/mobile/MobileHeader'
 import { BrowserErrorSuppressor } from '@/components/system/BrowserErrorSuppressor'
 import { UnsupportedBrowserWarning } from '@/components/compatibility/UnsupportedBrowserWarning'
 import { PolyfillsLoader } from '@/components/polyfills/PolyfillsLoader'
-import { ImpersonateBannerWrapper } from '@/components/admin/users/ImpersonateBannerWrapper'
 import { CookieConsent } from '@/components/layout/CookieConsent'
 import { FeedbackWidget } from '@/components/support/FeedbackWidget'
 import { fonts } from '@/lib/fonts'
@@ -81,7 +80,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AppProvider>
-            <ImpersonateBannerWrapper />
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />
             <MobileHeader />

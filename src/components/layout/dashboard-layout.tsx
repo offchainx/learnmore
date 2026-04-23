@@ -2,11 +2,15 @@
 
 import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   BookOpen,
   LayoutDashboard,
   PenTool,
   MessageCircle,
+  MessageSquare,
   Settings,
   LogOut,
   ChevronRight,
@@ -19,6 +23,10 @@ import {
   Rocket,
   Loader2,
   Sparkles,
+  Search,
+  Clock3,
+  Flame,
+  ArrowRight,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import { logoutAction } from '@/actions/user/auth'
@@ -26,6 +34,13 @@ import { TrialBanner } from './TrialBanner'
 import { NotificationBell } from '../notification/NotificationBell'
 import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
 import { usePendingNavigation, useRoutePrefetch } from '@/lib/hooks'
+import {
+  pagePanelClass,
+  pageInsetClass,
+  pageSoftInsetClass,
+  pageShellFrameClass,
+  pageSegmentedControlCompactClass,
+} from '@/components/shared/pageSurfaces'
 import {
   type DashboardView,
   getDashboardRoute,
@@ -84,7 +99,7 @@ const SidebarItem = ({
 )
 
 const SectionLabel = ({ label }: { label: string }) => (
-  <div className="px-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
+  <div className="pl-4 pr-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
     {label}
   </div>
 )
@@ -141,20 +156,291 @@ interface DashboardLayoutProps {
   children: React.ReactNode
   currentView: DashboardView
   onNavigate: (view: string) => void
+  user?: {
+    username?: string | null
+    email: string
+    avatar?: string | null
+  }
   userRole?: string
   userXp?: number | null
   subscriptionTier?: string | null
   subscriptionEnd?: Date | string | null
+  lockShellScroll?: boolean
 }
+
+interface DashboardHeaderBarProps {
+  copy: (zh: string, en: string, ms?: string) => string
+  displayName: string
+  avatarFallback: string
+  tierLabel: string
+  avatarUrl?: string | null
+  welcomeSubline: string
+  onOpenMessages: () => void
+  onOpenSettings: () => void
+}
+
+const DashboardHeaderBar = ({
+  copy,
+  displayName,
+  avatarFallback,
+  tierLabel,
+  avatarUrl,
+  welcomeSubline,
+  onOpenMessages,
+  onOpenSettings,
+}: DashboardHeaderBarProps) => (
+  <div className={`${pagePanelClass} flex min-h-0 flex-col gap-4 px-5 py-4 lg:px-6 lg:py-4`}>
+    <div className="min-w-0">
+      <div className="flex items-center gap-1.5 text-[22px] font-semibold tracking-tight text-text-primary sm:text-[24px]">
+        <span>{copy('欢迎回来，', 'Welcome back,')}</span>
+        <span className="truncate">{displayName}</span>
+        <span aria-hidden="true">👋</span>
+      </div>
+      <div className="mt-1 text-sm text-text-secondary">
+        {welcomeSubline}
+      </div>
+    </div>
+
+    <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto lg:flex-nowrap lg:justify-end">
+      <div className="relative hidden min-w-[280px] xl:block xl:w-[320px] 2xl:w-[360px]">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+        <Input
+          readOnly
+          value=""
+          placeholder={copy('搜索课程、任务、成员', 'Search courses, tasks, people')}
+          className="h-11 rounded-full border-borderTone bg-surface pl-11 text-sm shadow-none dark:border-borderTone dark:bg-surface-subtle"
+        />
+      </div>
+
+      <button
+        type="button"
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-borderTone bg-surface text-text-secondary shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none dark:hover:text-white"
+        onClick={onOpenMessages}
+        aria-label={copy('消息', 'Messages')}
+      >
+        <MessageSquare className="h-4.5 w-4.5" />
+      </button>
+
+      <div className="h-11 w-11">
+        <NotificationBell />
+      </div>
+
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        className="flex h-11 items-center gap-2 rounded-full border border-borderTone bg-surface px-2 pr-3 text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:shadow-none dark:hover:bg-surface-selected"
+      >
+        <Avatar className="h-8 w-8 rounded-full border border-borderTone">
+          <AvatarImage src={avatarUrl || undefined} alt={displayName} />
+          <AvatarFallback className="rounded-full bg-surface-subtle text-[11px] font-semibold text-text-secondary dark:bg-surface-subtle dark:text-text-secondary">
+            {avatarFallback}
+          </AvatarFallback>
+        </Avatar>
+        <div className="hidden min-w-0 flex-col text-left lg:flex">
+          <span className="truncate text-[12px] font-semibold text-text-primary">
+            {displayName}
+          </span>
+          <span className="truncate text-[10px] text-text-tertiary">
+            {tierLabel}
+          </span>
+        </div>
+      </button>
+    </div>
+  </div>
+)
+
+interface DashboardRightRailProps {
+  copy: (zh: string, en: string, ms?: string) => string
+  displayName: string
+  avatarFallback: string
+  tierLabel: string
+  avatarUrl?: string | null
+  userEmail: string
+  userRole?: string
+  subscriptionLabel: string | null
+  resolvedLevel: number
+  resolvedXp: number
+  resolvedNextLevelXp: number
+  levelProgress: number
+  onOpenPractice: () => void
+  onOpenCommunity: () => void
+  onOpenSettings: () => void
+}
+
+const DashboardRightRail = ({
+  copy,
+  displayName,
+  avatarFallback,
+  tierLabel,
+  avatarUrl,
+  userEmail,
+  userRole,
+  subscriptionLabel,
+  resolvedLevel,
+  resolvedXp,
+  resolvedNextLevelXp,
+  levelProgress,
+  onOpenPractice,
+  onOpenCommunity,
+  onOpenSettings,
+}: DashboardRightRailProps) => (
+  <div className="grid min-h-0 grid-rows-[auto_auto_auto] gap-4">
+    <div className={`${pagePanelClass} min-h-0 overflow-hidden p-4`}>
+      <div className="flex items-start gap-4">
+        <Avatar className="h-14 w-14 rounded-2xl border border-borderTone">
+          <AvatarImage src={avatarUrl || undefined} alt={displayName} />
+          <AvatarFallback className="rounded-2xl bg-surface-subtle text-sm font-semibold text-text-secondary dark:bg-surface-subtle dark:text-text-secondary">
+            {avatarFallback}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+            {copy('用户概览', 'User Overview')}
+          </div>
+          <div className="mt-1 truncate text-[18px] font-semibold tracking-tight text-text-primary">
+            {displayName}
+          </div>
+          <div className="mt-1 truncate text-[12px] text-text-secondary">
+            {userEmail}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className={pageInsetClass + ' px-3 py-3'}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
+            {copy('身份', 'Role')}
+          </div>
+          <div className="mt-1 text-[14px] font-semibold text-text-primary">
+            {userRole || 'STUDENT'}
+          </div>
+        </div>
+        <div className={pageInsetClass + ' px-3 py-3'}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
+            {copy('套餐', 'Plan')}
+          </div>
+          <div className="mt-1 text-[14px] font-semibold text-text-primary">
+            {tierLabel}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div className={`${pagePanelClass} min-h-0 overflow-hidden p-4`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+            {copy('学习状态', 'Study Status')}
+          </div>
+          <div className="mt-1 text-[18px] font-semibold tracking-tight text-text-primary">
+            {copy('当前进度', 'Current Progress')}
+          </div>
+        </div>
+        <div className="rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-[11px] font-semibold text-text-secondary">
+          {resolvedLevel}
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className={pageSoftInsetClass + ' px-3 py-3'}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
+            XP
+          </div>
+          <div className="mt-1 text-[18px] font-semibold tracking-tight text-text-primary">
+            {resolvedXp.toLocaleString()}
+          </div>
+        </div>
+        <div className={pageSoftInsetClass + ' px-3 py-3'}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
+            {copy('距离升级', 'To Next')}
+          </div>
+          <div className="mt-1 text-[18px] font-semibold tracking-tight text-text-primary">
+            {resolvedNextLevelXp.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <div className="mb-2 flex items-center justify-between text-[11px] text-text-secondary">
+          <span>{copy('等级进度', 'Level Progress')}</span>
+          <span>{levelProgress}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-surface-subtle">
+          <div
+            className="h-full rounded-full bg-primary"
+            style={{ width: `${Math.max(4, levelProgress)}%` }}
+          />
+        </div>
+      </div>
+    </div>
+
+    <div className={`${pagePanelClass} min-h-0 overflow-hidden p-4`}>
+      <div className="flex items-center gap-2">
+        <Flame className="h-4 w-4 text-primary" />
+        <div className="text-[15px] font-semibold text-text-primary">
+          {copy('账户提醒', 'Account Notes')}
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        <div className={pageInsetClass + ' px-3 py-3'}>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
+            {copy('订阅状态', 'Subscription')}
+          </div>
+          <div className="mt-1 text-[14px] font-semibold text-text-primary">
+            {tierLabel}
+          </div>
+          <div className="mt-1 text-[12px] text-text-secondary">
+            {subscriptionLabel
+              ? copy(`到期 ${subscriptionLabel}`, `Ends ${subscriptionLabel}`)
+              : copy('未设置到期时间', 'No end date')}
+          </div>
+        </div>
+
+        <div className={pageInsetClass + ' px-3 py-3'}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
+                {copy('快捷操作', 'Quick Actions')}
+              </div>
+              <div className="mt-1 text-[14px] font-semibold text-text-primary">
+                {copy('前往常用页面', 'Go to common pages')}
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-text-tertiary" />
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button variant="outline" size="sm" className="rounded-full" onClick={onOpenPractice}>
+              {copy('练习', 'Practice')}
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-full" onClick={onOpenCommunity}>
+              {copy('社区', 'Community')}
+            </Button>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2 w-full rounded-full"
+            onClick={onOpenSettings}
+          >
+            {copy('设置', 'Settings')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+)
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
   currentView,
   onNavigate,
+  user,
   userRole,
   userXp,
   subscriptionTier,
   subscriptionEnd,
+  lockShellScroll = false,
 }) => {
   const { t, lang } = useApp()
   const router = useRouter()
@@ -224,6 +510,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     PREMIER: 'Premier',
   }
   const tierLabel = tierLabelMap[effectiveTier] || 'Starter'
+  const displayName =
+    user?.username?.trim() ||
+    user?.email?.split('@')[0]?.trim() ||
+    'User'
+  const avatarFallback = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('')
+    .slice(0, 2) || 'U'
+  const subscriptionLabel = subscriptionEnd
+    ? new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US', {
+        month: 'short',
+        day: 'numeric',
+      }).format(new Date(subscriptionEnd))
+    : null
   const copy = (zh: string, en: string, ms?: string) => {
     if (lang === 'zh') return zh
     if (lang === 'ms') return ms ?? en
@@ -265,6 +568,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     pathname,
     normalizedCurrentView
   )
+  const showDashboardChrome = normalizedCurrentView === 'dashboard'
+  const showDashboardRail = showDashboardChrome
+  const showDashboardHeader = showDashboardChrome
 
   const menuItems = (isParent
     ? parentDashboardNavItems
@@ -324,13 +630,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div className="dashboard-shell flex h-screen min-w-0 overflow-hidden bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white">
-      <div className="pointer-events-none fixed right-4 top-4 z-[70] hidden desktop:block desktop:right-6">
-        <div className="pointer-events-auto rounded-xl border border-borderTone/80 bg-surface/92 p-1.5 shadow-surface backdrop-blur-xl dark:border-borderTone dark:bg-surface/92 dark:shadow-none">
-          <NotificationBell />
-        </div>
-      </div>
-
+    <div
+      className={`dashboard-shell grid min-w-0 grid-cols-1 bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white ${
+        lockShellScroll
+          ? 'h-[calc(100dvh-3.5rem)] overflow-hidden overscroll-none tablet:h-dvh desktop:grid-cols-[minmax(240px,15%)_minmax(0,60%)_minmax(320px,25%)] desktop:grid-rows-[auto_minmax(0,1fr)]'
+          : 'min-h-[calc(100dvh-3.5rem)] overflow-visible overscroll-auto desktop:grid-cols-[minmax(240px,15%)_minmax(0,1fr)] desktop:grid-rows-[auto]'
+      }`}
+    >
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -341,9 +647,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out desktop:relative desktop:flex desktop:translate-x-0 desktop:shadow-none dark:border-borderTone/70 dark:bg-page-elevated/95 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out desktop:static desktop:col-start-1 desktop:${showDashboardChrome ? 'row-span-2' : 'row-span-1'} desktop:flex desktop:w-auto desktop:translate-x-0 desktop:shadow-none dark:border-borderTone/70 dark:bg-page-elevated/95 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
-        <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
+        <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-7 dark:border-borderTone/70">
           <button
             type="button"
             className="flex cursor-pointer items-center gap-3"
@@ -548,100 +854,88 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </button>
           )}
           <div className="space-y-1">
-          <SidebarItem
-            icon={Settings}
-            label={t.sidebar.settings}
-            active={isSettingsActive}
-            onClick={() => handleRouteNavigation('/dashboard/settings')}
-            pending={pendingTarget === 'route:/dashboard/settings'}
-            disabled={isSidebarLocked}
-          />
-          <SidebarItem
-            icon={LogOut}
-            label={t.sidebar.logout}
-            onClick={handleLogout}
-            pending={isLogoutPending}
-            disabled={isSidebarLocked}
-          />
+            <SidebarItem
+              icon={Settings}
+              label={t.sidebar.settings}
+              active={isSettingsActive}
+              onClick={() => handleRouteNavigation('/dashboard/settings')}
+              pending={pendingTarget === 'route:/dashboard/settings'}
+              disabled={isSidebarLocked}
+            />
+            <SidebarItem
+              icon={LogOut}
+              label={t.sidebar.logout}
+              onClick={handleLogout}
+              pending={isLogoutPending}
+              disabled={isSidebarLocked}
+            />
           </div>
         </div>
       </aside>
 
+      {showDashboardHeader ? (
+        <div className="desktop:col-start-2 desktop:col-span-2 desktop:row-start-1 desktop:row-span-1">
+          <div className="px-3 pt-3 sm:px-4 sm:pt-4">
+            <DashboardHeaderBar
+              copy={copy}
+              displayName={displayName}
+              avatarFallback={avatarFallback}
+              tierLabel={tierLabel}
+              avatarUrl={user?.avatar}
+              welcomeSubline={copy(
+                '继续从这里推进今天的学习节奏。',
+                'Keep the learning momentum going from here.'
+              )}
+              onOpenMessages={() => handleRouteNavigation('/dashboard/community')}
+              onOpenSettings={() => handleRouteNavigation('/dashboard/settings')}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {/* Main Content Area */}
       <main
-        className={`min-w-0 flex-1 overflow-y-auto scroll-smooth ${
+        className={`min-w-0 flex min-h-0 flex-col ${
+          lockShellScroll ? 'h-full overflow-hidden' : 'h-auto overflow-visible'
+        } ${
           isAnyAdminRoute
             ? 'p-2 sm:p-4'
             : isPracticeRoute
               ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
-              : 'p-4 sm:p-6'
-        } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}
+              : 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-4 desktop:py-4'
+        } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''} desktop:col-start-2 ${showDashboardHeader ? 'desktop:row-start-2' : 'desktop:row-start-1'}`}
       >
         <TrialBanner
           subscriptionTier={subscriptionTier || null}
           subscriptionEnd={subscriptionEnd || null}
         />
 
-        {/* Top Header Bar */}
-        {isPracticeRoute ? (
-          <div className="mb-2 flex items-center justify-between desktop:hidden">
-            <button
-              onClick={() => setSidebarOpen(true)}
-                className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        ) : (
-          <div
-            className={
-              isAnyAdminRoute
-                ? 'mb-2 flex desktop:mb-3'
-                : 'mb-2 flex items-center'
-            }
-          >
-            <div className="flex items-center gap-4">
-              {/* Mobile Menu Trigger */}
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="rounded-xl border border-borderTone bg-surface p-2.5 text-text-secondary shadow-surface transition-all hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none desktop:hidden"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="4" x2="20" y1="12" y2="12" />
-                  <line x1="4" x2="20" y1="6" y2="6" />
-                  <line x1="4" x2="20" y1="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {children}
+        <div className="mt-4 min-h-0 flex-1">
+          {children}
+        </div>
       </main>
+
+      {showDashboardRail ? (
+        <aside className="hidden min-h-0 p-3 pt-4 desktop:col-start-3 desktop:row-start-2 desktop:block desktop:p-4">
+          <DashboardRightRail
+            copy={copy}
+            displayName={displayName}
+            avatarFallback={avatarFallback}
+            tierLabel={tierLabel}
+            avatarUrl={user?.avatar}
+            userEmail={user?.email || copy('未设置邮箱', 'No email')}
+            userRole={userRole}
+            subscriptionLabel={subscriptionLabel}
+            resolvedLevel={resolvedLevel}
+            resolvedXp={resolvedXp}
+            resolvedNextLevelXp={resolvedNextLevelXp}
+            levelProgress={levelProgress}
+            onOpenPractice={() => handleViewNavigation('practice')}
+            onOpenCommunity={() => handleViewNavigation('community')}
+            onOpenSettings={() => handleViewNavigation('settings')}
+          />
+        </aside>
+      ) : null}
     </div>
   )
 }

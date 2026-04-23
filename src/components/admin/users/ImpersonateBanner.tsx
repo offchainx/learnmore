@@ -7,7 +7,7 @@
  * 伪装登录状态警告条：显示在页面顶部，包含退出按钮和倒计时
  */
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { AlertCircle, LogOut, Clock } from 'lucide-react'
 
 interface ImpersonateBannerProps {
@@ -112,69 +112,89 @@ export function useImpersonationState(): {
     targetEmail: null as string | null,
     expiresAt: null as string | null,
   })
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isMountedRef = useRef(true)
+
+  const clearScheduledCheck = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false
+      clearScheduledCheck()
+    }
+  }, [clearScheduledCheck])
 
   useEffect(() => {
     async function checkImpersonation() {
       try {
         const res = await fetch('/api/auth/impersonate/status', { cache: 'no-store' })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.isImpersonating) {
-            setState({
-              isImpersonating: true,
-              targetEmail: data.targetEmail,
-              expiresAt: data.expiresAt,
-            })
-          } else {
-            // 伪装状态已结束（如服务端撤销），清除本地状态
+        if (!res.ok) {
+          if (isMountedRef.current) {
             setState({ isImpersonating: false, targetEmail: null, expiresAt: null })
           }
+          clearScheduledCheck()
+          return { isImpersonating: false, targetEmail: null, expiresAt: null }
+        }
+
+        const data = await res.json()
+        if (!isMountedRef.current) {
+          return { isImpersonating: false, targetEmail: null, expiresAt: null }
+        }
+
+        if (data.isImpersonating) {
+          setState({
+            isImpersonating: true,
+            targetEmail: data.targetEmail ?? null,
+            expiresAt: data.expiresAt ?? null,
+          })
+          clearScheduledCheck()
+          if (data.expiresAt) {
+            const expiryTime = new Date(data.expiresAt).getTime()
+            const delay = Math.max(1000, expiryTime - Date.now() + 1000)
+            timeoutRef.current = setTimeout(() => {
+              void checkImpersonation()
+            }, delay)
+          }
+        } else {
+          // 伪装状态已结束（如服务端撤销），清除本地状态
+          setState({ isImpersonating: false, targetEmail: null, expiresAt: null })
+          clearScheduledCheck()
+        }
+
+        return {
+          isImpersonating: Boolean(data.isImpersonating),
+          targetEmail: data.targetEmail ?? null,
+          expiresAt: data.expiresAt ?? null,
         }
       } catch {
-        // 网络错误时忽略，等下一次轮询
+        // 网络错误时忽略，等下次可见性变化或到期复查
+        return { isImpersonating: false, targetEmail: null, expiresAt: null }
       }
-    }
-
-    const stopPolling = () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-
-    const startPolling = () => {
-      stopPolling()
-      if (document.visibilityState !== 'visible') return
-
-      intervalRef.current = setInterval(() => {
-        void checkImpersonation()
-      }, 30 * 1000)
     }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void checkImpersonation()
-        if (state.isImpersonating) {
-          startPolling()
-        }
-      } else {
-        stopPolling()
+      if (document.visibilityState !== 'visible') {
+        clearScheduledCheck()
+        return
       }
+
+      void checkImpersonation()
     }
 
-    // 立即检查一次
+    // 立即检查一次，然后只在可见性变化或到期时复查
     void checkImpersonation()
-    if (state.isImpersonating) {
-      startPolling()
-    }
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      stopPolling()
+      clearScheduledCheck()
     }
-  }, [state.isImpersonating])
+  }, [clearScheduledCheck])
 
   return state
 }

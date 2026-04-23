@@ -108,6 +108,8 @@ declare global {
   var __importQueueRunner: Promise<void> | undefined
 }
 
+const IMPORT_QUEUE_CONCURRENCY = 2
+
 function toQueuedWebImportPayload(input: ImportFromWebUrlInput): QueuedWebImportPayload {
   return stripUndefinedDeep({
     pageUrl: input.pageUrl.trim(),
@@ -391,7 +393,7 @@ async function recoverStaleQueuedImportTasks(): Promise<void> {
   }
 }
 
-async function consumePendingImportQueue(): Promise<void> {
+async function consumePendingImportQueueWorker(): Promise<void> {
   while (true) {
     await recoverStaleQueuedImportTasks()
 
@@ -528,6 +530,14 @@ async function consumePendingImportQueue(): Promise<void> {
       )
     }
   }
+}
+
+async function consumePendingImportQueue(): Promise<void> {
+  await Promise.all(
+    Array.from({ length: IMPORT_QUEUE_CONCURRENCY }, () =>
+      consumePendingImportQueueWorker()
+    )
+  )
 }
 
 export function triggerPendingWebImportQueue(): void {
@@ -934,9 +944,8 @@ async function persistQuestionImagesToSupabase(params: {
 
   const supabase = params.supabase ?? (await createImportSupabaseClient())
 
-  // bucket 优先使用更语义化的 bucket；若未创建则回退到现有 source-files bucket，保证功能可用。
-  const primaryBucket = 'question-assets'
-  const fallbackBucket = 'source-files'
+  // 统一使用现有的 source-files bucket，避免多桶配置带来的上传分叉和额外失败面。
+  const uploadBucket = 'source-files'
 
   const urlCache = params.urlCache ?? new Map<string, Promise<string | null>>() // 同一批次内去重
 
@@ -993,18 +1002,14 @@ async function persistQuestionImagesToSupabase(params: {
       }
 
       try {
-        return await tryUpload(primaryBucket)
-      } catch (primaryError) {
-        try {
-          return await tryUpload(fallbackBucket)
-        } catch (fallbackError) {
-          console.warn(
-            `[StemImage] 上传失败 url=${originalUrl} primary=${String(
-              (primaryError as Error)?.message ?? primaryError
-            )} fallback=${String((fallbackError as Error)?.message ?? fallbackError)}`
-          )
-          return null
-        }
+        return await tryUpload(uploadBucket)
+      } catch (error) {
+        console.warn(
+          `[StemImage] 上传失败 url=${originalUrl} bucket=${uploadBucket} error=${String(
+            (error as Error)?.message ?? error
+          )}`
+        )
+        return null
       }
     })()
 
@@ -2445,40 +2450,38 @@ export async function getImportTasks(options?: {
     const stuckCutoff = new Date(now.getTime() - 3 * 60 * 1000)
     const where = options?.status ? { status: options.status } : {}
 
-    const [tasks, total] = await prisma.$transaction([
-      prisma.sourceFile.findMany({
-        where,
-        include: {
-          subject: {
-            select: {
-              id: true,
-              name: true,
-            },
+    const tasks = await prisma.sourceFile.findMany({
+      where,
+      include: {
+        subject: {
+          select: {
+            id: true,
+            name: true,
           },
-          _count: {
-            select: { questions: true },
-          },
-          questions: {
-            take: 1,
-            orderBy: { createdAt: 'asc' },
-            select: {
-              source: true,
-              curriculum: true,
-              subject: {
-                select: {
-                  id: true,
-                  name: true,
-                },
+        },
+        _count: {
+          select: { questions: true },
+        },
+        questions: {
+          take: 1,
+          orderBy: { createdAt: 'asc' },
+          select: {
+            source: true,
+            curriculum: true,
+            subject: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
-        take: options?.limit ?? 20,
-        skip: options?.offset ?? 0,
-      }),
-      prisma.sourceFile.count({ where }),
-    ])
+      },
+      orderBy: { createdAt: 'desc' },
+      take: options?.limit ?? 20,
+      skip: options?.offset ?? 0,
+    })
+    const total = await prisma.sourceFile.count({ where })
 
     // 自愈：极少数情况下（例如请求中断/进程重启），网页导入可能已完成入库但 source_files 仍停留在 PROCESSING。
     // 只对满足以下条件的批次做“安全补全”：
@@ -2605,43 +2608,41 @@ export async function getImportTasks(options?: {
     try {
       const where = options?.status ? { status: options.status } : {}
 
-      const [tasks, total] = await prisma.$transaction([
-        prisma.sourceFile.findMany({
-          where,
-          select: {
-            id: true,
-            filename: true,
-            sourceNote: true,
-            fileUrl: true,
-            status: true,
-            ocrStatus: true,
-            createdAt: true,
-            processedAt: true,
-            importDiagnostics: true,
-            _count: {
-              select: { questions: true },
-            },
-            questions: {
-              take: 1,
-              orderBy: { createdAt: 'asc' },
-              select: {
-                source: true,
-                curriculum: true,
-                subject: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+      const tasks = await prisma.sourceFile.findMany({
+        where,
+        select: {
+          id: true,
+          filename: true,
+          sourceNote: true,
+          fileUrl: true,
+          status: true,
+          ocrStatus: true,
+          createdAt: true,
+          processedAt: true,
+          importDiagnostics: true,
+          _count: {
+            select: { questions: true },
+          },
+          questions: {
+            take: 1,
+            orderBy: { createdAt: 'asc' },
+            select: {
+              source: true,
+              curriculum: true,
+              subject: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
-          take: options?.limit ?? 20,
-          skip: options?.offset ?? 0,
-        }),
-        prisma.sourceFile.count({ where }),
-      ])
+        },
+        orderBy: { createdAt: 'desc' },
+        take: options?.limit ?? 20,
+        skip: options?.offset ?? 0,
+      })
+      const total = await prisma.sourceFile.count({ where })
 
       const sourceIds = tasks.map((task) => task.id)
       const questionRows =
@@ -2736,32 +2737,29 @@ export async function getImportDashboardStats(): Promise<ServiceResult<StatsData
     const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-    const [activeBatches, tasksToday, completedTasks, failedTasks, pendingReviewQuestions, importedQuestions7d] =
-      await prisma.$transaction([
-        prisma.sourceFile.count({
-          where: {
-            status: { in: [ProcessingStatus.PENDING, ProcessingStatus.PROCESSING] },
-          },
-        }),
-        prisma.sourceFile.count({
-          where: { createdAt: { gte: dayStart } },
-        }),
-        prisma.sourceFile.count({
-          where: { status: ProcessingStatus.COMPLETED },
-        }),
-        prisma.sourceFile.count({
-          where: { status: ProcessingStatus.FAILED },
-        }),
-        prisma.question.count({
-          where: { status: ContentStatus.DRAFT },
-        }),
-        prisma.question.count({
-          where: {
-            sourceFileId: { not: null },
-            createdAt: { gte: sevenDaysAgo },
-          },
-        }),
-      ])
+    const activeBatches = await prisma.sourceFile.count({
+      where: {
+        status: { in: [ProcessingStatus.PENDING, ProcessingStatus.PROCESSING] },
+      },
+    })
+    const tasksToday = await prisma.sourceFile.count({
+      where: { createdAt: { gte: dayStart } },
+    })
+    const completedTasks = await prisma.sourceFile.count({
+      where: { status: ProcessingStatus.COMPLETED },
+    })
+    const failedTasks = await prisma.sourceFile.count({
+      where: { status: ProcessingStatus.FAILED },
+    })
+    const pendingReviewQuestions = await prisma.question.count({
+      where: { status: ContentStatus.DRAFT },
+    })
+    const importedQuestions7d = await prisma.question.count({
+      where: {
+        sourceFileId: { not: null },
+        createdAt: { gte: sevenDaysAgo },
+      },
+    })
 
     const storageRows = await prisma.$queryRawUnsafe<Array<{ bytes: string | number | null }>>(
       `select coalesce(sum(((metadata->>'size')::bigint)),0) as bytes from storage.objects where bucket_id = 'source-files'`

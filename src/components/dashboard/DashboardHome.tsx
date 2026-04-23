@@ -668,373 +668,91 @@ export const DashboardHome = ({
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="min-w-0 px-3 py-2 sm:px-4 sm:py-3">
+      <div className="flex h-full min-w-0 min-h-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
         <div
-          className={`mx-auto flex w-full min-w-0 max-w-[1820px] flex-col ${pageShellFrameClass} ${pageSectionGapClass} rounded-[26px] pb-4 sm:p-2.5 2xl:h-[calc(100vh-1rem)] 2xl:overflow-hidden`}
+          className={`mx-auto grid h-full min-h-0 w-full max-w-[1820px] grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 overflow-hidden ${pageShellFrameClass} p-0 sm:p-2.5`}
         >
-        {homeDataError ? (
-          <Card className="rounded-[24px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
-            <div className="text-sm font-semibold">
-              Dashboard data is loading slowly.
-            </div>
-            <div className="mt-1 text-sm opacity-80">{homeDataError}</div>
-          </Card>
-        ) : null}
-        <section
-          className={`grid 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(0,1.78fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
-        >
-          <div
-            className={`min-w-0 2xl:min-h-0 2xl:overflow-hidden ${pageSectionGapClass}`}
+          {homeDataError ? (
+            <Card className="rounded-[20px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
+              <div className="text-sm font-semibold">
+                Dashboard data is loading slowly.
+              </div>
+              <div className="mt-1 text-sm opacity-80">{homeDataError}</div>
+            </Card>
+          ) : null}
+
+          <PageHeroShell
+            className={`${pageHeroShellClass} min-h-[240px] border border-borderTone bg-surface bg-none shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none`}
+            title={
+              <PageHeroTitle title={copy('首页', 'Home')} capsuleLabel="Home" />
+            }
+            titleClassName="font-semibold"
+            actions={
+              <div className={`shrink-0 ${pageSegmentedControlCompactClass}`}>
+                {(['7D', '30D'] as DashboardOverviewWindow[]).map((windowKey) => (
+                  <button
+                    key={windowKey}
+                    type="button"
+                    onClick={() => setOverviewWindow(windowKey)}
+                    className={`${pageSegmentedButtonCompactClass} text-[11px] font-semibold ${
+                      overviewWindow === windowKey
+                        ? pagePillActiveClass
+                        : pagePillInactiveClass
+                    }`}
+                  >
+                    {windowKey === '7D' ? copy('7天', '7D') : copy('30天', '30D')}
+                  </button>
+                ))}
+              </div>
+            }
           >
-            <PageHeroShell
-              className={`${pageHeroShellClass} rounded-[24px] border border-borderTone bg-surface bg-none shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none`}
-              title={
-                <PageHeroTitle
-                  title={copy('首页', 'Home')}
-                  capsuleLabel="Home"
+            <section className={`grid gap-3 sm:grid-cols-2 ${pageGridGapClass}`}>
+              {summaryStatsCards.map((card) => (
+                <OverviewCard
+                  key={card.label}
+                  label={card.label}
+                  value={card.value}
+                  subLabel={card.subLabel}
                 />
-              }
-              titleClassName="font-semibold"
-              actions={
-                <div className={`shrink-0 ${pageSegmentedControlCompactClass}`}>
-                  {(['7D', '30D'] as DashboardOverviewWindow[]).map(
-                    (windowKey) => (
-                      <button
-                        key={windowKey}
-                        type="button"
-                        onClick={() => setOverviewWindow(windowKey)}
-                        className={`${pageSegmentedButtonCompactClass} text-[11px] font-semibold ${
-                          overviewWindow === windowKey
-                            ? pagePillActiveClass
-                            : pagePillInactiveClass
-                        }`}
-                      >
-                        {windowKey === '7D'
-                          ? copy('7天', '7D')
-                          : copy('30天', '30D')}
-                      </button>
-                    )
-                  )}
-                </div>
-              }
-            >
-              <section
-                className={`grid gap-3 sm:grid-cols-2 2xl:grid-cols-4 ${pageGridGapClass}`}
-              >
-                {summaryStatsCards.map((card) => (
+              ))}
+              {isLoadingOverviewData && !overviewData ? (
+                <>
+                  <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
+                    <Skeleton className="h-4 w-24 rounded-full" />
+                    <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
+                    <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                  </div>
+                  <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
+                    <Skeleton className="h-4 w-24 rounded-full" />
+                    <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
+                    <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                  </div>
+                </>
+              ) : (
+                overviewCards.map((card) => (
                   <OverviewCard
                     key={card.label}
                     label={card.label}
                     value={card.value}
                     subLabel={card.subLabel}
                   />
-                ))}
-                {isLoadingOverviewData && !overviewData ? (
-                  <>
-                    <div className={`${pageSoftInsetClass} rounded-[20px] px-4 py-3 shadow-none`}>
-                      <Skeleton className="h-4 w-24 rounded-full" />
-                      <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
-                      <Skeleton className="mt-3 h-3 w-28 rounded-full" />
-                    </div>
-                    <div className={`${pageSoftInsetClass} rounded-[20px] px-4 py-3 shadow-none`}>
-                      <Skeleton className="h-4 w-24 rounded-full" />
-                      <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
-                      <Skeleton className="mt-3 h-3 w-28 rounded-full" />
-                    </div>
-                  </>
-                ) : (
-                  overviewCards.map((card) => (
-                    <OverviewCard
-                      key={card.label}
-                      label={card.label}
-                      value={card.value}
-                      subLabel={card.subLabel}
-                    />
-                  ))
-                )}
-              </section>
-            </PageHeroShell>
-
-            <DailyMissions tasks={dailyTasks} user={user} lazyLoadTasks />
-
-            <section
-              className={`grid desktop:grid-cols-2 2xl:min-h-0 ${pageGridGapClass}`}
-            >
-              <Card
-                className={`${pagePanelClass} min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}
-              >
-                <DashboardSectionHeader
-                  icon={BookOpenCheck}
-                  title={t.dashboard?.learningPath || copy('学习路径', 'Learning Path')}
-                  tooltip={copy(
-                    '系统会根据最近的答题表现与掌握度，推荐下一步最值得做的章节练习，并可直接进入对应训练。',
-                    'Recommendations are based on recent performance and mastery, and can deep-link straight into chapter drills.'
-                  )}
-                  meta={
-                    <PageDots
-                      totalPages={totalActivityPages}
-                      page={activityPage}
-                      countLabel={copy(
-                        `${learningPathItems.length} 条`,
-                        `${learningPathItems.length} items`
-                      )}
-                    />
-                  }
-                  action={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl"
-                      onClick={() => navigate('/dashboard/practice')}
-                    >
-                      {copy('去练习', 'Practice')}
-                    </Button>
-                  }
-                />
-
-                {isLoadingSubjectData && !subjectData ? (
-                  <div className={pageListGapClass}>
-                    {Array.from({ length: ACTIVITY_PER_PAGE }).map((_, index) => (
-                      <Card
-                        key={`learning-skeleton-${index}`}
-                        className={`${pagePanelClass} min-h-0 rounded-[20px] shadow-none ${pageCardPaddingClass}`}
-                      >
-                        <Skeleton className="h-6 w-40 rounded-full" />
-                        <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
-                        <Skeleton className="mt-5 h-24 rounded-[20px]" />
-                      </Card>
-                    ))}
-                  </div>
-                ) : learningPath.status === 'ready' ? (
-                  <div
-                    className={pageListGapClass}
-                    onWheel={handleActivityWheel}
-                  >
-                    {visibleActivity.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => navigate(item.href)}
-                        className={`${pageInteractiveRowClass} ${pageListItemTallClass} rounded-[20px] justify-between shadow-none`}
-                      >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-state-info-bg/70 text-primary dark:border-borderTone dark:bg-state-info-bg/18 dark:text-primary">
-                          <Play className="h-4 w-4 fill-current" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className={`truncate ${pageKickerClass}`}>
-                            {item.subject}
-                          </div>
-                          <div
-                            className={`mt-1 truncate ${pageCardTitleClass}`}
-                          >
-                            {item.title}
-                          </div>
-                          <div className={`mt-1 truncate ${pageMetaTextClass}`}>
-                            {item.reason}
-                          </div>
-                          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-borderTone-subtle dark:bg-surface-subtle">
-                            <div
-                              className="h-full rounded-full bg-primary"
-                              style={{
-                                width: `${Math.max(6, item.progress)}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={pageNumericValueCompactClass}>
-                            {item.progress}%
-                          </div>
-                          <div className={`mt-1 ${pageMetaTextClass}`}>
-                            {learningPathTypeLabel(
-                              item.recommendationType,
-                              copy
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                    {visibleActivity.length < ACTIVITY_PER_PAGE &&
-                      Array.from({
-                        length: ACTIVITY_PER_PAGE - visibleActivity.length,
-                      }).map((_, index) => (
-                        <div
-                          key={`activity-empty-${index}`}
-                          className={`flex ${pageListItemTallClass} items-center justify-center rounded-[20px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
-                        >
-                          <span className={pageKickerMutedClass}>
-                            {copy('已到列表底部', 'End of list')}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <PageEmptyState
-                    title={copy(
-                      '还没有最近学习记录',
-                      'No recent learning path'
-                    )}
-                    description={
-                      learningPath.note ||
-                      copy(
-                        '完成首次练习后，这里会出现章节推荐和下一步建议。',
-                        'Complete your first practice run and chapter recommendations will show up here.'
-                      )
-                    }
-                    actions={
-                      <Button
-                        onClick={() => navigate('/dashboard/practice')}
-                        className="rounded-xl px-4 py-2 text-sm font-bold"
-                      >
-                        {copy('开始练习', 'Start Practicing')}
-                      </Button>
-                    }
-                  />
-                )}
-              </Card>
-
-              <Card
-                className={`${pagePanelClass} min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}
-              >
-                <DashboardSectionHeader
-                  icon={Activity}
-                  title={t.dashboard?.subjectProgress || copy('学科进度', 'Subject Progress')}
-                  tooltip={copy(
-                    '系统会按学科汇总章节练习表现，用来判断当前稳定度和优先补强方向。',
-                    'This panel summarizes chapter practice by subject to show stability and where to focus next.'
-                  )}
-                  meta={
-                    <PageDots
-                      totalPages={totalSubjectPages}
-                      page={subjectPage}
-                      countLabel={copy(
-                        `${subjectProgressItems.length} 科`,
-                        `${subjectProgressItems.length} items`
-                      )}
-                    />
-                  }
-                  action={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl"
-                      onClick={() => navigate('/dashboard/practice')}
-                    >
-                      {copy('去练习', 'Practice')}
-                    </Button>
-                  }
-                />
-
-                {isLoadingSubjectData && !subjectData ? (
-                  <div className={pageListGapClass}>
-                    {Array.from({ length: SUBJECTS_PER_PAGE }).map((_, index) => (
-                      <Card
-                        key={`subject-skeleton-${index}`}
-                        className="rounded-[20px] border border-borderTone bg-surface px-4 py-4 shadow-surface dark:border-borderTone dark:bg-surface-subtle"
-                      >
-                        <Skeleton className="h-5 w-36 rounded-full" />
-                        <Skeleton className="mt-2 h-4 w-48 rounded-full" />
-                        <Skeleton className="mt-4 h-2.5 rounded-full" />
-                      </Card>
-                    ))}
-                  </div>
-                ) : subjectProgress.status === 'ready' ? (
-                  <div
-                    className={pageListGapClass}
-                    onWheel={handleSubjectWheel}
-                  >
-                    {visibleSubjects.map((sub) => (
-                      <div
-                        key={sub.subjectId}
-                        className="rounded-[20px] border border-borderTone bg-surface px-4 py-4 shadow-none dark:border-borderTone dark:bg-surface-subtle"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className={`truncate ${pageCardTitleClass}`}>
-                              {sub.subjectName}
-                            </div>
-                            <div className={`mt-1 ${pageMetaTextClass}`}>
-                              {copy(
-                                `${sub.chapterCount} 个章节 · ${sub.totalAttempts} 次作答`,
-                                `${sub.chapterCount} chapters · ${sub.totalAttempts} attempts`
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div
-                              className={`${pageNumericValueCompactClass} ${sub.overallMastery >= 80 ? 'text-state-success-fg dark:text-state-success-fg' : 'text-primary dark:text-primary'}`}
-                            >
-                              {sub.overallMastery}%
-                            </div>
-                            <div className={pageMetaTextClass}>
-                              {sub.overallMastery >= 80
-                                ? copy('稳定', 'Stable')
-                                : copy('待提升', 'Needs work')}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-borderTone-subtle dark:bg-surface-subtle">
-                          <div
-                            className={`h-full rounded-full ${sub.overallMastery >= 80 ? 'bg-state-success-fg' : 'bg-primary'}`}
-                            style={{
-                              width: `${Math.max(4, sub.overallMastery)}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {visibleSubjects.length < SUBJECTS_PER_PAGE &&
-                      Array.from({
-                        length: SUBJECTS_PER_PAGE - visibleSubjects.length,
-                      }).map((_, index) => (
-                        <div
-                          key={`subject-empty-${index}`}
-                          className={`flex ${pageListItemTallClass} items-center justify-center rounded-[20px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
-                        >
-                          <span className={pageKickerMutedClass}>
-                            {copy('已到列表底部', 'End of list')}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <PageEmptyState
-                    title={copy(
-                      '还没有学科进度数据',
-                      'No subject progress yet'
-                    )}
-                    description={copy(
-                      '先开始一次练习，系统才会逐步建立你的学科稳定度和进度分布。',
-                      'Start practicing to build your subject progress and performance profile.'
-                    )}
-                    actions={
-                      <Button
-                        onClick={() => navigate('/dashboard/practice')}
-                        className="rounded-xl px-4 py-2 text-sm font-bold"
-                      >
-                        {copy('开始练习', 'Start Practicing')}
-                      </Button>
-                    }
-                  />
-                )}
-              </Card>
+                ))
+              )}
             </section>
-          </div>
+          </PageHeroShell>
 
-          <div
-            className={`min-w-0 2xl:min-h-0 2xl:overflow-hidden ${pageSectionGapClass}`}
-          >
-            <Card
-              className={`${pagePanelClass} overflow-hidden rounded-[24px] bg-surface shadow-surface ${pageCardPaddingClass} dark:bg-surface dark:text-text-primary dark:shadow-none`}
-            >
-                <DashboardSectionHeader
-                  icon={Trophy}
-                  title={t.dashboard?.rank || copy('年级排名', 'Rank')}
-                  tooltip={copy(
-                    '看看你在同年级中的大致位置。',
-                    'See roughly where you stand among students in your grade.'
-                  )}
-                />
+          <section className="grid min-h-0 gap-4 sm:grid-cols-2">
+            <DailyMissions tasks={dailyTasks} user={user} lazyLoadTasks className="h-full min-h-0" />
+
+            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+              <DashboardSectionHeader
+                icon={Trophy}
+                title={t.dashboard?.rank || copy('年级排名', 'Rank')}
+                tooltip={copy(
+                  '看看你在同年级中的大致位置。',
+                  'See roughly where you stand among students in your grade.'
+                )}
+              />
 
               {isLoadingActivityData && !activityData ? (
                 <>
@@ -1053,9 +771,7 @@ export const DashboardHome = ({
                 leaderboard.peerAverageAccuracy !== null ? (
                 <>
                   <div className="mt-4 text-center">
-                    <div
-                      className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}
-                    >
+                    <div className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}>
                       {`Top ${leaderboard.percentile}%`}
                     </div>
                     <div className="mt-2 text-sm leading-6 text-text-secondary dark:text-text-secondary">
@@ -1068,9 +784,7 @@ export const DashboardHome = ({
 
                   <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
                     <div className={`${pageInsetClass} px-4 py-3`}>
-                      <div className={pageKickerClass}>
-                        {copy('平均正确率', 'Average')}
-                      </div>
+                      <div className={pageKickerClass}>{copy('平均正确率', 'Average')}</div>
                       <div className={pageNumericValueCompactClass}>
                         {leaderboard.peerAverageAccuracy !== null
                           ? `${leaderboard.peerAverageAccuracy}%`
@@ -1131,17 +845,243 @@ export const DashboardHome = ({
                 />
               )}
             </Card>
+          </section>
 
-            <Card
-              className={`${pagePanelClass} min-h-0 flex-1 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}
-            >
-                <DashboardSectionHeader
-                  icon={Layers3}
-                  title={copy('最近练习回顾', 'Recent Practice')}
-                  tooltip={copy(
-                    '这里会记录你最近几次训练的结果、难度与耗时，方便直接回到同类练习继续推进。',
-                    'This section keeps your recent sessions, difficulty, and duration visible so you can continue from the same study flow.'
+          <section className="grid min-h-0 gap-4 sm:grid-cols-2">
+            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+              <DashboardSectionHeader
+                icon={BookOpenCheck}
+                title={t.dashboard?.learningPath || copy('学习路径', 'Learning Path')}
+                tooltip={copy(
+                  '系统会根据最近的答题表现与掌握度，推荐下一步最值得做的章节练习，并可直接进入对应训练。',
+                  'Recommendations are based on recent performance and mastery, and can deep-link straight into chapter drills.'
+                )}
+                meta={
+                  <PageDots
+                    totalPages={totalActivityPages}
+                    page={activityPage}
+                    countLabel={copy(
+                      `${learningPathItems.length} 条`,
+                      `${learningPathItems.length} items`
+                    )}
+                  />
+                }
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => navigate('/dashboard/practice')}
+                  >
+                    {copy('去练习', 'Practice')}
+                  </Button>
+                }
+              />
+
+              {isLoadingSubjectData && !subjectData ? (
+                <div className={pageListGapClass}>
+                  {Array.from({ length: ACTIVITY_PER_PAGE }).map((_, index) => (
+                    <Card
+                      key={`learning-skeleton-${index}`}
+                      className={`${pagePanelClass} min-h-0 rounded-[20px] shadow-none ${pageCardPaddingClass}`}
+                    >
+                      <Skeleton className="h-6 w-40 rounded-full" />
+                      <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
+                      <Skeleton className="mt-5 h-24 rounded-[20px]" />
+                    </Card>
+                  ))}
+                </div>
+              ) : learningPath.status === 'ready' ? (
+                <div className={pageListGapClass} onWheel={handleActivityWheel}>
+                  {visibleActivity.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => navigate(item.href)}
+                      className={`${pageInteractiveRowClass} ${pageListItemTallClass} rounded-[20px] justify-between shadow-none`}
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-state-info-bg/70 text-primary dark:border-borderTone dark:bg-state-info-bg/18 dark:text-primary">
+                        <Play className="h-4 w-4 fill-current" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className={`truncate ${pageKickerClass}`}>{item.subject}</div>
+                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>{item.title}</div>
+                        <div className={`mt-1 truncate ${pageMetaTextClass}`}>{item.reason}</div>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-borderTone-subtle dark:bg-surface-subtle">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{ width: `${Math.max(6, item.progress)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={pageNumericValueCompactClass}>{item.progress}%</div>
+                        <div className={`mt-1 ${pageMetaTextClass}`}>
+                          {learningPathTypeLabel(item.recommendationType, copy)}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                  {visibleActivity.length < ACTIVITY_PER_PAGE &&
+                    Array.from({
+                      length: ACTIVITY_PER_PAGE - visibleActivity.length,
+                    }).map((_, index) => (
+                      <div
+                        key={`activity-empty-${index}`}
+                        className={`flex ${pageListItemTallClass} items-center justify-center rounded-[20px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
+                      >
+                        <span className={pageKickerMutedClass}>
+                          {copy('已到列表底部', 'End of list')}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <PageEmptyState
+                  title={copy('还没有最近学习记录', 'No recent learning path')}
+                  description={
+                    learningPath.note ||
+                    copy(
+                      '完成首次练习后，这里会出现章节推荐和下一步建议。',
+                      'Complete your first practice run and chapter recommendations will show up here.'
+                    )
+                  }
+                  actions={
+                    <Button
+                      onClick={() => navigate('/dashboard/practice')}
+                      className="rounded-xl px-4 py-2 text-sm font-bold"
+                    >
+                      {copy('开始练习', 'Start Practicing')}
+                    </Button>
+                  }
+                />
+              )}
+            </Card>
+
+            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+              <DashboardSectionHeader
+                icon={Activity}
+                title={t.dashboard?.subjectProgress || copy('学科进度', 'Subject Progress')}
+                tooltip={copy(
+                  '系统会按学科汇总章节练习表现，用来判断当前稳定度和优先补强方向。',
+                  'This panel summarizes chapter practice by subject to show stability and where to focus next.'
+                )}
+                meta={
+                  <PageDots
+                    totalPages={totalSubjectPages}
+                    page={subjectPage}
+                    countLabel={copy(
+                      `${subjectProgressItems.length} 科`,
+                      `${subjectProgressItems.length} items`
+                    )}
+                  />
+                }
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => navigate('/dashboard/practice')}
+                  >
+                    {copy('去练习', 'Practice')}
+                  </Button>
+                }
+              />
+
+              {isLoadingSubjectData && !subjectData ? (
+                <div className={pageListGapClass}>
+                  {Array.from({ length: SUBJECTS_PER_PAGE }).map((_, index) => (
+                    <Card
+                      key={`subject-skeleton-${index}`}
+                      className="rounded-[20px] border border-borderTone bg-surface px-4 py-4 shadow-surface dark:border-borderTone dark:bg-surface-subtle"
+                    >
+                      <Skeleton className="h-5 w-36 rounded-full" />
+                      <Skeleton className="mt-2 h-4 w-48 rounded-full" />
+                      <Skeleton className="mt-4 h-2.5 rounded-full" />
+                    </Card>
+                  ))}
+                </div>
+              ) : subjectProgress.status === 'ready' ? (
+                <div className={pageListGapClass} onWheel={handleSubjectWheel}>
+                  {visibleSubjects.map((sub) => (
+                    <div
+                      key={sub.subjectId}
+                      className="rounded-[20px] border border-borderTone bg-surface px-4 py-4 shadow-none dark:border-borderTone dark:bg-surface-subtle"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className={`truncate ${pageCardTitleClass}`}>{sub.subjectName}</div>
+                          <div className={`mt-1 ${pageMetaTextClass}`}>
+                            {copy(
+                              `${sub.chapterCount} 个章节 · ${sub.totalAttempts} 次作答`,
+                              `${sub.chapterCount} chapters · ${sub.totalAttempts} attempts`
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div
+                            className={`${pageNumericValueCompactClass} ${sub.overallMastery >= 80 ? 'text-state-success-fg dark:text-state-success-fg' : 'text-primary dark:text-primary'}`}
+                          >
+                            {sub.overallMastery}%
+                          </div>
+                          <div className={pageMetaTextClass}>
+                            {sub.overallMastery >= 80
+                              ? copy('稳定', 'Stable')
+                              : copy('待提升', 'Needs work')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-borderTone-subtle dark:bg-surface-subtle">
+                        <div
+                          className={`h-full rounded-full ${sub.overallMastery >= 80 ? 'bg-state-success-fg' : 'bg-primary'}`}
+                          style={{ width: `${Math.max(4, sub.overallMastery)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {visibleSubjects.length < SUBJECTS_PER_PAGE &&
+                    Array.from({
+                      length: SUBJECTS_PER_PAGE - visibleSubjects.length,
+                    }).map((_, index) => (
+                      <div
+                        key={`subject-empty-${index}`}
+                        className={`flex ${pageListItemTallClass} items-center justify-center rounded-[20px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
+                      >
+                        <span className={pageKickerMutedClass}>
+                          {copy('已到列表底部', 'End of list')}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <PageEmptyState
+                  title={copy('还没有学科进度数据', 'No subject progress yet')}
+                  description={copy(
+                    '先开始一次练习，系统才会逐步建立你的学科稳定度和进度分布。',
+                    'Start practicing to build your subject progress and performance profile.'
                   )}
+                  actions={
+                    <Button
+                      onClick={() => navigate('/dashboard/practice')}
+                      className="rounded-xl px-4 py-2 text-sm font-bold"
+                    >
+                      {copy('开始练习', 'Start Practicing')}
+                    </Button>
+                  }
+                />
+              )}
+            </Card>
+          </section>
+
+          <section className="grid min-h-0 gap-4 sm:grid-cols-2">
+            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+              <DashboardSectionHeader
+                icon={Layers3}
+                title={copy('最近练习回顾', 'Recent Practice')}
+                tooltip={copy(
+                  '这里会记录你最近几次训练的结果、难度与耗时，方便直接回到同类练习继续推进。',
+                  'This section keeps your recent sessions, difficulty, and duration visible so you can continue from the same study flow.'
+                )}
                 action={
                   <Button
                     variant="outline"
@@ -1174,9 +1114,7 @@ export const DashboardHome = ({
                   ))}
                 </div>
               ) : recentPractice.length > 0 ? (
-                <div
-                  className={`custom-scrollbar max-h-[332px] overflow-y-auto pr-1 ${pageListGapClass}`}
-                >
+                <div className={`custom-scrollbar max-h-[266px] overflow-y-auto pr-1 ${pageListGapClass}`}>
                   {recentPractice.map((record) => (
                     <button
                       key={record.id}
@@ -1190,16 +1128,11 @@ export const DashboardHome = ({
                             {practiceModeLabel(record.mode, copy)}
                           </div>
                         ) : null}
-                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>
-                          {record.title}
-                        </div>
+                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>{record.title}</div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
                           {[
                             record.subject,
-                            recentPracticeDifficultyLabel(
-                              record.difficulty,
-                              copy
-                            ),
+                            recentPracticeDifficultyLabel(record.difficulty, copy),
                             formatRelativeDate(record.createdAt, copy),
                           ]
                             .filter(Boolean)
@@ -1211,8 +1144,7 @@ export const DashboardHome = ({
                           {record.score}%
                         </div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
-                          {record.correctCount}/{record.totalQuestions} ·{' '}
-                          {formatDuration(record.duration, copy)}
+                          {record.correctCount}/{record.totalQuestions} · {formatDuration(record.duration, copy)}
                         </div>
                       </div>
                     </button>
@@ -1240,14 +1172,11 @@ export const DashboardHome = ({
             <DailyInspiration
               lang={lang}
               t={t}
-              welcomeTitle={
-                t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')
-              }
+              welcomeTitle={t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
               welcomeSub=""
-              className="min-h-[212px]"
+              className="h-full min-h-0"
             />
-          </div>
-        </section>
+          </section>
         </div>
       </div>
     </TooltipProvider>

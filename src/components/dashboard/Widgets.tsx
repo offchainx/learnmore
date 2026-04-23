@@ -305,7 +305,7 @@ export const DailyInspiration = ({
 
   return (
     <div
-      className={`group relative w-full overflow-hidden rounded-[24px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none ${className || 'h-56 sm:h-64'}`}
+      className={`group relative w-full overflow-hidden rounded-[24px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none ${className || 'h-full min-h-[180px]'}`}
     >
       <div
         className={`absolute inset-0 opacity-90 ${activeBackground.shellLight} ${activeBackground.shellDark}`}
