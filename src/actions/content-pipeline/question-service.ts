@@ -1185,10 +1185,11 @@ export async function getQuestions(
   const where = buildQuestionWhere(filter, questionIdPrefixMatches)
   const [total, data] =
     sort.field === 'sourceFileCreatedAt'
-      ? await prisma.$transaction(async (tx) => {
+      ? await (() => {
           const whereSql = buildQuestionSqlWhere(filter, questionIdPrefixMatches)
           const orderDirection = sort.order === 'asc' ? Prisma.sql`ASC` : Prisma.sql`DESC`
-          const idRows = await tx.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+
+          return prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
             SELECT q.id::text AS id
             FROM questions q
             LEFT JOIN question_groups g ON g.id = q.group_id
@@ -1201,24 +1202,25 @@ export async function getQuestions(
               q.id DESC
             OFFSET ${skip}
             LIMIT ${pageSize}
-          `)
-          const ids = idRows.map((row) => row.id)
-          const [count, rows] = await Promise.all([
-            tx.question.count({ where }),
-            ids.length
-              ? tx.question.findMany({
-                  where: { id: { in: ids } },
-                  select: selectQuestionRelations(),
-                })
-              : Promise.resolve([] as QuestionWithRelations[]),
-          ])
-          const rowMap = new Map(rows.map((row) => [row.id, row as QuestionWithRelations]))
-          const orderedRows = ids
-            .map((id) => rowMap.get(id))
-            .filter((row): row is QuestionWithRelations => Boolean(row))
-          return [count, orderedRows] as const
-        })
-      : await prisma.$transaction([
+          `).then(async (idRows) => {
+            const ids = idRows.map((row) => row.id)
+            const [count, rows] = await Promise.all([
+              prisma.question.count({ where }),
+              ids.length
+                ? prisma.question.findMany({
+                    where: { id: { in: ids } },
+                    select: selectQuestionRelations(),
+                  })
+                : Promise.resolve([] as QuestionWithRelations[]),
+            ])
+            const rowMap = new Map(rows.map((row) => [row.id, row as QuestionWithRelations]))
+            const orderedRows = ids
+              .map((id) => rowMap.get(id))
+              .filter((row): row is QuestionWithRelations => Boolean(row))
+            return [count, orderedRows] as const
+          })
+        })()
+      : await Promise.all([
           prisma.question.count({ where }),
           prisma.question.findMany({
             where,

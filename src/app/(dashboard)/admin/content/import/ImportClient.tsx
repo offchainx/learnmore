@@ -24,7 +24,7 @@ import type {
   StatsData,
 } from '@/types/content-pipeline'
 
-const IMPORT_REFRESH_INTERVAL_MS = 5000
+const IMPORT_REFRESH_INTERVAL_MS = 30000
 
 interface RawSubject {
   id: string
@@ -96,6 +96,7 @@ export function ImportClient({
   const [stats, setStats] = useState<StatsData>(initialStats)
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(false)
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date())
+  const [isPageVisible, setIsPageVisible] = useState(true)
   const refreshInFlightRef = useRef(false)
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -110,6 +111,19 @@ export function ImportClient({
   useEffect(() => {
     setStats(initialStats)
   }, [initialStats])
+
+  useEffect(() => {
+    const updateVisibility = () => {
+      setIsPageVisible(document.visibilityState !== 'hidden')
+    }
+
+    updateVisibility()
+    document.addEventListener('visibilitychange', updateVisibility)
+
+    return () => {
+      document.removeEventListener('visibilitychange', updateVisibility)
+    }
+  }, [])
 
   useEffect(() => {
     if (!['ADMIN', 'TEACHER'].includes(userRole)) return
@@ -168,7 +182,7 @@ export function ImportClient({
   }
 
   useEffect(() => {
-    if (!hasActiveBatches) return undefined
+    if (!hasActiveBatches || !isPageVisible) return undefined
 
     let disposed = false
 
@@ -227,7 +241,7 @@ export function ImportClient({
         refreshTimerRef.current = null
       }
     }
-  }, [hasActiveBatches, initialPage, initialPageSize])
+  }, [hasActiveBatches, initialPage, initialPageSize, isPageVisible])
 
   const handleImportSuccess = () => {
     void (async () => {

@@ -668,9 +668,9 @@ export const DashboardHome = ({
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="flex h-full min-w-0 min-h-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
+      <div className="flex w-full min-w-0 min-h-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
         <div
-          className={`mx-auto grid h-full min-h-0 w-full max-w-[1820px] grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 overflow-hidden ${pageShellFrameClass} p-0 sm:p-2.5`}
+          className={`mx-auto flex w-full max-w-[1820px] flex-col gap-4 ${pageShellFrameClass} p-0 sm:p-2.5`}
         >
           {homeDataError ? (
             <Card className="rounded-[20px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
@@ -741,10 +741,10 @@ export const DashboardHome = ({
             </section>
           </PageHeroShell>
 
-          <section className="grid min-h-0 gap-4 sm:grid-cols-2">
-            <DailyMissions tasks={dailyTasks} user={user} lazyLoadTasks className="h-full min-h-0" />
+          <section className="grid min-h-0 items-start gap-4 sm:grid-cols-2">
+            <DailyMissions tasks={dailyTasks} user={user} lazyLoadTasks className="self-start" />
 
-            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
               <DashboardSectionHeader
                 icon={Trophy}
                 title={t.dashboard?.rank || copy('年级排名', 'Rank')}
@@ -847,8 +847,8 @@ export const DashboardHome = ({
             </Card>
           </section>
 
-          <section className="grid min-h-0 gap-4 sm:grid-cols-2">
-            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+          <section className="grid min-h-0 items-start gap-4 sm:grid-cols-2">
+            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
               <DashboardSectionHeader
                 icon={BookOpenCheck}
                 title={t.dashboard?.learningPath || copy('学习路径', 'Learning Path')}
@@ -958,7 +958,7 @@ export const DashboardHome = ({
               )}
             </Card>
 
-            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
               <DashboardSectionHeader
                 icon={Activity}
                 title={t.dashboard?.subjectProgress || copy('学科进度', 'Subject Progress')}
@@ -1073,8 +1073,8 @@ export const DashboardHome = ({
             </Card>
           </section>
 
-          <section className="grid min-h-0 gap-4 sm:grid-cols-2">
-            <Card className={`${pagePanelClass} h-full min-h-0 rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+          <section className="grid min-h-0 items-start gap-4 sm:grid-cols-2">
+            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
               <DashboardSectionHeader
                 icon={Layers3}
                 title={copy('最近练习回顾', 'Recent Practice')}
@@ -1174,7 +1174,7 @@ export const DashboardHome = ({
               t={t}
               welcomeTitle={t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
               welcomeSub=""
-              className="h-full min-h-0"
+              className="self-start"
             />
           </section>
         </div>

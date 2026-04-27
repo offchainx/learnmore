@@ -246,7 +246,7 @@ export const DailyMissions = ({
   return (
     <TooltipProvider delayDuration={120}>
       <Card
-        className={`h-full overflow-hidden rounded-[24px] border border-borderTone bg-surface p-0 text-text-primary shadow-surface dark:border-borderTone dark:bg-surface dark:text-text-primary dark:shadow-none ${className || ''}`}
+        className={`overflow-hidden rounded-[24px] border border-borderTone bg-surface p-0 text-text-primary shadow-surface dark:border-borderTone dark:bg-surface dark:text-text-primary dark:shadow-none ${className || ''}`}
       >
 
         <div className="relative z-10 flex h-full flex-col p-5">

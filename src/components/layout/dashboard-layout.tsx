@@ -633,7 +633,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     <div
       className={`dashboard-shell grid min-w-0 grid-cols-1 bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white ${
         lockShellScroll
-          ? 'h-[calc(100dvh-3.5rem)] overflow-hidden overscroll-none tablet:h-dvh desktop:grid-cols-[minmax(240px,15%)_minmax(0,60%)_minmax(320px,25%)] desktop:grid-rows-[auto_minmax(0,1fr)]'
+          ? 'h-[calc(100dvh-3.5rem)] overflow-hidden overscroll-none tablet:h-dvh desktop:grid-cols-[minmax(240px,15%)_minmax(0,60%)_minmax(320px,25%)] desktop:grid-rows-[auto_auto] desktop:content-start desktop:items-start'
           : 'min-h-[calc(100dvh-3.5rem)] overflow-visible overscroll-auto desktop:grid-cols-[minmax(240px,15%)_minmax(0,1fr)] desktop:grid-rows-[auto]'
       }`}
     >
@@ -896,27 +896,27 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* Main Content Area */}
       <main
         className={`min-w-0 flex min-h-0 flex-col ${
-          lockShellScroll ? 'h-full overflow-hidden' : 'h-auto overflow-visible'
+          lockShellScroll ? 'h-auto overflow-hidden' : 'h-auto overflow-visible'
         } ${
           isAnyAdminRoute
             ? 'p-2 sm:p-4'
             : isPracticeRoute
               ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
               : 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-4 desktop:py-4'
-        } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''} desktop:col-start-2 ${showDashboardHeader ? 'desktop:row-start-2' : 'desktop:row-start-1'}`}
+        } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''} desktop:col-start-2 desktop:self-start ${showDashboardHeader ? 'desktop:row-start-2' : 'desktop:row-start-1'}`}
       >
         <TrialBanner
           subscriptionTier={subscriptionTier || null}
           subscriptionEnd={subscriptionEnd || null}
         />
 
-        <div className="mt-4 min-h-0 flex-1">
+        <div className="mt-4 min-h-0 w-full self-start">
           {children}
         </div>
       </main>
 
       {showDashboardRail ? (
-        <aside className="hidden min-h-0 p-3 pt-4 desktop:col-start-3 desktop:row-start-2 desktop:block desktop:p-4">
+        <aside className="hidden min-h-0 p-3 pt-4 desktop:col-start-3 desktop:row-start-2 desktop:block desktop:self-start desktop:p-4">
           <DashboardRightRail
             copy={copy}
             displayName={displayName}

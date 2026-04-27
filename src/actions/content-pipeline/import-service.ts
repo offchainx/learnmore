@@ -108,7 +108,9 @@ declare global {
   var __importQueueRunner: Promise<void> | undefined
 }
 
-const IMPORT_QUEUE_CONCURRENCY = 2
+// 队列消费并发：单个消费进程内同时处理的任务数。
+// 这里保持 1，由外部拉起多个 worker 进程来扩展并发，避免单进程过载。
+const IMPORT_QUEUE_CONCURRENCY = 1
 
 function toQueuedWebImportPayload(input: ImportFromWebUrlInput): QueuedWebImportPayload {
   return stripUndefinedDeep({
