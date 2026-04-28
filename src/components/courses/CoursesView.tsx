@@ -36,8 +36,6 @@ import { LessonPlayer } from './LessonPlayer'
 import { useApp } from '@/providers'
 import { getSubjectLabel } from '@/lib/subjects'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageCardTitleClass,
   pageHeroNumericValueClass,
@@ -50,7 +48,6 @@ import {
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeClass,
-  pageHeroShellClass,
   pageInputClass,
   pageInsetClass,
   pagePanelClass,
@@ -763,24 +760,9 @@ export const CoursesView = ({ t }: { t: any }) => {
       ) : null}
 
       <div
-        className={`mx-auto w-full max-w-[1820px] min-w-0 ${pageShellFrameClass} sm:p-2.5`}
+        className={`mx-auto w-full min-w-0 max-w-[1820px] ${pageShellFrameClass} sm:p-2.5`}
       >
         <div className={pageSectionGapClass}>
-          <PageHeroShell
-            className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
-            title={
-              <PageHeroTitle
-                title={copy('课程学习', 'Course Learning')}
-                capsuleLabel="Courses"
-              />
-            }
-            subtitle={copy(
-              '继续你的课程推进、进入复习模式，或回看当前科目的笔记与高亮。',
-              'Continue your course progress, switch into review mode, or revisit your notebook for the current subject.'
-            )}
-            titleClassName="font-semibold"
-          />
-
           {renderSubjectSelector()}
 
           <section
@@ -796,7 +778,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     className={`absolute inset-0 bg-gradient-to-r ${currentHeroTheme.accentClass}`}
                     style={{ opacity: 0.2 }}
                   />
-                  <div className="absolute -right-6 -top-8 h-36 w-36 rounded-full bg-[hsl(var(--state-info-fg))]/8 blur-3xl" />
+                  <div className="bg-[hsl(var(--state-info-fg))]/8 absolute -right-6 -top-8 h-36 w-36 rounded-full blur-3xl" />
                   <div className="absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-[hsl(var(--state-warning-bg))]/55 blur-3xl" />
                   {currentHeroTheme.patternImage ? (
                     <div

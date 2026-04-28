@@ -12,7 +12,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 217 75% 60%;
+    --primary: 24 82% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -33,12 +33,12 @@
     --radius: 0.5rem;
 
     /* Global light theme contract */
-    --page-bg: 215 32% 96%;
-    --page-bg-elevated: 210 36% 98%;
+    --page-bg: 30 36% 96%;
+    --page-bg-elevated: 32 42% 98%;
     --surface-default: 0 0% 100%;
-    --surface-muted: 214 36% 97%;
-    --surface-subtle: 216 28% 94%;
-    --surface-selected: 214 100% 95%;
+    --surface-muted: 32 34% 97%;
+    --surface-subtle: 28 30% 93%;
+    --surface-selected: 27 100% 95%;
     --surface-inverse: 222 47% 11%;
 
     --text-primary: 222 47% 11%;
@@ -47,24 +47,24 @@
     --text-disabled: 215 14% 65%;
     --text-inverse: 210 40% 98%;
 
-    --border-subtle: 216 22% 90%;
-    --border-default: 216 18% 84%;
-    --border-strong: 215 18% 62%;
+    --border-subtle: 29 24% 88%;
+    --border-default: 28 18% 80%;
+    --border-strong: 24 24% 60%;
 
-    --focus-ring: 217 75% 60%;
-    --shadow-color: 220 40% 2%;
-    --shadow-surface-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
-    --shadow-surface-md: 0 20px 48px rgba(15, 23, 42, 0.09);
-    --shadow-surface-lg: 0 28px 72px rgba(15, 23, 42, 0.12);
+    --focus-ring: 24 82% 60%;
+    --shadow-color: 24 32% 24%;
+    --shadow-surface-sm: 0 8px 24px rgba(120, 72, 32, 0.05);
+    --shadow-surface-md: 0 18px 44px rgba(120, 72, 32, 0.08);
+    --shadow-surface-lg: 0 28px 68px rgba(120, 72, 32, 0.12);
 
     --state-success-bg: 151 81% 96%;
     --state-success-fg: 160 84% 20%;
     --state-warning-bg: 48 100% 96%;
-    --state-warning-fg: 31 92% 33%;
+    --state-warning-fg: 29 84% 34%;
     --state-danger-bg: 0 86% 97%;
     --state-danger-fg: 0 74% 42%;
-    --state-info-bg: 214 100% 97%;
-    --state-info-fg: 217 75% 60%;
+    --state-info-bg: 28 100% 95%;
+    --state-info-fg: 24 82% 58%;
 
     /* Safe Area Insets for iOS notch/island support */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
@@ -79,7 +79,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 217 84% 68%;
+    --primary: 25 88% 70%;
     --primary-foreground: 222 47% 11%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -100,12 +100,12 @@
 
     color-scheme: dark;
 
-    --page-bg: 222 47% 7%;
-    --page-bg-elevated: 222 42% 9%;
-    --surface-default: 222 39% 11%;
-    --surface-muted: 223 32% 14%;
-    --surface-subtle: 223 27% 18%;
-    --surface-selected: 221 39% 20%;
+    --page-bg: 24 18% 8%;
+    --page-bg-elevated: 24 16% 10%;
+    --surface-default: 24 14% 12%;
+    --surface-muted: 24 12% 15%;
+    --surface-subtle: 24 10% 18%;
+    --surface-selected: 23 16% 22%;
     --surface-inverse: 210 40% 98%;
 
     --text-primary: 210 40% 98%;
@@ -114,24 +114,24 @@
     --text-disabled: 215 13% 45%;
     --text-inverse: 222 47% 11%;
 
-    --border-subtle: 222 24% 18%;
-    --border-default: 217 19% 22%;
-    --border-strong: 215 14% 38%;
+    --border-subtle: 24 12% 20%;
+    --border-default: 24 10% 26%;
+    --border-strong: 24 14% 40%;
 
-    --focus-ring: 217 84% 68%;
-    --shadow-color: 222 80% 2%;
-    --shadow-surface-sm: 0 10px 24px rgba(2, 6, 23, 0.28);
-    --shadow-surface-md: 0 20px 48px rgba(2, 6, 23, 0.42);
-    --shadow-surface-lg: 0 30px 72px rgba(2, 6, 23, 0.54);
+    --focus-ring: 25 88% 70%;
+    --shadow-color: 24 40% 2%;
+    --shadow-surface-sm: 0 10px 24px rgba(22, 12, 5, 0.28);
+    --shadow-surface-md: 0 20px 48px rgba(22, 12, 5, 0.42);
+    --shadow-surface-lg: 0 30px 72px rgba(22, 12, 5, 0.54);
 
     --state-success-bg: 160 84% 12%;
     --state-success-fg: 152 76% 80%;
-    --state-warning-bg: 30 70% 14%;
-    --state-warning-fg: 48 96% 80%;
+    --state-warning-bg: 28 50% 15%;
+    --state-warning-fg: 38 90% 78%;
     --state-danger-bg: 0 63% 15%;
     --state-danger-fg: 0 93% 82%;
-    --state-info-bg: 221 55% 16%;
-    --state-info-fg: 213 97% 87%;
+    --state-info-bg: 24 28% 18%;
+    --state-info-fg: 28 92% 78%;
   }
 }
 
@@ -154,14 +154,14 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border-strong)); 
+  background: hsl(var(--border-strong));
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--text-tertiary)); 
+  background: hsl(var(--text-tertiary));
 }
 
 /* Custom UI Effects */
@@ -210,7 +210,9 @@ html:not(.dark) .drawer-glass {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .dark .glass-card {
@@ -267,15 +269,26 @@ html:not(.dark) :is(.marketing-shell, .auth-shell) {
   color: hsl(var(--text-primary));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-[#020617]'], [class*='bg-[#050b14]']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='bg-[#020617]'], [class*='bg-[#050b14]']) {
   background-color: hsl(var(--surface-default));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-slate-95'], [class*='bg-slate-90'], [class*='bg-slate-80'], [class*='bg-slate-70']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is(
+    [class*='bg-slate-95'],
+    [class*='bg-slate-90'],
+    [class*='bg-slate-80'],
+    [class*='bg-slate-70']
+  ) {
   background-color: hsl(var(--surface-default));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-slate-8'], [class*='bg-slate-7']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='bg-slate-8'], [class*='bg-slate-7']) {
   background-color: hsl(var(--surface-muted));
 }
 
@@ -283,15 +296,25 @@ html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-white/']) {
   background-color: hsl(var(--surface-subtle));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-white'], [class*='text-slate-1'], [class*='text-slate-2']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='text-white'], [class*='text-slate-1'], [class*='text-slate-2']) {
   color: hsl(var(--text-primary));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-slate-3'], [class*='text-slate-4']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='text-slate-3'], [class*='text-slate-4']) {
   color: hsl(var(--text-secondary));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-slate-5'], [class*='text-slate-6'], [class*='text-slate-7']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is(
+    [class*='text-slate-5'],
+    [class*='text-slate-6'],
+    [class*='text-slate-7']
+  ) {
   color: hsl(var(--text-tertiary));
 }
 
@@ -299,19 +322,39 @@ html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-white/']) {
   color: hsl(var(--text-disabled));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='border-slate-9'], [class*='border-slate-8'], [class*='border-slate-7']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is(
+    [class*='border-slate-9'],
+    [class*='border-slate-8'],
+    [class*='border-slate-7']
+  ) {
   border-color: hsl(var(--border-default));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='border-white/5'], [class*='border-white/10'], [class*='border-white/20'], [class*='border-white/30']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is(
+    [class*='border-white/5'],
+    [class*='border-white/10'],
+    [class*='border-white/20'],
+    [class*='border-white/30']
+  ) {
   border-color: hsl(var(--border-subtle));
 }
 
-html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='bg-[#0a0a0a]'], [class*='bg-[#0f0f0f]']) {
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='bg-[#0a0a0a]'], [class*='bg-[#0f0f0f]']) {
   background-color: hsl(var(--surface-default));
 }
 
-html:not(.dark) .auth-shell :is([class*='bg-[linear-gradient(180deg,rgba(18,22,35,0.94)_0%,rgba(11,14,22,0.98)_100%)]'], [class*='bg-[linear-gradient(180deg,rgba(14,17,29,0.92)_0%,rgba(8,11,20,0.98)_100%)]']) {
+html:not(.dark)
+  .auth-shell
+  :is(
+    [class*='bg-[linear-gradient(180deg,rgba(18,22,35,0.94)_0%,rgba(11,14,22,0.98)_100%)]'],
+    [class*='bg-[linear-gradient(180deg,rgba(14,17,29,0.92)_0%,rgba(8,11,20,0.98)_100%)]']
+  ) {
   background: hsl(var(--surface-default));
 }
 
@@ -382,7 +425,11 @@ html:not(.dark) .auth-shell :is([class*='bg-[linear-gradient(180deg,rgba(18,22,3
 .page-hero-shell {
   border: 1px solid hsl(var(--border-default));
   background-image:
-    radial-gradient(circle at top right, hsl(var(--state-info-bg)) 0%, transparent 34%),
+    radial-gradient(
+      circle at top right,
+      hsl(var(--state-info-bg)) 0%,
+      transparent 34%
+    ),
     linear-gradient(
       180deg,
       hsl(var(--page-bg-elevated)) 0%,
@@ -395,7 +442,11 @@ html:not(.dark) .auth-shell :is([class*='bg-[linear-gradient(180deg,rgba(18,22,3
 .dark .page-hero-shell {
   border-color: #24324d;
   background-image:
-    radial-gradient(circle at top right, rgba(41, 98, 190, 0.18) 0%, transparent 34%),
+    radial-gradient(
+      circle at top right,
+      rgba(41, 98, 190, 0.18) 0%,
+      transparent 34%
+    ),
     linear-gradient(135deg, #111a2e 0%, #0f1a2f 55%, #0b1220 100%);
   box-shadow: 0 18px 44px rgba(2, 8, 23, 0.32);
 }
@@ -423,13 +474,20 @@ html:not(.dark) .auth-shell :is([class*='bg-[linear-gradient(180deg,rgba(18,22,3
 
 /* ===== Mobile Optimization Styles ===== */
 @media (max-width: 768px) {
-  button, a, [role="button"], input[type="checkbox"], input[type="radio"], select {
+  button,
+  a,
+  [role='button'],
+  input[type='checkbox'],
+  input[type='radio'],
+  select {
     min-height: 44px;
     min-width: 44px;
   }
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     min-height: 44px;
-    font-size: 16px; 
+    font-size: 16px;
   }
   html {
     touch-action: manipulation;
@@ -492,7 +550,7 @@ html:not(.dark) .auth-shell :is([class*='bg-[linear-gradient(180deg,rgba(18,22,3
 }
 
 @supports (-ms-ime-align: auto) {
-  input[type="search"]::-ms-clear {
+  input[type='search']::-ms-clear {
     display: none;
   }
 }

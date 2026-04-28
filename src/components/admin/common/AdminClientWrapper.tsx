@@ -11,7 +11,11 @@ interface AdminClientWrapperProps {
   userRole: string
 }
 
-export function AdminClientWrapper({ children, user, userRole }: AdminClientWrapperProps) {
+export function AdminClientWrapper({
+  children,
+  user,
+  userRole,
+}: AdminClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -22,6 +26,7 @@ export function AdminClientWrapper({ children, user, userRole }: AdminClientWrap
     <DashboardLayout
       currentView="admin"
       onNavigate={handleNavigate}
+      user={user}
       userRole={userRole}
       subscriptionTier={user?.subscriptionTier}
       subscriptionEnd={user?.subscriptionEnd}

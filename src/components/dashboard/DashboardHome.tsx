@@ -26,7 +26,6 @@ import { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard'
 import { PracticeMode, User, UserSettings } from '@prisma/client'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageCardTitleClass,
   pageHeroNumericValueClass,
@@ -47,8 +46,6 @@ import {
   pagePillInactiveClass,
   pageSegmentedButtonCompactClass,
   pageSegmentedControlCompactClass,
-  pageShellFrameClass,
-  pageSoftInsetClass,
 } from '@/components/shared/pageSurfaces'
 import {
   pageCardPaddingClass,
@@ -179,29 +176,7 @@ function PageDots({
   )
 }
 
-function OverviewCard({
-  label,
-  value,
-  subLabel,
-}: {
-  label: string
-  value: string
-  subLabel: string
-}) {
-  return (
-    <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
-      <div className={pageKickerClass}>{label}</div>
-      <div className={pageNumericValueClass}>{value}</div>
-      <div className={`mt-1 ${pageMetaTextClass}`}>{subLabel}</div>
-    </div>
-  )
-}
-
-function SectionHelpTooltip({
-  content,
-}: {
-  content: string
-}) {
+function SectionHelpTooltip({ content }: { content: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -236,10 +211,12 @@ function DashboardSectionHeader({
   action?: React.ReactNode
 }) {
   return (
-    <div className={`flex items-start justify-between gap-4 ${pageCardTitleGapClass}`}>
+    <div
+      className={`flex items-start justify-between gap-4 ${pageCardTitleGapClass}`}
+    >
       <div className="min-w-0">
         <h3 className={`flex items-center gap-2 ${pageSectionTitleClass}`}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/18 dark:text-primary">
+          <span className="dark:bg-[hsl(var(--state-info-bg))]/18 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary dark:border-borderTone dark:text-primary">
             <Icon className="h-4 w-4" />
           </span>
           <span className="truncate">{title}</span>
@@ -249,7 +226,7 @@ function DashboardSectionHeader({
           <p className={`${pageMetaTextClass} mt-2 max-w-xl`}>{description}</p>
         ) : null}
       </div>
-      {(meta || action) ? (
+      {meta || action ? (
         <div className="flex shrink-0 flex-col items-end gap-2">
           {meta}
           {action}
@@ -272,9 +249,7 @@ export const DashboardHome = ({
   const { t, lang } = useApp()
   const copy = (zh: string, en: string, ms?: string) =>
     languageCopy(lang, zh, en, ms)
-  const [coreData, setCoreData] = useState<DashboardData | null>(
-    initialData
-  )
+  const [coreData, setCoreData] = useState<DashboardData | null>(initialData)
   const [overviewData, setOverviewData] = useState<{
     overviewByWindow: DashboardData['overviewByWindow']
   } | null>(
@@ -306,12 +281,10 @@ export const DashboardHome = ({
         }
       : null
   )
-  const [isLoadingOverviewData, setIsLoadingOverviewData] = useState(
-    !initialData
-  )
-  const [isLoadingActivityData, setIsLoadingActivityData] = useState(
-    !initialData
-  )
+  const [isLoadingOverviewData, setIsLoadingOverviewData] =
+    useState(!initialData)
+  const [isLoadingActivityData, setIsLoadingActivityData] =
+    useState(!initialData)
   const [isLoadingSubjectData, setIsLoadingSubjectData] = useState(!initialData)
   const [homeDataError, setHomeDataError] = useState<string | null>(null)
   const [overviewWindow, setOverviewWindow] =
@@ -334,7 +307,9 @@ export const DashboardHome = ({
         })
 
         if (!response.ok) {
-          throw new Error(`Failed to load dashboard core data: ${response.status}`)
+          throw new Error(
+            `Failed to load dashboard core data: ${response.status}`
+          )
         }
 
         const payload = (await response.json()) as { data?: DashboardData }
@@ -345,7 +320,9 @@ export const DashboardHome = ({
         if (!cancelled) {
           console.warn('[DashboardHome] Failed to lazy-load core data:', error)
           setHomeDataError(
-            error instanceof Error ? error.message : 'Failed to load dashboard data'
+            error instanceof Error
+              ? error.message
+              : 'Failed to load dashboard data'
           )
         }
       }
@@ -385,14 +362,27 @@ export const DashboardHome = ({
         if (!cancelled) {
           setOverviewData({
             overviewByWindow: payload.overviewByWindow ?? {
-              '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-              '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+              '7D': {
+                studyTime: '0.0',
+                questions: 0,
+                accuracy: 0,
+                activeDays: 0,
+              },
+              '30D': {
+                studyTime: '0.0',
+                questions: 0,
+                accuracy: 0,
+                activeDays: 0,
+              },
             },
           })
         }
       } catch (error) {
         if (!cancelled) {
-          console.warn('[DashboardHome] Failed to lazy-load overview data:', error)
+          console.warn(
+            '[DashboardHome] Failed to lazy-load overview data:',
+            error
+          )
         }
       } finally {
         if (!cancelled) {
@@ -451,7 +441,10 @@ export const DashboardHome = ({
         }
       } catch (error) {
         if (!cancelled) {
-          console.warn('[DashboardHome] Failed to lazy-load activity data:', error)
+          console.warn(
+            '[DashboardHome] Failed to lazy-load activity data:',
+            error
+          )
         }
       } finally {
         if (!cancelled) {
@@ -508,7 +501,10 @@ export const DashboardHome = ({
         }
       } catch (error) {
         if (!cancelled) {
-          console.warn('[DashboardHome] Failed to lazy-load subject data:', error)
+          console.warn(
+            '[DashboardHome] Failed to lazy-load subject data:',
+            error
+          )
         }
       } finally {
         if (!cancelled) {
@@ -589,30 +585,34 @@ export const DashboardHome = ({
   const dailyTasks = dailyTasksSection.items
 
   const activeOverview = overviewByWindow[overviewWindow]
-  const summaryStatsCards = [
+  const overviewWindowLabel =
+    overviewWindow === '7D'
+      ? copy('近 7 天', 'Last 7 days')
+      : copy('近 30 天', 'Last 30 days')
+  const heroMetrics = [
     {
       label: copy('学习时长', 'Study Time'),
-      value: `${stats.studyTime}h`,
-      subLabel: copy('最近投入', 'Recent effort'),
+      value: `${activeOverview.studyTime}h`,
+      subLabel: copy('当前时间窗投入', 'Focused effort in this window'),
     },
     {
       label: copy('完成题数', 'Questions'),
-      value: String(stats.questions),
-      subLabel: copy('完成量', 'Completed'),
+      value: String(activeOverview.questions),
+      subLabel: copy('当前时间窗完成量', 'Questions finished in this window'),
     },
-  ]
-  const overviewCards = [
     {
       label: copy('正确率', 'Accuracy'),
       value: `${activeOverview.accuracy}%`,
-      subLabel: copy('命中率', 'Hit rate'),
+      subLabel: copy('答题命中率', 'Answer accuracy'),
     },
     {
       label: copy('活跃天数', 'Active Days'),
       value: String(activeOverview.activeDays),
-      subLabel: copy('有学习的天数', 'Study days'),
+      subLabel: copy('有学习记录的天数', 'Days with study activity'),
     },
   ]
+  const featuredMetric = heroMetrics[0]
+  const supportingMetrics = heroMetrics.slice(1)
 
   const totalActivityPages = Math.max(
     1,
@@ -668,10 +668,8 @@ export const DashboardHome = ({
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="flex w-full min-w-0 min-h-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
-        <div
-          className={`mx-auto flex w-full max-w-[1820px] flex-col gap-4 ${pageShellFrameClass} p-0 sm:p-2.5`}
-        >
+      <div className="flex min-h-0 w-full min-w-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
+        <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5">
           {homeDataError ? (
             <Card className="rounded-[20px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
               <div className="text-sm font-semibold">
@@ -682,176 +680,243 @@ export const DashboardHome = ({
           ) : null}
 
           <PageHeroShell
-            className={`${pageHeroShellClass} min-h-[240px] border border-borderTone bg-surface bg-none shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none`}
-            title={
-              <PageHeroTitle title={copy('首页', 'Home')} capsuleLabel="Home" />
-            }
+            className={`${pageHeroShellClass} min-h-[280px] border border-[hsl(var(--border-subtle))] bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none`}
+            title={copy('学习总览', 'Overview')}
+            subtitle={copy(
+              '先看最重要的四个指标，再决定今天要补强哪里。',
+              'Read the four key signals first, then decide where to focus today.'
+            )}
             titleClassName="font-semibold"
             actions={
               <div className={`shrink-0 ${pageSegmentedControlCompactClass}`}>
-                {(['7D', '30D'] as DashboardOverviewWindow[]).map((windowKey) => (
-                  <button
-                    key={windowKey}
-                    type="button"
-                    onClick={() => setOverviewWindow(windowKey)}
-                    className={`${pageSegmentedButtonCompactClass} text-[11px] font-semibold ${
-                      overviewWindow === windowKey
-                        ? pagePillActiveClass
-                        : pagePillInactiveClass
-                    }`}
-                  >
-                    {windowKey === '7D' ? copy('7天', '7D') : copy('30天', '30D')}
-                  </button>
-                ))}
+                {(['7D', '30D'] as DashboardOverviewWindow[]).map(
+                  (windowKey) => (
+                    <button
+                      key={windowKey}
+                      type="button"
+                      onClick={() => setOverviewWindow(windowKey)}
+                      className={`${pageSegmentedButtonCompactClass} text-[11px] font-semibold ${
+                        overviewWindow === windowKey
+                          ? pagePillActiveClass
+                          : pagePillInactiveClass
+                      }`}
+                    >
+                      {windowKey === '7D'
+                        ? copy('7天', '7D')
+                        : copy('30天', '30D')}
+                    </button>
+                  )
+                )}
               </div>
             }
           >
-            <section className={`grid gap-3 sm:grid-cols-2 ${pageGridGapClass}`}>
-              {summaryStatsCards.map((card) => (
-                <OverviewCard
-                  key={card.label}
-                  label={card.label}
-                  value={card.value}
-                  subLabel={card.subLabel}
-                />
-              ))}
-              {isLoadingOverviewData && !overviewData ? (
-                <>
-                  <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
-                    <Skeleton className="h-4 w-24 rounded-full" />
-                    <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
-                    <Skeleton className="mt-3 h-3 w-28 rounded-full" />
-                  </div>
-                  <div className={`${pageSoftInsetClass} px-4 py-3 shadow-none`}>
-                    <Skeleton className="h-4 w-24 rounded-full" />
-                    <Skeleton className="mt-4 h-9 w-20 rounded-2xl" />
-                    <Skeleton className="mt-3 h-3 w-28 rounded-full" />
-                  </div>
-                </>
-              ) : (
-                overviewCards.map((card) => (
-                  <OverviewCard
-                    key={card.label}
-                    label={card.label}
-                    value={card.value}
-                    subLabel={card.subLabel}
-                  />
-                ))
-              )}
-            </section>
-          </PageHeroShell>
-
-          <section className="grid min-h-0 items-start gap-4 sm:grid-cols-2">
-            <DailyMissions tasks={dailyTasks} user={user} lazyLoadTasks className="self-start" />
-
-            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
-              <DashboardSectionHeader
-                icon={Trophy}
-                title={t.dashboard?.rank || copy('年级排名', 'Rank')}
-                tooltip={copy(
-                  '看看你在同年级中的大致位置。',
-                  'See roughly where you stand among students in your grade.'
-                )}
-              />
-
-              {isLoadingActivityData && !activityData ? (
-                <>
-                  <div className="mt-4 text-center">
-                    <Skeleton className="mx-auto h-10 w-40 rounded-full" />
-                    <Skeleton className="mx-auto mt-3 h-4 w-52 rounded-full" />
-                  </div>
-                  <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
-                    <Skeleton className="h-20 rounded-2xl" />
-                    <Skeleton className="h-20 rounded-2xl" />
-                  </div>
-                  <Skeleton className="mt-3.5 h-12 rounded-2xl" />
-                </>
-              ) : leaderboard.status === 'ready' &&
-                leaderboard.percentile !== null &&
-                leaderboard.peerAverageAccuracy !== null ? (
-                <>
-                  <div className="mt-4 text-center">
-                    <div className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}>
-                      {`Top ${leaderboard.percentile}%`}
+            <section
+              className={`grid items-start gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.92fr)] ${pageGridGapClass}`}
+            >
+              <div className="rounded-[26px] bg-[linear-gradient(135deg,hsl(var(--surface-muted))_0%,hsl(var(--surface-default))_62%,hsl(var(--state-info-bg))_140%)] px-5 py-5 sm:px-6 sm:py-6">
+                {isLoadingOverviewData && !overviewData ? (
+                  <div className="space-y-5">
+                    <div className="space-y-3">
+                      <Skeleton className="h-4 w-24 rounded-full" />
+                      <Skeleton className="h-12 w-40 rounded-2xl" />
+                      <Skeleton className="h-4 w-56 rounded-full" />
                     </div>
-                    <div className="mt-2 text-sm leading-6 text-text-secondary dark:text-text-secondary">
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={`overview-skeleton-${index}`}
+                          className="border-l border-[hsl(var(--border-subtle))] pl-4 first:border-l-0 first:pl-0"
+                        >
+                          <Skeleton className="h-3 w-20 rounded-full" />
+                          <Skeleton className="mt-3 h-8 w-16 rounded-full" />
+                          <Skeleton className="mt-3 h-3 w-28 rounded-full" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap items-start justify-between gap-5">
+                      <div className="min-w-0">
+                        <div className={pageKickerClass}>
+                          {overviewWindowLabel}
+                        </div>
+                        <div className={pageNumericValueClass}>
+                          {featuredMetric.value}
+                        </div>
+                        <p className={`mt-2 max-w-md ${pageMetaTextClass}`}>
+                          {copy(
+                            `累计完成 ${stats.questions} 题，当前连续学习 ${stats.streak} 天。`,
+                            `You have completed ${stats.questions} questions with a ${stats.streak}-day streak.`
+                          )}
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-[hsl(var(--surface-default)/0.88)] px-4 py-2 text-right shadow-[0_10px_30px_rgba(120,72,32,0.06)] dark:bg-[hsl(var(--surface-default)/0.2)] dark:shadow-none">
+                        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-tertiary">
+                          {copy('累计 XP', 'Total XP')}
+                        </div>
+                        <div className="mt-1 text-[20px] font-semibold tracking-tight text-text-primary">
+                          {stats.xp}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                      {supportingMetrics.map((metric, index) => (
+                        <div
+                          key={metric.label}
+                          className={`border-[hsl(var(--border-subtle))] ${index === 0 ? '' : 'border-l pl-4 sm:pl-5'}`}
+                        >
+                          <div className={pageKickerClass}>{metric.label}</div>
+                          <div className={pageNumericValueCompactClass}>
+                            {metric.value}
+                          </div>
+                          <div
+                            className={`mt-2 max-w-[18ch] ${pageMetaTextClass}`}
+                          >
+                            {metric.subLabel}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="rounded-[26px] border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-muted)/0.82)] px-5 py-5 dark:border-borderTone dark:bg-[hsl(var(--surface-muted)/0.55)] sm:px-6 sm:py-6">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[hsl(var(--surface-default))] text-primary shadow-[0_8px_20px_rgba(120,72,32,0.08)] dark:bg-surface dark:shadow-none">
+                    <Trophy className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <div className={pageKickerClass}>
+                      {t.dashboard?.rank || copy('年级排名', 'Rank')}
+                    </div>
+                    <div className={`${pageMetaTextClass} mt-1`}>
                       {copy(
-                        '超过多数同年级学生',
-                        'Ahead of most students in your grade'
+                        '把你和同年级学生的表现放在一条线上看。',
+                        'See your performance against students in the same grade.'
                       )}
                     </div>
                   </div>
+                </div>
 
-                  <div className={`mt-3.5 grid grid-cols-2 ${pageGridGapClass}`}>
-                    <div className={`${pageInsetClass} px-4 py-3`}>
-                      <div className={pageKickerClass}>{copy('平均正确率', 'Average')}</div>
-                      <div className={pageNumericValueCompactClass}>
-                        {leaderboard.peerAverageAccuracy !== null
-                          ? `${leaderboard.peerAverageAccuracy}%`
-                          : '--'}
-                      </div>
+                {isLoadingActivityData && !activityData ? (
+                  <div className="mt-6 space-y-4">
+                    <Skeleton className="h-10 w-32 rounded-full" />
+                    <Skeleton className="h-4 w-52 rounded-full" />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Skeleton className="h-20 rounded-[20px]" />
+                      <Skeleton className="h-20 rounded-[20px]" />
                     </div>
-                    <div className={`${pageInsetClass} bg-state-success-bg px-4 py-3 dark:bg-state-success-bg`}>
-                      <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-state-success-fg dark:text-state-success-fg">
-                        {copy('你的表现', 'You')}
-                      </div>
-                      <div className={`${pageNumericValueCompactClass} text-state-success-fg dark:text-state-success-fg`}>
-                        {leaderboard.userAccuracy}%
-                      </div>
-                    </div>
+                    <Skeleton className="h-11 w-full rounded-xl" />
                   </div>
+                ) : leaderboard.status === 'ready' &&
+                  leaderboard.percentile !== null &&
+                  leaderboard.peerAverageAccuracy !== null ? (
+                  <>
+                    <div className="mt-6">
+                      <div
+                        className={`${pageHeroNumericValueClass} text-primary dark:text-primary`}
+                      >
+                        {`Top ${leaderboard.percentile}%`}
+                      </div>
+                      <div className={`mt-2 ${pageMetaTextClass}`}>
+                        {copy(
+                          '你目前超过多数同年级学生。',
+                          'You are ahead of most students in your grade.'
+                        )}
+                      </div>
+                    </div>
 
-                  <Button
-                    onClick={() => {
-                      if (leaderboard.status === 'ready') {
-                        navigate('/dashboard/leaderboard')
-                        return
-                      }
+                    <div className="mt-5 divide-y divide-[hsl(var(--border-subtle))] overflow-hidden rounded-[20px] bg-[hsl(var(--surface-default)/0.75)] dark:divide-borderTone dark:bg-[hsl(var(--surface-default)/0.12)]">
+                      <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div>
+                          <div className={pageKickerClass}>
+                            {copy('你的正确率', 'Your Accuracy')}
+                          </div>
+                          <div className={`mt-1 ${pageMetaTextClass}`}>
+                            {copy('当前答题表现', 'Current answer quality')}
+                          </div>
+                        </div>
+                        <div className="text-[22px] font-semibold tracking-tight text-primary">
+                          {leaderboard.userAccuracy}%
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div>
+                          <div className={pageKickerClass}>
+                            {copy('同年级平均', 'Peer Average')}
+                          </div>
+                          <div className={`mt-1 ${pageMetaTextClass}`}>
+                            {copy('作为比较基线', 'Benchmark for comparison')}
+                          </div>
+                        </div>
+                        <div className={pageNumericValueCompactClass}>
+                          {leaderboard.peerAverageAccuracy}%
+                        </div>
+                      </div>
+                    </div>
 
-                      if (leaderboard.status === 'excluded') {
-                        navigate('/dashboard/settings')
-                        return
+                    <Button
+                      onClick={() => navigate('/dashboard/leaderboard')}
+                      className="mt-5 w-full rounded-xl py-3 text-sm font-semibold"
+                    >
+                      {copy('查看排行榜', 'View Leaderboard')}
+                      <ArrowUpRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <div className="mt-6 rounded-[20px] bg-[hsl(var(--surface-default)/0.72)] px-4 py-5 dark:bg-[hsl(var(--surface-default)/0.1)]">
+                    <div className="text-[18px] font-semibold tracking-tight text-text-primary">
+                      {leaderboard.status === 'excluded'
+                        ? copy('还缺少年级资料', 'Grade info required')
+                        : copy('排行榜还没建立', 'Ranking not available yet')}
+                    </div>
+                    <div className={`mt-2 ${pageMetaTextClass}`}>
+                      {leaderboard.note ||
+                        copy(
+                          '完成一组练习并获得 XP 后，这里会显示你的相对位置。',
+                          'Finish a practice run and earn XP to unlock your comparative position.'
+                        )}
+                    </div>
+                    <Button
+                      onClick={() =>
+                        navigate(
+                          leaderboard.status === 'excluded'
+                            ? '/dashboard/settings'
+                            : '/dashboard/practice'
+                        )
                       }
-
-                      if (leaderboard.status === 'empty') {
-                        navigate('/dashboard/practice')
-                      }
-                    }}
-                    className="mt-3.5 w-full rounded-xl py-3 text-sm font-bold"
-                  >
-                    {leaderboard.status === 'ready'
-                      ? copy('查看排行榜', 'View Leaderboard')
-                      : leaderboard.status === 'excluded'
+                      variant="outline"
+                      className="mt-5 w-full rounded-xl"
+                    >
+                      {leaderboard.status === 'excluded'
                         ? copy('完善资料', 'Update Profile')
-                        : copy('去赚 XP', 'Earn XP')}
-                    <ArrowUpRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </>
-              ) : (
-                <PageEmptyState
-                  title={
-                    leaderboard.status === 'excluded'
-                      ? copy('缺少年级信息', 'Grade info required')
-                      : copy('尚未进入排行榜', 'Not ranked yet')
-                  }
-                  description={
-                    leaderboard.note ||
-                    copy(
-                      '完成一组练习并获得 XP 后，这里会显示你在同年级中的位置。',
-                      'Complete a practice run and earn XP to see your position among students in your grade.'
-                    )
-                  }
-                  className="min-h-[148px] rounded-[20px] border border-dashed border-borderTone bg-surface/70 px-4 py-5 dark:border-borderTone dark:bg-surface/40"
-                />
-              )}
-            </Card>
-          </section>
+                        : copy('去练习', 'Go Practice')}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </section>
+          </PageHeroShell>
 
-          <section className="grid min-h-0 items-start gap-4 sm:grid-cols-2">
-            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+          <section className="grid min-h-0 items-start gap-4 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
+            <DailyMissions
+              tasks={dailyTasks}
+              user={user}
+              lazyLoadTasks
+              className="self-start"
+            />
+
+            <Card
+              className={`${pagePanelClass} min-h-0 self-start rounded-[28px] ${pageCardPaddingClass} dark:shadow-none`}
+            >
               <DashboardSectionHeader
                 icon={BookOpenCheck}
-                title={t.dashboard?.learningPath || copy('学习路径', 'Learning Path')}
+                title={
+                  t.dashboard?.learningPath || copy('学习路径', 'Learning Path')
+                }
                 tooltip={copy(
                   '系统会根据最近的答题表现与掌握度，推荐下一步最值得做的章节练习，并可直接进入对应训练。',
                   'Recommendations are based on recent performance and mastery, and can deep-link straight into chapter drills.'
@@ -881,14 +946,14 @@ export const DashboardHome = ({
               {isLoadingSubjectData && !subjectData ? (
                 <div className={pageListGapClass}>
                   {Array.from({ length: ACTIVITY_PER_PAGE }).map((_, index) => (
-                    <Card
+                    <div
                       key={`learning-skeleton-${index}`}
-                      className={`${pagePanelClass} min-h-0 rounded-[20px] shadow-none ${pageCardPaddingClass}`}
+                      className="rounded-[22px] bg-surface-muted px-4 py-4 dark:bg-surface-subtle"
                     >
                       <Skeleton className="h-6 w-40 rounded-full" />
                       <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
-                      <Skeleton className="mt-5 h-24 rounded-[20px]" />
-                    </Card>
+                      <Skeleton className="mt-5 h-2 w-full rounded-full" />
+                    </div>
                   ))}
                 </div>
               ) : learningPath.status === 'ready' ? (
@@ -898,16 +963,22 @@ export const DashboardHome = ({
                       key={item.id}
                       type="button"
                       onClick={() => navigate(item.href)}
-                      className={`${pageInteractiveRowClass} ${pageListItemTallClass} rounded-[20px] justify-between shadow-none`}
+                      className={`${pageInteractiveRowClass} ${pageListItemTallClass} justify-between rounded-[22px]`}
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-state-info-bg/70 text-primary dark:border-borderTone dark:bg-state-info-bg/18 dark:text-primary">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[hsl(var(--surface-default))] text-primary shadow-[0_8px_18px_rgba(120,72,32,0.06)] dark:bg-surface dark:shadow-none">
                         <Play className="h-4 w-4 fill-current" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className={`truncate ${pageKickerClass}`}>{item.subject}</div>
-                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>{item.title}</div>
-                        <div className={`mt-1 truncate ${pageMetaTextClass}`}>{item.reason}</div>
-                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-borderTone-subtle dark:bg-surface-subtle">
+                        <div className={`truncate ${pageKickerClass}`}>
+                          {item.subject}
+                        </div>
+                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>
+                          {item.title}
+                        </div>
+                        <div className={`mt-1 truncate ${pageMetaTextClass}`}>
+                          {item.reason}
+                        </div>
+                        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface">
                           <div
                             className="h-full rounded-full bg-primary"
                             style={{ width: `${Math.max(6, item.progress)}%` }}
@@ -915,7 +986,9 @@ export const DashboardHome = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={pageNumericValueCompactClass}>{item.progress}%</div>
+                        <div className={pageNumericValueCompactClass}>
+                          {item.progress}%
+                        </div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
                           {learningPathTypeLabel(item.recommendationType, copy)}
                         </div>
@@ -928,7 +1001,7 @@ export const DashboardHome = ({
                     }).map((_, index) => (
                       <div
                         key={`activity-empty-${index}`}
-                        className={`flex ${pageListItemTallClass} items-center justify-center rounded-[20px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
+                        className={`flex ${pageListItemTallClass} items-center justify-center rounded-[22px] border border-dashed border-[hsl(var(--border-subtle))] bg-surface-muted dark:border-borderTone dark:bg-surface-subtle`}
                       >
                         <span className={pageKickerMutedClass}>
                           {copy('已到列表底部', 'End of list')}
@@ -957,11 +1030,18 @@ export const DashboardHome = ({
                 />
               )}
             </Card>
+          </section>
 
-            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+          <section className="grid min-h-0 items-start gap-4 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+            <Card
+              className={`${pagePanelClass} min-h-0 self-start rounded-[28px] ${pageCardPaddingClass} dark:shadow-none`}
+            >
               <DashboardSectionHeader
                 icon={Activity}
-                title={t.dashboard?.subjectProgress || copy('学科进度', 'Subject Progress')}
+                title={
+                  t.dashboard?.subjectProgress ||
+                  copy('学科进度', 'Subject Progress')
+                }
                 tooltip={copy(
                   '系统会按学科汇总章节练习表现，用来判断当前稳定度和优先补强方向。',
                   'This panel summarizes chapter practice by subject to show stability and where to focus next.'
@@ -991,26 +1071,31 @@ export const DashboardHome = ({
               {isLoadingSubjectData && !subjectData ? (
                 <div className={pageListGapClass}>
                   {Array.from({ length: SUBJECTS_PER_PAGE }).map((_, index) => (
-                    <Card
+                    <div
                       key={`subject-skeleton-${index}`}
-                      className="rounded-[20px] border border-borderTone bg-surface px-4 py-4 shadow-surface dark:border-borderTone dark:bg-surface-subtle"
+                      className="rounded-[20px] bg-surface-muted px-4 py-4 dark:bg-surface-subtle"
                     >
                       <Skeleton className="h-5 w-36 rounded-full" />
                       <Skeleton className="mt-2 h-4 w-48 rounded-full" />
                       <Skeleton className="mt-4 h-2.5 rounded-full" />
-                    </Card>
+                    </div>
                   ))}
                 </div>
               ) : subjectProgress.status === 'ready' ? (
-                <div className={pageListGapClass} onWheel={handleSubjectWheel}>
+                <div
+                  className="overflow-hidden rounded-[22px] bg-surface-muted dark:bg-surface-subtle"
+                  onWheel={handleSubjectWheel}
+                >
                   {visibleSubjects.map((sub) => (
                     <div
                       key={sub.subjectId}
-                      className="rounded-[20px] border border-borderTone bg-surface px-4 py-4 shadow-none dark:border-borderTone dark:bg-surface-subtle"
+                      className="border-b border-[hsl(var(--border-subtle))] px-4 py-4 last:border-b-0 dark:border-borderTone"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className={`truncate ${pageCardTitleClass}`}>{sub.subjectName}</div>
+                          <div className={`truncate ${pageCardTitleClass}`}>
+                            {sub.subjectName}
+                          </div>
                           <div className={`mt-1 ${pageMetaTextClass}`}>
                             {copy(
                               `${sub.chapterCount} 个章节 · ${sub.totalAttempts} 次作答`,
@@ -1031,10 +1116,12 @@ export const DashboardHome = ({
                           </div>
                         </div>
                       </div>
-                      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-borderTone-subtle dark:bg-surface-subtle">
+                      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[hsl(var(--surface-default))] dark:bg-surface">
                         <div
                           className={`h-full rounded-full ${sub.overallMastery >= 80 ? 'bg-state-success-fg' : 'bg-primary'}`}
-                          style={{ width: `${Math.max(4, sub.overallMastery)}%` }}
+                          style={{
+                            width: `${Math.max(4, sub.overallMastery)}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -1045,7 +1132,7 @@ export const DashboardHome = ({
                     }).map((_, index) => (
                       <div
                         key={`subject-empty-${index}`}
-                        className={`flex ${pageListItemTallClass} items-center justify-center rounded-[20px] border border-dashed border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle`}
+                        className={`flex ${pageListItemTallClass} items-center justify-center border-b border-[hsl(var(--border-subtle))] px-4 py-4 last:border-b-0 dark:border-borderTone`}
                       >
                         <span className={pageKickerMutedClass}>
                           {copy('已到列表底部', 'End of list')}
@@ -1071,10 +1158,10 @@ export const DashboardHome = ({
                 />
               )}
             </Card>
-          </section>
 
-          <section className="grid min-h-0 items-start gap-4 sm:grid-cols-2">
-            <Card className={`${pagePanelClass} min-h-0 self-start rounded-[24px] shadow-surface ${pageCardPaddingClass} dark:shadow-none`}>
+            <Card
+              className={`${pagePanelClass} min-h-0 self-start rounded-[28px] ${pageCardPaddingClass} dark:shadow-none`}
+            >
               <DashboardSectionHeader
                 icon={Layers3}
                 title={copy('最近练习回顾', 'Recent Practice')}
@@ -1114,25 +1201,35 @@ export const DashboardHome = ({
                   ))}
                 </div>
               ) : recentPractice.length > 0 ? (
-                <div className={`custom-scrollbar max-h-[266px] overflow-y-auto pr-1 ${pageListGapClass}`}>
+                <div
+                  className={`custom-scrollbar max-h-[266px] overflow-y-auto pr-1 ${pageListGapClass}`}
+                >
                   {recentPractice.map((record) => (
                     <button
                       key={record.id}
                       type="button"
                       onClick={() => navigate(record.href)}
-                      className={`${pageInteractiveRowClass} rounded-[20px] justify-between shadow-none`}
+                      className="group relative flex justify-between gap-4 border-l border-[hsl(var(--border-default))] pl-5 pr-1 text-left transition-colors hover:border-[hsl(var(--primary))] dark:border-borderTone dark:hover:border-primary"
                     >
+                      <span className="absolute -left-[5px] top-3 h-2.5 w-2.5 rounded-full bg-primary" />
                       <div className="min-w-0 flex-1">
                         {!modeAppearsInTitle(record.mode, record.title) ? (
-                          <div className={`${pageBadgeClass} w-fit border-transparent bg-surface-subtle px-2.5 py-0.5 text-[10px] text-text-secondary shadow-none`}>
+                          <div
+                            className={`${pageBadgeClass} w-fit border-transparent bg-surface-muted px-2.5 py-0.5 text-[10px] text-text-secondary shadow-none`}
+                          >
                             {practiceModeLabel(record.mode, copy)}
                           </div>
                         ) : null}
-                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>{record.title}</div>
+                        <div className={`mt-1 truncate ${pageCardTitleClass}`}>
+                          {record.title}
+                        </div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
                           {[
                             record.subject,
-                            recentPracticeDifficultyLabel(record.difficulty, copy),
+                            recentPracticeDifficultyLabel(
+                              record.difficulty,
+                              copy
+                            ),
                             formatRelativeDate(record.createdAt, copy),
                           ]
                             .filter(Boolean)
@@ -1140,11 +1237,12 @@ export const DashboardHome = ({
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
-                        <div className="inline-flex min-w-[68px] justify-center rounded-xl border border-borderTone bg-state-info-bg/70 px-3 py-1 text-[18px] font-semibold tracking-tight text-primary dark:border-borderTone dark:bg-state-info-bg/18 dark:text-primary">
+                        <div className="inline-flex min-w-[68px] justify-center rounded-full bg-[hsl(var(--state-info-bg))] px-3 py-1 text-[17px] font-semibold tracking-tight text-primary dark:bg-[hsl(var(--state-info-bg))] dark:text-primary">
                           {record.score}%
                         </div>
                         <div className={`mt-1 ${pageMetaTextClass}`}>
-                          {record.correctCount}/{record.totalQuestions} · {formatDuration(record.duration, copy)}
+                          {record.correctCount}/{record.totalQuestions} ·{' '}
+                          {formatDuration(record.duration, copy)}
                         </div>
                       </div>
                     </button>
@@ -1168,15 +1266,19 @@ export const DashboardHome = ({
                 />
               )}
             </Card>
-
-            <DailyInspiration
-              lang={lang}
-              t={t}
-              welcomeTitle={t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
-              welcomeSub=""
-              className="self-start"
-            />
           </section>
+
+          <DailyInspiration
+            lang={lang}
+            t={t}
+            welcomeTitle={
+              t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')
+            }
+            welcomeSub={copy(
+              '留一句短提示，不再让它抢走主信息区的注意力。',
+              'A short cue for the day, without pulling focus from your study data.'
+            )}
+          />
         </div>
       </div>
     </TooltipProvider>

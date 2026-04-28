@@ -6,9 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  BookOpen,
   LayoutDashboard,
-  PenTool,
   MessageCircle,
   MessageSquare,
   Settings,
@@ -23,10 +21,9 @@ import {
   Rocket,
   Loader2,
   Sparkles,
-  Search,
-  Clock3,
   Flame,
   ArrowRight,
+  Search,
 } from 'lucide-react'
 import { useApp } from '@/providers'
 import { logoutAction } from '@/actions/user/auth'
@@ -38,8 +35,6 @@ import {
   pagePanelClass,
   pageInsetClass,
   pageSoftInsetClass,
-  pageShellFrameClass,
-  pageSegmentedControlCompactClass,
 } from '@/components/shared/pageSurfaces'
 import {
   type DashboardView,
@@ -77,7 +72,7 @@ const SidebarItem = ({
     aria-busy={pending || undefined}
     className={`flex w-full items-center ${indent ? 'pl-8 pr-4' : 'px-4'} group relative overflow-hidden rounded-xl py-3 text-sm font-medium transition-colors duration-200 ${
       active
-        ? 'border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/16 dark:text-text-primary dark:shadow-none'
+        ? 'dark:bg-[hsl(var(--state-info-bg))]/16 border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-borderTone dark:text-text-primary dark:shadow-none'
         : 'border border-transparent text-text-secondary hover:border-borderTone/80 hover:bg-surface hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-text-primary'
     } ${disabled ? 'cursor-not-allowed' : ''}`}
   >
@@ -99,7 +94,7 @@ const SidebarItem = ({
 )
 
 const SectionLabel = ({ label }: { label: string }) => (
-  <div className="pl-4 pr-2 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
+  <div className="pb-1 pl-4 pr-2 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary dark:text-text-tertiary">
     {label}
   </div>
 )
@@ -130,7 +125,7 @@ const SidebarSection = ({
       disabled={disabled}
       className={`group relative flex w-full items-center overflow-hidden rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 ${
         isActive
-          ? 'border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/16 dark:text-text-primary dark:shadow-none'
+          ? 'dark:bg-[hsl(var(--state-info-bg))]/16 border border-borderTone bg-[hsl(var(--state-info-bg))]/70 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] dark:border-borderTone dark:text-text-primary dark:shadow-none'
           : 'border border-transparent text-text-secondary hover:border-borderTone/80 hover:bg-surface hover:text-text-primary dark:text-text-secondary dark:hover:border-borderTone dark:hover:bg-surface-subtle dark:hover:text-text-primary'
       } ${disabled ? 'cursor-not-allowed' : ''}`}
     >
@@ -157,9 +152,11 @@ interface DashboardLayoutProps {
   currentView: DashboardView
   onNavigate: (view: string) => void
   user?: {
+    id?: string | null
     username?: string | null
-    email: string
+    email?: string | null
     avatar?: string | null
+    handle?: string | null
   }
   userRole?: string
   userXp?: number | null
@@ -168,83 +165,110 @@ interface DashboardLayoutProps {
   lockShellScroll?: boolean
 }
 
-interface DashboardHeaderBarProps {
+interface DashboardTopBarProps {
   copy: (zh: string, en: string, ms?: string) => string
+  title: string
+  subtitle: string
   displayName: string
   avatarFallback: string
   tierLabel: string
   avatarUrl?: string | null
-  welcomeSubline: string
   onOpenMessages: () => void
   onOpenSettings: () => void
 }
 
-const DashboardHeaderBar = ({
+function BrandMark() {
+  return (
+    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(145deg,#ffb36a_0%,#ef7d35_100%)] shadow-[0_14px_28px_rgba(239,125,53,0.24)]">
+      <svg
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        className="h-6 w-6 text-white"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M8.5 10.5h6.5a3 3 0 0 1 3 3v8H11a2.5 2.5 0 0 1-2.5-2.5z" />
+        <path d="M23.5 10.5H17a3 3 0 0 0-3 3v8h7a2.5 2.5 0 0 0 2.5-2.5z" />
+        <path d="M16 10.5v11" />
+      </svg>
+    </div>
+  )
+}
+
+const DashboardTopBar = ({
   copy,
+  title,
+  subtitle,
   displayName,
   avatarFallback,
   tierLabel,
   avatarUrl,
-  welcomeSubline,
   onOpenMessages,
   onOpenSettings,
-}: DashboardHeaderBarProps) => (
-  <div className={`${pagePanelClass} flex min-h-0 flex-col gap-4 px-5 py-4 lg:px-6 lg:py-4`}>
-    <div className="min-w-0">
-      <div className="flex items-center gap-1.5 text-[22px] font-semibold tracking-tight text-text-primary sm:text-[24px]">
-        <span>{copy('欢迎回来，', 'Welcome back,')}</span>
-        <span className="truncate">{displayName}</span>
-        <span aria-hidden="true">👋</span>
-      </div>
-      <div className="mt-1 text-sm text-text-secondary">
-        {welcomeSubline}
-      </div>
-    </div>
-
-    <div className="flex min-w-0 flex-wrap items-center gap-2 lg:ml-auto lg:flex-nowrap lg:justify-end">
-      <div className="relative hidden min-w-[280px] xl:block xl:w-[320px] 2xl:w-[360px]">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-        <Input
-          readOnly
-          value=""
-          placeholder={copy('搜索课程、任务、成员', 'Search courses, tasks, people')}
-          className="h-11 rounded-full border-borderTone bg-surface pl-11 text-sm shadow-none dark:border-borderTone dark:bg-surface-subtle"
-        />
-      </div>
-
-      <button
-        type="button"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-borderTone bg-surface text-text-secondary shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none dark:hover:text-white"
-        onClick={onOpenMessages}
-        aria-label={copy('消息', 'Messages')}
-      >
-        <MessageSquare className="h-4.5 w-4.5" />
-      </button>
-
-      <div className="h-11 w-11">
-        <NotificationBell />
-      </div>
-
-      <button
-        type="button"
-        onClick={onOpenSettings}
-        className="flex h-11 items-center gap-2 rounded-full border border-borderTone bg-surface px-2 pr-3 text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:shadow-none dark:hover:bg-surface-selected"
-      >
-        <Avatar className="h-8 w-8 rounded-full border border-borderTone">
-          <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-          <AvatarFallback className="rounded-full bg-surface-subtle text-[11px] font-semibold text-text-secondary dark:bg-surface-subtle dark:text-text-secondary">
-            {avatarFallback}
-          </AvatarFallback>
-        </Avatar>
-        <div className="hidden min-w-0 flex-col text-left lg:flex">
-          <span className="truncate text-[12px] font-semibold text-text-primary">
-            {displayName}
-          </span>
-          <span className="truncate text-[10px] text-text-tertiary">
-            {tierLabel}
-          </span>
+}: DashboardTopBarProps) => (
+  <div className="sticky top-0 z-30 border-b border-borderTone/70 bg-[hsl(var(--page-bg))/0.92] backdrop-blur-xl dark:border-borderTone/70 dark:bg-[hsl(var(--page-bg))/0.9]">
+    <div className="flex min-h-[72px] items-center gap-4 px-3 py-3 sm:px-4 desktop:px-6">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[22px] font-semibold tracking-tight text-text-primary sm:text-[24px]">
+          {title}
         </div>
-      </button>
+        <div className="mt-1 truncate text-[13px] text-text-secondary">
+          {subtitle}
+        </div>
+      </div>
+
+      <div className="flex min-w-0 items-center gap-2">
+        <div className="hidden min-w-[240px] items-center gap-2 rounded-full border border-borderTone bg-surface px-4 py-2 shadow-surface sm:flex">
+          <Search className="h-4 w-4 shrink-0 text-text-tertiary" />
+          <Input
+            readOnly
+            aria-label={copy('搜索', 'Search')}
+            placeholder={copy(
+              '搜索课程、练习、社区内容',
+              'Search courses, drills, community content'
+            )}
+            className="h-auto border-0 bg-transparent p-0 text-[13px] text-text-primary shadow-none placeholder:text-text-tertiary focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <kbd className="ml-1 rounded-full border border-borderTone bg-surface-subtle px-2 py-0.5 text-[10px] text-text-tertiary">
+            /
+          </kbd>
+        </div>
+
+        <button
+          type="button"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-borderTone bg-surface text-text-secondary shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:shadow-none dark:hover:text-white"
+          onClick={onOpenMessages}
+          aria-label={copy('消息', 'Messages')}
+        >
+          <MessageSquare className="h-4.5 w-4.5" />
+        </button>
+
+        <NotificationBell />
+
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="flex h-11 items-center gap-2 rounded-full border border-borderTone bg-surface px-2 pr-3 text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:shadow-none dark:hover:bg-surface-selected"
+        >
+          <Avatar className="h-8 w-8 rounded-full border border-borderTone">
+            <AvatarImage src={avatarUrl || undefined} alt={displayName} />
+            <AvatarFallback className="rounded-full bg-surface-subtle text-[11px] font-semibold text-text-secondary dark:bg-surface-subtle dark:text-text-secondary">
+              {avatarFallback}
+            </AvatarFallback>
+          </Avatar>
+          <div className="hidden min-w-0 flex-col text-left lg:flex">
+            <span className="truncate text-[12px] font-semibold text-text-primary">
+              {displayName}
+            </span>
+            <span className="truncate text-[10px] text-text-tertiary">
+              {tierLabel}
+            </span>
+          </div>
+        </button>
+      </div>
     </div>
   </div>
 )
@@ -410,10 +434,20 @@ const DashboardRightRail = ({
             <ArrowRight className="h-4 w-4 text-text-tertiary" />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" className="rounded-full" onClick={onOpenPractice}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={onOpenPractice}
+            >
               {copy('练习', 'Practice')}
             </Button>
-            <Button variant="outline" size="sm" className="rounded-full" onClick={onOpenCommunity}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={onOpenCommunity}
+            >
               {copy('社区', 'Community')}
             </Button>
           </div>
@@ -430,6 +464,169 @@ const DashboardRightRail = ({
     </div>
   </div>
 )
+
+function getTopBarTitle(
+  pathname: string | null | undefined,
+  currentView: DashboardView,
+  copy: (zh: string, en: string, ms?: string) => string
+) {
+  if (!pathname) {
+    return currentView === 'parent'
+      ? copy('家长仪表盘', 'Parent Dashboard')
+      : copy('仪表盘', 'Dashboard')
+  }
+
+  if (pathname.startsWith('/admin/users')) {
+    return copy('用户管理', 'User Management')
+  }
+  if (pathname.startsWith('/admin/feedback')) {
+    return copy('反馈管理', 'Feedback')
+  }
+  if (pathname.startsWith('/admin/referrals')) {
+    return copy('推荐管理', 'Referrals')
+  }
+  if (pathname.startsWith('/admin/rewards')) {
+    return copy('奖励中心', 'Rewards Center')
+  }
+  if (pathname.startsWith('/admin/content/import')) {
+    return copy('内容导入', 'Content Import')
+  }
+  if (pathname.startsWith('/admin/content/review')) {
+    return copy('内容审核', 'Content Review')
+  }
+  if (pathname.startsWith('/admin/content/reports')) {
+    return copy('内容报告', 'Content Reports')
+  }
+  if (pathname.startsWith('/admin/content/statistics')) {
+    return copy('内容统计', 'Content Statistics')
+  }
+  if (pathname.startsWith('/admin/content')) {
+    return copy('内容管理', 'Content Management')
+  }
+  if (pathname.startsWith('/admin')) {
+    return copy('管理仪表盘', 'Admin Dashboard')
+  }
+  if (pathname.startsWith('/dashboard/community/new')) {
+    return copy('发布帖子', 'New Post')
+  }
+  if (/^\/dashboard\/community\/[^/]+/.test(pathname)) {
+    return copy('帖子详情', 'Post Detail')
+  }
+  if (pathname.startsWith('/dashboard/community')) {
+    return copy('学员社区', 'Community')
+  }
+  if (pathname.startsWith('/dashboard/courses')) {
+    return copy('课程学习', 'Courses')
+  }
+  if (pathname.startsWith('/dashboard/practice/mock-arena')) {
+    return copy('模考训练', 'Mock Arena')
+  }
+  if (pathname.startsWith('/dashboard/practice/smart-drill')) {
+    return copy('智能练习', 'Smart Drill')
+  }
+  if (pathname.startsWith('/dashboard/practice/error-wiper')) {
+    return copy('错题清除', 'Error Wiper')
+  }
+  if (pathname.startsWith('/dashboard/practice/chapter-drill')) {
+    return copy('章节训练', 'Chapter Drill')
+  }
+  if (pathname.startsWith('/dashboard/practice/past-paper')) {
+    return copy('历年真题', 'Past Paper')
+  }
+  if (pathname.startsWith('/dashboard/practice/import')) {
+    return copy('导入练习', 'Import Practice')
+  }
+  if (pathname.startsWith('/dashboard/practice')) {
+    return copy('练习中心', 'Practice Center')
+  }
+  if (pathname.startsWith('/dashboard/settings')) {
+    return copy('设置', 'Settings')
+  }
+  if (pathname.startsWith('/dashboard/leaderboard')) {
+    return copy('排行榜', 'Leaderboard')
+  }
+  if (pathname.startsWith('/dashboard/achievements')) {
+    return copy('成就中心', 'Achievements')
+  }
+  if (currentView === 'parent') {
+    return copy('家长仪表盘', 'Parent Dashboard')
+  }
+
+  return copy('仪表盘', 'Dashboard')
+}
+
+function getTopBarSubtitle(
+  pathname: string | null | undefined,
+  currentView: DashboardView,
+  displayName: string,
+  copy: (zh: string, en: string, ms?: string) => string
+) {
+  if (!pathname) {
+    return currentView === 'parent'
+      ? copy(
+          `欢迎回来，${displayName}，继续查看孩子的学习进度。`,
+          `Welcome back, ${displayName}. Continue tracking your child's progress.`
+        )
+      : copy(`欢迎回来！${displayName}`, `Welcome back, ${displayName}.`)
+  }
+
+  if (pathname === '/dashboard') {
+    return copy(`欢迎回来！${displayName}`, `Welcome back, ${displayName}.`)
+  }
+  if (pathname.startsWith('/dashboard/courses')) {
+    return copy(
+      '继续你的课程推进，回到当前科目或复习上次停下的位置。',
+      'Continue learning from where you left off in your current course.'
+    )
+  }
+  if (pathname.startsWith('/dashboard/practice')) {
+    return copy(
+      '回到练习中心，选择一种模式直接开始今天的训练。',
+      'Return to practice and pick a mode to start today’s training.'
+    )
+  }
+  if (pathname.startsWith('/dashboard/community')) {
+    return copy(
+      '看看同学们在讨论什么，或者把你的问题直接发出来。',
+      'See what others are discussing, or post your own question.'
+    )
+  }
+  if (pathname.startsWith('/dashboard/settings')) {
+    return copy(
+      '管理个人资料、通知偏好和学习习惯设置。',
+      'Manage your profile, notification preferences, and study settings.'
+    )
+  }
+  if (pathname.startsWith('/dashboard/leaderboard')) {
+    return copy(
+      '查看你和同年级同学的相对表现变化。',
+      'Track how you compare with other students in your grade.'
+    )
+  }
+  if (pathname.startsWith('/dashboard/achievements')) {
+    return copy(
+      '回顾已解锁的徽章与阶段性进步。',
+      'Review unlocked badges and milestone progress.'
+    )
+  }
+  if (pathname.startsWith('/admin')) {
+    return copy(
+      '集中处理内容、用户和运营相关的后台事务。',
+      'Handle content, user, and operations tasks from one place.'
+    )
+  }
+  if (currentView === 'parent') {
+    return copy(
+      `欢迎回来，${displayName}，继续查看孩子的学习进度。`,
+      `Welcome back, ${displayName}. Continue tracking your child's progress.`
+    )
+  }
+
+  return copy(
+    '继续今天的学习节奏，从这里直接进入下一步。',
+    'Continue today’s learning flow from here.'
+  )
+}
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
@@ -457,7 +654,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const isPracticeRoute = pathname?.startsWith('/dashboard/practice') || false
   const [isSidebarOpen, setSidebarOpen] = React.useState(false)
   const [isUserAdminExpanded, setIsUserAdminExpanded] = React.useState(false)
-  const [isContentAdminExpanded, setIsContentAdminExpanded] = React.useState(false)
+  const [isContentAdminExpanded, setIsContentAdminExpanded] =
+    React.useState(false)
   const [isMounted, setIsMounted] = React.useState(false)
   const [isLogoutPending, startLogoutTransition] = React.useTransition()
   const {
@@ -511,16 +709,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }
   const tierLabel = tierLabelMap[effectiveTier] || 'Starter'
   const displayName =
-    user?.username?.trim() ||
-    user?.email?.split('@')[0]?.trim() ||
-    'User'
-  const avatarFallback = displayName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-    .slice(0, 2) || 'U'
+    user?.username?.trim() || user?.email?.split('@')[0]?.trim() || 'User'
+  const avatarFallback =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('')
+      .slice(0, 2) || 'U'
   const subscriptionLabel = subscriptionEnd
     ? new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US', {
         month: 'short',
@@ -568,13 +765,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     pathname,
     normalizedCurrentView
   )
-  const showDashboardChrome = normalizedCurrentView === 'dashboard'
-  const showDashboardRail = showDashboardChrome
-  const showDashboardHeader = showDashboardChrome
+  const showDashboardRail = normalizedCurrentView === 'dashboard'
+  const topBarTitle = getTopBarTitle(pathname, normalizedCurrentView, copy)
+  const topBarSubtitle = getTopBarSubtitle(
+    pathname,
+    normalizedCurrentView,
+    displayName,
+    copy
+  )
 
-  const menuItems = (isParent
-    ? parentDashboardNavItems
-    : studentDashboardNavItems
+  const menuItems = (
+    isParent ? parentDashboardNavItems : studentDashboardNavItems
   ).map((item) => ({
     ...item,
     label:
@@ -630,13 +831,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div
-      className={`dashboard-shell grid min-w-0 grid-cols-1 bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white ${
-        lockShellScroll
-          ? 'h-[calc(100dvh-3.5rem)] overflow-hidden overscroll-none tablet:h-dvh desktop:grid-cols-[minmax(240px,15%)_minmax(0,60%)_minmax(320px,25%)] desktop:grid-rows-[auto_auto] desktop:content-start desktop:items-start'
-          : 'min-h-[calc(100dvh-3.5rem)] overflow-visible overscroll-auto desktop:grid-cols-[minmax(240px,15%)_minmax(0,1fr)] desktop:grid-rows-[auto]'
-      }`}
-    >
+    <div className="dashboard-shell grid min-h-[100dvh] min-w-0 grid-cols-1 overflow-visible overscroll-auto bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white desktop:h-[100dvh] desktop:grid-cols-[minmax(240px,15%)_minmax(0,1fr)] desktop:overflow-hidden desktop:overscroll-none">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -647,9 +842,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out desktop:static desktop:col-start-1 desktop:${showDashboardChrome ? 'row-span-2' : 'row-span-1'} desktop:flex desktop:w-auto desktop:translate-x-0 desktop:shadow-none dark:border-borderTone/70 dark:bg-page-elevated/95 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out dark:border-borderTone/70 dark:bg-page-elevated/95 desktop:sticky desktop:top-0 desktop:col-start-1 desktop:flex desktop:h-[100dvh] desktop:w-auto desktop:translate-x-0 desktop:self-stretch desktop:overflow-hidden desktop:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
-        <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-7 dark:border-borderTone/70">
+        <div className="flex h-20 flex-shrink-0 items-center px-7">
           <button
             type="button"
             className="flex cursor-pointer items-center gap-3"
@@ -658,18 +853,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             }
             disabled={isSidebarLocked}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/95 shadow-[0_10px_24px_rgba(96,145,235,0.24)]">
+            <div className="relative">
+              <BrandMark />
               {pendingTarget === `view:${isParent ? 'parent' : 'dashboard'}` ? (
-                <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
-              ) : (
-                <BookOpen className="h-4 w-4 text-primary-foreground" />
-              )}
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/10">
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                </div>
+              ) : null}
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-text-primary dark:text-text-primary">
-                LearnMore
+                Learnbank.ai
               </span>
-              <span className="w-fit rounded-full border border-borderTone bg-[hsl(var(--state-info-bg))] px-2.5 py-0.5 text-[10px] font-semibold text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/18 dark:text-primary">
+              <span className="w-fit rounded-full border border-[hsl(var(--border-subtle))] bg-surface-muted px-2.5 py-0.5 text-[10px] font-semibold text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-primary">
                 {tierLabel}
               </span>
             </div>
@@ -780,7 +976,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 className="group w-full rounded-xl border border-borderTone bg-surface px-4 py-3.5 text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle disabled:cursor-not-allowed dark:border-borderTone dark:bg-surface dark:shadow-none dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-subtle"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/18 dark:text-primary">
+                  <div className="dark:bg-[hsl(var(--state-info-bg))]/18 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-borderTone bg-[hsl(var(--state-info-bg))] text-[hsl(var(--state-info-fg))] dark:border-borderTone dark:text-primary">
                     {pendingTarget === 'route:/pricing' ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -807,12 +1003,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
 
         {/* Bottom Section - ABSOLUTELY POSITIONED */}
-        <div className="z-20 shrink-0 border-t border-borderTone/70 bg-page-elevated/92 p-4 dark:border-borderTone/70 dark:bg-page-elevated/92">
+        <div className="bg-page-elevated/92 dark:bg-page-elevated/92 z-20 shrink-0 border-t border-borderTone/70 p-4 dark:border-borderTone/70">
           <SectionLabel label={copy('账户', 'Account', 'Akaun')} />
           {!isParent && (
             <button
               type="button"
-              onClick={() => handleRouteNavigation(getDashboardRoute('leaderboard'))}
+              onClick={() =>
+                handleRouteNavigation(getDashboardRoute('leaderboard'))
+              }
               disabled={isSidebarLocked}
               className={`group mb-3 mt-1 w-full cursor-pointer overflow-hidden rounded-xl border p-4 text-left shadow-surface transition-colors ${
                 isDashboardViewActive(
@@ -820,7 +1018,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   pathname,
                   normalizedCurrentView
                 )
-                  ? 'border-borderTone bg-[hsl(var(--state-info-bg))]/70 dark:border-borderTone dark:bg-[hsl(var(--state-info-bg))]/14'
+                  ? 'dark:bg-[hsl(var(--state-info-bg))]/14 border-borderTone bg-[hsl(var(--state-info-bg))]/70 dark:border-borderTone'
                   : 'border-borderTone bg-surface hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface dark:shadow-none dark:hover:border-[hsl(var(--border-strong))] dark:hover:bg-surface-subtle'
               } ${isSidebarLocked ? 'cursor-not-allowed' : ''}`}
               aria-busy={
@@ -834,7 +1032,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   <h4 className="text-sm font-bold text-text-primary dark:text-text-primary">
                     {t.dashboard.level} {resolvedLevel}
                   </h4>
-                  {pendingTarget === `route:${getDashboardRoute('leaderboard')}` ? (
+                  {pendingTarget ===
+                  `route:${getDashboardRoute('leaderboard')}` ? (
                     <Loader2 className="h-3 w-3 animate-spin text-primary dark:text-white" />
                   ) : (
                     <ChevronRight className="h-3 w-3 text-text-tertiary transition-colors group-hover:text-text-primary dark:text-text-tertiary dark:group-hover:text-white" />
@@ -873,69 +1072,77 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </div>
       </aside>
 
-      {showDashboardHeader ? (
-        <div className="desktop:col-start-2 desktop:col-span-2 desktop:row-start-1 desktop:row-span-1">
-          <div className="px-3 pt-3 sm:px-4 sm:pt-4">
-            <DashboardHeaderBar
+      <div
+        className={`min-h-0 min-w-0 desktop:col-start-2 ${
+          lockShellScroll
+            ? 'desktop:grid desktop:h-full desktop:grid-cols-[minmax(0,12fr)_minmax(320px,5fr)] desktop:grid-rows-[auto_minmax(0,1fr)] desktop:overflow-hidden'
+            : 'desktop:grid desktop:h-full desktop:grid-cols-[minmax(0,1fr)] desktop:grid-rows-[auto_minmax(0,1fr)] desktop:overflow-hidden'
+        }`}
+      >
+        <div
+          className={
+            showDashboardRail
+              ? 'desktop:col-span-2 desktop:row-start-1'
+              : 'desktop:row-start-1'
+          }
+        >
+          <DashboardTopBar
+            copy={copy}
+            title={topBarTitle}
+            subtitle={topBarSubtitle}
+            displayName={displayName}
+            avatarFallback={avatarFallback}
+            tierLabel={tierLabel}
+            avatarUrl={user?.avatar}
+            onOpenMessages={() => handleRouteNavigation('/dashboard/community')}
+            onOpenSettings={() => handleRouteNavigation('/dashboard/settings')}
+          />
+        </div>
+
+        {/* Main Content Area */}
+        <main
+          className={`flex min-h-0 min-w-0 flex-col ${
+            lockShellScroll
+              ? 'h-auto overflow-visible desktop:row-start-2 desktop:overflow-y-auto'
+              : 'h-auto overflow-visible desktop:row-start-2 desktop:overflow-y-auto'
+          } ${
+            isAnyAdminRoute
+              ? 'p-2 sm:p-4'
+              : isPracticeRoute
+                ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
+                : 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-4 desktop:py-4'
+          } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}
+        >
+          <TrialBanner
+            subscriptionTier={subscriptionTier || null}
+            subscriptionEnd={subscriptionEnd || null}
+          />
+
+          <div className="mt-4 min-h-0 w-full self-start">{children}</div>
+        </main>
+
+        {showDashboardRail ? (
+          <aside className="hidden min-h-0 p-3 pt-4 desktop:row-start-2 desktop:block desktop:self-start desktop:overflow-y-auto desktop:p-4">
+            <DashboardRightRail
               copy={copy}
               displayName={displayName}
               avatarFallback={avatarFallback}
               tierLabel={tierLabel}
               avatarUrl={user?.avatar}
-              welcomeSubline={copy(
-                '继续从这里推进今天的学习节奏。',
-                'Keep the learning momentum going from here.'
-              )}
-              onOpenMessages={() => handleRouteNavigation('/dashboard/community')}
-              onOpenSettings={() => handleRouteNavigation('/dashboard/settings')}
+              userEmail={user?.email || copy('未设置邮箱', 'No email')}
+              userRole={userRole}
+              subscriptionLabel={subscriptionLabel}
+              resolvedLevel={resolvedLevel}
+              resolvedXp={resolvedXp}
+              resolvedNextLevelXp={resolvedNextLevelXp}
+              levelProgress={levelProgress}
+              onOpenPractice={() => handleViewNavigation('practice')}
+              onOpenCommunity={() => handleViewNavigation('community')}
+              onOpenSettings={() => handleViewNavigation('settings')}
             />
-          </div>
-        </div>
-      ) : null}
-
-      {/* Main Content Area */}
-      <main
-        className={`min-w-0 flex min-h-0 flex-col ${
-          lockShellScroll ? 'h-auto overflow-hidden' : 'h-auto overflow-visible'
-        } ${
-          isAnyAdminRoute
-            ? 'p-2 sm:p-4'
-            : isPracticeRoute
-              ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
-              : 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-4 desktop:py-4'
-        } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''} desktop:col-start-2 desktop:self-start ${showDashboardHeader ? 'desktop:row-start-2' : 'desktop:row-start-1'}`}
-      >
-        <TrialBanner
-          subscriptionTier={subscriptionTier || null}
-          subscriptionEnd={subscriptionEnd || null}
-        />
-
-        <div className="mt-4 min-h-0 w-full self-start">
-          {children}
-        </div>
-      </main>
-
-      {showDashboardRail ? (
-        <aside className="hidden min-h-0 p-3 pt-4 desktop:col-start-3 desktop:row-start-2 desktop:block desktop:self-start desktop:p-4">
-          <DashboardRightRail
-            copy={copy}
-            displayName={displayName}
-            avatarFallback={avatarFallback}
-            tierLabel={tierLabel}
-            avatarUrl={user?.avatar}
-            userEmail={user?.email || copy('未设置邮箱', 'No email')}
-            userRole={userRole}
-            subscriptionLabel={subscriptionLabel}
-            resolvedLevel={resolvedLevel}
-            resolvedXp={resolvedXp}
-            resolvedNextLevelXp={resolvedNextLevelXp}
-            levelProgress={levelProgress}
-            onOpenPractice={() => handleViewNavigation('practice')}
-            onOpenCommunity={() => handleViewNavigation('community')}
-            onOpenSettings={() => handleViewNavigation('settings')}
-          />
-        </aside>
-      ) : null}
+          </aside>
+        ) : null}
+      </div>
     </div>
   )
 }

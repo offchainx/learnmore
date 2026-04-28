@@ -16,7 +16,11 @@ interface AchievementsClientWrapperProps {
   badges: BadgeWithUnlockStatus[]
 }
 
-export function AchievementsClientWrapper({ user, overview, badges }: AchievementsClientWrapperProps) {
+export function AchievementsClientWrapper({
+  user,
+  overview,
+  badges,
+}: AchievementsClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -27,6 +31,7 @@ export function AchievementsClientWrapper({ user, overview, badges }: Achievemen
     <DashboardLayout
       currentView="achievements"
       onNavigate={handleNavigate}
+      user={user}
       userRole={user.role}
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}

@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   try {
-    await ensureDailyTasks(user.id)
+    await ensureDailyTasks(user.id, { skipIfLocked: true })
   } catch (error) {
     console.warn('[DailyTasks] ensureDailyTasks failed; serving existing tasks only:', error)
   }

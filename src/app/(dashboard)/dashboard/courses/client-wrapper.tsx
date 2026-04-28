@@ -23,6 +23,7 @@ export function CoursesClientWrapper({ user }: CoursesClientWrapperProps) {
     <DashboardLayout
       currentView="courses"
       onNavigate={handleNavigate}
+      user={user}
       userRole={user.role}
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}

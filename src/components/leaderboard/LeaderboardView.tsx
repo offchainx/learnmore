@@ -17,15 +17,12 @@ import { TierRoadmap } from './components/TierRoadmap'
 import { LeaderboardList } from './components/LeaderboardList'
 import { XPBreakdown } from './components/XPBreakdown'
 import { FocusPanel } from './components/FocusPanel'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageMetaTextClass,
   pageSectionDescriptionClass,
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeClass,
-  pageHeroShellClass,
   pageShellFrameClass,
 } from '@/components/shared/pageSurfaces'
 import {
@@ -221,8 +218,7 @@ const copyByLang = {
     challengeLabel: 'Recommended Actions',
     challengeBadge: 'Prioritize the closest win',
     rivalLabel: 'Rival Target',
-    rivalHint:
-      'Do a high-yield practice run or finish the closest badge goal.',
+    rivalHint: 'Do a high-yield practice run or finish the closest badge goal.',
     rivalLeadText: (gap: number) => `Only ${gap} XP ahead of you`,
     rivalCta: 'Earn XP',
     rivalEmpty:
@@ -349,10 +345,10 @@ export const LeaderboardView = ({
   const [rankedUsers, setRankedUsers] =
     useState<RankedUser[]>(seedLeaderboardUsers)
   const [myRank, setMyRank] = useState<number | null>(initialMyRank)
-  const requestKey = useMemo(() => `${period}:100:${refreshNonce}`, [
-    period,
-    refreshNonce,
-  ])
+  const requestKey = useMemo(
+    () => `${period}:100:${refreshNonce}`,
+    [period, refreshNonce]
+  )
   const lastLoadedKeyRef = useRef<string>(
     initialEntries.length > 0 ? `${initialPeriod}:100:0` : ''
   )
@@ -697,34 +693,25 @@ export const LeaderboardView = ({
         className={`relative mx-auto max-w-[1500px] ${pageShellFrameClass} lg:h-[calc(100vh-7.5rem)]`}
       >
         <div className={`flex h-full min-h-0 flex-col ${pageSectionGapClass}`}>
-          <PageHeroShell
-            className={pageHeroShellClass}
-            title={
-              <PageHeroTitle title={copy.title} capsuleLabel={copy.heroBadge} />
-            }
-            subtitle={copy.heroSubtitle}
-            titleClassName="font-semibold"
-            subtitleClassName={pageSectionDescriptionClass}
-            actions={
-              <div className="flex flex-wrap items-center gap-2">
-                <div className={`${pageBadgeClass} ${pageMetaTextClass}`}>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  {copy.globalLabel} · {copy.periods[period]}
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleRefresh}
-                  className="h-9 rounded-full px-3 text-[13px]"
-                  disabled={loading}
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                  {copy.refreshLabel}
-                </Button>
-              </div>
-            }
-          />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className={`${pageBadgeClass} ${pageMetaTextClass}`}>
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              {copy.globalLabel} · {copy.periods[period]}
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleRefresh}
+              className="h-9 rounded-full px-3 text-[13px]"
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
+              />
+              {copy.refreshLabel}
+            </Button>
+          </div>
 
           {errorState ? (
             <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3 text-sm text-text-primary dark:border-borderTone dark:bg-surface-selected dark:text-white">
@@ -752,7 +739,9 @@ export const LeaderboardView = ({
                     className="rounded-full px-3"
                     disabled={loading}
                   >
-                    <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
+                    />
                     {copy.retryLabel}
                   </Button>
                   {errorState.kind === 'unauthorized' ? (

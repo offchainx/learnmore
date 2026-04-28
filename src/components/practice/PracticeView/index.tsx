@@ -21,10 +21,7 @@ import {
   type PracticeModePreviewConfig,
 } from './PracticeModePreviewDialog'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
-  pageHeroShellClass,
   pagePanelClass,
   pageShellFrameClass,
 } from '@/components/shared/pageSurfaces'
@@ -83,8 +80,7 @@ const CHINESE_CHAPTER_PREVIEW_NOTES: Record<
     preview: '3.1.1 华语的声韵调；3.1.2 规范的汉字',
   },
   '3.2 语文基础知识-词语': {
-    preview:
-      '3.2.1 词语（包括成语）的含义；3.2.2 词语（包括成语）的感情色彩',
+    preview: '3.2.1 词语（包括成语）的含义；3.2.2 词语（包括成语）的感情色彩',
   },
   '3.3 语文基础知识-句子': {
     preview:
@@ -259,8 +255,7 @@ const MATH_CHAPTER_PREVIEW_NOTES: Record<
       '4.1.1 理解统计表与统计图；4.1.2 绘制条形图与线形图及掌握其特点；4.1.3 编制频数分配表与累积频数分配表；4.1.4 绘制直方图、频数多边形与累积频数多边形；4.1.5 计算累积频数百分率',
   },
   '4.2 统计学 - 集中趋势与四分位数': {
-    preview:
-      '4.2.1 掌握平均数、中位数及众数的求法；4.2.2 掌握四分位数的求法',
+    preview: '4.2.1 掌握平均数、中位数及众数的求法；4.2.2 掌握四分位数的求法',
   },
   '5.1 集合论 - 集合': {
     preview:
@@ -319,7 +314,9 @@ const HISTORY_CHAPTER_PREVIEW_NOTES: Record<
   string,
   { preview?: string; supplement?: string }
 > = {
-  '1.1.1 马来西亚史部分 - 马六甲王国的建国经过': { preview: '1.1.1.1 ~ 1.1.1.2' },
+  '1.1.1 马来西亚史部分 - 马六甲王国的建国经过': {
+    preview: '1.1.1.1 ~ 1.1.1.2',
+  },
   '1.1.2 马来西亚史部分 - 葡萄牙与荷兰对马六甲的殖民统治': {
     preview: '1.1.2.1 ~ 1.1.2.2',
   },
@@ -536,12 +533,10 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   const [isSubjectBarPinned, setIsSubjectBarPinned] = useState(false)
   const [previewConfig, setPreviewConfig] =
     useState<PracticeModePreviewConfig | null>(null)
-  const [mockArenaQuestionCount, setMockArenaQuestionCount] = useState<
-    (typeof MOCK_ARENA_QUESTION_COUNTS)[number]
-  >(20)
-  const [mockArenaDifficulty, setMockArenaDifficulty] = useState<
-    (typeof MOCK_ARENA_DIFFICULTIES)[number]
-  >('MEDIUM')
+  const [mockArenaQuestionCount, setMockArenaQuestionCount] =
+    useState<(typeof MOCK_ARENA_QUESTION_COUNTS)[number]>(20)
+  const [mockArenaDifficulty, setMockArenaDifficulty] =
+    useState<(typeof MOCK_ARENA_DIFFICULTIES)[number]>('MEDIUM')
   const subjectSentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -741,7 +736,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       ? '先做首轮训练建立掌握基线'
       : lang === 'ms'
         ? 'Mulakan satu pusingan untuk bina garis asas'
-      : 'Start one round to build a baseline'
+        : 'Start one round to build a baseline'
 
   const mockArenaDifficultyLabel =
     mockArenaDifficulty === 'EASY'
@@ -914,7 +909,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
                 ? HISTORY_CHAPTER_PREVIEW_NOTES[chapter.title]
                 : currentSubjectKey === 'geography'
                   ? GEOGRAPHY_CHAPTER_PREVIEW_NOTES[chapter.title]
-          : undefined
+                  : undefined
     const previewTitle = parsedTitle
       ? `${parsedTitle.code} ${parsedTitle.primaryTitle}`
       : chapter.title
@@ -1035,15 +1030,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       <div
         className={`mx-auto w-full max-w-[1820px] ${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}
       >
-        <PageHeroShell
-          className={`${pageHeroShellClass} bg-surface bg-none shadow-none`}
-          title={
-            <PageHeroTitle title={headerCopy.title} capsuleLabel="Practice" />
-          }
-          subtitle={headerCopy.subtitle}
-          titleClassName="font-semibold"
-        />
-
         <div ref={subjectSentinelRef} className="h-px" />
         <div
           className={`sticky top-2.5 z-30 transition-all duration-300 ease-out ${

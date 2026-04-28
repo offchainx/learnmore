@@ -30,8 +30,6 @@ import { recordReferralCopyAction } from '@/actions/billing/referral'
 import { toast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
 import { useHandleAvailability } from '@/lib/hooks/useHandleAvailability'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   pageCardTitleClass,
   pageHeroNumericValueClass,
@@ -43,11 +41,9 @@ import {
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeClass,
-  pageHeroShellClass,
   pageInputClass,
   pageInsetClass,
   pagePanelClass,
-  pagePanelStrongClass,
   pagePillActiveClass,
   pagePillInactiveClass,
   pageSegmentedButtonClass,
@@ -253,10 +249,7 @@ type SettingsViewProps = {
 
 function getAvatarFallbackLabel(user?: UserProfile | null) {
   const source =
-    user?.username?.trim() ||
-    user?.handle?.trim() ||
-    user?.email?.trim() ||
-    ''
+    user?.username?.trim() || user?.handle?.trim() || user?.email?.trim() || ''
   const normalized = source.replace(/^@/, '').trim()
 
   if (!normalized) {
@@ -274,8 +267,9 @@ function formatCurriculumLabel(curriculumSystem?: string | null) {
   return curriculumSystem
     .split('_')
     .filter(Boolean)
-    .map((segment) =>
-      segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
+    .map(
+      (segment) =>
+        segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()
     )
     .join(' ')
 }
@@ -306,10 +300,7 @@ function SectionSubmitButton({
 
 function NotificationPreferencesSkeleton() {
   return (
-    <div
-      className="space-y-4"
-      data-settings-section-loading="notifications"
-    >
+    <div className="space-y-4" data-settings-section-loading="notifications">
       <div className="overflow-hidden rounded-[28px] border border-borderTone bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle">
         <div className="grid grid-cols-[minmax(0,1fr)_88px_88px] border-b border-borderTone px-5 py-3 dark:border-borderTone">
           <Skeleton className="h-3 w-28 rounded-full" />
@@ -446,8 +437,7 @@ function ReferralSection({
           user.referralLimit && user.referralLimit > 0
             ? `剩余可继续邀请 ${Math.max(user.referralLimit - user.referralCount, 0)} 位好友`
             : '当前推荐额度不设上限。',
-        shareCopy:
-          `我正在使用 LearnMore 学习，输入我的推荐码 ${user.referralCode || ''}，我们都能获得额外会员奖励。`,
+        shareCopy: `我正在使用 LearnMore 学习，输入我的推荐码 ${user.referralCode || ''}，我们都能获得额外会员奖励。`,
       }
     }
 
@@ -464,7 +454,8 @@ function ReferralSection({
         copied: 'Disalin',
         empty: 'Belum dijana',
         emptyTitle: 'Kod rujukan belum dijana',
-        emptyDesc: 'Apabila akaun anda sedia, kod dan pautan untuk dikongsi akan dipaparkan di sini.',
+        emptyDesc:
+          'Apabila akaun anda sedia, kod dan pautan untuk dikongsi akan dipaparkan di sini.',
         emptyAction: 'Sila lengkapkan tetapan akaun atau langganan dahulu.',
         reward: 'Peraturan ganjaran',
         rule1:
@@ -481,8 +472,7 @@ function ReferralSection({
           user.referralLimit && user.referralLimit > 0
             ? `Masih boleh menjemput ${Math.max(user.referralLimit - user.referralCount, 0)} rakan lagi`
             : 'Had rujukan semasa tidak ditetapkan.',
-        shareCopy:
-          `Saya sedang belajar di LearnMore. Guna kod rujukan ${user.referralCode || ''} untuk dapat ganjaran ahli tambahan.`,
+        shareCopy: `Saya sedang belajar di LearnMore. Guna kod rujukan ${user.referralCode || ''} untuk dapat ganjaran ahli tambahan.`,
       }
     }
 
@@ -517,8 +507,7 @@ function ReferralSection({
         user.referralLimit && user.referralLimit > 0
           ? `${Math.max(user.referralLimit - user.referralCount, 0)} invites left`
           : 'No referral limit is set right now.',
-      shareCopy:
-        `I use LearnMore to study. Use my referral code ${user.referralCode || ''} and we both unlock extra membership rewards.`,
+      shareCopy: `I use LearnMore to study. Use my referral code ${user.referralCode || ''} and we both unlock extra membership rewards.`,
     }
   }, [lang, user.referralCount, user.referralLimit, user.referralCode])
 
@@ -563,7 +552,8 @@ function ReferralSection({
       await navigator.clipboard.writeText(referralUrl)
       void recordReferralCopyAction({
         referralCode: user.referralCode,
-        sourcePath: typeof window === 'undefined' ? null : window.location.pathname,
+        sourcePath:
+          typeof window === 'undefined' ? null : window.location.pathname,
         destinationPath: referralPath,
       }).catch((error) => {
         console.warn('[ReferralAttribution] copy log failed', error)
@@ -658,7 +648,10 @@ function ReferralSection({
 
   const referralProgressPercent =
     user.referralLimit && user.referralLimit > 0
-      ? Math.min(100, Math.round((user.referralCount / user.referralLimit) * 100))
+      ? Math.min(
+          100,
+          Math.round((user.referralCount / user.referralLimit) * 100)
+        )
       : null
 
   return (
@@ -764,7 +757,8 @@ function ReferralSection({
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500"
               style={{
                 width: `${
-                  referralProgressPercent ?? Math.min(100, Math.max(20, user.referralCount * 12))
+                  referralProgressPercent ??
+                  Math.min(100, Math.max(20, user.referralCount * 12))
                 }%`,
               }}
             />
@@ -784,7 +778,11 @@ function ReferralSection({
       <div className={`${insetCardClassName} mt-4 p-4`}>
         <div className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-text-primary dark:text-white">
           <LinkIcon className="h-4 w-4 text-sky-300" />
-          {lang === 'zh' ? '传播出口' : lang === 'ms' ? 'Saluran perkongsian' : 'Sharing actions'}
+          {lang === 'zh'
+            ? '传播出口'
+            : lang === 'ms'
+              ? 'Saluran perkongsian'
+              : 'Sharing actions'}
         </div>
         <div className="grid gap-3 desktop:grid-cols-3">
           <Button
@@ -922,7 +920,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         profileSuccess: '个人资料已更新',
         aiSuccess: 'AI 配置已更新',
         handleLabel: '账号标识',
-        handleHint: '用于后续社区 @提及与用户识别，系统会自动转成小写并拦截保留词。',
+        handleHint:
+          '用于后续社区 @提及与用户识别，系统会自动转成小写并拦截保留词。',
         handleChecking: '正在检查账号标识是否可用...',
         handleAvailable: '账号标识可用，将保存为',
         gradeLabel: '年级',
@@ -1003,7 +1002,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
         profileSuccess: 'Profil dikemas kini',
         aiSuccess: 'Konfigurasi AI dikemas kini',
         handleLabel: 'Handle',
-        handleHint: 'Digunakan untuk @sebutan komuniti dan identiti pengguna. Sistem akan menyimpan dalam huruf kecil.',
+        handleHint:
+          'Digunakan untuk @sebutan komuniti dan identiti pengguna. Sistem akan menyimpan dalam huruf kecil.',
         handleChecking: 'Sedang menyemak ketersediaan handle...',
         handleAvailable: 'Handle tersedia dan akan disimpan sebagai',
         gradeLabel: 'Tingkatan',
@@ -1648,45 +1648,6 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   return (
     <div className="animate-fade-in-up pb-12">
       <div className={`${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}>
-        <PageHeroShell
-          className={`${pagePanelStrongClass} ${pageHeroShellClass}`}
-          title={
-            <PageHeroTitle
-              title={copy.heroTitle}
-              capsuleLabel={copy.heroBadge}
-            />
-          }
-          subtitle={copy.heroSub}
-          titleClassName="font-semibold"
-          subtitleClassName="text-[13px] leading-6 text-text-secondary dark:text-text-secondary"
-          actions={
-            <div
-              className={`grid sm:grid-cols-2 desktop:min-w-[360px] ${pageGridGapClass}`}
-            >
-              <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
-                <div className={pageKickerClass}>{copy.accountSummary}</div>
-                <div className={pageCardTitleClass}>
-                  {user?.username || user?.email || 'User'}
-                </div>
-                <div className={pageMetaTextClass}>{user?.email}</div>
-              </div>
-              <div className={`${insetCardClassName} min-w-[164px] p-3.5`}>
-                <div className={pageKickerClass}>{copy.currentPlan}</div>
-                <div
-                  className={cn(
-                    'mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-semibold',
-                    tierTone.capsule
-                  )}
-                >
-                  <TierIcon className={cn('h-3.5 w-3.5', tierTone.accent)} />
-                  {tierLabel}
-                </div>
-                <div className={pageMetaTextClass}>{statusLabel}</div>
-              </div>
-            </div>
-          }
-        />
-
         <div className="grid grid-cols-1 gap-6 desktop:h-[calc(100vh-14.5rem)] desktop:grid-cols-[260px_minmax(0,1fr)] desktop:overflow-hidden">
           <div className={`desktop:self-start ${pageSectionGapClass}`}>
             <Card className={`${surfaceClassName} ${pageCardPaddingClass}`}>
@@ -1800,7 +1761,9 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                           label={copy.handleLabel}
                           name="handle"
                           value={profileHandle}
-                          onChange={(event) => setProfileHandle(event.target.value)}
+                          onChange={(event) =>
+                            setProfileHandle(event.target.value)
+                          }
                           placeholder="@yourname"
                           className="bg-surface-subtle dark:bg-surface-subtle"
                           error={
@@ -1918,7 +1881,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                         </div>
                       </div>
 
-                    <div className="tablet:col-span-2">
+                      <div className="tablet:col-span-2">
                         <p className={pageMetaTextClass}>
                           {copy.preferenceSaveHint}
                         </p>

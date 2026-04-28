@@ -746,7 +746,7 @@ export async function getDashboardStats(
   if (includeDailyTasks) {
     const ensureStartedAt = performance.now()
     runAfterTask(async () => {
-      await ensureDailyTasks(user.id)
+      await ensureDailyTasks(user.id, { skipIfLocked: true })
     }, 'dashboard-ensure-daily-tasks')
     logPerf('getDashboardStats.ensureDailyTasks.scheduled', ensureStartedAt, {
       userId: user.id,

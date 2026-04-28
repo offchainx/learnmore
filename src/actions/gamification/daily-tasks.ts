@@ -34,6 +34,30 @@ async function withDailyTaskLock<T>(
   })
 }
 
+async function tryWithDailyTaskLock<T>(
+  userId: string,
+  callback: (
+    tx: Prisma.TransactionClient,
+    range: ReturnType<typeof getTodayRange>
+  ) => Promise<T>
+) {
+  const range = getTodayRange()
+  const lockKey = `daily_tasks:${userId}:${dayjs(range.start).format('YYYY-MM-DD')}`
+
+  return prisma.$transaction(async (tx) => {
+    const [lockResult] = await tx.$queryRaw<Array<{ acquired: boolean }>>(
+      Prisma.sql`SELECT pg_try_advisory_xact_lock(hashtext(${lockKey})) AS acquired`
+    )
+
+    if (!lockResult?.acquired) {
+      return false
+    }
+
+    await callback(tx, range)
+    return true
+  })
+}
+
 function isProfileTaskNeeded(user: {
   username: string | null
   grade: number | null
@@ -117,8 +141,15 @@ function getOnboardingRequirementState(user: {
  * Ensures dashboard task rows exist for the current day and reconciles
  * onboarding task completion with the latest user profile/settings state.
  */
-export async function ensureDailyTasks(userId: string) {
-  await withDailyTaskLock(userId, async (tx, { start, end }) => {
+export async function ensureDailyTasks(
+  userId: string,
+  options?: {
+    skipIfLocked?: boolean
+  }
+) {
+  const runWithLock = options?.skipIfLocked ? tryWithDailyTaskLock : withDailyTaskLock
+
+  await runWithLock(userId, async (tx, { start, end }) => {
     const [user, completedAssessmentTask, existingTasks] = await Promise.all([
       tx.user.findUnique({
         where: { id: userId },

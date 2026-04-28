@@ -3,19 +3,15 @@
 import React, { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageCardTitleClass,
-  pageDisplayTitleClass,
   pageMetaTextClass,
   pageNumericValueCompactClass,
   pageSectionDescriptionClass,
 } from '@/components/shared/pageTypography'
 import {
   pageEmptyStateClass,
-  pageHeroShellClass,
   pagePanelClass,
   pagePillActiveClass,
   pagePillInactiveClass,
@@ -95,43 +91,6 @@ export const AchievementsView = ({
   return (
     <div className="animate-fade-in-up pb-12">
       <div className={`${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}>
-        <PageHeroShell
-          className={pageHeroShellClass}
-          title={
-            <PageHeroTitle title="成就中心" capsuleLabel="Achievement Vault" />
-          }
-          subtitle={
-            user.username
-              ? `查看 ${user.username} 的成长记录、徽章解锁进度与下一步可冲刺的目标。`
-              : '查看真实成长记录、徽章解锁进度与下一步可冲刺的目标。'
-          }
-          titleClassName="font-semibold"
-          actions={null}
-        >
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-borderTone bg-surface text-lg font-black text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-primary">
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.username ? `${user.username} avatar` : 'user avatar'}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                <span>{getInitials(user.username)}</span>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className={pageDisplayTitleClass}>
-                {user.username || '你的账号'}
-              </div>
-              <p className={`mt-1 ${pageSectionDescriptionClass}`}>
-                成就完成度 {completionRate}% · 已解锁 {unlockedCount}/
-                {badges.length}
-              </p>
-            </div>
-          </div>
-        </PageHeroShell>
-
         <Card className={cn(pagePanelClass, pageCardPaddingClass)}>
           <div className="flex items-center justify-between gap-3">
             <SectionBlockHeader
@@ -187,7 +146,11 @@ export const AchievementsView = ({
               description="按已解锁和未解锁状态查看当前阶段最值得冲刺的徽章。"
               className="flex-1 gap-2"
             />
-            <div className="flex items-center gap-2" role="group" aria-label="徽章筛选">
+            <div
+              className="flex items-center gap-2"
+              role="group"
+              aria-label="徽章筛选"
+            >
               {(['all', 'unlocked', 'locked'] as const).map((value) => (
                 <button
                   key={value}

@@ -96,6 +96,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     <DashboardLayout
       currentView={currentView}
       onNavigate={handleViewChange}
+      user={user}
       userRole={user.role}
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}

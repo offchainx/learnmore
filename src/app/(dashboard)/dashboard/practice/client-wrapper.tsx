@@ -27,6 +27,7 @@ export function PracticeClientWrapper({
     <DashboardLayout
       currentView="practice"
       onNavigate={handleNavigate}
+      user={user}
       userRole={user.role}
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}

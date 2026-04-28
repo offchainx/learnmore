@@ -263,7 +263,10 @@ function getDailySeed(lang: string) {
   const startOfYear = new Date(now.getFullYear(), 0, 0)
   const diff = now.getTime() - startOfYear.getTime()
   const dayOfYear = Math.floor(diff / 86400000)
-  const langWeight = Array.from(lang).reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  const langWeight = Array.from(lang).reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0
+  )
   return dayOfYear + langWeight
 }
 
@@ -305,48 +308,37 @@ export const DailyInspiration = ({
 
   return (
     <div
-      className={`group relative w-full overflow-hidden rounded-[24px] border border-borderTone bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none ${className || 'h-full min-h-[180px]'}`}
+      className={`group relative w-full overflow-hidden rounded-[28px] border border-[hsl(var(--border-subtle))] bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none ${className || 'min-h-[148px]'}`}
     >
       <div
-        className={`absolute inset-0 opacity-90 ${activeBackground.shellLight} ${activeBackground.shellDark}`}
+        className={`absolute inset-0 opacity-35 ${activeBackground.shellLight} ${activeBackground.shellDark}`}
       />
-      <div
-        className={`pointer-events-none absolute -right-12 top-0 h-28 w-28 rounded-full blur-3xl ${activeBackground.glowLight} ${activeBackground.glowDark}`}
-      />
-      <div
-        className={`pointer-events-none absolute left-6 top-6 h-14 w-14 rounded-full blur-sm ${activeBackground.orbPrimaryLight} ${activeBackground.orbPrimaryDark}`}
-      />
-      <div
-        className={`pointer-events-none absolute bottom-10 right-16 h-20 w-20 rounded-full blur-md ${activeBackground.orbSecondaryLight} ${activeBackground.orbSecondaryDark}`}
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-white/12 via-transparent to-transparent dark:from-white/4" />
-      <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent dark:from-slate-950/92 dark:via-slate-950/60 dark:to-transparent" />
-      <div className="absolute inset-0 z-10 flex flex-col justify-between p-4 sm:p-5">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/82 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-secondary backdrop-blur-md dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200">
-            <Sparkles className="h-3 w-3 text-primary dark:text-sky-300" />
+      <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/70 via-white/35 to-transparent dark:from-slate-950/35 dark:via-slate-950/10" />
+      <div className="from-white/88 to-white/72 dark:from-slate-950/88 absolute inset-0 bg-gradient-to-r dark:to-slate-950/70" />
+      <div className="absolute inset-0 z-10 flex flex-col justify-between gap-5 p-5 sm:flex-row sm:items-end sm:p-6">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--surface-muted))] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-text-secondary dark:bg-surface-subtle dark:text-slate-200">
+            <Sparkles className="h-3 w-3 text-primary" />
             {t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')}
           </div>
-          <h1 className="mt-3 text-lg font-semibold tracking-tight text-text-primary dark:text-slate-50 sm:text-[20px]">
+          <h2 className="mt-3 text-[18px] font-semibold tracking-tight text-text-primary dark:text-slate-50 sm:text-[19px]">
             {welcomeTitle}
-          </h1>
+          </h2>
           {welcomeSub ? (
             <p className="mt-1.5 max-w-lg text-[12px] leading-5 text-text-secondary dark:text-slate-300 sm:text-[13px]">
               {welcomeSub}
             </p>
           ) : null}
         </div>
-        <div className="flex items-end justify-between gap-4">
-          <div className="max-w-3xl">
-            <p className="text-sm leading-6 text-text-primary dark:text-slate-50 sm:text-[15px]">
-              &quot;{quote}&quot;
-            </p>
-          </div>
+        <div className="flex items-end justify-between gap-4 sm:min-w-[320px]">
+          <p className="max-w-2xl text-sm leading-6 text-text-primary dark:text-slate-50 sm:text-[15px]">
+            &quot;{quote}&quot;
+          </p>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setManualOffset((value) => value + 1)}
-            className="shrink-0 rounded-xl border border-white/70 bg-white/82 px-3 text-[11px] font-semibold text-text-secondary backdrop-blur-sm hover:bg-white hover:text-text-primary dark:border-white/12 dark:bg-slate-950/55 dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white"
+            className="shrink-0 rounded-full border border-[hsl(var(--border-subtle))] bg-[hsl(var(--surface-default)/0.82)] px-3 text-[11px] font-medium text-text-secondary hover:bg-surface hover:text-text-primary dark:border-borderTone dark:bg-[hsl(var(--surface-default)/0.16)] dark:text-slate-200 dark:hover:bg-slate-900 dark:hover:text-white"
           >
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             {copy('换一张', 'Refresh')}

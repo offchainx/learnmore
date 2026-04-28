@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -45,12 +39,10 @@ import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { toast } from '@/components/ui/use-toast'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   fetchWithTimeout,
   isAbortLikeError,
 } from '@/lib/http/fetch-with-timeout'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageCardTitleClass,
@@ -58,7 +50,6 @@ import {
 } from '@/components/shared/pageTypography'
 import {
   pageBadgeMutedClass,
-  pageHeroShellClass,
   pageInputClass,
   pageInsetClass,
   pagePanelClass,
@@ -207,10 +198,7 @@ function formatRelativeTime(
   return `${count}mo ago`
 }
 
-function formatStableDate(
-  dateValue: Date | string,
-  lang: 'en' | 'zh' | 'ms'
-) {
+function formatStableDate(dateValue: Date | string, lang: 'en' | 'zh' | 'ms') {
   const locale = lang === 'zh' ? 'zh-CN' : lang === 'ms' ? 'ms-MY' : 'en-MY'
 
   return new Intl.DateTimeFormat(locale, {
@@ -330,13 +318,15 @@ export function CommunityView({
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
-  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>(initialScopeFilter)
+  const [scopeFilter, setScopeFilter] =
+    useState<ScopeFilter>(initialScopeFilter)
   const [sortMode, setSortMode] = useState<SortMode>(initialSortMode)
   const [activeBoardId, setActiveBoardId] = useState<string | 'all'>(
     initialBoardId
   )
   const [currentPage, setCurrentPage] = useState(initialPage)
-  const [pageMetadata, setPageMetadata] = useState<FeedMetadata>(initialMetadata)
+  const [pageMetadata, setPageMetadata] =
+    useState<FeedMetadata>(initialMetadata)
   const [aiHintLoadingPostId, setAiHintLoadingPostId] = useState<string | null>(
     null
   )
@@ -1097,7 +1087,13 @@ export function CommunityView({
     }
 
     return `Page ${page} / ${totalPages} · ${start}-${end} of ${total}`
-  }, [lang, pageMetadata.limit, pageMetadata.page, pageMetadata.total, pageMetadata.totalPages])
+  }, [
+    lang,
+    pageMetadata.limit,
+    pageMetadata.page,
+    pageMetadata.total,
+    pageMetadata.totalPages,
+  ])
 
   function renderCategory(post: FeedPost) {
     if (post.category === 'Question') {
@@ -1154,39 +1150,28 @@ export function CommunityView({
   return (
     <div className="animate-fade-in-up pb-12">
       <div className={`${pageSectionGapClass} ${pageShellFrameClass} sm:p-2.5`}>
-        <PageHeroShell
-          className={`${surfaceClassName} ${pageHeroShellClass}`}
-          title={
-            <PageHeroTitle title={t.community.title} capsuleLabel={copy.badge} />
-          }
-          subtitle={t.community.sub}
-          titleClassName="font-semibold"
-          subtitleClassName="mt-2 max-w-2xl text-sm leading-6 text-text-secondary dark:text-text-secondary"
-          actions={
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="relative min-w-0 sm:w-[320px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary dark:text-text-tertiary" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(event) => handleSearchChange(event.target.value)}
-                  placeholder={copy.searchPlaceholder}
-                  className={`${pageInputClass} pl-10 pr-4`}
-                />
-              </div>
-              <Link
-                href="/dashboard/community/new"
-                className={`${buttonVariants({
-                  variant: 'primary',
-                  size: 'default',
-                })} h-11 rounded-full px-5 text-sm font-semibold shadow-none`}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                {copy.publish}
-              </Link>
-            </div>
-          }
-        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <div className="relative min-w-0 sm:w-[320px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary dark:text-text-tertiary" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => handleSearchChange(event.target.value)}
+              placeholder={copy.searchPlaceholder}
+              className={`${pageInputClass} pl-10 pr-4`}
+            />
+          </div>
+          <Link
+            href="/dashboard/community/new"
+            className={`${buttonVariants({
+              variant: 'primary',
+              size: 'default',
+            })} h-11 rounded-full px-5 text-sm font-semibold shadow-none`}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {copy.publish}
+          </Link>
+        </div>
 
         <div
           className={`grid grid-cols-1 desktop:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] ${pageGridGapClass}`}
@@ -1249,9 +1234,7 @@ export function CommunityView({
             ) : null}
 
             {!loading && loadError ? (
-              <Card
-                className={`${surfaceClassName} rounded-[28px] px-5 py-10`}
-              >
+              <Card className={`${surfaceClassName} rounded-[28px] px-5 py-10`}>
                 <div className="mx-auto flex max-w-lg flex-col items-center gap-3 text-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-200">
                     <TriangleAlert className="h-5 w-5" />
@@ -1326,7 +1309,8 @@ export function CommunityView({
                                     href={`/u/${post.author.handle}`}
                                     className={`truncate hover:text-sky-600 dark:hover:text-sky-200 ${pageCardTitleClass}`}
                                   >
-                                    {post.author.username || `@${post.author.handle}`}
+                                    {post.author.username ||
+                                      `@${post.author.handle}`}
                                   </Link>
                                 ) : (
                                   <span
@@ -1405,13 +1389,15 @@ export function CommunityView({
                           <div className="mt-4 space-y-2">
                             <div className="flex items-center gap-2 text-[12px] font-medium text-text-secondary dark:text-text-secondary">
                               <Paperclip className="h-3.5 w-3.5" />
-                              {copy.attachmentsTitle}（{post.attachments.length}）
+                              {copy.attachmentsTitle}（{post.attachments.length}
+                              ）
                             </div>
                             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                              {post.attachments.slice(0, 3).map(
-                                (attachment, index) => (
+                              {post.attachments
+                                .slice(0, 3)
+                                .map((attachment, index) => (
                                   <Link
-                                  key={attachment}
+                                    key={attachment}
                                     href={`/dashboard/community/${post.id}`}
                                     aria-label={`${post.title} ${index + 1}`}
                                     className="group relative overflow-hidden rounded-2xl border border-borderTone bg-surface-subtle transition-colors hover:border-sky-300/60 dark:border-borderTone dark:bg-surface-subtle dark:hover:border-sky-400/40"
@@ -1421,7 +1407,8 @@ export function CommunityView({
                                       alt={post.title}
                                       className="h-28 w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
                                     />
-                                    {index === 0 && post.attachments.length > 1 ? (
+                                    {index === 0 &&
+                                    post.attachments.length > 1 ? (
                                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-3 py-1.5 text-[11px] font-medium text-white">
                                         {lang === 'zh'
                                           ? '点击查看帖子'
@@ -1431,8 +1418,7 @@ export function CommunityView({
                                       </div>
                                     ) : null}
                                   </Link>
-                                )
-                              )}
+                                ))}
                             </div>
                           </div>
                         ) : null}

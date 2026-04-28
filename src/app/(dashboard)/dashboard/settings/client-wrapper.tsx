@@ -13,7 +13,10 @@ interface SettingsClientWrapperProps {
   userRole: string
 }
 
-export function SettingsClientWrapper({ user, userRole }: SettingsClientWrapperProps) {
+export function SettingsClientWrapper({
+  user,
+  userRole,
+}: SettingsClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -24,6 +27,7 @@ export function SettingsClientWrapper({ user, userRole }: SettingsClientWrapperP
     <DashboardLayout
       currentView="settings"
       onNavigate={handleNavigate}
+      user={user}
       userRole={userRole}
       userXp={user?.xp}
       subscriptionTier={user?.subscriptionTier}

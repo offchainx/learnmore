@@ -43,19 +43,23 @@ export function PageHeroShell({
   return (
     <div
       className={cn(
-        'page-hero-shell relative overflow-hidden rounded-[26px] px-4 py-3 sm:px-5 sm:py-3.5',
+        'page-hero-shell relative overflow-hidden rounded-[28px] px-4 py-4 sm:px-6 sm:py-5',
         className
       )}
     >
       <div
-        className="absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl"
-        style={{ backgroundColor: 'hsl(var(--state-info-bg))', opacity: 0.8 }}
+        className="absolute inset-x-0 top-0 h-24"
+        style={{
+          background:
+            'linear-gradient(180deg, hsl(var(--surface-muted)) 0%, transparent 100%)',
+          opacity: 0.9,
+        }}
       />
       <div
-        className="absolute bottom-0 left-16 h-24 w-24 rounded-full blur-3xl"
+        className="absolute right-10 top-10 h-20 w-20 rounded-full blur-2xl"
         style={{
-          backgroundColor: 'hsl(var(--state-success-bg))',
-          opacity: 0.7,
+          backgroundColor: 'hsl(var(--state-info-bg))',
+          opacity: 0.55,
         }}
       />
 
@@ -103,7 +107,9 @@ export function PageHeroShell({
           ) : null}
         </div>
 
-        {actions ? <div className="w-full min-w-0 lg:w-auto lg:shrink-0">{actions}</div> : null}
+        {actions ? (
+          <div className="w-full min-w-0 lg:w-auto lg:shrink-0">{actions}</div>
+        ) : null}
       </div>
 
       {children ? <div className="relative mt-4">{children}</div> : null}

@@ -143,4 +143,6 @@
 
 | 2026-04-23 | ui redesign workspace sync | 用户要求将当前整个工作区的已完成改动统一提交并推送；本轮不做开发，仅做收口发布。 | 已准备将当前工作区全部改动统一收口到一个提交，并同步推送到远端分支。 | 补充了 .codex/prompts/iteration-log.md 的本轮记录 | - | - | 执行全量 git add、commit 和 push |
 
+| 2026-04-28 | rollback meilisearch novu and prepare push | 按用户要求撤回刚刚安装的 Meilisearch / Novu 相关接入，保留 dashboard/布局等其余 UI 改造，并继续准备当前工作区提交与推送 | 已移除新增的搜索/通知接入文件、依赖和透传逻辑，恢复原有通知链路与课程页参数处理，随后将把当前工作区改动提交并推送 | src/actions/notification/core.ts, src/components/layout/dashboard-layout.tsx, src/app/(dashboard)/dashboard/courses/*, src/components/courses/CoursesView.tsx, package.json, pnpm-lock.yaml, .codex/prompts/iteration-log.md | - | - | 先完成回退，再提交并推送当前可交付改动 |
+
 ## 约束

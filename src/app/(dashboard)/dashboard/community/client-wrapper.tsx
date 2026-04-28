@@ -10,7 +10,10 @@ interface CommunityClientWrapperProps {
   user: DashboardShellUser
 }
 
-export function CommunityClientWrapper({ children, user }: CommunityClientWrapperProps) {
+export function CommunityClientWrapper({
+  children,
+  user,
+}: CommunityClientWrapperProps) {
   const router = useRouter()
 
   const handleNavigate = (view: string) => {
@@ -21,6 +24,7 @@ export function CommunityClientWrapper({ children, user }: CommunityClientWrappe
     <DashboardLayout
       currentView="community"
       onNavigate={handleNavigate}
+      user={user}
       userRole={user.role}
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
