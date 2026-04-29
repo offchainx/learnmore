@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { DashboardLayout } from '@/components/layout/dashboard-layout'
 import { getDashboardRoute } from '@/components/layout/dashboard-nav'
 import { PracticeCenterScreen } from '@/components/practice/PracticeView'
@@ -17,7 +17,9 @@ export function PracticeClientWrapper({
   initialSubjectId,
 }: PracticeClientWrapperProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useApp()
+  const debugLayout = searchParams.get('layoutDebug') === '1'
 
   const handleNavigate = (view: string) => {
     router.push(getDashboardRoute(view))
@@ -33,7 +35,11 @@ export function PracticeClientWrapper({
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
     >
-      <PracticeCenterScreen t={t} initialSubjectId={initialSubjectId} />
+      <PracticeCenterScreen
+        t={t}
+        initialSubjectId={initialSubjectId}
+        debugLayout={debugLayout}
+      />
     </DashboardLayout>
   )
 }

@@ -36,6 +36,7 @@ import { LessonPlayer } from './LessonPlayer'
 import { useApp } from '@/providers'
 import { getSubjectLabel } from '@/lib/subjects'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
+import { SubjectSelectorSection } from '@/components/shared/SubjectSelectorSection'
 import {
   pageCardTitleClass,
   pageHeroNumericValueClass,
@@ -209,6 +210,16 @@ export const CoursesView = ({ t }: { t: any }) => {
   const [notebookFilter, setNotebookFilter] = useState<SubTabType>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
+  const subjectItems = useMemo(
+    () =>
+      Object.values(subjectsData).map((subject) => ({
+        id: subject.id,
+        label: getSubjectLabel(subject.id, lang, subject.title),
+        icon: subject.icon,
+      })),
+    [lang]
+  )
+
   const currentSubject =
     subjectsData[selectedSubjectId] || subjectsData[subjectIds[0]]
   const currentHeroTheme =
@@ -285,36 +296,13 @@ export const CoursesView = ({ t }: { t: any }) => {
   }
 
   const renderSubjectSelector = () => (
-    <div className="relative overflow-hidden rounded-[24px] border border-borderTone bg-surface px-4 py-3 shadow-none dark:border-borderTone dark:bg-surface">
-      <div className="mb-2 text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary dark:text-text-tertiary">
-        {copy('选择科目', 'Select Subject')}
-      </div>
-      <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-1">
-        {Object.values(subjectsData).map((subject) => {
-          const isActive = selectedSubjectId === subject.id
-          const localizedName = getSubjectLabel(subject.id, lang, subject.title)
-          return (
-            <button
-              key={subject.id}
-              onClick={() => setSelectedSubjectId(subject.id)}
-              className={`flex min-h-[42px] shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
-                isActive
-                  ? 'scale-[1.01] border-borderTone bg-surface-selected text-primary shadow-[0_10px_24px_rgba(59,130,246,0.10),inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse'
-                  : 'border-borderTone bg-surface text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle hover:text-text-primary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary dark:hover:bg-surface-selected'
-              }`}
-            >
-              <subject.icon
-                className={`h-4 w-4 ${
-                  isActive
-                    ? 'text-primary dark:text-text-inverse'
-                    : 'text-text-tertiary dark:text-text-tertiary'
-                }`}
-              />
-              <span>{localizedName}</span>
-            </button>
-          )
-        })}
-      </div>
+    <div className="sticky top-2.5 z-30 -mt-4 sm:-mt-6">
+      <SubjectSelectorSection
+        items={subjectItems}
+        selectedId={selectedSubjectId}
+        onSelect={setSelectedSubjectId}
+        layoutAnchorId="courses-subject-selector"
+      />
     </div>
   )
 

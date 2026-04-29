@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { VoucherDiscountType } from '@prisma/client'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import PaginationAnt from '@/components/ui/pagination-ant'
 import {
   ArrowDown,
@@ -36,7 +35,6 @@ import {
 } from '@/components/shared/pageSurfaces'
 import {
   pageHeroNumericValueClass,
-  pageHeroTitleClass,
   pageKickerClass,
   pageMetaTextClass,
 } from '@/components/shared/pageTypography'
@@ -454,12 +452,14 @@ export function GrowthToolsConsole({
   )
 
   const paginatedReferrals = useMemo(() => {
-    const start = (Math.min(referralPage, referralPageCount) - 1) * referralPageSize
+    const start =
+      (Math.min(referralPage, referralPageCount) - 1) * referralPageSize
     return filteredReferrals.slice(start, start + referralPageSize)
   }, [filteredReferrals, referralPage, referralPageCount, referralPageSize])
 
   const paginatedVouchers = useMemo(() => {
-    const start = (Math.min(voucherPage, voucherPageCount) - 1) * voucherPageSize
+    const start =
+      (Math.min(voucherPage, voucherPageCount) - 1) * voucherPageSize
     return filteredVouchers.slice(start, start + voucherPageSize)
   }, [filteredVouchers, voucherPage, voucherPageCount, voucherPageSize])
 
@@ -554,21 +554,6 @@ export function GrowthToolsConsole({
 
   return (
     <div className="space-y-3 text-text-primary">
-      <section className="relative overflow-hidden rounded-[28px] border border-borderTone bg-surface px-4 py-4 shadow-surface sm:px-5">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-        <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-        <div className="relative flex min-w-0 flex-col gap-2">
-          <h1 className={`${pageHeroTitleClass} font-semibold`}>
-            <PageHeroTitle title="增长工具" capsuleLabel="Growth Console" />
-          </h1>
-          <p className="max-w-3xl text-sm text-text-secondary">
-            在同一工作台内查看推荐关系链路、奖励状态与优惠券
-            发放/核销情况，减少在多个后台工具间切换。
-          </p>
-        </div>
-      </section>
-
       <section className="space-y-3">
         <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
           <div className="space-y-1">
@@ -576,8 +561,7 @@ export function GrowthToolsConsole({
               增长概览
             </h2>
             <p className="text-sm text-text-secondary">
-              聚焦推荐转化、待发奖励与优惠券
-              使用情况，并补充相对上周期的变化。
+              聚焦推荐转化、待发奖励与优惠券 使用情况，并补充相对上周期的变化。
             </p>
           </div>
 
@@ -871,8 +855,8 @@ export function GrowthToolsConsole({
 
             <div className="flex flex-col gap-3 border-t border-borderTone bg-surface-subtle px-5 py-4 text-sm text-text-secondary sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between">
               <span>
-                第 {Math.min(referralPage, referralPageCount)} / {referralPageCount}{' '}
-                页，当前每页 {referralPageSize} 条
+                第 {Math.min(referralPage, referralPageCount)} /{' '}
+                {referralPageCount} 页，当前每页 {referralPageSize} 条
               </span>
               <PaginationAnt
                 current={referralPage}
@@ -882,7 +866,10 @@ export function GrowthToolsConsole({
                 pageSizeOptions={PAGE_SIZE_OPTIONS.map(String)}
                 showLessItems
                 onChange={(nextPage, nextPageSize) =>
-                  handleReferralPageChange(nextPage, nextPageSize || referralPageSize)
+                  handleReferralPageChange(
+                    nextPage,
+                    nextPageSize || referralPageSize
+                  )
                 }
               />
             </div>
@@ -1138,7 +1125,9 @@ export function GrowthToolsConsole({
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-text-primary">
-                          {voucher.discountType === 'PERCENT' ? '百分比' : '固定金额'}
+                          {voucher.discountType === 'PERCENT'
+                            ? '百分比'
+                            : '固定金额'}
                         </td>
                         <td className="px-6 py-4 text-sm text-text-primary">
                           {voucher.discountType === 'PERCENT'
@@ -1189,8 +1178,8 @@ export function GrowthToolsConsole({
 
             <div className="flex flex-col gap-3 border-t border-borderTone bg-surface-subtle px-5 py-4 text-sm text-text-secondary sm:px-6 tablet:flex-row tablet:items-center tablet:justify-between">
               <span>
-                第 {Math.min(voucherPage, voucherPageCount)} / {voucherPageCount}{' '}
-                页，当前每页 {voucherPageSize} 条
+                第 {Math.min(voucherPage, voucherPageCount)} /{' '}
+                {voucherPageCount} 页，当前每页 {voucherPageSize} 条
               </span>
               <PaginationAnt
                 current={voucherPage}
@@ -1200,7 +1189,10 @@ export function GrowthToolsConsole({
                 pageSizeOptions={PAGE_SIZE_OPTIONS.map(String)}
                 showLessItems
                 onChange={(nextPage, nextPageSize) =>
-                  handleVoucherPageChange(nextPage, nextPageSize || voucherPageSize)
+                  handleVoucherPageChange(
+                    nextPage,
+                    nextPageSize || voucherPageSize
+                  )
                 }
               />
             </div>

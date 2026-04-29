@@ -171,7 +171,6 @@ interface DashboardTopBarProps {
   subtitle: string
   displayName: string
   avatarFallback: string
-  tierLabel: string
   avatarUrl?: string | null
   onOpenMessages: () => void
   onOpenSettings: () => void
@@ -204,7 +203,6 @@ const DashboardTopBar = ({
   subtitle,
   displayName,
   avatarFallback,
-  tierLabel,
   avatarUrl,
   onOpenMessages,
   onOpenSettings,
@@ -226,15 +224,9 @@ const DashboardTopBar = ({
           <Input
             readOnly
             aria-label={copy('搜索', 'Search')}
-            placeholder={copy(
-              '搜索课程、练习、社区内容',
-              'Search courses, drills, community content'
-            )}
+            placeholder={copy('搜索', 'Search')}
             className="h-auto border-0 bg-transparent p-0 text-[13px] text-text-primary shadow-none placeholder:text-text-tertiary focus-visible:ring-0 focus-visible:ring-offset-0"
           />
-          <kbd className="ml-1 rounded-full border border-borderTone bg-surface-subtle px-2 py-0.5 text-[10px] text-text-tertiary">
-            /
-          </kbd>
         </div>
 
         <button
@@ -251,7 +243,7 @@ const DashboardTopBar = ({
         <button
           type="button"
           onClick={onOpenSettings}
-          className="flex h-11 items-center gap-2 rounded-full border border-borderTone bg-surface px-2 pr-3 text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:shadow-none dark:hover:bg-surface-selected"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-borderTone bg-surface text-left shadow-surface transition-colors hover:border-[hsl(var(--border-strong))] hover:bg-surface-subtle dark:border-borderTone dark:bg-surface-subtle dark:shadow-none dark:hover:bg-surface-selected"
         >
           <Avatar className="h-8 w-8 rounded-full border border-borderTone">
             <AvatarImage src={avatarUrl || undefined} alt={displayName} />
@@ -259,14 +251,6 @@ const DashboardTopBar = ({
               {avatarFallback}
             </AvatarFallback>
           </Avatar>
-          <div className="hidden min-w-0 flex-col text-left lg:flex">
-            <span className="truncate text-[12px] font-semibold text-text-primary">
-              {displayName}
-            </span>
-            <span className="truncate text-[10px] text-text-tertiary">
-              {tierLabel}
-            </span>
-          </div>
         </button>
       </div>
     </div>
@@ -1092,7 +1076,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             subtitle={topBarSubtitle}
             displayName={displayName}
             avatarFallback={avatarFallback}
-            tierLabel={tierLabel}
             avatarUrl={user?.avatar}
             onOpenMessages={() => handleRouteNavigation('/dashboard/community')}
             onOpenSettings={() => handleRouteNavigation('/dashboard/settings')}

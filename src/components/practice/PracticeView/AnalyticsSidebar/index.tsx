@@ -2,7 +2,7 @@ import React from 'react'
 import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive'
 import ExamForecast from '@/components/practice/analytics/ExamForecast'
 import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard'
-import { pageSectionGapCompactClass } from '@/components/shared/pageSpacing'
+import { pageSectionGapClass } from '@/components/shared/pageSpacing'
 import type {
   ChapterWithStats,
   ExamForecast as ExamForecastType,
@@ -28,19 +28,25 @@ export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
   errorMessage,
 }) => {
   return (
-    <div className={`${pageSectionGapCompactClass} 2xl:sticky 2xl:top-2.5`}>
-      <KnowledgeHive
-        subjectName={currentSubjectTitle || undefined}
-        nodes={knowledgeHive}
-        loading={isLoading}
-        error={errorMessage}
-      />
-      <ExamForecast
-        forecast={examForecast}
-        loading={isLoading}
-        error={errorMessage}
-      />
-      <WeaknessCard chapters={chapters} />
+    <div className={`${pageSectionGapClass} 2xl:sticky 2xl:top-2.5`}>
+      <div data-layout-anchor="practice-coach-knowledge">
+        <KnowledgeHive
+          subjectName={currentSubjectTitle || undefined}
+          nodes={knowledgeHive}
+          loading={isLoading}
+          error={errorMessage}
+        />
+      </div>
+      <div data-layout-anchor="practice-coach-forecast">
+        <ExamForecast
+          forecast={examForecast}
+          loading={isLoading}
+          error={errorMessage}
+        />
+      </div>
+      <div data-layout-anchor="practice-coach-weakness">
+        <WeaknessCard chapters={chapters} />
+      </div>
     </div>
   )
 }

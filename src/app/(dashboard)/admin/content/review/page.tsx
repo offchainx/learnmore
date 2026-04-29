@@ -16,13 +16,14 @@ import {
   SubjectFilter,
 } from '@/components/admin/common'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { QuestionFilter, QuestionSortOptions } from '@/lib/content-pipeline/types'
+import {
+  QuestionFilter,
+  QuestionSortOptions,
+} from '@/lib/content-pipeline/types'
 import { ContentStatus } from '@prisma/client'
 import { AdminClientWrapper } from '@/components/admin/common'
 import { getProfile } from '@/actions/user/profile'
 import { redirect } from 'next/navigation'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageKpiCardClass,
@@ -41,7 +42,13 @@ import {
 import { AlertCircle, Clock3, FolderKanban, RefreshCcw } from 'lucide-react'
 import { AdminActivityActions } from '@/components/admin/content/AdminActivityActions'
 
-type ReviewTabValue = 'all' | 'pending' | 'manual' | 'published' | 'archived' | 'deleted'
+type ReviewTabValue =
+  | 'all'
+  | 'pending'
+  | 'manual'
+  | 'published'
+  | 'archived'
+  | 'deleted'
 
 const REVIEW_PAGE_SIZE = 20
 const REVIEW_PAGE_SIZE_OPTIONS = [10, 20, 50] as const
@@ -131,25 +138,29 @@ export default async function AdminContentPage({
   }
 
   // Fetch data in parallel
-  const [questionsResult, subjectsResult, contentStatsResult, activityLogsResult] =
-    await Promise.all([
-      currentTab === 'pending'
-        ? getDraftQuestions(
+  const [
+    questionsResult,
+    subjectsResult,
+    contentStatsResult,
+    activityLogsResult,
+  ] = await Promise.all([
+    currentTab === 'pending'
+      ? getDraftQuestions(
+          { page, pageSize: reviewPageSize },
+          filter,
+          currentSort
+        )
+      : currentTab === 'manual'
+        ? getManualReviewQuestions(
             { page, pageSize: reviewPageSize },
             filter,
             currentSort
           )
-        : currentTab === 'manual'
-          ? getManualReviewQuestions(
-              { page, pageSize: reviewPageSize },
-              filter,
-              currentSort
-            )
         : getQuestions({ page, pageSize: reviewPageSize }, filter, currentSort),
-      getAllSubjects(),
-      getContentStats(currentRange, { subjectId }),
-      getContentReviewActivityLogs({ limit: 40, subjectId }),
-    ])
+    getAllSubjects(),
+    getContentStats(currentRange, { subjectId }),
+    getContentReviewActivityLogs({ limit: 40, subjectId }),
+  ])
 
   const questions = questionsResult.data || []
   const buildReviewHref = (
@@ -288,25 +299,17 @@ export default async function AdminContentPage({
   return (
     <AdminClientWrapper user={profile} userRole={profile.role}>
       <div className="min-w-0 px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto w-full max-w-[1820px] min-w-0 space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7] sm:p-3">
-          <PageHeroShell
-            className="sm:py-4.5 px-4 py-4 sm:px-5"
-            title={
-            <PageHeroTitle title="内容管理" capsuleLabel="Review Console" />
-          }
-            subtitle="审核批量导入后的题目内容，集中处理待审核、待复核、已发布和已归档题目。"
-            titleClassName="font-semibold"
-            actions={
-              <AdminActivityActions
-                logs={activityLogs}
-                auditTitle="审核操作日志"
-                auditDescription="基于 content_review_logs 真实记录生成的近期审核活动。"
-                emptyText="当前还没有可显示的审核日志。"
-                searchPlaceholder="搜索审核人、动作、题干片段..."
-                footerText={`当前显示 ${activityLogs.length} 条真实审核日志`}
-              />
-            }
-          />
+        <div className="mx-auto w-full min-w-0 max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary dark:border-[#24324D] dark:bg-[#0B1220] dark:text-[#E6EDF7] sm:p-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <AdminActivityActions
+              logs={activityLogs}
+              auditTitle="审核操作日志"
+              auditDescription="基于 content_review_logs 真实记录生成的近期审核活动。"
+              emptyText="当前还没有可显示的审核日志。"
+              searchPlaceholder="搜索审核人、动作、题干片段..."
+              footerText={`当前显示 ${activityLogs.length} 条真实审核日志`}
+            />
+          </div>
 
           <section className="space-y-3">
             <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
@@ -396,16 +399,12 @@ export default async function AdminContentPage({
                     placeholder="搜索题干、题目 ID 或题组标题..."
                     className="w-full"
                   />
-                  <ReviewStatusFilter
-                    triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
-                  />
+                  <ReviewStatusFilter triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]" />
                   <SubjectFilter
                     subjects={subjects}
                     triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
                   />
-                  <ReviewSortControl
-                    triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]"
-                  />
+                  <ReviewSortControl triggerClassName="w-full rounded-2xl border-borderTone bg-surface text-text-primary hover:bg-surface-subtle focus:ring-primary/40 focus:ring-offset-page data-[placeholder]:text-text-tertiary dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:ring-[#60A5FA] dark:focus:ring-offset-[#0F172A] dark:data-[placeholder]:text-[#8FA4C2]" />
                 </div>
               </div>
             </CardHeader>
@@ -418,13 +417,13 @@ export default async function AdminContentPage({
                   </div>
                 }
               >
-              <QuestionReviewTable
-                questions={questions}
-                page={questionsResult.page}
-                total={questionsResult.total}
-                pageSize={questionsResult.pageSize}
-                currentTab={currentTab}
-              />
+                <QuestionReviewTable
+                  questions={questions}
+                  page={questionsResult.page}
+                  total={questionsResult.total}
+                  pageSize={questionsResult.pageSize}
+                  currentTab={currentTab}
+                />
               </Suspense>
             </CardContent>
           </Card>

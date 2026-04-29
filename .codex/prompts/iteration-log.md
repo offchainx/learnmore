@@ -147,4 +147,6 @@
 
 | 2026-04-29 | ws-01 auth onboarding flow closeout | 重建 /login /register 左右分栏登录页，并完成 T-009 测试与验收收口 | 已完成 auth 页面重建、onboarding 流程与测试收口，准备提交并推送当前 feature 变更 | 重建登录注册页、完成 onboarding 9 个子任务并跑通测试 | 提交前被 codex hook 拦截，要求先更新 iteration-log | 把 auth/onboarding 相关变更与无关脏改分离，避免误提交临时产物 | 重新执行 git commit 并推送当前分支 |
 
+| 2026-04-29 | admin hero + spacing closeout | 移除 admin 路由顶部重复 hero，并统一整理 practice selector 间距与调试标定层 | 已删掉 admin 相关页面顶部重复标题卡，保留下方核心工作区；practice 页面间距统一到同一档，并保留 layoutDebug 标定层用于后续沟通 | src/components/admin/dashboard/v2/AdminDashboardV2.tsx, src/components/admin/users/UserTable.tsx, src/components/admin/feedback/FeedbackList.tsx, src/components/admin/referrals/GrowthToolsConsole.tsx, src/app/(dashboard)/admin/content/import/ImportClient.tsx, src/app/(dashboard)/admin/content/review/page.tsx, src/components/admin/content-reports/ReportsClient.tsx, src/components/admin/rewards/RewardCenterControlConsole.tsx, src/components/courses/CoursesView.tsx, src/components/practice/PracticeView/*, src/components/shared/SubjectSelectorSection.tsx | 仍有未纳入本次提交的旧工作区改动留在工作树中 | 统一 admin 内容区首屏密度，便于后续继续收紧布局留白 | 重新执行 git commit 与 push |
+
 ## 约束

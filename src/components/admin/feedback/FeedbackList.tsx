@@ -1,6 +1,12 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from 'react'
 import {
   Sheet,
   SheetContent,
@@ -26,8 +32,6 @@ import {
 } from 'lucide-react'
 import { FeedbackCategory, FeedbackStatus } from '@prisma/client'
 import { toast } from 'sonner'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import PaginationAnt from '@/components/ui/pagination-ant'
@@ -153,15 +157,23 @@ export function FeedbackList({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null)
-  const [sheetPreviewTitle, setSheetPreviewTitle] = useState<string | null>(null)
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(
+    null
+  )
+  const [sheetPreviewTitle, setSheetPreviewTitle] = useState<string | null>(
+    null
+  )
   const [isFeedbackSheetOpen, setIsFeedbackSheetOpen] = useState(false)
   const [sheetData, setSheetData] = useState<FeedbackDetailData | null>(null)
   const [isSheetLoading, setIsSheetLoading] = useState(false)
   const [sheetError, setSheetError] = useState<FeedbackSheetError | null>(null)
   const [search, setSearch] = useState(initialSearch)
-  const [statusFilter, setStatusFilter] = useState<'ALL' | FeedbackStatus>(initialStatus)
-  const [categoryFilter, setCategoryFilter] = useState<'ALL' | FeedbackCategory>(initialCategory)
+  const [statusFilter, setStatusFilter] = useState<'ALL' | FeedbackStatus>(
+    initialStatus
+  )
+  const [categoryFilter, setCategoryFilter] = useState<
+    'ALL' | FeedbackCategory
+  >(initialCategory)
   const [overviewWindow, setOverviewWindow] = useState<FeedbackOverviewWindow>(
     initialOverview?.window || '30D'
   )
@@ -180,7 +192,8 @@ export function FeedbackList({
   )
   const currentPageSize = Math.max(
     1,
-    Number.parseInt(searchParams.get('pageSize') || String(pageSize), 10) || pageSize
+    Number.parseInt(searchParams.get('pageSize') || String(pageSize), 10) ||
+      pageSize
   )
   const initialQueryKey = `search=${encodeURIComponent(initialSearch)}&status=${initialStatus}&category=${initialCategory}&limit=${currentPageSize}&offset=${
     (initialPage - 1) * currentPageSize
@@ -388,7 +401,9 @@ export function FeedbackList({
       const result = await response.json().catch(() => null)
 
       if (!response.ok || !result?.success || !result?.data) {
-        const error = new Error(result?.error || '加载反馈详情失败') as Error & {
+        const error = new Error(
+          result?.error || '加载反馈详情失败'
+        ) as Error & {
           status?: number
         }
         error.status = response.status
@@ -423,7 +438,8 @@ export function FeedbackList({
           kind: 'error',
           title: '反馈详情加载失败',
           description:
-            message || '详情数据暂时不可用，可能是网络波动或服务异常。请稍后重试。',
+            message ||
+            '详情数据暂时不可用，可能是网络波动或服务异常。请稍后重试。',
         })
       }
       setSheetData(null)
@@ -611,15 +627,6 @@ export function FeedbackList({
   return (
     <>
       <div className="space-y-3 text-foreground">
-        <PageHeroShell
-          className="sm:py-4.5 px-4 py-4 sm:px-5"
-          title={
-            <PageHeroTitle title="反馈中心" capsuleLabel="Inbox Console" />
-          }
-          subtitle="集中处理用户反馈、功能请求与内容问题，保持概览、筛选与工单处理在同一工作区内完成。"
-          titleClassName="font-semibold"
-        />
-
         <section className="space-y-3">
           <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
             <SectionBlockHeader
@@ -663,7 +670,8 @@ export function FeedbackList({
 
               {overview?.lastUpdated ? (
                 <span className="font-mono text-xs text-text-secondary dark:text-[#9FB0C9]">
-                  更新于 {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
+                  更新于{' '}
+                  {new Date(overview.lastUpdated).toLocaleTimeString('zh-CN')}
                 </span>
               ) : null}
             </div>
@@ -675,7 +683,10 @@ export function FeedbackList({
               const trend = getTrendDisplay(card.trend)
               const TrendIcon = trend.icon
               return (
-                <div key={card.key} className={`${pageKpiCardClass} ${card.borderClassName}`}>
+                <div
+                  key={card.key}
+                  className={`${pageKpiCardClass} ${card.borderClassName}`}
+                >
                   <div
                     className={`absolute -right-10 -top-10 h-28 w-28 rounded-full blur-3xl ${card.glowClassName}`}
                   />
@@ -686,13 +697,19 @@ export function FeedbackList({
                       <div className="space-y-1.5">
                         <p className={pageKickerClass}>{card.title}</p>
                         <div className="flex items-end gap-2">
-                          <p className={pageHeroNumericValueClass}>{card.value}</p>
-                          <span className={`pb-1 ${pageMetaTextClass}`}>{card.caption}</span>
+                          <p className={pageHeroNumericValueClass}>
+                            {card.value}
+                          </p>
+                          <span className={`pb-1 ${pageMetaTextClass}`}>
+                            {card.caption}
+                          </span>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={pageMetaTextClass}>{card.trendLabel}</span>
+                        <span className={pageMetaTextClass}>
+                          {card.trendLabel}
+                        </span>
                         <span
                           className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium ${trend.className}`}
                         >
@@ -701,7 +718,9 @@ export function FeedbackList({
                         </span>
                       </div>
 
-                      <p className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}>
+                      <p
+                        className={`line-clamp-2 max-w-[20rem] ${pageMetaTextClass}`}
+                      >
                         {card.meta}
                       </p>
                     </div>
@@ -767,7 +786,9 @@ export function FeedbackList({
                         value={statusFilter}
                         onChange={(e) => {
                           lastLoadedListKey.current = ''
-                          const nextStatus = e.target.value as 'ALL' | FeedbackStatus
+                          const nextStatus = e.target.value as
+                            | 'ALL'
+                            | FeedbackStatus
                           setStatusFilter(nextStatus)
                           updateQueryInUrl(
                             {
@@ -799,7 +820,9 @@ export function FeedbackList({
                         value={categoryFilter}
                         onChange={(e) => {
                           lastLoadedListKey.current = ''
-                          const nextCategory = e.target.value as 'ALL' | FeedbackCategory
+                          const nextCategory = e.target.value as
+                            | 'ALL'
+                            | FeedbackCategory
                           setCategoryFilter(nextCategory)
                           updateQueryInUrl(
                             {
@@ -814,11 +837,13 @@ export function FeedbackList({
                         className="w-full appearance-none rounded-2xl border border-borderTone bg-surface py-2.5 pl-3 pr-10 text-sm text-text-primary outline-none transition-all hover:bg-surface-subtle focus:border-primary/50 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:hover:bg-[#1A2744] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                       >
                         <option value="ALL">分类: 全部</option>
-                        {Object.entries(categoryLabels).map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
+                        {Object.entries(categoryLabels).map(
+                          ([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          )
+                        )}
                       </select>
                       <ChevronDown
                         className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6F86A8]"
@@ -839,10 +864,15 @@ export function FeedbackList({
 
                 <div className="flex flex-wrap items-center gap-3 desktop:justify-end">
                   <span className="text-sm text-text-secondary dark:text-[#8FA4C2]">
-                    当前命中 <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">{currentTotal}</span> 条反馈
+                    当前命中{' '}
+                    <span className="font-semibold text-text-primary dark:text-[#F4F7FB]">
+                      {currentTotal}
+                    </span>{' '}
+                    条反馈
                   </span>
                   <span className="text-xs text-text-tertiary dark:text-[#6F86A8]">
-                    第 {currentPage} 页 / 共 {totalPages} 页，每页 {currentPageSize} 条
+                    第 {currentPage} 页 / 共 {totalPages} 页，每页{' '}
+                    {currentPageSize} 条
                   </span>
                 </div>
               </div>
@@ -853,11 +883,21 @@ export function FeedbackList({
             <table className="w-full min-w-[1040px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
-                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">用户信息</th>
-                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">分类</th>
-                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">反馈内容</th>
-                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">状态</th>
-                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">提交时间</th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
+                    用户信息
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
+                    分类
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
+                    反馈内容
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
+                    状态
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
+                    提交时间
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-borderTone dark:divide-[#1B2840]">
@@ -876,8 +916,12 @@ export function FeedbackList({
                       <div className="flex flex-col items-center justify-center gap-3 text-text-secondary dark:text-[#8FA4C2]">
                         <MessageSquare className="h-10 w-10 opacity-30" />
                         <div className="space-y-1 text-center">
-                          <p className="text-sm font-medium text-text-primary dark:text-[#D5E0F0]">当前筛选下暂无反馈</p>
-                          <p className="text-xs text-text-tertiary dark:text-[#6F86A8]">可以尝试切换状态、分类或清空关键词后重试。</p>
+                          <p className="text-sm font-medium text-text-primary dark:text-[#D5E0F0]">
+                            当前筛选下暂无反馈
+                          </p>
+                          <p className="text-xs text-text-tertiary dark:text-[#6F86A8]">
+                            可以尝试切换状态、分类或清空关键词后重试。
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -924,7 +968,9 @@ export function FeedbackList({
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${status.className}`}
+                          >
                             {status.icon}
                             {status.label}
                           </span>
@@ -952,7 +998,10 @@ export function FeedbackList({
               pageSizeOptions={['10', '20', '50']}
               disabled={isListLoading}
               onChange={(nextPage, nextPageSize) =>
-                handlePaginationChange(nextPage, nextPageSize || currentPageSize)
+                handlePaginationChange(
+                  nextPage,
+                  nextPageSize || currentPageSize
+                )
               }
             />
           </div>
@@ -1003,7 +1052,9 @@ export function FeedbackList({
                     正在加载反馈详情...
                   </p>
                   {sheetPreviewTitle ? (
-                    <p className="text-xs text-[#6F86A8]">{sheetPreviewTitle}</p>
+                    <p className="text-xs text-[#6F86A8]">
+                      {sheetPreviewTitle}
+                    </p>
                   ) : null}
                 </div>
               </div>

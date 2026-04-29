@@ -15,7 +15,6 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
-  Calendar,
   CheckCircle2,
   ChevronRight,
   Key,
@@ -26,11 +25,8 @@ import {
   Ticket,
   Users,
 } from 'lucide-react'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
-  pageBadgeClass,
   pageKpiCardClass,
   pageSectionHeaderBandClass,
   pageSegmentedButtonCompactClass,
@@ -345,25 +341,6 @@ function EmptySlots({
         </li>
       ))}
     </>
-  )
-}
-
-function Header({ window }: { window: AdminDashboardWindow }) {
-  return (
-    <PageHeroShell
-      className="sm:py-4.5 px-4 py-4 sm:px-5"
-      title={
-        <PageHeroTitle title="管理总览" capsuleLabel="Command Center" />
-      }
-      subtitle="聚合今日待处理事项、风险信号与最近审计，作为后台管理的首屏工作台。"
-      titleClassName="font-semibold"
-      actions={
-        <div className={pageBadgeClass}>
-          <Calendar className="h-3.5 w-3.5 text-[#60A5FA]" />
-          {getScopeLabel(window)}
-        </div>
-      }
-    />
   )
 }
 
@@ -974,8 +951,6 @@ export default function AdminDashboardV2({
   return (
     <div className="px-3 py-2 sm:px-4 sm:py-3">
       <div className={shellClassName}>
-        <Header window={window} />
-
         <KpiRow
           items={featuredKpis}
           window={window}

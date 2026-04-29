@@ -1,13 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock3,
-  Search,
-  Siren,
-} from 'lucide-react'
+import { AlertCircle, CheckCircle2, Clock3, Search, Siren } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useApp } from '@/providers'
 import { bulkResolveReports } from '@/actions/content-pipeline/question-service'
@@ -22,8 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
   pageKpiCardClass,
@@ -130,7 +122,8 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   const selectedReport = useMemo(
     () =>
       selectedReportId
-        ? initialReports.find((report) => report.id === selectedReportId) ?? null
+        ? (initialReports.find((report) => report.id === selectedReportId) ??
+          null)
         : null,
     [initialReports, selectedReportId]
   )
@@ -214,7 +207,9 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   }, [issueFilter, reportsInRange, searchQuery, statusFilter])
 
   const totalPages =
-    filteredReports.length === 0 ? 0 : Math.ceil(filteredReports.length / pageSize)
+    filteredReports.length === 0
+      ? 0
+      : Math.ceil(filteredReports.length / pageSize)
 
   useEffect(() => {
     if (totalPages === 0) {
@@ -349,17 +344,11 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
   return (
     <div className="px-3 py-2 sm:px-4 sm:py-3">
       <div className="mx-auto w-full max-w-[1820px] space-y-3 rounded-[32px] border border-borderTone bg-page p-2.5 text-text-primary shadow-surface-lg sm:p-3">
-        <PageHeroShell
-          className="sm:py-4.5 px-4 py-4 sm:px-5"
-          title={
-            <PageHeroTitle
-              title={text.header.title}
-              capsuleLabel={text.header.badge}
-            />
-          }
-          subtitle={text.header.description}
-          titleClassName="font-semibold"
-        />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="text-xs font-medium uppercase tracking-[0.18em] text-text-tertiary">
+            {text.header.badge}
+          </div>
+        </div>
 
         {loadError ? (
           <div className="rounded-3xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
@@ -492,14 +481,18 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
                       {text.issueType.ANSWER_WRONG}
                     </SelectItem>
                     <SelectItem value="TYPO">{text.issueType.TYPO}</SelectItem>
-                    <SelectItem value="UNCLEAR">{text.issueType.UNCLEAR}</SelectItem>
+                    <SelectItem value="UNCLEAR">
+                      {text.issueType.UNCLEAR}
+                    </SelectItem>
                     <SelectItem value="IMAGE_BROKEN">
                       {text.issueType.IMAGE_BROKEN}
                     </SelectItem>
                     <SelectItem value="LATEX_ERROR">
                       {text.issueType.LATEX_ERROR}
                     </SelectItem>
-                    <SelectItem value="OTHER">{text.issueType.OTHER}</SelectItem>
+                    <SelectItem value="OTHER">
+                      {text.issueType.OTHER}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -542,7 +535,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
             />
 
             {selectedCount > 0 ? (
-              <div className="rounded-3xl border border-borderTone bg-surface-subtle p-4 shadow-surface-sm">
+              <div className="shadow-surface-sm rounded-3xl border border-borderTone bg-surface-subtle p-4">
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                   <div className="space-y-2">
                     <p className="text-sm font-semibold text-text-primary">
@@ -553,7 +546,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
                     </p>
                   </div>
 
-                  <div className="grid gap-3 xl:flex-1 xl:max-w-[660px]">
+                  <div className="grid gap-3 xl:max-w-[660px] xl:flex-1">
                     <Textarea
                       value={bulkNote}
                       onChange={(event) => setBulkNote(event.target.value)}

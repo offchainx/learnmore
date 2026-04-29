@@ -9,7 +9,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import {
   Activity,
   Search,
@@ -33,7 +32,6 @@ import { UserStatusBadge, UserTierBadge } from './UserBadges'
 import { HighRiskConfirmDialog } from './HighRiskConfirmDialog'
 import { toggleUserStatus } from '@/actions/admin/user-ops'
 import { OverrideModal } from '@/components/admin/permissions/OverrideModal'
-import { pageHeroTitleClass } from '@/components/shared/pageTypography'
 import PaginationAnt from '@/components/ui/pagination-ant'
 import { toast } from 'sonner'
 
@@ -491,20 +489,6 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   return (
     <div className="space-y-3 text-foreground">
-      <section className="relative overflow-hidden rounded-[28px] border border-borderTone bg-surface px-4 py-4 shadow-surface dark:border-[#24324D] dark:bg-[linear-gradient(135deg,#111A2E_0%,#0F1A2F_55%,#0B1220_100%)] dark:shadow-[0_22px_50px_rgba(2,8,23,0.35)] sm:px-5">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#2563EB]/10 blur-3xl" />
-        <div className="absolute bottom-0 left-16 h-24 w-24 rounded-full bg-[#22C55E]/10 blur-3xl" />
-
-        <div className="relative flex min-w-0 flex-col gap-2">
-          <h1 className={`${pageHeroTitleClass} font-semibold`}>
-            <PageHeroTitle title="用户管理" capsuleLabel="User Directory" />
-          </h1>
-          <p className="max-w-3xl text-sm text-text-secondary dark:text-[#B2C3DA]">
-            集中查看用户状态、订阅等级、最近活跃与高风险动作，保持筛选、分页与快捷操作在同一工作区内完成。
-          </p>
-        </div>
-      </section>
-
       <section className="space-y-3">
         <div className="flex flex-col gap-3 tablet:flex-row tablet:items-center tablet:justify-between">
           <div className="space-y-1">

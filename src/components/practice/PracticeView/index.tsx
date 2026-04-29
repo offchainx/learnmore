@@ -16,6 +16,7 @@ import { PracticeModeGrid } from './TrainingModeCards'
 import { ChapterProgressSection } from './ChapterMap'
 import { PastPaperLibrarySection } from './PastPapersSection'
 import { PracticeCoachPanel } from './AnalyticsSidebar'
+import { PracticeSpacingDebugOverlay } from './SpacingDebugOverlay'
 import {
   PracticeModePreviewDialog,
   type PracticeModePreviewConfig,
@@ -30,13 +31,13 @@ import {
   pageGridGapClass,
   pageSectionGapClass,
 } from '@/components/shared/pageSpacing'
-import { pageHeroEyebrowClass } from '@/components/shared/pageTypography'
 import { parseStructuredChapterTitle } from './chapterDisplay'
 
 interface PracticeCenterScreenProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any
   initialSubjectId?: string
+  debugLayout?: boolean
 }
 
 function createEmptySubjectData(): PracticeSubjectData {
@@ -516,6 +517,7 @@ const GEOGRAPHY_CHAPTER_PREVIEW_NOTES: Record<
 export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   t,
   initialSubjectId,
+  debugLayout = false,
 }) => {
   const MOCK_ARENA_QUESTION_COUNTS = [20, 30, 40, 50] as const
   const MOCK_ARENA_DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD'] as const
@@ -530,14 +532,12 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   const [isBootstrapLoading, setIsBootstrapLoading] = useState(true)
   const [isSubjectDataLoading, setIsSubjectDataLoading] = useState(false)
   const [subjectDataError, setSubjectDataError] = useState<string | null>(null)
-  const [isSubjectBarPinned, setIsSubjectBarPinned] = useState(false)
   const [previewConfig, setPreviewConfig] =
     useState<PracticeModePreviewConfig | null>(null)
   const [mockArenaQuestionCount, setMockArenaQuestionCount] =
     useState<(typeof MOCK_ARENA_QUESTION_COUNTS)[number]>(20)
   const [mockArenaDifficulty, setMockArenaDifficulty] =
     useState<(typeof MOCK_ARENA_DIFFICULTIES)[number]>('MEDIUM')
-  const subjectSentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -688,24 +688,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       controller.abort()
     }
   }, [selectedSubjectId, loadedSubjectId])
-
-  useEffect(() => {
-    const sentinel = subjectSentinelRef.current
-    if (!sentinel) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsSubjectBarPinned(!entry.isIntersecting)
-      },
-      {
-        threshold: 1,
-        rootMargin: '-8px 0px 0px 0px',
-      }
-    )
-
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [])
 
   const currentDbSubject = dbSubjects.find((s) => s.id === selectedSubjectId)
   const currentSubjectTitle = currentDbSubject
@@ -1017,6 +999,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
 
   return (
     <div className="relative px-3 py-1.5 sm:px-4 sm:py-2">
+      <PracticeSpacingDebugOverlay enabled={debugLayout} />
       <PracticeModePreviewDialog
         open={Boolean(previewConfig)}
         onOpenChange={(open) => {
@@ -1030,15 +1013,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
       <div
         className={`mx-auto w-full max-w-[1820px] ${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}
       >
-        <div ref={subjectSentinelRef} className="h-px" />
-        <div
-          className={`sticky top-2.5 z-30 transition-all duration-300 ease-out ${
-            isSubjectBarPinned
-              ? 'rounded-[22px] border border-borderTone bg-surface/95 px-3 py-2 shadow-surface-lg backdrop-blur-xl dark:border-borderTone dark:bg-surface/90 dark:shadow-[0_18px_40px_rgba(2,8,23,0.36)]'
-              : 'border-transparent bg-transparent px-0 py-0'
-          }`}
-        >
-          <div className={pageHeroEyebrowClass}>{headerCopy.subjectLabel}</div>
+        <div className="sticky top-2.5 z-30 -mt-4 sm:-mt-6">
           <PracticeSubjectBar
             subjects={dbSubjects}
             selectedSubjectId={selectedSubjectId}
@@ -1047,9 +1022,13 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
         </div>
 
         <div className={`grid 2xl:grid-cols-3 ${pageGridGapClass}`}>
-          <div className={`2xl:col-span-2 ${pageSectionGapClass}`}>
+          <div
+            className={`2xl:col-span-2 ${pageSectionGapClass}`}
+            data-layout-anchor="practice-left-stack"
+          >
             <div
               className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
+              data-layout-anchor="practice-mode-grid"
             >
               <PracticeModeGrid
                 selectedSubjectId={selectedSubjectId}
@@ -1062,9 +1041,13 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
               />
             </div>
 
-            <div className={`grid 2xl:grid-cols-2 ${pageGridGapClass}`}>
+            <div
+              className={`grid 2xl:grid-cols-2 ${pageGridGapClass}`}
+              data-layout-anchor="practice-secondary-grid"
+            >
               <div
                 className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
+                data-layout-anchor="practice-chapter-card"
               >
                 <ChapterProgressSection
                   chapters={subjectData.chapters}
@@ -1074,6 +1057,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
               </div>
               <div
                 className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
+                data-layout-anchor="practice-pastpaper-card"
               >
                 <PastPaperLibrarySection
                   selectedSubjectId={selectedSubjectId}
@@ -1085,7 +1069,10 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
             </div>
           </div>
 
-          <div className="2xl:col-span-1">
+          <div
+            className="2xl:col-span-1"
+            data-layout-anchor="practice-coach-stack"
+          >
             <PracticeCoachPanel
               selectedSubjectId={selectedSubjectId}
               currentSubjectTitle={currentSubjectTitle}

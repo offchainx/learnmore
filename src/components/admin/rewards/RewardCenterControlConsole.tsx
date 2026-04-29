@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { LeaderboardPeriod } from '@prisma/client'
-import { History, PencilLine, PlusCircle, RefreshCw, RotateCcw } from 'lucide-react'
+import {
+  History,
+  PencilLine,
+  PlusCircle,
+  RefreshCw,
+  RotateCcw,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge as UiBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,11 +33,8 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { AuditLogDrawer } from '@/components/admin/content/AuditLogDrawer'
-import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { PageHeroTitle } from '@/components/shared/PageHeroTitle'
 import { SectionBlockHeader } from '@/components/shared/SectionBlockHeader'
 import {
-  pageBadgeClass,
   pageEmptyStateClass,
   pagePanelClass,
   pagePanelStrongClass,
@@ -39,7 +42,10 @@ import {
   pageSegmentedControlCompactClass,
   pageTableShellClass,
 } from '@/components/shared/pageSurfaces'
-import { pageCardTitleClass, pageMetaTextClass } from '@/components/shared/pageTypography'
+import {
+  pageCardTitleClass,
+  pageMetaTextClass,
+} from '@/components/shared/pageTypography'
 import {
   createRewardAdjustment,
   createRewardRule,
@@ -125,7 +131,12 @@ const PERIOD_LABELS: Record<RewardSnapshotPeriod, string> = {
   ALL_TIME: '总榜',
 }
 
-const TASK_TYPE_OPTIONS = ['每日任务', '新手引导', '通用动作', '自定义动作'] as const
+const TASK_TYPE_OPTIONS = [
+  '每日任务',
+  '新手引导',
+  '通用动作',
+  '自定义动作',
+] as const
 
 const DEFAULT_RULE_DRAFT: RewardRuleDraft = {
   taskType: '自定义动作',
@@ -184,7 +195,9 @@ function buildLeaderboardObservationStatus(
   snapshots: RewardLeaderboardSnapshot[]
 ): Record<RewardSnapshotPeriod, LeaderboardObservationStatus> {
   const timestamp = formatAuditTimestamp()
-  return snapshots.reduce<Record<RewardSnapshotPeriod, LeaderboardObservationStatus>>(
+  return snapshots.reduce<
+    Record<RewardSnapshotPeriod, LeaderboardObservationStatus>
+  >(
     (accumulator, snapshot) => {
       const hasEntries = snapshot.entries.length > 0
       accumulator[snapshot.period] = {
@@ -226,7 +239,11 @@ function buildLeaderboardObservationStatus(
 
 function buildRewardAdjustmentIdempotencyKey(draft: RewardAdjustmentDraft) {
   const targetUser = draft.targetUser.trim().toLowerCase()
-  const reason = draft.reason.trim().toLowerCase().slice(0, 24).replace(/\s+/g, '-')
+  const reason = draft.reason
+    .trim()
+    .toLowerCase()
+    .slice(0, 24)
+    .replace(/\s+/g, '-')
 
   if (draft.kind === 'XP') {
     return `xp:${targetUser}:${draft.xpDelta.trim()}:${reason}`
@@ -248,7 +265,9 @@ function buildRewardAdjustmentSummary(
   }
 
   if (draft.kind === 'BADGE') {
-    const achievement = achievementRules.find((rule) => rule.badgeCode === draft.badgeCode)
+    const achievement = achievementRules.find(
+      (rule) => rule.badgeCode === draft.badgeCode
+    )
     return `为 ${draft.targetUser.trim()} 补发成就 ${achievement?.achievementType || draft.badgeCode}`
   }
 
@@ -291,16 +310,21 @@ function RewardRuleEditorDialog({
             {mode === 'create' ? '新增奖励动作' : '编辑奖励规则'}
           </DialogTitle>
           <DialogDescription className="text-sm text-text-secondary">
-            统一维护任务类型、动作定义、XP 数值、次数上限与启停状态。当前为前端规则模块，后续会接入真实保存接口。
+            统一维护任务类型、动作定义、XP
+            数值、次数上限与启停状态。当前为前端规则模块，后续会接入真实保存接口。
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 px-6 py-5 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">任务类型</label>
+            <label className="text-sm font-medium text-text-primary">
+              任务类型
+            </label>
             <Select
               value={draft.taskType}
-              onValueChange={(value) => onDraftChange({ ...draft, taskType: value })}
+              onValueChange={(value) =>
+                onDraftChange({ ...draft, taskType: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="选择任务类型" />
@@ -316,19 +340,27 @@ function RewardRuleEditorDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">动作名称</label>
+            <label className="text-sm font-medium text-text-primary">
+              动作名称
+            </label>
             <Input
               value={draft.action}
-              onChange={(event) => onDraftChange({ ...draft, action: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, action: event.target.value })
+              }
               placeholder="例如：完成专题训练"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">规则编码</label>
+            <label className="text-sm font-medium text-text-primary">
+              规则编码
+            </label>
             <Input
               value={draft.ruleCode}
-              onChange={(event) => onDraftChange({ ...draft, ruleCode: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, ruleCode: event.target.value })
+              }
               placeholder="例如：TOPIC_PRACTICE_COMPLETE"
             />
             <p className="text-xs text-text-tertiary">
@@ -338,27 +370,37 @@ function RewardRuleEditorDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">XP 奖励值</label>
+            <label className="text-sm font-medium text-text-primary">
+              XP 奖励值
+            </label>
             <Input
               type="number"
               min={0}
               value={draft.xp}
-              onChange={(event) => onDraftChange({ ...draft, xp: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, xp: event.target.value })
+              }
               placeholder="输入整数 XP 值"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">完成次数上限</label>
+            <label className="text-sm font-medium text-text-primary">
+              完成次数上限
+            </label>
             <Input
               value={draft.cap}
-              onChange={(event) => onDraftChange({ ...draft, cap: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, cap: event.target.value })
+              }
               placeholder="例如：1 次 / 日、按业务规则"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">启用状态</label>
+            <label className="text-sm font-medium text-text-primary">
+              启用状态
+            </label>
             <div className="flex min-h-10 items-center justify-between rounded-2xl border border-borderTone bg-surface px-3">
               <div>
                 <div className="text-sm font-medium text-text-primary">
@@ -370,16 +412,22 @@ function RewardRuleEditorDialog({
               </div>
               <Switch
                 checked={draft.enabled}
-                onCheckedChange={(checked) => onDraftChange({ ...draft, enabled: checked })}
+                onCheckedChange={(checked) =>
+                  onDraftChange({ ...draft, enabled: checked })
+                }
               />
             </div>
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-text-primary">规则说明</label>
+            <label className="text-sm font-medium text-text-primary">
+              规则说明
+            </label>
             <Textarea
               value={draft.note}
-              onChange={(event) => onDraftChange({ ...draft, note: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, note: event.target.value })
+              }
               placeholder="说明这个动作何时触发、为何发放以及后续审计口径。"
               className="min-h-[104px]"
             />
@@ -437,7 +485,9 @@ function AchievementRuleEditorDialog({
 
         <div className="grid gap-4 px-6 py-5 md:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">成就类型</label>
+            <label className="text-sm font-medium text-text-primary">
+              成就类型
+            </label>
             <Input
               value={draft.achievementType}
               onChange={(event) =>
@@ -448,7 +498,9 @@ function AchievementRuleEditorDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">成就编码</label>
+            <label className="text-sm font-medium text-text-primary">
+              成就编码
+            </label>
             <Input
               value={draft.badgeCode}
               onChange={(event) =>
@@ -463,11 +515,16 @@ function AchievementRuleEditorDialog({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-text-primary">触发条件</label>
+            <label className="text-sm font-medium text-text-primary">
+              触发条件
+            </label>
             <Textarea
               value={draft.triggerCondition}
               onChange={(event) =>
-                onDraftChange({ ...draft, triggerCondition: event.target.value })
+                onDraftChange({
+                  ...draft,
+                  triggerCondition: event.target.value,
+                })
               }
               placeholder="例如：累计答对 >= 100"
               className="min-h-[92px]"
@@ -475,16 +532,22 @@ function AchievementRuleEditorDialog({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">成就上限</label>
+            <label className="text-sm font-medium text-text-primary">
+              成就上限
+            </label>
             <Input
               value={draft.limit}
-              onChange={(event) => onDraftChange({ ...draft, limit: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, limit: event.target.value })
+              }
               placeholder="例如：不限量、100 枚"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">启用状态</label>
+            <label className="text-sm font-medium text-text-primary">
+              启用状态
+            </label>
             <div className="flex min-h-10 items-center justify-between rounded-2xl border border-borderTone bg-surface px-3">
               <div>
                 <div className="text-sm font-medium text-text-primary">
@@ -504,10 +567,14 @@ function AchievementRuleEditorDialog({
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-text-primary">成就说明</label>
+            <label className="text-sm font-medium text-text-primary">
+              成就说明
+            </label>
             <Textarea
               value={draft.note}
-              onChange={(event) => onDraftChange({ ...draft, note: event.target.value })}
+              onChange={(event) =>
+                onDraftChange({ ...draft, note: event.target.value })
+              }
               placeholder="说明该成就由哪些用户行为触发，以及管理员如何审计。"
               className="min-h-[104px]"
             />
@@ -586,11 +653,19 @@ function RewardPolicyCard({
 
   return (
     <>
-      <Card id="action-registry" className={cn(pagePanelStrongClass, 'h-full p-4')}>
+      <Card
+        id="action-registry"
+        className={cn(pagePanelStrongClass, 'h-full p-4')}
+      >
         <SectionBlockHeader
           title="奖励规则"
           actions={
-            <Button variant="outline" size="sm" className="gap-2" onClick={openCreateDialog}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={openCreateDialog}
+            >
               <PlusCircle className="h-4 w-4" />
               新增动作
             </Button>
@@ -600,7 +675,9 @@ function RewardPolicyCard({
         <div className="mt-4 space-y-2 xl:hidden">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
-              <p className="text-sm font-medium text-text-primary">暂无奖励规则</p>
+              <p className="text-sm font-medium text-text-primary">
+                暂无奖励规则
+              </p>
               <p className={cn(pageMetaTextClass, 'mt-1')}>
                 当前没有可用的奖励规则，后续可通过“新增动作”补齐真实规则。
               </p>
@@ -632,7 +709,9 @@ function RewardPolicyCard({
                   <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
                     上限
                   </div>
-                  <div className="mt-1 text-sm font-semibold text-text-primary">{rule.cap}</div>
+                  <div className="mt-1 text-sm font-semibold text-text-primary">
+                    {rule.cap}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-borderTone bg-surface px-3 py-2">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
@@ -655,10 +734,18 @@ function RewardPolicyCard({
                     操作
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditDialog(rule)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(rule)}
+                    >
                       编辑
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={() => onToggleRule(rule.id)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onToggleRule(rule.id)}
+                    >
                       {rule.enabled ? '停用' : '启用'}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={onOpenLogs}>
@@ -674,7 +761,9 @@ function RewardPolicyCard({
         <div className="mt-4 hidden overflow-hidden rounded-3xl border border-borderTone bg-surface xl:block">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
-              <p className="text-sm font-medium text-text-primary">暂无奖励规则</p>
+              <p className="text-sm font-medium text-text-primary">
+                暂无奖励规则
+              </p>
               <p className={cn(pageMetaTextClass, 'mt-1')}>
                 当前没有可用的奖励规则，后续可通过“新增动作”补齐真实规则。
               </p>
@@ -701,11 +790,17 @@ function RewardPolicyCard({
                     </div>
                     <div className="min-w-0">
                       <div className={pageCardTitleClass}>{rule.action}</div>
-                      <p className={cn(pageMetaTextClass, 'mt-1')}>{rule.ruleCode}</p>
-                      <p className={cn(pageMetaTextClass, 'mt-1')}>{rule.note}</p>
+                      <p className={cn(pageMetaTextClass, 'mt-1')}>
+                        {rule.ruleCode}
+                      </p>
+                      <p className={cn(pageMetaTextClass, 'mt-1')}>
+                        {rule.note}
+                      </p>
                     </div>
                     <div className="flex items-center">
-                      <UiBadge variant="success">+{formatNumber(rule.xp)} XP</UiBadge>
+                      <UiBadge variant="success">
+                        +{formatNumber(rule.xp)} XP
+                      </UiBadge>
                     </div>
                     <div className="flex items-center text-sm font-medium text-text-primary">
                       {rule.cap}
@@ -716,7 +811,9 @@ function RewardPolicyCard({
                       </UiBadge>
                     </div>
                     <div className="flex flex-col justify-center">
-                      <span className="text-sm font-medium text-text-primary">{rule.auditLabel}</span>
+                      <span className="text-sm font-medium text-text-primary">
+                        {rule.auditLabel}
+                      </span>
                       <button
                         type="button"
                         onClick={onOpenLogs}
@@ -726,10 +823,18 @@ function RewardPolicyCard({
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(rule)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(rule)}
+                      >
                         编辑
                       </Button>
-                      <Button variant="secondary" size="sm" onClick={() => onToggleRule(rule.id)}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onToggleRule(rule.id)}
+                      >
                         {rule.enabled ? '停用' : '启用'}
                       </Button>
                     </div>
@@ -779,13 +884,17 @@ function LeaderboardObservationCard({
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [activePeriod, setActivePeriod] = useState<RewardSnapshotPeriod>('WEEKLY')
-  const [activeAction, setActiveAction] = useState<'refresh' | 'recompute' | null>(null)
-  const [statusByPeriod, setStatusByPeriod] = useState<Record<RewardSnapshotPeriod, LeaderboardObservationStatus>>(
-    () => buildLeaderboardObservationStatus(snapshots)
-  )
+  const [activePeriod, setActivePeriod] =
+    useState<RewardSnapshotPeriod>('WEEKLY')
+  const [activeAction, setActiveAction] = useState<
+    'refresh' | 'recompute' | null
+  >(null)
+  const [statusByPeriod, setStatusByPeriod] = useState<
+    Record<RewardSnapshotPeriod, LeaderboardObservationStatus>
+  >(() => buildLeaderboardObservationStatus(snapshots))
   const activeSnapshot =
-    snapshots.find((snapshot) => snapshot.period === activePeriod) ?? snapshots[0]
+    snapshots.find((snapshot) => snapshot.period === activePeriod) ??
+    snapshots[0]
   const activeStatus = statusByPeriod[activePeriod]
 
   useEffect(() => {
@@ -845,7 +954,8 @@ function LeaderboardObservationCard({
       result: '待接入',
       before: `${PERIOD_LABELS[activePeriod]} · ${activeStatus.cacheState}`,
       after: `${PERIOD_LABELS[activePeriod]} · 等待重算接管`,
-      failureReason: '真实榜单重算链路尚未接入，当前先保留管理员重算记录与缓存状态变化。',
+      failureReason:
+        '真实榜单重算链路尚未接入，当前先保留管理员重算记录与缓存状态变化。',
       comment: `已触发 ${PERIOD_LABELS[activePeriod]} 的管理端重算记录，等待真实重算接口接入。`,
     })
     startTransition(() => {
@@ -855,13 +965,21 @@ function LeaderboardObservationCard({
   }
 
   return (
-    <Card id="leaderboard-observation" className={cn(pagePanelStrongClass, 'h-full p-4')}>
+    <Card
+      id="leaderboard-observation"
+      className={cn(pagePanelStrongClass, 'h-full p-4')}
+    >
       <div className="flex flex-col gap-4">
         <SectionBlockHeader
           title="排行榜观察"
           actions={
             <div className="flex w-full flex-col gap-2 xl:w-auto xl:items-end">
-              <div className={cn(pageSegmentedControlCompactClass, 'w-full sm:w-auto')}>
+              <div
+                className={cn(
+                  pageSegmentedControlCompactClass,
+                  'w-full sm:w-auto'
+                )}
+              >
                 {snapshots.map((snapshot) => {
                   const isActive = snapshot.period === activePeriod
                   return (
@@ -914,7 +1032,9 @@ function LeaderboardObservationCard({
               缓存状态
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <UiBadge variant={activeStatus.cacheTone}>{activeStatus.cacheState}</UiBadge>
+              <UiBadge variant={activeStatus.cacheTone}>
+                {activeStatus.cacheState}
+              </UiBadge>
             </div>
             <p className={cn(pageMetaTextClass, 'mt-2')}>{activeStatus.note}</p>
           </div>
@@ -969,7 +1089,10 @@ function LeaderboardObservationCard({
                       {entry.rank}
                     </div>
                     <Avatar className="h-11 w-11">
-                      <AvatarImage src={entry.user.avatar ?? ''} alt={entry.user.username ?? '用户头像'} />
+                      <AvatarImage
+                        src={entry.user.avatar ?? ''}
+                        alt={entry.user.username ?? '用户头像'}
+                      />
                       <AvatarFallback className="bg-surface-subtle text-sm font-semibold text-text-secondary">
                         {(entry.user.username ?? 'U').slice(0, 2).toUpperCase()}
                       </AvatarFallback>
@@ -994,7 +1117,9 @@ function LeaderboardObservationCard({
             </div>
           ) : (
             <div className={pageEmptyStateClass}>
-              <p className="text-sm font-medium text-text-primary">暂无排行榜数据</p>
+              <p className="text-sm font-medium text-text-primary">
+                暂无排行榜数据
+              </p>
               <p className={cn(pageMetaTextClass, 'mt-1')}>
                 当前周期没有取到榜单快照，后续会由奖励中心的重算与缓存模块接管。
               </p>
@@ -1015,11 +1140,16 @@ function AchievementLinkageCard({
   rules: RewardCenterAchievementRule[]
   onOpenLogs: () => void
   onToggleRule: (ruleId: string) => Promise<void> | void
-  onUpdateRule: (ruleId: string, draft: AchievementRuleDraft) => Promise<void> | void
+  onUpdateRule: (
+    ruleId: string,
+    draft: AchievementRuleDraft
+  ) => Promise<void> | void
 }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null)
-  const [draft, setDraft] = useState<AchievementRuleDraft>(DEFAULT_ACHIEVEMENT_DRAFT)
+  const [draft, setDraft] = useState<AchievementRuleDraft>(
+    DEFAULT_ACHIEVEMENT_DRAFT
+  )
 
   const duplicateCode = useMemo(() => {
     const normalizedCode = normalizeRuleCode(draft.badgeCode).toLowerCase()
@@ -1052,13 +1182,18 @@ function AchievementLinkageCard({
 
   return (
     <>
-      <Card id="achievement-linkage" className={cn(pagePanelClass, 'h-full p-4')}>
+      <Card
+        id="achievement-linkage"
+        className={cn(pagePanelClass, 'h-full p-4')}
+      >
         <SectionBlockHeader title="成就联动" />
 
         <div className="mt-4 space-y-2 xl:hidden">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
-              <p className="text-sm font-medium text-text-primary">暂无成就联动规则</p>
+              <p className="text-sm font-medium text-text-primary">
+                暂无成就联动规则
+              </p>
               <p className={cn(pageMetaTextClass, 'mt-1')}>
                 当前没有成就联动定义，后续需要通过真实规则源补齐。
               </p>
@@ -1066,7 +1201,10 @@ function AchievementLinkageCard({
           ) : null}
 
           {rules.map((rule) => (
-            <div key={rule.id} className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3">
+            <div
+              key={rule.id}
+              className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3"
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <div className={pageCardTitleClass}>{rule.achievementType}</div>
                 <UiBadge variant={rule.enabled ? 'neutral' : 'warning'}>
@@ -1074,25 +1212,45 @@ function AchievementLinkageCard({
                 </UiBadge>
               </div>
               <p className={cn(pageMetaTextClass, 'mt-1')}>{rule.badgeCode}</p>
-              <p className="mt-2 text-sm text-text-primary">{rule.triggerCondition}</p>
+              <p className="mt-2 text-sm text-text-primary">
+                {rule.triggerCondition}
+              </p>
               <p className={cn(pageMetaTextClass, 'mt-2')}>{rule.note}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-borderTone bg-surface px-3 py-2">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">成就上限</div>
-                  <div className="mt-1 text-sm font-semibold text-text-primary">{rule.limit}</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                    成就上限
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-text-primary">
+                    {rule.limit}
+                  </div>
                 </div>
                 <div className="rounded-xl border border-borderTone bg-surface px-3 py-2">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">审计</div>
-                  <div className="mt-1 text-sm font-semibold text-text-primary">{rule.auditLabel}</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                    审计
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-text-primary">
+                    {rule.auditLabel}
+                  </div>
                 </div>
-                <div className="rounded-xl border border-borderTone bg-surface px-3 py-2 col-span-2">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">操作</div>
+                <div className="col-span-2 rounded-xl border border-borderTone bg-surface px-3 py-2">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
+                    操作
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditDialog(rule)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(rule)}
+                    >
                       <PencilLine className="h-4 w-4" />
                       编辑
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={() => onToggleRule(rule.id)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onToggleRule(rule.id)}
+                    >
                       {rule.enabled ? '停用' : '启用'}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={onOpenLogs}>
@@ -1108,7 +1266,9 @@ function AchievementLinkageCard({
         <div className="mt-4 hidden overflow-hidden rounded-3xl border border-borderTone bg-surface xl:block">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
-              <p className="text-sm font-medium text-text-primary">暂无成就联动规则</p>
+              <p className="text-sm font-medium text-text-primary">
+                暂无成就联动规则
+              </p>
               <p className={cn(pageMetaTextClass, 'mt-1')}>
                 当前没有成就联动定义，后续需要通过真实规则源补齐。
               </p>
@@ -1129,12 +1289,20 @@ function AchievementLinkageCard({
                     className="grid grid-cols-[1.15fr_1.35fr_0.8fr_0.6fr_0.8fr] gap-3 px-4 py-3.5"
                   >
                     <div className="min-w-0">
-                      <div className={pageCardTitleClass}>{rule.achievementType}</div>
-                      <p className={cn(pageMetaTextClass, 'mt-1')}>{rule.badgeCode}</p>
-                      <p className={cn(pageMetaTextClass, 'mt-1')}>{rule.note}</p>
+                      <div className={pageCardTitleClass}>
+                        {rule.achievementType}
+                      </div>
+                      <p className={cn(pageMetaTextClass, 'mt-1')}>
+                        {rule.badgeCode}
+                      </p>
+                      <p className={cn(pageMetaTextClass, 'mt-1')}>
+                        {rule.note}
+                      </p>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm text-text-primary">{rule.triggerCondition}</p>
+                      <p className="text-sm text-text-primary">
+                        {rule.triggerCondition}
+                      </p>
                     </div>
                     <div className="flex items-center">
                       <UiBadge variant="neutral">{rule.limit}</UiBadge>
@@ -1145,10 +1313,18 @@ function AchievementLinkageCard({
                       </UiBadge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(rule)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(rule)}
+                      >
                         编辑
                       </Button>
-                      <Button variant="secondary" size="sm" onClick={() => onToggleRule(rule.id)}>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onToggleRule(rule.id)}
+                      >
                         {rule.enabled ? '停用' : '启用'}
                       </Button>
                     </div>
@@ -1189,16 +1365,20 @@ function RewardAdjustmentCard({
   onApplyAdjustment: (draft: RewardAdjustmentDraft) => Promise<void>
   onRollbackAdjustment: (record: RewardCenterAdjustmentRecord) => Promise<void>
 }) {
-  const [draft, setDraft] = useState<RewardAdjustmentDraft>(DEFAULT_ADJUSTMENT_DRAFT)
+  const [draft, setDraft] = useState<RewardAdjustmentDraft>(
+    DEFAULT_ADJUSTMENT_DRAFT
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRollbackPending, setIsRollbackPending] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [recordToRollback, setRecordToRollback] = useState<RewardCenterAdjustmentRecord | null>(null)
+  const [recordToRollback, setRecordToRollback] =
+    useState<RewardCenterAdjustmentRecord | null>(null)
 
   const idempotencyKey = buildRewardAdjustmentIdempotencyKey(draft)
   const summary = buildRewardAdjustmentSummary(draft, achievementRules)
   const duplicateRecord = records.find(
-    (record) => record.idempotencyKey === idempotencyKey && record.status === '已执行'
+    (record) =>
+      record.idempotencyKey === idempotencyKey && record.status === '已执行'
   )
   const isAdminAllowed = true
   const isInvalid =
@@ -1206,7 +1386,8 @@ function RewardAdjustmentCard({
     !draft.reason.trim() ||
     draft.reason.trim().length < 6 ||
     !draft.rollbackPlan.trim() ||
-    (draft.kind === 'XP' && (!draft.xpDelta.trim() || Number.isNaN(Number(draft.xpDelta)))) ||
+    (draft.kind === 'XP' &&
+      (!draft.xpDelta.trim() || Number.isNaN(Number(draft.xpDelta)))) ||
     (draft.kind === 'BADGE' && !draft.badgeCode.trim()) ||
     (draft.kind === 'LEADERBOARD_SCORE' &&
       (!draft.leaderboardScoreDelta.trim() ||
@@ -1253,7 +1434,9 @@ function RewardAdjustmentCard({
           <div className="space-y-3">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary">操作类型</label>
+                <label className="text-sm font-medium text-text-primary">
+                  操作类型
+                </label>
                 <Select
                   value={draft.kind}
                   onValueChange={(value) =>
@@ -1269,17 +1452,24 @@ function RewardAdjustmentCard({
                   <SelectContent>
                     <SelectItem value="XP">XP 补发</SelectItem>
                     <SelectItem value="BADGE">成就补发</SelectItem>
-                    <SelectItem value="LEADERBOARD_SCORE">榜单分数校正</SelectItem>
+                    <SelectItem value="LEADERBOARD_SCORE">
+                      榜单分数校正
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary">目标用户</label>
+                <label className="text-sm font-medium text-text-primary">
+                  目标用户
+                </label>
                 <Input
                   value={draft.targetUser}
                   onChange={(event) =>
-                    setDraft((current) => ({ ...current, targetUser: event.target.value }))
+                    setDraft((current) => ({
+                      ...current,
+                      targetUser: event.target.value,
+                    }))
                   }
                   placeholder="输入用户 ID / 邮箱 / 用户名"
                 />
@@ -1288,12 +1478,17 @@ function RewardAdjustmentCard({
 
             {draft.kind === 'XP' ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary">XP 补发值</label>
+                <label className="text-sm font-medium text-text-primary">
+                  XP 补发值
+                </label>
                 <Input
                   type="number"
                   value={draft.xpDelta}
                   onChange={(event) =>
-                    setDraft((current) => ({ ...current, xpDelta: event.target.value }))
+                    setDraft((current) => ({
+                      ...current,
+                      xpDelta: event.target.value,
+                    }))
                   }
                   placeholder="输入 XP 数值"
                 />
@@ -1302,7 +1497,9 @@ function RewardAdjustmentCard({
 
             {draft.kind === 'BADGE' ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-text-primary">成就类型</label>
+                <label className="text-sm font-medium text-text-primary">
+                  成就类型
+                </label>
                 <Select
                   value={draft.badgeCode}
                   onValueChange={(value) =>
@@ -1326,7 +1523,9 @@ function RewardAdjustmentCard({
             {draft.kind === 'LEADERBOARD_SCORE' ? (
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-primary">榜单周期</label>
+                  <label className="text-sm font-medium text-text-primary">
+                    榜单周期
+                  </label>
                   <Select
                     value={draft.leaderboardPeriod}
                     onValueChange={(value) =>
@@ -1348,7 +1547,9 @@ function RewardAdjustmentCard({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-text-primary">分数校正值</label>
+                  <label className="text-sm font-medium text-text-primary">
+                    分数校正值
+                  </label>
                   <Input
                     type="number"
                     value={draft.leaderboardScoreDelta}
@@ -1365,11 +1566,16 @@ function RewardAdjustmentCard({
             ) : null}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary">操作理由</label>
+              <label className="text-sm font-medium text-text-primary">
+                操作理由
+              </label>
               <Textarea
                 value={draft.reason}
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, reason: event.target.value }))
+                  setDraft((current) => ({
+                    ...current,
+                    reason: event.target.value,
+                  }))
                 }
                 placeholder="说明为何需要补发或校正，后续会作为审计记录的一部分。"
                 className="min-h-[88px]"
@@ -1377,11 +1583,16 @@ function RewardAdjustmentCard({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary">回滚预案</label>
+              <label className="text-sm font-medium text-text-primary">
+                回滚预案
+              </label>
               <Textarea
                 value={draft.rollbackPlan}
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, rollbackPlan: event.target.value }))
+                  setDraft((current) => ({
+                    ...current,
+                    rollbackPlan: event.target.value,
+                  }))
                 }
                 placeholder="说明如果误发或校正错误，后续要如何回滚。"
                 className="min-h-[88px]"
@@ -1389,10 +1600,17 @@ function RewardAdjustmentCard({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={() => setIsConfirmOpen(true)} disabled={isInvalid || isSubmitting}>
+              <Button
+                onClick={() => setIsConfirmOpen(true)}
+                disabled={isInvalid || isSubmitting}
+              >
                 提交补发 / 校正
               </Button>
-              <Button variant="outline" onClick={resetDraft} disabled={isSubmitting}>
+              <Button
+                variant="outline"
+                onClick={resetDraft}
+                disabled={isSubmitting}
+              >
                 重置表单
               </Button>
             </div>
@@ -1431,7 +1649,9 @@ function RewardAdjustmentCard({
               <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-tertiary">
                 执行预览
               </div>
-              <div className="mt-2 text-sm font-semibold text-text-primary">{summary}</div>
+              <div className="mt-2 text-sm font-semibold text-text-primary">
+                {summary}
+              </div>
               <p className={cn(pageMetaTextClass, 'mt-2')}>
                 回滚预案：{draft.rollbackPlan.trim() || '待填写'}
               </p>
@@ -1450,7 +1670,9 @@ function RewardAdjustmentCard({
           <div className="divide-y divide-borderTone">
             {records.length === 0 ? (
               <div className={pageEmptyStateClass}>
-                <p className="text-sm font-medium text-text-primary">暂无补发或校正记录</p>
+                <p className="text-sm font-medium text-text-primary">
+                  暂无补发或校正记录
+                </p>
                 <p className={cn(pageMetaTextClass, 'mt-1')}>
                   当前模块会展示真实的补发 / 校正记录，便于继续核对与回滚。
                 </p>
@@ -1463,13 +1685,19 @@ function RewardAdjustmentCard({
                 >
                   <div className="min-w-0">
                     <div className={pageCardTitleClass}>{record.summary}</div>
-                    <p className={cn(pageMetaTextClass, 'mt-1')}>{record.reason}</p>
+                    <p className={cn(pageMetaTextClass, 'mt-1')}>
+                      {record.reason}
+                    </p>
                   </div>
                   <div className="min-w-0 break-all text-xs text-text-secondary">
                     {record.idempotencyKey}
                   </div>
                   <div className="flex items-center">
-                    <UiBadge variant={record.status === '已执行' ? 'success' : 'warning'}>
+                    <UiBadge
+                      variant={
+                        record.status === '已执行' ? 'success' : 'warning'
+                      }
+                    >
                       {record.status}
                     </UiBadge>
                   </div>
@@ -1504,22 +1732,37 @@ function RewardAdjustmentCard({
           <div className="space-y-3">
             <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3">
               <div className={pageCardTitleClass}>{summary}</div>
-              <p className={cn(pageMetaTextClass, 'mt-2')}>幂等键：{idempotencyKey}</p>
+              <p className={cn(pageMetaTextClass, 'mt-2')}>
+                幂等键：{idempotencyKey}
+              </p>
             </div>
             <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3">
-              <div className="text-sm font-medium text-text-primary">操作理由</div>
-              <p className={cn(pageMetaTextClass, 'mt-2')}>{draft.reason.trim()}</p>
+              <div className="text-sm font-medium text-text-primary">
+                操作理由
+              </div>
+              <p className={cn(pageMetaTextClass, 'mt-2')}>
+                {draft.reason.trim()}
+              </p>
             </div>
             <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3">
-              <div className="text-sm font-medium text-text-primary">回滚预案</div>
-              <p className={cn(pageMetaTextClass, 'mt-2')}>{draft.rollbackPlan.trim()}</p>
+              <div className="text-sm font-medium text-text-primary">
+                回滚预案
+              </div>
+              <p className={cn(pageMetaTextClass, 'mt-2')}>
+                {draft.rollbackPlan.trim()}
+              </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsConfirmOpen(false)}>
               返回编辑
             </Button>
-            <Button onClick={handleApply} disabled={isInvalid || isSubmitting} isLoading={isSubmitting} loadingText="提交中">
+            <Button
+              onClick={handleApply}
+              disabled={isInvalid || isSubmitting}
+              isLoading={isSubmitting}
+              loadingText="提交中"
+            >
               确认提交
             </Button>
           </DialogFooter>
@@ -1543,7 +1786,9 @@ function RewardAdjustmentCard({
           </DialogHeader>
           {recordToRollback ? (
             <div className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3">
-              <div className={pageCardTitleClass}>{recordToRollback.summary}</div>
+              <div className={pageCardTitleClass}>
+                {recordToRollback.summary}
+              </div>
               <p className={cn(pageMetaTextClass, 'mt-2')}>
                 幂等键：{recordToRollback.idempotencyKey}
               </p>
@@ -1606,7 +1851,8 @@ function RewardCenterStateCard({
     {
       label: '成就联动',
       status: achievementRuleCount > 0 ? '已加载' : '无数据',
-      tone: achievementRuleCount > 0 ? ('success' as const) : ('warning' as const),
+      tone:
+        achievementRuleCount > 0 ? ('success' as const) : ('warning' as const),
       detail:
         achievementRuleCount > 0
           ? `当前已有 ${achievementRuleCount} 条成就联动规则。`
@@ -1615,7 +1861,8 @@ function RewardCenterStateCard({
     {
       label: '排行榜缓存',
       status: emptySnapshotCount === 0 ? '快照可用' : '部分失效',
-      tone: emptySnapshotCount === 0 ? ('success' as const) : ('warning' as const),
+      tone:
+        emptySnapshotCount === 0 ? ('success' as const) : ('warning' as const),
       detail:
         emptySnapshotCount === 0
           ? '周榜 / 月榜 / 总榜当前都能拿到榜单快照。'
@@ -1634,7 +1881,8 @@ function RewardCenterStateCard({
       label: '交互态',
       status: '已收口',
       tone: 'neutral' as const,
-      detail: '刷新、重算、提交补发、回滚都已接入按钮 loading、确认弹窗和空态提示。',
+      detail:
+        '刷新、重算、提交补发、回滚都已接入按钮 loading、确认弹窗和空态提示。',
     },
   ]
 
@@ -1649,7 +1897,9 @@ function RewardCenterStateCard({
             className="rounded-2xl border border-borderTone bg-surface-subtle px-4 py-3"
           >
             <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold text-text-primary">{row.label}</div>
+              <div className="text-sm font-semibold text-text-primary">
+                {row.label}
+              </div>
               <UiBadge variant={row.tone}>{row.status}</UiBadge>
             </div>
             <p className={cn(pageMetaTextClass, 'mt-2')}>{row.detail}</p>
@@ -1670,14 +1920,16 @@ export function RewardCenterControlConsole({
   const router = useRouter()
   const { toast } = useToast()
   const [isOperationLogOpen, setIsOperationLogOpen] = useState(false)
-  const [rewardRules, setRewardRules] = useState<RewardCenterRewardRule[]>(initialRewardRules)
-  const [achievementRules, setAchievementRules] = useState<RewardCenterAchievementRule[]>(
-    initialAchievementRules
-  )
-  const [adjustmentRecords, setAdjustmentRecords] = useState<RewardCenterAdjustmentRecord[]>(
-    initialAdjustmentRecords
-  )
-  const [operationLogs, setOperationLogs] = useState<AuditLogEntry[]>(initialOperationLogs)
+  const [rewardRules, setRewardRules] =
+    useState<RewardCenterRewardRule[]>(initialRewardRules)
+  const [achievementRules, setAchievementRules] = useState<
+    RewardCenterAchievementRule[]
+  >(initialAchievementRules)
+  const [adjustmentRecords, setAdjustmentRecords] = useState<
+    RewardCenterAdjustmentRecord[]
+  >(initialAdjustmentRecords)
+  const [operationLogs, setOperationLogs] =
+    useState<AuditLogEntry[]>(initialOperationLogs)
 
   useEffect(() => {
     setRewardRules(initialRewardRules)
@@ -1854,7 +2106,9 @@ export function RewardCenterControlConsole({
         xpDelta: draft.kind === 'XP' ? Number(draft.xpDelta) : undefined,
         badgeCode: draft.kind === 'BADGE' ? draft.badgeCode : undefined,
         leaderboardPeriod:
-          draft.kind === 'LEADERBOARD_SCORE' ? draft.leaderboardPeriod : undefined,
+          draft.kind === 'LEADERBOARD_SCORE'
+            ? draft.leaderboardPeriod
+            : undefined,
         leaderboardScoreDelta:
           draft.kind === 'LEADERBOARD_SCORE'
             ? Number(draft.leaderboardScoreDelta)
@@ -1877,7 +2131,9 @@ export function RewardCenterControlConsole({
     }
   }
 
-  const handleRollbackAdjustment = async (record: RewardCenterAdjustmentRecord) => {
+  const handleRollbackAdjustment = async (
+    record: RewardCenterAdjustmentRecord
+  ) => {
     try {
       const result = await rollbackRewardAdjustment(record.id)
       setAdjustmentRecords((current) =>
@@ -1897,10 +2153,8 @@ export function RewardCenterControlConsole({
 
   return (
     <div className="space-y-3">
-      <PageHeroShell
-        eyebrow={<span className={pageBadgeClass}>管理端 / 奖励中心</span>}
-        title={<PageHeroTitle title="奖励中心" capsuleLabel="Admin Control" />}
-        actions={
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <Button
             variant="outline"
             size="sm"
@@ -1909,10 +2163,8 @@ export function RewardCenterControlConsole({
             <History className="h-4 w-4" />
             操作日志
           </Button>
-        }
-      />
+        </div>
 
-      <div className="space-y-3">
         <RewardPolicyCard
           rules={rewardRules}
           onCreateRule={handleCreateRule}

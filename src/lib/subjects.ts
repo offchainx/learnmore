@@ -1,3 +1,13 @@
+import {
+  Atom,
+  BookOpen,
+  Calculator,
+  Globe,
+  Languages,
+  Landmark,
+  Shapes,
+} from 'lucide-react'
+
 export type UiLang = 'zh' | 'en' | 'ms'
 
 export const SUBJECT_KEYS = [
@@ -84,37 +94,74 @@ export const SUBJECT_DEFINITIONS: SubjectDefinition[] = [
     canonicalName: '其他',
     order: 80,
     icon: 'Shapes',
-    aliases: ['其他', 'other', 'lain-lain', 'general', 'misc', 'computer science'],
+    aliases: [
+      '其他',
+      'other',
+      'lain-lain',
+      'general',
+      'misc',
+      'computer science',
+    ],
     labels: { zh: '其他', en: 'Other', ms: 'Lain-lain' },
   },
 ]
 
 const SUBJECT_DEFINITION_MAP = new Map<SubjectKey, SubjectDefinition>(
-  SUBJECT_DEFINITIONS.map((subject) => [subject.key, subject]),
+  SUBJECT_DEFINITIONS.map((subject) => [subject.key, subject])
 )
 
 export function normalizeSubjectText(value: string): string {
   return value.toLowerCase().replace(/[\s\-_./()]/g, '')
 }
 
-export function resolveSubjectKeyFromName(name: string | null | undefined): SubjectKey | null {
+export function resolveSubjectKeyFromName(
+  name: string | null | undefined
+): SubjectKey | null {
   if (!name) return null
   const normalized = normalizeSubjectText(name)
   for (const subject of SUBJECT_DEFINITIONS) {
-    if (subject.aliases.some((alias) => normalizeSubjectText(alias) === normalized || normalized.includes(normalizeSubjectText(alias)))) {
+    if (
+      subject.aliases.some(
+        (alias) =>
+          normalizeSubjectText(alias) === normalized ||
+          normalized.includes(normalizeSubjectText(alias))
+      )
+    ) {
       return subject.key
     }
   }
   return null
 }
 
-export function getSubjectDefinition(key: string | null | undefined): SubjectDefinition | null {
+export function getSubjectDefinition(
+  key: string | null | undefined
+): SubjectDefinition | null {
   if (!key) return null
   return SUBJECT_DEFINITION_MAP.get(key as SubjectKey) ?? null
 }
 
-export function getSubjectLabel(key: string | null | undefined, lang: UiLang, fallback = 'Unknown'): string {
+export function getSubjectLabel(
+  key: string | null | undefined,
+  lang: UiLang,
+  fallback = 'Unknown'
+): string {
   const subject = getSubjectDefinition(key)
   if (!subject) return fallback
   return subject.labels[lang]
+}
+
+const SUBJECT_ICON_COMPONENTS = {
+  chinese: BookOpen,
+  malay: Languages,
+  english: Languages,
+  math: Calculator,
+  science: Atom,
+  history: Landmark,
+  geography: Globe,
+  other: Shapes,
+} as const
+
+export function getSubjectIconComponent(key: string | null | undefined) {
+  if (!key) return Shapes
+  return SUBJECT_ICON_COMPONENTS[key as SubjectKey] ?? Shapes
 }
