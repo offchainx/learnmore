@@ -1,89 +1,120 @@
-"use server";
+'use server'
 
-import { createClient } from "@/lib/supabase/server";
-import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { z } from 'zod'
 
-export type OnboardingData = {
-  // Identity
-  grade: number;
-  curriculum?: string;
-  avatarUrl?: string; // If using uploaded/selected avatar
-  
-  // Habit
-  targetSubject: string; // Weak subject
-  studyReminderTime: string;
-  
-  // Assessment
-  difficultyCalibration: number; // Result from mini-test
-  
-  // Parent
-  parentEmail?: string;
-  
-  // Tracking
-  utmSource?: string;
-  // ... other utm fields handled by cookie/hidden inputs
-};
+import { getCurrentUser } from '@/actions/user/auth'
+import prisma from '@/lib/prisma'
+import {
+  LEGAL_CONSENT_VERSION,
+  ONBOARDING_STEP_DONE,
+  ONBOARDING_STEP_PROFILE,
+} from '@/lib/auth/onboarding'
 
-export async function completeOnboarding(data: OnboardingData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+const legalConsentSchema = z.object({
+  legalConsent: z.enum(['true', 'on']),
+})
 
+export type LegalConsentFormState = {
+  error?: string
+}
+
+export async function acceptLegalConsent(
+  _prevState: LegalConsentFormState,
+  formData: FormData
+): Promise<LegalConsentFormState> {
+  const user = await getCurrentUser()
   if (!user) {
-    throw new Error("Unauthorized");
+    return { error: 'Not authenticated' }
+  }
+
+  const rawConsent = formData.get('legalConsent')
+  const parsed = legalConsentSchema.safeParse({
+    legalConsent:
+      rawConsent === 'true' || rawConsent === 'on' ? rawConsent : undefined,
+  })
+
+  if (!parsed.success) {
+    return { error: '请先同意 Terms of Service 和 Privacy Policy' }
   }
 
   try {
-    // 1. Update User Profile
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        grade: data.grade,
-        avatar: data.avatarUrl, // Optional update if changed
-        // You might map curriculum to a field if schema supports it or store in settings
+        legalConsentAcceptedAt: new Date(),
+        legalConsentVersion: LEGAL_CONSENT_VERSION,
+        onboardingStep: ONBOARDING_STEP_PROFILE,
       },
-    });
+    })
 
-    // 2. Update Settings
-    await prisma.userSettings.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        studyReminderTime: data.studyReminderTime,
-        difficultyCalibration: data.difficultyCalibration,
-        curriculumSystem: data.curriculum,
-      },
-      update: {
-        studyReminderTime: data.studyReminderTime,
-        difficultyCalibration: data.difficultyCalibration,
-        curriculumSystem: data.curriculum,
-      },
-    });
-
-    // 3. Handle Parent Invite (if email provided)
-    if (data.parentEmail) {
-      // Create an invite code or pending relation
-      // For now, let's just log it or store in a simple way if schema allows
-      // We'll assume InviteCode logic is handled separately or added here later
-      // For MVP: We just skip actual email sending logic here
-      console.log(`Invite parent: ${data.parentEmail} for user ${user.id}`);
-    }
-
-    // 4. Update Supabase Auth Metadata (CRITICAL for Middleware)
-    const { error: authError } = await supabase.auth.updateUser({
-      data: { onboarding_completed: true },
-    });
-
-    if (authError) {
-      console.error("Failed to update auth metadata:", authError);
-      throw authError;
-    }
-
-    revalidatePath("/dashboard");
-    return { success: true };
-
+    revalidatePath('/onboarding/legal')
+    revalidatePath('/dashboard')
+    redirect('/onboarding/profile')
   } catch (error) {
-    console.error("Onboarding error:", error);
-    return { success: false, error: "Failed to save onboarding data" };
+    console.error('[Onboarding] Failed to accept legal consent:', error)
+    return { error: 'Failed to save legal consent' }
+  }
+}
+
+const onboardingProfileSchema = z.object({
+  displayName: z.string().trim().min(2).max(80),
+  school: z.string().trim().min(2).max(120),
+  grade: z.coerce.number().int().min(7).max(9),
+  avatar: z
+    .union([z.string().trim().url(), z.literal('')])
+    .optional()
+    .transform((value) => {
+      if (value === undefined || value === '') return undefined
+      return value
+    }),
+})
+
+export type OnboardingProfileFormState = {
+  error?: string
+}
+
+export async function completeOnboardingProfile(
+  _prevState: OnboardingProfileFormState,
+  formData: FormData
+): Promise<OnboardingProfileFormState> {
+  const user = await getCurrentUser()
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  const parsed = onboardingProfileSchema.safeParse({
+    displayName: formData.get('displayName'),
+    school: formData.get('school'),
+    grade: formData.get('grade'),
+    avatar: formData.get('avatar'),
+  })
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || '请完整填写个人资料' }
+  }
+
+  const data = parsed.data
+
+  try {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        displayName: data.displayName,
+        school: data.school,
+        grade: data.grade,
+        ...(data.avatar !== undefined ? { avatar: data.avatar || null } : {}),
+        onboardingCompletedAt: new Date(),
+        onboardingStep: ONBOARDING_STEP_DONE,
+      },
+    })
+
+    revalidatePath('/onboarding/profile')
+    revalidatePath('/dashboard')
+    redirect('/dashboard')
+  } catch (error) {
+    console.error('[Onboarding] Failed to save profile onboarding:', error)
+    return { error: 'Failed to save profile onboarding' }
   }
 }

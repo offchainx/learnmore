@@ -41,6 +41,8 @@ export interface DashboardLeaderboardModule {
   note?: string
 }
 
+const pendingDailyTaskEnsures = new Set<string>()
+
 export interface DashboardData {
   stats: {
     studyTime: string
@@ -745,12 +747,23 @@ export async function getDashboardStats(
   let dailyTasks: DashboardData['dailyTasks']['items'] = []
   if (includeDailyTasks) {
     const ensureStartedAt = performance.now()
-    runAfterTask(async () => {
-      await ensureDailyTasks(user.id, { skipIfLocked: true })
-    }, 'dashboard-ensure-daily-tasks')
-    logPerf('getDashboardStats.ensureDailyTasks.scheduled', ensureStartedAt, {
-      userId: user.id,
-    })
+    if (!pendingDailyTaskEnsures.has(user.id)) {
+      pendingDailyTaskEnsures.add(user.id)
+      runAfterTask(async () => {
+        try {
+          await ensureDailyTasks(user.id, { skipIfLocked: true })
+        } finally {
+          pendingDailyTaskEnsures.delete(user.id)
+        }
+      }, 'dashboard-ensure-daily-tasks')
+      logPerf('getDashboardStats.ensureDailyTasks.scheduled', ensureStartedAt, {
+        userId: user.id,
+      })
+    } else {
+      logPerf('getDashboardStats.ensureDailyTasks.skipped-duplicate', ensureStartedAt, {
+        userId: user.id,
+      })
+    }
 
     const dailyTasksStartedAt = performance.now()
     dailyTasks = await prisma.dailyTask.findMany({

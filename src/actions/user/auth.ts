@@ -51,13 +51,11 @@ function isPrismaSchemaMismatchError(error: unknown): boolean {
 
   return (
     name.includes('prismaclientknownrequesterror') &&
-    (
-      code === 'P2021' || // table does not exist
+    (code === 'P2021' || // table does not exist
       code === 'P2022' || // column does not exist
       message.includes('does not exist') ||
       message.includes('the column') ||
-      message.includes('the table')
-    )
+      message.includes('the table'))
   )
 }
 
@@ -69,7 +67,13 @@ type LegacyUserRow = {
   role: 'STUDENT' | 'PARENT' | 'TEACHER' | 'ADMIN'
   status: 'ACTIVE' | 'BANNED' | 'PAUSED'
   avatar: string | null
+  displayName: string | null
   grade: number | null
+  school: string | null
+  legalConsentAcceptedAt: Date | null
+  legalConsentVersion: string | null
+  onboardingCompletedAt: Date | null
+  onboardingStep: string | null
   streak: number | null
   totalStudyTime: number | null
   xp: number | null
@@ -81,7 +85,12 @@ type LegacyUserRow = {
   subscriptionTier: 'STARTER' | 'STANDARD' | 'SMART_PLUS' | 'PREMIER' | null
   subscriptionStart: Date | null
   subscriptionEnd: Date | null
-  subscriptionStatus: 'TRIALING' | 'ACTIVE' | 'CANCEL_AT_PERIOD_END' | 'CANCELED' | 'PAST_DUE'
+  subscriptionStatus:
+    | 'TRIALING'
+    | 'ACTIVE'
+    | 'CANCEL_AT_PERIOD_END'
+    | 'CANCELED'
+    | 'PAST_DUE'
   cancelAtPeriodEnd: boolean | null
   stripeCustomerId: string | null
   stripeSubscriptionId: string | null
@@ -100,7 +109,13 @@ async function getCurrentUserFallbackByRaw(userId: string) {
         role,
         status,
         avatar,
+        display_name AS "displayName",
         grade,
+        school,
+        legal_consent_accepted_at AS "legalConsentAcceptedAt",
+        legal_consent_version AS "legalConsentVersion",
+        onboarding_completed_at AS "onboardingCompletedAt",
+        onboarding_step AS "onboardingStep",
         streak,
         total_study_time AS "totalStudyTime",
         xp,
@@ -134,8 +149,13 @@ async function getCurrentUserFallbackByRaw(userId: string) {
       role: row.role,
       status: row.status,
       avatar: row.avatar,
+      displayName: row.displayName,
       grade: row.grade,
-      school: null,
+      school: row.school,
+      legalConsentAcceptedAt: row.legalConsentAcceptedAt,
+      legalConsentVersion: row.legalConsentVersion,
+      onboardingCompletedAt: row.onboardingCompletedAt,
+      onboardingStep: row.onboardingStep,
       streak: row.streak ?? 0,
       totalStudyTime: row.totalStudyTime ?? 0,
       xp: row.xp ?? 0,
@@ -162,7 +182,10 @@ async function getCurrentUserFallbackByRaw(userId: string) {
       permissionOverrides: [],
     }
   } catch (fallbackError) {
-    console.warn('[Auth] Fallback raw query failed in getCurrentUser:', fallbackError)
+    console.warn(
+      '[Auth] Fallback raw query failed in getCurrentUser:',
+      fallbackError
+    )
     return null
   }
 }
@@ -177,7 +200,10 @@ function generateReferralCode(): string {
   return alphanumeric.slice(0, 8).padEnd(8, '0')
 }
 
-async function ensureReferralCode(userId: string, currentReferralCode: string | null) {
+async function ensureReferralCode(
+  userId: string,
+  currentReferralCode: string | null
+) {
   if (currentReferralCode) {
     return currentReferralCode
   }
@@ -225,7 +251,10 @@ type UTMData = {
   utmCampaign?: string
 }
 
-function sanitizeOptionalString(value: unknown, maxLength: number = 128): string | undefined {
+function sanitizeOptionalString(
+  value: unknown,
+  maxLength: number = 128
+): string | undefined {
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
   if (!trimmed) return undefined
@@ -279,7 +308,10 @@ export async function getAuthenticatedAuthPageRedirectTarget(
   return resolvePostLoginRedirectValue(rawRedirectTo)
 }
 
-export async function signupAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+export async function signupAction(
+  prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
   const utmData = getUtmDataFromFormData(formData)
 
   const data = {
@@ -314,7 +346,8 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   if (parsed.data.username) signupMetadata.username = parsed.data.username
   if (parsed.data.utmSource) signupMetadata.utm_source = parsed.data.utmSource
   if (parsed.data.utmMedium) signupMetadata.utm_medium = parsed.data.utmMedium
-  if (parsed.data.utmCampaign) signupMetadata.utm_campaign = parsed.data.utmCampaign
+  if (parsed.data.utmCampaign)
+    signupMetadata.utm_campaign = parsed.data.utmCampaign
 
   const { data: authData, error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -424,7 +457,11 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
 
     // 3. 触发欢迎通知和邮件
     try {
-      await triggerWelcomeNotification(authData.user.id, parsed.data.email, parsed.data.username || undefined);
+      await triggerWelcomeNotification(
+        authData.user.id,
+        parsed.data.email,
+        parsed.data.username || undefined
+      )
     } catch (e) {
       console.error('[Auth] Welcome notification trigger error:', e)
     }
@@ -433,7 +470,10 @@ export async function signupAction(prevState: AuthFormState, formData: FormData)
   redirect('/dashboard')
 }
 
-export async function loginAction(prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+export async function loginAction(
+  prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
@@ -487,7 +527,8 @@ export async function logoutAction() {
 export const getCurrentUser = cache(async function getCurrentUser() {
   const startedAt = performance.now()
   const incomingHeaders = await headers()
-  const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+  const forwardedUserId =
+    incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
   let userId = forwardedUserId
   let authUser: SupabaseAuthUser | null = null
   let authLastSignInAt: Date | null = null
@@ -516,13 +557,10 @@ export const getCurrentUser = cache(async function getCurrentUser() {
       include: {
         permissionOverrides: {
           where: {
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } }
-            ]
-          }
-        }
-      }
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+        },
+      },
     })
     logPerf('getCurrentUser.prisma.user.findUnique', dbLookupStartedAt, {
       hasForwardedUserId: Boolean(forwardedUserId),
@@ -530,12 +568,16 @@ export const getCurrentUser = cache(async function getCurrentUser() {
     })
   } catch (error) {
     if (isPrismaConnectivityError(error)) {
-      console.warn('[Auth] Database unavailable in getCurrentUser; returning null.')
+      console.warn(
+        '[Auth] Database unavailable in getCurrentUser; returning null.'
+      )
       return null
     }
 
     if (isPrismaSchemaMismatchError(error)) {
-      console.warn('[Auth] Database schema mismatch in getCurrentUser; trying fallback query.')
+      console.warn(
+        '[Auth] Database schema mismatch in getCurrentUser; trying fallback query.'
+      )
       const fallbackUser = await getCurrentUserFallbackByRaw(userId)
       if (fallbackUser) {
         return fallbackUser
@@ -568,7 +610,8 @@ export const getCurrentUser = cache(async function getCurrentUser() {
         data: {
           id: userId,
           email: authUser.email,
-          username: authUser.user_metadata?.username || authUser.email.split('@')[0],
+          username:
+            authUser.user_metadata?.username || authUser.email.split('@')[0],
           referralCode: generateReferralCode(),
           subscriptionTier: 'STARTER',
           subscriptionStatus: 'CANCELED',
@@ -584,13 +627,10 @@ export const getCurrentUser = cache(async function getCurrentUser() {
         include: {
           permissionOverrides: {
             where: {
-              OR: [
-                { expiresAt: null },
-                { expiresAt: { gt: new Date() } }
-              ]
-            }
-          }
-        }
+              OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+            },
+          },
+        },
       })
       // 同时创建 UserSettings
       await prisma.userSettings.create({
@@ -620,19 +660,27 @@ export const getCurrentUser = cache(async function getCurrentUser() {
 
   // 封禁用户视同未登录——受保护路由和 Server Action 会自动拒绝
   if (dbUser && dbUser.status === 'BANNED') {
-    console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
+    console.warn(
+      `[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`
+    )
     return null
   }
 
   if (dbUser && !dbUser.referralCode) {
     try {
-      const referralCode = await ensureReferralCode(dbUser.id, dbUser.referralCode ?? null)
+      const referralCode = await ensureReferralCode(
+        dbUser.id,
+        dbUser.referralCode ?? null
+      )
       dbUser = {
         ...dbUser,
         referralCode,
       }
     } catch (error) {
-      console.warn('[Auth] Failed to backfill referral code in getCurrentUser:', error)
+      console.warn(
+        '[Auth] Failed to backfill referral code in getCurrentUser:',
+        error
+      )
     }
   }
 
@@ -643,7 +691,8 @@ export const getCurrentUser = cache(async function getCurrentUser() {
     authLastSignInAt &&
     (!dbUser.lastSignInAt || authLastSignInAt > dbUser.lastSignInAt)
   ) {
-    void prisma.user.update({
+    void prisma.user
+      .update({
         where: { id: userId },
         data: {
           lastSignInAt: authLastSignInAt,
@@ -652,210 +701,258 @@ export const getCurrentUser = cache(async function getCurrentUser() {
         include: {
           permissionOverrides: {
             where: {
-              OR: [
-                { expiresAt: null },
-                { expiresAt: { gt: new Date() } }
-              ]
-            }
-          }
-        }
+              OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+            },
+          },
+        },
       })
       .then((updated) => {
         dbUser = updated
       })
       .catch((e) => {
-      console.warn('[Auth] Failed to sync sign-in mirror fields in getCurrentUser:', e)
+        console.warn(
+          '[Auth] Failed to sync sign-in mirror fields in getCurrentUser:',
+          e
+        )
       })
   }
 
   return dbUser
-  
 })
 
 export type DashboardShellUser = {
   id: string
   username: string | null
+  displayName: string | null
   avatar: string | null
   handle: string | null
   role: UserRole
   status: 'ACTIVE' | 'BANNED' | 'PAUSED'
   grade: number | null
+  school: string | null
+  legalConsentAcceptedAt: Date | null
+  legalConsentVersion: string | null
+  onboardingCompletedAt: Date | null
+  onboardingStep: string | null
   streak: number | null
   xp: number | null
   subscriptionTier: SubscriptionTier | null
   subscriptionEnd: Date | null
 }
 
-export const getDashboardShellCurrentUser = cache(async function getDashboardShellCurrentUser() {
-  const startedAt = performance.now()
-  const incomingHeaders = await headers()
-  const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
-  let userId = forwardedUserId
-  let authUser: SupabaseAuthUser | null = null
+export const getDashboardShellCurrentUser = cache(
+  async function getDashboardShellCurrentUser() {
+    const startedAt = performance.now()
+    const incomingHeaders = await headers()
+    const forwardedUserId =
+      incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+    let userId = forwardedUserId
+    let authUser: SupabaseAuthUser | null = null
 
-  const dashboardShellUserSelect = {
-    id: true,
-    username: true,
-    avatar: true,
-    handle: true,
-    role: true,
-    status: true,
-    grade: true,
-    streak: true,
-    xp: true,
-    subscriptionTier: true,
-    subscriptionEnd: true,
-  } as const
+    const dashboardShellUserSelect = {
+      id: true,
+      username: true,
+      displayName: true,
+      avatar: true,
+      handle: true,
+      role: true,
+      status: true,
+      grade: true,
+      school: true,
+      legalConsentAcceptedAt: true,
+      legalConsentVersion: true,
+      onboardingCompletedAt: true,
+      onboardingStep: true,
+      streak: true,
+      xp: true,
+      subscriptionTier: true,
+      subscriptionEnd: true,
+    } as const
 
-  if (!userId) {
-    const authStartedAt = performance.now()
-    authUser = await getAuthUserFromSupabase()
-    logPerf('getDashboardShellCurrentUser.authUser', authStartedAt, {
-      hasForwardedUserId: Boolean(forwardedUserId),
-      userId: authUser?.id ?? null,
-    })
-    if (!authUser) return null
-    userId = authUser.id
+    if (!userId) {
+      const authStartedAt = performance.now()
+      authUser = await getAuthUserFromSupabase()
+      logPerf('getDashboardShellCurrentUser.authUser', authStartedAt, {
+        hasForwardedUserId: Boolean(forwardedUserId),
+        userId: authUser?.id ?? null,
+      })
+      if (!authUser) return null
+      userId = authUser.id
+    }
+
+    try {
+      const dbLookupStartedAt = performance.now()
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: dashboardShellUserSelect,
+      })
+      logPerf(
+        'getDashboardShellCurrentUser.prisma.user.findUnique',
+        dbLookupStartedAt,
+        {
+          hasForwardedUserId: Boolean(forwardedUserId),
+          found: Boolean(dbUser),
+        }
+      )
+
+      if (!dbUser) return null
+      if (dbUser.status === 'BANNED') {
+        console.warn(
+          `[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`
+        )
+        return null
+      }
+
+      return dbUser
+    } catch (error) {
+      if (isPrismaConnectivityError(error)) {
+        console.warn(
+          '[Auth] Database unavailable in getDashboardShellCurrentUser; returning null.'
+        )
+        return null
+      }
+
+      if (isPrismaSchemaMismatchError(error)) {
+        console.warn(
+          '[Auth] Database schema mismatch in getDashboardShellCurrentUser; trying fallback query.'
+        )
+        const fallbackUser = await getCurrentUserFallbackByRaw(userId)
+        if (fallbackUser) {
+          return fallbackUser as DashboardShellUser
+        }
+        return null
+      }
+
+      throw error
+    }
   }
+)
 
-  try {
+export const getDashboardCurrentUser = cache(
+  async function getDashboardCurrentUser() {
+    const startedAt = performance.now()
+    const incomingHeaders = await headers()
+    const forwardedUserId =
+      incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
+    let userId = forwardedUserId
+    let authUser: SupabaseAuthUser | null = null
+
+    const dashboardUserSelect = {
+      id: true,
+      email: true,
+      username: true,
+      displayName: true,
+      handle: true,
+      role: true,
+      status: true,
+      avatar: true,
+      grade: true,
+      school: true,
+      legalConsentAcceptedAt: true,
+      legalConsentVersion: true,
+      onboardingCompletedAt: true,
+      onboardingStep: true,
+      streak: true,
+      totalStudyTime: true,
+      xp: true,
+      aiTokenBalance: true,
+      lastStudyDate: true,
+      lastSignInAt: true,
+      signInCount: true,
+      utmSource: true,
+      utmMedium: true,
+      utmCampaign: true,
+      referralCode: true,
+      referralCount: true,
+      referralLimit: true,
+      subscriptionTier: true,
+      subscriptionStart: true,
+      subscriptionEnd: true,
+      subscriptionStatus: true,
+      cancelAtPeriodEnd: true,
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+      firstPaidAt: true,
+      createdAt: true,
+      updatedAt: true,
+    } as const
+
+    if (!userId) {
+      const authStartedAt = performance.now()
+      authUser = await getAuthUserFromSupabase()
+      logPerf('getDashboardCurrentUser.authUser', authStartedAt, {
+        hasForwardedUserId: Boolean(forwardedUserId),
+        userId: authUser?.id ?? null,
+      })
+      if (!authUser) return null
+      userId = authUser.id
+    }
+
+    let dbUser = null
     const dbLookupStartedAt = performance.now()
-    const dbUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: dashboardShellUserSelect,
-    })
-    logPerf('getDashboardShellCurrentUser.prisma.user.findUnique', dbLookupStartedAt, {
-      hasForwardedUserId: Boolean(forwardedUserId),
-      found: Boolean(dbUser),
-    })
+    try {
+      dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: dashboardUserSelect,
+      })
+      logPerf(
+        'getDashboardCurrentUser.prisma.user.findUnique',
+        dbLookupStartedAt,
+        {
+          hasForwardedUserId: Boolean(forwardedUserId),
+          found: Boolean(dbUser),
+        }
+      )
+    } catch (error) {
+      if (isPrismaConnectivityError(error)) {
+        console.warn(
+          '[Auth] Database unavailable in getDashboardCurrentUser; returning null.'
+        )
+        return null
+      }
 
-    if (!dbUser) return null
-    if (dbUser.status === 'BANNED') {
-      console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
+      if (isPrismaSchemaMismatchError(error)) {
+        console.warn(
+          '[Auth] Database schema mismatch in getDashboardCurrentUser; trying fallback query.'
+        )
+        const fallbackUser = await getCurrentUserFallbackByRaw(userId)
+        if (fallbackUser) {
+          return fallbackUser
+        }
+        return null
+      }
+
+      throw error
+    }
+
+    if (dbUser && dbUser.status === 'BANNED') {
+      console.warn(
+        `[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`
+      )
       return null
+    }
+
+    if (dbUser && !dbUser.referralCode) {
+      try {
+        const referralCode = await ensureReferralCode(
+          dbUser.id,
+          dbUser.referralCode ?? null
+        )
+        dbUser = {
+          ...dbUser,
+          referralCode,
+        }
+      } catch (error) {
+        console.warn(
+          '[Auth] Failed to backfill referral code in getDashboardCurrentUser:',
+          error
+        )
+      }
     }
 
     return dbUser
-  } catch (error) {
-    if (isPrismaConnectivityError(error)) {
-      console.warn('[Auth] Database unavailable in getDashboardShellCurrentUser; returning null.')
-      return null
-    }
-
-    if (isPrismaSchemaMismatchError(error)) {
-      console.warn('[Auth] Database schema mismatch in getDashboardShellCurrentUser; trying fallback query.')
-      const fallbackUser = await getCurrentUserFallbackByRaw(userId)
-      if (fallbackUser) {
-        return fallbackUser as DashboardShellUser
-      }
-      return null
-    }
-
-    throw error
   }
-})
-
-export const getDashboardCurrentUser = cache(async function getDashboardCurrentUser() {
-  const startedAt = performance.now()
-  const incomingHeaders = await headers()
-  const forwardedUserId = incomingHeaders.get(INTERNAL_AUTH_USER_ID_HEADER)?.trim() || null
-  let userId = forwardedUserId
-  let authUser: SupabaseAuthUser | null = null
-
-  const dashboardUserSelect = {
-    id: true,
-    email: true,
-    username: true,
-    handle: true,
-    role: true,
-    status: true,
-    avatar: true,
-    grade: true,
-    school: true,
-    streak: true,
-    totalStudyTime: true,
-    xp: true,
-    aiTokenBalance: true,
-    lastStudyDate: true,
-    lastSignInAt: true,
-    signInCount: true,
-    utmSource: true,
-    utmMedium: true,
-    utmCampaign: true,
-    referralCode: true,
-    referralCount: true,
-    referralLimit: true,
-    subscriptionTier: true,
-    subscriptionStart: true,
-    subscriptionEnd: true,
-    subscriptionStatus: true,
-    cancelAtPeriodEnd: true,
-    stripeCustomerId: true,
-    stripeSubscriptionId: true,
-    firstPaidAt: true,
-    createdAt: true,
-    updatedAt: true,
-  } as const
-
-  if (!userId) {
-    const authStartedAt = performance.now()
-    authUser = await getAuthUserFromSupabase()
-    logPerf('getDashboardCurrentUser.authUser', authStartedAt, {
-      hasForwardedUserId: Boolean(forwardedUserId),
-      userId: authUser?.id ?? null,
-    })
-    if (!authUser) return null
-    userId = authUser.id
-  }
-
-  let dbUser = null
-  const dbLookupStartedAt = performance.now()
-  try {
-    dbUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: dashboardUserSelect,
-    })
-    logPerf('getDashboardCurrentUser.prisma.user.findUnique', dbLookupStartedAt, {
-      hasForwardedUserId: Boolean(forwardedUserId),
-      found: Boolean(dbUser),
-    })
-  } catch (error) {
-    if (isPrismaConnectivityError(error)) {
-      console.warn('[Auth] Database unavailable in getDashboardCurrentUser; returning null.')
-      return null
-    }
-
-    if (isPrismaSchemaMismatchError(error)) {
-      console.warn('[Auth] Database schema mismatch in getDashboardCurrentUser; trying fallback query.')
-      const fallbackUser = await getCurrentUserFallbackByRaw(userId)
-      if (fallbackUser) {
-        return fallbackUser
-      }
-      return null
-    }
-
-    throw error
-  }
-
-  if (dbUser && dbUser.status === 'BANNED') {
-    console.warn(`[Auth] User ${dbUser.id} is BANNED, treating as unauthenticated`)
-    return null
-  }
-
-  if (dbUser && !dbUser.referralCode) {
-    try {
-      const referralCode = await ensureReferralCode(dbUser.id, dbUser.referralCode ?? null)
-      dbUser = {
-        ...dbUser,
-        referralCode,
-      }
-    } catch (error) {
-      console.warn('[Auth] Failed to backfill referral code in getDashboardCurrentUser:', error)
-    }
-  }
-
-  return dbUser
-})
+)
 
 /**
  * 手动同步 Supabase Auth 用户到 public.users 表
@@ -882,7 +979,8 @@ export async function syncCurrentUserToDatabase() {
     const shouldIncrementSignIn = Boolean(
       existingUser &&
       authLastSignInAt &&
-      (!existingUser.lastSignInAt || authLastSignInAt > existingUser.lastSignInAt)
+      (!existingUser.lastSignInAt ||
+        authLastSignInAt > existingUser.lastSignInAt)
     )
 
     const dbUser = await prisma.user.upsert({
@@ -908,12 +1006,8 @@ export async function syncCurrentUserToDatabase() {
         utmSource: authMetadataUtm.utmSource || undefined,
         utmMedium: authMetadataUtm.utmMedium || undefined,
         utmCampaign: authMetadataUtm.utmCampaign || undefined,
-        ...(authLastSignInAt
-          ? { lastSignInAt: authLastSignInAt }
-          : {}),
-        ...(shouldIncrementSignIn
-          ? { signInCount: { increment: 1 } }
-          : {}),
+        ...(authLastSignInAt ? { lastSignInAt: authLastSignInAt } : {}),
+        ...(shouldIncrementSignIn ? { signInCount: { increment: 1 } } : {}),
       },
     })
 

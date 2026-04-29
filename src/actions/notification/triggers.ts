@@ -1,21 +1,25 @@
-'use server';
+'use server'
 
-import prisma from '@/lib/prisma';
-import { createInAppNotification } from './core';
-import { sendEmail } from '@/lib/email/resend';
-import { runAfterTask } from '@/lib/server/run-after-task';
-import React from 'react';
+import prisma from '@/lib/prisma'
+import { createInAppNotification } from './core'
+import { sendEmail } from '@/lib/email/resend'
+import { runAfterTask } from '@/lib/server/run-after-task'
+import React from 'react'
 
 // Import Email Templates
-import WelcomeEmail from '@/lib/email/templates/WelcomeEmail';
-import ReceiptEmail from '@/lib/email/templates/ReceiptEmail';
-import TrialExpiryEmail from '@/lib/email/templates/TrialExpiryEmail';
-import { NotificationMetadata } from '@/lib/notification/types';
+import WelcomeEmail from '@/lib/email/templates/WelcomeEmail'
+import ReceiptEmail from '@/lib/email/templates/ReceiptEmail'
+import TrialExpiryEmail from '@/lib/email/templates/TrialExpiryEmail'
+import { NotificationMetadata } from '@/lib/notification/types'
 
 /**
  * 触发欢迎通知 (注册成功后)
  */
-export async function triggerWelcomeNotification(userId: string, email: string, username?: string) {
+export async function triggerWelcomeNotification(
+  userId: string,
+  email: string,
+  username?: string
+) {
   runAfterTask(async () => {
     // 1. 发送站内通知 (createInAppNotification 内部会处理偏好检查)
     await createInAppNotification({
@@ -24,27 +28,77 @@ export async function triggerWelcomeNotification(userId: string, email: string, 
       title: '欢迎加入 LearnMore!',
       content: `你好 ${username || '同学'}，很高兴见到你！快去开启你的智慧学习之旅吧。`,
       link: '/dashboard',
-    });
+    })
 
     // 2. 发送欢迎邮件 (检查邮件偏好)
-    const prefs = await prisma.notificationPreference.findUnique({ where: { userId } });
+    const prefs = await prisma.notificationPreference.findUnique({
+      where: { userId },
+    })
     if (!prefs || prefs.emailSystem) {
       await sendEmail({
         to: email,
         subject: '欢迎加入 LearnMore!',
-        react: React.createElement(WelcomeEmail, { username: username || '同学' }),
-      });
+        react: React.createElement(WelcomeEmail, {
+          username: username || '同学',
+        }),
+      })
     }
-  }, 'welcome-notification');
+  }, 'welcome-notification')
+}
+
+/**
+ * 触发 onboarding 提醒通知
+ * 用于允许用户进入 dashboard，但提示他们继续补全资料。
+ */
+export async function triggerOnboardingReminderNotification(
+  userId: string,
+  targetRoute: '/onboarding/legal' | '/onboarding/profile'
+) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const title =
+    targetRoute === '/onboarding/legal'
+      ? '先完成使用条款确认'
+      : '继续完成你的学习档案'
+
+  const existing = await prisma.notification.findFirst({
+    where: {
+      userId,
+      type: 'SYSTEM',
+      title,
+      link: targetRoute,
+      createdAt: { gte: today },
+    },
+  })
+
+  if (existing) {
+    return { success: true, skipped: true }
+  }
+
+  return createInAppNotification({
+    userId,
+    type: 'SYSTEM',
+    title,
+    content:
+      targetRoute === '/onboarding/legal'
+        ? '确认条款后，我们会继续为你配置学习内容推荐。'
+        : '补全姓名、学校和年级后，我们可以推送更准确的内容。',
+    link: targetRoute,
+    metadata: {
+      reminderKey: `onboarding:${targetRoute.replace('/onboarding/', '')}`,
+      targetRoute,
+    },
+  })
 }
 
 /**
  * 触发收据通知 (支付成功后)
  */
 export async function triggerReceiptNotification(
-  userId: string, 
-  email: string, 
-  amount: number, 
+  userId: string,
+  email: string,
+  amount: number,
   orderId: string,
   planName: string
 ) {
@@ -57,7 +111,7 @@ export async function triggerReceiptNotification(
       content: `你已成功支付 ${amount} 元订阅 ${planName}。`,
       link: '/dashboard/settings?tab=subscription',
       metadata: { orderId, amount, planName } as NotificationMetadata,
-    });
+    })
 
     // 2. 发送收据邮件 (BILLING 邮件强制发送)
     await sendEmail({
@@ -67,10 +121,10 @@ export async function triggerReceiptNotification(
         orderId,
         amount: `RM ${amount.toFixed(2)}`,
         planName,
-        date: new Date().toLocaleDateString()
+        date: new Date().toLocaleDateString(),
       }),
-    });
-  }, 'receipt-notification');
+    })
+  }, 'receipt-notification')
 }
 
 /**
@@ -83,21 +137,23 @@ export async function triggerTrialExpiryNotification(
   daysLeft: number
 ) {
   // 1. 幂等性检查：查询该用户今天是否已经收到过 TRIAL_EXPIRY 通知的 metadata
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   const existing = await prisma.notification.findFirst({
     where: {
       userId,
       type: 'BILLING',
       createdAt: { gte: today },
-      title: { contains: '试用期' }
-    }
-  });
+      title: { contains: '试用期' },
+    },
+  })
 
   if (existing) {
-    console.warn(`[TrialExpiry] User ${userId} already notified today. Skipping.`);
-    return { success: true, skipped: true };
+    console.warn(
+      `[TrialExpiry] User ${userId} already notified today. Skipping.`
+    )
+    return { success: true, skipped: true }
   }
 
   // 2. 发送站内通知 (BILLING 类型不受偏好控制，始终创建)
@@ -105,21 +161,25 @@ export async function triggerTrialExpiryNotification(
     userId,
     type: 'BILLING',
     title: daysLeft <= 0 ? '你的试用期已结束' : `你的试用期还剩 ${daysLeft} 天`,
-    content: daysLeft <= 0 
-      ? '你的高级会员试用已到期，请及时续费以继续使用所有功能。'
-      : `你的试用期即将结束。升级到正式版，保留你的学习记录和进度！`,
+    content:
+      daysLeft <= 0
+        ? '你的高级会员试用已到期，请及时续费以继续使用所有功能。'
+        : `你的试用期即将结束。升级到正式版，保留你的学习记录和进度！`,
     link: '/pricing',
     metadata: { daysLeft } as NotificationMetadata,
-  });
+  })
 
   // 3. 发送邮件 (BILLING 类型邮件不受偏好控制，始终发送)
   await sendEmail({
     to: email,
-    subject: daysLeft <= 0 ? 'LearnMore 试用期到期提醒' : `LearnMore 试用期还剩 ${daysLeft} 天`,
+    subject:
+      daysLeft <= 0
+        ? 'LearnMore 试用期到期提醒'
+        : `LearnMore 试用期还剩 ${daysLeft} 天`,
     react: React.createElement(TrialExpiryEmail, { daysLeft }),
-  });
+  })
 
-  return { success: true };
+  return { success: true }
 }
 
 /**
@@ -134,24 +194,29 @@ export async function triggerSocialReplyNotification(
 ) {
   const targetUser = await prisma.user.findUnique({
     where: { id: targetUserId },
-    select: { email: true }
-  });
+    select: { email: true },
+  })
 
-  if (!targetUser) return;
+  if (!targetUser) return
 
   // 1. 发送站内通知
   await createInAppNotification({
     userId: targetUserId,
     type: 'SOCIAL',
     title: `${actorName} 回复了你的帖子`,
-    content: replyContent.length > 50 ? replyContent.substring(0, 50) + '...' : replyContent,
+    content:
+      replyContent.length > 50
+        ? replyContent.substring(0, 50) + '...'
+        : replyContent,
     link: `/dashboard/community/${postId}`,
     metadata: { actorName, postId, postTitle } as NotificationMetadata,
-  });
+  })
 
   // 2. 邮件异步发送，避免阻塞主写链路
   runAfterTask(async () => {
-    const prefs = await prisma.notificationPreference.findUnique({ where: { userId: targetUserId } });
+    const prefs = await prisma.notificationPreference.findUnique({
+      where: { userId: targetUserId },
+    })
     if (prefs?.emailSocial) {
       // 假设以后有 SocialReplyEmail 模板，目前可以用通用模板或简单的 text
       await sendEmail({
@@ -162,9 +227,9 @@ export async function triggerSocialReplyNotification(
  ${replyContent} 
 
  查看详情: /dashboard/community/${postId}`,
-      });
+      })
     }
-  }, 'social-reply-notification');
+  }, 'social-reply-notification')
 }
 
 /**

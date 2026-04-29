@@ -19,9 +19,16 @@ model User {
   status   UserAccountStatus @default(ACTIVE)
 
   // 内容 / 资料字段
-  avatar String?
-  grade  Int? // 年级 (7-9)
-  school String? @map("school")
+  avatar      String?
+  displayName String? @map("display_name")
+  grade       Int? // 年级 (7-9)
+  school      String? @map("school")
+
+  // Onboarding 状态字段
+  legalConsentAcceptedAt DateTime? @map("legal_consent_accepted_at")
+  legalConsentVersion    String?   @map("legal_consent_version")
+  onboardingCompletedAt  DateTime? @map("onboarding_completed_at")
+  onboardingStep         String?   @map("onboarding_step")
 
   // 成长 / 统计字段
   streak         Int       @default(0)
@@ -72,8 +79,8 @@ model User {
   inviteCodes InviteCode[]
 
   // Referral Relations
-  referralsGiven    Referral[] @relation("Referrer") // 我推荐的人
-  referralsReceived Referral[] @relation("Referee") // 推荐我的人
+  referralsGiven                      Referral[]                 @relation("Referrer") // 我推荐的人
+  referralsReceived                   Referral[]                 @relation("Referee") // 推荐我的人
   referralAttributionEventsAsReferrer ReferralAttributionEvent[] @relation("ReferralAttributionReferrer")
   referralAttributionEventsAsReferee  ReferralAttributionEvent[] @relation("ReferralAttributionReferee")
 
@@ -92,8 +99,8 @@ model User {
   notifications          Notification[]
   notificationPreference NotificationPreference?
   feedbacks              UserFeedback[]
-  feedbackReplies        UserFeedback[]      @relation("FeedbackResponder")
-  feedbackEvents         UserFeedbackEvent[] @relation("FeedbackEventActor")
+  feedbackReplies        UserFeedback[]          @relation("FeedbackResponder")
+  feedbackEvents         UserFeedbackEvent[]     @relation("FeedbackEventActor")
   voucherRedemptions     VoucherRedemption[]
 
   @@map("users")
@@ -246,12 +253,12 @@ model Subject {
   order Int @default(0)
 
   // Relations
-  chapters    Chapter[]
-  posts       Post[]
-  examRecords ExamRecord[] // 🆕 练习记录关联 (Story-043)
-  questions   Question[]
+  chapters       Chapter[]
+  posts          Post[]
+  examRecords    ExamRecord[] // 🆕 练习记录关联 (Story-043)
+  questions      Question[]
   questionGroups QuestionGroup[]
-  sourceFiles SourceFile[]
+  sourceFiles    SourceFile[]
 
   @@map("subjects")
 }
@@ -278,11 +285,11 @@ model Chapter {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  parent    Chapter?   @relation("ChapterTree", fields: [parentId], references: [id])
-  children  Chapter[]  @relation("ChapterTree")
-  lessons   Lesson[]
-  questions Question[]
+  subject        Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  parent         Chapter?        @relation("ChapterTree", fields: [parentId], references: [id])
+  children       Chapter[]       @relation("ChapterTree")
+  lessons        Lesson[]
+  questions      Question[]
   questionGroups QuestionGroup[]
 
   @@index([subjectId])
@@ -434,10 +441,10 @@ model QuestionGroup {
   sourceFileId String? @map("source_file_id") @db.Uuid
 
   // 内容字段
-  curriculum String  @default("UEC")
+  curriculum String   @default("UEC")
   grade      Int?
   title      String?
-  material   String  @db.Text
+  material   String   @db.Text
   assetUrl   String?  @map("asset_url")
   imageUrls  String[] @default([]) @map("image_urls")
 
@@ -520,10 +527,10 @@ model UserAttempt {
 
 model ExamRecord {
   // 归属字段
-  id        String  @id @default(uuid()) @db.Uuid
-  userId    String  @map("user_id") @db.Uuid
-  subjectId String? @map("subject_id") @db.Uuid // 关联科目
-  chapterId String? @map("chapter_id") @db.Uuid
+  id              String  @id @default(uuid()) @db.Uuid
+  userId          String  @map("user_id") @db.Uuid
+  subjectId       String? @map("subject_id") @db.Uuid // 关联科目
+  chapterId       String? @map("chapter_id") @db.Uuid
   clientSessionId String? @map("client_session_id")
 
   // 内容字段
@@ -542,11 +549,11 @@ model ExamRecord {
   subject  Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   attempts UserAttempt[]
 
+  @@unique([userId, clientSessionId])
   @@index([userId])
   @@index([subjectId])
   @@index([mode])
   @@index([clientSessionId])
-  @@unique([userId, clientSessionId])
   @@map("exam_records")
 }
 
@@ -581,27 +588,27 @@ enum DailyTaskType {
 
 // ============ 社区模块 ============
 model Post {
-  id        String   @id @default(uuid()) @db.Uuid
-  authorId  String   @map("author_id") @db.Uuid
-  title     String
-  content   String   @db.Text
-  category  String? // Question, Note, Achievement
-  tags      String[] @default([])
-  attachments String[] @default([])
+  id               String   @id @default(uuid()) @db.Uuid
+  authorId         String   @map("author_id") @db.Uuid
+  title            String
+  content          String   @db.Text
+  category         String? // Question, Note, Achievement
+  tags             String[] @default([])
+  attachments      String[] @default([])
   mentionedUserIds String[] @default([]) @map("mentioned_user_ids")
   mentionedHandles String[] @default([]) @map("mentioned_handles")
-  subjectId String?  @map("subject_id") @db.Uuid
-  isPrivate Boolean  @default(false) @map("is_private")
-  likeCount Int      @default(0) @map("like_count")
-  isSolved  Boolean  @default(false) @map("is_solved")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  subjectId        String?  @map("subject_id") @db.Uuid
+  isPrivate        Boolean  @default(false) @map("is_private")
+  likeCount        Int      @default(0) @map("like_count")
+  isSolved         Boolean  @default(false) @map("is_solved")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   // Relations
-  author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  subject  Subject?   @relation(fields: [subjectId], references: [id])
-  comments Comment[]
-  likes    PostLike[]
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  subject   Subject?       @relation(fields: [subjectId], references: [id])
+  comments  Comment[]
+  likes     PostLike[]
   bookmarks PostBookmark[]
 
   @@index([authorId])
@@ -610,14 +617,14 @@ model Post {
 }
 
 model Comment {
-  id         String   @id @default(uuid()) @db.Uuid
-  postId     String   @map("post_id") @db.Uuid
-  authorId   String   @map("author_id") @db.Uuid
-  content    String   @db.Text
+  id               String   @id @default(uuid()) @db.Uuid
+  postId           String   @map("post_id") @db.Uuid
+  authorId         String   @map("author_id") @db.Uuid
+  content          String   @db.Text
   mentionedUserIds String[] @default([]) @map("mentioned_user_ids")
   mentionedHandles String[] @default([]) @map("mentioned_handles")
-  isSolution Boolean  @default(false) @map("is_solution")
-  createdAt  DateTime @default(now()) @map("created_at")
+  isSolution       Boolean  @default(false) @map("is_solution")
+  createdAt        DateTime @default(now()) @map("created_at")
 
   // Relations
   post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -875,8 +882,8 @@ model Referral {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  referrer User @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referee  User @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+  referrer          User                       @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referee           User                       @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
   attributionEvents ReferralAttributionEvent[]
 
   @@unique([refereeId]) // 每个用户只能使用一次推荐码
@@ -886,18 +893,18 @@ model Referral {
 }
 
 model ReferralAttributionEvent {
-  id             String                      @id @default(uuid()) @db.Uuid
-  referralCode   String                      @map("referral_code")
-  eventType      ReferralAttributionEventType @map("event_type")
-  success        Boolean                     @default(true)
-  errorCode      String?                     @map("error_code")
-  referralId     String?                     @map("referral_id") @db.Uuid
-  referrerId     String?                     @map("referrer_id") @db.Uuid
-  refereeId      String?                     @map("referee_id") @db.Uuid
-  sourcePath     String?                     @map("source_path")
-  destinationPath String?                    @map("destination_path")
-  metadata       Json?
-  createdAt      DateTime                    @default(now()) @map("created_at")
+  id              String                       @id @default(uuid()) @db.Uuid
+  referralCode    String                       @map("referral_code")
+  eventType       ReferralAttributionEventType @map("event_type")
+  success         Boolean                      @default(true)
+  errorCode       String?                      @map("error_code")
+  referralId      String?                      @map("referral_id") @db.Uuid
+  referrerId      String?                      @map("referrer_id") @db.Uuid
+  refereeId       String?                      @map("referee_id") @db.Uuid
+  sourcePath      String?                      @map("source_path")
+  destinationPath String?                      @map("destination_path")
+  metadata        Json?
+  createdAt       DateTime                     @default(now()) @map("created_at")
 
   referral Referral? @relation(fields: [referralId], references: [id], onDelete: SetNull)
   referrer User?     @relation("ReferralAttributionReferrer", fields: [referrerId], references: [id], onDelete: SetNull)
@@ -980,13 +987,13 @@ model SourceFile {
   uploadedBy String  @map("uploaded_by") @db.Uuid
 
   // 内容字段
-  filename   String
-  sourceNote String? @map("source_note")
-  fileUrl    String  @map("file_url") // Supabase Storage URL
-  fileType   String  @map("file_type") // "pdf" | "image" | "docx"
-  fileSize   Int     @map("file_size") // bytes
-  ocrRawText String? @map("ocr_raw_text") @db.Text // OCR原始输出
-  importDiagnostics Json? @map("import_diagnostics") // 批次诊断：预期题数 / 缺失题号 / 失败原因等
+  filename          String
+  sourceNote        String? @map("source_note")
+  fileUrl           String  @map("file_url") // Supabase Storage URL
+  fileType          String  @map("file_type") // "pdf" | "image" | "docx"
+  fileSize          Int     @map("file_size") // bytes
+  ocrRawText        String? @map("ocr_raw_text") @db.Text // OCR原始输出
+  importDiagnostics Json?   @map("import_diagnostics") // 批次诊断：预期题数 / 缺失题号 / 失败原因等
 
   // 状态 / 审核字段
   status      ProcessingStatus @default(PENDING)
@@ -997,8 +1004,8 @@ model SourceFile {
   // Relations
   questions      Question[]
   questionGroups QuestionGroup[]
-  subject        Subject?   @relation(fields: [subjectId], references: [id], onDelete: SetNull)
-  uploader       User       @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
+  subject        Subject?        @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  uploader       User            @relation("UserUploadedFiles", fields: [uploadedBy], references: [id])
 
   @@index([uploadedBy])
   @@index([status])
@@ -1257,8 +1264,8 @@ model UserFeedback {
   updatedAt  DateTime       @updatedAt @map("updated_at")
 
   // Relations
-  user      User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  responder User?                @relation("FeedbackResponder", fields: [repliedBy], references: [id], onDelete: SetNull)
+  user      User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  responder User?               @relation("FeedbackResponder", fields: [repliedBy], references: [id], onDelete: SetNull)
   events    UserFeedbackEvent[]
 
   @@index([userId])

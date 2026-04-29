@@ -16,21 +16,24 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     ? redirectToParam[0]
     : redirectToParam
   const redirectTo = resolvePostLoginRedirectValue(rawRedirectTo)
-  const resetSuccess = resetParam === 'success' || (Array.isArray(resetParam) && resetParam[0] === 'success')
-  const oauthError = Array.isArray(oauthParam) ? oauthParam[0] : oauthParam
-  const authenticatedRedirect = await getAuthenticatedAuthPageRedirectTarget(redirectTo)
+  const resetSuccess =
+    resetParam === 'success' ||
+    (Array.isArray(resetParam) && resetParam[0] === 'success')
+  const oauthError =
+    oauthParam === 'error' ||
+    (Array.isArray(oauthParam) && oauthParam[0] === 'error')
+  const authenticatedRedirect =
+    await getAuthenticatedAuthPageRedirectTarget(redirectTo)
 
   if (authenticatedRedirect) {
     redirect(authenticatedRedirect)
   }
 
   return (
-    <div className="flex w-full min-w-0 justify-center">
-      <LoginForm
-        redirectTo={redirectTo}
-        resetSuccess={resetSuccess}
-        oauthErrorMessage={oauthError === 'error' ? 'Google 登录失败，请稍后重试。' : undefined}
-      />
-    </div>
+    <LoginForm
+      redirectTo={redirectTo}
+      resetSuccess={resetSuccess}
+      oauthError={oauthError}
+    />
   )
 }

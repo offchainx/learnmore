@@ -145,4 +145,6 @@
 
 | 2026-04-28 | rollback meilisearch novu and prepare push | 按用户要求撤回刚刚安装的 Meilisearch / Novu 相关接入，保留 dashboard/布局等其余 UI 改造，并继续准备当前工作区提交与推送 | 已移除新增的搜索/通知接入文件、依赖和透传逻辑，恢复原有通知链路与课程页参数处理，随后将把当前工作区改动提交并推送 | src/actions/notification/core.ts, src/components/layout/dashboard-layout.tsx, src/app/(dashboard)/dashboard/courses/*, src/components/courses/CoursesView.tsx, package.json, pnpm-lock.yaml, .codex/prompts/iteration-log.md | - | - | 先完成回退，再提交并推送当前可交付改动 |
 
+| 2026-04-29 | ws-01 auth onboarding flow closeout | 重建 /login /register 左右分栏登录页，并完成 T-009 测试与验收收口 | 已完成 auth 页面重建、onboarding 流程与测试收口，准备提交并推送当前 feature 变更 | 重建登录注册页、完成 onboarding 9 个子任务并跑通测试 | 提交前被 codex hook 拦截，要求先更新 iteration-log | 把 auth/onboarding 相关变更与无关脏改分离，避免误提交临时产物 | 重新执行 git commit 并推送当前分支 |
+
 ## 约束
