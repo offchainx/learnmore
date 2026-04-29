@@ -47,5 +47,5 @@
 | 2026-04-23 | route freeze complete | 已完成 51 条 URL 的 route inventory，并冻结页面域归属与 must-keep 功能 | `tasks.md`, `../../harness/route-inventory.md` | 进入新的 `ws-01` 做 v0 参考复刻 |
 
 ## 9. 下一步
-- 进入 [`../ws-01-v0-reference-prototype-and-prompt-assist/tasks.md`](../ws-01-v0-reference-prototype-and-prompt-assist/tasks.md)
-- 基于用户参考目标先磨出一版满意前端
+- 进入 [`../ws-01-auth-onboarding-flow/tasks.md`](../ws-01-auth-onboarding-flow/tasks.md)
+- 基于用户确认的 onboarding 流程继续冻结页面与状态边界

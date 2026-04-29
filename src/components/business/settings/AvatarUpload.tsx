@@ -13,7 +13,11 @@ interface AvatarUploadProps {
   onUpload: (url: string) => void
 }
 
-export function AvatarUpload({ currentAvatar, username, onUpload }: AvatarUploadProps) {
+export function AvatarUpload({
+  currentAvatar,
+  username,
+  onUpload,
+}: AvatarUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentAvatar)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -23,9 +27,9 @@ export function AvatarUpload({ currentAvatar, username, onUpload }: AvatarUpload
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploading(true)
-      
+
       if (!e.target.files || e.target.files.length === 0) {
-        throw new Error('You must select an image to upload.')
+        throw new Error('请选择一张图片再上传。')
       }
 
       const file = e.target.files[0]
@@ -42,21 +46,20 @@ export function AvatarUpload({ currentAvatar, username, onUpload }: AvatarUpload
       }
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
-      
+
       if (data) {
         setPreview(data.publicUrl)
         onUpload(data.publicUrl)
         toast({
-            title: "Avatar uploaded",
-            description: "Your new avatar has been uploaded successfully. Don't forget to save changes.",
+          title: '头像已上传',
+          description: '头像已更新，记得保存资料。',
         })
       }
-
     } catch (error) {
       toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive"
+        title: '上传失败',
+        description: error instanceof Error ? error.message : '未知错误',
+        variant: 'destructive',
       })
     } finally {
       setUploading(false)
@@ -65,13 +68,13 @@ export function AvatarUpload({ currentAvatar, username, onUpload }: AvatarUpload
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <Avatar className="h-24 w-24 border-2 border-slate-200 dark:border-slate-800">
+      <Avatar className="h-24 w-24 border-2 border-slate-200">
         <AvatarImage src={preview || ''} alt={username} />
-        <AvatarFallback className="border border-slate-200 bg-slate-50 text-2xl text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+        <AvatarFallback className="border border-slate-200 bg-slate-50 text-2xl text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
           {username?.[0]?.toUpperCase() || 'U'}
         </AvatarFallback>
       </Avatar>
-      
+
       <div className="flex items-center gap-2">
         <input
           type="file"
@@ -94,7 +97,7 @@ export function AvatarUpload({ currentAvatar, username, onUpload }: AvatarUpload
           ) : (
             <Upload className="mr-2 h-4 w-4" />
           )}
-          Change Avatar
+          上传头像
         </Button>
       </div>
     </div>

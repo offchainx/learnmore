@@ -23,6 +23,6 @@ updated_at: 2026-04-23
 - 设计契约要能直接服务后续 token 化与 shared UI 收敛
 
 # 依赖（Dependencies）
-- `../../ws-01-v0-reference-prototype-and-prompt-assist/tasks.md`
+- `../../ws-01-auth-onboarding-flow/tasks.md`
 - `harness/component-audit.md`
 - `ws-00` 的 must-keep 功能清单

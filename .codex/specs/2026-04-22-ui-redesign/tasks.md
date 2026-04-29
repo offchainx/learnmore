@@ -56,7 +56,7 @@
 |---|---|---|---|---|---|
 | T-000 | 初始化 UI 重构 spec/harness 极简结构 | codex | done | - | 已创建根目录、子 spec、`codex-plans/` 与 `harness/` |
 | T-001 | 完成 route inventory 与 must-keep 功能盘点 | codex | done | `specs/ws-00-scope-and-route-freeze/` | 页面域推进前已完成 |
-| T-002 | 先用 v0 复刻参考目标并协助 prompt 收口 | codex | todo | `specs/ws-01-v0-reference-prototype-and-prompt-assist/` | 先磨出满意前端 |
+| T-002 | 冻结 auth / onboarding flow 并整理实施台账 | codex | done | `specs/ws-01-auth-onboarding-flow/` | 以 login/register -> legal -> profile -> dashboard 为主线 |
 | T-003 | 冻结 design contract 与 anti-pattern 黑名单 | codex | todo | `specs/ws-02-design-contract-and-anti-patterns/` | 基于样板收口 |
 | T-004 | 产出首轮 v0 prompt pack 与组合样板定义 | codex | todo | `specs/ws-03-v0-prompt-pack-and-composite-prototype/` | 控制 v0 成本 |
 | T-005 | 把设计方向下沉到 token / shared UI / shell | codex | todo | `specs/ws-04-tokenization-and-shared-ui-foundation/` | 样板确认后才进入 |
@@ -92,9 +92,10 @@
 |---|---|---|---|---|
 | 2026-04-22 | UI 重构 spec/harness 初始化 | 已确认极简双文档、`codex-plans/`、`harness/`、每个有效回合保存和子 spec 双层结构 | 根目录、子 spec、`harness/*`、`codex-plans/*` | 进入 `ws-00` 做 route 与 must-keep 盘点 |
 | 2026-04-23 | ws-00 complete | route inventory 已完整补齐，页面域归属与 must-keep 功能已冻结 | `specs/ws-00-scope-and-route-freeze/tasks.md`, `harness/route-inventory.md` | 进入新的 `ws-01` 做 v0 参考复刻 |
-| 2026-04-23 | task reorder | 将原 `ws-01 ~ ws-04` 顺延为 `ws-02 ~ ws-05`，并把 `ws-01` 设为 v0 参考复刻与 prompt 协助 | `spec.md`, `tasks.md`, `specs/ws-*` | 先推进新的 `ws-01` |
+| 2026-04-23 | task reorder | 将原 `ws-01 ~ ws-04` 顺延为 `ws-02 ~ ws-05`，并把 `ws-01` 先定义为参考复刻与 prompt 协助 | `spec.md`, `tasks.md`, `specs/ws-*` | 先推进新的 `ws-01` |
+| 2026-04-28 | ws-01 repurpose | 用户确认不再推进 v0 线，ws-01 改成 auth / onboarding flow 实施台账 | `specs/ws-01-auth-onboarding-flow/` | 清理旧路径引用并继续推进 onboarding |
 
 ## 9. 下一步
-- 进入 [`specs/ws-01-v0-reference-prototype-and-prompt-assist/tasks.md`](./specs/ws-01-v0-reference-prototype-and-prompt-assist/tasks.md)
-- 基于用户给定参考目标，先用 v0 磨出一版满意前端
-- 再把生成结果回收为后续 design contract 的样板输入
+- 进入 [`specs/ws-01-auth-onboarding-flow/tasks.md`](./specs/ws-01-auth-onboarding-flow/tasks.md)
+- 基于用户确认的 Novu 风格流程，继续推进 onboarding / auth 的实施细化
+- 后续如需 prompt 或视觉样板，再单独开新工作单
