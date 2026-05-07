@@ -21,8 +21,6 @@ import {
   Rocket,
   Loader2,
   Sparkles,
-  Flame,
-  ArrowRight,
   Search,
 } from 'lucide-react'
 import { useApp } from '@/providers'
@@ -31,11 +29,6 @@ import { TrialBanner } from './TrialBanner'
 import { NotificationBell } from '../notification/NotificationBell'
 import { calculateLevel, calculateNextLevelXp } from '@/lib/gamification'
 import { usePendingNavigation, useRoutePrefetch } from '@/lib/hooks'
-import {
-  pagePanelClass,
-  pageInsetClass,
-  pageSoftInsetClass,
-} from '@/components/shared/pageSurfaces'
 import {
   type DashboardView,
   getDashboardRoute,
@@ -162,7 +155,6 @@ interface DashboardLayoutProps {
   userXp?: number | null
   subscriptionTier?: string | null
   subscriptionEnd?: Date | string | null
-  lockShellScroll?: boolean
 }
 
 interface DashboardTopBarProps {
@@ -252,198 +244,6 @@ const DashboardTopBar = ({
             </AvatarFallback>
           </Avatar>
         </button>
-      </div>
-    </div>
-  </div>
-)
-
-interface DashboardRightRailProps {
-  copy: (zh: string, en: string, ms?: string) => string
-  displayName: string
-  avatarFallback: string
-  tierLabel: string
-  avatarUrl?: string | null
-  userEmail: string
-  userRole?: string
-  subscriptionLabel: string | null
-  resolvedLevel: number
-  resolvedXp: number
-  resolvedNextLevelXp: number
-  levelProgress: number
-  onOpenPractice: () => void
-  onOpenCommunity: () => void
-  onOpenSettings: () => void
-}
-
-const DashboardRightRail = ({
-  copy,
-  displayName,
-  avatarFallback,
-  tierLabel,
-  avatarUrl,
-  userEmail,
-  userRole,
-  subscriptionLabel,
-  resolvedLevel,
-  resolvedXp,
-  resolvedNextLevelXp,
-  levelProgress,
-  onOpenPractice,
-  onOpenCommunity,
-  onOpenSettings,
-}: DashboardRightRailProps) => (
-  <div className="grid min-h-0 grid-rows-[auto_auto_auto] gap-4">
-    <div className={`${pagePanelClass} min-h-0 overflow-hidden p-4`}>
-      <div className="flex items-start gap-4">
-        <Avatar className="h-14 w-14 rounded-2xl border border-borderTone">
-          <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-          <AvatarFallback className="rounded-2xl bg-surface-subtle text-sm font-semibold text-text-secondary dark:bg-surface-subtle dark:text-text-secondary">
-            {avatarFallback}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">
-            {copy('用户概览', 'User Overview')}
-          </div>
-          <div className="mt-1 truncate text-[18px] font-semibold tracking-tight text-text-primary">
-            {displayName}
-          </div>
-          <div className="mt-1 truncate text-[12px] text-text-secondary">
-            {userEmail}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className={pageInsetClass + ' px-3 py-3'}>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
-            {copy('身份', 'Role')}
-          </div>
-          <div className="mt-1 text-[14px] font-semibold text-text-primary">
-            {userRole || 'STUDENT'}
-          </div>
-        </div>
-        <div className={pageInsetClass + ' px-3 py-3'}>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
-            {copy('套餐', 'Plan')}
-          </div>
-          <div className="mt-1 text-[14px] font-semibold text-text-primary">
-            {tierLabel}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div className={`${pagePanelClass} min-h-0 overflow-hidden p-4`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-tertiary">
-            {copy('学习状态', 'Study Status')}
-          </div>
-          <div className="mt-1 text-[18px] font-semibold tracking-tight text-text-primary">
-            {copy('当前进度', 'Current Progress')}
-          </div>
-        </div>
-        <div className="rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-[11px] font-semibold text-text-secondary">
-          {resolvedLevel}
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className={pageSoftInsetClass + ' px-3 py-3'}>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
-            XP
-          </div>
-          <div className="mt-1 text-[18px] font-semibold tracking-tight text-text-primary">
-            {resolvedXp.toLocaleString()}
-          </div>
-        </div>
-        <div className={pageSoftInsetClass + ' px-3 py-3'}>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
-            {copy('距离升级', 'To Next')}
-          </div>
-          <div className="mt-1 text-[18px] font-semibold tracking-tight text-text-primary">
-            {resolvedNextLevelXp.toLocaleString()}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="mb-2 flex items-center justify-between text-[11px] text-text-secondary">
-          <span>{copy('等级进度', 'Level Progress')}</span>
-          <span>{levelProgress}%</span>
-        </div>
-        <div className="h-2 overflow-hidden rounded-full bg-surface-subtle">
-          <div
-            className="h-full rounded-full bg-primary"
-            style={{ width: `${Math.max(4, levelProgress)}%` }}
-          />
-        </div>
-      </div>
-    </div>
-
-    <div className={`${pagePanelClass} min-h-0 overflow-hidden p-4`}>
-      <div className="flex items-center gap-2">
-        <Flame className="h-4 w-4 text-primary" />
-        <div className="text-[15px] font-semibold text-text-primary">
-          {copy('账户提醒', 'Account Notes')}
-        </div>
-      </div>
-
-      <div className="mt-4 space-y-3">
-        <div className={pageInsetClass + ' px-3 py-3'}>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
-            {copy('订阅状态', 'Subscription')}
-          </div>
-          <div className="mt-1 text-[14px] font-semibold text-text-primary">
-            {tierLabel}
-          </div>
-          <div className="mt-1 text-[12px] text-text-secondary">
-            {subscriptionLabel
-              ? copy(`到期 ${subscriptionLabel}`, `Ends ${subscriptionLabel}`)
-              : copy('未设置到期时间', 'No end date')}
-          </div>
-        </div>
-
-        <div className={pageInsetClass + ' px-3 py-3'}>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-text-tertiary">
-                {copy('快捷操作', 'Quick Actions')}
-              </div>
-              <div className="mt-1 text-[14px] font-semibold text-text-primary">
-                {copy('前往常用页面', 'Go to common pages')}
-              </div>
-            </div>
-            <ArrowRight className="h-4 w-4 text-text-tertiary" />
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={onOpenPractice}
-            >
-              {copy('练习', 'Practice')}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full"
-              onClick={onOpenCommunity}
-            >
-              {copy('社区', 'Community')}
-            </Button>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-2 w-full rounded-full"
-            onClick={onOpenSettings}
-          >
-            {copy('设置', 'Settings')}
-          </Button>
-        </div>
       </div>
     </div>
   </div>
@@ -621,7 +421,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   userXp,
   subscriptionTier,
   subscriptionEnd,
-  lockShellScroll = false,
 }) => {
   const { t, lang } = useApp()
   const router = useRouter()
@@ -702,12 +501,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       .map((part) => part[0]?.toUpperCase())
       .join('')
       .slice(0, 2) || 'U'
-  const subscriptionLabel = subscriptionEnd
-    ? new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-US', {
-        month: 'short',
-        day: 'numeric',
-      }).format(new Date(subscriptionEnd))
-    : null
   const copy = (zh: string, en: string, ms?: string) => {
     if (lang === 'zh') return zh
     if (lang === 'ms') return ms ?? en
@@ -749,7 +542,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     pathname,
     normalizedCurrentView
   )
-  const showDashboardRail = normalizedCurrentView === 'dashboard'
   const topBarTitle = getTopBarTitle(pathname, normalizedCurrentView, copy)
   const topBarSubtitle = getTopBarSubtitle(
     pathname,
@@ -1057,18 +849,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </aside>
 
       <div
-        className={`min-h-0 min-w-0 desktop:col-start-2 ${
-          lockShellScroll
-            ? 'desktop:grid desktop:h-full desktop:grid-cols-[minmax(0,12fr)_minmax(320px,5fr)] desktop:grid-rows-[auto_minmax(0,1fr)] desktop:overflow-hidden'
-            : 'desktop:grid desktop:h-full desktop:grid-cols-[minmax(0,1fr)] desktop:grid-rows-[auto_minmax(0,1fr)] desktop:overflow-hidden'
-        }`}
+        className="min-h-0 min-w-0 desktop:col-start-2 desktop:grid desktop:h-full desktop:grid-cols-[minmax(0,1fr)] desktop:grid-rows-[auto_minmax(0,1fr)] desktop:overflow-hidden"
       >
         <div
-          className={
-            showDashboardRail
-              ? 'desktop:col-span-2 desktop:row-start-1'
-              : 'desktop:row-start-1'
-          }
+          className="desktop:row-start-1"
         >
           <DashboardTopBar
             copy={copy}
@@ -1084,11 +868,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Main Content Area */}
         <main
-          className={`flex min-h-0 min-w-0 flex-col ${
-            lockShellScroll
-              ? 'h-auto overflow-visible desktop:row-start-2 desktop:overflow-y-auto'
-              : 'h-auto overflow-visible desktop:row-start-2 desktop:overflow-y-auto'
-          } ${
+          className={`flex min-h-0 min-w-0 flex-col h-auto overflow-visible desktop:row-start-2 desktop:overflow-y-auto ${
             isAnyAdminRoute
               ? 'p-2 sm:p-4'
               : isPracticeRoute
@@ -1103,28 +883,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
           <div className="mt-4 min-h-0 w-full self-start">{children}</div>
         </main>
-
-        {showDashboardRail ? (
-          <aside className="hidden min-h-0 p-3 pt-4 desktop:row-start-2 desktop:block desktop:self-start desktop:overflow-y-auto desktop:p-4">
-            <DashboardRightRail
-              copy={copy}
-              displayName={displayName}
-              avatarFallback={avatarFallback}
-              tierLabel={tierLabel}
-              avatarUrl={user?.avatar}
-              userEmail={user?.email || copy('未设置邮箱', 'No email')}
-              userRole={userRole}
-              subscriptionLabel={subscriptionLabel}
-              resolvedLevel={resolvedLevel}
-              resolvedXp={resolvedXp}
-              resolvedNextLevelXp={resolvedNextLevelXp}
-              levelProgress={levelProgress}
-              onOpenPractice={() => handleViewNavigation('practice')}
-              onOpenCommunity={() => handleViewNavigation('community')}
-              onOpenSettings={() => handleViewNavigation('settings')}
-            />
-          </aside>
-        ) : null}
       </div>
     </div>
   )

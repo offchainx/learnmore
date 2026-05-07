@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const data = await getDashboardStats(user, { includeDailyTasks: false })
+  const data = await getDashboardStats(user)
   if (!data) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

@@ -18,12 +18,31 @@ import { CoursesView } from '@/components/courses/CoursesView'
 import { PracticeCenterScreen } from '@/components/practice/PracticeView'
 import { SettingsView } from './views/SettingsView'
 import { ParentDashboardView } from './views/ParentDashboardView'
-import { User, UserSettings } from '@prisma/client'
-
-type UserProfile = User & { settings?: UserSettings | null }
+type DashboardShellUser = {
+  id: string
+  username: string | null
+  displayName: string | null
+  avatar: string | null
+  handle: string | null
+  role: string
+  status: string
+  grade: number | null
+  school: string | null
+  legalConsentAcceptedAt: Date | string | null
+  legalConsentVersion: string | null
+  onboardingCompletedAt: Date | string | null
+  onboardingStep: string | null
+  streak: number | null
+  xp: number | null
+  subscriptionTier: string | null
+  subscriptionEnd: Date | string | null
+  settings?: {
+    studyReminderTime?: string | null
+  } | null
+}
 
 interface DashboardClientProps {
-  user: UserProfile
+  user: DashboardShellUser
   initialData: DashboardData | null
 }
 
@@ -56,7 +75,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
     if (user.role === 'PARENT') {
       switch (currentView) {
         case 'settings':
-          return <SettingsView user={user} />
+          return <SettingsView user={user as any} />
         default:
           return <ParentDashboardView />
       }
@@ -69,7 +88,7 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
             navigate={router.push}
             onViewChange={handleViewChange}
             initialData={initialData}
-            user={user}
+            user={user as any}
           />
         )
       case 'courses':
@@ -79,14 +98,14 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       case 'community':
         return <CommunityView />
       case 'settings':
-        return <SettingsView user={user} />
+        return <SettingsView user={user as any} />
       default:
         return (
           <DashboardHome
             navigate={router.push}
             onViewChange={handleViewChange}
             initialData={initialData}
-            user={user}
+            user={user as any}
           />
         )
     }
@@ -101,7 +120,6 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
       userXp={user.xp}
       subscriptionTier={user.subscriptionTier}
       subscriptionEnd={user.subscriptionEnd}
-      lockShellScroll={currentView === 'dashboard'}
     >
       {renderContent()}
     </DashboardLayout>

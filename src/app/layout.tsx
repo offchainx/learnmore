@@ -75,8 +75,9 @@ export default function RootLayout({
         <BrowserErrorSuppressor />
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <AppProvider>

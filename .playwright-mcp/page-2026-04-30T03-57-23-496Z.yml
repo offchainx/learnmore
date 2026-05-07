@@ -1,0 +1,250 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - button "Learnbank.ai Starter" [ref=e6] [cursor=pointer]:
+        - img [ref=e9]
+        - generic [ref=e12]:
+          - generic [ref=e13]: Learnbank.ai
+          - generic [ref=e14]: Starter
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - button "仪表盘" [ref=e17] [cursor=pointer]:
+            - img [ref=e19]
+            - generic [ref=e24]: 仪表盘
+          - button "课程学习" [ref=e25] [cursor=pointer]:
+            - img [ref=e27]
+            - generic [ref=e29]: 课程学习
+          - button "练习中心" [ref=e30] [cursor=pointer]:
+            - img [ref=e32]
+            - generic [ref=e37]: 练习中心
+          - button "学员社区" [ref=e38] [cursor=pointer]:
+            - img [ref=e40]
+            - generic [ref=e42]: 学员社区
+        - generic [ref=e43]:
+          - generic [ref=e44]: 管理
+          - button "管理仪表盘" [ref=e45] [cursor=pointer]:
+            - img [ref=e47]
+            - generic [ref=e52]: 管理仪表盘
+          - button "用户管理" [ref=e54] [cursor=pointer]:
+            - img [ref=e56]
+            - generic [ref=e61]: 用户管理
+            - img [ref=e62]
+          - button "内容管理" [ref=e65] [cursor=pointer]:
+            - img [ref=e67]
+            - generic [ref=e70]: 内容管理
+            - img [ref=e71]
+          - button "奖励中心" [ref=e73] [cursor=pointer]:
+            - img [ref=e75]
+            - generic [ref=e78]: 奖励中心
+        - button "升级套餐 解锁更多训练与 AI 功能" [ref=e80] [cursor=pointer]:
+          - generic [ref=e81]:
+            - img [ref=e83]
+            - generic [ref=e88]:
+              - generic [ref=e89]: 升级套餐
+              - generic [ref=e90]: 解锁更多训练与 AI 功能
+            - img [ref=e91]
+      - generic [ref=e93]:
+        - generic [ref=e94]: 账户
+        - button "等级 2 1,060 XP / 2,000" [ref=e95] [cursor=pointer]:
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - heading "等级 2" [level=4] [ref=e98]
+              - img [ref=e99]
+            - generic [ref=e101]:
+              - generic [ref=e102]: 1,060 XP
+              - generic [ref=e103]: / 2,000
+        - generic [ref=e106]:
+          - button "设置" [ref=e107] [cursor=pointer]:
+            - img [ref=e109]
+            - generic [ref=e112]: 设置
+          - button "退出登录" [ref=e113] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e118]: 退出登录
+    - generic [ref=e119]:
+      - generic [ref=e122]:
+        - generic [ref=e123]:
+          - generic [ref=e124]: 仪表盘
+          - generic [ref=e125]: 欢迎回来！admin1
+        - generic [ref=e126]:
+          - generic [ref=e127]:
+            - img [ref=e128]
+            - textbox "搜索" [ref=e131]
+          - button "消息" [ref=e132] [cursor=pointer]:
+            - img [ref=e133]
+          - button "打开通知中心" [ref=e136] [cursor=pointer]:
+            - img [ref=e137]
+          - button "A" [ref=e140] [cursor=pointer]:
+            - generic [ref=e142]: A
+      - main [ref=e143]:
+        - generic [ref=e147]:
+          - generic [ref=e148]:
+            - generic [ref=e152]:
+              - generic [ref=e153]:
+                - heading "学习总览" [level=1] [ref=e154]
+                - paragraph [ref=e155]: 先看最重要的四个指标，再决定今天要补强哪里。
+              - generic [ref=e157]:
+                - button "7天" [ref=e158] [cursor=pointer]
+                - button "30天" [ref=e159] [cursor=pointer]
+            - generic [ref=e180]:
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - generic [ref=e184]:
+                    - heading "今日任务 More information" [level=2] [ref=e185]:
+                      - img [ref=e187]
+                      - text: 今日任务
+                      - button "More information" [ref=e191] [cursor=pointer]:
+                        - img [ref=e192]
+                    - paragraph [ref=e195]: 把今天最值得完成的任务放在前面，做完就能直接领取 XP。
+                  - generic [ref=e199]: 0 条任务
+                - generic [ref=e201]: 正在加载今日任务
+              - generic [ref=e203]:
+                - heading "学习路径 More information" [level=3] [ref=e205]:
+                  - img [ref=e207]
+                  - generic [ref=e210]: 学习路径
+                  - button "More information" [ref=e211] [cursor=pointer]:
+                    - img [ref=e212]
+                - generic [ref=e215]:
+                  - generic [ref=e219]: 0 条
+                  - button "去练习" [ref=e220] [cursor=pointer]
+            - generic [ref=e238]:
+              - generic [ref=e240]:
+                - heading "学科进度 More information" [level=3] [ref=e242]:
+                  - img [ref=e244]
+                  - generic [ref=e246]: 学科进度
+                  - button "More information" [ref=e247] [cursor=pointer]:
+                    - img [ref=e248]
+                - generic [ref=e251]:
+                  - generic [ref=e255]: 0 科
+                  - button "去练习" [ref=e256] [cursor=pointer]
+              - generic [ref=e275]:
+                - heading "最近练习回顾 More information" [level=3] [ref=e277]:
+                  - img [ref=e279]
+                  - generic [ref=e283]: 最近练习回顾
+                  - button "More information" [ref=e284] [cursor=pointer]:
+                    - img [ref=e285]
+                - button "练习中心" [ref=e289] [cursor=pointer]
+            - generic [ref=e319]:
+              - generic [ref=e320]:
+                - generic [ref=e321]:
+                  - img [ref=e322]
+                  - text: 每日灵感
+                - heading "每日灵感" [level=2] [ref=e325]
+                - paragraph [ref=e326]: 留一句短提示，不再让它抢走主信息区的注意力。
+              - generic [ref=e327]:
+                - paragraph [ref=e328]: "\"相信你自己，你已经成功了一半。\""
+                - button "换一张" [ref=e329] [cursor=pointer]:
+                  - img
+                  - text: 换一张
+          - complementary [ref=e330]:
+            - generic [ref=e331]:
+              - generic [ref=e332]:
+                - generic [ref=e333]:
+                  - generic [ref=e338]: A
+                  - generic [ref=e339]:
+                    - generic [ref=e340]: admin1
+                    - generic [ref=e341]: 未填写学校
+                    - generic [ref=e342]: 年级未设置
+                - generic [ref=e344]:
+                  - generic [ref=e345]:
+                    - img [ref=e346]
+                    - generic [ref=e352]: 0XP
+                  - generic [ref=e353]:
+                    - img [ref=e354]
+                    - generic [ref=e356]: 0天连胜
+                  - generic [ref=e357]:
+                    - img [ref=e358]
+                    - generic [ref=e360]: "排名: 未上榜"
+              - generic [ref=e362]:
+                - generic [ref=e363]:
+                  - generic [ref=e364]:
+                    - generic [ref=e366]: Activity
+                    - combobox [ref=e367] [cursor=pointer]:
+                      - generic [ref=e368]: April
+                    - combobox [ref=e369]
+                  - generic [ref=e370]:
+                    - generic [ref=e371]: Week 1
+                    - generic [ref=e372]:
+                      - button [disabled]:
+                        - img
+                      - button [ref=e373] [cursor=pointer]:
+                        - img
+                  - generic [ref=e374]:
+                    - generic [ref=e375]:
+                      - generic [ref=e376]: "30"
+                      - generic [ref=e377]: Mon
+                    - generic [ref=e378]:
+                      - generic [ref=e379]: "31"
+                      - generic [ref=e380]: Tue
+                    - generic [ref=e381]:
+                      - generic [ref=e382]: "1"
+                      - generic [ref=e383]: Wed
+                    - generic [ref=e384]:
+                      - generic [ref=e385]: "2"
+                      - generic [ref=e386]: Thu
+                    - generic [ref=e387]:
+                      - generic [ref=e388]: "3"
+                      - generic [ref=e389]: Fri
+                    - generic [ref=e390]:
+                      - generic [ref=e391]: "4"
+                      - generic [ref=e392]: Sat
+                    - generic [ref=e393]:
+                      - generic [ref=e394]: "5"
+                      - generic [ref=e395]: Sun
+                  - generic [ref=e396]: 3/7 active
+                - generic [ref=e397]:
+                  - generic [ref=e398]: Study Stats
+                  - generic [ref=e399]: Weekly Study Time
+                  - generic [ref=e400]: "Daily Average: 1h 45m"
+              - generic [ref=e404]:
+                - generic [ref=e405]:
+                  - generic [ref=e406]:
+                    - generic [ref=e408]: 科目进度
+                    - generic [ref=e409]:
+                      - generic [ref=e410]: 1/2
+                      - button "去练习" [ref=e411] [cursor=pointer]
+                  - generic [ref=e412]:
+                    - generic [ref=e414]:
+                      - generic [ref=e415]:
+                        - generic [ref=e416]: 中文
+                        - generic [ref=e417]: 0 个章节 · 0 次作答
+                      - generic [ref=e418]:
+                        - generic [ref=e419]: 0%
+                        - generic [ref=e420]: 待提升
+                    - generic [ref=e423]:
+                      - generic [ref=e424]:
+                        - generic [ref=e425]: 马来西亚文
+                        - generic [ref=e426]: 0 个章节 · 0 次作答
+                      - generic [ref=e427]:
+                        - generic [ref=e428]: 0%
+                        - generic [ref=e429]: 待提升
+                    - generic [ref=e432]:
+                      - generic [ref=e433]:
+                        - generic [ref=e434]: 英文
+                        - generic [ref=e435]: 0 个章节 · 0 次作答
+                      - generic [ref=e436]:
+                        - generic [ref=e437]: 0%
+                        - generic [ref=e438]: 待提升
+                    - generic [ref=e441]:
+                      - generic [ref=e442]:
+                        - generic [ref=e443]: 数学
+                        - generic [ref=e444]: 0 个章节 · 0 次作答
+                      - generic [ref=e445]:
+                        - generic [ref=e446]: 0%
+                        - generic [ref=e447]: 待提升
+                - generic [ref=e449]:
+                  - generic [ref=e450]:
+                    - generic [ref=e451]: 今日任务
+                    - generic [ref=e452]: 0 条
+                  - generic [ref=e454]: 今天没有任务。
+              - generic [ref=e455]:
+                - generic [ref=e456]:
+                  - generic [ref=e457]: 最近练习
+                  - generic [ref=e458]: 练习中心
+                - generic [ref=e460]: 还没有最近练习。
+  - button [ref=e462] [cursor=pointer]:
+    - img [ref=e463]
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e470] [cursor=pointer]:
+    - img [ref=e471]

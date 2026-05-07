@@ -1,6 +1,5 @@
 import { DashboardClient } from '@/components/dashboard/DashboardClient'
-import { getDashboardProfile } from '@/actions/user/profile'
-import { getDashboardStats } from '@/actions/dashboard'
+import { getDashboardShellProfile } from '@/actions/user/profile'
 import { syncCurrentUserToDatabase } from '@/actions/user/auth'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -14,7 +13,7 @@ export default function DashboardPage() {
 }
 
 async function DashboardPageContent() {
-  const profile = await getDashboardProfile()
+  const profile = await getDashboardShellProfile()
 
   if (!profile) {
     // Check if we have a valid session but missing database record
@@ -126,13 +125,11 @@ async function DashboardPageContent() {
   })
 
   if (onboardingStatus.route !== '/dashboard') {
-    await triggerOnboardingReminderNotification(
+    void triggerOnboardingReminderNotification(
       profile.id,
       onboardingStatus.route
     )
   }
 
-  const initialData = await getDashboardStats()
-
-  return <DashboardClient user={profile} initialData={initialData} />
+  return <DashboardClient user={profile} initialData={null} />
 }

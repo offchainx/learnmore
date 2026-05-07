@@ -1,3 +1,4 @@
+- 2026-05-07: 收口 dashboard/preview 响应式骨架重构与 Playwright 复测，已把 preview 版 UI、素材裁切、断点切换和相关截图一起整理到当前工作区，准备重新提交并推送。
 - 2026-04-27: 收口 dashboard 首页空白修复与内容导入/图标同步变更，准备提交并推送；本轮同时保留待清理的 `.next` 缓存，提交后再做本地缓存重置与复验。
 - 2026-04-10: Finish T-019/T-020 closeout snapshot for commit and push (confirm T-019.1~T-019.12 and T-020 smoke evidence are all收口完成, revalidate public/marketing/auth routes with tsc/eslint/playwright smoke, then stage the full workspace snapshot for git commit/push).
 - 2026-04-07: Recheck T-002.3 after stripping dashboard subject white-run payload (headed Chrome incognito run; dashboard shell visible at ~3.3s, main stable content at ~13.6s, and the subject area stayed in empty state instead of dragging the page back to the 40s tail).

@@ -1,0 +1,325 @@
+[    1171ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[    1331ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[    2466ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  275330ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  276635ms] [LOG] [Fast Refresh] done in 1352ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  277217ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  277324ms] [LOG] [Fast Refresh] done in 208ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  388334ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  389758ms] [LOG] [Fast Refresh] done in 1472ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  390095ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  391819ms] [LOG] [Fast Refresh] done in 1825ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  391951ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  392295ms] [LOG] [Fast Refresh] done in 443ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  392397ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  392602ms] [LOG] [Fast Refresh] done in 305ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  392603ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/dashboard/preview?_rsc=j4921:0
+[  393310ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  393659ms] [LOG] [Fast Refresh] done in 450ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  394690ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 1.3.1} /_vercel/speed-insights/vitals @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  394691ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 1.3.1} /_vercel/speed-insights/vitals @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  394696ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/dashboard/preview:0
+[  395118ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/01e4c_react-dom_c6220206._.js:15305
+[  395194ms] ReferenceError: Sparkles is not defined
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:83:15)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2798:183)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2825:47)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:249:12)
+    at Array.__TURBOPACK__page__$23$9__ (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9349:62)
+    at getLayoutOrPageModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:6495)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21444)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:185:36)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:103)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:28)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21281)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27651)
+    at Array.map (<anonymous>)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26908)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async walkTreeWithFlightRouterState (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:39653)
+    at async generateDynamicRSCPayload (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:13659)
+    at async generateDynamicFlightRenderResult (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:15464)
+    at async doRender (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9777:28)
+    at async AppPageRouteModule.handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:42:63162)
+    at async handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9983:32)
+    at async handler (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:10354:20)
+    at async DevServer.renderToResponseWithComponentsImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:912:17)
+[  395196ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  395495ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:3000/favicon.ico:0
+[  396167ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  396346ms] [LOG] [Fast Refresh] done in 281ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  439564ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  440304ms] [LOG] [Fast Refresh] done in 809ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  440420ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  441119ms] [LOG] [Fast Refresh] done in 801ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  441222ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  441635ms] [LOG] [Fast Refresh] done in 514ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  441659ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/dashboard/preview:0
+[  441820ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/01e4c_react-dom_c6220206._.js:15305
+[  441839ms] ReferenceError: Sparkles is not defined
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:83:15)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2525:183)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2552:47)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:249:12)
+    at Array.__TURBOPACK__page__$23$9__ (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9349:62)
+    at getLayoutOrPageModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:6495)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21444)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:185:36)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:103)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:28)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21281)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27651)
+    at Array.map (<anonymous>)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26908)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async getRSCPayload (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:27581)
+    at async renderToStream (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:56954)
+    at async renderToHTMLOrFlightImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:43015)
+    at async doRender (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9777:28)
+    at async AppPageRouteModule.handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:42:63162)
+    at async handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9983:32)
+    at async handler (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:10354:20)
+    at async DevServer.renderToResponseWithComponentsImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:912:17)
+[  441844ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  442261ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  442391ms] [LOG] [Fast Refresh] done in 231ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  462962ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  463684ms] [LOG] [Fast Refresh] done in 794ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  463790ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  464533ms] [LOG] [Fast Refresh] done in 843ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  464635ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  464878ms] [LOG] [Fast Refresh] done in 344ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  464923ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/dashboard/preview:0
+[  465085ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/01e4c_react-dom_c6220206._.js:15305
+[  465095ms] ReferenceError: Sparkles is not defined
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:83:15)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2525:183)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2552:47)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:249:12)
+    at Array.__TURBOPACK__page__$23$9__ (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9349:62)
+    at getLayoutOrPageModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:6495)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21444)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:185:36)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:103)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:28)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21281)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27651)
+    at Array.map (<anonymous>)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26908)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async getRSCPayload (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:27581)
+    at async renderToStream (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:56954)
+    at async renderToHTMLOrFlightImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:43015)
+    at async doRender (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9777:28)
+    at async AppPageRouteModule.handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:42:63162)
+    at async handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9983:32)
+    at async handler (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:10354:20)
+    at async DevServer.renderToResponseWithComponentsImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:912:17)
+[  465098ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  465207ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  465366ms] [LOG] [Fast Refresh] done in 259ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  465564ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  465692ms] [LOG] [Fast Refresh] done in 230ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  484524ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  485100ms] [LOG] [Fast Refresh] done in 633ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  485206ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  486384ms] [LOG] [Fast Refresh] done in 1280ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  486415ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/dashboard/preview:0
+[  486606ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/01e4c_react-dom_c6220206._.js:15305
+[  486615ms] ReferenceError: Sparkles is not defined
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:83:15)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2525:183)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2552:47)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:249:12)
+    at Array.__TURBOPACK__page__$23$9__ (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9349:62)
+    at getLayoutOrPageModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:6495)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21444)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:185:36)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:103)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:28)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21281)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27651)
+    at Array.map (<anonymous>)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26908)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async getRSCPayload (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:27581)
+    at async renderToStream (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:56954)
+    at async renderToHTMLOrFlightImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:43015)
+    at async doRender (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9777:28)
+    at async AppPageRouteModule.handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:42:63162)
+    at async handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9983:32)
+    at async handler (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:10354:20)
+    at async DevServer.renderToResponseWithComponentsImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:912:17)
+[  486620ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  486729ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  486919ms] [LOG] [Fast Refresh] done in 291ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  487107ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  487258ms] [LOG] [Fast Refresh] done in 252ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  538618ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  539214ms] [LOG] [Fast Refresh] done in 657ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  539444ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  541118ms] [LOG] [Fast Refresh] done in 1775ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  541192ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/dashboard/preview:0
+[  541646ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/01e4c_react-dom_c6220206._.js:15305
+[  541657ms] ReferenceError: Sparkles is not defined
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:83:15)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2534:183)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.esmImport [as i] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:228:20)
+    at module evaluation (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[root-of-the-server]__19581271._.js:2561:47)
+    at instantiateModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:715:9)
+    at getOrInstantiateModuleFromParent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:738:12)
+    at Context.commonJsRequire [as r] (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/[turbopack]_runtime.js:249:12)
+    at Array.__TURBOPACK__page__$23$9__ (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9349:62)
+    at getLayoutOrPageModule (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:6495)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21444)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:185:36)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:103)
+    at NoopContextManager.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/lib/trace/tracer.js:154:28)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:21281)
+    at <unknown> (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27651)
+    at Array.map (<anonymous>)
+    at createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26908)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:27645)
+    at async createComponentTreeInternal (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:36:26862)
+    at async getRSCPayload (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:27581)
+    at async renderToStream (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:56954)
+    at async renderToHTMLOrFlightImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:40:43015)
+    at async doRender (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9777:28)
+    at async AppPageRouteModule.handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:42:63162)
+    at async handleResponse (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:9983:32)
+    at async handler (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/.next/dev/server/chunks/ssr/node_modules__pnpm_4910ae2a._.js:10354:20)
+    at async DevServer.renderToResponseWithComponentsImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (file:///Users/victorsim/Desktop/Projects/learn_more_v1.0/node_modules/.pnpm/next@16.0.8_@babel+core@7.28.5_react-dom@19.2.1_react@19.2.1__react@19.2.1/node_modules/next/dist/server/base-server.js:912:17)
+[  541660ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  542177ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  542472ms] [LOG] [Fast Refresh] done in 397ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  687480ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  688073ms] [LOG] [Fast Refresh] done in 666ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  688184ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  688622ms] [LOG] [Fast Refresh] done in 539ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_9818be02._.js:1231
+[  689609ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  689723ms] [LOG] [HMR] connected @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  689970ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  690011ms] [LOG] [Fast Refresh] done in 141ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  690343ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  804030ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  805209ms] [LOG] [Fast Refresh] done in 758ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  907277ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  908432ms] [LOG] [Fast Refresh] done in 1236ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  908548ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287
+[  908925ms] [LOG] [Fast Refresh] done in 479ms @ http://127.0.0.1:3000/_next/static/chunks/718e3_next_dist_0bf0ab56._.js:2287

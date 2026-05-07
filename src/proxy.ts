@@ -44,8 +44,11 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const requestHeaders = new Headers(request.headers)
 
+  const isPreviewRoute =
+    pathname === '/dashboard/preview' || pathname === '/dashboard/debug/ui-kit'
   const isProtectedRoute =
-    pathname.startsWith('/dashboard') || pathname.startsWith('/admin')
+    (pathname.startsWith('/dashboard') || pathname.startsWith('/admin')) &&
+    !isPreviewRoute
   const isAuthPage = pathname === '/login' || pathname === '/register'
 
   const getSafeRedirectTarget = (rawValue: string | null): string => {

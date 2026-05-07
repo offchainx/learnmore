@@ -23,6 +23,10 @@ import type { SubjectChaptersResult } from '@/lib/practice/types'
 import { startOfWeek } from 'date-fns'
 import { runAfterTask } from '@/lib/server/run-after-task'
 import { logPerf } from '@/lib/perf-log'
+import {
+  SUBJECT_DEFINITIONS,
+  resolveSubjectKeyFromName,
+} from '@/lib/subjects'
 
 export type DashboardOverviewWindow = '7D' | '30D'
 export type DashboardModuleStatus = 'ready' | 'empty' | 'excluded'
@@ -36,6 +40,9 @@ export interface DashboardCollectionModule<T> {
 export interface DashboardLeaderboardModule {
   status: DashboardModuleStatus
   percentile: number | null
+  rank: number | null
+  rivalRank: number | null
+  rivalXpGap: number | null
   peerAverageAccuracy: number | null
   userAccuracy: number
   note?: string
@@ -61,6 +68,11 @@ export interface DashboardData {
       questions: number
       accuracy: number
       activeDays: number
+      dailyActivity: {
+        date: string
+        active: boolean
+        studySeconds: number
+      }[]
     }
   >
   learningPath: DashboardCollectionModule<{
@@ -138,6 +150,11 @@ function buildOverviewWindow(
   questions: number
   accuracy: number
   activeDays: number
+  dailyActivity: {
+    date: string
+    active: boolean
+    studySeconds: number
+  }[]
 } {
   const filteredAttempts = attempts.filter(
     (attempt) => attempt.createdAt >= since
@@ -145,16 +162,38 @@ function buildOverviewWindow(
   const correctAttempts = filteredAttempts.filter(
     (attempt) => attempt.isCorrect
   ).length
-  const activeDays = new Set(
+
+  const startDate = dayjs(since).startOf('day')
+  const endDate = dayjs().startOf('day')
+  const totalDays = Math.max(1, endDate.diff(startDate, 'day') + 1)
+  const eventDays = new Set(
     activityEvents
-      .filter((event) => event.occurredAt >= since)
-      .map((event) =>
-        dayjs(event.occurredAt).format('YYYY-MM-DD')
-      )
-  ).size
-  const totalStudySeconds = examDurations
-    .filter((record) => record.createdAt >= since)
-    .reduce((sum, record) => sum + (record.duration ?? 0), 0)
+      .filter((event) => event.occurredAt >= startDate.toDate())
+      .map((event) => dayjs(event.occurredAt).format('YYYY-MM-DD'))
+  )
+  const studySecondsByDay = new Map<string, number>()
+  for (const record of examDurations) {
+    if (record.createdAt < startDate.toDate()) continue
+    const key = dayjs(record.createdAt).format('YYYY-MM-DD')
+    const current = studySecondsByDay.get(key) ?? 0
+    studySecondsByDay.set(key, current + Math.max(0, record.duration ?? 0))
+  }
+
+  const dailyActivity = Array.from({ length: totalDays }, (_, index) => {
+    const date = startDate.add(index, 'day')
+    const key = date.format('YYYY-MM-DD')
+    return {
+      date: key,
+      active: eventDays.has(key),
+      studySeconds: studySecondsByDay.get(key) ?? 0,
+    }
+  })
+
+  const activeDays = dailyActivity.filter((day) => day.active).length
+  const totalStudySeconds = dailyActivity.reduce(
+    (sum, day) => sum + day.studySeconds,
+    0
+  )
 
   return {
     studyTime: formatHours(totalStudySeconds),
@@ -164,6 +203,7 @@ function buildOverviewWindow(
         ? Math.round((correctAttempts / filteredAttempts.length) * 100)
         : 0,
     activeDays,
+    dailyActivity,
   }
 }
 
@@ -231,8 +271,35 @@ async function loadDashboardSubjectResults(
 function buildSubjectProgress(
   subjectResults: SubjectChaptersResult[]
 ): DashboardData['subjectProgress'] {
-  const subjectItems = subjectResults
-    .map((result) => {
+  const resolvedResults = new Map<string, SubjectChaptersResult>()
+  const unresolvedResults: SubjectChaptersResult[] = []
+
+  for (const result of subjectResults) {
+    const resolvedKey = resolveSubjectKeyFromName(result.subjectName)
+    if (resolvedKey) {
+      resolvedResults.set(resolvedKey, result)
+    } else {
+      unresolvedResults.push(result)
+    }
+  }
+
+  const subjectItems = SUBJECT_DEFINITIONS.filter(
+    (subject) => subject.key !== 'other'
+  )
+    .map((subject) => {
+      const result = resolvedResults.get(subject.key)
+
+      if (!result) {
+        return {
+          subjectId: subject.key,
+          subjectName: subject.canonicalName,
+          overallMastery: 0,
+          chapterCount: 0,
+          totalAttempts: 0,
+          chapters: [],
+        }
+      }
+
       const totalAttempts = result.chapters.reduce(
         (sum, chapter) => sum + chapter.stats.totalAttempts,
         0
@@ -259,7 +326,35 @@ function buildSubjectProgress(
         })),
       }
     })
-    .filter((subject) => subject.totalAttempts > 0)
+    .concat(
+      unresolvedResults.map((result) => {
+        const totalAttempts = result.chapters.reduce(
+          (sum, chapter) => sum + chapter.stats.totalAttempts,
+          0
+        )
+        const correctCount = result.chapters.reduce(
+          (sum, chapter) => sum + chapter.stats.correctCount,
+          0
+        )
+        const overallMastery =
+          totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0
+
+        return {
+          subjectId: result.subjectId,
+          subjectName: result.subjectName,
+          overallMastery,
+          chapterCount: result.chapters.length,
+          totalAttempts,
+          chapters: result.chapters.map((chapter) => ({
+            chapterId: chapter.id,
+            chapterTitle: chapter.title,
+            masteryLevel: chapter.stats.masteryLevel,
+            questionCount: chapter.stats.questionCount,
+            totalAttempts: chapter.stats.totalAttempts,
+          })),
+        }
+      })
+    )
     .sort((a, b) => {
       if (b.totalAttempts !== a.totalAttempts) {
         return b.totalAttempts - a.totalAttempts
@@ -606,6 +701,9 @@ async function buildLeaderboardCard(
     return {
       status: 'excluded',
       percentile: null,
+      rank: null,
+      rivalRank: null,
+      rivalXpGap: null,
       peerAverageAccuracy: null,
       userAccuracy,
       note: '缺少年级资料，当前无法参与同年级排行榜。',
@@ -639,6 +737,9 @@ async function buildLeaderboardCard(
     return {
       status: 'empty',
       percentile: null,
+      rank: null,
+      rivalRank: null,
+      rivalXpGap: null,
       peerAverageAccuracy: null,
       userAccuracy,
       note: '当前周榜还没有同年级数据。',
@@ -653,6 +754,9 @@ async function buildLeaderboardCard(
     return {
       status: 'empty',
       percentile: null,
+      rank: null,
+      rivalRank: null,
+      rivalXpGap: null,
       peerAverageAccuracy: null,
       userAccuracy,
       note: '完成一组练习并获得 XP 后即可进入同年级排行榜。',
@@ -705,6 +809,12 @@ async function buildLeaderboardCard(
       1,
       Math.round(((userRankIndex + 1) / cohortEntries.length) * 100)
     ),
+    rank: userRankIndex + 1,
+    rivalRank: userRankIndex > 0 ? userRankIndex : null,
+    rivalXpGap:
+      userRankIndex > 0
+        ? Math.max(0, cohortEntries[userRankIndex - 1].score - cohortEntries[userRankIndex].score)
+        : null,
     peerAverageAccuracy,
     userAccuracy,
     note: `当前同年级周榜共有 ${cohortEntries.length} 位学生。`,
@@ -735,8 +845,8 @@ export async function getDashboardStats(
   const minDate = getRetentionDate(tier)
   const today = dayjs().startOf('day')
   const nextDay = dayjs().startOf('day').add(1, 'day')
-  const thirtyDaysAgo = dayjs().subtract(30, 'day').startOf('day').toDate()
-  const sevenDaysAgo = dayjs().subtract(7, 'day').startOf('day').toDate()
+  const thirtyDaysAgo = dayjs().subtract(29, 'day').startOf('day').toDate()
+  const sevenDaysAgo = dayjs().subtract(6, 'day').startOf('day').toDate()
 
   const includeDailyTasks = options.includeDailyTasks !== false
   const includeRecentPractice = options.includeRecentPractice !== false
@@ -745,8 +855,8 @@ export async function getDashboardStats(
   const includeOverview = options.includeOverview !== false
   const includeWeaknesses = options.includeWeaknesses !== false
   let dailyTasks: DashboardData['dailyTasks']['items'] = []
+  const dailyTasksStartedAt = performance.now()
   if (includeDailyTasks) {
-    const ensureStartedAt = performance.now()
     if (!pendingDailyTaskEnsures.has(user.id)) {
       pendingDailyTaskEnsures.add(user.id)
       runAfterTask(async () => {
@@ -756,30 +866,14 @@ export async function getDashboardStats(
           pendingDailyTaskEnsures.delete(user.id)
         }
       }, 'dashboard-ensure-daily-tasks')
-      logPerf('getDashboardStats.ensureDailyTasks.scheduled', ensureStartedAt, {
+      logPerf('getDashboardStats.ensureDailyTasks.scheduled', dailyTasksStartedAt, {
         userId: user.id,
       })
     } else {
-      logPerf('getDashboardStats.ensureDailyTasks.skipped-duplicate', ensureStartedAt, {
+      logPerf('getDashboardStats.ensureDailyTasks.skipped-duplicate', dailyTasksStartedAt, {
         userId: user.id,
       })
     }
-
-    const dailyTasksStartedAt = performance.now()
-    dailyTasks = await prisma.dailyTask.findMany({
-      where: {
-        userId: user.id,
-        date: {
-          gte: today.toDate(),
-          lt: nextDay.toDate(),
-        },
-      },
-      orderBy: { type: 'asc' },
-    })
-    logPerf('getDashboardStats.dailyTasks', dailyTasksStartedAt, {
-      userId: user.id,
-      rows: dailyTasks.length,
-    })
   } else {
     logPerf('getDashboardStats.dailyTasks', startedAt, {
       userId: user.id,
@@ -788,8 +882,7 @@ export async function getDashboardStats(
     })
   }
 
-  const attemptsStartedAt = performance.now()
-  const attemptsInRetention = await prisma.userAttempt.findMany({
+  const attemptsPromise = prisma.userAttempt.findMany({
     where: {
       userId: user.id,
       createdAt: { gte: minDate },
@@ -800,13 +893,8 @@ export async function getDashboardStats(
     },
     orderBy: { createdAt: 'desc' },
   })
-  logPerf('getDashboardStats.attemptsInRetention', attemptsStartedAt, {
-    userId: user.id,
-    rows: attemptsInRetention.length,
-  })
 
-  const examRecordsStartedAt = performance.now()
-  const examRecordsInRetention = await prisma.examRecord.findMany({
+  const examRecordsPromise = prisma.examRecord.findMany({
     where: {
       userId: user.id,
       createdAt: { gte: minDate },
@@ -817,90 +905,101 @@ export async function getDashboardStats(
     },
     orderBy: { createdAt: 'desc' },
   })
-  logPerf('getDashboardStats.examRecordsInRetention', examRecordsStartedAt, {
-    userId: user.id,
-    rows: examRecordsInRetention.length,
-  })
 
-  let completedLessonsInRetention: Array<{ updatedAt: Date }> = []
-  if (includeOverview) {
-    const completedLessonsStartedAt = performance.now()
-    completedLessonsInRetention = await prisma.userProgress.findMany({
-      where: {
-        userId: user.id,
-        isCompleted: true,
-        updatedAt: { gte: minDate },
-      },
-      select: {
-        updatedAt: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-    })
-    logPerf('getDashboardStats.completedLessonsInRetention', completedLessonsStartedAt, {
-      userId: user.id,
-      rows: completedLessonsInRetention.length,
-    })
-  } else {
-    logPerf('getDashboardStats.completedLessonsInRetention', startedAt, {
-      userId: user.id,
-      rows: 0,
-      skipped: true,
-    })
-  }
-
-  const recentPracticeStartedAt = performance.now()
-  let recentPractice: RecentPracticeRecord[] = []
-  if (includeRecentPractice) {
-    recentPractice = (await prisma.examRecord.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      include: {
-        subject: {
-          select: {
-            name: true,
-          },
+  const completedLessonsPromise = includeOverview
+    ? prisma.userProgress.findMany({
+        where: {
+          userId: user.id,
+          isCompleted: true,
+          updatedAt: { gte: minDate },
         },
-        attempts: {
-          select: {
-            question: {
-              select: {
-                chapterId: true,
-                paperId: true,
-                difficulty: true,
+        select: {
+          updatedAt: true,
+        },
+        orderBy: { updatedAt: 'desc' },
+      })
+    : Promise.resolve<Array<{ updatedAt: Date }>>([])
+
+  const recentPracticePromise = includeRecentPractice
+    ? prisma.examRecord.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: {
+          subject: {
+            select: {
+              name: true,
+            },
+          },
+          attempts: {
+            select: {
+              question: {
+                select: {
+                  chapterId: true,
+                  paperId: true,
+                  difficulty: true,
+                },
               },
             },
           },
         },
-      },
-    })) as RecentPracticeRecord[]
-    logPerf('getDashboardStats.recentPractice', recentPracticeStartedAt, {
-      userId: user.id,
-      rows: recentPractice.length,
-    })
-  } else {
-    logPerf('getDashboardStats.recentPractice', recentPracticeStartedAt, {
-      userId: user.id,
-      rows: 0,
-      skipped: true,
-    })
-  }
+      })
+    : Promise.resolve<RecentPracticeRecord[]>([])
 
-  let subjectResults: SubjectChaptersResult[] = []
-  if (includeSubjectResults) {
-    const subjectResultsStartedAt = performance.now()
-    subjectResults = await loadDashboardSubjectResults(user.id)
-    logPerf('getDashboardStats.subjectResults', subjectResultsStartedAt, {
-      userId: user.id,
-      subjects: subjectResults.length,
-    })
-  } else {
-    logPerf('getDashboardStats.subjectResults', startedAt, {
-      userId: user.id,
-      subjects: 0,
-      skipped: true,
-    })
-  }
+  const subjectResultsPromise = includeSubjectResults
+    ? loadDashboardSubjectResults(user.id)
+    : Promise.resolve<SubjectChaptersResult[]>([])
+
+  const dailyTasksPromise = includeDailyTasks
+    ? prisma.dailyTask.findMany({
+        where: {
+          userId: user.id,
+          date: {
+            gte: today.toDate(),
+            lt: nextDay.toDate(),
+          },
+        },
+        orderBy: { type: 'asc' },
+      })
+    : Promise.resolve<DashboardData['dailyTasks']['items']>([])
+
+  const [attemptsInRetention, examRecordsInRetention, completedLessonsInRetention, recentPractice, subjectResults, dailyTasksResult] =
+    await Promise.all([
+      attemptsPromise,
+      examRecordsPromise,
+      completedLessonsPromise,
+      recentPracticePromise,
+      subjectResultsPromise,
+      dailyTasksPromise,
+    ])
+
+  dailyTasks = dailyTasksResult
+
+  logPerf('getDashboardStats.attemptsInRetention', dailyTasksStartedAt, {
+    userId: user.id,
+    rows: attemptsInRetention.length,
+  })
+  logPerf('getDashboardStats.examRecordsInRetention', dailyTasksStartedAt, {
+    userId: user.id,
+    rows: examRecordsInRetention.length,
+  })
+  logPerf('getDashboardStats.completedLessonsInRetention', dailyTasksStartedAt, {
+    userId: user.id,
+    rows: completedLessonsInRetention.length,
+  })
+  logPerf('getDashboardStats.recentPractice', dailyTasksStartedAt, {
+    userId: user.id,
+    rows: recentPractice.length,
+  })
+  logPerf('getDashboardStats.subjectResults', dailyTasksStartedAt, {
+    userId: user.id,
+    subjects: subjectResults.length,
+  })
+  logPerf('getDashboardStats.weaknesses', dailyTasksStartedAt, {
+    userId: user.id,
+    rows: 0,
+    skipped: !includeSubjectResults || !includeWeaknesses,
+  })
 
   let weaknesses: DashboardData['weaknesses'] = {
     status: 'empty',
@@ -914,12 +1013,6 @@ export async function getDashboardStats(
       userId: user.id,
       rows: weaknesses.items.length,
     })
-  } else {
-    logPerf('getDashboardStats.weaknesses', startedAt, {
-      userId: user.id,
-      rows: 0,
-      skipped: true,
-    })
   }
 
   const totalAttempts = attemptsInRetention.length
@@ -930,6 +1023,9 @@ export async function getDashboardStats(
   let leaderboardData: DashboardLeaderboardModule = {
     status: 'empty',
     percentile: null,
+    rank: null,
+    rivalRank: null,
+    rivalXpGap: null,
     peerAverageAccuracy: null,
     userAccuracy: accuracy,
     note: '排行榜数据稍后加载。',
@@ -1029,8 +1125,20 @@ export async function getDashboardStats(
           ),
         }
       : {
-          '7D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
-          '30D': { studyTime: '0.0', questions: 0, accuracy: 0, activeDays: 0 },
+          '7D': {
+            studyTime: '0.0',
+            questions: 0,
+            accuracy: 0,
+            activeDays: 0,
+            dailyActivity: [],
+          },
+          '30D': {
+            studyTime: '0.0',
+            questions: 0,
+            accuracy: 0,
+            activeDays: 0,
+            dailyActivity: [],
+          },
         },
     learningPath: includeSubjectResults
       ? buildLearningPath(subjectResults)
