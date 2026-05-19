@@ -1,0 +1,33 @@
+{
+  "titleTransform": {
+    "x": 27,
+    "y": 15,
+    "scale": 1
+  },
+  "taskCardBoxes": {
+    "math": {
+      "x": 29,
+      "y": 50,
+      "width": 235.034,
+      "height": 128
+    },
+    "science": {
+      "x": 274,
+      "y": 50,
+      "width": 235.034,
+      "height": 128
+    },
+    "english": {
+      "x": 520,
+      "y": 50,
+      "width": 235.034,
+      "height": 128
+    },
+    "bonus": {
+      "x": 765,
+      "y": 50,
+      "width": 235.034,
+      "height": 128
+    }
+  }
+}

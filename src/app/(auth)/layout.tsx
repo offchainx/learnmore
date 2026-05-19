@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { useEffect } from 'react'
 import React from 'react'
 import { usePathname, useRouter } from 'next/navigation'
@@ -40,7 +38,7 @@ export default function AuthLayout({
   }, [])
 
   return (
-    <div className="auth-shell relative flex h-dvh items-center justify-center overflow-hidden overscroll-none bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-6 font-sans text-slate-900 sm:px-6 desktop:px-8">
+    <div className="auth-shell relative flex min-h-[100dvh] items-start justify-center overflow-y-auto overflow-x-hidden overscroll-none bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-4 pb-safe-bottom pt-safe-top font-sans text-slate-900 sm:items-center sm:px-6 sm:py-6 desktop:px-8 desktop:py-8">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-0 top-0 h-full w-full bg-[linear-gradient(to_right,rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.04)_1px,transparent_1px)] bg-[size:42px_42px] opacity-60" />
         <div className="absolute left-[-12%] top-[-10%] size-[28rem] rounded-full bg-emerald-400/10 blur-3xl" />

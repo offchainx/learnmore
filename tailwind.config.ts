@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 const config = {
   darkMode: ['class'],
@@ -22,13 +22,17 @@ const config = {
         sans: ['var(--font-inter)', 'var(--font-noto-sans-sc)', 'sans-serif'],
       },
       screens: {
-        'xs': '320px',      // iPhone SE (最小支持设备)
-        'sm': '375px',      // iPhone 12/13 Mini
-        'md': '390px',      // iPhone 14 Pro (标准尺寸)
-        'lg': '414px',      // iPhone 14 Pro Max
-        'xl': '428px',      // iPhone 14 Plus (最大移动端)
-        'tablet': '768px',  // iPad Mini
-        'desktop': '1024px', // Desktop
+        xs: '320px', // iPhone SE (最小支持设备)
+        sm: '375px', // iPhone 12/13 Mini
+        md: '390px', // iPhone 14 Pro (标准尺寸)
+        lg: '414px', // iPhone 14 Pro Max
+        xl: '428px', // iPhone 14 Plus (最大移动端)
+        tablet: '768px', // iPad Mini
+        desktop: '1024px', // Desktop
+        laptop: '1280px', // 常规笔记本 / iPad 横屏以上的稳态布局
+        'laptop-lg': '1366px', // 常见 13-14 寸笔记本
+        display: '1440px', // 常规外接显示器
+        wide: '1536px', // 2K / 大屏桌面
       },
       spacing: {
         'safe-top': 'env(safe-area-inset-top)',
@@ -111,10 +115,10 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        "background-light": "#F3F4F6",
-        "background-dark": "#0B0E14",
-        "surface-dark": "#151921",
-        "sidebar-dark": "#11141A",
+        'background-light': '#F3F4F6',
+        'background-dark': '#0B0E14',
+        'surface-dark': '#151921',
+        'sidebar-dark': '#11141A',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -143,31 +147,31 @@ const config = {
           '50%': { transform: 'translateY(-10px)' },
         },
         aurora: {
-           '0%': { transform: 'rotate(0deg) scale(1)' },
-           '50%': { transform: 'rotate(180deg) scale(1.1)' },
-           '100%': { transform: 'rotate(360deg) scale(1)' },
+          '0%': { transform: 'rotate(0deg) scale(1)' },
+          '50%': { transform: 'rotate(180deg) scale(1.1)' },
+          '100%': { transform: 'rotate(360deg) scale(1)' },
         },
       },
       boxShadow: {
         surface: 'var(--shadow-surface-sm)',
         'surface-md': 'var(--shadow-surface-md)',
         'surface-lg': 'var(--shadow-surface-lg)',
-        "glow-red": "0 0 20px -5px rgba(239, 68, 68, 0.4)",
-        "glow-green": "0 0 20px -5px rgba(34, 197, 94, 0.4)",
-        "glow-blue": "0 0 20px -5px rgba(59, 130, 246, 0.4)",
+        'glow-red': '0 0 20px -5px rgba(239, 68, 68, 0.4)',
+        'glow-green': '0 0 20px -5px rgba(34, 197, 94, 0.4)',
+        'glow-blue': '0 0 20px -5px rgba(59, 130, 246, 0.4)',
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
         'pulse-slow': 'pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'float': 'float 6s ease-in-out infinite',
-        'aurora': 'aurora 10s linear infinite',
+        float: 'float 6s ease-in-out infinite',
+        aurora: 'aurora 10s linear infinite',
       },
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
-} satisfies Config;
+} satisfies Config
 
-export default config;
+export default config

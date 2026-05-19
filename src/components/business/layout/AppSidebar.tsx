@@ -146,13 +146,13 @@ export function AppSidebar() {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0 border-r-0">
+        <SheetContent side="left" className="w-64 p-0 border-r-0">
           <SidebarContent onClose={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <div className="hidden border-r bg-white dark:bg-[#050505] lg:block w-72 h-screen sticky top-0 border-slate-200 dark:border-white/5">
+      <div className="hidden border-r bg-white dark:bg-[#050505] lg:block w-64 h-screen sticky top-0 border-slate-200 dark:border-white/5">
         <SidebarContent />
       </div>
     </>

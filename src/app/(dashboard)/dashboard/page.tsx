@@ -7,12 +7,44 @@ import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/prisma'
 import { getOnboardingStatus } from '@/lib/auth/onboarding'
 import { triggerOnboardingReminderNotification } from '@/actions/notification/triggers'
+import { getDashboardHeroLayoutPreset } from '@/components/dashboard/heroLayoutPreset.server'
+import { getDashboardHomeDesktopLayoutPreset } from '@/components/dashboard/dashboardHomeDesktopLayoutPreset.server'
+import { getDashboardTaskLayoutPreset } from '@/components/dashboard/taskLayoutPreset.server'
+import { getDashboardPathLayoutPreset } from '@/components/dashboard/pathLayoutPreset.server'
+import { getDashboardStreakLayoutPreset } from '@/components/dashboard/streakLayoutPreset.server'
+import { getDashboardGoalLayoutPreset } from '@/components/dashboard/goalLayoutPreset.server'
+import { getDashboardProfileLayoutPreset } from '@/components/dashboard/profileLayoutPreset.server'
+import { getDashboardCalendarLayoutPreset } from '@/components/dashboard/calendarLayoutPreset.server'
+import { getDashboardTimeLayoutPreset } from '@/components/dashboard/timeLayoutPreset.server'
+import { getDashboardSubjectLayoutPreset } from '@/components/dashboard/subjectLayoutPreset.server'
+import { getDashboardReviewLayoutPreset } from '@/components/dashboard/reviewLayoutPreset.server'
 
-export default function DashboardPage() {
-  return <DashboardPageContent />
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?:
+    | {
+        edit?: string
+        layoutEdit?: string
+      }
+    | Promise<{
+        edit?: string
+        layoutEdit?: string
+      }>
+}) {
+  const resolvedSearchParams = await Promise.resolve(searchParams)
+  const layoutEditMode =
+    resolvedSearchParams?.edit === '1' ||
+    resolvedSearchParams?.layoutEdit === '1'
+
+  return <DashboardPageContent layoutEditMode={layoutEditMode} />
 }
 
-async function DashboardPageContent() {
+async function DashboardPageContent({
+  layoutEditMode,
+}: {
+  layoutEditMode: boolean
+}) {
   const profile = await getDashboardShellProfile()
 
   if (!profile) {
@@ -131,5 +163,34 @@ async function DashboardPageContent() {
     )
   }
 
-  return <DashboardClient user={profile} initialData={null} />
+  const heroLayoutPreset = await getDashboardHeroLayoutPreset()
+  const taskLayoutPreset = await getDashboardTaskLayoutPreset()
+  const pathLayoutPreset = await getDashboardPathLayoutPreset()
+  const streakLayoutPreset = await getDashboardStreakLayoutPreset()
+  const goalLayoutPreset = await getDashboardGoalLayoutPreset()
+  const profileLayoutPreset = await getDashboardProfileLayoutPreset()
+  const calendarLayoutPreset = await getDashboardCalendarLayoutPreset()
+  const timeLayoutPreset = await getDashboardTimeLayoutPreset()
+  const subjectLayoutPreset = await getDashboardSubjectLayoutPreset()
+  const reviewLayoutPreset = await getDashboardReviewLayoutPreset()
+  const homeDesktopLayoutPreset = await getDashboardHomeDesktopLayoutPreset()
+
+  return (
+    <DashboardClient
+      user={profile}
+      initialData={null}
+      heroLayoutPreset={heroLayoutPreset}
+      taskLayoutPreset={taskLayoutPreset}
+      pathLayoutPreset={pathLayoutPreset}
+      streakLayoutPreset={streakLayoutPreset}
+      goalLayoutPreset={goalLayoutPreset}
+      profileLayoutPreset={profileLayoutPreset}
+      calendarLayoutPreset={calendarLayoutPreset}
+      timeLayoutPreset={timeLayoutPreset}
+      subjectLayoutPreset={subjectLayoutPreset}
+      reviewLayoutPreset={reviewLayoutPreset}
+      homeDesktopLayoutPreset={homeDesktopLayoutPreset}
+      layoutEditMode={layoutEditMode}
+    />
+  )
 }

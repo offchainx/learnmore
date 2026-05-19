@@ -152,4 +152,6 @@
 
 | 2026-04-29 | workspace cleanup closeout | 清理旧工作区脏改并收口可提交变更 | 已删除未接线的 AuthPageShell 和临时调试产物，仅保留 AvatarUpload 的业务文案/样式修正与 .codex/specs 的任务台账同步，准备统一提交 | src/components/business/settings/AvatarUpload.tsx, .codex/specs/2026-04-22-ui-redesign/tasks.md, .codex/specs/2026-04-22-ui-redesign/specs/ws-00-scope-and-route-freeze/tasks.md, .codex/specs/2026-04-22-ui-redesign/specs/ws-02-design-contract-and-anti-patterns/spec.md | AuthPageShell 没有实际接线，已删除；.playwright-mcp、docs/research、login-page.png 均为临时产物，已清理 | 让工作区只保留可交付的业务改动和任务台账同步 | git add、commit、push |
 
+| 2026-05-19 | dashboard preview/layout 编辑器与工作区清理收口 | 检查当前未提交改动；保留需要提交的 dashboard/landing/layout 变更与必需素材，删除无用 png、playwright 日志和 tmp 文档，并完成提交推送准备 | 已清理无用截图、tmp 与 .playwright-mcp 产物，补充 .gitignore，修复 Next 16 headers() 类型问题；定向 eslint 与 tsc 通过，准备重新执行 git commit 并推送 | dashboard preview preset/API/素材、landing 和 auth 相关 UI 调整、调试产物清理 | pnpm lint 被仓库内旧 .cjs 脚本的 require 规则阻断，改为对本次改动做定向验证 | 后续同类 dashboard 调整可直接依赖新增 preset/json 与 preview API，不再混入临时截图 | 重新执行 git commit，并在通过 hook 后推送到 origin/main |
+
 ## 约束

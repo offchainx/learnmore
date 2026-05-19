@@ -1,62 +1,64 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { BookOpen, Menu, X, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { BookOpen, Menu, X, Sparkles } from 'lucide-react'
 
 export const LandingPageNavbar: React.FC = () => {
-  const router = useRouter();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const router = useRouter()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+      setScrolled(window.scrollY > 10)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const navLinks = [
     { name: 'How It Works', path: '/how-it-works' },
     { name: 'Subjects', path: '/subjects' },
     { name: 'Pricing', path: '/pricing' },
     { name: 'About Us', path: '/about-us' },
-  ];
+  ]
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out ${
+    <nav
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ease-in-out ${
         scrolled ? 'py-3' : 'py-5'
       }`}
     >
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8`}>
-        <div className={`
-          relative flex justify-between h-14 items-center px-6 rounded-full transition-all duration-300
-          ${scrolled ? 'bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl' : 'bg-transparent border border-transparent'}
-        `}>
+      <div className={`mx-auto max-w-7xl px-4 sm:px-6 desktop:px-8`}>
+        <div
+          className={`relative flex h-14 items-center justify-between rounded-full px-6 transition-all duration-300 ${scrolled ? 'border border-white/10 bg-[#0a0a0a]/80 shadow-2xl backdrop-blur-xl' : 'border border-transparent bg-transparent'} `}
+        >
           {/* Logo Section */}
-          <div className="flex items-center cursor-pointer group gap-3" onClick={() => router.push('/')}>
-            <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
-              <BookOpen className="w-4 h-4 text-white" />
-              <div className="absolute -top-1 -right-1">
-                <Sparkles className="w-3 h-3 text-yellow-300 animate-pulse" />
+          <div
+            className="group flex cursor-pointer items-center gap-3"
+            onClick={() => router.push('/')}
+          >
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 transition-transform duration-300 group-hover:scale-105">
+              <BookOpen className="h-4 w-4 text-white" />
+              <div className="absolute -right-1 -top-1">
+                <Sparkles className="h-3 w-3 animate-pulse text-yellow-300" />
               </div>
             </div>
-            <span className="text-lg font-bold text-white tracking-tight group-hover:text-blue-200 transition-colors">
-              LearnMore <span className="text-blue-500 font-light">Pro</span>
+            <span className="text-lg font-bold tracking-tight text-white transition-colors group-hover:text-blue-200">
+              LearnMore <span className="font-light text-blue-500">Pro</span>
             </span>
           </div>
-          
+
           {/* Desktop Navigation */}
-          <div className="hidden desktop:flex items-center space-x-1">
+          <div className="hidden items-center space-x-1 laptop:flex">
             {navLinks.map((item) => (
-              <Link 
+              <Link
                 key={item.name}
-                href={item.path} 
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center text-slate-300 hover:text-white hover:bg-white/5`}
+                href={item.path}
+                className={`flex items-center rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/5 hover:text-white`}
               >
                 {item.name}
               </Link>
@@ -64,22 +66,36 @@ export const LandingPageNavbar: React.FC = () => {
           </div>
 
           {/* Auth Buttons */}
-          <div className="hidden desktop:flex items-center space-x-3">
-            <Button variant="ghost" size="sm" onClick={() => router.push('/login')} className="text-slate-300 hover:text-white hover:bg-white/10">
+          <div className="hidden items-center space-x-3 laptop:flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/login')}
+              className="text-slate-300 hover:bg-white/10 hover:text-white"
+            >
               Log in
             </Button>
-            <Button size="sm" variant="glow" onClick={() => router.push('/register')} className="shadow-lg shadow-blue-500/20">
+            <Button
+              size="sm"
+              variant="glow"
+              onClick={() => router.push('/register')}
+              className="shadow-lg shadow-blue-500/20"
+            >
               Start Learning
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex items-center desktop:hidden">
+          <div className="flex items-center laptop:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors focus:outline-none"
+              className="inline-flex items-center justify-center rounded-full p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white focus:outline-none"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
@@ -87,26 +103,44 @@ export const LandingPageNavbar: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 px-4 desktop:hidden animate-fade-in-up">
-          <div className="p-4 space-y-2 bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl">
+        <div className="absolute left-0 right-0 top-full mt-2 animate-fade-in-up px-4 laptop:hidden">
+          <div className="space-y-2 rounded-3xl border border-white/10 bg-[#0f0f0f]/95 p-4 shadow-2xl backdrop-blur-2xl">
             {navLinks.map((item) => (
-              <Link 
+              <Link
                 key={item.name}
                 href={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 py-3 rounded-xl text-base font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                className="block rounded-xl px-4 py-3 text-base font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
               >
                 {item.name}
               </Link>
             ))}
-            <div className="h-px bg-white/10 my-4" />
+            <div className="my-4 h-px bg-white/10" />
             <div className="flex flex-col gap-3">
-               <Button variant="outline" className="w-full justify-center" onClick={() => { setIsMobileMenuOpen(false); router.push('/login'); }}>Log In</Button>
-               <Button variant="glow" className="w-full justify-center" onClick={() => { setIsMobileMenuOpen(false); router.push('/register'); }}>Join Now</Button>
+              <Button
+                variant="outline"
+                className="w-full justify-center"
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  router.push('/login')
+                }}
+              >
+                Log In
+              </Button>
+              <Button
+                variant="glow"
+                className="w-full justify-center"
+                onClick={() => {
+                  setIsMobileMenuOpen(false)
+                  router.push('/register')
+                }}
+              >
+                Join Now
+              </Button>
             </div>
           </div>
         </div>
       )}
     </nav>
-  );
-};
+  )
+}

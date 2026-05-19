@@ -1,0 +1,27 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cup" x1="18" y1="10" x2="46" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD86A"/>
+      <stop offset="0.5" stop-color="#FFB12F"/>
+      <stop offset="1" stop-color="#F17E12"/>
+    </linearGradient>
+    <linearGradient id="stand" x1="24" y1="33" x2="40" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD56A"/>
+      <stop offset="1" stop-color="#E77F10"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="16" y1="38" x2="48" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF9E1A"/>
+      <stop offset="1" stop-color="#FF6A00"/>
+    </linearGradient>
+  </defs>
+  <path d="M15 35.5L21.5 31L27 40.5L18 45.5L15 35.5Z" fill="url(#ribbon)"/>
+  <path d="M49 35.5L42.5 31L37 40.5L46 45.5L49 35.5Z" fill="url(#ribbon)"/>
+  <path d="M20 16.5C20 11.8 23.8 8 28.5 8H35.5C40.2 8 44 11.8 44 16.5V22.5C44 29.9 39.1 36 32 36C24.9 36 20 29.9 20 22.5V16.5Z" fill="url(#cup)" stroke="#FFF0B5" stroke-width="1.6"/>
+  <path d="M22.5 18C22.5 14.4 25.4 11.5 29 11.5H35C38.6 11.5 41.5 14.4 41.5 18V21C41.5 26.8 37.4 31.5 32 31.5C26.6 31.5 22.5 26.8 22.5 21V18Z" fill="white" fill-opacity="0.24"/>
+  <path d="M19.5 17.5H15.5C13.1 17.5 11.2 19.4 11.2 21.8C11.2 25.6 14.1 29.1 18 30.1L19.5 30.5" stroke="#F17E12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M44.5 17.5H48.5C50.9 17.5 52.8 19.4 52.8 21.8C52.8 25.6 49.9 29.1 46 30.1L44.5 30.5" stroke="#F17E12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28.2 36H35.8V41.5H28.2V36Z" fill="url(#stand)" stroke="#FFF0B5" stroke-width="1.4"/>
+  <path d="M23.5 41.5H40.5L38.2 49.2H25.8L23.5 41.5Z" fill="url(#stand)" stroke="#FFF0B5" stroke-width="1.4" stroke-linejoin="round"/>
+  <rect x="21" y="49.2" width="22" height="6.6" rx="3.3" fill="#FFB12F" stroke="#FFF0B5" stroke-width="1.2"/>
+  <path d="M31.9 16.4L33.2 19.1L36.2 19.5L34 21.5L34.5 24.5L31.9 23.1L29.3 24.5L29.8 21.5L27.6 19.5L30.6 19.1L31.9 16.4Z" fill="#FFF2BB"/>
+</svg>

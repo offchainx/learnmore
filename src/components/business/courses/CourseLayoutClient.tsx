@@ -106,7 +106,7 @@ export function CourseLayoutClient({ subjectId, chapters, title, children }: Cou
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-[300px]">
+                <SheetContent side="left" className="p-0 w-[280px]">
                     <SidebarContent 
                       title={title} 
                       chapters={chapters} 
@@ -125,7 +125,7 @@ export function CourseLayoutClient({ subjectId, chapters, title, children }: Cou
 
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-[calc(100vh-5rem)] w-full rounded-lg border">
-      <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="hidden lg:block">
+      <ResizablePanel defaultSize={18} minSize={14} maxSize={28} className="hidden lg:block">
         <SidebarContent 
             title={title} 
             chapters={chapters} 
@@ -134,7 +134,7 @@ export function CourseLayoutClient({ subjectId, chapters, title, children }: Cou
         />
       </ResizablePanel>
       <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={80}>
+      <ResizablePanel defaultSize={82}>
         <main className="h-full overflow-auto p-6">
             {children}
         </main>

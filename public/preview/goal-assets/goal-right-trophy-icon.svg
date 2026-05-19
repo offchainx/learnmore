@@ -1,0 +1,33 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cup" x1="72" y1="44" x2="184" y2="178" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE48A"/>
+      <stop offset="0.42" stop-color="#FFBF34"/>
+      <stop offset="1" stop-color="#F27E10"/>
+    </linearGradient>
+    <linearGradient id="inner" x1="92" y1="70" x2="164" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF6CE"/>
+      <stop offset="1" stop-color="#FFD46C"/>
+    </linearGradient>
+    <linearGradient id="base" x1="96" y1="154" x2="160" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD66B"/>
+      <stop offset="1" stop-color="#E97A10"/>
+    </linearGradient>
+    <linearGradient id="ribbon" x1="52" y1="150" x2="204" y2="224" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF9B1A"/>
+      <stop offset="1" stop-color="#FF6A00"/>
+    </linearGradient>
+  </defs>
+  <path d="M60 156L94 133L125 188L77 214L60 156Z" fill="url(#ribbon)"/>
+  <path d="M196 156L162 133L131 188L179 214L196 156Z" fill="url(#ribbon)"/>
+  <path d="M84 66C84 50.5 96.5 38 112 38H144C159.5 38 172 50.5 172 66V86C172 114 153.3 137 128 137C102.7 137 84 114 84 86V66Z" fill="url(#cup)" stroke="#FFF1B8" stroke-width="4"/>
+  <path d="M94 74C94 61.9 103.9 52 116 52H140C152.1 52 162 61.9 162 74V82C162 102.4 147.4 119 128 119C108.6 119 94 102.4 94 82V74Z" fill="url(#inner)" fill-opacity="0.72"/>
+  <path d="M83 71H67C56.5 71 48 79.5 48 90C48 106.4 60.4 121.7 77.1 126.1L83 127.7" stroke="#F27E10" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M173 71H189C199.5 71 208 79.5 208 90C208 106.4 195.6 121.7 178.9 126.1L173 127.7" stroke="#F27E10" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M110 138H146V160H110V138Z" fill="url(#base)" stroke="#FFF1B8" stroke-width="4"/>
+  <path d="M93 160H163L153 194H103L93 160Z" fill="url(#base)" stroke="#FFF1B8" stroke-width="4" stroke-linejoin="round"/>
+  <rect x="78" y="194" width="100" height="30" rx="15" fill="#FFB12F" stroke="#FFF1B8" stroke-width="4"/>
+  <path d="M128 59.5L134.5 72.2L148.5 74.1L138.4 83.8L140.8 97.5L128 90.8L115.2 97.5L117.6 83.8L107.5 74.1L121.5 72.2L128 59.5Z" fill="#FFF1B8"/>
+  <circle cx="128" cy="140" r="7" fill="#FFF7D6"/>
+  <path d="M128 147.5C131 147.5 133.5 150 133.5 153V158.5H122.5V153C122.5 150 125 147.5 128 147.5Z" fill="#FFF7D6"/>
+</svg>

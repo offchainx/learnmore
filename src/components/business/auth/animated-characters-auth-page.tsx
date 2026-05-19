@@ -445,9 +445,9 @@ export function AuthIllustratedPage({
   const yellowPos = calculatePosition(yellowRef)
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-hidden bg-[#f5f3ee] text-slate-950">
-      <div className="grid min-h-[100dvh] grid-cols-1 lg:grid-cols-[1.02fr_0.98fr]">
-        <section className="relative flex min-h-[42vh] flex-col justify-between overflow-hidden border-b border-slate-800/60 bg-[linear-gradient(180deg,#121318_0%,#181b22_100%)] px-5 py-5 text-slate-50 sm:px-8 sm:py-7 lg:min-h-[100dvh] lg:border-b-0 lg:px-10 lg:py-8">
+    <div className="fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-[#f5f3ee] text-slate-950">
+      <div className="grid min-h-[100dvh] grid-cols-1 laptop:grid-cols-[1.02fr_0.98fr]">
+        <section className="relative flex min-h-[38vh] flex-col justify-between overflow-hidden border-b border-slate-800/60 bg-[linear-gradient(180deg,#121318_0%,#181b22_100%)] px-5 py-5 text-slate-50 sm:min-h-[42vh] sm:px-8 sm:py-7 laptop:min-h-[100dvh] laptop:border-b-0 laptop:px-10 laptop:py-8">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:42px_42px] opacity-70" />
             <div className="absolute left-[-8%] top-[-12%] size-[22rem] rounded-full bg-white/5 blur-3xl" />
@@ -466,329 +466,331 @@ export function AuthIllustratedPage({
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-1 items-center justify-center py-10 lg:py-14">
-            <div className="relative h-[380px] w-[520px] scale-[0.82] sm:h-[420px] sm:w-[560px] sm:scale-90 lg:scale-100">
-              <div
-                ref={purpleRef}
-                className="absolute bottom-0 transition-all duration-700 ease-in-out"
-                style={{
-                  left: '72px',
-                  width: '176px',
-                  height:
-                    isTyping || (password.length > 0 && !showPassword)
-                      ? '430px'
-                      : '392px',
-                  backgroundColor: '#6c3ff5',
-                  borderRadius: '12px 12px 0 0',
-                  zIndex: 1,
-                  transform:
-                    password.length > 0 && showPassword
-                      ? 'skewX(0deg)'
-                      : isTyping || (password.length > 0 && !showPassword)
-                        ? `skewX(${(purplePos.bodySkew || 0) - 12}deg) translateX(40px)`
-                        : `skewX(${purplePos.bodySkew || 0}deg)`,
-                  transformOrigin: 'bottom center',
-                }}
-              >
+          <div className="relative z-10 flex flex-1 items-center justify-center py-8 laptop:py-14">
+            <div className="relative h-[clamp(280px,56vw,420px)] w-full max-w-[560px]">
+              <div className="absolute left-1/2 top-1/2 h-[420px] w-[560px] -translate-x-1/2 -translate-y-1/2 scale-[0.62] sm:scale-[0.8] md:scale-90 laptop:scale-100">
                 <div
-                  className="absolute flex gap-8 transition-all duration-700 ease-in-out"
+                  ref={purpleRef}
+                  className="absolute bottom-0 transition-all duration-700 ease-in-out"
                   style={{
-                    left:
+                    left: '72px',
+                    width: '176px',
+                    height:
+                      isTyping || (password.length > 0 && !showPassword)
+                        ? '430px'
+                        : '392px',
+                    backgroundColor: '#6c3ff5',
+                    borderRadius: '12px 12px 0 0',
+                    zIndex: 1,
+                    transform:
                       password.length > 0 && showPassword
-                        ? '22px'
-                        : isLookingAtEachOther
-                          ? '56px'
-                          : `${46 + purplePos.faceX}px`,
-                    top:
-                      password.length > 0 && showPassword
-                        ? '36px'
-                        : isLookingAtEachOther
-                          ? '68px'
-                          : `${40 + purplePos.faceY}px`,
-                  }}
-                >
-                  <EyeBall
-                    size={18}
-                    pupilSize={7}
-                    maxDistance={5}
-                    eyeColor="white"
-                    pupilColor="#2d2d2d"
-                    isBlinking={purpleBlinking}
-                    forceLookX={
-                      password.length > 0 && showPassword
-                        ? isPurplePeeking
-                          ? 4
-                          : -4
-                        : isLookingAtEachOther
-                          ? 3
-                          : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword
-                        ? isPurplePeeking
-                          ? 5
-                          : -4
-                        : isLookingAtEachOther
-                          ? 4
-                          : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={purpleRef}
-                  />
-                  <EyeBall
-                    size={18}
-                    pupilSize={7}
-                    maxDistance={5}
-                    eyeColor="white"
-                    pupilColor="#2d2d2d"
-                    isBlinking={purpleBlinking}
-                    forceLookX={
-                      password.length > 0 && showPassword
-                        ? isPurplePeeking
-                          ? 4
-                          : -4
-                        : isLookingAtEachOther
-                          ? 3
-                          : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword
-                        ? isPurplePeeking
-                          ? 5
-                          : -4
-                        : isLookingAtEachOther
-                          ? 4
-                          : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={purpleRef}
-                  />
-                </div>
-              </div>
-
-              <div
-                ref={blackRef}
-                className="absolute bottom-0 transition-all duration-700 ease-in-out"
-                style={{
-                  left: '238px',
-                  width: '126px',
-                  height: '316px',
-                  backgroundColor: '#2d2d2d',
-                  borderRadius: '10px 10px 0 0',
-                  zIndex: 2,
-                  transform:
-                    password.length > 0 && showPassword
-                      ? 'skewX(0deg)'
-                      : isLookingAtEachOther
-                        ? `skewX(${(blackPos.bodySkew || 0) * 1.5 + 10}deg) translateX(20px)`
+                        ? 'skewX(0deg)'
                         : isTyping || (password.length > 0 && !showPassword)
-                          ? `skewX(${(blackPos.bodySkew || 0) * 1.5}deg)`
-                          : `skewX(${blackPos.bodySkew || 0}deg)`,
-                  transformOrigin: 'bottom center',
-                }}
-              >
-                <div
-                  className="absolute flex gap-6 transition-all duration-700 ease-in-out"
-                  style={{
-                    left:
-                      password.length > 0 && showPassword
-                        ? '12px'
-                        : isLookingAtEachOther
-                          ? '34px'
-                          : `${26 + blackPos.faceX}px`,
-                    top:
-                      password.length > 0 && showPassword
-                        ? '30px'
-                        : isLookingAtEachOther
-                          ? '14px'
-                          : `${32 + blackPos.faceY}px`,
+                          ? `skewX(${(purplePos.bodySkew || 0) - 12}deg) translateX(40px)`
+                          : `skewX(${purplePos.bodySkew || 0}deg)`,
+                    transformOrigin: 'bottom center',
                   }}
                 >
-                  <EyeBall
-                    size={16}
-                    pupilSize={6}
-                    maxDistance={4}
-                    eyeColor="white"
-                    pupilColor="#2d2d2d"
-                    isBlinking={blackBlinking}
-                    forceLookX={
-                      password.length > 0 && showPassword
-                        ? -4
-                        : isLookingAtEachOther
-                          ? 0
-                          : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword
-                        ? -4
-                        : isLookingAtEachOther
-                          ? -4
-                          : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={blackRef}
-                  />
-                  <EyeBall
-                    size={16}
-                    pupilSize={6}
-                    maxDistance={4}
-                    eyeColor="white"
-                    pupilColor="#2d2d2d"
-                    isBlinking={blackBlinking}
-                    forceLookX={
-                      password.length > 0 && showPassword
-                        ? -4
-                        : isLookingAtEachOther
-                          ? 0
-                          : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword
-                        ? -4
-                        : isLookingAtEachOther
-                          ? -4
-                          : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={blackRef}
-                  />
+                  <div
+                    className="absolute flex gap-8 transition-all duration-700 ease-in-out"
+                    style={{
+                      left:
+                        password.length > 0 && showPassword
+                          ? '22px'
+                          : isLookingAtEachOther
+                            ? '56px'
+                            : `${46 + purplePos.faceX}px`,
+                      top:
+                        password.length > 0 && showPassword
+                          ? '36px'
+                          : isLookingAtEachOther
+                            ? '68px'
+                            : `${40 + purplePos.faceY}px`,
+                    }}
+                  >
+                    <EyeBall
+                      size={18}
+                      pupilSize={7}
+                      maxDistance={5}
+                      eyeColor="white"
+                      pupilColor="#2d2d2d"
+                      isBlinking={purpleBlinking}
+                      forceLookX={
+                        password.length > 0 && showPassword
+                          ? isPurplePeeking
+                            ? 4
+                            : -4
+                          : isLookingAtEachOther
+                            ? 3
+                            : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword
+                          ? isPurplePeeking
+                            ? 5
+                            : -4
+                          : isLookingAtEachOther
+                            ? 4
+                            : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={purpleRef}
+                    />
+                    <EyeBall
+                      size={18}
+                      pupilSize={7}
+                      maxDistance={5}
+                      eyeColor="white"
+                      pupilColor="#2d2d2d"
+                      isBlinking={purpleBlinking}
+                      forceLookX={
+                        password.length > 0 && showPassword
+                          ? isPurplePeeking
+                            ? 4
+                            : -4
+                          : isLookingAtEachOther
+                            ? 3
+                            : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword
+                          ? isPurplePeeking
+                            ? 5
+                            : -4
+                          : isLookingAtEachOther
+                            ? 4
+                            : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={purpleRef}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div
-                ref={orangeRef}
-                className="absolute bottom-0 transition-all duration-700 ease-in-out"
-                style={{
-                  left: '0px',
-                  width: '240px',
-                  height: '202px',
-                  zIndex: 3,
-                  backgroundColor: '#ff9a6b',
-                  borderRadius: '120px 120px 0 0',
-                  transform:
-                    password.length > 0 && showPassword
-                      ? 'skewX(0deg)'
-                      : `skewX(${orangePos.bodySkew || 0}deg)`,
-                  transformOrigin: 'bottom center',
-                }}
-              >
                 <div
-                  className="absolute flex gap-8 transition-all duration-200 ease-out"
+                  ref={blackRef}
+                  className="absolute bottom-0 transition-all duration-700 ease-in-out"
                   style={{
-                    left:
+                    left: '238px',
+                    width: '126px',
+                    height: '316px',
+                    backgroundColor: '#2d2d2d',
+                    borderRadius: '10px 10px 0 0',
+                    zIndex: 2,
+                    transform:
                       password.length > 0 && showPassword
-                        ? '50px'
-                        : `${82 + (orangePos.faceX || 0)}px`,
-                    top:
-                      password.length > 0 && showPassword
-                        ? '86px'
-                        : `${90 + (orangePos.faceY || 0)}px`,
+                        ? 'skewX(0deg)'
+                        : isLookingAtEachOther
+                          ? `skewX(${(blackPos.bodySkew || 0) * 1.5 + 10}deg) translateX(20px)`
+                          : isTyping || (password.length > 0 && !showPassword)
+                            ? `skewX(${(blackPos.bodySkew || 0) * 1.5}deg)`
+                            : `skewX(${blackPos.bodySkew || 0}deg)`,
+                    transformOrigin: 'bottom center',
                   }}
                 >
-                  <Pupil
-                    size={12}
-                    maxDistance={5}
-                    pupilColor="#2d2d2d"
-                    forceLookX={
-                      password.length > 0 && showPassword ? -5 : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword ? -4 : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={orangeRef}
-                  />
-                  <Pupil
-                    size={12}
-                    maxDistance={5}
-                    pupilColor="#2d2d2d"
-                    forceLookX={
-                      password.length > 0 && showPassword ? -5 : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword ? -4 : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={orangeRef}
-                  />
+                  <div
+                    className="absolute flex gap-6 transition-all duration-700 ease-in-out"
+                    style={{
+                      left:
+                        password.length > 0 && showPassword
+                          ? '12px'
+                          : isLookingAtEachOther
+                            ? '34px'
+                            : `${26 + blackPos.faceX}px`,
+                      top:
+                        password.length > 0 && showPassword
+                          ? '30px'
+                          : isLookingAtEachOther
+                            ? '14px'
+                            : `${32 + blackPos.faceY}px`,
+                    }}
+                  >
+                    <EyeBall
+                      size={16}
+                      pupilSize={6}
+                      maxDistance={4}
+                      eyeColor="white"
+                      pupilColor="#2d2d2d"
+                      isBlinking={blackBlinking}
+                      forceLookX={
+                        password.length > 0 && showPassword
+                          ? -4
+                          : isLookingAtEachOther
+                            ? 0
+                            : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword
+                          ? -4
+                          : isLookingAtEachOther
+                            ? -4
+                            : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={blackRef}
+                    />
+                    <EyeBall
+                      size={16}
+                      pupilSize={6}
+                      maxDistance={4}
+                      eyeColor="white"
+                      pupilColor="#2d2d2d"
+                      isBlinking={blackBlinking}
+                      forceLookX={
+                        password.length > 0 && showPassword
+                          ? -4
+                          : isLookingAtEachOther
+                            ? 0
+                            : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword
+                          ? -4
+                          : isLookingAtEachOther
+                            ? -4
+                            : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={blackRef}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div
-                ref={yellowRef}
-                className="absolute bottom-0 transition-all duration-700 ease-in-out"
-                style={{
-                  left: '306px',
-                  width: '142px',
-                  height: '236px',
-                  backgroundColor: '#e8d754',
-                  borderRadius: '70px 70px 0 0',
-                  zIndex: 4,
-                  transform:
-                    password.length > 0 && showPassword
-                      ? 'skewX(0deg)'
-                      : `skewX(${yellowPos.bodySkew || 0}deg)`,
-                  transformOrigin: 'bottom center',
-                }}
-              >
                 <div
-                  className="absolute flex gap-6 transition-all duration-200 ease-out"
+                  ref={orangeRef}
+                  className="absolute bottom-0 transition-all duration-700 ease-in-out"
                   style={{
-                    left:
+                    left: '0px',
+                    width: '240px',
+                    height: '202px',
+                    zIndex: 3,
+                    backgroundColor: '#ff9a6b',
+                    borderRadius: '120px 120px 0 0',
+                    transform:
                       password.length > 0 && showPassword
-                        ? '20px'
-                        : `${52 + (yellowPos.faceX || 0)}px`,
-                    top:
-                      password.length > 0 && showPassword
-                        ? '36px'
-                        : `${40 + (yellowPos.faceY || 0)}px`,
+                        ? 'skewX(0deg)'
+                        : `skewX(${orangePos.bodySkew || 0}deg)`,
+                    transformOrigin: 'bottom center',
                   }}
                 >
-                  <Pupil
-                    size={12}
-                    maxDistance={5}
-                    pupilColor="#2d2d2d"
-                    forceLookX={
-                      password.length > 0 && showPassword ? -5 : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword ? -4 : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={yellowRef}
-                  />
-                  <Pupil
-                    size={12}
-                    maxDistance={5}
-                    pupilColor="#2d2d2d"
-                    forceLookX={
-                      password.length > 0 && showPassword ? -5 : undefined
-                    }
-                    forceLookY={
-                      password.length > 0 && showPassword ? -4 : undefined
-                    }
-                    mouse={mouse}
-                    parentRef={yellowRef}
+                  <div
+                    className="absolute flex gap-8 transition-all duration-200 ease-out"
+                    style={{
+                      left:
+                        password.length > 0 && showPassword
+                          ? '50px'
+                          : `${82 + (orangePos.faceX || 0)}px`,
+                      top:
+                        password.length > 0 && showPassword
+                          ? '86px'
+                          : `${90 + (orangePos.faceY || 0)}px`,
+                    }}
+                  >
+                    <Pupil
+                      size={12}
+                      maxDistance={5}
+                      pupilColor="#2d2d2d"
+                      forceLookX={
+                        password.length > 0 && showPassword ? -5 : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword ? -4 : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={orangeRef}
+                    />
+                    <Pupil
+                      size={12}
+                      maxDistance={5}
+                      pupilColor="#2d2d2d"
+                      forceLookX={
+                        password.length > 0 && showPassword ? -5 : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword ? -4 : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={orangeRef}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  ref={yellowRef}
+                  className="absolute bottom-0 transition-all duration-700 ease-in-out"
+                  style={{
+                    left: '306px',
+                    width: '142px',
+                    height: '236px',
+                    backgroundColor: '#e8d754',
+                    borderRadius: '70px 70px 0 0',
+                    zIndex: 4,
+                    transform:
+                      password.length > 0 && showPassword
+                        ? 'skewX(0deg)'
+                        : `skewX(${yellowPos.bodySkew || 0}deg)`,
+                    transformOrigin: 'bottom center',
+                  }}
+                >
+                  <div
+                    className="absolute flex gap-6 transition-all duration-200 ease-out"
+                    style={{
+                      left:
+                        password.length > 0 && showPassword
+                          ? '20px'
+                          : `${52 + (yellowPos.faceX || 0)}px`,
+                      top:
+                        password.length > 0 && showPassword
+                          ? '36px'
+                          : `${40 + (yellowPos.faceY || 0)}px`,
+                    }}
+                  >
+                    <Pupil
+                      size={12}
+                      maxDistance={5}
+                      pupilColor="#2d2d2d"
+                      forceLookX={
+                        password.length > 0 && showPassword ? -5 : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword ? -4 : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={yellowRef}
+                    />
+                    <Pupil
+                      size={12}
+                      maxDistance={5}
+                      pupilColor="#2d2d2d"
+                      forceLookX={
+                        password.length > 0 && showPassword ? -5 : undefined
+                      }
+                      forceLookY={
+                        password.length > 0 && showPassword ? -4 : undefined
+                      }
+                      mouse={mouse}
+                      parentRef={yellowRef}
+                    />
+                  </div>
+                  <div
+                    className="absolute h-[4px] w-20 rounded-full bg-[#2d2d2d] transition-all duration-200 ease-out"
+                    style={{
+                      left:
+                        password.length > 0 && showPassword
+                          ? '10px'
+                          : `${40 + (yellowPos.faceX || 0)}px`,
+                      top:
+                        password.length > 0 && showPassword
+                          ? '90px'
+                          : `${88 + (yellowPos.faceY || 0)}px`,
+                    }}
                   />
                 </div>
-                <div
-                  className="absolute h-[4px] w-20 rounded-full bg-[#2d2d2d] transition-all duration-200 ease-out"
-                  style={{
-                    left:
-                      password.length > 0 && showPassword
-                        ? '10px'
-                        : `${40 + (yellowPos.faceX || 0)}px`,
-                    top:
-                      password.length > 0 && showPassword
-                        ? '90px'
-                        : `${88 + (yellowPos.faceY || 0)}px`,
-                  }}
-                />
               </div>
             </div>
           </div>
 
-          <div className="relative z-10 hidden items-center gap-8 text-sm text-slate-200/65 lg:flex">
+          <div className="relative z-10 hidden items-center gap-8 text-sm text-slate-200/65 laptop:flex">
             <Link
               href="/privacy"
               className="transition-colors hover:text-white"
@@ -807,11 +809,11 @@ export function AuthIllustratedPage({
           </div>
         </section>
 
-        <section className="relative flex min-h-[58vh] items-center justify-center bg-[#f7f6f2] px-5 py-8 text-slate-950 sm:px-8 lg:min-h-[100dvh] lg:px-10 lg:py-10">
+        <section className="relative flex min-h-[62vh] items-center justify-center bg-[#f7f6f2] px-5 py-8 text-slate-950 sm:px-8 laptop:min-h-[100dvh] laptop:px-10 laptop:py-10">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.04),transparent_40%),linear-gradient(180deg,rgba(255,255,255,0.85),rgba(248,246,240,1))]" />
 
           <div className="relative z-10 w-full max-w-[480px]">
-            <div className="mb-8 flex items-center gap-2 lg:hidden">
+            <div className="mb-8 flex items-center gap-2 laptop:hidden">
               <div className="flex size-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_10px_20px_-14px_rgba(15,23,42,0.25)]">
                 <Sparkles className="size-5" />
               </div>

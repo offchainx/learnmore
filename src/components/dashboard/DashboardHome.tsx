@@ -11,7 +11,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { DailyInspiration } from './Widgets'
-import { DailyMissions } from './DailyMissions'
 import {
   Activity,
   BookOpenCheck,
@@ -24,7 +23,33 @@ import type { DashboardData, DashboardOverviewWindow } from '@/actions/dashboard
 import { PracticeMode } from '@prisma/client'
 import { PageEmptyState } from '@/components/shared/PageEmptyState'
 import { PageHeroShell } from '@/components/shared/PageHeroShell'
-import { ProfilePanel } from './ProfilePanel'
+import { DashboardHeroCard } from './DashboardHeroCard'
+import { DashboardReplicaTaskCard } from './DashboardReplicaTaskSection'
+import { DashboardReplicaPathCard } from './DashboardReplicaPathSection'
+import { DashboardStreakCard } from './DashboardReplicaStreakSection'
+import { DashboardWeeklyGoalCard } from './DashboardReplicaGoalSection'
+import { DashboardReplicaProfileCard } from './DashboardReplicaProfileSection'
+import { DashboardReplicaCalendarCard } from './DashboardReplicaCalendarSection'
+import { DashboardReplicaTimeCard } from './DashboardReplicaTimeSection'
+import { DashboardReplicaSubjectCard } from './DashboardReplicaSubjectSection'
+import { DashboardReplicaReviewCard } from './DashboardReplicaReviewSection'
+import type { DashboardHeroLayoutPreset } from './heroLayoutPreset'
+import type { DashboardTaskLayoutPreset } from './taskLayoutPreset'
+import type { DashboardPathLayoutPreset } from './pathLayoutPreset'
+import type { DashboardStreakLayoutPreset } from './streakLayoutPreset'
+import type { DashboardGoalLayoutPreset } from './goalLayoutPreset'
+import type { DashboardProfileLayoutPreset } from './profileLayoutPreset'
+import type { DashboardCalendarLayoutPreset } from './calendarLayoutPreset'
+import type { DashboardTimeLayoutPreset } from './timeLayoutPreset'
+import type { DashboardSubjectLayoutPreset } from './subjectLayoutPreset'
+import type { DashboardReviewLayoutPreset } from './reviewLayoutPreset'
+import {
+  DASHBOARD_HOME_MIN_ASIDE_WIDTH,
+  defaultDashboardHomeDesktopLayoutPreset,
+  normalizeDashboardHomeDesktopLayoutPreset,
+  type DashboardHomeDesktopLayoutPreset,
+} from './dashboardHomeDesktopLayoutPreset'
+import { DashboardHomeDesktopLayoutInspector } from './DashboardHomeDesktopLayoutInspector'
 import {
   pageCardTitleClass,
   pageKickerClass,
@@ -260,11 +285,35 @@ export const DashboardHome = ({
   navigate,
   initialData,
   user,
+  heroLayoutPreset,
+  taskLayoutPreset,
+  pathLayoutPreset,
+  streakLayoutPreset,
+  goalLayoutPreset,
+  profileLayoutPreset,
+  calendarLayoutPreset,
+  timeLayoutPreset,
+  subjectLayoutPreset,
+  reviewLayoutPreset,
+  homeDesktopLayoutPreset,
+  layoutEditMode = false,
 }: {
   navigate: (path: string) => void
   onViewChange?: (view: string) => void
   initialData: DashboardData | null
   user: DashboardShellUser
+  heroLayoutPreset: DashboardHeroLayoutPreset
+  taskLayoutPreset: DashboardTaskLayoutPreset
+  pathLayoutPreset: DashboardPathLayoutPreset
+  streakLayoutPreset: DashboardStreakLayoutPreset
+  goalLayoutPreset: DashboardGoalLayoutPreset
+  profileLayoutPreset: DashboardProfileLayoutPreset
+  calendarLayoutPreset: DashboardCalendarLayoutPreset
+  timeLayoutPreset: DashboardTimeLayoutPreset
+  subjectLayoutPreset: DashboardSubjectLayoutPreset
+  reviewLayoutPreset: DashboardReviewLayoutPreset
+  homeDesktopLayoutPreset: DashboardHomeDesktopLayoutPreset
+  layoutEditMode?: boolean
 }) => {
   const { t, lang } = useApp()
   const copy = (zh: string, en: string, ms?: string) =>
@@ -314,6 +363,39 @@ export const DashboardHome = ({
     useState<DashboardOverviewWindow>('7D')
   const [activityPage, setActivityPage] = useState(0)
   const [subjectPage, setSubjectPage] = useState(0)
+  const [selectedLayoutCard, setSelectedLayoutCard] = useState<
+    'hero' | 'profile' | 'task' | 'path' | 'streak' | 'goal' | null
+  >(null)
+  const [desktopLayoutPreset, setDesktopLayoutPreset] =
+    useState<DashboardHomeDesktopLayoutPreset>(() =>
+      normalizeDashboardHomeDesktopLayoutPreset(homeDesktopLayoutPreset)
+    )
+  const [savingDesktopLayoutPreset, setSavingDesktopLayoutPreset] =
+    useState(false)
+  const effectiveAsideWidth = Math.max(
+    desktopLayoutPreset.asideWidth,
+    DASHBOARD_HOME_MIN_ASIDE_WIDTH
+  )
+  const effectivePageMaxWidth = Math.max(
+    desktopLayoutPreset.pageMaxWidth,
+    heroLayoutPreset.shell.width + effectiveAsideWidth + desktopLayoutPreset.gridGap
+  )
+  const mainColumnOffsetCompensationX = layoutEditMode
+    ? Math.max(
+        0,
+        -Math.min(
+          0,
+          desktopLayoutPreset.heroOffsetX,
+          desktopLayoutPreset.taskOffsetX,
+          desktopLayoutPreset.pathOffsetX,
+          desktopLayoutPreset.streakOffsetX,
+          desktopLayoutPreset.goalOffsetX
+        )
+      )
+    : 0
+  const asideColumnOffsetCompensationX = layoutEditMode
+    ? Math.max(0, -Math.min(0, desktopLayoutPreset.asideOffsetX))
+    : 0
 
   useEffect(() => {
     if (coreData || !shouldLoadLegacyMainContent) return
@@ -557,529 +639,198 @@ export const DashboardHome = ({
     )
   }
 
+  const saveDesktopLayoutPreset = async () => {
+    try {
+      setSavingDesktopLayoutPreset(true)
+      const response = await fetch('/api/dashboard/home-desktop-layout-preset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(desktopLayoutPreset),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to save preset: ${response.status}`)
+      }
+    } finally {
+      setSavingDesktopLayoutPreset(false)
+    }
+  }
+
   return (
     <TooltipProvider delayDuration={120}>
       <div className="flex min-h-0 w-full min-w-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
-        <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5">
-          {showLegacyMainContent && homeDataError ? (
-            <Card className="rounded-[20px] border border-amber-400/30 bg-amber-50 p-5 text-amber-950 shadow-surface dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-50">
-              <div className="text-sm font-semibold">
-                Dashboard data is loading slowly.
-              </div>
-              <div className="mt-1 text-sm opacity-80">{homeDataError}</div>
-            </Card>
-          ) : null}
-
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)] xl:items-start 2xl:grid-cols-[minmax(0,1fr)_minmax(420px,500px)]">
-            {showLegacyMainContent ? (
-              <div className="min-w-0 space-y-5">
-              <PageHeroShell
-                className={`${pageHeroShellClass} min-h-[280px] border border-[hsl(var(--border-subtle))] bg-surface shadow-surface dark:border-borderTone dark:bg-surface dark:shadow-none`}
-                title={copy('学习总览', 'Overview')}
-                subtitle={copy(
-                  '先看最重要的四个指标，再决定今天要补强哪里。',
-                  'Read the four key signals first, then decide where to focus today.'
-                )}
-                titleClassName="font-semibold"
-                actions={
-                  <div className={`shrink-0 ${pageSegmentedControlCompactClass}`}>
-                    {(['7D', '30D'] as DashboardOverviewWindow[]).map(
-                      (windowKey) => (
-                        <button
-                          key={windowKey}
-                          type="button"
-                          onClick={() => setOverviewWindow(windowKey)}
-                          className={`${pageSegmentedButtonCompactClass} text-[11px] font-semibold ${
-                            overviewWindow === windowKey
-                              ? pagePillActiveClass
-                              : pagePillInactiveClass
-                          }`}
-                        >
-                          {windowKey === '7D'
-                            ? copy('7天', '7D')
-                            : copy('30天', '30D')}
-                        </button>
-                      )
-                    )}
-                  </div>
-                }
+        <div
+          className="mx-auto flex w-full flex-col gap-5"
+          style={{ maxWidth: `${effectivePageMaxWidth}px` }}
+        >
+          <div
+            className="grid xl:items-start"
+            style={{
+              gap: `${desktopLayoutPreset.gridGap}px`,
+              gridTemplateColumns: `minmax(0,1fr) minmax(${effectiveAsideWidth}px, ${effectiveAsideWidth}px)`,
+            }}
+          >
+            <div
+              className="min-w-0 space-y-5"
+              style={{
+                transform: `translateX(${mainColumnOffsetCompensationX}px)`,
+                transformOrigin: 'top left',
+              }}
+            >
+              <div
+                className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
+                  layoutEditMode && selectedLayoutCard === 'hero'
+                    ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+                    : ''
+                }`}
+                style={{
+                  transform: `translate(${desktopLayoutPreset.heroOffsetX}px, ${desktopLayoutPreset.heroOffsetY}px)`,
+                }}
+                onClick={() => {
+                  if (layoutEditMode) {
+                    setSelectedLayoutCard('hero')
+                  }
+                }}
               >
-                <div className="rounded-[26px] bg-[linear-gradient(135deg,hsl(var(--surface-muted))_0%,hsl(var(--surface-default))_62%,hsl(var(--state-info-bg))_140%)] px-5 py-5 sm:px-6 sm:py-6">
-                  {isLoadingOverviewData && !overviewData ? (
-                    <div className="space-y-5">
-                      <div className="space-y-3">
-                        <Skeleton className="h-4 w-24 rounded-full" />
-                        <Skeleton className="h-12 w-40 rounded-2xl" />
-                        <Skeleton className="h-4 w-56 rounded-full" />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-3">
-                        {Array.from({ length: 3 }).map((_, index) => (
-                          <div
-                            key={`overview-skeleton-${index}`}
-                            className="border-l border-[hsl(var(--border-subtle))] pl-4 first:border-l-0 first:pl-0"
-                          >
-                            <Skeleton className="h-3 w-20 rounded-full" />
-                            <Skeleton className="mt-3 h-8 w-16 rounded-full" />
-                            <Skeleton className="mt-3 h-3 w-28 rounded-full" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex flex-wrap items-start justify-between gap-5">
-                        <div className="min-w-0">
-                          <div className={pageKickerClass}>
-                            {overviewWindowLabel}
-                          </div>
-                          <div className={pageNumericValueClass}>
-                            {featuredMetric.value}
-                          </div>
-                          <p className={`mt-2 max-w-md ${pageMetaTextClass}`}>
-                            {copy(
-                              `累计完成 ${stats.questions} 题，当前连续学习 ${stats.streak} 天。`,
-                              `You have completed ${stats.questions} questions with a ${stats.streak}-day streak.`
-                            )}
-                          </p>
-                        </div>
-                        <div className="rounded-full bg-[hsl(var(--surface-default)/0.88)] px-4 py-2 text-right shadow-[0_10px_30px_rgba(120,72,32,0.06)] dark:bg-[hsl(var(--surface-default)/0.2)] dark:shadow-none">
-                          <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-tertiary">
-                            {copy('累计 XP', 'Total XP')}
-                          </div>
-                          <div className="mt-1 text-[20px] font-semibold tracking-tight text-text-primary">
-                            {stats.xp}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                        {supportingMetrics.map((metric, index) => (
-                          <div
-                            key={metric.label}
-                            className={`border-[hsl(var(--border-subtle))] ${index === 0 ? '' : 'border-l pl-4 sm:pl-5'}`}
-                          >
-                            <div className={pageKickerClass}>{metric.label}</div>
-                            <div className={pageNumericValueCompactClass}>
-                              {metric.value}
-                            </div>
-                            <div
-                              className={`mt-2 max-w-[18ch] ${pageMetaTextClass}`}
-                            >
-                              {metric.subLabel}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </PageHeroShell>
-
-              <section className="grid min-h-0 items-start gap-4 xl:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
-                <DailyMissions
-                  tasks={dailyTasks}
-                    user={user as any}
-                  lazyLoadTasks
-                  className="self-start"
+                <DashboardHeroCard
+                  copy={copy}
+                  xp={stats.xp}
+                  onContinue={() => navigate('/dashboard/practice')}
+                  preset={heroLayoutPreset}
                 />
-
-                <Card
-                  className={`${pagePanelClass} min-h-0 self-start rounded-[28px] ${pageCardPaddingClass} dark:shadow-none`}
-                >
-                  <DashboardSectionHeader
-                    icon={BookOpenCheck}
-                    title={
-                      t.dashboard?.learningPath ||
-                      copy('学习路径', 'Learning Path')
-                    }
-                    tooltip={copy(
-                      '系统会根据最近的答题表现与掌握度，推荐下一步最值得做的章节练习，并可直接进入对应训练。',
-                      'Recommendations are based on recent performance and mastery, and can deep-link straight into chapter drills.'
-                    )}
-                    meta={
-                      <PageDots
-                        totalPages={totalActivityPages}
-                        page={activityPage}
-                        countLabel={copy(
-                          `${learningPathItems.length} 条`,
-                          `${learningPathItems.length} items`
-                        )}
-                      />
-                    }
-                    action={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-xl"
-                        onClick={() => navigate('/dashboard/practice')}
-                      >
-                        {copy('去练习', 'Practice')}
-                      </Button>
-                    }
-                  />
-
-                  {isLoadingSubjectData && !subjectData ? (
-                    <div className={pageListGapClass}>
-                      {Array.from({ length: ACTIVITY_PER_PAGE }).map(
-                        (_, index) => (
-                          <div
-                            key={`learning-skeleton-${index}`}
-                            className="rounded-[22px] bg-surface-muted px-4 py-4 dark:bg-surface-subtle"
-                          >
-                            <Skeleton className="h-6 w-40 rounded-full" />
-                            <Skeleton className="mt-3 h-4 w-full max-w-lg rounded-full" />
-                            <Skeleton className="mt-5 h-2 w-full rounded-full" />
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : learningPath.status === 'ready' ? (
-                    <div className={pageListGapClass} onWheel={handleActivityWheel}>
-                      {visibleActivity.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => navigate(item.href)}
-                          className={`${pageInteractiveRowClass} ${pageListItemTallClass} justify-between rounded-[22px]`}
-                        >
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[hsl(var(--surface-default))] text-primary shadow-[0_8px_18px_rgba(120,72,32,0.06)] dark:bg-surface dark:shadow-none">
-                            <Play className="h-4 w-4 fill-current" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className={`truncate ${pageKickerClass}`}>
-                              {item.subject}
-                            </div>
-                            <div className={`mt-1 truncate ${pageCardTitleClass}`}>
-                              {item.title}
-                            </div>
-                            <div className={`mt-1 truncate ${pageMetaTextClass}`}>
-                              {item.reason}
-                            </div>
-                            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--border-subtle))] dark:bg-surface">
-                              <div
-                                className="h-full rounded-full bg-primary"
-                                style={{ width: `${Math.max(6, item.progress)}%` }}
-                              />
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className={pageNumericValueCompactClass}>
-                              {item.progress}%
-                            </div>
-                            <div className={`mt-1 ${pageMetaTextClass}`}>
-                              {learningPathTypeLabel(item.recommendationType, copy)}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                      {visibleActivity.length < ACTIVITY_PER_PAGE &&
-                        Array.from({
-                          length: ACTIVITY_PER_PAGE - visibleActivity.length,
-                        }).map((_, index) => (
-                          <div
-                            key={`activity-empty-${index}`}
-                            className={`flex ${pageListItemTallClass} items-center justify-center rounded-[22px] border border-dashed border-[hsl(var(--border-subtle))] bg-surface-muted dark:border-borderTone dark:bg-surface-subtle`}
-                          >
-                            <span className={pageKickerMutedClass}>
-                              {copy('已到列表底部', 'End of list')}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <PageEmptyState
-                      title={copy('还没有最近学习记录', 'No recent learning path')}
-                      description={
-                        learningPath.note ||
-                        copy(
-                          '完成首次练习后，这里会出现章节推荐和下一步建议。',
-                          'Complete your first practice run and chapter recommendations will show up here.'
-                        )
-                      }
-                      actions={
-                        <Button
-                          onClick={() => navigate('/dashboard/practice')}
-                          className="rounded-xl px-4 py-2 text-sm font-bold"
-                        >
-                          {copy('开始练习', 'Start Practicing')}
-                        </Button>
-                      }
-                    />
-                  )}
-                </Card>
-              </section>
-
-              <section className="grid min-h-0 items-start gap-4 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
-                <Card
-                  className={`${pagePanelClass} min-h-0 self-start rounded-[28px] ${pageCardPaddingClass} dark:shadow-none`}
-                >
-                  <DashboardSectionHeader
-                    icon={Activity}
-                    title={
-                      t.dashboard?.subjectProgress ||
-                      copy('学科进度', 'Subject Progress')
-                    }
-                    tooltip={copy(
-                      '系统会按学科汇总章节练习表现，用来判断当前稳定度和优先补强方向。',
-                      'This panel summarizes chapter practice by subject to show stability and where to focus next.'
-                    )}
-                    meta={
-                      <PageDots
-                        totalPages={totalSubjectPages}
-                        page={subjectPage}
-                        countLabel={copy(
-                          `${subjectProgressItems.length} 科`,
-                          `${subjectProgressItems.length} items`
-                        )}
-                      />
-                    }
-                    action={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-xl"
-                        onClick={() => navigate('/dashboard/practice')}
-                      >
-                        {copy('去练习', 'Practice')}
-                      </Button>
-                    }
-                  />
-
-                  {isLoadingSubjectData && !subjectData ? (
-                    <div className={pageListGapClass}>
-                      {Array.from({ length: SUBJECTS_PER_PAGE }).map(
-                        (_, index) => (
-                          <div
-                            key={`subject-skeleton-${index}`}
-                            className="rounded-[20px] bg-surface-muted px-4 py-4 dark:bg-surface-subtle"
-                          >
-                            <Skeleton className="h-5 w-36 rounded-full" />
-                            <Skeleton className="mt-2 h-4 w-48 rounded-full" />
-                            <Skeleton className="mt-4 h-2.5 rounded-full" />
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : subjectProgress.status === 'ready' ? (
-                    <div
-                      className="overflow-hidden rounded-[22px] bg-surface-muted dark:bg-surface-subtle"
-                      onWheel={handleSubjectWheel}
-                    >
-                      {visibleSubjects.map((sub) => (
-                        <div
-                          key={sub.subjectId}
-                          className="border-b border-[hsl(var(--border-subtle))] px-4 py-4 last:border-b-0 dark:border-borderTone"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className={`truncate ${pageCardTitleClass}`}>
-                                {sub.subjectName}
-                              </div>
-                              <div className={`mt-1 ${pageMetaTextClass}`}>
-                                {copy(
-                                  `${sub.chapterCount} 个章节 · ${sub.totalAttempts} 次作答`,
-                                  `${sub.chapterCount} chapters · ${sub.totalAttempts} attempts`
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div
-                                className={`${pageNumericValueCompactClass} ${sub.overallMastery >= 80 ? 'text-state-success-fg dark:text-state-success-fg' : 'text-primary dark:text-primary'}`}
-                              >
-                                {sub.overallMastery}%
-                              </div>
-                              <div className={pageMetaTextClass}>
-                                {sub.overallMastery >= 80
-                                  ? copy('稳定', 'Stable')
-                                  : copy('待提升', 'Needs work')}
-                              </div>
-                            </div>
-                          </div>
-                            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-[hsl(var(--surface-default))] dark:bg-surface">
-                              <div
-                                className={`h-full rounded-full ${sub.overallMastery >= 80 ? 'bg-state-success-fg' : 'bg-primary'}`}
-                                style={{
-                                width:
-                                  sub.overallMastery > 0
-                                    ? `${Math.max(4, sub.overallMastery)}%`
-                                    : '0%',
-                                }}
-                              />
-                            </div>
-                        </div>
-                      ))}
-                      {visibleSubjects.length < SUBJECTS_PER_PAGE &&
-                        Array.from({
-                          length: SUBJECTS_PER_PAGE - visibleSubjects.length,
-                        }).map((_, index) => (
-                          <div
-                            key={`subject-empty-${index}`}
-                            className={`flex ${pageListItemTallClass} items-center justify-center border-b border-[hsl(var(--border-subtle))] px-4 py-4 last:border-b-0 dark:border-borderTone`}
-                          >
-                            <span className={pageKickerMutedClass}>
-                              {copy('已到列表底部', 'End of list')}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <PageEmptyState
-                      title={copy('还没有学科进度数据', 'No subject progress yet')}
-                      description={copy(
-                        '先开始一次练习，系统才会逐步建立你的学科稳定度和进度分布。',
-                        'Start practicing to build your subject progress and performance profile.'
-                      )}
-                      actions={
-                        <Button
-                          onClick={() => navigate('/dashboard/practice')}
-                          className="rounded-xl px-4 py-2 text-sm font-bold"
-                        >
-                          {copy('开始练习', 'Start Practicing')}
-                        </Button>
-                      }
-                    />
-                  )}
-                </Card>
-
-                <Card
-                  className={`${pagePanelClass} min-h-0 self-start rounded-[28px] ${pageCardPaddingClass} dark:shadow-none`}
-                >
-                  <DashboardSectionHeader
-                    icon={Layers3}
-                    title={copy('最近练习回顾', 'Recent Practice')}
-                    tooltip={copy(
-                      '这里会记录你最近几次训练的结果、难度与耗时，方便直接回到同类练习继续推进。',
-                      'This section keeps your recent sessions, difficulty, and duration visible so you can continue from the same study flow.'
-                    )}
-                    action={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-xl"
-                        onClick={() => navigate('/dashboard/practice')}
-                      >
-                        {copy('练习中心', 'Practice')}
-                      </Button>
-                    }
-                  />
-
-                  {isLoadingActivityData && !activityData ? (
-                    <div className={`space-y-3 ${pageListGapClass}`}>
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <div
-                          key={`recent-practice-skeleton-${index}`}
-                          className={`${pageInteractiveRowClass} justify-between`}
-                        >
-                          <div className="min-w-0 flex-1 space-y-2">
-                            <Skeleton className="h-4 w-28 rounded-full" />
-                            <Skeleton className="h-5 w-4/5 rounded-full" />
-                            <Skeleton className="h-4 w-full rounded-full" />
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <Skeleton className="ml-auto h-6 w-16 rounded-full" />
-                            <Skeleton className="ml-auto mt-2 h-4 w-20 rounded-full" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : recentPractice.length > 0 ? (
-                    <div
-                      className={`custom-scrollbar max-h-[266px] overflow-y-auto pr-1 ${pageListGapClass}`}
-                    >
-                      {recentPractice.map((record) => (
-                        <button
-                          key={record.id}
-                          type="button"
-                          onClick={() => navigate(record.href)}
-                          className="group relative flex justify-between gap-4 border-l border-[hsl(var(--border-default))] pl-5 pr-1 text-left transition-colors hover:border-[hsl(var(--primary))] dark:border-borderTone dark:hover:border-primary"
-                        >
-                          <span className="absolute -left-[5px] top-3 h-2.5 w-2.5 rounded-full bg-primary" />
-                          <div className="min-w-0 flex-1">
-                            {!modeAppearsInTitle(record.mode, record.title) ? (
-                              <div
-                                className={`${pageBadgeClass} w-fit border-transparent bg-surface-muted px-2.5 py-0.5 text-[10px] text-text-secondary shadow-none`}
-                              >
-                                {practiceModeLabel(record.mode, copy)}
-                              </div>
-                            ) : null}
-                            <div className={`mt-1 truncate ${pageCardTitleClass}`}>
-                              {record.title}
-                            </div>
-                            <div className={`mt-1 ${pageMetaTextClass}`}>
-                              {[
-                                record.subject,
-                                recentPracticeDifficultyLabel(
-                                  record.difficulty,
-                                  copy
-                                ),
-                                formatRelativeDate(record.createdAt, copy),
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </div>
-                          </div>
-                          <div className="shrink-0 text-right">
-                            <div className="inline-flex min-w-[68px] justify-center rounded-full bg-[hsl(var(--state-info-bg))] px-3 py-1 text-[17px] font-semibold tracking-tight text-primary dark:bg-[hsl(var(--state-info-bg))] dark:text-primary">
-                              {record.score}%
-                            </div>
-                            <div className={`mt-1 ${pageMetaTextClass}`}>
-                              {record.correctCount}/{record.totalQuestions} ·{' '}
-                              {formatDuration(record.duration, copy)}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <PageEmptyState
-                      title={copy('还没有练习记录', 'No recent practice yet')}
-                      description={copy(
-                        '完成第一轮练习后，这里会告诉你最近一次训练效果和接下来最值得做的动作。',
-                        'Complete your first practice round and this panel will summarize your latest performance.'
-                      )}
-                      actions={
-                        <Button
-                          onClick={() => navigate('/dashboard/practice')}
-                          className="rounded-xl px-4 py-2 text-sm font-bold"
-                        >
-                          {copy('开始练习', 'Start Practice')}
-                        </Button>
-                      }
-                    />
-                  )}
-                </Card>
-              </section>
-
-              <DailyInspiration
-                lang={lang}
-                t={t}
-                welcomeTitle={
-                  t.dashboard?.dailyVibe || copy('今日灵感', 'Daily Vibe')
-                }
-                welcomeSub={copy(
-                  '留一句短提示，不再让它抢走主信息区的注意力。',
-                  'A short cue for the day, without pulling focus from your study data.'
-                )}
-              />
               </div>
-            ) : null}
 
-            <aside className="w-full max-w-[500px] justify-self-end xl:col-start-2 xl:sticky xl:top-4">
-                <ProfilePanel
-                  user={user as any}
-                  stats={stats}
-                overviewByWindow={overviewByWindow}
-                subjectProgress={subjectProgress}
-                recentPractice={recentPracticeSection}
-                dailyTasks={dailyTasksSection}
-                leaderboard={leaderboard}
-                lang={lang}
-                onNavigate={navigate}
-              />
+              <section className="min-h-0 space-y-4">
+                <div
+                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
+                    layoutEditMode && selectedLayoutCard === 'task'
+                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+                      : ''
+                  }`}
+                  style={{
+                    transform: `translate(${desktopLayoutPreset.taskOffsetX}px, ${desktopLayoutPreset.taskOffsetY}px)`,
+                  }}
+                  onClick={() => {
+                    if (layoutEditMode) {
+                      setSelectedLayoutCard('task')
+                    }
+                  }}
+                >
+                  <DashboardReplicaTaskCard preset={taskLayoutPreset} />
+                </div>
+
+                <div
+                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
+                    layoutEditMode && selectedLayoutCard === 'path'
+                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+                      : ''
+                  }`}
+                  style={{
+                    transform: `translate(${desktopLayoutPreset.pathOffsetX}px, ${desktopLayoutPreset.pathOffsetY}px)`,
+                  }}
+                  onClick={() => {
+                    if (layoutEditMode) {
+                      setSelectedLayoutCard('path')
+                    }
+                  }}
+                >
+                  <DashboardReplicaPathCard copy={copy} preset={pathLayoutPreset} />
+                </div>
+              </section>
+
+              <section className="grid min-h-0 items-start gap-4 xl:grid-cols-2">
+                <div
+                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
+                    layoutEditMode && selectedLayoutCard === 'streak'
+                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+                      : ''
+                  }`}
+                  style={{
+                    transform: `translate(${desktopLayoutPreset.streakOffsetX}px, ${desktopLayoutPreset.streakOffsetY}px)`,
+                  }}
+                  onClick={() => {
+                    if (layoutEditMode) {
+                      setSelectedLayoutCard('streak')
+                    }
+                  }}
+                >
+                  <DashboardStreakCard
+                    copy={copy}
+                    streak={stats.streak}
+                    preset={streakLayoutPreset}
+                  />
+                </div>
+                <div
+                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
+                    layoutEditMode && selectedLayoutCard === 'goal'
+                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+                      : ''
+                  }`}
+                  style={{
+                    transform: `translate(${desktopLayoutPreset.goalOffsetX}px, ${desktopLayoutPreset.goalOffsetY}px)`,
+                  }}
+                  onClick={() => {
+                    if (layoutEditMode) {
+                      setSelectedLayoutCard('goal')
+                    }
+                  }}
+                >
+                  <DashboardWeeklyGoalCard
+                    copy={copy}
+                    activeDays={overviewByWindow['7D'].activeDays}
+                    preset={goalLayoutPreset}
+                  />
+                </div>
+              </section>
+            </div>
+
+            <aside
+              className={`w-full justify-self-end xl:col-start-2 ${
+                layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''
+              } ${
+                layoutEditMode && selectedLayoutCard === 'profile'
+                  ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+                  : ''
+              }`}
+              style={{
+                width: `${effectiveAsideWidth}px`,
+                maxWidth: `${effectiveAsideWidth}px`,
+                transform: `translate(${desktopLayoutPreset.asideOffsetX + asideColumnOffsetCompensationX}px, ${desktopLayoutPreset.asideOffsetY}px)`,
+              }}
+              onClick={() => {
+                if (layoutEditMode) {
+                  setSelectedLayoutCard('profile')
+                }
+              }}
+            >
+              <div className="space-y-4">
+                <DashboardReplicaProfileCard
+                  user={user}
+                  xp={stats.xp}
+                  streak={stats.streak}
+                  preset={profileLayoutPreset}
+                />
+                <DashboardReplicaCalendarCard preset={calendarLayoutPreset} />
+                <div className="grid min-h-0 items-start gap-4 xl:grid-cols-2">
+                  <DashboardReplicaTimeCard preset={timeLayoutPreset} />
+                  <DashboardReplicaSubjectCard preset={subjectLayoutPreset} />
+                </div>
+                <DashboardReplicaReviewCard preset={reviewLayoutPreset} />
+              </div>
             </aside>
           </div>
         </div>
       </div>
+      <DashboardHomeDesktopLayoutInspector
+        visible={layoutEditMode}
+        selectedCard={selectedLayoutCard}
+        preset={desktopLayoutPreset}
+        saving={savingDesktopLayoutPreset}
+        onPresetChange={setDesktopLayoutPreset}
+        onSave={saveDesktopLayoutPreset}
+      />
     </TooltipProvider>
   )
 }

@@ -10,6 +10,17 @@ import {
 } from '@/components/layout/dashboard-nav'
 import { useApp } from '@/providers'
 import { DashboardData } from '@/actions/dashboard'
+import type { DashboardHeroLayoutPreset } from './heroLayoutPreset'
+import type { DashboardHomeDesktopLayoutPreset } from './dashboardHomeDesktopLayoutPreset'
+import type { DashboardTaskLayoutPreset } from './taskLayoutPreset'
+import type { DashboardPathLayoutPreset } from './pathLayoutPreset'
+import type { DashboardStreakLayoutPreset } from './streakLayoutPreset'
+import type { DashboardGoalLayoutPreset } from './goalLayoutPreset'
+import type { DashboardProfileLayoutPreset } from './profileLayoutPreset'
+import type { DashboardCalendarLayoutPreset } from './calendarLayoutPreset'
+import type { DashboardTimeLayoutPreset } from './timeLayoutPreset'
+import type { DashboardSubjectLayoutPreset } from './subjectLayoutPreset'
+import type { DashboardReviewLayoutPreset } from './reviewLayoutPreset'
 
 // Import Views
 import { DashboardHome } from './DashboardHome'
@@ -44,9 +55,36 @@ type DashboardShellUser = {
 interface DashboardClientProps {
   user: DashboardShellUser
   initialData: DashboardData | null
+  heroLayoutPreset: DashboardHeroLayoutPreset
+  taskLayoutPreset: DashboardTaskLayoutPreset
+  pathLayoutPreset: DashboardPathLayoutPreset
+  streakLayoutPreset: DashboardStreakLayoutPreset
+  goalLayoutPreset: DashboardGoalLayoutPreset
+  profileLayoutPreset: DashboardProfileLayoutPreset
+  calendarLayoutPreset: DashboardCalendarLayoutPreset
+  timeLayoutPreset: DashboardTimeLayoutPreset
+  subjectLayoutPreset: DashboardSubjectLayoutPreset
+  reviewLayoutPreset: DashboardReviewLayoutPreset
+  homeDesktopLayoutPreset: DashboardHomeDesktopLayoutPreset
+  layoutEditMode: boolean
 }
 
-export function DashboardClient({ user, initialData }: DashboardClientProps) {
+export function DashboardClient({
+  user,
+  initialData,
+  heroLayoutPreset,
+  taskLayoutPreset,
+  pathLayoutPreset,
+  streakLayoutPreset,
+  goalLayoutPreset,
+  profileLayoutPreset,
+  calendarLayoutPreset,
+  timeLayoutPreset,
+  subjectLayoutPreset,
+  reviewLayoutPreset,
+  homeDesktopLayoutPreset,
+  layoutEditMode,
+}: DashboardClientProps) {
   const router = useRouter()
   const { t: appT } = useApp()
   // Automatically switch to parent view if user is a parent
@@ -89,6 +127,18 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
             onViewChange={handleViewChange}
             initialData={initialData}
             user={user as any}
+            heroLayoutPreset={heroLayoutPreset}
+            taskLayoutPreset={taskLayoutPreset}
+            pathLayoutPreset={pathLayoutPreset}
+            streakLayoutPreset={streakLayoutPreset}
+            goalLayoutPreset={goalLayoutPreset}
+            profileLayoutPreset={profileLayoutPreset}
+            calendarLayoutPreset={calendarLayoutPreset}
+            timeLayoutPreset={timeLayoutPreset}
+            subjectLayoutPreset={subjectLayoutPreset}
+            reviewLayoutPreset={reviewLayoutPreset}
+            homeDesktopLayoutPreset={homeDesktopLayoutPreset}
+            layoutEditMode={layoutEditMode}
           />
         )
       case 'courses':
@@ -106,6 +156,18 @@ export function DashboardClient({ user, initialData }: DashboardClientProps) {
             onViewChange={handleViewChange}
             initialData={initialData}
             user={user as any}
+            heroLayoutPreset={heroLayoutPreset}
+            taskLayoutPreset={taskLayoutPreset}
+            pathLayoutPreset={pathLayoutPreset}
+            streakLayoutPreset={streakLayoutPreset}
+            goalLayoutPreset={goalLayoutPreset}
+            profileLayoutPreset={profileLayoutPreset}
+            calendarLayoutPreset={calendarLayoutPreset}
+            timeLayoutPreset={timeLayoutPreset}
+            subjectLayoutPreset={subjectLayoutPreset}
+            reviewLayoutPreset={reviewLayoutPreset}
+            homeDesktopLayoutPreset={homeDesktopLayoutPreset}
+            layoutEditMode={layoutEditMode}
           />
         )
     }

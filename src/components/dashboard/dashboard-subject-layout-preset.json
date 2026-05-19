@@ -1,0 +1,37 @@
+{
+  "shell": {
+    "width": 390.986,
+    "height": 342.648
+  },
+  "titleTransform": {
+    "x": 0,
+    "y": 0,
+    "scale": 1
+  },
+  "cardBoxes": {
+    "math": {
+      "x": 0,
+      "y": 0,
+      "width": 168,
+      "height": 84
+    },
+    "science": {
+      "x": 188,
+      "y": 0,
+      "width": 168,
+      "height": 84
+    },
+    "chinese": {
+      "x": 0,
+      "y": 104,
+      "width": 168,
+      "height": 84
+    },
+    "geography": {
+      "x": 188,
+      "y": 104,
+      "width": 168,
+      "height": 84
+    }
+  }
+}

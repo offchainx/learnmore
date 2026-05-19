@@ -358,7 +358,7 @@ export function DashboardRouteLoading({
         </div>
       </div>
 
-      <aside className="dashboard-sidebar-shell hidden h-full w-72 shrink-0 border-r desktop:flex desktop:flex-col">
+      <aside className="dashboard-sidebar-shell hidden h-full w-64 shrink-0 border-r desktop:flex desktop:flex-col">
         <div className="flex h-20 flex-shrink-0 items-center border-b border-borderTone/70 px-6 dark:border-borderTone/70">
           <div className="flex items-center gap-3">
             <Skeleton className="h-8 w-8 rounded-lg" />

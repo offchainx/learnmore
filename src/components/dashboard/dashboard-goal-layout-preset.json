@@ -1,0 +1,21 @@
+{
+  "shell": {
+    "width": 529.07,
+    "height": 217.5
+  },
+  "titleTransform": {
+    "x": -15,
+    "y": 0,
+    "scale": 1
+  },
+  "summaryOffset": {
+    "x": 20,
+    "y": -30
+  },
+  "trophyFrame": {
+    "x": 0,
+    "y": 0,
+    "width": 126,
+    "height": 116
+  }
+}

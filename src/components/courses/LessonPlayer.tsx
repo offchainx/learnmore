@@ -299,7 +299,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
         </div>
 
         {/* Right Sidebar - Sticky */}
-        <div className="shrink-0 space-y-6 desktop:w-80">
+        <div className="shrink-0 space-y-6 desktop:w-72">
            <Card className="p-0 border-none shadow-lg bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-800 sticky top-4 overflow-hidden">
               <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                  <h3 className="font-bold text-slate-900 dark:text-white mb-1">Session Progress</h3>

@@ -37,6 +37,17 @@ next-env.d.ts
 # AI Tools
 .gemini-clipboard/
 docs/personal/
+.playwright-mcp/
+tmp/
+.codex/artifacts/layout-boxes/
+.codex/artifacts/ui-baselines/
+.codex/artifacts/goal-assets/
+/current-dashboard-wide.png
+/dashboard-current.png
+/dashboard-hidden-main-content.png
+/dashboard-preview-replica*.png
+/dashboard-shrunk*.png
+/profile-panel-*.png
 
 # TypeScript
 tsconfig.tsbuildinfo

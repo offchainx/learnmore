@@ -1,1 +1,0 @@
-require.config({baseUrl:"./",paths:{jquery:"https://img.examcoo.com/1458/js/libs/jquery","main-view":"https://img.examcoo.com/1458/js/meditor/main.view",ajax:"/library/jquery/1458/ajax"},shim:{ajax:{deps:["jquery"],exports:"ajax"},"main-view":{deps:["jquery","ajax"],exports:"main-view"}}}),require(["main-view"]);

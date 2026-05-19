@@ -607,7 +607,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div className="dashboard-shell grid min-h-[100dvh] min-w-0 grid-cols-1 overflow-visible overscroll-auto bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white desktop:h-[100dvh] desktop:grid-cols-[minmax(240px,15%)_minmax(0,1fr)] desktop:overflow-hidden desktop:overscroll-none">
+    <div className="dashboard-shell grid min-h-[100dvh] min-w-0 grid-cols-1 overflow-visible overscroll-auto bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white desktop:h-[100dvh] desktop:grid-cols-[16rem_minmax(0,1fr)] desktop:overflow-hidden desktop:overscroll-none">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -618,7 +618,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-72 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out dark:border-borderTone/70 dark:bg-page-elevated/95 desktop:sticky desktop:top-0 desktop:col-start-1 desktop:flex desktop:h-[100dvh] desktop:w-auto desktop:translate-x-0 desktop:self-stretch desktop:overflow-hidden desktop:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
+        className={`dashboard-sidebar-shell fixed left-0 top-0 z-50 flex h-full w-64 shrink-0 transform flex-col border-r border-borderTone/70 bg-page-elevated/95 backdrop-blur-xl transition-transform duration-300 ease-out dark:border-borderTone/70 dark:bg-page-elevated/95 desktop:sticky desktop:top-0 desktop:col-start-1 desktop:flex desktop:h-[100dvh] desktop:w-auto desktop:translate-x-0 desktop:self-stretch desktop:overflow-hidden desktop:shadow-none ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} `}
       >
         <div className="flex h-20 flex-shrink-0 items-center px-7">
           <button

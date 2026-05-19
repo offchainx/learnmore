@@ -1,0 +1,25 @@
+{
+  "shell": {
+    "width": 390.986,
+    "height": 342.648
+  },
+  "titleTransform": {
+    "x": 8,
+    "y": 5,
+    "scale": 1
+  },
+  "panelBoxes": {
+    "pie": {
+      "x": -8.722,
+      "y": 0.188,
+      "width": 195.833,
+      "height": 227.348
+    },
+    "stats": {
+      "x": 191.668,
+      "y": -18.336,
+      "width": 151.867,
+      "height": 235.426
+    }
+  }
+}

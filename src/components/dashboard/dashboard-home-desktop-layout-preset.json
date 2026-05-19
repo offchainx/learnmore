@@ -1,0 +1,18 @@
+{
+  "pageMaxWidth": 1535,
+  "gridGap": 20,
+  "heroOffsetX": 0,
+  "heroOffsetY": -21,
+  "taskOffsetX": 0,
+  "taskOffsetY": -23,
+  "pathOffsetX": 0,
+  "pathOffsetY": -20,
+  "streakOffsetX": 0,
+  "streakOffsetY": -23,
+  "goalOffsetX": 0,
+  "goalOffsetY": -22,
+  "asideWidth": 500,
+  "asideOffsetX": 0,
+  "asideOffsetY": -21,
+  "asideStickyTop": 28
+}
