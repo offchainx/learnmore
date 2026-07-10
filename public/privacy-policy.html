@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Learnbank</title>
+<style>
+  :root { --brand:#2f6df6; --ink:#1c2333; --muted:#5b6474; --bg:#f7f9fc; --card:#ffffff; --line:#e5eaf2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--ink); line-height:1.75; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 24px 80px; }
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; }
+  .logo { font-weight:800; font-size:20px; color:var(--brand); }
+  .lang-toggle { display:flex; gap:4px; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:3px; }
+  .lang-toggle button { border:none; background:transparent; padding:6px 14px; border-radius:8px; font-size:14px; cursor:pointer; color:var(--muted); }
+  .lang-toggle button.active { background:var(--brand); color:#fff; }
+  h1 { font-size:28px; margin-bottom:8px; }
+  .meta { color:var(--muted); font-size:14px; margin-bottom:32px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px 28px; margin-bottom:16px; }
+  h2 { font-size:18px; margin-bottom:12px; color:var(--brand); }
+  p, li { font-size:15px; color:var(--ink); }
+  ul { padding-left:22px; margin-top:8px; }
+  li { margin-bottom:6px; }
+  .note { background:#fff8e8; border:1px solid #f2e3b3; border-radius:10px; padding:12px 16px; font-size:14px; margin-top:12px; }
+  a { color:var(--brand); }
+  footer { color:var(--muted); font-size:13px; margin-top:40px; text-align:center; }
+  [data-lang="zh"] .en, [data-lang="en"] .zh { display:none; }
+</style>
+</head>
+<body data-lang="en">
+<div class="wrap">
+  <header>
+    <div class="logo">Learnbank</div>
+    <div class="lang-toggle">
+      <button id="btn-en" class="active" onclick="setLang('en')">English</button>
+      <button id="btn-zh" onclick="setLang('zh')">中文</button>
+    </div>
+  </header>
+
+  <div class="en">
+    <h1>Privacy Policy</h1>
+    <p class="meta">Effective date: 10 July 2026 · Applies to the Learnbank mobile app and related services</p>
+
+    <section>
+      <h2>1. Who we are</h2>
+      <p>Learnbank is a learning app that provides students with practice questions, Smart Notes, learning progress tracking, AI-assisted tutoring, and analysis reports. This policy explains what data we collect, how we use it, and the choices you have. If you have any questions, contact us at <a href="mailto:help@learnbank.net">help@learnbank.net</a>.</p>
+    </section>
+
+    <section>
+      <h2>2. What we collect</h2>
+      <ul>
+        <li><strong>Account and profile details</strong> — such as your name, avatar, grade level, and login email.</li>
+        <li><strong>Learning data</strong> — such as notes, practice records, answers, progress, and results.</li>
+        <li><strong>Content you submit</strong> — such as questions you type and photos of problems you upload when using AI features.</li>
+        <li><strong>Device and usage information</strong> — such as device type and operation logs used for reliability and security.</li>
+        <li><strong>Parent information</strong> — collected only with appropriate consent, for parent binding and report sharing.</li>
+        <li><strong>Subscription status</strong> — whether your account has an active subscription. Payment is processed by Apple or Google; we never see or store your card details.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. How we use your data</h2>
+      <ul>
+        <li>Provide and improve learning services and personalised study experiences.</li>
+        <li>Mark practice, generate reports, and provide learning suggestions.</li>
+        <li>Sync your subscription entitlements so paid features unlock correctly.</li>
+        <li>Improve the product, analyse reliability, and operate the service safely.</li>
+        <li>Send you service notifications you have enabled.</li>
+      </ul>
+      <p style="margin-top:10px;">We do not sell your personal data, and we do not use your data for third-party advertising.</p>
+    </section>
+
+    <section>
+      <h2>4. AI processing disclosure</h2>
+      <p>Learnbank's AI features (such as asking the AI tutor and generating analysis reports) are powered by an external AI provider, <strong>OpenAI</strong>. When you use these features, the content you submit — including your typed questions, uploaded photos of problems, and relevant learning context — <strong>is transmitted to OpenAI's servers for processing</strong> so a response can be generated for you.</p>
+      <ul>
+        <li>Content is sent securely (encrypted in transit) and only when you actively use an AI feature.</li>
+        <li>We send only what is needed to answer your request; we do not send your password or payment information.</li>
+        <li>AI responses are for learning reference only and may be inaccurate; always verify important answers with your teacher or textbook.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Third-party services we rely on</h2>
+      <ul>
+        <li><strong>Supabase</strong> — database, authentication, and file storage hosting.</li>
+        <li><strong>OpenAI</strong> — AI processing for tutoring and analysis features (see Section 4).</li>
+        <li><strong>RevenueCat</strong> — subscription status management.</li>
+        <li><strong>Apple App Store / Google Play</strong> — payment processing for subscriptions.</li>
+        <li><strong>Expo</strong> — push notification delivery infrastructure.</li>
+        <li><strong>Google Sign-In</strong> — optional login method.</li>
+      </ul>
+      <p style="margin-top:10px;">Each provider only receives the data necessary to perform its function.</p>
+    </section>
+
+    <section>
+      <h2>6. Children and parental consent</h2>
+      <p>Learnbank is designed for students. Where a user is under the age of digital consent in their region, a parent or legal guardian's consent is required during onboarding. Parent binding and report sharing happen only with the student's authorisation or guardian consent, parents can only access the data scope that has been authorised, and the binding can be removed at any time.</p>
+    </section>
+
+    <section>
+      <h2>7. Data security</h2>
+      <ul>
+        <li>Encrypted data transfer (HTTPS/TLS) and encrypted storage.</li>
+        <li>Strict access control and permission management, enforced with row-level security.</li>
+        <li>Regular security reviews and risk assessment.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. Your choices and rights</h2>
+      <ul>
+        <li>Access, correct, or delete your personal details in the app's Settings.</li>
+        <li>Export your learning data.</li>
+        <li>Manage notifications and personalisation settings.</li>
+        <li><strong>Delete your account</strong>: go to <em>Profile → Settings → Delete Account</em> in the app, or email <a href="mailto:help@learnbank.net">help@learnbank.net</a>. Some information may be retained where required by law.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. Changes to this policy</h2>
+      <p>We may update this policy for compliance or operational reasons. Material changes will be announced through in-app notice or email. Continued use of Learnbank after an update means you accept the revised policy.</p>
+    </section>
+
+    <section>
+      <h2>10. Contact us</h2>
+      <p>Questions or requests about your data: <a href="mailto:help@learnbank.net">help@learnbank.net</a></p>
+    </section>
+  </div>
+
+  <div class="zh">
+    <h1>隐私政策</h1>
+    <p class="meta">生效日期：2026 年 7 月 10 日 · 适用于 Learnbank 移动应用及相关服务</p>
+
+    <section>
+      <h2>1. 我们是谁</h2>
+      <p>Learnbank 是一款面向学生的学习应用，提供题目练习、Smart Notes、学习进度、AI 学习辅助和分析报告。本政策说明我们收集哪些数据、如何使用，以及你拥有的选择。如有疑问，请联系 <a href="mailto:help@learnbank.net">help@learnbank.net</a>。</p>
+    </section>
+
+    <section>
+      <h2>2. 收集哪些资料</h2>
+      <ul>
+        <li><strong>账号与个人资料</strong>——如姓名、头像、年级、登录邮箱。</li>
+        <li><strong>学习数据</strong>——如笔记、练习记录、作答、进度、成绩。</li>
+        <li><strong>你提交的内容</strong>——如使用 AI 功能时输入的问题和上传的题目照片。</li>
+        <li><strong>设备与使用信息</strong>——如设备类型、操作日志，用于稳定性与安全。</li>
+        <li><strong>家长信息</strong>——仅在获得适当同意后收集，用于家长绑定与报告分享。</li>
+        <li><strong>订阅状态</strong>——你的账号是否有有效订阅。支付由 Apple 或 Google 处理，我们不会接触或存储你的银行卡信息。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. 数据如何使用</h2>
+      <ul>
+        <li>提供与优化学习服务与个性化学习体验。</li>
+        <li>完成练习批改、生成报告与学习建议。</li>
+        <li>同步订阅权益，确保付费功能正确解锁。</li>
+        <li>产品改进、数据分析与安全运营。</li>
+        <li>发送你已开启的服务通知。</li>
+      </ul>
+      <p style="margin-top:10px;">我们不出售你的个人数据，也不将你的数据用于第三方广告。</p>
+    </section>
+
+    <section>
+      <h2>4. AI 处理声明</h2>
+      <p>Learnbank 的 AI 功能（如 AI 答疑、生成分析报告）由外部 AI 服务商 <strong>OpenAI</strong> 提供支持。当你使用这些功能时，你提交的内容——包括输入的问题、上传的题目照片及相关学习上下文——<strong>会被传输到 OpenAI 的服务器进行处理</strong>，以便为你生成回答。</p>
+      <ul>
+        <li>内容通过加密方式传输，且仅在你主动使用 AI 功能时发送。</li>
+        <li>我们只发送回答请求所必需的内容，不会发送你的密码或支付信息。</li>
+        <li>AI 回答仅供学习参考，可能不准确；重要答案请与老师或教材核对。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. 我们依赖的第三方服务</h2>
+      <ul>
+        <li><strong>Supabase</strong>——数据库、身份认证与文件存储托管。</li>
+        <li><strong>OpenAI</strong>——AI 答疑与分析功能的处理（见第 4 节）。</li>
+        <li><strong>RevenueCat</strong>——订阅状态管理。</li>
+        <li><strong>Apple App Store / Google Play</strong>——订阅支付处理。</li>
+        <li><strong>Expo</strong>——推送通知基础设施。</li>
+        <li><strong>Google 登录</strong>——可选的登录方式。</li>
+      </ul>
+      <p style="margin-top:10px;">每个服务商仅接收完成其功能所必需的数据。</p>
+    </section>
+
+    <section>
+      <h2>6. 未成年人与家长同意</h2>
+      <p>Learnbank 面向学生设计。若用户未达到所在地区的数字同意年龄，注册流程中需要家长或法定监护人的同意。家长绑定与报告分享仅在获得学生授权或监护人同意后进行；家长仅可访问被授权的数据范围；绑定可随时解除。</p>
+    </section>
+
+    <section>
+      <h2>7. 数据安全</h2>
+      <ul>
+        <li>数据传输加密（HTTPS/TLS）与存储加密。</li>
+        <li>严格的访问控制与权限管理（行级安全策略）。</li>
+        <li>定期安全审计与风险评估。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. 你的选择与权利</h2>
+      <ul>
+        <li>在 App 设置中访问、更正或删除你的个人资料。</li>
+        <li>导出你的学习数据。</li>
+        <li>管理通知与个性化设置。</li>
+        <li><strong>删除账号</strong>：在 App 内进入「我的 → 设置 → 删除账号」，或发邮件至 <a href="mailto:help@learnbank.net">help@learnbank.net</a>。部分信息将依法保留。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. 政策变更</h2>
+      <p>我们可能因合规或运营需要更新本政策。重大变更将通过站内通知或邮件告知你。更新后继续使用 Learnbank 即表示你接受修订后的政策。</p>
+    </section>
+
+    <section>
+      <h2>10. 联系我们</h2>
+      <p>关于你的数据的疑问或请求：<a href="mailto:help@learnbank.net">help@learnbank.net</a></p>
+    </section>
+  </div>
+
+  <footer>© 2026 Learnbank · <a href="./terms-of-service.html"><span class="en">Terms of Service</span><span class="zh">用户协议</span></a></footer>
+</div>
+<script>
+function setLang(l){
+  document.body.dataset.lang=l;
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  document.getElementById('btn-zh').classList.toggle('active',l==='zh');
+  document.documentElement.lang = l==='zh' ? 'zh-CN' : 'en';
+  try{localStorage.setItem('lb-lang',l);}catch(e){}
+}
+try{var s=localStorage.getItem('lb-lang'); if(s) setLang(s);}catch(e){}
+</script>
+</body>
+</html>
