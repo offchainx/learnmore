@@ -8,8 +8,9 @@ import { resolveMarketingLocale } from '@/lib/marketing/site-shell';
 import { Button } from '@/components/ui/button';
 import { Quote, Play, Star, TrendingUp, Heart, Sparkles, ArrowRight } from 'lucide-react';
 import { useApp } from '@/providers';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
-const SuccessStoriesPage: React.FC = () => {
+const LegacySuccessStoriesPage: React.FC = () => {
   const router = useRouter();
   const { lang, setLang } = useApp();
 
@@ -300,4 +301,6 @@ const SuccessStoriesPage: React.FC = () => {
   );
 };
 
-export default SuccessStoriesPage;
+export default function SuccessStoriesPage() {
+  return <LaunchContentPage kind="success-stories" />
+}

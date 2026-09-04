@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Globe, Users, Brain, ArrowRight, Linkedin, Twitter } from 'lucide-react';
 import { useApp } from '@/providers';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
-const AboutUsPage: React.FC = () => {
+const LegacyAboutUsPage: React.FC = () => {
   const router = useRouter();
   const { lang, setLang } = useApp();
 
@@ -248,7 +249,7 @@ const AboutUsPage: React.FC = () => {
               <Globe className="w-3 h-3" /> {currentT.hero.title}
            </div>
            
-           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-medium leading-tight mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 relative z-10">
+           <h1 className="font-serif text-4xl md:text-6xl desktop:text-7xl font-medium leading-tight mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 relative z-10">
               &ldquo;{currentT.hero.statement}&rdquo;
            </h1>
            <p className="text-xl text-slate-400 max-w-2xl mx-auto relative z-10 font-light">
@@ -309,7 +310,7 @@ const AboutUsPage: React.FC = () => {
 
               {/* Horizontal Scroll Wrapper */}
               <div className="relative overflow-x-auto pb-12 hide-scrollbar">
-                 <div className="min-w-[1000px] px-8">
+                 <div className="min-w-[820px] px-4 tablet:min-w-[920px] tablet:px-6 desktop:min-w-[1000px] desktop:px-8">
                     
                     {/* Timeline Track Container */}
                     <div className="relative mb-12 mt-4">
@@ -461,4 +462,6 @@ const AboutUsPage: React.FC = () => {
   );
 };
 
-export default AboutUsPage;
+export default function AboutUsPage() {
+  return <LaunchContentPage kind="about" />
+}

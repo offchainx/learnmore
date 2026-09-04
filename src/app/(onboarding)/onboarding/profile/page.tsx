@@ -34,7 +34,7 @@ export default async function ProfileOnboardingPage() {
 
   return (
     <div className="w-full max-w-6xl">
-      <div className="mb-6 hidden items-center justify-between gap-4 lg:flex">
+      <div className="mb-6 hidden items-center justify-between gap-4 desktop:flex">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
             <div className="flex size-8 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-700">
@@ -56,7 +56,7 @@ export default async function ProfileOnboardingPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 lg:hidden">
+      <div className="grid gap-3 desktop:hidden">
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
           <div className="flex size-8 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-700">
             <GraduationCap className="size-4" />
@@ -75,7 +75,7 @@ export default async function ProfileOnboardingPage() {
         </div>
       </div>
 
-      <div className="mt-6 lg:mt-8">
+      <div className="mt-6 desktop:mt-8">
         <OnboardingProfileForm
           displayName={user.displayName || user.username || user.email}
           school={user.school}

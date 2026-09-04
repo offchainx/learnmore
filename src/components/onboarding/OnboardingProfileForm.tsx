@@ -97,7 +97,7 @@ export function OnboardingProfileForm({
         <OnboardingProgress current={2} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+      <div className="grid gap-6 desktop:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
         <Card className="overflow-hidden rounded-[24px] border border-slate-200/70 bg-white text-slate-900 shadow-[0_24px_80px_-34px_rgba(15,23,42,0.18)]">
           <CardHeader className="space-y-3 p-6 sm:p-8">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
@@ -204,7 +204,7 @@ export function OnboardingProfileForm({
           </CardContent>
         </Card>
 
-        <div className="min-h-[520px]">
+        <div className="min-h-[360px] desktop:min-h-[520px]">
           <OnboardingDashboardPreview
             displayName={previewName}
             school={school}

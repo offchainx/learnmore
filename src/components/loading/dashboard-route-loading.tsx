@@ -27,7 +27,16 @@ function LoadingHero({
       subtitle={<Skeleton className="mt-3 h-4 w-full max-w-2xl rounded-full" />}
       actions={<Skeleton className={cn('h-11 rounded-full', actionWidth)} />}
     >
-      <div className={cn('grid gap-3', metricCount === 4 ? 'sm:grid-cols-2 xl:grid-cols-4' : metricCount === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3')}>
+      <div
+        className={cn(
+          'grid gap-3',
+          metricCount === 4
+            ? 'tablet:grid-cols-2 desktop:grid-cols-4'
+            : metricCount === 2
+              ? 'tablet:grid-cols-2'
+              : 'tablet:grid-cols-3'
+        )}
+      >
         {Array.from({ length: metricCount }).map((_, index) => (
           <Skeleton key={`hero-metric-${index}`} className="h-20 rounded-[24px]" />
         ))}
@@ -63,10 +72,10 @@ function LoadingStatGrid({
 }) {
   const gridClass =
     columns === 2
-      ? 'sm:grid-cols-2'
+      ? 'tablet:grid-cols-2'
       : columns === 3
-        ? 'sm:grid-cols-3'
-        : 'sm:grid-cols-2 xl:grid-cols-4'
+        ? 'tablet:grid-cols-3'
+        : 'tablet:grid-cols-2 desktop:grid-cols-4'
 
   return (
     <div className={cn('grid gap-3', gridClass)}>
@@ -172,17 +181,17 @@ function DashboardVariantSkeleton({
             ))}
           </div>
         </div>
-        <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="grid gap-4 desktop:grid-cols-[1.25fr_0.75fr]">
           <LoadingPanel lines={3} footer />
           <div className="space-y-4">
             <LoadingPanel lines={3} />
             <LoadingPanel lines={3} />
           </div>
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
-          <LoadingPanel lines={2} className="lg:col-span-1" />
-          <LoadingPanel lines={2} className="lg:col-span-1" />
-          <LoadingPanel lines={2} className="lg:col-span-1" />
+        <div className="grid gap-4 desktop:grid-cols-3">
+          <LoadingPanel lines={2} className="desktop:col-span-1" />
+          <LoadingPanel lines={2} className="desktop:col-span-1" />
+          <LoadingPanel lines={2} className="desktop:col-span-1" />
         </div>
       </div>
     )
@@ -197,7 +206,7 @@ function DashboardVariantSkeleton({
           <Skeleton className="h-10 w-28 rounded-full" />
           <Skeleton className="h-10 w-24 rounded-full" />
         </div>
-        <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-4 desktop:grid-cols-[0.9fr_1.1fr]">
           <LoadingPanel lines={3} />
           <LoadingList rows={7} />
         </div>
@@ -222,7 +231,7 @@ function DashboardVariantSkeleton({
             <Skeleton className="h-10 w-32 rounded-full" />
           </div>
         </div>
-        <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+        <div className="grid gap-4 desktop:grid-cols-[0.72fr_1.28fr]">
           <div className="space-y-4">
             <LoadingPanel lines={4} />
             <LoadingPanel lines={3} />
@@ -240,7 +249,7 @@ function DashboardVariantSkeleton({
     return (
       <div className="space-y-4">
         <LoadingPageBanner actionWidth="w-28" titleWidth="w-44" />
-        <div className="grid gap-4 xl:grid-cols-[0.28fr_0.72fr]">
+        <div className="grid gap-4 desktop:grid-cols-[0.28fr_0.72fr]">
           <div className="rounded-[28px] border border-borderTone bg-surface p-4 shadow-surface">
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, index) => (
@@ -250,7 +259,7 @@ function DashboardVariantSkeleton({
           </div>
           <div className="space-y-4">
             <LoadingPanel lines={3} />
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-4 desktop:grid-cols-2">
               <LoadingPanel lines={3} />
               <LoadingPanel lines={3} />
             </div>
@@ -264,7 +273,7 @@ function DashboardVariantSkeleton({
     return (
       <div className="space-y-4">
         <LoadingPageBanner actionWidth="w-28" titleWidth="w-48" />
-        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid gap-4 desktop:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-4">
             <LoadingStatGrid columns={4} />
             <LoadingPanel lines={4} footer />
@@ -283,7 +292,7 @@ function DashboardVariantSkeleton({
       <div className="space-y-4">
         <LoadingPageBanner actionWidth="w-32" titleWidth="w-48" />
         <LoadingStatGrid columns={4} />
-        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.95fr_0.95fr]">
+        <div className="grid gap-4 desktop:grid-cols-[1.1fr_0.95fr_0.95fr]">
           <LoadingPanel lines={4} />
           <LoadingPanel lines={3} />
           <LoadingList rows={5} />
@@ -304,11 +313,11 @@ function DashboardVariantSkeleton({
             ))}
           </div>
         </div>
-        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.8fr]">
+        <div className="grid gap-4 desktop:grid-cols-[1.4fr_0.8fr]">
           <LoadingPanel lines={4} footer />
           <LoadingPanel lines={4} />
         </div>
-        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid gap-4 desktop:grid-cols-[1.05fr_0.95fr]">
           <LoadingList rows={4} />
           <LoadingPanel lines={3} footer />
         </div>
@@ -320,11 +329,11 @@ function DashboardVariantSkeleton({
     <div className="space-y-4">
       <LoadingHero actionWidth="w-28" metricCount={4} />
       <LoadingStatGrid columns={4} />
-      <div className="grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
+      <div className="grid gap-4 desktop:grid-cols-[1.45fr_0.85fr]">
         <LoadingPanel lines={3} footer />
         <LoadingPanel lines={3} />
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_0.85fr]">
+      <div className="grid gap-4 desktop:grid-cols-[1fr_1fr_0.85fr]">
         <LoadingPanel lines={3} />
         <LoadingPanel lines={3} />
         <LoadingPanel lines={2} />
@@ -347,11 +356,11 @@ export function DashboardRouteLoading({
       ? 'p-2 sm:p-4'
       : variant === 'practice'
         ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
-        : 'p-4 sm:p-8'
+        : 'px-3 py-3 sm:px-4 sm:py-4 tablet:px-5 desktop:px-4 desktop:py-4'
   const showAdminSection = currentView === 'admin' || userRole === 'ADMIN'
 
   return (
-    <div className="dashboard-shell flex h-screen min-w-0 overflow-hidden font-sans text-text-primary dark:text-white">
+    <div className="dashboard-shell flex h-screen min-w-0 overflow-x-hidden overflow-y-hidden font-sans text-text-primary dark:text-white">
       <div className="pointer-events-none fixed right-4 top-4 z-[70] hidden desktop:block desktop:right-6">
         <div className="rounded-2xl border border-borderTone bg-surface p-1.5 shadow-surface-md dark:border-borderTone dark:bg-surface">
           <Skeleton className="h-10 w-10 rounded-2xl" />

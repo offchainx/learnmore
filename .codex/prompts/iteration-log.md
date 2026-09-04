@@ -154,4 +154,6 @@
 
 | 2026-05-19 | dashboard preview/layout 编辑器与工作区清理收口 | 检查当前未提交改动；保留需要提交的 dashboard/landing/layout 变更与必需素材，删除无用 png、playwright 日志和 tmp 文档，并完成提交推送准备 | 已清理无用截图、tmp 与 .playwright-mcp 产物，补充 .gitignore，修复 Next 16 headers() 类型问题；定向 eslint 与 tsc 通过，准备重新执行 git commit 并推送 | dashboard preview preset/API/素材、landing 和 auth 相关 UI 调整、调试产物清理 | pnpm lint 被仓库内旧 .cjs 脚本的 require 规则阻断，改为对本次改动做定向验证 | 后续同类 dashboard 调整可直接依赖新增 preset/json 与 preview API，不再混入临时截图 | 重新执行 git commit，并在通过 hook 后推送到 origin/main |
 
+| 2026-09-04 | learnbank-v1.0 launch-roadmap P1-6/7/8 | 提交此前已完成但未提交的品牌改名+营销页收缩改动，推送触发 Vercel 部署上线 learnbank.net | 70+ 文件提交，pnpm build 通过；推送后 learnbank.net 应显示 Learnbank 品牌而非 LearnMore AI | 诚实的 beta 占位文案替代虚构 testimonials；build 提前验证过一遍 | 内测报名表单仍是占位 mailto，未接 Supabase；约40个登录墙后页面仍留 LearnMore | - | 补 Supabase 内测报名表单；扫尾 dashboard/admin 内部页面品牌名 |
+
 ## 约束

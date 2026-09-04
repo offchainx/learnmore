@@ -693,7 +693,7 @@ export function FeedbackList({
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-70" />
 
                   <div className="relative flex h-full items-start justify-between gap-4">
-                    <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
+                    <div className="flex min-h-[96px] flex-1 flex-col justify-between gap-3 desktop:min-h-[112px]">
                       <div className="space-y-1.5">
                         <p className={pageKickerClass}>{card.title}</p>
                         <div className="flex items-end gap-2">
@@ -743,7 +743,7 @@ export function FeedbackList({
           ) : null}
         </section>
 
-        <div className={`${pageTableShellClass} flex min-h-[500px] flex-col`}>
+        <div className={`${pageTableShellClass} flex min-h-[420px] flex-col desktop:min-h-[500px]`}>
           <div className={pageSectionHeaderBandClass}>
             <div className="flex flex-col gap-3">
               <SectionBlockHeader
@@ -781,7 +781,7 @@ export function FeedbackList({
                   </div>
 
                   <div className="flex flex-row gap-3 overflow-x-auto pb-1 tablet:pb-0">
-                    <div className="relative min-w-[150px]">
+                    <div className="relative min-w-[132px] tablet:min-w-[150px]">
                       <select
                         value={statusFilter}
                         onChange={(e) => {
@@ -815,7 +815,7 @@ export function FeedbackList({
                       />
                     </div>
 
-                    <div className="relative min-w-[150px]">
+                    <div className="relative min-w-[132px] tablet:min-w-[150px]">
                       <select
                         value={categoryFilter}
                         onChange={(e) => {
@@ -880,7 +880,7 @@ export function FeedbackList({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1040px] border-collapse text-left">
+            <table className="w-full min-w-[960px] border-collapse text-left desktop:min-w-0">
               <thead>
                 <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
                   <th className="px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-tertiary dark:text-[#6F86A8]">
@@ -959,7 +959,7 @@ export function FeedbackList({
                             {categoryLabels[item.category]}
                           </span>
                         </td>
-                        <td className="max-w-[420px] px-6 py-4">
+                        <td className="max-w-[320px] px-6 py-4 desktop:max-w-[420px]">
                           <p className="truncate text-sm font-medium text-text-primary dark:text-[#F4F7FB]">
                             {item.title}
                           </p>
@@ -1019,7 +1019,7 @@ export function FeedbackList({
       >
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto border-l border-[#24324D] bg-[#08101D] p-0 text-[#E6EDF7] sm:max-w-none lg:max-w-[min(92vw,760px)]"
+          className="w-full overflow-y-auto border-l border-[#24324D] bg-[#08101D] p-0 text-[#E6EDF7] sm:max-w-none desktop:max-w-[min(92vw,760px)]"
         >
           <SheetTitle className="sr-only">反馈处理抽屉</SheetTitle>
           <SheetDescription className="sr-only">
@@ -1045,7 +1045,7 @@ export function FeedbackList({
 
           <div className="p-5">
             {isSheetLoading ? (
-              <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+              <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 text-[#8FA4C2] desktop:min-h-[320px]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
                 <div className="space-y-1 text-center">
                   <p className="text-sm font-medium text-[#D6E7FF]">
@@ -1063,7 +1063,7 @@ export function FeedbackList({
                 title={sheetError.title}
                 description={sheetError.description}
                 icon={AlertCircle}
-                className="min-h-[320px] justify-center border border-[#24324D] bg-[#0B1220]"
+                className="min-h-[260px] justify-center border border-[#24324D] bg-[#0B1220] desktop:min-h-[320px]"
                 iconContainerClassName="border-[#24324D] bg-[#101A30] text-[#FCA5A5]"
                 titleClassName="text-[#E6EDF7]"
                 descriptionClassName="text-[#8FA4C2]"
@@ -1106,7 +1106,7 @@ export function FeedbackList({
                 onAfterSubmit={handleAfterSheetSubmit}
               />
             ) : (
-              <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 text-[#8FA4C2]">
+              <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 text-[#8FA4C2] desktop:min-h-[320px]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#60A5FA]" />
                 <p className="text-sm">正在准备反馈详情...</p>
               </div>

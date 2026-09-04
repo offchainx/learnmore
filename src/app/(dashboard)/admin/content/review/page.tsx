@@ -394,7 +394,7 @@ export default async function AdminContentPage({
                   description="统一处理题目审核、发布、人工复核与归档动作。"
                 />
 
-                <div className="grid w-full gap-3 xl:grid-cols-[minmax(0,240px)_repeat(3,120px)] 2xl:ml-auto 2xl:w-fit">
+                <div className="grid w-full gap-3 laptop:grid-cols-[minmax(0,240px)_repeat(3,120px)] laptop:ml-auto laptop:w-fit">
                   <AdminSearchBar
                     placeholder="搜索题干、题目 ID 或题组标题..."
                     className="w-full"

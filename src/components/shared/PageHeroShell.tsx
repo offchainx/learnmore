@@ -65,7 +65,7 @@ export function PageHeroShell({
 
       <div
         className={cn(
-          'relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between',
+          'relative flex flex-col gap-4 desktop:flex-row desktop:items-start desktop:justify-between',
           innerClassName
         )}
       >
@@ -108,7 +108,9 @@ export function PageHeroShell({
         </div>
 
         {actions ? (
-          <div className="w-full min-w-0 lg:w-auto lg:shrink-0">{actions}</div>
+          <div className="w-full min-w-0 desktop:w-auto desktop:shrink-0">
+            {actions}
+          </div>
         ) : null}
       </div>
 

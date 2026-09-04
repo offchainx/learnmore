@@ -2,19 +2,21 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | LearnMore',
-    default: 'LearnMore - 中学生在线教育平台',
+    template: '%s | Learnbank',
+    default: 'Learnbank - 移动学习 App 内测',
   },
-  description: '专为中学生打造的在线学习平台，涵盖数学、物理、化学、英语、语文、生物六大学科',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnmorev10.vercel.app'),
-  keywords: ['在线教育', '中学', 'AI导师', '自适应学习', '学习路径', 'LearnMore'],
+  description: 'Learnbank 正在进行 iOS 与 Android 移动学习 App 内测，首批聚焦数学、科学、历史和地理。',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.net'),
+  keywords: ['Learnbank', '移动学习 App', '内测', '数学', '科学', '历史', '地理'],
   openGraph: {
     type: 'website',
-    siteName: 'LearnMore',
+    siteName: 'Learnbank',
     locale: 'zh_CN',
+    images: ['/images/brand/learnbank-og.png'],
   },
   twitter: {
     card: 'summary_large_image',
+    images: ['/images/brand/learnbank-og.png'],
   },
 }
 

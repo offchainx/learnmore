@@ -1,36 +1,17 @@
-import { getBlogPostBySlug } from '@/actions/community/blog';
-import { notFound } from 'next/navigation';
-import { BlogDetailClient } from '@/components/blog/blog-detail';
 import { Metadata } from 'next';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { slug } = await params;
-  const { data: post } = await getBlogPostBySlug(slug);
-  
-  if (!post) {
-    return {
-      title: 'Post Not Found - Learn More',
-    };
-  }
-
+  await params;
   return {
-    title: `${post.title} - Learn More Blog`,
-    description: post.excerpt || post.content.substring(0, 160),
-    openGraph: {
-      images: post.coverImage ? [post.coverImage] : [],
-    },
+    title: 'Learnbank Updates',
+    description: 'Verified Learnbank product updates and beta previews.',
   };
 }
 
 export default async function BlogPostPage({ params }: { params: Params }) {
-  const { slug } = await params;
-  const { data: post } = await getBlogPostBySlug(slug);
-
-  if (!post) {
-    notFound();
-  }
-
-  return <BlogDetailClient post={post} />;
+  await params;
+  return <LaunchContentPage kind="updates" />;
 }

@@ -200,18 +200,20 @@ const DashboardTopBar = ({
   onOpenSettings,
 }: DashboardTopBarProps) => (
   <div className="sticky top-0 z-30 border-b border-borderTone/70 bg-[hsl(var(--page-bg))/0.92] backdrop-blur-xl dark:border-borderTone/70 dark:bg-[hsl(var(--page-bg))/0.9]">
-    <div className="flex min-h-[72px] items-center gap-4 px-3 py-3 sm:px-4 desktop:px-6">
+    <div className="flex min-h-[72px] items-center gap-4 px-3 py-3 sm:px-4 tablet:px-5 desktop:px-6">
       <div className="min-w-0 flex-1">
         <div className="truncate text-[22px] font-semibold tracking-tight text-text-primary sm:text-[24px]">
           {title}
         </div>
-        <div className="mt-1 truncate text-[13px] text-text-secondary">
-          {subtitle}
-        </div>
+        {subtitle ? (
+          <div className="mt-1 truncate text-[13px] text-text-secondary">
+            {subtitle}
+          </div>
+        ) : null}
       </div>
 
       <div className="flex min-w-0 items-center gap-2">
-        <div className="hidden min-w-[240px] items-center gap-2 rounded-full border border-borderTone bg-surface px-4 py-2 shadow-surface sm:flex">
+        <div className="hidden min-w-[240px] items-center gap-2 rounded-full border border-borderTone bg-surface px-4 py-2 shadow-surface desktop:flex">
           <Search className="h-4 w-4 shrink-0 text-text-tertiary" />
           <Input
             readOnly
@@ -364,10 +366,7 @@ function getTopBarSubtitle(
     )
   }
   if (pathname.startsWith('/dashboard/practice')) {
-    return copy(
-      '回到练习中心，选择一种模式直接开始今天的训练。',
-      'Return to practice and pick a mode to start today’s training.'
-    )
+    return ''
   }
   if (pathname.startsWith('/dashboard/community')) {
     return copy(
@@ -607,7 +606,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   ]
 
   return (
-    <div className="dashboard-shell grid min-h-[100dvh] min-w-0 grid-cols-1 overflow-visible overscroll-auto bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white desktop:h-[100dvh] desktop:grid-cols-[16rem_minmax(0,1fr)] desktop:overflow-hidden desktop:overscroll-none">
+    <div className="dashboard-shell grid min-h-[100dvh] min-w-0 grid-cols-1 overflow-x-hidden overflow-y-visible overscroll-auto bg-page font-sans text-text-primary transition-colors duration-300 dark:bg-page dark:text-white desktop:h-[100dvh] desktop:grid-cols-[16rem_minmax(0,1fr)] desktop:overflow-hidden desktop:overscroll-none">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -868,12 +867,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
         {/* Main Content Area */}
         <main
-          className={`flex min-h-0 min-w-0 flex-col h-auto overflow-visible desktop:row-start-2 desktop:overflow-y-auto ${
+          className={`flex h-auto min-h-0 min-w-0 flex-col overflow-x-hidden overflow-y-visible desktop:row-start-2 desktop:overflow-y-auto ${
             isAnyAdminRoute
               ? 'p-2 sm:p-4'
               : isPracticeRoute
-                ? 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-6 desktop:py-4'
-                : 'px-3 py-3 sm:px-4 sm:py-4 desktop:px-4 desktop:py-4'
+                ? 'px-3 py-3 sm:px-4 sm:py-4 tablet:px-5 desktop:px-6 desktop:py-4'
+                : 'px-3 py-3 sm:px-4 sm:py-4 tablet:px-5 desktop:px-4 desktop:py-4'
           } ${normalizedCurrentView === 'dashboard' ? 'snap-y snap-mandatory' : ''}`}
         >
           <TrialBanner
@@ -881,7 +880,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             subscriptionEnd={subscriptionEnd || null}
           />
 
-          <div className="mt-4 min-h-0 w-full self-start">{children}</div>
+          <div className="mt-4 min-h-0 w-full self-start pb-safe-bottom tablet:pb-0">
+            {children}
+          </div>
         </main>
       </div>
     </div>

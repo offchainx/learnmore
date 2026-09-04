@@ -536,7 +536,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
 
             {selectedCount > 0 ? (
               <div className="shadow-surface-sm rounded-3xl border border-borderTone bg-surface-subtle p-4">
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div className="flex flex-col gap-4 laptop:flex-row laptop:items-end laptop:justify-between">
                   <div className="space-y-2">
                     <p className="text-sm font-semibold text-text-primary">
                       {text.table.bulkActions}
@@ -546,7 +546,7 @@ export const ReportsClient: React.FC<ReportsClientProps> = ({
                     </p>
                   </div>
 
-                  <div className="grid gap-3 xl:max-w-[660px] xl:flex-1">
+                  <div className="grid gap-3 laptop:max-w-[660px] laptop:flex-1">
                     <Textarea
                       value={bulkNote}
                       onChange={(event) => setBulkNote(event.target.value)}

@@ -649,7 +649,7 @@ export function GrowthToolsConsole({
         </div>
       </section>
 
-      <div className={`${pageTableShellClass} flex min-h-[500px] flex-col`}>
+      <div className={`${pageTableShellClass} flex min-h-[420px] flex-col desktop:min-h-[500px]`}>
         <div className="border-b border-borderTone bg-surface-subtle px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-3">
             <div className="space-y-1">
@@ -711,7 +711,7 @@ export function GrowthToolsConsole({
                     />
                   </div>
 
-                  <div className="relative min-w-[170px]">
+                  <div className="relative min-w-[144px] tablet:min-w-[170px]">
                     <select
                       value={referralStatus}
                       onChange={(e) =>
@@ -748,7 +748,7 @@ export function GrowthToolsConsole({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1120px] border-collapse text-left">
+              <table className="w-full min-w-[960px] border-collapse text-left desktop:min-w-0">
                 <thead>
                   <tr className="border-b border-borderTone bg-surface-subtle">
                     {fieldMatrix.referralTableColumns.map((column) => (
@@ -877,7 +877,7 @@ export function GrowthToolsConsole({
         ) : (
           <>
             <div className="border-b border-borderTone bg-surface-subtle px-5 py-4 sm:px-6">
-              <div className="grid gap-4 desktop:grid-cols-[1.2fr_1fr]">
+              <div className="grid gap-4 laptop:grid-cols-[1.2fr_1fr]">
                 <div className="grid gap-3 tablet:grid-cols-2">
                   <div className="tablet:col-span-2">
                     <label className="mb-2 block text-sm font-medium text-text-primary">
@@ -1021,7 +1021,7 @@ export function GrowthToolsConsole({
                       className="w-full rounded-2xl border border-borderTone bg-surface py-2.5 pl-10 pr-4 text-sm text-text-primary outline-none transition-all placeholder:text-text-tertiary focus:border-primary/40 focus:ring-2 focus:ring-primary/20 dark:border-[#24324D] dark:bg-[#151F36] dark:text-[#E6EDF7] dark:placeholder:text-[#8FA4C2] dark:focus:border-[#33527B] dark:focus:ring-[#60A5FA]/20"
                     />
                   </div>
-                  <div className="relative min-w-[160px]">
+                  <div className="relative min-w-[144px] tablet:min-w-[160px]">
                     <select
                       value={voucherStatus}
                       onChange={(e) =>
@@ -1042,7 +1042,7 @@ export function GrowthToolsConsole({
                       size={16}
                     />
                   </div>
-                  <div className="relative min-w-[160px]">
+                  <div className="relative min-w-[144px] tablet:min-w-[160px]">
                     <select
                       value={voucherType}
                       onChange={(e) =>
@@ -1075,7 +1075,7 @@ export function GrowthToolsConsole({
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1180px] border-collapse text-left">
+              <table className="w-full min-w-[1020px] border-collapse text-left desktop:min-w-0">
                 <thead>
                   <tr className="border-b border-borderTone bg-surface-subtle">
                     {fieldMatrix.voucherTableColumns.map((column) => (

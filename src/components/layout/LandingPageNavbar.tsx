@@ -48,7 +48,7 @@ export const LandingPageNavbar: React.FC = () => {
               </div>
             </div>
             <span className="text-lg font-bold tracking-tight text-white transition-colors group-hover:text-blue-200">
-              LearnMore <span className="font-light text-blue-500">Pro</span>
+              Learnbank <span className="font-light text-blue-500">Pro</span>
             </span>
           </div>
 

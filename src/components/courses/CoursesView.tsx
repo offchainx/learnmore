@@ -754,7 +754,7 @@ export const CoursesView = ({ t }: { t: any }) => {
           {renderSubjectSelector()}
 
           <section
-            className={`grid min-w-0 2xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)] ${pageGridGapClass}`}
+            className={`grid min-w-0 laptop:grid-cols-[minmax(0,1.75fr)_minmax(300px,0.95fr)] ${pageGridGapClass}`}
           >
             <div className={pageSectionGapClass}>
               <Card
@@ -794,7 +794,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     }}
                   />
 
-                  <div className="relative flex min-w-0 flex-col gap-4 2xl:flex-row 2xl:items-start 2xl:justify-between">
+                  <div className="relative flex min-w-0 flex-col gap-4 laptop:flex-row laptop:items-start laptop:justify-between">
                     <div className="min-w-0">
                       <div className="inline-flex items-center rounded-full border border-borderTone bg-surface-selected px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary backdrop-blur-sm dark:border-borderTone dark:bg-surface-inverse dark:text-text-inverse">
                         {getSubjectLabel(
@@ -820,7 +820,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                     </div>
 
                     <div
-                      className={`grid grid-cols-2 2xl:w-[420px] ${pageGridGapClass}`}
+                      className={`grid grid-cols-2 laptop:w-[360px] desktop:w-[420px] ${pageGridGapClass}`}
                     >
                       <div
                         className={`${pageSoftInsetClass} px-4 py-3 backdrop-blur-sm ${currentHeroTheme.statBorderClass}`}
@@ -911,7 +911,7 @@ export const CoursesView = ({ t }: { t: any }) => {
                 })}
               </div>
 
-              <div className="min-h-[420px]">
+              <div className="min-h-[320px] desktop:min-h-[420px]">
                 {activeViewMode === 'curriculum' ? renderCurriculum() : null}
                 {activeViewMode === 'review' ? renderSmartReview() : null}
                 {activeViewMode === 'notebook' ? renderNotebook() : null}

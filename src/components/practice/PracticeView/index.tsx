@@ -970,8 +970,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
   const headerCopy = {
     zh: {
       title: '练习中心',
-      subtitle:
-        '先从三种主要练习模式里选一个开始，再往下查看章节地图、历年真题和分析结果。',
       noSubjectsTitle: '当前还没有可用科目',
       noSubjectsSubtitle:
         '等科目数据接入后，这里会显示完整的训练入口和分析面板。',
@@ -979,8 +977,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
     },
     en: {
       title: 'Practice Center',
-      subtitle:
-        'Start with one of the three core modes, then move into chapter practice, past papers, and analytics.',
       noSubjectsTitle: 'No subjects available yet',
       noSubjectsSubtitle:
         'Once subject data is connected, the full training entry points and analytics will appear here.',
@@ -988,8 +984,6 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
     },
     ms: {
       title: 'Pusat Latihan',
-      subtitle:
-        'Mulakan dengan salah satu daripada tiga mod utama, kemudian turun ke peta bab, kertas tahun lepas dan analitik.',
       noSubjectsTitle: 'Tiada subjek tersedia lagi',
       noSubjectsSubtitle:
         'Apabila data subjek disambungkan, pintu masuk latihan dan panel analitik penuh akan muncul di sini.',
@@ -1021,11 +1015,8 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
           />
         </div>
 
-        <div className={`grid 2xl:grid-cols-3 ${pageGridGapClass}`}>
-          <div
-            className={`2xl:col-span-2 ${pageSectionGapClass}`}
-            data-layout-anchor="practice-left-stack"
-          >
+        <div className="grid gap-4 wide:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]">
+          <div className={pageSectionGapClass}>
             <div
               className={`${pagePanelClass} rounded-[26px] ${pageCardPaddingClass}`}
               data-layout-anchor="practice-mode-grid"
@@ -1042,7 +1033,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
             </div>
 
             <div
-              className={`grid 2xl:grid-cols-2 ${pageGridGapClass}`}
+              className={`grid display:grid-cols-2 ${pageGridGapClass}`}
               data-layout-anchor="practice-secondary-grid"
             >
               <div
@@ -1070,7 +1061,7 @@ export const PracticeCenterScreen: React.FC<PracticeCenterScreenProps> = ({
           </div>
 
           <div
-            className="2xl:col-span-1"
+            className="wide:sticky wide:top-2.5"
             data-layout-anchor="practice-coach-stack"
           >
             <PracticeCoachPanel

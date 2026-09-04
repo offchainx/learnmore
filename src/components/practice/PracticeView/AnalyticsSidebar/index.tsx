@@ -2,7 +2,6 @@ import React from 'react'
 import KnowledgeHive from '@/components/practice/analytics/KnowledgeHive'
 import ExamForecast from '@/components/practice/analytics/ExamForecast'
 import { WeaknessCard } from '@/components/practice/analytics/WeaknessCard'
-import { pageSectionGapClass } from '@/components/shared/pageSpacing'
 import type {
   ChapterWithStats,
   ExamForecast as ExamForecastType,
@@ -28,7 +27,7 @@ export const PracticeCoachPanel: React.FC<PracticeCoachPanelProps> = ({
   errorMessage,
 }) => {
   return (
-    <div className={`${pageSectionGapClass} 2xl:sticky 2xl:top-2.5`}>
+    <div className="space-y-3">
       <div data-layout-anchor="practice-coach-knowledge">
         <KnowledgeHive
           subjectName={currentSubjectTitle || undefined}

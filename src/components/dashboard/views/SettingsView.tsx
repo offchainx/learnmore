@@ -1648,8 +1648,8 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
   return (
     <div className="animate-fade-in-up pb-12">
       <div className={`${pageShellFrameClass} ${pageSectionGapClass} sm:p-2.5`}>
-        <div className="grid grid-cols-1 gap-6 desktop:h-[calc(100vh-14.5rem)] desktop:grid-cols-[260px_minmax(0,1fr)] desktop:overflow-hidden">
-          <div className={`desktop:self-start ${pageSectionGapClass}`}>
+        <div className="grid grid-cols-1 gap-6 laptop:h-[calc(100vh-14.5rem)] laptop:grid-cols-[240px_minmax(0,1fr)] laptop:overflow-hidden">
+          <div className={`laptop:self-start ${pageSectionGapClass}`}>
             <Card className={`${surfaceClassName} ${pageCardPaddingClass}`}>
               <div className="space-y-2">
                 {menuItems.map((item) => (
@@ -1688,7 +1688,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
           <div
             ref={scrollContainerRef}
-            className={`desktop:h-full desktop:overflow-y-auto desktop:pb-[42rem] desktop:pr-2 desktop:pt-7 ${pageSectionGapClass}`}
+            className={`laptop:h-full laptop:overflow-y-auto laptop:pb-[42rem] laptop:pr-2 laptop:pt-7 ${pageSectionGapClass}`}
           >
             <SettingsSection
               id="profile"
@@ -1718,7 +1718,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
                 ) : null}
 
                 <div
-                  className={`grid desktop:grid-cols-[300px_minmax(0,1fr)] ${pageGridGapClass}`}
+                  className={`grid laptop:grid-cols-[280px_minmax(0,1fr)] ${pageGridGapClass}`}
                 >
                   <div className={`${insetCardClassName} p-5`}>
                     <div className={`mb-4 ${pageCardTitleClass}`}>
@@ -2190,7 +2190,7 @@ export const SettingsView = ({ user }: SettingsViewProps) => {
 
                       {inviteCode ? (
                         <div
-                          className={`${insetCardClassName} min-w-[260px] p-5`}
+                          className={`${insetCardClassName} min-w-[220px] p-5 desktop:min-w-[260px]`}
                         >
                           <div className={pageKickerClass}>
                             {copy.inviteCode}

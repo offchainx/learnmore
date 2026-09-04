@@ -30,18 +30,74 @@ function getAverageScale(
 
 export function DashboardReplicaSubjectCard({
   preset = defaultDashboardSubjectLayoutPreset,
+  compact = false,
+  denseDesktop = false,
 }: {
   preset?: DashboardSubjectLayoutPreset
+  compact?: boolean
+  denseDesktop?: boolean
 }) {
+  const shellHeight = denseDesktop ? 156 : compact ? 292 : preset.shell.height
+
+  if (denseDesktop) {
+    return (
+      <Card
+        className="overflow-hidden rounded-[28px] border border-[#ecd9c4] bg-white/[0.94] p-0 shadow-[0_22px_54px_-34px_rgba(133,79,26,0.24)]"
+        style={{
+          width: '100%',
+          height: `${shellHeight}px`,
+        }}
+      >
+        <div className="flex h-full min-h-0 flex-col p-3">
+          <div
+            className="origin-top-left"
+            style={{
+              transform: `translate(${preset.titleTransform.x}px, ${preset.titleTransform.y}px) scale(${preset.titleTransform.scale})`,
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <Image src={subjectSectionIcon} alt="科目进度图标" width={20} height={20} className="h-5 w-5" />
+              <h2 className="text-[17px] font-semibold tracking-tight text-[#242c38]">
+                科目进度
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-4 items-start gap-1.5">
+            {subjectCards.map((item) => (
+              <div
+                key={item.key}
+                className="flex h-[92px] min-h-0 flex-col rounded-[14px] border border-[#ecd9c4] bg-[linear-gradient(180deg,#fffdfa_0%,#fff8ef_100%)] p-1.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <Image src={item.icon} alt={`${item.title}图标`} width={28} height={28} className="h-[28px] w-[28px] rounded-[10px]" />
+                  <div className="text-right">
+                    <div className="text-[8px] font-semibold leading-none text-[#24303b]">{item.title}</div>
+                    <div className="mt-0.5 text-[10px] font-semibold leading-none tracking-tight text-[#1f2935]">
+                      {item.value}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-auto h-[5px] overflow-hidden rounded-full bg-[#efdfcf]">
+                  <div className="h-full rounded-full" style={{ width: item.width, backgroundColor: item.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card
       className="overflow-hidden rounded-[28px] border border-[#ecd9c4] bg-white/[0.94] p-0 shadow-[0_22px_54px_-34px_rgba(133,79,26,0.24)]"
       style={{
         width: `min(100%, ${preset.shell.width}px)`,
-        height: `${preset.shell.height}px`,
+        height: `${shellHeight}px`,
       }}
     >
-      <div className="flex h-full min-h-0 flex-col p-3.5">
+      <div className={`flex h-full min-h-0 flex-col ${compact ? 'p-3' : 'p-3.5'}`}>
         <div
           className="origin-top-left"
           style={{
@@ -56,7 +112,7 @@ export function DashboardReplicaSubjectCard({
           </div>
         </div>
 
-        <div className="relative mt-2 min-h-0 flex-1">
+        <div className={`relative min-h-0 flex-1 ${compact ? 'mt-1.5' : 'mt-2'}`}>
           {subjectCards.map((item) => {
             const box = preset.cardBoxes[item.key]
             return (

@@ -16,7 +16,7 @@ export function MobileHeader() {
             </div>
           </div>
           <span className="text-base font-bold">
-            LearnMore <span className="text-blue-500 font-light text-sm">Pro</span>
+            Learnbank <span className="text-blue-500 font-light text-sm">Pro</span>
           </span>
         </Link>
 

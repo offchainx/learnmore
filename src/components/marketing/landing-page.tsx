@@ -330,7 +330,7 @@ function LandingBelowFoldSkeleton() {
   return (
     <div className="space-y-24 py-24">
       <section className="border-y border-white/5 bg-slate-900/50 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 desktop:px-8">
           <div className="mx-auto mb-16 max-w-3xl text-center">
             <div className="mx-auto h-8 w-72 animate-pulse rounded-full bg-white/10" />
             <div className="mx-auto mt-4 h-6 w-96 max-w-full animate-pulse rounded-full bg-white/5" />
@@ -352,7 +352,7 @@ function LandingBelowFoldSkeleton() {
       </section>
 
       <section className="py-24">
-        <div className="mx-auto max-w-7xl space-y-24 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-24 px-4 sm:px-6 desktop:px-8">
           {[0, 1, 2].map((item) => (
             <div
               key={item}
@@ -368,7 +368,7 @@ function LandingBelowFoldSkeleton() {
                 </div>
               </div>
               <div
-                className={`h-[320px] rounded-2xl border border-slate-700/50 bg-slate-900/60 ${item % 2 === 1 ? 'order-1' : ''}`}
+                className={`h-[280px] rounded-2xl border border-slate-700/50 bg-slate-900/60 sm:h-[320px] desktop:h-[360px] ${item % 2 === 1 ? 'order-1' : ''}`}
               />
             </div>
           ))}
@@ -376,7 +376,7 @@ function LandingBelowFoldSkeleton() {
       </section>
 
       <section className="bg-slate-900/30 py-24">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 desktop:px-8">
           <div className="mx-auto mb-16 h-8 w-56 animate-pulse rounded-full bg-white/10" />
           <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950">
             {[0, 1, 2, 3].map((item) => (
@@ -503,7 +503,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="pointer-events-none absolute left-1/2 top-0 h-[320px] w-[min(92vw,760px)] -translate-x-1/2 animate-pulse-slow rounded-full bg-blue-600/20 opacity-50 blur-[88px] sm:h-[420px] sm:blur-[104px] laptop:h-[600px] laptop:w-[1000px] laptop:blur-[120px]"></div>
         <div className="pointer-events-none absolute bottom-0 right-0 h-[360px] w-[min(82vw,560px)] rounded-full bg-indigo-600/10 mix-blend-screen blur-[88px] sm:h-[480px] sm:w-[min(78vw,680px)] laptop:h-[800px] laptop:w-[800px] laptop:blur-[120px]"></div>
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 desktop:px-8">
           <div className="grid items-center gap-12 laptop:grid-cols-2">
             {/* Text Content */}
             <div className="relative z-20 text-center laptop:text-left">

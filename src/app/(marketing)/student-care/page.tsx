@@ -13,8 +13,9 @@ import {
   Users, School
 } from 'lucide-react';
 import { useApp } from '@/providers';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
-const StudentCarePage: React.FC = () => {
+const LegacyStudentCarePage: React.FC = () => {
   const router = useRouter();
   const { lang, setLang } = useApp();
 
@@ -157,7 +158,7 @@ const StudentCarePage: React.FC = () => {
                     <img 
                        src="https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1000&auto=format&fit=crop" 
                        alt="Students learning" 
-                       className="h-[380px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[440px] desktop:h-[500px]"
+                       className="h-[320px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[380px] desktop:h-[500px]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-8 flex flex-col justify-end">
                        <h3 className="text-2xl font-bold text-white mb-2">{currentT.program.cardTitle}</h3>
@@ -245,4 +246,6 @@ const StudentCarePage: React.FC = () => {
   );
 };
 
-export default StudentCarePage;
+export default function StudentCarePage() {
+  return <LaunchContentPage kind="student-care" />
+}

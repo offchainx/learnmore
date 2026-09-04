@@ -232,8 +232,8 @@ export default function UnifiedPracticeWorkspace({
         </Button>
       </div>
 
-      <div className="grid gap-4 2xl:grid-cols-[220px_minmax(0,1fr)_280px]">
-      <aside className={cn('hidden 2xl:block', `2xl:sticky ${stickyOffsetClassName} 2xl:self-start`)}>
+      <div className="grid gap-4 laptop:grid-cols-[220px_minmax(0,1fr)_280px]">
+      <aside className={cn('hidden laptop:block', `laptop:sticky ${stickyOffsetClassName} laptop:self-start`)}>
         <Card className="rounded-[28px]">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-black tracking-tight text-text-primary dark:text-text-primary">答题卡</CardTitle>
@@ -399,7 +399,7 @@ export default function UnifiedPracticeWorkspace({
               </div>
             ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
+            <div className="grid gap-3 sm:grid-cols-2 laptop:grid-cols-1">
               <div className="rounded-2xl border border-borderTone bg-surface-subtle p-4 dark:border-borderTone dark:bg-surface-subtle">
                 <div className="text-[11px] font-black uppercase tracking-[0.18em] text-text-tertiary">已答题数</div>
                 <div className="mt-2 text-3xl font-black text-text-primary dark:text-text-primary">{answeredCount}</div>

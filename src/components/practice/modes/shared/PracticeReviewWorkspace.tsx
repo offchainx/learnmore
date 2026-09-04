@@ -191,7 +191,7 @@ export function PracticeReviewWorkspace({
 
   return (
     <div className="mx-auto w-full max-w-[1680px] px-3 py-2 sm:px-4 sm:py-4">
-      <div className="grid gap-4 desktop:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid gap-4 laptop:grid-cols-[minmax(0,1fr)_320px] desktop:grid-cols-[minmax(0,1fr)_360px]">
         <main className="space-y-4">
           <Card className={cn('overflow-hidden rounded-[32px] border-white/10 shadow-[0_24px_70px_rgba(15,23,42,0.18)]', themeStyle.shell)}>
             <CardHeader className="space-y-5 px-5 py-6 sm:px-7">

@@ -15,53 +15,37 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "How do I start a mock exam?",
-    answer: "You can start a mock exam by navigating to the 'Practice' section in your dashboard and selecting the 'Mock Arena' option. From there, you can choose your subject and start the timer."
+    question: 'What is Learnbank?',
+    answer: 'Learnbank is preparing a mobile learning app focused on practice, reviewing mistakes, learning notes and progress. The first release is a limited iOS and Android beta.'
   },
   {
-    question: "Can I use LearnMore on my phone?",
-    answer: "Yes. LearnMore supports mobile browser access, so you can use it directly on your phone without installing a separate app."
+    question: 'Which devices are planned for beta?',
+    answer: 'The initial beta is planned for iOS and Android devices. Availability depends on the beta build and invitation process.'
   },
   {
-    question: "What happens if I encounter a mistake in a question?",
-    answer: "We strive for 100% accuracy, but if you find an error, please use the 'Report Error' button on the question page. Our content team will review and fix it promptly."
+    question: 'Which subjects are in the initial scope?',
+    answer: 'The initial scope covers Mathematics, Science, History and Geography. We will announce any additional subjects only after they are ready to test.'
   },
   {
-    question: "How do I reset my password?",
-    answer: "Go to the Login page and click 'Forgot Password'. Follow the instructions sent to your email to set a new password."
+    question: 'How do I join the beta?',
+    answer: 'The beta sign-up form is being prepared. When it opens, it will collect only your email address, device type and testing interest.'
   },
   {
-    question: "What are AI Tokens?",
-    answer: "AI Tokens are used to interact with our AI Tutor. Standard users get a daily free quota, while Premium users have higher limits and more advanced features."
+    question: 'Does this website sell subscriptions?',
+    answer: 'No. Pro subscriptions will be handled inside the Learnbank mobile app through Apple App Store or Google Play when they become available.'
   },
   {
-    question: "What subjects does LearnMore support?",
-    answer: "LearnMore currently covers 6 core subjects: Math, Physics, Chemistry, English, Chinese, and Biology — spanning the full curriculum for grades 7 through 9."
+    question: 'What information will beta sign-up collect?',
+    answer: 'Only your email address, device type and testing interest. We do not ask for student name, school, age or other student identity details in the beta form.'
   },
   {
-    question: "How does the Error Book work?",
-    answer: "Every question you answer incorrectly is automatically added to your Error Book. The system tracks your mastery level and uses spaced repetition to remind you to review these questions at the optimal time."
+    question: 'How can I share product feedback?',
+    answer: 'Please email help@learnbank.net. We will use feedback to improve the beta, but cannot promise an individual reply or feature timeline.'
   },
   {
-    question: "What's the difference between Free and Premium plans?",
-    answer: "The Free plan gives you access to basic practice and reference answers. Premium unlocks AI-powered tutoring, unlimited memory cards, adaptive learning insights, and advanced analytics."
+    question: 'Does Learnbank guarantee grades or exam outcomes?',
+    answer: 'No. Learnbank is a study tool. Learning content and any AI-assisted response should be checked against your teacher, textbook or official materials.'
   },
-  {
-    question: "How do I cancel my subscription?",
-    answer: "Go to Dashboard → Settings → Subscription, then click 'Cancel Subscription'. Your access will remain active until the end of the current billing cycle."
-  },
-  {
-    question: "Will my account be charged after the trial ends?",
-    answer: "No. When your trial ends, your account automatically downgrades to the Free plan. No charge is made unless you manually choose a paid plan."
-  },
-  {
-    question: "How do I refer a friend to LearnMore?",
-    answer: "Head to Dashboard → Refer a Friend, copy your unique referral code, and share it. Both you and your friend will earn learning rewards once they sign up."
-  },
-  {
-    question: "Where can I find my learning progress reports?",
-    answer: "Your progress reports are available in Dashboard → My Progress. You'll see weekly and monthly summaries including accuracy rates, streak days, and subject-level breakdowns."
-  }
 ];
 
 export function FAQAccordion({ searchQuery = '' }: { searchQuery?: string }) {

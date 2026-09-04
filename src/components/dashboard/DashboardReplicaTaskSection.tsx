@@ -56,6 +56,14 @@ export const defaultTaskCardBoxes: TaskCardBoxes =
 
 const TASK_SHELL_WIDTH = 1070.137
 const TASK_SHELL_HEIGHT = 186.667
+const COMPACT_TASK_SHELL_WIDTH = 908
+const COMPACT_TASK_SHELL_HEIGHT = 164
+const compactTaskCardBoxes: TaskCardBoxes = {
+  math: { x: 16, y: 48, width: 206, height: 108 },
+  science: { x: 236, y: 48, width: 206, height: 108 },
+  english: { x: 456, y: 48, width: 206, height: 108 },
+  bonus: { x: 676, y: 48, width: 206, height: 108 },
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -260,34 +268,66 @@ function getTaskSubjectIconKind(kind: string) {
   return 'geography'
 }
 
-function ProgressTrack({ value, color }: { value: string; color: string }) {
+function ProgressTrack({
+  value,
+  color,
+  className = 'h-[7px]',
+}: {
+  value: string
+  color: string
+  className?: string
+}) {
   return (
-    <div className="h-[7px] overflow-hidden rounded-full bg-[#efdfcf]">
+    <div className={`overflow-hidden rounded-full bg-[#efdfcf] ${className}`}>
       <div className="h-full rounded-full" style={{ width: value, backgroundColor: color }} />
     </div>
   )
 }
 
-function TaskCardContent({ task }: { task: (typeof taskCards)[number] }) {
+function TaskCardContent({
+  task,
+  compact = false,
+  denseDesktop = false,
+}: {
+  task: (typeof taskCards)[number]
+  compact?: boolean
+  denseDesktop?: boolean
+}) {
+  const isDense = denseDesktop
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-start gap-3">
-        <div className="shrink-0 pt-0.5">
-          <SubjectProgressIcon kind={getTaskSubjectIconKind(task.icon)} size={54} />
+      <div className={`flex items-start ${isDense ? 'gap-2' : compact ? 'gap-2.5' : 'gap-3'}`}>
+        <div className={`shrink-0 ${isDense ? 'pt-0' : compact ? 'pt-0' : 'pt-0.5'}`}>
+          <SubjectProgressIcon
+            kind={getTaskSubjectIconKind(task.icon)}
+            size={isDense ? 38 : compact ? 46 : 54}
+          />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-[14px] font-semibold leading-[1.1] text-[#25303c]">
+              <div
+                className={`font-semibold leading-[1.1] text-[#25303c] ${
+                  isDense ? 'text-[12px]' : compact ? 'text-[13px]' : 'text-[14px]'
+                }`}
+              >
                 {task.title}
               </div>
-              <div className="mt-1 text-[12px] leading-tight text-[#455160]">
+              <div
+                className={`leading-tight text-[#455160] ${
+                  isDense ? 'mt-0.5 text-[10px]' : compact ? 'mt-0.5 text-[11px]' : 'mt-1 text-[12px]'
+                }`}
+              >
                 {task.subtitle}
               </div>
             </div>
             {task.progress ? (
-              <div className="pt-[1px] text-[13px] font-medium text-[#374250]">
+              <div
+                className={`font-medium text-[#374250] ${
+                  isDense ? 'pt-0 text-[11px]' : compact ? 'pt-0 text-[12px]' : 'pt-[1px] text-[13px]'
+                }`}
+              >
                 {task.progress}
               </div>
             ) : null}
@@ -295,7 +335,7 @@ function TaskCardContent({ task }: { task: (typeof taskCards)[number] }) {
         </div>
       </div>
 
-      <div className="mt-auto pt-4">
+      <div className={`mt-auto ${isDense ? 'pt-2' : compact ? 'pt-2.5' : 'pt-4'}`}>
         <ProgressTrack
           value={task.width}
           color={
@@ -305,6 +345,7 @@ function TaskCardContent({ task }: { task: (typeof taskCards)[number] }) {
                 ? '#efdccc'
                 : '#1e73e9'
           }
+          className={isDense ? 'h-[6px]' : 'h-[7px]'}
         />
       </div>
     </div>
@@ -313,39 +354,134 @@ function TaskCardContent({ task }: { task: (typeof taskCards)[number] }) {
 
 export function DashboardReplicaTaskCard({
   preset = defaultDashboardTaskLayoutPreset,
+  compact = false,
+  denseDesktop = false,
 }: {
   preset?: DashboardTaskLayoutPreset
+  compact?: boolean
+  denseDesktop?: boolean
 }) {
+  const [measuredWidth, setMeasuredWidth] = React.useState<number | null>(null)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const shellWidth = denseDesktop
+    ? TASK_SHELL_WIDTH
+    : compact
+      ? COMPACT_TASK_SHELL_WIDTH
+      : TASK_SHELL_WIDTH
+  const shellHeight = denseDesktop
+    ? 236
+    : compact
+      ? COMPACT_TASK_SHELL_HEIGHT
+      : TASK_SHELL_HEIGHT
+  const effectiveBoxes = compact ? compactTaskCardBoxes : preset.taskCardBoxes
+
+  React.useEffect(() => {
+    if (!compact || !containerRef.current) return
+
+    const node = containerRef.current
+    const update = () => {
+      setMeasuredWidth(node.clientWidth)
+    }
+
+    update()
+
+    const observer = new ResizeObserver(update)
+    observer.observe(node)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [compact])
+
+  const contentScale = compact
+    ? clamp((measuredWidth ?? shellWidth) / shellWidth, 0.82, 1)
+    : 1
+
+  if (denseDesktop) {
+    return (
+      <Card
+        className="overflow-hidden rounded-[28px] border border-[#ecd9c4] bg-white/[0.94] p-0 shadow-[0_22px_54px_-34px_rgba(133,79,26,0.24)]"
+        style={{
+          width: 'min(100%, 1070.137px)',
+          height: `${shellHeight}px`,
+        }}
+      >
+        <div className="flex h-full min-h-0 flex-col p-3">
+          <div className="z-[130]">
+            <SectionTitle icon={<Target className="h-5 w-5" />} title="今日任务" />
+          </div>
+
+          <div className="mt-3 grid min-h-0 flex-1 grid-cols-2 gap-3">
+            {taskCards.map((task) => {
+              return (
+                <div
+                  key={task.title}
+                  className="rounded-[16px] border border-[#ecd9c4] bg-[linear-gradient(180deg,#fffdfa_0%,#fff8ef_100%)] p-2.5"
+                >
+                  <TaskCardContent task={task} compact denseDesktop />
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card
       className="overflow-hidden rounded-[28px] border border-[#ecd9c4] bg-white/[0.94] p-0 shadow-[0_22px_54px_-34px_rgba(133,79,26,0.24)]"
       style={{
-        width: `min(100%, ${TASK_SHELL_WIDTH}px)`,
-        height: `${TASK_SHELL_HEIGHT}px`,
+        width: compact ? '100%' : `min(100%, ${TASK_SHELL_WIDTH}px)`,
+        height: `${shellHeight * contentScale}px`,
       }}
     >
-      <TaskCardBody
-        titleTransform={preset.titleTransform}
-        taskCardBoxes={preset.taskCardBoxes}
-      />
+      {compact ? (
+        <div ref={containerRef} className="h-full w-full overflow-hidden">
+          <div
+            style={{
+              width: `${shellWidth}px`,
+              height: `${shellHeight}px`,
+              transform: `scale(${contentScale})`,
+              transformOrigin: 'top left',
+            }}
+          >
+            <TaskCardBody
+              compact
+              shellHeight={shellHeight}
+              titleTransform={preset.titleTransform}
+              taskCardBoxes={effectiveBoxes}
+            />
+          </div>
+        </div>
+      ) : (
+        <TaskCardBody
+          titleTransform={preset.titleTransform}
+          taskCardBoxes={effectiveBoxes}
+        />
+      )}
     </Card>
   )
 }
 
 export function TaskCardBody({
   editMode = false,
+  compact = false,
   showEditControls = true,
   titleTransform = defaultTaskTitleTransform,
   taskCardBoxes = defaultTaskCardBoxes,
+  shellHeight = TASK_SHELL_HEIGHT,
   onStartTitleMove,
   onStartTitleScale,
   onStartCardMove,
   onStartCardResize,
 }: {
   editMode?: boolean
+  compact?: boolean
   showEditControls?: boolean
   titleTransform?: TaskTitleTransform
   taskCardBoxes?: TaskCardBoxes
+  shellHeight?: number
   onStartTitleMove?: (event: React.PointerEvent<HTMLButtonElement>) => void
   onStartTitleScale?: (event: React.PointerEvent<HTMLButtonElement>) => void
   onStartCardMove?: (key: TaskCardKey, event: React.PointerEvent<HTMLButtonElement>) => void
@@ -355,7 +491,7 @@ export function TaskCardBody({
     <CardViewport>
       <div
         className="relative z-[120] h-full min-h-0"
-        style={{ minHeight: `${TASK_SHELL_HEIGHT}px` }}
+        style={{ minHeight: `${shellHeight}px` }}
       >
         <div className="absolute left-0 top-0 z-[130]">
           <EditableTitleFrame
@@ -388,13 +524,15 @@ export function TaskCardBody({
                 onResizeStart={(event) => onStartCardResize?.(key, event)}
               >
                 <div
-                  className="rounded-[16px] border border-[#ecd9c4] bg-[linear-gradient(180deg,#fffdfa_0%,#fff8ef_100%)] p-3"
+                  className={`rounded-[16px] border border-[#ecd9c4] bg-[linear-gradient(180deg,#fffdfa_0%,#fff8ef_100%)] ${
+                    compact ? 'p-2.5' : 'p-3'
+                  }`}
                   style={{
                     transform: `scale(${taskScale})`,
                     transformOrigin: 'top left',
                   }}
                 >
-                  <TaskCardContent task={task} />
+                  <TaskCardContent task={task} compact={compact} />
                 </div>
               </EditableSubjectCardFrame>
             )

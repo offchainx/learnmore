@@ -1174,7 +1174,7 @@ export function CommunityView({
         </div>
 
         <div
-          className={`grid grid-cols-1 desktop:grid-cols-[minmax(0,3fr)_minmax(340px,1fr)] ${pageGridGapClass}`}
+          className={`grid grid-cols-1 laptop:grid-cols-[minmax(0,3fr)_minmax(300px,1fr)] ${pageGridGapClass}`}
         >
           <div className={pageSectionGapCompactClass}>
             <Card className={`${surfaceClassName} rounded-[26px] px-4 py-3`}>

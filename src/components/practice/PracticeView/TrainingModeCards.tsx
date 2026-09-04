@@ -5,7 +5,6 @@ import {
   BrainCircuit,
   Eraser,
   Flag,
-  TimerReset,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useRoutePrefetch } from '@/lib/hooks'
@@ -13,7 +12,6 @@ import {
   pageDisplayTitleClass,
   pageHeroEyebrowClass,
   pageMetaTextClass,
-  pageSectionDescriptionClass,
 } from '@/components/shared/pageTypography'
 import { cn } from '@/lib/utils'
 import { useApp } from '@/providers'
@@ -35,6 +33,10 @@ interface PrimaryModeCardProps {
   disabled: boolean
   icon: React.ElementType
   modeLabel: string
+  heroImage: string
+  heroOverlayLabel: string
+  heroOverlayTitle: string
+  heroOverlayNote: string
   onActivate: () => void
   onDeactivate: () => void
   onStart: () => void
@@ -51,6 +53,10 @@ function PrimaryModeCard({
   disabled,
   icon: Icon,
   modeLabel,
+  heroImage,
+  heroOverlayLabel,
+  heroOverlayTitle,
+  heroOverlayNote,
   onActivate,
   onDeactivate,
   onStart,
@@ -75,7 +81,7 @@ function PrimaryModeCard({
         }
       }}
       style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
-      className={`group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))]/40 dark:text-text-primary ${
+      className={`group relative min-h-[188px] overflow-hidden rounded-[28px] border text-text-primary transition-all duration-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--focus-ring))]/40 dark:text-text-primary display:min-h-[264px] ${
         active
           ? 'z-10 -translate-y-1 scale-[1.015] border-borderTone shadow-[0_28px_58px_rgba(2,8,23,0.12)] dark:border-borderTone dark:shadow-[0_28px_58px_rgba(2,8,23,0.48)]'
           : 'hover:-translate-y-0.5 border-borderTone shadow-surface hover:border-[hsl(var(--border-strong))] dark:border-borderTone dark:shadow-[0_14px_28px_rgba(2,8,23,0.22)] dark:hover:border-[hsl(var(--border-strong))]'
@@ -89,9 +95,49 @@ function PrimaryModeCard({
         <div className="absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-primary/12 blur-3xl dark:bg-primary/10" />
       </div>
       <div className="border-transparent absolute inset-[1px] rounded-[27px] border dark:border-borderTone/60" />
+      <div
+        className="absolute inset-0 bg-no-repeat"
+        style={{
+          backgroundImage: [
+            'linear-gradient(90deg, rgba(255,250,244,0.98) 0%, rgba(255,250,244,0.94) 24%, rgba(255,250,244,0.70) 48%, rgba(255,250,244,0.26) 72%, rgba(255,250,244,0.08) 100%)',
+            'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 55%, rgba(255,255,255,0.12) 100%)',
+            `url(${heroImage})`,
+          ].join(','),
+          backgroundSize: 'cover, cover, cover',
+          backgroundPosition: 'center, center, center',
+          backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
+          opacity: '0.98',
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_28%,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0.22)_36%,rgba(255,255,255,0)_72%)]" />
+      <div
+        className={`absolute right-4 top-4 z-10 w-[42%] max-w-[320px] rounded-[24px] border border-borderTone/70 bg-[rgba(255,255,255,0.56)] p-4 backdrop-blur-sm transition-all duration-500 dark:border-borderTone/70 dark:bg-[rgba(15,23,42,0.28)] ${active ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'}`}
+      >
+        <div className="flex h-full flex-col justify-between gap-6">
+          <div className="flex items-start justify-between gap-3">
+            <span
+              className={cn(
+                pageHeroEyebrowClass,
+                'rounded-full border border-borderTone bg-surface-subtle px-3 py-1 text-text-secondary dark:border-borderTone dark:bg-surface-subtle dark:text-text-secondary'
+              )}
+            >
+              {heroOverlayLabel}
+            </span>
+          </div>
 
-      <div className="relative flex h-full flex-col justify-between p-4">
-        <div>
+          <div className="max-w-[18ch]">
+            <div className="text-[22px] font-semibold tracking-tight text-text-primary dark:text-text-primary">
+              {heroOverlayTitle}
+            </div>
+            <p className="mt-2 text-[13px] leading-6 text-text-secondary dark:text-text-secondary">
+              {heroOverlayNote}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-20 flex h-full min-w-0 flex-col justify-between p-4 display:p-5">
+        <div className="max-w-[56%]">
           <div className="flex items-start justify-between gap-4">
             <div
               className={`flex h-9 w-9 items-center justify-center rounded-2xl border border-borderTone bg-surface-subtle backdrop-blur-sm transition-all duration-500 dark:border-borderTone dark:bg-surface-subtle ${active ? 'scale-105 bg-surface shadow-[0_12px_22px_rgba(15,23,42,0.08)] dark:bg-surface dark:shadow-[0_12px_22px_rgba(15,23,42,0.16)]' : ''}`}
@@ -114,9 +160,16 @@ function PrimaryModeCard({
             >
               {title}
             </h3>
-            <p className={cn(pageMetaTextClass, 'mt-1.5 text-text-secondary dark:text-text-secondary')}>
-              {subtitle}
-            </p>
+            {subtitle ? (
+              <p
+                className={cn(
+                  pageMetaTextClass,
+                  'mt-1.5 text-text-secondary dark:text-text-secondary'
+                )}
+              >
+                {subtitle}
+              </p>
+            ) : null}
             <p
               className={cn(
                 pageMetaTextClass,
@@ -128,7 +181,7 @@ function PrimaryModeCard({
           </div>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 max-w-[56%]">
           <div
             className={`transition-all duration-500 ${active ? 'opacity-0' : 'opacity-100'}`}
           >
@@ -191,15 +244,9 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
 
   const copy = {
     zh: {
-      badge: '核心模式',
-      heading: '三种主要练习模式',
-      subheading:
-        '首屏先保留最核心的三个入口，先开始训练，再向下看章节和真题。',
       smart: {
         title: 'Smart Drill',
-        subtitle: hasSubject
-          ? `${currentSubjectTitle} 的默认主路径`
-          : '先选科目再开始',
+        subtitle: '',
         description: `根据当前做题进展和答题表现，动态出一轮最值得做的题。${strongestSignal}。`,
         compactMeta:
           weakChapterCount > 0
@@ -225,15 +272,9 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       },
     },
     en: {
-      badge: 'Core Modes',
-      heading: 'Three Core Practice Modes',
-      subheading:
-        'Keep the first screen focused on the three main entry points, then move into chapters and papers below.',
       smart: {
         title: 'Smart Drill',
-        subtitle: hasSubject
-          ? `Default path for ${currentSubjectTitle}`
-          : 'Pick a subject first',
+        subtitle: '',
         description: `Generate the most valuable adaptive pack from recent progress and answer quality. ${strongestSignal}.`,
         compactMeta:
           weakChapterCount > 0
@@ -262,15 +303,9 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       },
     },
     ms: {
-      badge: 'Mod Utama',
-      heading: 'Tiga Mod Latihan Utama',
-      subheading:
-        'Paparan pertama hanya simpan tiga pintu masuk utama, kemudian barulah ke bab dan kertas.',
       smart: {
         title: 'Smart Drill',
-        subtitle: hasSubject
-          ? `Laluan utama untuk ${currentSubjectTitle}`
-          : 'Pilih subjek dahulu',
+        subtitle: '',
         description: `Hasilkan set latihan adaptif paling bernilai berdasarkan kemajuan dan mutu jawapan semasa. ${strongestSignal}.`,
         compactMeta:
           weakChapterCount > 0
@@ -305,6 +340,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       ...copy.smart,
       icon: BrainCircuit,
       modeLabel: 'Adaptive',
+      heroImage: '/images/practice-modes/smart-drill.png',
+      heroOverlayLabel: '核心入口',
+      heroOverlayTitle: '智能训练',
+      heroOverlayNote: '根据当前做题进展，动态出一轮最值得做的题。',
       visualClassName:
         'bg-[hsl(var(--state-info-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-info-fg))_0%,transparent_25%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
@@ -321,6 +360,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       ...copy.error,
       icon: Eraser,
       modeLabel: 'Recovery',
+      heroImage: '/images/practice-modes/error-wiper.png',
+      heroOverlayLabel: '修复入口',
+      heroOverlayTitle: '错题复训',
+      heroOverlayNote: '优先收口最近失分点，把错误集中修复一轮。',
       visualClassName:
         'bg-[hsl(var(--state-danger-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-danger-fg))_0%,transparent_25%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_60%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
@@ -337,6 +380,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
       ...copy.mock,
       icon: Flag,
       modeLabel: 'Timed',
+      heroImage: '/images/practice-modes/mock-arena.png',
+      heroOverlayLabel: '挑战入口',
+      heroOverlayTitle: '模拟考场',
+      heroOverlayNote: '按题量与难度生成整卷，做一次完整限时演练。',
       visualClassName:
         'bg-[hsl(var(--state-warning-bg))]/50 dark:bg-[radial-gradient(circle_at_top_left,hsl(var(--state-warning-fg))_0%,transparent_25%),linear-gradient(135deg,hsl(var(--surface-default))_0%,hsl(var(--surface-muted))_58%,hsl(var(--page-bg-elevated))_100%)]',
       onStart: () => {
@@ -352,31 +399,8 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
   ]
 
   return (
-    <section className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <h3 className={pageDisplayTitleClass}>{copy.heading}</h3>
-        <div
-          className={cn(
-            pageHeroEyebrowClass,
-            'inline-flex items-center gap-2 rounded-full bg-surface-subtle px-3 py-1 text-text-secondary dark:bg-surface-subtle dark:text-text-secondary'
-          )}
-        >
-          <TimerReset className="h-3 w-3" />
-          {copy.badge}
-        </div>
-      </div>
-      <div>
-        <p
-          className={cn(
-            pageSectionDescriptionClass,
-            'max-w-2xl text-text-secondary dark:text-text-secondary'
-          )}
-        >
-          {copy.subheading}
-        </p>
-      </div>
-
-      <div className="grid gap-3 2xl:grid-cols-3">
+    <section>
+      <div className="grid gap-3 display:grid-cols-3">
         {modes.map((mode, index) => (
           <PrimaryModeCard
             key={mode.title}
@@ -384,6 +408,10 @@ export const PracticeModeGrid: React.FC<PracticeModeGridProps> = ({
             compactMeta={mode.compactMeta}
             description={mode.description}
             disabled={!hasSubject}
+            heroImage={mode.heroImage}
+            heroOverlayLabel={mode.heroOverlayLabel}
+            heroOverlayNote={mode.heroOverlayNote}
+            heroOverlayTitle={mode.heroOverlayTitle}
             icon={mode.icon}
             modeLabel={mode.modeLabel}
             onActivate={() => setActiveIndex(index)}

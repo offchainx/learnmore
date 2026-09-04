@@ -1,15 +1,15 @@
 export type MarketingLocale = 'en' | 'zh' | 'ms'
 
 export const marketingSiteConfig = {
-  supportEmail: 'support@learnmore.com',
-  phone: '+65 6789 1234',
-  addressLines: ['100 Innovation Drive, #02-01', 'Singapore 138668'],
+  brandName: 'Learnbank',
+  siteUrl: 'https://learnbank.net',
+  supportEmail: 'help@learnbank.net',
 } as const
 
 const footerRightsByLocale: Record<MarketingLocale, string> = {
-  en: '© 2026 LearnMore Edu. All rights reserved.',
-  zh: '© 2026 LearnMore Edu. 保留所有权利。',
-  ms: '© 2026 LearnMore Edu. Hak cipta terpelihara。',
+  en: '© 2026 Learnbank. All rights reserved.',
+  zh: '© 2026 Learnbank. 保留所有权利。',
+  ms: '© 2026 Learnbank. Hak cipta terpelihara。',
 }
 
 const brandDescriptionByLocale: Record<MarketingLocale, string> = {
@@ -57,4 +57,3 @@ export function resolveMarketingLocale(
 
   return 'en'
 }
-

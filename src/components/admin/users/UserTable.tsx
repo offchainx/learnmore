@@ -478,7 +478,7 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   if (isLoading && data.data.length === 0) {
     return (
-      <div className="dark:bg-[#0F172A]/96 flex min-h-[520px] items-center justify-center rounded-[28px] border border-borderTone bg-surface text-text-secondary dark:border-[#24324D] dark:text-[#8FA4C2]">
+      <div className="dark:bg-[#0F172A]/96 flex min-h-[420px] items-center justify-center rounded-[28px] border border-borderTone bg-surface text-text-secondary dark:border-[#24324D] dark:text-[#8FA4C2] desktop:min-h-[520px]">
         <div className="space-y-3 text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-borderTone border-t-primary dark:border-[#24324D] dark:border-t-[#60A5FA]" />
           <p className="text-sm">加载用户目录...</p>
@@ -546,7 +546,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-70" />
 
                 <div className="relative flex h-full items-start justify-between gap-4">
-                  <div className="flex min-h-[112px] flex-1 flex-col justify-between gap-3">
+                  <div className="flex min-h-[96px] flex-1 flex-col justify-between gap-3 desktop:min-h-[112px]">
                     <div className="space-y-1.5">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary dark:text-[#8EA3C0]">
                         {card.title}
@@ -594,7 +594,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         ) : null}
       </section>
 
-      <div className="dark:bg-[#0F172A]/96 flex min-h-[500px] flex-col overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-[#24324D] dark:shadow-[0_18px_40px_rgba(2,8,23,0.24)]">
+      <div className="dark:bg-[#0F172A]/96 flex min-h-[360px] flex-col overflow-hidden rounded-[28px] border border-borderTone bg-surface shadow-surface dark:border-[#24324D] dark:shadow-[0_18px_40px_rgba(2,8,23,0.24)] desktop:min-h-[500px]">
         <div className="border-b border-borderTone bg-surface-subtle px-5 py-5 dark:border-[#1B2840] dark:bg-[#0F1A2F] sm:px-6">
           <div className="flex flex-col gap-3">
             <div className="space-y-1">
@@ -633,7 +633,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                 </div>
 
                 <div className="flex flex-row gap-3 overflow-x-auto pb-1 tablet:pb-0">
-                  <div className="relative min-w-[150px]">
+                  <div className="relative min-w-[132px] tablet:min-w-[150px]">
                     <select
                       value={filters.status}
                       onChange={(e) =>
@@ -657,7 +657,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                     />
                   </div>
 
-                  <div className="relative min-w-[150px]">
+                  <div className="relative min-w-[132px] tablet:min-w-[150px]">
                     <select
                       value={filters.tier}
                       onChange={(e) =>
@@ -716,7 +716,7 @@ export const UserTable: React.FC<UserTableProps> = ({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] border-collapse text-left">
+          <table className="w-full min-w-[960px] border-collapse text-left desktop:min-w-0">
             <thead>
               <tr className="border-b border-borderTone bg-surface-subtle dark:border-[#1B2840] dark:bg-[#101A2D]">
                 <th

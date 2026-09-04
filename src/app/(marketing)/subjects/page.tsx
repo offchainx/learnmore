@@ -13,8 +13,9 @@ import {
   GraduationCap, Briefcase, Layers, Rocket, Sparkles, Brain
 } from 'lucide-react';
 import { useApp } from '@/providers';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
-const SubjectsPage: React.FC = () => {
+const LegacySubjectsPage: React.FC = () => {
   const router = useRouter();
   const { lang, setLang } = useApp();
   
@@ -123,7 +124,7 @@ const SubjectsPage: React.FC = () => {
         {/* 1. Hero: The Timeline */}
         <section className="max-w-7xl mx-auto px-6 mb-24">
             <div className="text-center mb-16 animate-fade-in-up">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-blue-200">
+                <h1 className="text-4xl md:text-5xl desktop:text-6xl font-extrabold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-blue-200">
                     {currentT.hero.title}
                 </h1>
                 <p className="text-xl text-slate-400 max-w-2xl mx-auto">
@@ -226,7 +227,7 @@ const SubjectsPage: React.FC = () => {
                 </div>
 
                 {/* Visual: Core + Shell */}
-                <div className="relative flex h-[320px] items-center justify-center animate-fade-in-up sm:h-[360px] desktop:h-[400px]" style={{ animationDelay: '0.2s' }}>
+                <div className="relative flex h-[280px] items-center justify-center animate-fade-in-up sm:h-[320px] desktop:h-[400px]" style={{ animationDelay: '0.2s' }}>
                     {/* The Core (Knowledge) */}
                     <div className="absolute w-40 h-40 bg-indigo-600 rounded-full blur-[60px] opacity-40 animate-pulse"></div>
                     <div className="relative z-10 w-48 h-48 bg-slate-900 rounded-full border-4 border-indigo-500 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.3)]">
@@ -276,4 +277,6 @@ const SubjectsPage: React.FC = () => {
   );
 };
 
-export default SubjectsPage;
+export default function SubjectsPage() {
+  return <LaunchContentPage kind="subjects" />
+}

@@ -672,7 +672,7 @@ function RewardPolicyCard({
           }
         />
 
-        <div className="mt-4 space-y-2 xl:hidden">
+        <div className="mt-4 space-y-2 laptop:hidden">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
               <p className="text-sm font-medium text-text-primary">
@@ -758,7 +758,7 @@ function RewardPolicyCard({
           ))}
         </div>
 
-        <div className="mt-4 hidden overflow-hidden rounded-3xl border border-borderTone bg-surface xl:block">
+        <div className="mt-4 hidden overflow-hidden rounded-3xl border border-borderTone bg-surface laptop:block">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
               <p className="text-sm font-medium text-text-primary">
@@ -973,7 +973,7 @@ function LeaderboardObservationCard({
         <SectionBlockHeader
           title="排行榜观察"
           actions={
-            <div className="flex w-full flex-col gap-2 xl:w-auto xl:items-end">
+            <div className="flex w-full flex-col gap-2 laptop:w-auto laptop:items-end">
               <div
                 className={cn(
                   pageSegmentedControlCompactClass,
@@ -1188,7 +1188,7 @@ function AchievementLinkageCard({
       >
         <SectionBlockHeader title="成就联动" />
 
-        <div className="mt-4 space-y-2 xl:hidden">
+        <div className="mt-4 space-y-2 laptop:hidden">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
               <p className="text-sm font-medium text-text-primary">
@@ -1263,7 +1263,7 @@ function AchievementLinkageCard({
           ))}
         </div>
 
-        <div className="mt-4 hidden overflow-hidden rounded-3xl border border-borderTone bg-surface xl:block">
+        <div className="mt-4 hidden overflow-hidden rounded-3xl border border-borderTone bg-surface laptop:block">
           {rules.length === 0 ? (
             <div className={pageEmptyStateClass}>
               <p className="text-sm font-medium text-text-primary">
@@ -1430,7 +1430,7 @@ function RewardAdjustmentCard({
       <Card id="reward-adjustment" className={cn(pagePanelStrongClass, 'p-4')}>
         <SectionBlockHeader title="发放与校正" />
 
-        <div className="mt-4 grid gap-3 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="mt-4 grid gap-3 laptop:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-3">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
@@ -1890,7 +1890,7 @@ function RewardCenterStateCard({
     <Card id="reward-center-status" className={cn(pagePanelClass, 'p-4')}>
       <SectionBlockHeader title="状态收口" />
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 laptop:grid-cols-3">
         {stateRows.map((row) => (
           <div
             key={row.label}
@@ -2173,7 +2173,7 @@ export function RewardCenterControlConsole({
           onUpdateRule={handleUpdateRule}
         />
 
-        <div className="grid gap-3 xl:grid-cols-2 xl:items-stretch">
+        <div className="grid gap-3 laptop:grid-cols-2 laptop:items-stretch">
           <AchievementLinkageCard
             rules={achievementRules}
             onOpenLogs={() => setIsOperationLogOpen(true)}

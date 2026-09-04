@@ -34,8 +34,8 @@ export default async function LegalOnboardingPage() {
 
   return (
     <div className="w-full max-w-6xl">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
-        <section className="hidden min-h-[360px] rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-8 text-slate-900 shadow-[0_24px_80px_-46px_rgba(15,23,42,0.18)] lg:flex lg:min-h-[640px] lg:flex-col lg:justify-between">
+      <div className="grid gap-6 desktop:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+        <section className="hidden min-h-[360px] rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-8 text-slate-900 shadow-[0_24px_80px_-46px_rgba(15,23,42,0.18)] desktop:flex desktop:min-h-[640px] desktop:flex-col desktop:justify-between">
           <div className="space-y-6">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
               <div className="flex size-8 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-[11px] font-semibold tracking-[0.18em] text-slate-700">
@@ -90,7 +90,7 @@ export default async function LegalOnboardingPage() {
           </div>
         </section>
 
-        <div className="flex min-h-[360px] items-center lg:min-h-[640px]">
+        <div className="flex min-h-[360px] items-center desktop:min-h-[640px]">
           <LegalConsentCard />
         </div>
       </div>

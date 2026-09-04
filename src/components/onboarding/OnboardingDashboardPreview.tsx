@@ -46,7 +46,7 @@ export function OnboardingDashboardPreview({
         <div className="absolute bottom-[-14%] right-[-10%] h-64 w-64 rounded-full bg-slate-400/10 blur-3xl" />
       </div>
 
-      <div className="relative flex h-full min-h-[520px] flex-col gap-5">
+      <div className="relative flex h-full min-h-[360px] flex-col gap-5 desktop:min-h-[520px]">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
@@ -62,7 +62,7 @@ export function OnboardingDashboardPreview({
           </Badge>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
+        <div className="grid gap-4 desktop:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
           <Card className="rounded-[22px] border border-slate-200 bg-white p-5 text-slate-900 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.18)]">
             <div className="flex items-center gap-4">
               <Avatar className="size-16 border border-slate-200 ring-1 ring-slate-100">

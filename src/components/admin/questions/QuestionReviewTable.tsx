@@ -449,7 +449,7 @@ export function QuestionReviewTable({
       {/* Table */}
       <div className={cn(pageTableShellClass, 'rounded-[24px]')}>
         <div className="overflow-x-auto">
-        <Table className="min-w-[1360px] table-fixed">
+        <Table className="min-w-[980px] table-fixed desktop:min-w-0">
           <TableHeader>
             <TableRow className={cn(pageSectionHeaderBandClass, 'border-b border-borderTone hover:bg-surface-subtle dark:border-borderTone dark:hover:bg-surface-subtle')}>
               <TableHead className="h-12 w-[50px] text-text-secondary dark:text-text-secondary">

@@ -6,7 +6,7 @@ import { FAQAccordion } from '@/components/support/FAQAccordion';
 import { Input } from '@/components/ui/input';
 import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFooter';
 import { marketingSiteConfig } from '@/lib/marketing/site-shell';
-import { Search, Mail, MessageCircle, Phone } from 'lucide-react';
+import { Search, Mail, MessageCircle } from 'lucide-react';
 import { FeedbackModal } from '@/components/support/FeedbackModal';
 import { useApp } from '@/providers';
 
@@ -90,17 +90,6 @@ export default function HelpPage() {
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-2xl opacity-50 cursor-not-allowed group">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-slate-500/10 rounded-xl text-slate-400">
-                    <Phone className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-1">{t.support.phoneSupportTitle}</h3>
-                    <p className="text-slate-500 text-sm">{t.support.phoneSupportDescription}</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

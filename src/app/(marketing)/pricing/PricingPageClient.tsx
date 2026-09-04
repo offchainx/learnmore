@@ -777,12 +777,12 @@ const PricingPageClient: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
-           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8 mb-24">
+           <div className="grid grid-cols-1 md:grid-cols-2 laptop:grid-cols-4 gap-6 items-stretch">
               {plans.map((plan, idx) => (
                  <div
                    key={idx}
-                   className={`relative flex flex-col p-6 rounded-2xl bg-[#0a0a0a]/50 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-2 group ${plan.color} ${plan.highlight ? 'z-10 bg-[#0f111a] shadow-2xl scale-105 md:scale-100 xl:scale-105' : 'border-opacity-30 hover:border-opacity-60'}`}
+                   className={`relative flex flex-col p-6 rounded-2xl bg-[#0a0a0a]/50 backdrop-blur-sm border transition-all duration-300 hover:-translate-y-2 group ${plan.color} ${plan.highlight ? 'z-10 bg-[#0f111a] shadow-2xl scale-105 md:scale-100 laptop:scale-105' : 'border-opacity-30 hover:border-opacity-60'}`}
                  >
                     {plan.highlight && (
                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg shadow-purple-900/40 whitespace-nowrap">
@@ -865,15 +865,15 @@ const PricingPageClient: React.FC = () => {
         </div>
 
         {/* Feature Comparison */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8 mb-24">
            <h2 className="text-2xl font-bold text-center mb-12">{currentT.compareTitle}</h2>
            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                  <thead>
                     <tr className="border-b border-slate-800">
-                       <th className="p-4 text-slate-400 font-medium min-w-[200px]"></th>
+                       <th className="p-4 text-slate-400 font-medium min-w-[160px] md:min-w-[200px]"></th>
                        {plans.map((p, i) => (
-                          <th key={i} className={`p-4 text-center font-bold min-w-[120px] ${
+                          <th key={i} className={`p-4 text-center font-bold min-w-[96px] md:min-w-[120px] ${
                              i === 0 ? 'text-cyan-400' :
                              i === 1 ? 'text-blue-500' :
                              i === 2 ? 'text-purple-500' : 'text-amber-500'

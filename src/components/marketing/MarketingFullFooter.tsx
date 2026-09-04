@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, Mail, MapPin, Phone, Share2 } from 'lucide-react'
+import { BookOpen, Mail, Share2 } from 'lucide-react'
 import {
   getMarketingBrandDescription,
   getMarketingFooterRights,
@@ -10,7 +10,7 @@ import {
 
 interface MarketingFullFooterProps {
   locale?: MarketingLocale
-  labels: {
+  labels?: {
     product: string
     resources: string
     contact: string
@@ -25,20 +25,30 @@ interface MarketingFullFooterProps {
 
 export function MarketingFullFooter({
   locale = 'en',
-  labels,
+  labels = {
+    product: 'Product',
+    resources: 'Resources',
+    contact: 'Contact',
+    features: 'How it works',
+    pricing: 'Pricing',
+    stories: 'Updates',
+    blog: 'Updates',
+    guides: 'Study guides',
+    care: 'Student care',
+  },
 }: MarketingFullFooterProps) {
   const legalLabels = getMarketingLegalLabels(locale)
 
   return (
     <footer className="bg-[#020617] border-t border-slate-900 pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8">
         <div className="mb-16 grid grid-cols-2 gap-8 tablet:grid-cols-4 desktop:grid-cols-5">
           <div className="col-span-2 desktop:col-span-2">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">LearnMore</span>
+              <span className="text-xl font-bold text-white">{marketingSiteConfig.brandName}</span>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
               {getMarketingBrandDescription(locale)}
@@ -96,18 +106,10 @@ export function MarketingFullFooter({
             <h4 className="font-bold text-white mb-6">{labels.contact}</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                {marketingSiteConfig.phone}
-              </li>
-              <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 <a href={`mailto:${marketingSiteConfig.supportEmail}`} className="hover:text-blue-400 transition-colors">
                   {marketingSiteConfig.supportEmail}
                 </a>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>{marketingSiteConfig.addressLines.join(', ')}</span>
               </li>
             </ul>
           </div>

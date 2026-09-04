@@ -1,10 +1,5 @@
-import { Suspense } from 'react';
-import PricingPageClient from './PricingPageClient';
+import { LaunchPricingPage } from '@/components/marketing/LaunchPricingPage';
 
 export default function PricingPage() {
-  return (
-    <Suspense fallback={null}>
-      <PricingPageClient />
-    </Suspense>
-  );
+  return <LaunchPricingPage />
 }

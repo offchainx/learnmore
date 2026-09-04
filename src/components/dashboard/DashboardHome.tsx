@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -372,10 +372,19 @@ export const DashboardHome = ({
     )
   const [savingDesktopLayoutPreset, setSavingDesktopLayoutPreset] =
     useState(false)
-  const effectiveAsideWidth = Math.max(
-    desktopLayoutPreset.asideWidth,
-    DASHBOARD_HOME_MIN_ASIDE_WIDTH
-  )
+  const [viewportWidth, setViewportWidth] = useState(0)
+  const [contentWidth, setContentWidth] = useState(0)
+  const contentWrapperRef = useRef<HTMLDivElement | null>(null)
+  const isDenseDesktop = viewportWidth === 1440
+  const effectiveAsideWidth = isDenseDesktop && contentWidth > 0
+    ? Math.max(
+        0,
+        Math.floor((contentWidth - desktopLayoutPreset.gridGap) / 2)
+      )
+    : Math.max(
+        desktopLayoutPreset.asideWidth,
+        DASHBOARD_HOME_MIN_ASIDE_WIDTH
+      )
   const effectivePageMaxWidth = Math.max(
     desktopLayoutPreset.pageMaxWidth,
     heroLayoutPreset.shell.width + effectiveAsideWidth + desktopLayoutPreset.gridGap
@@ -462,6 +471,39 @@ export const DashboardHome = ({
       cancelled = true
     }
   }, [coreData, shouldLoadLegacyMainContent])
+
+  useEffect(() => {
+    const updateViewportWidth = () => {
+      setViewportWidth(window.innerWidth)
+    }
+
+    updateViewportWidth()
+    window.addEventListener('resize', updateViewportWidth)
+
+    return () => {
+      window.removeEventListener('resize', updateViewportWidth)
+    }
+  }, [])
+
+  useEffect(() => {
+    const node = contentWrapperRef.current
+    if (!node) return
+
+    const updateContentWidth = () => {
+      setContentWidth(node.getBoundingClientRect().width)
+    }
+
+    updateContentWidth()
+
+    const observer = new ResizeObserver(() => {
+      updateContentWidth()
+    })
+    observer.observe(node)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
   const dashboardDataSnapshot = {
     ...(coreData ?? {
       stats: {
@@ -658,6 +700,97 @@ export const DashboardHome = ({
     }
   }
 
+  const renderSelectableCard = ({
+    cardKey,
+    style,
+    children,
+  }: {
+    cardKey: 'hero' | 'profile' | 'task' | 'path' | 'streak' | 'goal'
+    style?: React.CSSProperties
+    children: React.ReactNode
+  }) => (
+    <div
+      className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
+        layoutEditMode && selectedLayoutCard === cardKey
+          ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
+          : ''
+      }`}
+      style={style}
+      onClick={() => {
+        if (layoutEditMode) {
+          setSelectedLayoutCard(cardKey)
+        }
+      }}
+    >
+      {children}
+    </div>
+  )
+
+  const heroCard = renderSelectableCard({
+    cardKey: 'hero',
+    style: {
+      transform: `translate(${desktopLayoutPreset.heroOffsetX}px, ${desktopLayoutPreset.heroOffsetY}px)`,
+    },
+    children: (
+      <DashboardHeroCard
+        copy={copy}
+        xp={stats.xp}
+        onContinue={() => navigate('/dashboard/practice')}
+        preset={heroLayoutPreset}
+        denseDesktop={isDenseDesktop}
+      />
+    ),
+  })
+
+  const taskCard = renderSelectableCard({
+    cardKey: 'task',
+    style: {
+      transform: `translate(${desktopLayoutPreset.taskOffsetX}px, ${desktopLayoutPreset.taskOffsetY}px)`,
+    },
+    children: (
+      <DashboardReplicaTaskCard
+        preset={taskLayoutPreset}
+        denseDesktop={isDenseDesktop}
+      />
+    ),
+  })
+
+  const pathCard = renderSelectableCard({
+    cardKey: 'path',
+    style: {
+      transform: `translate(${desktopLayoutPreset.pathOffsetX}px, ${desktopLayoutPreset.pathOffsetY}px)`,
+    },
+    children: <DashboardReplicaPathCard copy={copy} preset={pathLayoutPreset} />,
+  })
+
+  const streakCard = renderSelectableCard({
+    cardKey: 'streak',
+    style: {
+      transform: `translate(${desktopLayoutPreset.streakOffsetX}px, ${desktopLayoutPreset.streakOffsetY}px)`,
+    },
+    children: (
+      <DashboardStreakCard
+        copy={copy}
+        streak={stats.streak}
+        preset={streakLayoutPreset}
+      />
+    ),
+  })
+
+  const goalCard = renderSelectableCard({
+    cardKey: 'goal',
+    style: {
+      transform: `translate(${desktopLayoutPreset.goalOffsetX}px, ${desktopLayoutPreset.goalOffsetY}px)`,
+    },
+    children: (
+      <DashboardWeeklyGoalCard
+        copy={copy}
+        activeDays={overviewByWindow['7D'].activeDays}
+        preset={goalLayoutPreset}
+      />
+    ),
+  })
+
   return (
     <TooltipProvider delayDuration={120}>
       <div className="flex min-h-0 w-full min-w-0 flex-col px-3 py-2 sm:px-4 sm:py-3">
@@ -666,9 +799,10 @@ export const DashboardHome = ({
           style={{ maxWidth: `${effectivePageMaxWidth}px` }}
         >
           <div
-            className="grid xl:items-start"
+            ref={contentWrapperRef}
+            className="hidden laptop:grid laptop:items-start"
             style={{
-              gap: `${desktopLayoutPreset.gridGap}px`,
+              gap: `${isDenseDesktop ? Math.min(16, desktopLayoutPreset.gridGap) : desktopLayoutPreset.gridGap}px`,
               gridTemplateColumns: `minmax(0,1fr) minmax(${effectiveAsideWidth}px, ${effectiveAsideWidth}px)`,
             }}
           >
@@ -679,115 +813,21 @@ export const DashboardHome = ({
                 transformOrigin: 'top left',
               }}
             >
-              <div
-                className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
-                  layoutEditMode && selectedLayoutCard === 'hero'
-                    ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
-                    : ''
-                }`}
-                style={{
-                  transform: `translate(${desktopLayoutPreset.heroOffsetX}px, ${desktopLayoutPreset.heroOffsetY}px)`,
-                }}
-                onClick={() => {
-                  if (layoutEditMode) {
-                    setSelectedLayoutCard('hero')
-                  }
-                }}
-              >
-                <DashboardHeroCard
-                  copy={copy}
-                  xp={stats.xp}
-                  onContinue={() => navigate('/dashboard/practice')}
-                  preset={heroLayoutPreset}
-                />
-              </div>
+              {heroCard}
 
               <section className="min-h-0 space-y-4">
-                <div
-                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
-                    layoutEditMode && selectedLayoutCard === 'task'
-                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
-                      : ''
-                  }`}
-                  style={{
-                    transform: `translate(${desktopLayoutPreset.taskOffsetX}px, ${desktopLayoutPreset.taskOffsetY}px)`,
-                  }}
-                  onClick={() => {
-                    if (layoutEditMode) {
-                      setSelectedLayoutCard('task')
-                    }
-                  }}
-                >
-                  <DashboardReplicaTaskCard preset={taskLayoutPreset} />
-                </div>
-
-                <div
-                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
-                    layoutEditMode && selectedLayoutCard === 'path'
-                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
-                      : ''
-                  }`}
-                  style={{
-                    transform: `translate(${desktopLayoutPreset.pathOffsetX}px, ${desktopLayoutPreset.pathOffsetY}px)`,
-                  }}
-                  onClick={() => {
-                    if (layoutEditMode) {
-                      setSelectedLayoutCard('path')
-                    }
-                  }}
-                >
-                  <DashboardReplicaPathCard copy={copy} preset={pathLayoutPreset} />
-                </div>
+                {taskCard}
+                {pathCard}
               </section>
 
-              <section className="grid min-h-0 items-start gap-4 xl:grid-cols-2">
-                <div
-                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
-                    layoutEditMode && selectedLayoutCard === 'streak'
-                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
-                      : ''
-                  }`}
-                  style={{
-                    transform: `translate(${desktopLayoutPreset.streakOffsetX}px, ${desktopLayoutPreset.streakOffsetY}px)`,
-                  }}
-                  onClick={() => {
-                    if (layoutEditMode) {
-                      setSelectedLayoutCard('streak')
-                    }
-                  }}
-                >
-                  <DashboardStreakCard
-                    copy={copy}
-                    streak={stats.streak}
-                    preset={streakLayoutPreset}
-                  />
-                </div>
-                <div
-                  className={`${layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''} ${
-                    layoutEditMode && selectedLayoutCard === 'goal'
-                      ? 'ring-2 ring-[#ff7d19] ring-offset-2 ring-offset-[#fcf7f0]'
-                      : ''
-                  }`}
-                  style={{
-                    transform: `translate(${desktopLayoutPreset.goalOffsetX}px, ${desktopLayoutPreset.goalOffsetY}px)`,
-                  }}
-                  onClick={() => {
-                    if (layoutEditMode) {
-                      setSelectedLayoutCard('goal')
-                    }
-                  }}
-                >
-                  <DashboardWeeklyGoalCard
-                    copy={copy}
-                    activeDays={overviewByWindow['7D'].activeDays}
-                    preset={goalLayoutPreset}
-                  />
-                </div>
+              <section className="grid min-h-0 items-start gap-4 laptop:grid-cols-2">
+                {streakCard}
+                {goalCard}
               </section>
             </div>
 
             <aside
-              className={`w-full justify-self-end xl:col-start-2 ${
+              className={`w-full justify-self-end laptop:col-start-2 ${
                 layoutEditMode ? 'cursor-pointer rounded-[32px] transition-shadow' : ''
               } ${
                 layoutEditMode && selectedLayoutCard === 'profile'
@@ -811,15 +851,83 @@ export const DashboardHome = ({
                   xp={stats.xp}
                   streak={stats.streak}
                   preset={profileLayoutPreset}
+                  denseDesktop={isDenseDesktop}
                 />
                 <DashboardReplicaCalendarCard preset={calendarLayoutPreset} />
-                <div className="grid min-h-0 items-start gap-4 xl:grid-cols-2">
-                  <DashboardReplicaTimeCard preset={timeLayoutPreset} />
-                  <DashboardReplicaSubjectCard preset={subjectLayoutPreset} />
+                <div className="grid min-h-0 items-start gap-4 laptop:grid-cols-2">
+                  <DashboardReplicaTimeCard
+                    preset={timeLayoutPreset}
+                    denseDesktop={isDenseDesktop}
+                  />
+                  <DashboardReplicaSubjectCard
+                    preset={subjectLayoutPreset}
+                    denseDesktop={isDenseDesktop}
+                  />
                 </div>
                 <DashboardReplicaReviewCard preset={reviewLayoutPreset} />
               </div>
             </aside>
+          </div>
+
+          <div className="hidden desktop:flex laptop:hidden flex-col gap-4">
+            <DashboardReplicaProfileCard
+              user={user}
+              xp={stats.xp}
+              streak={stats.streak}
+              preset={profileLayoutPreset}
+            />
+            <DashboardReplicaCalendarCard preset={calendarLayoutPreset} />
+            <div className="grid min-h-0 items-start gap-4 desktop:grid-cols-2">
+              <DashboardReplicaTimeCard preset={timeLayoutPreset} compact />
+              <DashboardReplicaSubjectCard preset={subjectLayoutPreset} compact />
+            </div>
+            <DashboardReplicaTaskCard preset={taskLayoutPreset} compact />
+            <div className="grid min-h-0 items-start gap-4 desktop:grid-cols-2">
+              <DashboardStreakCard
+                copy={copy}
+                streak={stats.streak}
+                preset={streakLayoutPreset}
+              />
+              <DashboardWeeklyGoalCard
+                copy={copy}
+                activeDays={overviewByWindow['7D'].activeDays}
+                preset={goalLayoutPreset}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 desktop:hidden">
+            <DashboardReplicaProfileCard
+              user={user}
+              xp={stats.xp}
+              streak={stats.streak}
+              preset={profileLayoutPreset}
+            />
+            <DashboardReplicaCalendarCard preset={calendarLayoutPreset} />
+            <DashboardReplicaTaskCard
+              preset={taskLayoutPreset}
+              denseDesktop={isDenseDesktop}
+            />
+            <DashboardReplicaPathCard copy={copy} preset={pathLayoutPreset} />
+            <DashboardReplicaTimeCard
+              preset={timeLayoutPreset}
+              denseDesktop={isDenseDesktop}
+            />
+            <DashboardReplicaSubjectCard
+              preset={subjectLayoutPreset}
+              denseDesktop={isDenseDesktop}
+            />
+            <DashboardReplicaReviewCard preset={reviewLayoutPreset} />
+            <DashboardStreakCard
+              copy={copy}
+              streak={stats.streak}
+              preset={streakLayoutPreset}
+            />
+            <DashboardWeeklyGoalCard
+              copy={copy}
+              activeDays={overviewByWindow['7D'].activeDays}
+              preset={goalLayoutPreset}
+            />
           </div>
         </div>
       </div>

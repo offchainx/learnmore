@@ -97,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
             <span className="text-lg font-bold tracking-tight text-white transition-colors group-hover:text-blue-200">
-              LearnMore{' '}
+              Learnbank{' '}
               <span className="text-sm font-light text-blue-500">Pro</span>
             </span>
           </div>

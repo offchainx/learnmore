@@ -1,8 +1,5 @@
-import { getBlogPosts } from '@/actions/community/blog';
-import { BlogList } from '@/components/blog/blog-list';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
-export default async function BlogPage() {
-  const { data: posts } = await getBlogPosts();
-
-  return <BlogList initialPosts={posts || []} />;
+export default function BlogPage() {
+  return <LaunchContentPage kind="updates" />
 }

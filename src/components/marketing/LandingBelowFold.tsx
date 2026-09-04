@@ -62,7 +62,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
   return (
     <>
       <section className="py-24 bg-slate-900/50 border-y border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t.painPoints.title}</h2>
             <p className="text-slate-400 text-lg">{t.painPoints.subtitle}</p>
@@ -91,7 +91,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
       </section>
 
       <section className="py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-32">
+        <div className="max-w-7xl mx-auto space-y-32 px-4 sm:px-6 desktop:px-8">
           <div className="grid items-center gap-16 desktop:grid-cols-2">
             <div>
               <div className="inline-block text-blue-400 font-bold tracking-wider uppercase text-sm mb-2">{t.features.f1Tag}</div>
@@ -105,7 +105,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
                 ))}
               </ul>
             </div>
-            <div className="relative flex h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 group sm:h-[360px] sm:p-8 desktop:h-[400px]">
+            <div className="relative flex h-[280px] items-center justify-center overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 group sm:h-[320px] sm:p-8 desktop:h-[400px]">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
               <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
                 <div className="flex gap-12 mb-12">
@@ -127,7 +127,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
           </div>
 
           <div className="grid items-center gap-16 desktop:grid-cols-2">
-            <div className="order-2 relative flex h-[320px] items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:h-[360px] sm:p-8 desktop:order-1 desktop:h-[400px]">
+            <div className="order-2 relative flex h-[280px] items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:h-[320px] sm:p-8 desktop:order-1 desktop:h-[400px]">
               <div className="relative w-64 h-64">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="absolute inset-0 border border-slate-600 rounded-full opacity-30" style={{ transform: `scale(${i * 0.33})` }} />
@@ -179,7 +179,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
                 <span className="text-sm text-slate-400 self-center">{t.features.f3Trusted}</span>
               </div>
             </div>
-            <div className="relative flex h-[320px] items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:h-[360px] sm:p-8 desktop:h-[400px]">
+            <div className="relative flex h-[280px] items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 p-6 sm:h-[320px] sm:p-8 desktop:h-[400px]">
               <div className="w-48 h-80 bg-black border-4 border-slate-700 rounded-3xl p-3 relative shadow-2xl overflow-hidden">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-4 w-20 bg-slate-800 rounded-b-xl z-20"></div>
                 <div className="mt-8 space-y-3 relative z-10">
@@ -202,13 +202,13 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
       </section>
 
       <section className="py-24 bg-slate-900/30">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 desktop:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-white mb-4">{t.comparison.title}</h2>
           </div>
 
           <div className="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl ring-1 ring-white/5">
-            <div className="grid min-w-[720px] grid-cols-3 border-b border-slate-800 bg-slate-900/50 p-6 text-sm font-bold text-slate-300 md:text-base">
+            <div className="grid min-w-[640px] grid-cols-3 border-b border-slate-800 bg-slate-900/50 p-4 text-sm font-bold text-slate-300 md:min-w-[720px] md:p-6 md:text-base">
               <div className="col-span-1"></div>
               <div className="col-span-1 text-center opacity-50 text-xs md:text-sm uppercase tracking-wider">{t.comparison.col1}</div>
               <div className="col-span-1 text-center text-blue-400 flex items-center justify-center gap-2 text-xs md:text-sm uppercase tracking-wider">
@@ -222,7 +222,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
               { label: t.comparison.row3, bad: t.comparison.row3bad, good: t.comparison.row3good, icon: CircleX },
               { label: t.comparison.row4, bad: t.comparison.row4bad, good: t.comparison.row4good, icon: null },
             ].map((row, i) => (
-              <div key={i} className={`grid min-w-[720px] grid-cols-3 items-center border-b border-slate-800/50 p-6 transition-colors hover:bg-white/5 last:border-none ${i % 2 === 1 ? 'bg-slate-900/20' : ''}`}>
+              <div key={i} className={`grid min-w-[640px] grid-cols-3 items-center border-b border-slate-800/50 p-4 transition-colors hover:bg-white/5 last:border-none md:min-w-[720px] md:p-6 ${i % 2 === 1 ? 'bg-slate-900/20' : ''}`}>
                 <div className="font-medium text-slate-300 text-sm md:text-base">{row.label}</div>
                 <div className="text-center text-slate-500 flex flex-col items-center gap-1 opacity-70">
                   {row.icon && <row.icon className="w-5 h-5 text-red-900/50" />}
@@ -243,7 +243,7 @@ export function LandingBelowFold({ t, onCtaClick, locale }: LandingBelowFoldProp
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <h2 className="text-3xl font-bold text-white mb-12">{t.testimonials.title}</h2>
 
-          <div className="relative bg-slate-900/50 border border-slate-800 p-8 rounded-3xl backdrop-blur-sm min-h-[300px] flex flex-col justify-center items-center transition-all">
+          <div className="relative flex min-h-[240px] flex-col items-center justify-center rounded-3xl border border-slate-800 bg-slate-900/50 p-8 backdrop-blur-sm transition-all desktop:min-h-[300px]">
             <Quote className="w-10 h-10 text-blue-500/20 absolute top-6 left-6" />
 
             <div className="mb-8">

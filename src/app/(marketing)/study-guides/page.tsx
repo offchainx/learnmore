@@ -11,8 +11,9 @@ import {
   ArrowRight, Rocket
 } from 'lucide-react';
 import { useApp } from '@/providers';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
-const StudyGuidePage: React.FC = () => {
+const LegacyStudyGuidePage: React.FC = () => {
   const router = useRouter();
   const { lang, setLang } = useApp();
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -207,4 +208,6 @@ const StudyGuidePage: React.FC = () => {
   );
 };
 
-export default StudyGuidePage;
+export default function StudyGuidePage() {
+  return <LaunchContentPage kind="study-guides" />
+}

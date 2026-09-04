@@ -59,10 +59,10 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   };
 
   return (
-    <div className="flex min-h-[700px] w-full flex-col gap-6 desktop:flex-row">
+    <div className="flex w-full flex-col gap-6 desktop:min-h-[520px] desktop:flex-row desktop:[height:min(700px,calc(100dvh-11rem))]">
       {/* Left Column: Image Preview */}
-      <div className="flex h-[700px] flex-col rounded-xl border border-slate-200 bg-slate-100 desktop:w-1/3">
-        <div className="p-3 border-b bg-white flex items-center justify-between">
+      <div className="flex min-h-[280px] flex-col rounded-xl border border-slate-200 bg-slate-100 desktop:h-full desktop:w-1/3">
+        <div className="flex items-center justify-between border-b bg-white p-3">
           <span className="text-sm font-medium text-slate-600">原始试题</span>
           <div className="flex items-center gap-2">
             {imageLoaded && <span className="text-xs text-green-600 font-medium">✓ 已加载</span>}
@@ -71,11 +71,11 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
             </span>
           </div>
         </div>
-        <div className="flex-1 p-4 bg-slate-200 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-slate-200 p-4">
           {imagePreview ? (
             <div className="w-full space-y-2">
               {/* 主渲染区域 */}
-              <div className="relative w-full min-h-[400px] bg-white rounded-lg shadow-inner p-2">
+              <div className="relative w-full min-h-[280px] bg-white rounded-lg p-2 shadow-inner desktop:min-h-[320px]">
                 {!imageLoaded && !imageError && (
                   <div className="absolute inset-0 flex items-center justify-center bg-slate-100 rounded-lg">
                     <div className="text-center">
@@ -135,7 +135,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
       </div>
 
       {/* Middle/Main Column: Editor Form */}
-      <div className="flex-1 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col overflow-hidden h-[700px]">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md desktop:h-full">
         {/* Header Tabs */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div className="flex bg-slate-100 p-1 rounded-lg">

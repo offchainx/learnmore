@@ -230,7 +230,7 @@ function RewardCenterLeaderboard({
           }
         />
 
-        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="grid gap-3 desktop:grid-cols-[1fr_auto] desktop:items-end">
           <div>
             <p className={pageKickerClass}>{PERIOD_DESCRIPTION[activePeriod]}</p>
             <div className="mt-2 flex items-end gap-3">
@@ -430,7 +430,7 @@ export function RewardCenterConsole({
           </div>
         }
       >
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 laptop:grid-cols-4">
           <MetricCard
             title="当前 XP"
             value={formatNumber(currentXp)}
@@ -462,7 +462,7 @@ export function RewardCenterConsole({
         </div>
       </PageHeroShell>
 
-      <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-3 laptop:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-3">
           <Card className={cn(pagePanelStrongClass, 'p-4')}>
             <SectionBlockHeader
@@ -533,7 +533,7 @@ export function RewardCenterConsole({
               </Card>
             </div>
 
-            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            <div className="mt-4 grid gap-3 desktop:grid-cols-2">
               <RewardRuleList
                 title="每日任务"
                 description="当前每日任务的 XP 口径来自配置层。"
@@ -551,7 +551,7 @@ export function RewardCenterConsole({
                 title="通用奖励常量"
                 description="这些常量是后续发放与补发模块的统一参照，不在页面上二次散开。"
               />
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 laptop:grid-cols-4">
                 {XP_REWARD_ROWS.map((row) => (
                   <div
                     key={row.key}

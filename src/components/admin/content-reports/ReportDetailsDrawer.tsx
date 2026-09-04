@@ -410,7 +410,7 @@ export function ReportDetailsDrawer({
     if (!isOpen) return null
 
     return (
-      <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-full flex-col border-l border-borderTone bg-page shadow-[0_32px_80px_rgba(2,8,23,0.36)] sm:w-[720px] xl:w-[860px]">
+      <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-full flex-col border-l border-borderTone bg-page shadow-[0_32px_80px_rgba(2,8,23,0.36)] sm:w-[min(92vw,720px)] desktop:w-[min(88vw,860px)]">
         <div className="flex items-start justify-between gap-4 border-b border-borderTone px-5 py-4">
           <div className="space-y-2">
             <Badge
@@ -473,7 +473,7 @@ export function ReportDetailsDrawer({
   const ticketShortId = report.id.slice(0, 8).toUpperCase()
 
   return (
-    <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-full flex-col border-l border-borderTone bg-page shadow-[0_32px_80px_rgba(2,8,23,0.36)] transition-transform duration-300 sm:w-[720px] xl:w-[860px]">
+    <aside className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-full flex-col border-l border-borderTone bg-page shadow-[0_32px_80px_rgba(2,8,23,0.36)] transition-transform duration-300 sm:w-[min(92vw,720px)] desktop:w-[min(88vw,860px)]">
       <div className="flex items-start justify-between gap-4 border-b border-borderTone px-5 py-4">
         <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -679,7 +679,7 @@ export function ReportDetailsDrawer({
             </div>
 
             <div className="space-y-4 px-4 py-4">
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-4 desktop:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-medium uppercase tracking-[0.18em] text-text-tertiary">
                     {text.drawer.currentStatusLabel}

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/providers';
+import { LaunchContentPage } from '@/components/marketing/LaunchContentPage';
 
 // Local translations
 const localTranslations = {
@@ -149,7 +150,7 @@ const localTranslations = {
   }
 };
 
-const ProductTourPage: React.FC = () => {
+const LegacyProductTourPage: React.FC = () => {
   const router = useRouter();
   const { lang, setLang } = useApp();
   const [activeStep, setActiveStep] = useState(0);
@@ -222,7 +223,7 @@ const ProductTourPage: React.FC = () => {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8 pb-32">
         {/* Flexbox Layout for Sticky Sidebar */}
         {/* items-start is critical for sticky behavior */}
         <div className="relative flex flex-col items-start gap-12 desktop:flex-row desktop:gap-20">
@@ -301,7 +302,7 @@ const ProductTourPage: React.FC = () => {
                </div>
                
                <div className="order-1 desktop:order-2">
-                  <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl group">
+                  <div className="relative h-[300px] bg-slate-900/50 rounded-3xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl group desktop:h-[360px]">
                      {/* Radar Chart */}
                      <div className="flex-1 relative flex items-center justify-center">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]"></div>
@@ -360,7 +361,7 @@ const ProductTourPage: React.FC = () => {
                </div>
 
                <div className="order-1">
-                  <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl">
+                  <div className="relative h-[300px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl desktop:h-[360px]">
                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:30px_30px]"></div>
                      <div className="relative w-full h-full">
                         <svg className="absolute inset-0 w-full h-full pointer-events-none">
@@ -400,7 +401,7 @@ const ProductTourPage: React.FC = () => {
                </div>
 
                <div className="order-1 desktop:order-2">
-                  <div className="relative h-[360px] bg-slate-900 rounded-3xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl">
+                  <div className="relative h-[300px] bg-slate-900 rounded-3xl border border-slate-800 flex flex-col overflow-hidden shadow-2xl desktop:h-[360px]">
                      <div className="h-10 border-b border-slate-800 flex items-center px-4 justify-between bg-slate-800/30">
                         <div className="flex gap-1.5">
                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
@@ -453,7 +454,7 @@ const ProductTourPage: React.FC = () => {
                </div>
 
                <div className="order-1">
-                  <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl p-6">
+                  <div className="relative h-[300px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl p-6 desktop:h-[360px]">
                      <div className="w-full h-full relative">
                         <div className="absolute left-0 bottom-0 w-full h-[1px] bg-slate-700"></div>
                         <div className="absolute left-0 bottom-0 w-[1px] h-full bg-slate-700"></div>
@@ -507,7 +508,7 @@ const ProductTourPage: React.FC = () => {
                </div>
 
                <div className="order-1 desktop:order-2">
-                  <div className="relative h-[360px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl p-6">
+                  <div className="relative h-[300px] bg-slate-900/50 rounded-3xl border border-slate-800 flex items-center justify-center overflow-hidden shadow-2xl p-6 desktop:h-[360px]">
                      <div className="w-full h-full relative">
                         <div className="absolute left-0 bottom-0 w-full h-[1px] bg-slate-700"></div>
                         <div className="absolute left-0 bottom-0 w-[1px] h-full bg-slate-700"></div>
@@ -567,4 +568,6 @@ const ProductTourPage: React.FC = () => {
   );
 };
 
-export default ProductTourPage;
+export default function ProductTourPage() {
+  return <LaunchContentPage kind="how-it-works" />
+}

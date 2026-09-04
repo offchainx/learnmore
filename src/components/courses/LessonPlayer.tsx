@@ -59,7 +59,7 @@ export const LessonPlayer = ({ lesson, onBack, onComplete, t: _t }: { lesson: Se
 
   if (showCelebration) {
     return (
-      <div className="flex flex-col items-center justify-center h-[600px] animate-fade-in-up text-center relative">
+      <div className="relative flex min-h-[420px] flex-col items-center justify-center animate-fade-in-up text-center desktop:[height:min(600px,calc(100dvh-12rem))]">
         <Confetti />
         <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full relative z-10">
            <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce shadow-lg shadow-yellow-400/30">

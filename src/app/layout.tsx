@@ -17,9 +17,9 @@ import Script from 'next/script'
 import { getBrowserWarningSuppressorScript } from '@/lib/suppress-warnings'
 
 export const metadata: Metadata = {
-  title: 'LearnMore - 中学生在线教育平台',
-  description: '专为中学生打造的在线学习平台,涵盖数学、物理、化学、英语、语文、生物六大学科',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnmorev10.vercel.app'),
+  title: 'Learnbank - 移动学习 App 内测',
+  description: 'Learnbank 正在进行 iOS 与 Android 移动学习 App 内测，首批聚焦数学、科学、历史和地理。',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.net'),
   icons: {
     icon: [
       { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
@@ -34,14 +34,16 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'LearnMore',
-    title: 'LearnMore - 中学生在线教育平台',
-    description: '专为中学生打造的在线学习平台',
+    siteName: 'Learnbank',
+    title: 'Learnbank - 移动学习 App 内测',
+    description: 'iOS 与 Android 内测，首批聚焦数学、科学、历史和地理。',
+    images: ['/images/brand/learnbank-og.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LearnMore - 中学生在线教育平台',
-    description: '专为中学生打造的在线学习平台',
+    title: 'Learnbank - 移动学习 App 内测',
+    description: 'iOS 与 Android 内测，首批聚焦数学、科学、历史和地理。',
+    images: ['/images/brand/learnbank-og.png'],
   },
   // Resource Hints for performance optimization
   other: {
@@ -64,7 +66,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning className={fonts.className}>
-      <body className="antialiased">
+      <body className="min-h-dvh antialiased">
         <Script
           id="browser-warning-suppressor"
           strategy="beforeInteractive"
@@ -84,7 +86,7 @@ export default function RootLayout({
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />
             <MobileHeader />
-            <div className="tablet:pt-0 pt-14">
+            <div className="min-h-dvh pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(env(safe-area-inset-bottom)+4rem)] tablet:min-h-0 tablet:pt-0 tablet:pb-0">
               {children}
             </div>
             <BottomTabBar />

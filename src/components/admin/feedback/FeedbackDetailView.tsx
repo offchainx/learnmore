@@ -596,7 +596,7 @@ export function FeedbackDetailView({
             />
 
             <div className="mt-4 border-t border-[#24324D] pt-4">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 desktop:flex-row desktop:items-center desktop:justify-between">
                 <div className="inline-flex rounded-2xl border border-[#24324D] bg-[#101A30] p-1">
                   {([
                     ['PUBLIC_REPLY', 'Public Reply'],
