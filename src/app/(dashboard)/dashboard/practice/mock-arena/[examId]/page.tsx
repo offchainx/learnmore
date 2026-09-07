@@ -5,7 +5,7 @@ import { getEffectiveTier } from '@/lib/permissions/engine'
 import MockArenaExam from './MockArenaExam'
 
 export const metadata: Metadata = {
-  title: 'Exam in Progress | LearnMore',
+  title: 'Exam in Progress | Learnbank',
   description: 'Mock exam in progress',
 }
 

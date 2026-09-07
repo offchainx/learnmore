@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { PracticeClientWrapper } from './client-wrapper'
 
 export const metadata: Metadata = {
-  title: 'Practice - LearnMore',
+  title: 'Practice - Learnbank',
   description: 'Practice questions and exercises.',
 }
 

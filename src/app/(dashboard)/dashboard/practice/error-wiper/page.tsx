@@ -9,7 +9,7 @@ import { QuestionType } from '@/components/business/question';
 import { getEffectiveTier } from '@/lib/permissions/engine';
 
 export const metadata = {
-  title: 'Error Wiper | LearnMore',
+  title: 'Error Wiper | Learnbank',
   description: 'Gamified error review mode',
 };
 

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { LaunchLegalPage } from '@/components/marketing/LaunchLegalPage'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Learnbank',
+  title: 'Terms of Service',
   description: 'Terms for using the Learnbank website, mobile beta and related learner services.',
 }
 

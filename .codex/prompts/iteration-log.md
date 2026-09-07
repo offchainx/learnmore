@@ -156,4 +156,6 @@
 
 | 2026-09-04 | learnbank-v1.0 launch-roadmap P1-6/7/8 | 提交此前已完成但未提交的品牌改名+营销页收缩改动，推送触发 Vercel 部署上线 learnbank.net | 70+ 文件提交，pnpm build 通过；推送后 learnbank.net 应显示 Learnbank 品牌而非 LearnMore AI | 诚实的 beta 占位文案替代虚构 testimonials；build 提前验证过一遍 | 内测报名表单仍是占位 mailto，未接 Supabase；约40个登录墙后页面仍留 LearnMore | - | 补 Supabase 内测报名表单；扫尾 dashboard/admin 内部页面品牌名 |
 
+| 2026-09-07 | learnbank rebrand cleanup, login-gated + transactional surfaces | 扫尾剩余 LearnMore 品牌残留：邮件模板/dashboard/onboarding/action 文件，并修复 /privacy 等法务页标题重复 bug | 37 个真正可达文件改名完成，build 通过；剩余8处确认是死代码或内部 JWT issuer，不改 | 先用 tail 确认每个 page.tsx 是否真的渲染 legacy 组件还是 LaunchContentPage，避免误改死代码 | 无 | - | 确认 Vercel 的 NEXT_PUBLIC_FROM_EMAIL 实际值，以及 noreply@learnbank.net 在 Resend 是否已做域名验证 |
+
 ## 约束

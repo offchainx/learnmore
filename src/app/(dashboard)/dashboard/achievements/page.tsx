@@ -8,7 +8,7 @@ import {
 } from '@/lib/cache/sitewide'
 
 export const metadata: Metadata = {
-  title: 'Achievements - LearnMore',
+  title: 'Achievements - Learnbank',
   description: 'View your badges, stats, and learning achievements.',
 }
 

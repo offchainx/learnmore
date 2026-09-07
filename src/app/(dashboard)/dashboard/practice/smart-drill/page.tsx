@@ -6,7 +6,7 @@ import { getEffectiveTier } from "@/lib/permissions/engine"
 import SmartDrillSession from "@/components/practice/modes/SmartDrillMode"
 
 export const metadata: Metadata = {
-  title: "Smart Drill | LearnMore",
+  title: "Smart Drill | Learnbank",
   description: "Adaptive practice mode based on your error history",
 }
 

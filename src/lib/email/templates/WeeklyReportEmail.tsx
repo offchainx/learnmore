@@ -98,8 +98,8 @@ export const WeeklyReportEmail = ({
           </Text>
           <Hr style={hr} />
           <Text style={footer}>
-            想要查看更详细的报告？请登录 LearnMore 仪表盘。<br />
-            © 2026 LearnMore. All rights reserved.
+            想要查看更详细的报告？请登录 Learnbank 仪表盘。<br />
+            © 2026 Learnbank. All rights reserved.
           </Text>
         </Section>
       </Container>

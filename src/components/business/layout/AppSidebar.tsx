@@ -48,7 +48,7 @@ const SidebarContent = ({ onClose, userRole }: { onClose?: () => void; userRole?
           <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
             <BookOpen className="h-4 w-4 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight">LearnMore</span>
+          <span className="text-lg font-bold tracking-tight">Learnbank</span>
         </Link>
       </div>
 

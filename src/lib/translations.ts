@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     common: {
-      appName: 'LearnMore Pro',
+      appName: 'Learnbank Pro',
       loading: 'Loading...',
       save: 'Save',
       cancel: 'Cancel',
@@ -182,7 +182,7 @@ export const translations = {
   },
   zh: {
     common: {
-      appName: 'LearnMore Pro',
+      appName: 'Learnbank Pro',
       loading: '加载中...',
       save: '保存',
       cancel: '取消',
@@ -355,7 +355,7 @@ export const translations = {
   },
   ms: {
     common: {
-      appName: 'LearnMore Pro',
+      appName: 'Learnbank Pro',
       loading: 'Memuatkan...',
       save: 'Simpan',
       cancel: 'Batal',

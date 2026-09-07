@@ -26,16 +26,16 @@ export const WelcomeEmail = ({
 }: WelcomeEmailProps) => (
   <Html>
     <Head />
-    <Preview>欢迎加入 LearnMore，开启你的智慧学习之旅！</Preview>
+    <Preview>欢迎加入 Learnbank，开启你的智慧学习之旅！</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-           <Heading style={heading}>LearnMore</Heading>
+           <Heading style={heading}>Learnbank</Heading>
         </Section>
         <Section style={content}>
           <Heading style={subHeading}>你好，{username}！</Heading>
           <Text style={paragraph}>
-            欢迎加入 LearnMore！我们很高兴能陪伴你一起进步。在这里，你可以通过 AI 智能导师、海量题库和科学的复习计划，更高效地掌握知识。
+            欢迎加入 Learnbank！我们很高兴能陪伴你一起进步。在这里，你可以通过 AI 智能导师、海量题库和科学的复习计划，更高效地掌握知识。
           </Text>
           <Section style={buttonContainer}>
             <Link style={button} href={loginUrl}>
@@ -48,7 +48,7 @@ export const WelcomeEmail = ({
           <Hr style={hr} />
           <Text style={footer}>
             此邮件由系统自动发出，请勿直接回复。<br />
-            © 2026 LearnMore. All rights reserved.
+            © 2026 Learnbank. All rights reserved.
           </Text>
         </Section>
       </Container>

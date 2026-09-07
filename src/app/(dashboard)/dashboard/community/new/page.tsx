@@ -6,7 +6,7 @@ import { NewPostPageClient } from '@/components/community/NewPostPageClient'
 import { getCachedCommunityCategories } from '@/lib/cache/sitewide'
 
 export const metadata: Metadata = {
-  title: 'New Post - LearnMore',
+  title: 'New Post - Learnbank',
   description: 'Create a new community post.',
 }
 

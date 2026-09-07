@@ -28,7 +28,7 @@ export const DEFAULT_RESERVED_HANDLES = [
   'instagram',
   'jobs',
   'legal',
-  'learnmore',
+  'learnbank',
   'mail',
   'meta',
   'mod',

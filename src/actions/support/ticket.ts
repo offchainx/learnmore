@@ -261,7 +261,7 @@ export async function submitFeedback(params: SubmitFeedbackParams) {
       await sendEmail({
         to: userEmail,
         subject: `We've received your feedback: ${params.title}`,
-        text: `Hi,\n\nThank you for reaching out to LearnMore. We've received your feedback regarding "${params.category}" and our team will look into it as soon as possible.\n\nYour Feedback:\n${params.content}\n\nBest regards,\nLearnMore Support Team`,
+        text: `Hi,\n\nThank you for reaching out to Learnbank. We've received your feedback regarding "${params.category}" and our team will look into it as soon as possible.\n\nYour Feedback:\n${params.content}\n\nBest regards,\nLearnbank Support Team`,
       })
 
       if (userId) {
@@ -615,7 +615,7 @@ export async function replyToFeedback(
         await sendEmail({
           to: feedback.email,
           subject: `Update on your feedback: ${feedback.title}`,
-          text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${normalizedReply}\n\nStatus: ${status}\n\nThank you for being part of LearnMore.\n\nBest regards,\nLearnMore Support Team`,
+          text: `Hi,\n\nOur team has responded to your feedback:\n\nResponse:\n${normalizedReply}\n\nStatus: ${status}\n\nThank you for being part of Learnbank.\n\nBest regards,\nLearnbank Support Team`,
         })
       } else {
         console.warn('[Feedback] Reply email skipped because feedback email is missing:', feedbackId)

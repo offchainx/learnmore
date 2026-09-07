@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { practiceQuestionWithGroupInclude } from '@/lib/practice/question-groups'
 
 export const metadata: Metadata = {
-  title: 'Past Year Paper | LearnMore',
+  title: 'Past Year Paper | Learnbank',
   description: 'Practice real past-year papers from published questions',
 }
 

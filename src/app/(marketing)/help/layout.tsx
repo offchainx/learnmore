@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Help Center | LearnMore',
-  description: 'Find answers to common questions about LearnMore. Browse our FAQ, search for guides, or contact our support team for help.',
+  title: 'Help Center',
+  description: 'Find answers to common questions about Learnbank. Browse our FAQ, search for guides, or contact our support team for help.',
   openGraph: {
-    title: 'Help Center | LearnMore',
-    description: 'Get help with LearnMore — browse FAQ, search guides, and reach our support team.',
+    title: 'Help Center | Learnbank',
+    description: 'Get help with Learnbank — browse FAQ, search guides, and reach our support team.',
   },
 }
 

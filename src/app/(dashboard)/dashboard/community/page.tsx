@@ -43,7 +43,7 @@ function parsePage(raw?: string): number {
 }
 
 export const metadata: Metadata = {
-  title: 'Community - LearnMore',
+  title: 'Community - Learnbank',
   description: 'Join the discussion with other students.',
 }
 

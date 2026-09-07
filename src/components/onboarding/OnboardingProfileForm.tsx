@@ -106,7 +106,7 @@ export function OnboardingProfileForm({
                   2
                 </span>
               </div>
-              LearnMore
+              Learnbank
             </div>
             <div className="space-y-2">
               <CardTitle className="text-balance text-3xl font-semibold tracking-tight text-slate-950">

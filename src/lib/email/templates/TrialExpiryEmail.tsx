@@ -64,7 +64,7 @@ export const TrialExpiryEmail = ({
             <Hr style={hr} />
             <Text style={footer}>
               如果你有任何问题，欢迎随时联系我们。<br />
-              © 2026 LearnMore. All rights reserved.
+              © 2026 Learnbank. All rights reserved.
             </Text>
           </Section>
         </Container>

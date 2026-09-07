@@ -15,7 +15,7 @@ export async function generateMetadata({
   const normalizedHandle = normalizeHandle(handle)
 
   return {
-    title: `@${normalizedHandle} | LearnMore`,
+    title: `@${normalizedHandle} | Learnbank`,
   }
 }
 
@@ -103,7 +103,7 @@ export default async function PublicHandlePage({
                 href="/register"
                 className="inline-flex h-11 items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
               >
-                Join LearnMore
+                Join Learnbank
               </Link>
             </div>
           </div>

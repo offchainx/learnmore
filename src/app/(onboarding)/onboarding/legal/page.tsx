@@ -7,7 +7,7 @@ import { LegalConsentCard } from '@/components/onboarding/LegalConsentCard'
 import { resolveOnboardingRedirect } from '@/lib/auth/onboarding'
 
 export const metadata: Metadata = {
-  title: 'Legal consent | LearnMore',
+  title: 'Legal consent | Learnbank',
   description:
     'Confirm the Terms of Service and Privacy Policy before continuing your onboarding.',
 }
@@ -41,7 +41,7 @@ export default async function LegalOnboardingPage() {
               <div className="flex size-8 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-[11px] font-semibold tracking-[0.18em] text-slate-700">
                 LM
               </div>
-              LearnMore
+              Learnbank
             </div>
 
             <div className="space-y-3">

@@ -4,7 +4,7 @@ import { MarketingSimpleFooter } from '@/components/marketing/MarketingSimpleFoo
 import { marketingSiteConfig } from '@/lib/marketing/site-shell'
 
 export const metadata: Metadata = {
-  title: 'Refund Information | Learnbank',
+  title: 'Refund Information',
   description: 'Refund information for Learnbank in-app subscriptions.',
 }
 

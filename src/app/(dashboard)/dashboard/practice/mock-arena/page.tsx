@@ -6,7 +6,7 @@ import { checkWeeklyExamQuota } from '@/actions/practice/quota'
 import MockArenaSetup from './MockArenaSelector'
 
 export const metadata: Metadata = {
-  title: 'Mock Arena | LearnMore',
+  title: 'Mock Arena | Learnbank',
   description: 'Simulate real exam conditions with timed practice tests',
 }
 

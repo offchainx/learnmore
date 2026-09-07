@@ -219,7 +219,7 @@ export async function createCheckoutSession(
       } else {
         const newCustomer = await stripe.customers.create({
           email: user.email,
-          name: user.username || 'LearnMore User',
+          name: user.username || 'Learnbank User',
           metadata: {
             userId: user.id,
           },

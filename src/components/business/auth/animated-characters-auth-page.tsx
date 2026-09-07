@@ -460,7 +460,7 @@ export function AuthIllustratedPage({
             </div>
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.18em] text-white/55">
-                LearnMore
+                Learnbank
               </p>
               <p className="text-sm text-white/75">{copy.eyebrow}</p>
             </div>
@@ -818,7 +818,7 @@ export function AuthIllustratedPage({
                 <Sparkles className="size-5" />
               </div>
               <span className="text-base font-semibold tracking-tight">
-                LearnMore
+                Learnbank
               </span>
             </div>
 

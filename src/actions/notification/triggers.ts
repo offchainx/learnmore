@@ -25,7 +25,7 @@ export async function triggerWelcomeNotification(
     await createInAppNotification({
       userId,
       type: 'SYSTEM',
-      title: '欢迎加入 LearnMore!',
+      title: '欢迎加入 Learnbank!',
       content: `你好 ${username || '同学'}，很高兴见到你！快去开启你的智慧学习之旅吧。`,
       link: '/dashboard',
     })
@@ -37,7 +37,7 @@ export async function triggerWelcomeNotification(
     if (!prefs || prefs.emailSystem) {
       await sendEmail({
         to: email,
-        subject: '欢迎加入 LearnMore!',
+        subject: '欢迎加入 Learnbank!',
         react: React.createElement(WelcomeEmail, {
           username: username || '同学',
         }),
@@ -116,7 +116,7 @@ export async function triggerReceiptNotification(
     // 2. 发送收据邮件 (BILLING 邮件强制发送)
     await sendEmail({
       to: email,
-      subject: `LearnMore 订单收据 - ${orderId}`,
+      subject: `Learnbank 订单收据 - ${orderId}`,
       react: React.createElement(ReceiptEmail, {
         orderId,
         amount: `RM ${amount.toFixed(2)}`,
@@ -174,8 +174,8 @@ export async function triggerTrialExpiryNotification(
     to: email,
     subject:
       daysLeft <= 0
-        ? 'LearnMore 试用期到期提醒'
-        : `LearnMore 试用期还剩 ${daysLeft} 天`,
+        ? 'Learnbank 试用期到期提醒'
+        : `Learnbank 试用期还剩 ${daysLeft} 天`,
     react: React.createElement(TrialExpiryEmail, { daysLeft }),
   })
 

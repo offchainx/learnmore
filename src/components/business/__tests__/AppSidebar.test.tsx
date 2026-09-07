@@ -21,9 +21,9 @@ describe('AppSidebar', () => {
 
   it('renders brand name', () => {
     render(<AppSidebar />)
-    // There are two "LearnMore" texts (mobile sheet and desktop sidebar)
+    // There are two "Learnbank" texts (mobile sheet and desktop sidebar)
     // Using getAllByText covers both or either depending on visibility mock
-    const brandTexts = screen.getAllByText('LearnMore')
+    const brandTexts = screen.getAllByText('Learnbank')
     expect(brandTexts.length).toBeGreaterThan(0)
   })
 

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { CoursesClientWrapper } from './client-wrapper'
 
 export const metadata: Metadata = {
-  title: 'Courses - LearnMore',
+  title: 'Courses - Learnbank',
   description: 'Browse and learn from your courses.',
 }
 

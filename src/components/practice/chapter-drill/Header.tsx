@@ -15,7 +15,7 @@ export const Header: React.FC = () => {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h2 className="text-lg font-bold tracking-tight text-text-primary dark:text-text-primary">
-          LearnMore <span className="ml-2 hidden text-sm font-normal text-text-secondary dark:text-text-secondary sm:inline">Chapter Drill</span>
+          Learnbank <span className="ml-2 hidden text-sm font-normal text-text-secondary dark:text-text-secondary sm:inline">Chapter Drill</span>
         </h2>
       </div>
       <div className="flex items-center gap-6">

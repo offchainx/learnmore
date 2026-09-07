@@ -437,7 +437,7 @@ function ReferralSection({
           user.referralLimit && user.referralLimit > 0
             ? `剩余可继续邀请 ${Math.max(user.referralLimit - user.referralCount, 0)} 位好友`
             : '当前推荐额度不设上限。',
-        shareCopy: `我正在使用 LearnMore 学习，输入我的推荐码 ${user.referralCode || ''}，我们都能获得额外会员奖励。`,
+        shareCopy: `我正在使用 Learnbank 学习，输入我的推荐码 ${user.referralCode || ''}，我们都能获得额外会员奖励。`,
       }
     }
 
@@ -472,7 +472,7 @@ function ReferralSection({
           user.referralLimit && user.referralLimit > 0
             ? `Masih boleh menjemput ${Math.max(user.referralLimit - user.referralCount, 0)} rakan lagi`
             : 'Had rujukan semasa tidak ditetapkan.',
-        shareCopy: `Saya sedang belajar di LearnMore. Guna kod rujukan ${user.referralCode || ''} untuk dapat ganjaran ahli tambahan.`,
+        shareCopy: `Saya sedang belajar di Learnbank. Guna kod rujukan ${user.referralCode || ''} untuk dapat ganjaran ahli tambahan.`,
       }
     }
 
@@ -507,7 +507,7 @@ function ReferralSection({
         user.referralLimit && user.referralLimit > 0
           ? `${Math.max(user.referralLimit - user.referralCount, 0)} invites left`
           : 'No referral limit is set right now.',
-      shareCopy: `I use LearnMore to study. Use my referral code ${user.referralCode || ''} and we both unlock extra membership rewards.`,
+      shareCopy: `I use Learnbank to study. Use my referral code ${user.referralCode || ''} and we both unlock extra membership rewards.`,
     }
   }, [lang, user.referralCount, user.referralLimit, user.referralCode])
 

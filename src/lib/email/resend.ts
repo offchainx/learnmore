@@ -12,7 +12,7 @@ if (!resendApiKey) {
 
 export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-export const FROM_EMAIL = process.env.NEXT_PUBLIC_FROM_EMAIL || 'LearnMore <noreply@learnmore.com>';
+export const FROM_EMAIL = process.env.NEXT_PUBLIC_FROM_EMAIL || 'Learnbank <noreply@learnbank.net>';
 
 interface SendEmailOptions {
   to: string | string[];

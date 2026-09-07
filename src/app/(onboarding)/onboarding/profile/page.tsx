@@ -7,7 +7,7 @@ import { OnboardingProfileForm } from '@/components/onboarding/OnboardingProfile
 import { resolveOnboardingRedirect } from '@/lib/auth/onboarding'
 
 export const metadata: Metadata = {
-  title: 'Profile setup | LearnMore',
+  title: 'Profile setup | Learnbank',
   description:
     'Complete your learning profile so we can personalize your dashboard and recommendations.',
 }
@@ -40,7 +40,7 @@ export default async function ProfileOnboardingPage() {
             <div className="flex size-8 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-700">
               <GraduationCap className="size-4" />
             </div>
-            LearnMore
+            Learnbank
           </div>
           <h1 className="max-w-2xl text-balance text-4xl font-semibold tracking-tight text-slate-950">
             补全学习档案，dashboard 就会按这个配置启动。
@@ -61,7 +61,7 @@ export default async function ProfileOnboardingPage() {
           <div className="flex size-8 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-700">
             <GraduationCap className="size-4" />
           </div>
-          LearnMore
+          Learnbank
         </div>
         <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-950">
           补全学习档案，dashboard 就会按这个配置启动。

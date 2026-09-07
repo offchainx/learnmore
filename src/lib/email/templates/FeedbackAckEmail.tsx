@@ -35,7 +35,7 @@ export const FeedbackAckEmail = ({
         <Section style={content}>
           <Text style={paragraph}>你好，{username}！</Text>
           <Text style={paragraph}>
-            感谢你对 LearnMore 的反馈。我们非常重视每一位用户的意见，这能帮助我们做得更好。
+            感谢你对 Learnbank 的反馈。我们非常重视每一位用户的意见，这能帮助我们做得更好。
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}><strong>反馈单号：</strong> {feedbackId}</Text>
@@ -48,7 +48,7 @@ export const FeedbackAckEmail = ({
           <Hr style={hr} />
           <Text style={footer}>
             感谢你帮助我们改进！<br />
-            © 2026 LearnMore. All rights reserved.
+            © 2026 Learnbank. All rights reserved.
           </Text>
         </Section>
       </Container>

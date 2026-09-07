@@ -31,7 +31,7 @@ describe('suppress-warnings', () => {
     expect(
       shouldSuppressBrowserRuntimeError({
         message: 'Network request failed',
-        filename: 'https://learnmorev10.vercel.app/_next/static/chunks/app/page.js',
+        filename: 'https://learnbank.net/_next/static/chunks/app/page.js',
       })
     ).toBe(false)
   })

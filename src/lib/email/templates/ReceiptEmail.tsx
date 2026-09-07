@@ -40,7 +40,7 @@ export const ReceiptEmail = ({
         <Section style={content}>
           <Text style={paragraph}>你好，{username}！</Text>
           <Text style={paragraph}>
-            感谢你对 LearnMore 的支持。你的订阅已成功激活，以下是订单详情：
+            感谢你对 Learnbank 的支持。你的订阅已成功激活，以下是订单详情：
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}><strong>订单号：</strong> {orderId}</Text>
@@ -61,7 +61,7 @@ export const ReceiptEmail = ({
           <Hr style={hr} />
           <Text style={footer}>
             此邮件作为你的支付凭证，请妥善保管。<br />
-            © 2026 LearnMore. All rights reserved.
+            © 2026 Learnbank. All rights reserved.
           </Text>
         </Section>
       </Container>
