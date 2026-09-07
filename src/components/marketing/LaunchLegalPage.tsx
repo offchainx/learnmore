@@ -23,8 +23,12 @@ const privacySections: Section[] = [
     body: 'If you use the mobile app, Learnbank may process the account, learning and device information needed to provide its features. App subscriptions are processed by Apple App Store or Google Play; Learnbank does not receive card details. Any additional service providers will receive only the information needed for their role.',
   },
   {
-    title: '5. Your choices',
-    body: `You may ask about, correct or request deletion of information held for the beta by emailing ${marketingSiteConfig.supportEmail}. We may retain limited information where required for security, legal compliance or record keeping.`,
+    title: '5. Account deletion (mobile app)',
+    body: 'You may request deletion of your Learnbank account at any time from within the mobile app (Profile → Settings). Submitting a request begins a 7-day cooling-off period, during which signing back in cancels the deletion. After 7 days, your account and all associated data are permanently deleted.',
+  },
+  {
+    title: '6. Your choices',
+    body: `You may ask about, correct or request deletion of information held for the beta sign-up by emailing ${marketingSiteConfig.supportEmail}. We may retain limited information where required for security, legal compliance or record keeping.`,
   },
 ]
 

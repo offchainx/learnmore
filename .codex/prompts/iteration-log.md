@@ -160,4 +160,6 @@
 
 | 2026-09-07 | beta signup form wired to Learnbank production Supabase | 首页 #beta CTA 从占位 mailto 换成真实表单，server action 写入 Learnbank 移动端生产库新表 beta_signups（不是本仓库自己的 Supabase 项目） | 本地 dev server 端到端验证通过：表单提交→POST→insert→SQL 查到行→已清理测试数据 | 两个 Supabase 项目分开建独立 client，用最小权限的 anon key，不用 service role | 无 | - | Vercel 生产环境需补 LEARNBANK_SUPABASE_URL / LEARNBANK_SUPABASE_ANON_KEY 两个 env var，否则线上表单会报 not_configured |
 
+| 2026-09-07 | P0-C5 隐私政策补删号条款 | 官网隐私政策补充 App 内账号删除（7天冷静期）条款，与 mobile app 措辞对齐 | 插入新第5条，原第5条改第6条，build 通过 | 先读 app 内实际删号文案再写条款，避免口径不一致 | 无 | - | 法务页目前只有英文单语，未来可能需要补中文版 |
+
 ## 约束
