@@ -3,6 +3,7 @@
 import { ArrowRight, BookOpen, CircleCheck, Clock3, Mail, Smartphone } from 'lucide-react'
 import { Navbar } from '@/components/layout/navbar'
 import { MarketingFullFooter } from '@/components/marketing/MarketingFullFooter'
+import { BetaSignupForm } from '@/components/marketing/BetaSignupForm'
 import { useApp } from '@/providers'
 import { marketingSiteConfig, resolveMarketingLocale } from '@/lib/marketing/site-shell'
 
@@ -505,13 +506,7 @@ function LaunchHomePage({ locale, onToggleLang }: { locale: 'en' | 'zh'; onToggl
                 ? 'Learnbank 正在准备 iOS 与 Android 首批内测。内测开放后，报名只会收集邮箱、设备类型和测试意愿。'
                 : 'Learnbank is preparing its first iOS and Android beta. When sign-up opens, we will collect only an email address, device type and testing interest.'}
             </p>
-            <a
-              href="/contact"
-              className="mt-10 inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-blue-400"
-            >
-              {isZh ? '加入内测' : 'Join the beta'}
-              <ArrowRight className="h-4 w-4" />
-            </a>
+            <BetaSignupForm locale={locale} />
             <p className="mt-6 text-sm text-slate-500">
               {isZh ? `有问题？请联系 ${marketingSiteConfig.supportEmail}` : `Questions? Contact ${marketingSiteConfig.supportEmail}`}
             </p>

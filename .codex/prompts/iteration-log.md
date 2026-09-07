@@ -158,4 +158,6 @@
 
 | 2026-09-07 | learnbank rebrand cleanup, login-gated + transactional surfaces | 扫尾剩余 LearnMore 品牌残留：邮件模板/dashboard/onboarding/action 文件，并修复 /privacy 等法务页标题重复 bug | 37 个真正可达文件改名完成，build 通过；剩余8处确认是死代码或内部 JWT issuer，不改 | 先用 tail 确认每个 page.tsx 是否真的渲染 legacy 组件还是 LaunchContentPage，避免误改死代码 | 无 | - | 确认 Vercel 的 NEXT_PUBLIC_FROM_EMAIL 实际值，以及 noreply@learnbank.net 在 Resend 是否已做域名验证 |
 
+| 2026-09-07 | beta signup form wired to Learnbank production Supabase | 首页 #beta CTA 从占位 mailto 换成真实表单，server action 写入 Learnbank 移动端生产库新表 beta_signups（不是本仓库自己的 Supabase 项目） | 本地 dev server 端到端验证通过：表单提交→POST→insert→SQL 查到行→已清理测试数据 | 两个 Supabase 项目分开建独立 client，用最小权限的 anon key，不用 service role | 无 | - | Vercel 生产环境需补 LEARNBANK_SUPABASE_URL / LEARNBANK_SUPABASE_ANON_KEY 两个 env var，否则线上表单会报 not_configured |
+
 ## 约束
