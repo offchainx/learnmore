@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     default: 'Learnbank - 移动学习 App 内测',
   },
   description: 'Learnbank 正在进行 iOS 与 Android 移动学习 App 内测，首批聚焦数学、科学、历史和地理。',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.net'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.ai'),
   keywords: ['Learnbank', '移动学习 App', '内测', '数学', '科学', '历史', '地理'],
   openGraph: {
     type: 'website',

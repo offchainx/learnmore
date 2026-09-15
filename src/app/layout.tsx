@@ -19,7 +19,7 @@ import { getBrowserWarningSuppressorScript } from '@/lib/suppress-warnings'
 export const metadata: Metadata = {
   title: 'Learnbank - 移动学习 App 内测',
   description: 'Learnbank 正在进行 iOS 与 Android 移动学习 App 内测，首批聚焦数学、科学、历史和地理。',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.net'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.ai'),
   icons: {
     icon: [
       { url: '/icons/icon-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
@@ -86,7 +86,7 @@ export default function RootLayout({
             <PolyfillsLoader />
             <UnsupportedBrowserWarning />
             <MobileHeader />
-            <div className="min-h-dvh pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(env(safe-area-inset-bottom)+4rem)] tablet:min-h-0 tablet:pt-0 tablet:pb-0">
+            <div className="min-h-dvh pt-[calc(env(safe-area-inset-top)+3.5rem)] tablet:min-h-0 tablet:pt-0">
               {children}
             </div>
             <BottomTabBar />

@@ -9,9 +9,20 @@ import {
 } from '@/components/layout/dashboard-nav'
 import { cn } from '@/lib/utils'
 
+// 底部 TabBar 的五个入口全部在 /dashboard 下，而 /dashboard 有登录墙。
+// 官网现在是内测报名站，App 两端都没上架，marketing 页面上显示这一排等于给手机用户
+// 五个死路入口，还白占 4rem 首屏。只在真正的 App 路由下渲染。
+function isAppRoute(pathname: string | null): boolean {
+  if (!pathname) return false
+  return pathname === '/dashboard' || pathname.startsWith('/dashboard/') || pathname.startsWith('/course/')
+}
+
 export function BottomTabBar() {
   const pathname = usePathname()
   const { t } = useApp()
+
+  if (!isAppRoute(pathname)) return null
+
   const tabLabels = {
     dashboard: t.sidebar.dashboard,
     courses: t.sidebar.courses,
@@ -21,6 +32,9 @@ export function BottomTabBar() {
   }
 
   return (
+    <>
+      {/* 占位：TabBar 是 fixed 的，页面底部要留出等高空间 */}
+      <div className="h-16 pb-safe-bottom tablet:hidden" aria-hidden />
     <nav
       className="fixed bottom-0 left-0 right-0 z-50
                  bg-background/95 backdrop-blur-sm
@@ -64,5 +78,6 @@ export function BottomTabBar() {
         })}
       </div>
     </nav>
+    </>
   )
 }

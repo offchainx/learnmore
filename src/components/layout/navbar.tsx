@@ -38,9 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       howItWorks: 'How It Works',
       pricing: 'Pricing',
       aboutUs: 'About Us',
-      login: 'Log in',
-      start: 'Start Learning',
-      join: 'Join Now',
+      beta: 'Sign up for the beta',
     },
     zh: {
       dashboard: '仪表盘',
@@ -48,9 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       howItWorks: '工作原理',
       pricing: '价格方案',
       aboutUs: '关于我们',
-      login: '登录',
-      start: '开始学习',
-      join: '立即加入',
+      beta: '报名内测',
     },
     ms: {
       dashboard: 'Papan Pemuka',
@@ -58,9 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       howItWorks: 'Cara Berfungsi',
       pricing: 'Harga',
       aboutUs: 'Tentang Kami',
-      login: 'Log Masuk',
-      start: 'Mula Belajar',
-      join: 'Sertai Sekarang',
+      beta: 'Daftar beta',
     },
   }
 
@@ -148,31 +142,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {text.dashboard}
               </Button>
             ) : (
-              // 未登录：显示Login + Start Learning按钮
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  type="button"
-                  onClick={() => {
-                    router.push('/login')
-                  }}
-                  className="text-slate-300 hover:text-white"
-                >
-                  {text.login}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="glow"
-                  type="button"
-                  onClick={() => {
-                    router.push('/register')
-                  }}
-                  className="shadow-lg shadow-blue-500/20"
-                >
-                  {text.start}
-                </Button>
-              </>
+              // 未登录：只留内测报名这一个 CTA
+              <Button
+                size="sm"
+                variant="glow"
+                type="button"
+                onClick={() => {
+                  router.push('/#beta')
+                }}
+                className="shadow-lg shadow-blue-500/20"
+              >
+                {text.beta}
+              </Button>
             )}
           </div>
 
@@ -236,29 +217,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {text.dashboard}
                 </Button>
               ) : (
-                // 未登录：显示Login + Join按钮
-                <>
-                  <Button
-                    variant="outline"
-                    fullWidth
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      router.push('/login')
-                    }}
-                  >
-                    {text.login}
-                  </Button>
-                  <Button
-                    variant="glow"
-                    fullWidth
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                      router.push('/register')
-                    }}
-                  >
-                    {text.join}
-                  </Button>
-                </>
+                // 未登录：只留内测报名这一个 CTA
+                <Button
+                  variant="glow"
+                  fullWidth
+                  onClick={() => {
+                    setIsMobileMenuOpen(false)
+                    router.push('/#beta')
+                  }}
+                >
+                  {text.beta}
+                </Button>
               )}
             </div>
           </div>

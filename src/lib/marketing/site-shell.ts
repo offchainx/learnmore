@@ -2,7 +2,7 @@ export type MarketingLocale = 'en' | 'zh' | 'ms'
 
 export const marketingSiteConfig = {
   brandName: 'Learnbank',
-  siteUrl: 'https://learnbank.net',
+  siteUrl: 'https://learnbank.ai',
   supportEmail: 'help@learnbank.net',
 } as const
 

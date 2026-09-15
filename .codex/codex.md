@@ -38,3 +38,13 @@
 ## 5. 周期回顾
 - 每周回顾 `/.codex/features/radar.md`
 - 每两周评估是否将稳定规则上升到全局配置
+
+
+## [2026-09-15] 常量从 'use server' 文件导出，运行时才炸
+- 场景：把 REFERRAL_SOURCES 数组和 submitBetaSignup 放在同一个 'use server' 文件里，客户端表单 import 它来渲染下拉选项
+- 影响：tsc --noEmit 通过，首屏直接 Runtime TypeError，整页白屏
+- 根因：Next 把 'use server' 模块的每个导出都打成 server reference，客户端拿到的不是数组
+- 新规则：'use server' 文件只导出 async 函数；任何需要 server 和 client 共享的常量/类型另起普通模块
+- 防复发检查项：改完 server action 后必须在浏览器里真的打开一次页面，不能只跑 tsc
+- 示例（正确做法）：常量放 src/lib/marketing/beta-signup-options.ts，server action 和客户端组件都从那里 import
+- 生效日期：2026-09-15

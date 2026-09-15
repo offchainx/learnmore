@@ -322,6 +322,57 @@ html:not(.dark) :is(.marketing-shell, .auth-shell) :is([class*='text-white/']) {
   color: hsl(var(--text-disabled));
 }
 
+/* 上面那层改写只认纯色的 bg- 和 text- 工具类，漏掉三类东西。浅色主题是这个站点唯一
+   实际渲染的主题（layout 里 forcedTheme="light"），所以漏掉的每一类都是线上真实问题：
+
+   1) 写死的深色渐变面板。报名卡片实测算出来的背景是 rgb(2,6,23)，而文字被改写成
+      rgb(15,23,41) —— 对比度约 1.05:1，就是「深色渐变上压深色文字」那条。
+   2) 品牌蓝 / 翠绿 / 红这些强调色文字：blue-300 在白底上约 1.9:1，
+      报名成功提示的 emerald-100 在浅绿底上几乎看不见。
+   3) bg-blue-500 配白字的按钮只有 3.68:1；16px 粗体不算「大字号」，仍然要 4.5:1。 */
+
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  [class*='via-slate-950'] {
+  background-image: linear-gradient(
+    to bottom right,
+    hsl(var(--surface-subtle)),
+    hsl(var(--surface-default)) 55%,
+    hsl(var(--surface-subtle))
+  );
+}
+
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='text-blue-2'], [class*='text-blue-3'], [class*='text-blue-4']) {
+  color: hsl(221 83% 41%);
+}
+
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='text-emerald-1'], [class*='text-emerald-2']) {
+  color: hsl(163 88% 20%);
+}
+
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is([class*='text-red-2'], [class*='text-red-3']) {
+  color: hsl(0 74% 38%);
+}
+
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is(a, button)[class*='bg-blue-500'] {
+  background-color: hsl(221 83% 45%);
+  color: #fff;
+}
+
+html:not(.dark)
+  :is(.marketing-shell, .auth-shell)
+  :is(a, button)[class*='bg-blue-500']:hover {
+  background-color: hsl(221 83% 37%);
+}
+
 html:not(.dark)
   :is(.marketing-shell, .auth-shell)
   :is(

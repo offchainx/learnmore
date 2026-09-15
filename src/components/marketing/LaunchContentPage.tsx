@@ -328,7 +328,7 @@ export function LaunchContentPage({ kind }: { kind: LaunchContentPageKind }) {
           ))}
         </section>
 
-        <p className="mt-10 flex items-center gap-2 text-sm text-slate-500">
+        <p className="mt-10 flex items-center gap-2 text-sm text-slate-400">
           <Clock3 className="h-4 w-4" />
           {locale === 'zh' ? '内容会随内测进展更新。' : 'Content will be updated as the beta progresses.'}
         </p>
@@ -358,35 +358,52 @@ function LaunchHomePage({ locale, onToggleLang }: { locale: 'en' | 'zh'; onToggl
         ['Progress', 'Let every effort become lasting growth'],
       ]
 
+  // 首屏自我识别标签：让独中生和独中家长一眼判断这是不是给自己的。
+  const audienceTags = isZh
+    ? ['马来西亚华文独中', 'UEC 初中统考', '初一 · 初二 · 初三', '数学 · 科学 · 历史 · 地理']
+    : ['Independent Chinese Schools', 'UEC 初中统考', 'Junior 1–3', 'Maths · Science · History · Geography']
+
   return (
     <div className="marketing-shell min-h-screen overflow-x-hidden bg-[#020617] font-sans text-white">
       <Navbar lang={locale} onToggleLang={onToggleLang} />
       <main>
-        <section className="relative mx-auto flex min-h-[min(760px,100vh)] max-w-6xl items-center px-5 pb-20 pt-32 sm:px-8 lg:px-12">
+        <section className="relative mx-auto flex max-w-6xl items-start px-5 pb-16 pt-8 tablet:min-h-[min(760px,100vh)] tablet:items-center tablet:px-8 tablet:pb-20 tablet:pt-32 desktop:px-12">
           <div className="max-w-3xl">
-            <div className="mb-7 flex items-center gap-2 text-xs font-bold tracking-[0.22em] text-blue-300">
-              <Smartphone className="h-4 w-4" />
-              {isZh ? 'LEARNBANK · 移动端内测' : 'LEARNBANK · MOBILE BETA'}
+            <div className="mb-6 flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-blue-300">
+              <Smartphone className="h-4 w-4 shrink-0" />
+              <span>{isZh ? '马来西亚华文独中 · UEC 初中统考' : 'MALAYSIAN INDEPENDENT CHINESE SCHOOLS · UEC'}</span>
             </div>
-            <h1 className="text-5xl font-bold leading-[1.08] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">
-              {isZh ? '让努力沉淀为能力。' : 'Let effort become ability.'}
+            <h1 className="text-[2.1rem] font-bold leading-[1.15] tracking-[-0.03em] text-white tablet:text-6xl desktop:text-7xl">
+              {isZh ? '独中生的初中统考备考 App。' : 'Built for UEC Junior Middle students.'}
             </h1>
-            <p className="mt-8 max-w-2xl text-lg leading-relaxed text-slate-300 sm:text-xl">
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-300 tablet:mt-7 tablet:text-xl">
               {isZh
-                ? '当练习、理解、复盘与进度被连接起来，学习才会真正向前。Learnbank 正在为学生准备这样一条清晰、持续的移动学习路径。'
-                : 'When practice, understanding, review and progress stay connected, learning can truly move forward. Learnbank is building that clear, continuous path for students.'}
+                ? 'Learnbank 按华文独中初中统考（UEC）考纲整理数学、科学、历史、地理的练习与笔记，把练习、错题和复盘放在同一条路径上。'
+                : 'Learnbank organises practice and notes for Mathematics, Science, History and Geography against the UEC Junior Middle syllabus used by Malaysian Independent Chinese Secondary Schools.'}
             </p>
-            <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <ul className="mt-7 flex flex-wrap gap-2">
+              {audienceTags.map((tag) => (
+                <li
+                  key={tag}
+                  className="rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm font-medium text-slate-100"
+                >
+                  {tag}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-9">
               <a
                 href="#beta"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-500 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-blue-400"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-500 px-7 py-4 text-base font-bold text-white transition-colors hover:bg-blue-400 tablet:w-auto tablet:py-3.5 tablet:text-sm"
               >
-                {isZh ? '加入内测' : 'Join the beta'}
+                {isZh ? '报名内测' : 'Sign up for the beta'}
                 <ArrowRight className="h-4 w-4" />
               </a>
-              <a href="#learning-loop" className="inline-flex items-center justify-center px-4 py-3 text-sm font-semibold text-slate-300 transition-colors hover:text-white">
-                {isZh ? '了解学习路径' : 'Explore the learning path'}
-              </a>
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">
+                {isZh
+                  ? 'App 还没有上架 App Store 与 Google Play。现在开放的是内测报名——留个邮箱，内测开放时我们发邮件通知你。'
+                  : 'The app is not yet on the App Store or Google Play. What is open now is beta sign-up — leave an email and we will notify you when the beta opens.'}
+              </p>
             </div>
           </div>
         </section>
@@ -487,7 +504,7 @@ function LaunchHomePage({ locale, onToggleLang }: { locale: 'en' | 'zh'; onToggl
                     ? 'Learnbank Pro 将提供一套更完整、更持续的学习体验：让练习、错题、笔记、复盘和进度保持在同一条学习路径上。'
                     : 'Learnbank Pro will offer a more complete, continuous learning experience—keeping practice, mistakes, notes, review and progress on one learning path.'}
                 </p>
-                <p className="mt-5 text-base leading-relaxed text-slate-500">
+                <p className="mt-5 text-base leading-relaxed text-slate-400">
                   {isZh ? '订阅方案与开放时间将随内测进展确认；首发阶段不会在网站收取付款。' : 'Subscription details and availability will be confirmed as beta testing progresses. This website will not collect payments at launch.'}
                 </p>
               </div>
@@ -495,19 +512,19 @@ function LaunchHomePage({ locale, onToggleLang }: { locale: 'en' | 'zh'; onToggl
           </div>
         </section>
 
-        <section id="beta" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
-          <div className="rounded-[2rem] border border-blue-400/20 bg-gradient-to-br from-blue-500/20 via-slate-950 to-indigo-500/15 px-7 py-14 sm:px-12 sm:py-20">
+        <section id="beta" className="mx-auto max-w-6xl px-5 py-20 tablet:px-8 tablet:py-32 desktop:px-12">
+          <div className="rounded-[2rem] border border-blue-400/30 bg-gradient-to-br from-blue-500/10 via-slate-950 to-indigo-500/10 px-6 py-12 tablet:px-12 tablet:py-20">
             <p className="text-sm font-bold tracking-[0.2em] text-blue-300">06 · BETA</p>
-            <h2 className="mt-7 max-w-3xl text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl">
-              {isZh ? '加入首批内测，一起把第一版做好。' : 'Join the first beta and help make the first version count.'}
+            <h2 className="mt-6 max-w-3xl text-[1.75rem] font-bold leading-tight tracking-[-0.02em] tablet:mt-7 tablet:text-5xl">
+              {isZh ? '报名首批内测，一起把第一版做好。' : 'Sign up for the first beta and help make the first version count.'}
             </h2>
-            <p className="mt-7 max-w-2xl text-lg leading-relaxed text-slate-300">
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-200 tablet:mt-7 tablet:text-lg">
               {isZh
-                ? 'Learnbank 正在准备 iOS 与 Android 首批内测。内测开放后，报名只会收集邮箱、设备类型和测试意愿。'
-                : 'Learnbank is preparing its first iOS and Android beta. When sign-up opens, we will collect only an email address, device type and testing interest.'}
+                ? '独中生和独中家长都可以报名。Learnbank 正在准备 iOS 与 Android 首批内测，报名只收集邮箱、设备类型和测试意愿——不收集姓名、学校、年龄或成绩。'
+                : 'Students and parents are both welcome. Learnbank is preparing its first iOS and Android beta; sign-up collects only an email address, device type and testing interest — no name, school, age or grades.'}
             </p>
             <BetaSignupForm locale={locale} />
-            <p className="mt-6 text-sm text-slate-500">
+            <p className="mt-6 text-sm text-slate-300">
               {isZh ? `有问题？请联系 ${marketingSiteConfig.supportEmail}` : `Questions? Contact ${marketingSiteConfig.supportEmail}`}
             </p>
           </div>
