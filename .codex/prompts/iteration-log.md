@@ -168,4 +168,6 @@
 
 | 2026-09-24 | Learnbank.ai 预览手机导航修正 | 预览检查发现官网手机页叠加旧 Web App 的 Learnbank Pro 顶栏 | 官网三页手机端隐藏旧顶栏，仅保留 Learnbank.ai 导航；App 登录页原顶栏保持可见；lint、生产构建和 390px 浏览器检查通过 | 使用官网壳选择器定向隐藏旧顶栏，保留现有顶部留白抵消逻辑 | 初次同时去掉根布局 padding 导致官网导航上移，已撤销此部分 | - | 推送预览分支并核对 Vercel 新构建，然后发布正式域名 |
 
+| 2026-09-24 | Learnbank 官网 iOS 滚动修复 | 手机访问 learnbank.ai 无法向下滑动 | 修正 WebKit 规则对官网 body 的固定定位与隐藏溢出；WebKit 手机尺寸验证首页、科目、价格页可滚动 | 定位到旧 Pages Router 的 #__next 滚动容器规则与 App Router 不匹配 | 真实 iPhone 仍需上线后由用户复核触摸体验 | 官网在 WebKit 下恢复文档滚动，不影响其他 App 路由 | 预览与正式部署后核对页面 |
+
 ## 约束

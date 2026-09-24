@@ -577,6 +577,12 @@ html:not(.dark)
     height: 100%;
     -webkit-overflow-scrolling: touch;
   }
+  /* App Router 没有 #__next；官网需要让文档本身在 iOS 上正常滚动。 */
+  body:has(.landing-r2-shell) {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
 }
 
 .no-select {
