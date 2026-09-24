@@ -8,7 +8,7 @@ type Section = { title: string; body: ReactNode }
 const privacySections: Section[] = [
   {
     title: '1. Scope',
-    body: 'This policy applies to the Learnbank website, mobile beta programme and related learner services. It explains the information Learnbank collects and how to contact us about it.',
+    body: 'This policy applies to the Learnbank.ai website, mobile beta programme and related learner services. It explains the information Learnbank.ai collects and how to contact us about it.',
   },
   {
     title: '2. Beta sign-up information',
@@ -20,11 +20,11 @@ const privacySections: Section[] = [
   },
   {
     title: '4. App data and third parties',
-    body: 'If you use the mobile app, Learnbank may process the account, learning and device information needed to provide its features. App subscriptions are processed by Apple App Store or Google Play; Learnbank does not receive card details. Any additional service providers will receive only the information needed for their role.',
+    body: 'If you use the mobile app, Learnbank.ai may process the account, learning and device information needed to provide its features. App subscriptions are processed by Apple App Store or Google Play; Learnbank.ai does not receive card details. Any additional service providers will receive only the information needed for their role.',
   },
   {
     title: '5. Account deletion (mobile app)',
-    body: 'You may request deletion of your Learnbank account at any time from within the mobile app (Profile → Settings). Submitting a request begins a 7-day cooling-off period, during which signing back in cancels the deletion. After 7 days, your account and all associated data are permanently deleted.',
+    body: 'You may request deletion of your Learnbank.ai account at any time from within the mobile app (Profile → Settings). Submitting a request begins a 7-day cooling-off period, during which signing back in cancels the deletion. After 7 days, your account and all associated data are permanently deleted.',
   },
   {
     title: '6. Your choices',
@@ -35,15 +35,15 @@ const privacySections: Section[] = [
 const termsSections: Section[] = [
   {
     title: '1. Beta availability',
-    body: 'Learnbank is preparing a mobile beta. Access may be limited, changed or withdrawn while features and content are tested. The website does not promise admission to the beta or a particular product outcome.',
+    body: 'Learnbank.ai is preparing a mobile beta. Access may be limited, changed or withdrawn while features and content are tested. The website does not promise admission to the beta or a particular product outcome.',
   },
   {
     title: '2. Learning use',
-    body: 'Use Learnbank for personal study, revision and understanding. Do not use the service to cheat, disrupt the service, infringe others’ rights or attempt unauthorised access.',
+    body: 'Use Learnbank.ai for personal study, revision and understanding. Do not use the service to cheat, disrupt the service, infringe others’ rights or attempt unauthorised access.',
   },
   {
     title: '3. Pro subscription',
-    body: 'Where Pro subscriptions are offered, they are purchased and managed inside the Learnbank mobile app through Apple App Store or Google Play. Store pricing, renewal, cancellation and refund terms shown at purchase apply.',
+    body: 'Where Pro subscriptions are offered, they are purchased and managed inside the Learnbank.ai mobile app through Apple App Store or Google Play. Store pricing, renewal, cancellation and refund terms shown at purchase apply.',
   },
   {
     title: '4. Learning and AI boundaries',
@@ -51,7 +51,7 @@ const termsSections: Section[] = [
   },
   {
     title: '5. Contact and changes',
-    body: `Learnbank may update these terms as the service develops. For questions, contact ${marketingSiteConfig.supportEmail}.`,
+    body: `Learnbank.ai may update these terms as the service develops. For questions, contact ${marketingSiteConfig.supportEmail}.`,
   },
 ]
 
@@ -59,8 +59,8 @@ export function LaunchLegalPage({ kind }: { kind: 'privacy' | 'terms' }) {
   const isPrivacy = kind === 'privacy'
   const title = isPrivacy ? 'Privacy Policy' : 'Terms of Service'
   const intro = isPrivacy
-    ? 'How Learnbank handles information for its website, mobile beta and related learner services.'
-    : 'The terms for using the Learnbank website, mobile beta and related learner services.'
+    ? 'How Learnbank.ai handles information for its website, mobile beta and related learner services.'
+    : 'The terms for using the Learnbank.ai website, mobile beta and related learner services.'
   const sections = isPrivacy ? privacySections : termsSections
 
   return (
@@ -69,7 +69,7 @@ export function LaunchLegalPage({ kind }: { kind: 'privacy' | 'terms' }) {
       <main className="mx-auto max-w-4xl px-4 pb-20 pt-32 sm:px-6">
         <h1 className="text-4xl font-bold">{title}</h1>
         <p className="mt-4 text-lg leading-relaxed text-slate-400">{intro}</p>
-        <p className="mt-4 text-sm text-slate-500">Effective date: 21 July 2026 · Learnbank</p>
+        <p className="mt-4 text-sm text-slate-500">Effective date: 21 July 2026 · Learnbank.ai</p>
         <div className="mt-10 space-y-5">
           {sections.map((section) => (
             <section key={section.title} className="rounded-3xl border border-slate-800 bg-slate-900/40 p-7">

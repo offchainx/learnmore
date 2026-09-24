@@ -1,9 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { BookOpen, Sparkles } from 'lucide-react'
 
 export function MobileHeader() {
+  const pathname = usePathname()
+  // 首页由 R2 官网导航统一处理，避免出现两个移动端 header。
+  if (pathname === '/' || pathname === '/pricing' || pathname === '/subjects') return null
+
   return (
     <header className="fixed top-0 left-0 right-0 z-40 tablet:hidden bg-background/95 backdrop-blur-sm border-b border-border pt-safe-top">
       <div className="flex items-center justify-between h-14 px-4">

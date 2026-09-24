@@ -164,4 +164,6 @@
 
 | 2026-09-15 | learnbank.ai 绑定 + 内测报名链路（首屏受众/单一CTA/对比度/Cookie/来源归因/UTM） | 把 learnbank.ai 配好，并让收集种子用户意向这条链路在手机上真正能用；app 两端都没上架，网站唯一转化目标是内测报名 | learnbank.ai + www 已绑到本项目、证书签发、两个 IP 实测 200；.net 与 www 全部 301 到 .ai 且 /privacy /terms 跟随跳转仍 200。首屏写出独中/UEC/初一至初三受众信号；navbar 与首屏收成唯一 CTA 报名内测；marketing 路由不再渲染 BottomTabBar；Cookie 横幅压成一行且滑过首屏才出现；表单新增来源字段并接住 ?utm_source=，两者写入 beta_signups（迁移 20260915112446） | 先在浏览器里实测计算对比度，而不是靠看配色猜：报名卡片实测背景 rgb(2,6,23) 文字 rgb(15,23,41)，1.05:1，定位到根因是 globals.css 的浅色改写层不处理 gradient | 常量放在 'use server' 文件里导出，客户端拿到的是 server reference，tsc 过但运行时炸 REFERRAL_SOURCES.map is not a function；CSS 注释里写 bg-*/text-* 把注释提前闭合，整份 globals.css 解析失败 500 | 新增 src/lib/marketing/beta-signup-options.ts 放跨 server/client 的闭集常量；globals.css 补上 gradient/强调色/蓝底按钮三类浅色规则，全页实测 0 处低于 4.5:1 | 观察 beta_signups 的 referral_source / utm_source 分布，确认三个平台投放各带来多少报名 |
 
+| 2026-09-24 | Learnbank.ai 官网预览部署准备 | 将 localhost:3100 当前 landing page 完整发布前先制作 Vercel 预览 | 已整理当前官网页面与素材到独立分支，ESLint、Next.js 生产构建和 TypeScript 通过；待 Vercel 预览及页面核验 | 复用现有 GitHub 与 Vercel 项目绑定，确认预览和生产均有报名环境变量 | pnpm 本机依赖目录校验中断标准命令，使用现有 node_modules 直接完成检查 | - | 推送预览分支，核验页面和报名表单后再考虑生产发布 |
+
 ## 约束

@@ -1,20 +1,20 @@
 export type MarketingLocale = 'en' | 'zh' | 'ms'
 
 export const marketingSiteConfig = {
-  brandName: 'Learnbank',
+  brandName: 'Learnbank.ai',
   siteUrl: 'https://learnbank.ai',
-  supportEmail: 'help@learnbank.net',
+  supportEmail: 'help@learnbank.ai',
 } as const
 
 const footerRightsByLocale: Record<MarketingLocale, string> = {
-  en: '© 2026 Learnbank. All rights reserved.',
-  zh: '© 2026 Learnbank. 保留所有权利。',
-  ms: '© 2026 Learnbank. Hak cipta terpelihara。',
+  en: '© 2026 Learnbank.ai. All rights reserved.',
+  zh: '© 2026 Learnbank.ai. 保留所有权利。',
+  ms: '© 2026 Learnbank.ai. Hak cipta terpelihara。',
 }
 
 const brandDescriptionByLocale: Record<MarketingLocale, string> = {
   en: 'Empowering the next generation of learners with AI-driven insights and adaptive pathways.',
-  zh: '以 AI 驱动洞察与自适应学习路径，帮助新一代学习者持续成长。',
+  zh: '把学过的、练过的，一步步变成自己的积累。',
   ms: 'Memperkasa generasi pelajar seterusnya dengan wawasan berasaskan AI dan laluan pembelajaran adaptif.',
 }
 

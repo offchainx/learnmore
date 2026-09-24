@@ -1,9 +1,14 @@
 'use client'
 
+import { editorial } from './typography'
+import { LearningJourney } from './LearningJourney'
+import { ParentsStorySection, SubjectsStorySection } from './SelectedStorySections'
+import { LandingFinalSections } from './LandingFinalSections'
+
 import { ArrowRight, BookOpen, CircleCheck, Clock3, Mail, Smartphone } from 'lucide-react'
 import { Navbar } from '@/components/layout/navbar'
 import { MarketingFullFooter } from '@/components/marketing/MarketingFullFooter'
-import { BetaSignupForm } from '@/components/marketing/BetaSignupForm'
+import { LandingHeader, LandingHero } from '@/components/marketing/LandingHero'
 import { useApp } from '@/providers'
 import { marketingSiteConfig, resolveMarketingLocale } from '@/lib/marketing/site-shell'
 
@@ -29,18 +34,18 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
     home: {
       eyebrow: 'MOBILE BETA · IOS & ANDROID',
       title: 'A clearer place to practise, review and keep going.',
-      intro: 'Learnbank is preparing a mobile learning app for students. The first beta focuses on Mathematics, Science, History and Geography, with practice, review and learning notes tested in small steps.',
+      intro: 'Learnbank.ai is preparing a mobile learning app for students. The first beta focuses on Mathematics, Science, History and Geography, with practice, review and learning notes tested in small steps.',
       sections: [
-        { title: 'Built for mobile first', body: 'Learnbank is currently focused on iOS and Android. A public web app is not part of this launch.' },
+        { title: 'Built for mobile first', body: 'Learnbank.ai is currently focused on iOS and Android. A public web app is not part of this launch.' },
         { title: 'A deliberate beta scope', body: 'Features and subject availability may change during testing. We will share only what is ready for a real beta preview.' },
         { title: 'Pro, when it is ready', body: 'Pro is planned as an in-app subscription: RM 99 per month or RM 990 per year. This website does not collect payment.' },
       ],
     },
     about: {
-      eyebrow: 'ABOUT LEARNBANK',
+      eyebrow: 'ABOUT Learnbank.ai',
       title: 'Building a calmer way to practise and review.',
       intro:
-        'Learnbank is preparing a mobile learning app for students. We are currently validating the first experience with a small iOS and Android beta group.',
+        'Learnbank.ai is preparing a mobile learning app for students. We are currently validating the first experience with a small iOS and Android beta group.',
       sections: [
         {
           title: 'What we are building',
@@ -56,7 +61,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       eyebrow: 'BETA PREVIEW',
       title: 'A simple learning loop, tested on mobile first.',
       intro:
-        'The initial Learnbank beta focuses on helping learners practise, understand mistakes and return to the right material. It is not a promise of automated grade improvement.',
+        'The initial Learnbank.ai beta focuses on helping learners practise, understand mistakes and return to the right material. It is not a promise of automated grade improvement.',
       sections: [
         {
           title: '1. Choose a subject and practise',
@@ -80,7 +85,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       sections: [
         {
           title: 'Current focus',
-          body: 'Mathematics, Science, History and Geography are the four subjects currently planned for the initial Learnbank beta.',
+          body: 'Mathematics, Science, History and Geography are the four subjects currently planned for the initial Learnbank.ai beta.',
           points: ['Mathematics', 'Science', 'History', 'Geography'],
         },
         {
@@ -93,7 +98,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       eyebrow: 'STUDY RESOURCES',
       title: 'Useful study guidance, published when verified.',
       intro:
-        'Learnbank is preparing learning resources alongside the app. We will not present untested product flows as if they are already available.',
+        'Learnbank.ai is preparing learning resources alongside the app. We will not present untested product flows as if they are already available.',
       sections: [
         {
           title: 'During beta',
@@ -125,7 +130,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       eyebrow: 'DEVELOPMENT UPDATES',
       title: 'No invented success stories.',
       intro:
-        'Learnbank is still in its initial beta stage. We do not yet publish student quotes, outcome statistics, before-and-after grades or video testimonials.',
+        'Learnbank.ai is still in its initial beta stage. We do not yet publish student quotes, outcome statistics, before-and-after grades or video testimonials.',
       sections: [
         {
           title: 'What you will find here instead',
@@ -138,10 +143,10 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       ],
     },
     updates: {
-      eyebrow: 'LEARNBANK UPDATES',
+      eyebrow: 'Learnbank.ai UPDATES',
       title: 'Product updates will appear here.',
       intro:
-        'We are preparing the first Learnbank mobile beta. Until we have verified updates to share, this page intentionally does not display generated articles or community claims.',
+        'We are preparing the first Learnbank.ai mobile beta. Until we have verified updates to share, this page intentionally does not display generated articles or community claims.',
       sections: [
         {
           title: 'What we will publish',
@@ -158,18 +163,18 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
     home: {
       eyebrow: '移动端内测 · IOS 与 ANDROID',
       title: '让练习、复盘与持续学习更清晰。',
-      intro: 'Learnbank 正在准备一款面向学生的移动学习 App。首批内测围绕数学、科学、历史和地理，逐步验证练习、复盘与学习笔记体验。',
+      intro: 'Learnbank.ai 正在准备一款面向学生的移动学习 App。首批内测围绕数学、科学、历史和地理，逐步验证练习、复盘与学习笔记体验。',
       sections: [
-        { title: '移动端优先', body: 'Learnbank 当前聚焦 iOS 与 Android；公开 Web App 不在本次首发范围内。' },
+        { title: '移动端优先', body: 'Learnbank.ai 当前聚焦 iOS 与 Android；公开 Web App 不在本次首发范围内。' },
         { title: '有意收缩的内测范围', body: '功能和科目可用性会随测试调整；我们只会发布已准备好进行真实内测预览的内容。' },
         { title: 'Pro 订阅', body: 'Pro 计划采用 App 内订阅：月订 RM 99，年订 RM 990。本网站不会收取付款。' },
       ],
     },
     about: {
-      eyebrow: '关于 LEARNBANK',
+      eyebrow: '关于 Learnbank.ai',
       title: '为练习与复习打造更平静、更清晰的体验。',
       intro:
-        'Learnbank 正在准备一款面向学生的移动学习 App。目前我们正与小范围 iOS 和 Android 内测用户验证第一版体验。',
+        'Learnbank.ai 正在准备一款面向学生的移动学习 App。目前我们正与小范围 iOS 和 Android 内测用户验证第一版体验。',
       sections: [
         {
           title: '我们正在做什么',
@@ -185,7 +190,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       eyebrow: '内测预览',
       title: '先在移动端验证一条简单的学习闭环。',
       intro:
-        'Learnbank 首批内测聚焦于练习、理解错题和回到需要复习的内容；它不承诺自动提升成绩。',
+        'Learnbank.ai 首批内测聚焦于练习、理解错题和回到需要复习的内容；它不承诺自动提升成绩。',
       sections: [
         {
           title: '1. 选择科目并开始练习',
@@ -208,7 +213,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       sections: [
         {
           title: '当前方向',
-          body: 'Learnbank 首批内测计划覆盖数学、科学、历史和地理四个科目。',
+          body: 'Learnbank.ai 首批内测计划覆盖数学、科学、历史和地理四个科目。',
           points: ['数学', '科学', '历史', '地理'],
         },
         {
@@ -220,7 +225,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
     'study-guides': {
       eyebrow: '学习资源',
       title: '只发布已经核实的学习建议。',
-      intro: 'Learnbank 会与 App 一起逐步准备学习资源，不会把尚未开放的产品流程包装成已经可用的功能。',
+      intro: 'Learnbank.ai 会与 App 一起逐步准备学习资源，不会把尚未开放的产品流程包装成已经可用的功能。',
       sections: [
         {
           title: '内测期间',
@@ -250,7 +255,7 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
     'success-stories': {
       eyebrow: '开发进展',
       title: '不使用虚构成功案例。',
-      intro: 'Learnbank 仍处于首批内测阶段，目前不会发布学生评价、效果数据、前后成绩对比或视频访谈。',
+      intro: 'Learnbank.ai 仍处于首批内测阶段，目前不会发布学生评价、效果数据、前后成绩对比或视频访谈。',
       sections: [
         {
           title: '这里将展示什么',
@@ -263,9 +268,9 @@ const copy: Record<'en' | 'zh', Record<LaunchContentPageKind, LaunchPageCopy>> =
       ],
     },
     updates: {
-      eyebrow: 'LEARNBANK 更新',
+      eyebrow: 'Learnbank.ai 更新',
       title: '产品更新将在这里发布。',
-      intro: '我们正在准备 Learnbank 移动端首批内测。在有经过验证的内容前，本页不会展示自动生成的文章或社区成果。',
+      intro: '我们正在准备 Learnbank.ai 移动端首批内测。在有经过验证的内容前，本页不会展示自动生成的文章或社区成果。',
       sections: [
         {
           title: '我们会发布什么',
@@ -287,8 +292,10 @@ export function LaunchContentPage({ kind }: { kind: LaunchContentPageKind }) {
 
   const toggleLang = () => setLang(locale === 'zh' ? 'en' : 'zh')
 
+  if (kind === 'subjects') return <LaunchSubjectsPage />
+
   if (kind === 'home') {
-    return <LaunchHomePage locale={locale} onToggleLang={toggleLang} />
+    return <LaunchHomePage />
   }
 
   return (
@@ -342,195 +349,27 @@ export function LaunchContentPage({ kind }: { kind: LaunchContentPageKind }) {
   )
 }
 
-function LaunchHomePage({ locale, onToggleLang }: { locale: 'en' | 'zh'; onToggleLang: () => void }) {
-  const isZh = locale === 'zh'
-  const steps = isZh
-    ? [
-        ['练习', '记录当下的理解'],
-        ['理解', '看见答案背后的原因'],
-        ['复盘', '回到真正需要加强的地方'],
-        ['前进', '让每一次投入汇成长期成长'],
-      ]
-    : [
-        ['Practise', 'Capture what you understand now'],
-        ['Understand', 'See the reason behind each answer'],
-        ['Review', 'Return to what deserves more attention'],
-        ['Progress', 'Let every effort become lasting growth'],
-      ]
-
-  // 首屏自我识别标签：让独中生和独中家长一眼判断这是不是给自己的。
-  const audienceTags = isZh
-    ? ['马来西亚华文独中', 'UEC 初中统考', '初一 · 初二 · 初三', '数学 · 科学 · 历史 · 地理']
-    : ['Independent Chinese Schools', 'UEC 初中统考', 'Junior 1–3', 'Maths · Science · History · Geography']
-
+function LaunchSubjectsPage() {
   return (
-    <div className="marketing-shell min-h-screen overflow-x-hidden bg-[#020617] font-sans text-white">
-      <Navbar lang={locale} onToggleLang={onToggleLang} />
-      <main>
-        <section className="relative mx-auto flex max-w-6xl items-start px-5 pb-16 pt-8 tablet:min-h-[min(760px,100vh)] tablet:items-center tablet:px-8 tablet:pb-20 tablet:pt-32 desktop:px-12">
-          <div className="max-w-3xl">
-            <div className="mb-6 flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-blue-300">
-              <Smartphone className="h-4 w-4 shrink-0" />
-              <span>{isZh ? '马来西亚华文独中 · UEC 初中统考' : 'MALAYSIAN INDEPENDENT CHINESE SCHOOLS · UEC'}</span>
-            </div>
-            <h1 className="text-[2.1rem] font-bold leading-[1.15] tracking-[-0.03em] text-white tablet:text-6xl desktop:text-7xl">
-              {isZh ? '独中生的初中统考备考 App。' : 'Built for UEC Junior Middle students.'}
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-300 tablet:mt-7 tablet:text-xl">
-              {isZh
-                ? 'Learnbank 按华文独中初中统考（UEC）考纲整理数学、科学、历史、地理的练习与笔记，把练习、错题和复盘放在同一条路径上。'
-                : 'Learnbank organises practice and notes for Mathematics, Science, History and Geography against the UEC Junior Middle syllabus used by Malaysian Independent Chinese Secondary Schools.'}
-            </p>
-            <ul className="mt-7 flex flex-wrap gap-2">
-              {audienceTags.map((tag) => (
-                <li
-                  key={tag}
-                  className="rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm font-medium text-slate-100"
-                >
-                  {tag}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-9">
-              <a
-                href="#beta"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-500 px-7 py-4 text-base font-bold text-white transition-colors hover:bg-blue-400 tablet:w-auto tablet:py-3.5 tablet:text-sm"
-              >
-                {isZh ? '报名内测' : 'Sign up for the beta'}
-                <ArrowRight className="h-4 w-4" />
-              </a>
-              <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">
-                {isZh
-                  ? 'App 还没有上架 App Store 与 Google Play。现在开放的是内测报名——留个邮箱，内测开放时我们发邮件通知你。'
-                  : 'The app is not yet on the App Store or Google Play. What is open now is beta sign-up — leave an email and we will notify you when the beta opens.'}
-              </p>
-            </div>
-          </div>
-        </section>
+    <div className={`${editorial.variable} landing-r2-shell marketing-shell min-h-screen bg-[#fffaf0] font-sans`}>
+      <LandingHeader home={false} />
+      <main id="main-content"><SubjectsStorySection /></main>
+      <MarketingFullFooter locale="zh" />
+    </div>
+  )
+}
 
-        <section className="border-y border-white/10 bg-slate-950/70 px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
-          <div className="mx-auto max-w-6xl">
-            <p className="text-sm font-bold tracking-[0.2em] text-blue-300">01</p>
-            <div className="mt-7 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-              <h2 className="max-w-3xl text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl">
-                {isZh ? '许多努力，值得被看见、被理解，也值得有下一步。' : 'Every effort deserves to be seen, understood and carried forward.'}
-              </h2>
-              <p className="max-w-xl text-lg leading-relaxed text-slate-400">
-                {isZh
-                  ? '学生每天都在投入时间。真正决定学习能否持续向前的，是练习结束之后：哪些内容已经掌握，哪些问题值得再回来，下一步该从哪里开始。'
-                  : 'Students put in time every day. What keeps learning moving is what happens after practice: knowing what is understood, what deserves a return, and where to begin next.'}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section id="learning-loop" className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
-          <p className="text-sm font-bold tracking-[0.2em] text-blue-300">02</p>
-          <h2 className="mt-7 max-w-3xl text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl">
-            {isZh ? '学习，需要一条能持续向前的路径。' : 'Learning needs a path that keeps moving forward.'}
-          </h2>
-          <p className="mt-7 max-w-2xl text-lg leading-relaxed text-slate-400">
-            {isZh
-              ? 'Learnbank 将每一次练习留在同一条路径里，让理解可以被回看、让复盘知道从哪里开始、让进度拥有真实的积累。'
-              : 'Learnbank keeps every practice session on one path—so understanding can be revisited, review can begin in the right place, and progress can become real accumulation.'}
-          </p>
-          <div className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map(([title, body], index) => (
-              <article key={title} className="min-h-52 bg-[#020617] p-7 sm:p-8">
-                <span className="text-sm font-semibold text-blue-300">0{index + 1}</span>
-                <h3 className="mt-9 text-2xl font-bold">{title}</h3>
-                <p className="mt-3 leading-relaxed text-slate-400">{body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="border-y border-white/10 bg-slate-950/70 px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
-          <div className="mx-auto max-w-6xl">
-            <p className="text-sm font-bold tracking-[0.2em] text-blue-300">03</p>
-            <div className="mt-7 grid gap-12 lg:grid-cols-[0.85fr_1.15fr]">
-              <h2 className="text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl">
-                {isZh ? '每一次打开，都从当下最需要的地方开始。' : 'Each session begins where it matters most now.'}
-              </h2>
-              <div className="space-y-7 text-lg leading-relaxed text-slate-400">
-                <p>
-                  {isZh
-                    ? '首批内测将围绕一条简单、专注的流程展开：选择当前科目，完成练习，通过答案解析理解关键点，再把需要加强的内容带回下一次复盘。'
-                    : 'The first beta explores a simple, focused flow: choose a subject, practise, use explanations to understand key ideas, then carry what needs attention into the next review.'}
-                </p>
-                <p>
-                  {isZh
-                    ? '题目、错题、笔记与进度会围绕同一个学习目标协作，帮助学生在日常投入里持续建立自己的学习节奏。'
-                    : 'Questions, mistakes, notes and progress work around one learning goal—helping students build their own rhythm through everyday effort.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
-          <p className="text-sm font-bold tracking-[0.2em] text-blue-300">04</p>
-          <h2 className="mt-7 max-w-3xl text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl">
-            {isZh ? '学生看见方向，家长看见成长。' : 'Students see direction. Parents see growth.'}
-          </h2>
-          <div className="mt-14 grid gap-5 lg:grid-cols-2">
-            <article className="rounded-3xl border border-white/10 bg-slate-900/40 p-8 sm:p-10">
-              <p className="text-sm font-bold tracking-[0.16em] text-blue-300">{isZh ? '给学生' : 'FOR STUDENTS'}</p>
-              <h3 className="mt-6 text-3xl font-bold">{isZh ? '知道此刻该做什么。' : 'Know what to do next.'}</h3>
-              <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-400">
-                {isZh ? '从练习到复盘，每一步都更有依据。学习不必被零散任务拉扯，而是可以围绕真正需要加强的内容慢慢向前。' : 'From practice to review, every step has more context. Learning can move around what needs attention instead of being pulled apart by disconnected tasks.'}
-              </p>
-            </article>
-            <article className="rounded-3xl border border-white/10 bg-slate-900/40 p-8 sm:p-10">
-              <p className="text-sm font-bold tracking-[0.16em] text-blue-300">{isZh ? '给家长' : 'FOR PARENTS'}</p>
-              <h3 className="mt-6 text-3xl font-bold">{isZh ? '看见持续投入如何成为成长。' : 'See how steady effort becomes growth.'}</h3>
-              <p className="mt-5 max-w-lg text-lg leading-relaxed text-slate-400">
-                {isZh ? 'Learnbank 希望把学习过程梳理得更清楚：孩子正在练习什么、正在回看什么，以及一段时间以来如何持续投入。' : 'Learnbank aims to make the learning process clearer: what a child is practising, what they are returning to, and how they are building momentum over time.'}
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <section className="border-y border-white/10 bg-slate-950/70 px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
-          <div className="mx-auto max-w-6xl">
-            <p className="text-sm font-bold tracking-[0.2em] text-blue-300">05</p>
-            <div className="mt-7 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-              <h2 className="max-w-3xl text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl">
-                {isZh ? '每一次投入，都值得被认真连接。' : 'Every investment deserves to stay connected.'}
-              </h2>
-              <div>
-                <p className="text-lg leading-relaxed text-slate-400">
-                  {isZh
-                    ? 'Learnbank Pro 将提供一套更完整、更持续的学习体验：让练习、错题、笔记、复盘和进度保持在同一条学习路径上。'
-                    : 'Learnbank Pro will offer a more complete, continuous learning experience—keeping practice, mistakes, notes, review and progress on one learning path.'}
-                </p>
-                <p className="mt-5 text-base leading-relaxed text-slate-400">
-                  {isZh ? '订阅方案与开放时间将随内测进展确认；首发阶段不会在网站收取付款。' : 'Subscription details and availability will be confirmed as beta testing progresses. This website will not collect payments at launch.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="beta" className="mx-auto max-w-6xl px-5 py-20 tablet:px-8 tablet:py-32 desktop:px-12">
-          <div className="rounded-[2rem] border border-blue-400/30 bg-gradient-to-br from-blue-500/10 via-slate-950 to-indigo-500/10 px-6 py-12 tablet:px-12 tablet:py-20">
-            <p className="text-sm font-bold tracking-[0.2em] text-blue-300">06 · BETA</p>
-            <h2 className="mt-6 max-w-3xl text-[1.75rem] font-bold leading-tight tracking-[-0.02em] tablet:mt-7 tablet:text-5xl">
-              {isZh ? '报名首批内测，一起把第一版做好。' : 'Sign up for the first beta and help make the first version count.'}
-            </h2>
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-200 tablet:mt-7 tablet:text-lg">
-              {isZh
-                ? '独中生和独中家长都可以报名。Learnbank 正在准备 iOS 与 Android 首批内测，报名只收集邮箱、设备类型和测试意愿——不收集姓名、学校、年龄或成绩。'
-                : 'Students and parents are both welcome. Learnbank is preparing its first iOS and Android beta; sign-up collects only an email address, device type and testing interest — no name, school, age or grades.'}
-            </p>
-            <BetaSignupForm locale={locale} />
-            <p className="mt-6 text-sm text-slate-300">
-              {isZh ? `有问题？请联系 ${marketingSiteConfig.supportEmail}` : `Questions? Contact ${marketingSiteConfig.supportEmail}`}
-            </p>
-          </div>
-        </section>
+function LaunchHomePage() {
+  return (
+    <div className={`${editorial.variable} landing-r2-shell marketing-shell min-h-screen overflow-x-hidden bg-[#fffaf0] font-sans`}>
+      <LandingHeader />
+      <main id="main-content">
+        <LandingHero />
+        <LearningJourney />
+        <ParentsStorySection />
+        <LandingFinalSections />
       </main>
-      <MarketingFullFooter locale={resolveMarketingLocale(locale)} />
+      <MarketingFullFooter locale="zh" />
     </div>
   )
 }

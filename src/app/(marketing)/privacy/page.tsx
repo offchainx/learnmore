@@ -3,7 +3,7 @@ import { LaunchLegalPage } from '@/components/marketing/LaunchLegalPage'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'How Learnbank handles information for its website, mobile beta and related learner services.',
+  description: 'How Learnbank.ai handles information for its website, mobile beta and related learner services.',
 }
 
 export default function PrivacyPage() {

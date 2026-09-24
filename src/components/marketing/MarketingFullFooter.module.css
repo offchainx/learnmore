@@ -1,0 +1,14 @@
+.footer { color: #e4ebf5; background: #0b1931 !important; }
+.footer a:focus-visible { outline: 3px solid #86aafa; outline-offset: 5px; }
+@media(min-width:2200px) {
+  .inner { max-width: 2600px; }
+  .footer { padding-top: 130px; padding-bottom: 65px; }
+  .footer h4 { font-size: clamp(23px, .95vw, 31px); }
+  .footer p, .footer a, .footer li, .footer :global(.text-sm) { font-size: clamp(18px, .75vw, 25px); line-height: 1.8; }
+  .footer :global(.text-xl) { font-size: clamp(28px, 1.15vw, 38px); }
+}
+@media(max-width:600px) {
+  .footer { padding-top: 55px; padding-bottom: 30px; }
+  .footer h4 { font-size: 15px; }
+  .footer p, .footer a, .footer li { font-size: 12px; }
+}

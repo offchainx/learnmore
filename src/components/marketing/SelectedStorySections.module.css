@@ -1,0 +1,47 @@
+.section { position: relative; background: #fffaf1; color: #071a36; scroll-margin-top: 24px; }
+.desktopArt { position: relative; width: 100%; }
+.fullArt { display: block; width: 100%; height: auto; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.artLink { position: absolute; display: block; border-radius: 999px; }
+.subjectArtLink { left: 38.2%; top: 84.6%; width: 23.7%; height: 8.2%; }
+.parentArtLink { left: 4%; top: 80.2%; width: 24.8%; height: 9.2%; }
+.artLink:focus-visible { outline: 4px solid #f6a500; outline-offset: 5px; }
+.mobileArt { display: none; }
+
+@media (max-width: 767px) {
+  .desktopArt { display: none; }
+  .mobileArt { display: block; padding: 57px 24px 62px; background: #fffaf1; }
+  .kicker { position: relative; display: table; margin: 0 0 29px; font-size: 16px; letter-spacing: .04em; transform: rotate(-2deg); }
+  .kicker::after { content: ''; position: absolute; left: -4px; right: -7px; height: 4px; bottom: -7px; background: #efb824; border-radius: 100%; transform: rotate(-2deg); }
+  .title { margin: 0; font-family: var(--font-marketing-editorial), serif; font-size: clamp(26px, 7vw, 34px) !important; font-weight: 700; line-height: 1.34; letter-spacing: -.06em; }
+  .lead { margin: 18px 0 0; font-size: 15px; line-height: 1.8; color: #3c4d68; }
+  .years { display: flex; gap: 9px; margin: 22px 0 23px; }
+  .years span { padding: 6px 15px; border-radius: 30px; background: #edf1f7; color: #273c5b; font-size: 14px; }
+  .subjectGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .subjectCard { min-width: 0; overflow: hidden; border-radius: 13px; border: 1px solid #e9e3d7; background: #fff; box-shadow: 0 7px 18px #293b5610; text-align: center; }
+  .subjectPhoto { aspect-ratio: 350 / 276; background-image: url('/images/landing-r4/subjects-cards.png'); background-size: 453% auto; background-repeat: no-repeat; }
+  .subjectPhoto0 { background-position: 5% 54%; }
+  .subjectPhoto1 { background-position: 36% 54%; }
+  .subjectPhoto2 { background-position: 65% 54%; }
+  .subjectPhoto3 { background-position: 95% 54%; }
+  .subjectCard h3 { margin: 10px 0 1px; font-family: var(--font-marketing-editorial), serif; font-size: 23px; font-weight: 700; }
+  .subjectCard p { min-height: 37px; margin: 0 5px 13px; font-size: 11px; line-height: 1.5; color: #435473; }
+  .mobileCta { display: flex; width: fit-content; min-height: 52px; align-items: center; justify-content: center; gap: 15px; margin: 26px auto 0; padding: 11px 27px; border-radius: 999px; background: #1261f5; color: #fff; font-size: 15px; font-weight: 600; text-align: center; }
+  .mobileCta:hover { background: #0750d7; color: #fff; }
+  .mobileCta:focus-visible { outline: 3px solid #f6a500; outline-offset: 4px; }
+  .note { margin: 11px 0 0; text-align: center; color: #57657a; font-size: 11px; line-height: 1.6; }
+  .parentMobile { padding-bottom: 0; }
+  .parentQuestions { display: grid; gap: 9px; margin: 24px 0 0; padding: 0; list-style: none; color: #344760; font-size: 14px; line-height: 1.7; }
+  .parentQuestions li { padding-left: 15px; border-left: 3px solid #9fbce9; }
+  .parentPromise { margin: 25px 0 0; padding-top: 18px; border-top: 1px solid #b3c3d6; font-size: 17px; font-weight: 600; line-height: 1.7; }
+  .parentMobile .mobileCta { margin: 23px 0 26px; }
+  .parentPhoto { height: clamp(270px, 92vw, 450px); margin: 0 -24px; background-image: url('/images/landing-r4/parents-beside.png'); background-size: 205% auto; background-position: right center; background-repeat: no-repeat; }
+}
+
+@media (max-width: 350px) {
+  .mobileArt { padding-left: 19px; padding-right: 19px; }
+  .title { font-size: 26px !important; }
+  .parentMobile .title { font-size: 29px !important; }
+  .subjectCard p { font-size: 10px; }
+  .parentPhoto { margin-left: -19px; margin-right: -19px; }
+}

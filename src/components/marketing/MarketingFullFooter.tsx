@@ -1,5 +1,8 @@
 import Link from 'next/link'
-import { BookOpen, Mail, Share2 } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import Image from 'next/image'
+import styles from './MarketingFullFooter.module.css'
+import { BrandWordmark } from './BrandWordmark'
 import {
   getMarketingBrandDescription,
   getMarketingFooterRights,
@@ -24,40 +27,34 @@ interface MarketingFullFooterProps {
 }
 
 export function MarketingFullFooter({
-  locale = 'en',
+  locale = 'zh',
   labels = {
-    product: 'Product',
-    resources: 'Resources',
-    contact: 'Contact',
-    features: 'How it works',
-    pricing: 'Pricing',
-    stories: 'Updates',
-    blog: 'Updates',
-    guides: 'Study guides',
-    care: 'Student care',
+    product: '产品',
+    resources: '学习资源',
+    contact: '联系',
+    features: '怎样学习',
+    pricing: '价格方案',
+    stories: '产品动态',
+    blog: '产品动态',
+    guides: '学习指南',
+    care: '学生支持',
   },
 }: MarketingFullFooterProps) {
   const legalLabels = getMarketingLegalLabels(locale)
 
   return (
-    <footer className="bg-[#020617] border-t border-slate-900 pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8">
+    <footer className={`${styles.footer} bg-[#020617] border-t border-slate-900 pt-20 pb-10`}>
+      <div className={`${styles.inner} max-w-7xl mx-auto px-4 sm:px-6 desktop:px-8`}>
         <div className="mb-16 grid grid-cols-2 gap-8 tablet:grid-cols-4 desktop:grid-cols-5">
           <div className="col-span-2 desktop:col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">{marketingSiteConfig.brandName}</span>
+              <Image src="/images/landing-r2/learnbank-logo.jpeg" alt="" width={34} height={34} className="rounded-lg" />
+              <span className="text-xl font-semibold text-white"><BrandWordmark /></span>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
               {getMarketingBrandDescription(locale)}
             </p>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-                <Share2 className="w-4 h-4" />
-              </div>
-            </div>
+
           </div>
 
           <div>

@@ -1,5 +1,7 @@
 # Learn More Platform
 
+> Learnbank 官网本轮改版的唯一需求与决策入口：[Landing Page 主文档](docs/landing-page-ssot.md)。本次选定视觉、免费种子用户招募、候选文案、待答问题和迭代进度均在该文档维护。以下平台说明包含历史 Web App 内容，不代表当前官网首发范围。
+
 A comprehensive online education platform for middle school students.
 
 ## Tech Stack

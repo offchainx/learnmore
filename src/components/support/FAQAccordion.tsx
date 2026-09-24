@@ -40,7 +40,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: 'How can I share product feedback?',
-    answer: 'Please email help@learnbank.net. We will use feedback to improve the beta, but cannot promise an individual reply or feature timeline.'
+    answer: 'Please email help@learnbank.ai. We will use feedback to improve the beta, but cannot promise an individual reply or feature timeline.'
   },
   {
     question: 'Does Learnbank guarantee grades or exam outcomes?',

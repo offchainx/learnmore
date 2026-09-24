@@ -15,7 +15,7 @@ export default function ContactPage() {
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Contact Us</h1>
           <p className="text-slate-400 max-w-2xl mx-auto">
-            Questions about Learnbank or the iOS / Android beta? Our team is here to help.
+            Questions about Learnbank.ai or the iOS / Android beta? Our team is here to help.
           </p>
         </div>
 

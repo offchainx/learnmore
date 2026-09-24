@@ -17,8 +17,8 @@ import Script from 'next/script'
 import { getBrowserWarningSuppressorScript } from '@/lib/suppress-warnings'
 
 export const metadata: Metadata = {
-  title: 'Learnbank - 移动学习 App 内测',
-  description: 'Learnbank 正在进行 iOS 与 Android 移动学习 App 内测，首批聚焦数学、科学、历史和地理。',
+  title: 'Learnbank.ai - 移动学习 App 内测',
+  description: 'Learnbank.ai 正在进行 iOS 与 Android 移动学习 App 内测，首批聚焦数学、科学、历史和地理。',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://learnbank.ai'),
   icons: {
     icon: [
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'Learnbank',
-    title: 'Learnbank - 移动学习 App 内测',
+    siteName: 'Learnbank.ai',
+    title: 'Learnbank.ai - 移动学习 App 内测',
     description: 'iOS 与 Android 内测，首批聚焦数学、科学、历史和地理。',
     images: ['/images/brand/learnbank-og.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Learnbank - 移动学习 App 内测',
+    title: 'Learnbank.ai - 移动学习 App 内测',
     description: 'iOS 与 Android 内测，首批聚焦数学、科学、历史和地理。',
     images: ['/images/brand/learnbank-og.png'],
   },

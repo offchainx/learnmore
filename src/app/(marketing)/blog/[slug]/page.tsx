@@ -6,8 +6,8 @@ type Params = Promise<{ slug: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   await params;
   return {
-    title: 'Learnbank Updates',
-    description: 'Verified Learnbank product updates and beta previews.',
+    title: 'Learnbank.ai Updates',
+    description: 'Verified Learnbank.ai product updates and beta previews.',
   };
 }
 

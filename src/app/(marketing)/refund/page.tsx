@@ -5,7 +5,7 @@ import { marketingSiteConfig } from '@/lib/marketing/site-shell'
 
 export const metadata: Metadata = {
   title: 'Refund Information',
-  description: 'Refund information for Learnbank in-app subscriptions.',
+  description: 'Refund information for Learnbank.ai in-app subscriptions.',
 }
 
 export default function RefundPage() {
@@ -17,7 +17,7 @@ export default function RefundPage() {
         <div className="mt-8 space-y-5 text-slate-300">
           <section className="rounded-3xl border border-slate-800 bg-slate-900/40 p-7">
             <h2 className="text-xl font-semibold text-white">In-app subscriptions</h2>
-            <p className="mt-3 leading-relaxed">Learnbank does not collect payments on this website. When Pro subscriptions are available, purchases and subscription management happen in the Learnbank mobile app through Apple App Store or Google Play.</p>
+            <p className="mt-3 leading-relaxed">Learnbank.ai does not collect payments on this website. When Pro subscriptions are available, purchases and subscription management happen in the Learnbank.ai mobile app through Apple App Store or Google Play.</p>
           </section>
           <section className="rounded-3xl border border-slate-800 bg-slate-900/40 p-7">
             <h2 className="text-xl font-semibold text-white">Refund requests</h2>

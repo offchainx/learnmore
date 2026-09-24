@@ -1,0 +1,1 @@
+Precise ImageGen edit of subjects-cards.png: change only the English SCIENCE book spine in the science card photo to Chinese 科学 or blank. Preserve all other composition, copy, four cards, button, colors, proportions and lighting. No new English.
