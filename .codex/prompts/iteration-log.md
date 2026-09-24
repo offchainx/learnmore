@@ -166,4 +166,6 @@
 
 | 2026-09-24 | Learnbank.ai 官网预览部署准备 | 将 localhost:3100 当前 landing page 完整发布前先制作 Vercel 预览 | 已整理当前官网页面与素材到独立分支，ESLint、Next.js 生产构建和 TypeScript 通过；待 Vercel 预览及页面核验 | 复用现有 GitHub 与 Vercel 项目绑定，确认预览和生产均有报名环境变量 | pnpm 本机依赖目录校验中断标准命令，使用现有 node_modules 直接完成检查 | - | 推送预览分支，核验页面和报名表单后再考虑生产发布 |
 
+| 2026-09-24 | Learnbank.ai 预览手机导航修正 | 预览检查发现官网手机页叠加旧 Web App 的 Learnbank Pro 顶栏 | 官网三页手机端隐藏旧顶栏，仅保留 Learnbank.ai 导航；App 登录页原顶栏保持可见；lint、生产构建和 390px 浏览器检查通过 | 使用官网壳选择器定向隐藏旧顶栏，保留现有顶部留白抵消逻辑 | 初次同时去掉根布局 padding 导致官网导航上移，已撤销此部分 | - | 推送预览分支并核对 Vercel 新构建，然后发布正式域名 |
+
 ## 约束

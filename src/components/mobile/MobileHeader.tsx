@@ -10,7 +10,7 @@ export function MobileHeader() {
   if (pathname === '/' || pathname === '/pricing' || pathname === '/subjects') return null
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 tablet:hidden bg-background/95 backdrop-blur-sm border-b border-border pt-safe-top">
+    <header data-app-mobile-header className="fixed top-0 left-0 right-0 z-40 tablet:hidden bg-background/95 backdrop-blur-sm border-b border-border pt-safe-top">
       <div className="flex items-center justify-between h-14 px-4">
         {/* Logo */}
         <Link href="/" prefetch className="flex items-center gap-2">

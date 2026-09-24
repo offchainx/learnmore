@@ -616,3 +616,11 @@ html:not(.dark)
     flex-wrap: wrap;
   }
 }
+
+/* 新版官网自带手机导航；顶部留白由 landing-r2-shell 的负边距抵消。 */
+@media (max-width: 767px) {
+  body:has(.landing-r2-shell) [data-app-mobile-header] {
+    display: none;
+  }
+
+}
