@@ -170,6 +170,6 @@
 
 | 2026-09-24 | Learnbank 官网 iOS 滚动修复 | 手机访问 learnbank.ai 无法向下滑动 | 修正 WebKit 规则对官网 body 的固定定位与隐藏溢出；WebKit 手机尺寸验证首页、科目、价格页可滚动 | 定位到旧 Pages Router 的 #__next 滚动容器规则与 App Router 不匹配 | 真实 iPhone 仍需上线后由用户复核触摸体验 | 官网在 WebKit 下恢复文档滚动，不影响其他 App 路由 | 预览与正式部署后核对页面 |
 
-| 2026-10-01 | Learnbank.ai 六项官网精修 | 首屏手机三版、4 秒自动轮播、共用灵动岛 iPhone、响应式家长场景、页脚与 Cookie 对比度 | ESLint、TypeScript、生产构建；浏览器轮播暂停/恢复、微课判题与 320–3840px 响应式验收通过，部署待复核 | CSS 外框保留界面文字，家长照片去文字后用 HTML 排版 | 本地开发字体解析失败，webpack 暴露旧全局 CSS module 规则；移到 globals 保持视觉，生产构建通过 | 不改字体/英文/暗色，不改 App/数据库 | Preview 复核后更新正式域名 |
+| 2026-10-01 | Learnbank.ai 六项官网精修 | 首屏手机三版、4 秒自动轮播、共用灵动岛 iPhone、响应式家长场景、页脚与 Cookie 对比度 | ESLint、TypeScript、生产构建；轮播暂停/恢复、微课判题与 320–3840px 验收通过；Preview 与 Production Ready，learnbank.ai 已复核 | CSS 外框保留界面文字，家长照片去文字后用 HTML 排版 | 本地开发字体解析失败，webpack 暴露旧全局 CSS module 规则；移到 globals 保持视觉，生产构建通过 | 不改字体/英文/暗色，不改 App 业务/数据库 | 最新实机截图与真实 iPhone 触摸复核仍单列待办 |
 
 ## 约束
