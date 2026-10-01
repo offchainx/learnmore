@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import styles from './SelectedStorySections.module.css'
+import { handwriting } from './typography'
 
 const subjects = [
   { name: '数学', description: '把思路一步步理清' },
@@ -49,32 +50,19 @@ export function SubjectsStorySection() {
 
 export function ParentsStorySection() {
   return (
-      <section id="for-parents" className={`${styles.section} ${styles.parentSection}`} aria-label="家长真实困扰">
-        <div className={styles.desktopArt}>
-          <h2 className={styles.srOnly}>陪在旁边，却不知道该怎么帮。</h2>
-          <Image
-            src="/images/landing-r4/parents-beside.png"
-            alt="家长坐在孩子身旁，看他写作业；文案讲述家长不知道孩子究竟卡在哪一步的困扰。"
-            width={1586}
-            height={992}
-            sizes="100vw"
-            className={styles.fullArt}
-          />
-          <a className={`${styles.artLink} ${styles.parentArtLink}`} href="#beta" aria-label="为孩子申请内测" />
-        </div>
-
-        <div className={`${styles.mobileArt} ${styles.parentMobile}`}>
-          <p className={styles.kicker}>给关心孩子学习的你</p>
-          <h2 className={styles.title}>陪在旁边，<br />却不知道该怎么帮。</h2>
-          <p className={styles.lead}>不是不关心，是不知道孩子究竟卡在哪一步。</p>
-          <ul className={styles.parentQuestions}>
+      <section id="for-parents" className={`${styles.section} ${styles.responsiveParents}`} aria-label="家长真实困扰">
+        <div className={styles.parentCopy}>
+          <p className={`${styles.parentKicker} ${handwriting.className}`}>给关心孩子学习的你</p>
+          <h2>陪在旁边，<br />却不知道该怎么帮。</h2>
+          <p className={styles.parentLead}>不是不关心，是不知道孩子究竟卡在哪一步。</p>
+          <ul className={styles.parentConcerns}>
             <li>问学会了吗，只得到一句差不多。</li>
             <li>想帮一把，却不知道从哪一题开始。</li>
           </ul>
-          <p className={styles.parentPromise}>让学过的、练过的，留下看得懂的线索。</p>
-          <a className={styles.mobileCta} href="#beta">为孩子申请内测 <ArrowRight size={20} aria-hidden="true" /></a>
-          <div className={styles.parentPhoto} role="img" aria-label="家长陪孩子在书桌前学习的情境照片" />
+          <p className={styles.parentSummary}>让学过的、练过的，留下看得懂的线索。</p>
+          <a className={styles.parentCta} href="#beta">为孩子申请内测 <ArrowRight size={20} aria-hidden="true" /></a>
         </div>
+        <div className={styles.cleanParentPhoto}><Image src="/images/landing-r5/parent-study-photo.png" alt="家长坐在孩子身旁，陪他在书桌前学习的情境照片" fill sizes="(max-width: 767px) 100vw, 54vw" /></div>
       </section>
   )
 }

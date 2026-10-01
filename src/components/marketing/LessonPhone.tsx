@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, Check, X, RotateCcw } from 'lucide-react'
 import s from './LessonPhone.module.css'
+import { IPhoneFrame } from './IPhoneFrame'
 
 export const lessonModes = [
   { title: '热身', description: '从一个熟悉的情境开始' },
@@ -54,7 +55,7 @@ export function LessonPhone({ mode, onModeChange }: { mode: number; onModeChange
     change((mode + 1) % lessonModes.length)
   }
   const label = (isChoice || isMatch) ? !checked ? '检查' : !correct ? '再试一次' : '继续' : visible < chunks.length ? '继续 ⌄' : mode === 8 ? '再体验一次' : '下一步'
-  return <div className={s.phone} aria-label="手机微课体验">
+  return <IPhoneFrame className={s.device} screenClassName={s.phone} label="手机微课体验">
     <div className={s.toolbar}>
       <button type="button" aria-label="重新开始微课" onClick={() => change(0)}><RotateCcw size={19} /></button>
       <button type="button" aria-label="上一个微课模式" disabled={mode === 0} onClick={() => change(mode - 1)}><ChevronLeft size={22} /></button>
@@ -75,5 +76,5 @@ export function LessonPhone({ mode, onModeChange }: { mode: number; onModeChange
     </div>
     <div className={s.bottom}><button className={s.cta} type="button" disabled={isChoice ? answer === null : isMatch ? Object.keys(matches).length < pairs.length : false} onClick={advance}>{label}</button></div>
     <div className={s.context}><Asset name="context-book" size={25} /><span>数学 · 初三 · 二次函数 · 第 <b>{mode+1}/9</b> 小节</span></div>
-  </div>
+  </IPhoneFrame>
 }

@@ -78,13 +78,14 @@ export function CookieConsent() {
           className="fixed bottom-0 left-0 right-0 z-[100] px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] tablet:px-6 tablet:pb-6"
           role="region"
           aria-label={t.policy}
+          data-cookie-banner
         >
-          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-700 bg-slate-900/95 px-4 py-3 shadow-2xl backdrop-blur-md">
-            <p className="min-w-[12rem] flex-1 text-xs leading-snug text-slate-200">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-[#ded6c7] bg-[#fffaf0] px-4 py-3 shadow-xl">
+            <p className="min-w-[12rem] flex-1 text-xs leading-snug text-[#23344b]">
               {t.text}{' '}
               <Link
                 href="/privacy"
-                className="text-blue-300 underline underline-offset-2 hover:text-blue-200"
+                className="text-[#24599c] underline underline-offset-2 hover:text-[#16467e]"
               >
                 {t.policy}
               </Link>
@@ -92,7 +93,7 @@ export function CookieConsent() {
             <div className="flex shrink-0 items-center gap-2">
               <button
                 onClick={() => dismiss('declined')}
-                className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-200 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg px-3 py-2 text-xs font-semibold text-[#23344b] transition-colors hover:bg-[#eee5d5]"
               >
                 {t.decline}
               </button>

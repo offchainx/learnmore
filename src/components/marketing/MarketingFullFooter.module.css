@@ -1,4 +1,8 @@
 .footer { color: #e4ebf5; background: #0b1931 !important; }
+.footer * { color: #e4ebf5 !important; }
+.footer [class*='aiBadge'] { background: #243b5e; }
+.footer [class*='border-t'] { border-color: #3b4a63; }
+.footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .footer a:focus-visible { outline: 3px solid #86aafa; outline-offset: 5px; }
 @media(min-width:2200px) {
   .inner { max-width: 2600px; }

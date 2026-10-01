@@ -72,9 +72,6 @@
   .slidePicker { gap: 14px; }
   .pickerLabel { display: none; }
 }
-@media (max-width: 767px) {
-  :global(.landing-r2-shell) { margin-top: calc(-3.5rem - env(safe-area-inset-top)); }
-}
 @media (max-width: 1100px) {
   .header { padding-top: env(safe-area-inset-top); }
   .headerInner { height: 72px; padding: 0 20px; gap: 12px; }
@@ -142,7 +139,6 @@
 .aiBadge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 5px; border-radius: 6px; background: #e9effb; color: #24599c; font-size: .6em; letter-spacing: 0; line-height: 1.35; font-weight: 600; }
 .navLabel { position: relative; display: inline-block; }
 .pendingBadge { position: absolute; top: -16px; right: -22px; padding: 2px 4px; border-radius: 4px; color: #806126; background: #f6eacb; font-size: 9px; line-height: 1.25; font-weight: 500; white-space: nowrap; }
-:global(.landing-r2-shell) h2, :global(.landing-r2-shell) h3 { font-family: var(--font-marketing-editorial), 'Songti SC', serif; font-weight: 600; letter-spacing: -.015em; line-height: 1.45; }
 .pricingMain { max-width: 1060px; margin: auto; padding: 70px 24px 90px; color: #14253d; }
 .pricingIntro { max-width: 680px; margin-bottom: 42px; }
 .pricingMain h1 { font-size: clamp(32px, 4vw, 52px); font-weight: 600; line-height: 1.4; margin-bottom: 20px; }
@@ -198,3 +194,12 @@
 @media(max-width:767px) {
   .title { font-size: clamp(27px, 6.9vw, 39px) !important; }
 }
+
+/* The screen stays as the original UI; only the device is rendered around it. */
+.appPreview { width: 285px; right: 3%; bottom: -166px; transform: none; }
+.appPreview .heroPhone { width: 100%; }
+.chapterScreen { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.chapterScreen img { position: absolute; top: -7.5%; left: 0; width: 100%; height: auto; }
+@media(min-width:1700px) { .appPreview { width: 340px; right: 3%; bottom: -145px; } }
+@media(min-width:2200px) { .appPreview { width: clamp(400px,13vw,500px); right: 3%; bottom: -125px; } }
+@media(max-width:1100px) { .appPreview { display: none; } }

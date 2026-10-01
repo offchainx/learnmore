@@ -45,3 +45,37 @@
   .subjectCard p { font-size: 10px; }
   .parentPhoto { margin-left: -19px; margin-right: -19px; }
 }
+.responsiveParents { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.05fr); min-height: 700px; }
+.parentCopy { align-self: center; padding: 64px 9% 64px 12%; }
+.parentKicker { display: table; position: relative; font-size: 20px; line-height: 1.7; margin: 0 0 35px; }
+.parentKicker::after { content: ''; position: absolute; left: -3px; right: -5px; bottom: -6px; height: 3px; background: #edbd36; border-radius: 50%; transform: rotate(-2deg); }
+.parentCopy h2 { font-size: clamp(32px,3.45vw,60px); margin: 0 0 22px; }
+.parentLead { font-size: 16px; color: #3c4d68; line-height: 1.85; margin: 0; }
+.parentConcerns { display: grid; gap: 15px; padding: 0; margin: 30px 0; list-style: none; color: #344760; font-size: 15px; line-height: 1.8; }
+.parentConcerns li { padding-left: 17px; border-left: 3px solid #b8ccee; }
+.parentSummary { padding-top: 23px; border-top: 1px solid #c1cbda; font-size: 19px; line-height: 1.8; margin: 0 0 26px; }
+.parentCta { display: inline-flex; align-items: center; gap: 22px; min-height: 56px; padding: 14px 28px; border-radius: 99px; background: #1261f5; color: #fff; font-size: 16px; font-weight: 600; }
+.parentCta:hover { background: #074bca; color: #fff; }
+.parentCta:focus-visible { outline: 3px solid #b58514; outline-offset: 5px; }
+.cleanParentPhoto { position: relative; min-height: 100%; }
+.cleanParentPhoto img { object-fit: cover; object-position: 72% center; }
+@media(max-width:1000px) { .parentCopy { padding: 48px 8%; } .parentCopy h2 { font-size: 32px; } .parentKicker { font-size: 17px; } }
+@media(max-width:767px) {
+  .responsiveParents { grid-template-columns: 1fr; min-height: 0; }
+  .parentCopy { padding: 55px 24px 40px; }
+  .parentCopy h2 { font-size: clamp(27px,7vw,34px); }
+  .parentLead,.parentConcerns { font-size: 14px; }
+  .parentSummary { font-size: 17px; }
+  .parentCta { font-size: 15px; }
+  .cleanParentPhoto { min-height: 0; aspect-ratio: 4 / 3; }
+  .cleanParentPhoto img { object-position: 75% center; }
+}
+@media(min-width:2200px) {
+  .responsiveParents { min-height: 1120px; }
+  .parentCopy { padding-block: 90px; }
+  .parentCopy h2 { font-size: clamp(66px,3vw,96px); }
+  .parentKicker { font-size: 30px; }
+  .parentLead,.parentConcerns { font-size: 27px; }
+  .parentSummary { font-size: 32px; }
+  .parentCta { font-size: 25px; padding: 23px 38px; }
+}

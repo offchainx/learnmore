@@ -206,3 +206,14 @@
   .journey h2, .loop h2 { font-size: clamp(27px, 7.2vw, 32px) !important; }
   .journey .featureCopy h3 { font-size: clamp(24px, 6.6vw, 31px) !important; }
 }
+.staticFeature .featurePhone { width: 100%; }
+.framedScreenshot { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #f6f8fc; }
+.framedScreenshot img { display: block; width: 100%; height: auto; }
+/* Keep the three original screenshots at one scale and one device size. */
+.framedScreenshot[data-image='practice'] img { margin-top: -15%; }
+.framedScreenshot[data-image='ask'] img { margin-top: -14%; }
+/* Preserve the whole dashboard width and omit the historic entitlement panel. */
+.framedScreenshot[data-image='analyse'] { display: flex; flex-direction: column; }
+.analyseContent { aspect-ratio: 854 / 1390; overflow: hidden; flex-shrink: 0; }
+.analyseNavigation { position: relative; aspect-ratio: 854 / 145; overflow: hidden; margin-top: auto; flex-shrink: 0; }
+.analyseNavigation img { position: absolute; bottom: 0; }

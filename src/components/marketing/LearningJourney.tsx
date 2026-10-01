@@ -7,6 +7,7 @@ import { handwriting } from './typography'
 import styles from './LearningJourney.module.css'
 import { LessonPhone, lessonModes } from './LessonPhone'
 import { AccumulationCards } from './AccumulationCards'
+import { IPhoneFrame } from './IPhoneFrame'
 
 const features = [
   { name: '练习', tab: 'Practice', image: 'practice', Icon: PencilLine, title: '换一道题，看看会不会用。', body: '看懂解析，还需要独立做一次。用练习检验理解，找到真正卡住的那一步。', carry: '留下的积累：答题与错题记录，为后续复习提供线索。', example: '换成 y = −2x²：这次开口方向是什么？' },
@@ -53,7 +54,7 @@ export function LearningJourney() {
           </div>
         </div>
           <figure className={styles.staticFeature}>
-            <div className={styles.staticCrop} data-image={feature.image}><Image key={feature.image} src={`/images/landing-r3/${feature.image}-reference.png`} alt={`${feature.name}功能界面示例`} width={854} height={1844} sizes="(max-width: 767px) 85vw, 290px" /></div>
+            <IPhoneFrame className={styles.featurePhone} label={`${feature.name}功能界面示例`}><div className={styles.framedScreenshot} data-image={feature.image}><div className={feature.image === 'analyse' ? styles.analyseContent : undefined}><Image key={feature.image} src={`/images/landing-r3/${feature.image}-reference.png`} alt={`${feature.name}功能界面设计示例`} width={854} height={1844} sizes="(min-width: 2200px) 450px, 290px" /></div>{feature.image === 'analyse' && <div className={styles.analyseNavigation} aria-hidden="true"><Image src="/images/landing-r3/analyse-reference.png" alt="" width={854} height={1844} sizes="(min-width: 2200px) 450px, 290px" /></div>}</div></IPhoneFrame>
             <figcaption>示例数据</figcaption>
           </figure>
         </div>

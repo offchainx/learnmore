@@ -7,6 +7,7 @@ import { BrandWordmark } from './BrandWordmark'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowLeft, ArrowRight, BookOpen, ChevronRight, FlaskConical, Globe2, Landmark, Menu, Pause, Play, X } from 'lucide-react'
 import styles from './LandingHero.module.css'
+import { IPhoneFrame } from './IPhoneFrame'
 
 
 const slides = [
@@ -87,37 +88,35 @@ export function LandingHeader({ home = true }: { home?: boolean }) {
 
 export function LandingHero() {
   const [active, setActive] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [hovering, setHovering] = useState(false)
+  const [playing, setPlaying] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const [timerKey, setTimerKey] = useState(0)
   const touch = useRef<{ x: number; y: number } | null>(null)
   const slide = slides[active]
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setReducedMotion(preference.matches)
+    const update = () => { setReducedMotion(preference.matches); if (preference.matches) setPlaying(false) }
     update()
     preference.addEventListener('change', update)
     return () => preference.removeEventListener('change', update)
   }, [])
 
   useEffect(() => {
-    if (!playing || hovering || reducedMotion) return
+    if (!playing) return
     const interval = window.setInterval(() => {
       if (!document.hidden) setActive(current => (current + 1) % slides.length)
-    }, 8000)
+    }, 4000)
     return () => window.clearInterval(interval)
-  }, [playing, hovering, reducedMotion])
+  }, [playing, timerKey])
 
   const select = (index: number) => {
-    setPlaying(false)
+    setTimerKey(key => key + 1)
     setActive((index + slides.length) % slides.length)
   }
 
   return (
     <section className={styles.hero} aria-roledescription="轮播" aria-label="Learnbank.ai 学习故事" data-testid="landing-hero" data-slide={active + 1}
-      onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}
-      onFocusCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPlaying(false) }}
       onKeyDown={event => {
         if (event.altKey || event.ctrlKey || event.metaKey) return
         if (event.key === 'ArrowLeft') { event.preventDefault(); select(active - 1) }
@@ -157,7 +156,9 @@ export function LandingHero() {
         <p className={styles.photoNote}>{slide.note}</p>
         {active === 0 && (
           <figure className={styles.appPreview} aria-label="数学章节列表示例">
-            <Image src="/images/landing-r3-refinement/hero-chapters-phone.png" alt="Learnbank.ai 手机数学章节列表：学习概览、二次函数、圆与切线和一次函数，数据为示例" width={1024} height={1536} sizes="(min-width: 1700px) 400px, 340px" />
+            <IPhoneFrame className={styles.heroPhone} label="数学章节列表示例，示例数据">
+              <div className={styles.chapterScreen}><Image src="/images/landing-r2/app-design-reference.png" alt="数学章节界面设计示例，二次函数、圆与切线和一次函数" width={854} height={1844} sizes="(min-width: 2200px) 500px, 300px" /></div>
+            </IPhoneFrame>
           </figure>
         )}
       </div>
@@ -169,7 +170,7 @@ export function LandingHero() {
           <span className={styles.counter} aria-hidden="true">0{active + 1} <span>/ 03</span></span>
           <button aria-label="上一张" onClick={() => select(active - 1)}><ArrowLeft size={18} /></button>
           <button aria-label="下一张" onClick={() => select(active + 1)}><ArrowRight size={18} /></button>
-          {!reducedMotion && <button aria-label={playing ? '暂停自动轮播' : '播放自动轮播'} aria-pressed={playing} onClick={() => setPlaying(!playing)}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>}
+          <button aria-label={playing ? '暂停自动轮播' : '继续自动轮播'} aria-pressed={playing} onClick={() => { setPlaying(!playing); setTimerKey(key => key + 1) }}>{playing ? <Pause size={16} /> : <Play size={16} />}</button>
         </div>
       </div>
       <a href="#learning-loop" className={styles.scrollHint} aria-label="向下了解学习方式"><ArrowDown size={15} /> 往下，看看怎么学</a>

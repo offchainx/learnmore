@@ -630,3 +630,9 @@ html:not(.dark)
   }
 
 }
+
+/* Marketing shell rules belong in global CSS, rather than a pure CSS module. */
+.landing-r2-shell h2, .landing-r2-shell h3 { font-family: var(--font-marketing-editorial), 'Songti SC', serif; font-weight: 600; letter-spacing: -.015em; line-height: 1.45; }
+@media (max-width: 767px) {
+  .landing-r2-shell { margin-top: calc(-3.5rem - env(safe-area-inset-top)); }
+}
